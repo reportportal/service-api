@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:aop="http://www.springframework.org/schema/aop" xmlns:util="http://www.springframework.org/schema/util"
+	   xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:p="http://www.springframework.org/schema/p"
+	   xmlns:c="http://www.springframework.org/schema/c"
+	   xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd		
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!--<import resource="classpath:spring-properties-context.xml" />-->
+	<!--<import resource="classpath:spring-dao-context.xml" />-->
+
+	<context:component-scan base-package="com.epam.ta.reportportal.core.configs" />
+	<!-- Import general configs before initialization, and components scanning -->
+	<import resource="classpath:spring-additional-context.xml" />
+
+	<!--<import resource="classpath:spring-security-context.xml" />-->
+	<import resource="classpath:spring-widgets-context.xml" />
+
+
+	<!-- Component scan for REST-related stuff -->
+	<context:component-scan base-package="com.epam.ta.reportportal.ws" />
+
+	<!-- Component scan for core business logic -->
+	<!--<context:component-scan base-package="com.epam.ta.reportportal.core" />-->
+
+	<util:list id="messageConverters">
+		<ref bean="jsonConverter" />
+	</util:list>
+
+	<bean id="jacksonRequestValidator" class="com.epam.ta.reportportal.ws.validation.JaskonRequiredPropertiesValidator" />
+
+
+	<!-- Configure the multipart resolver -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- one of the properties available; the maximum file size in bytes -->
+		<!-- 15 MB -->
+		<property name="maxUploadSize" value="15728640" />
+	</bean>
+
+	<bean class="com.epam.ta.reportportal.database.search.CriteriaMapFactory">
+		<constructor-arg name="basePackage"
+						 value="com.epam.ta.reportportal.database.entity" />
+	</bean>
+
+	<bean id="contentTypeResolver" class="com.epam.reportportal.commons.TikaContentTypeResolver" />
+
+	<bean id="thumbnailatorImpl" class="com.epam.reportportal.commons.ThumbnailatorImpl" />
+
+	<bean id="widgetRQCustomValidator"
+		  class="com.epam.ta.reportportal.ws.validation.WidgetRQCustomValidator" />
+
+	<bean id="validator"
+		  class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean" />
+
+
+	<bean id="analyzerService" class="com.epam.ta.reportportal.util.analyzer.IssuesAnalyzerService" />
+
+	<bean id="dashboardBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.DashboardBuilder
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="dashboardResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.DashboardResourceBuilder
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="launchBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="launchResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.LaunchResourceBuilder
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="logBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.LogBuilder
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="logResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.LogResourceBuilder
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="projectBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.ProjectBuilder
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="testItemBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="testItemResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.TestItemResourceBuilder
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="userBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.UserBuilder
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="userCreationBidBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.UserCreationBidBuilder
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="userResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.UserResourceBuilder
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="projectResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.ProjectResourceBuilder
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="userFilterBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="userFilterResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.UserFilterResourceBuilder
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="widgetBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="widgetResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.WidgetResourceBuilder
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="favoriteResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.FavoriteResourceBuilder
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="activityBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="activityResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.ActivityResourceBuilder</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="failReferenceResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.FailReferenceResourceBuilder</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="preferenceResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.PreferenceResourceBuilder</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="projectInfoResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.ProjectInfoResourceBuilder</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="externalSystemBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.ExternalSystemBuilder</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="externalSystemResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.ExternalSystemResourceBuilder</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="restorePasswordBidBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.RestorePasswordBidBuilder</value>
+		</constructor-arg>
+	</bean>
+
+
+	<bean id="serverSettingsBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.ServerSettingsBuilder</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="serverSettingsResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
+		<constructor-arg name="clazz">
+			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.ServerSettingsResourceBuilder</value>
+		</constructor-arg>
+	</bean>
+
+	<!--<bean class="com.epam.ta.reportportal.aop.logging.ActivityLoggingAspect" factory-method="aspectOf"/>-->
+	<!--<bean class="com.epam.ta.reportportal.aop.logging.ProjectActivitiesAspect" factory-method="aspectOf"/>-->
+	<!--<bean class="com.epam.ta.reportportal.aop.logging.ExternalSystemActivitiesAspect" factory-method="aspectOf"/>-->
+	<!--<bean class="com.epam.ta.reportportal.aop.dbops.LaunchRelatedAspect" factory-method="aspectOf" />-->
+</beans>

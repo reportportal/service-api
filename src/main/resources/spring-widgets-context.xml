@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<util:constant id="oldLineChart"
+		static-field="com.epam.ta.reportportal.core.widget.content.GadgetTypes.OLD_LINE_CHART" />
+
+	<util:constant id="investigatedTrendChart"
+		static-field="com.epam.ta.reportportal.core.widget.content.GadgetTypes.INVESTIGATED_TREND" />
+
+	<util:constant id="statisticTrendChart"
+		static-field="com.epam.ta.reportportal.core.widget.content.GadgetTypes.STATISTIC_TREND" />
+
+	<util:constant id="launchStatistics"
+		static-field="com.epam.ta.reportportal.core.widget.content.GadgetTypes.LAUNCH_STATISTICS" />
+
+	<util:constant id="overallStatistics"
+		static-field="com.epam.ta.reportportal.core.widget.content.GadgetTypes.OVERALL_STATISTICS" />
+
+	<util:constant id="casesTrendChart"
+		static-field="com.epam.ta.reportportal.core.widget.content.GadgetTypes.CASES_TREND" />
+
+	<util:constant id="notPassedTestsChart"
+		static-field="com.epam.ta.reportportal.core.widget.content.GadgetTypes.NOT_PASSED" />
+
+	<util:constant id="uniqueBugTable"
+		static-field="com.epam.ta.reportportal.core.widget.content.GadgetTypes.UNIQUE_BUG_TABLE" />
+
+	<util:constant id="bugTrendChart"
+		static-field="com.epam.ta.reportportal.core.widget.content.GadgetTypes.BUG_TREND" />
+
+	<util:constant id="activity"
+		static-field="com.epam.ta.reportportal.core.widget.content.GadgetTypes.ACTIVITY" />
+
+	<util:constant id="launchesComparisonChart"
+		static-field="com.epam.ta.reportportal.core.widget.content.GadgetTypes.LAUNCHES_COMPARISON_CHART" />
+
+	<util:constant id="launchesDurationChart"
+		static-field="com.epam.ta.reportportal.core.widget.content.GadgetTypes.LAUNCHES_DURATION_CHART" />
+
+	<util:constant id="launchesTable"
+		static-field="com.epam.ta.reportportal.core.widget.content.GadgetTypes.LAUNCHES_TABLE" />
+
+	<util:constant id="mostFailedTestCases"
+		static-field="com.epam.ta.reportportal.core.widget.content.GadgetTypes.MOST_FAILED_TEST_CASES" />
+
+	<util:map map-class="java.util.HashMap" id="contentLoaders">
+		<entry key-ref="oldLineChart" value-ref="LineChartContentLoader" />
+		<entry key-ref="investigatedTrendChart" value-ref="ChartInvestigatedContentLoader" />
+		<entry key-ref="statisticTrendChart" value-ref="LineChartContentLoader" />
+		<entry key-ref="launchStatistics" value-ref="LaunchStatisticsChartContentLoader" />
+		<entry key-ref="overallStatistics" value-ref="OverallStatisticsContentLoader" />
+		<entry key-ref="casesTrendChart" value-ref="CasesTrendContentLoader" />
+		<entry key-ref="notPassedTestsChart" value-ref="NotPassedTestsContentLoader" />
+		<entry key-ref="uniqueBugTable" value-ref="UniqueBugContentLoader" />
+		<entry key-ref="bugTrendChart" value-ref="BugTrendChartContentLoader" />
+		<entry key-ref="activity" value-ref="ActivityContentLoader" />
+		<entry key-ref="launchesComparisonChart" value-ref="LaunchesComparisonChart" />
+		<entry key-ref="launchesDurationChart" value-ref="LaunchesDurationContentLoader" />
+		<entry key-ref="launchesTable" value-ref="LaunchesTableContentLoader" />
+	</util:map>
+
+	<!--TODO consider to avoid this declaration-->
+	<util:map map-class="java.util.HashMap" id="buildFilterStrategy">
+		<entry key-ref="oldLineChart" value-ref="OldBuildFilterStrategy"/>
+		<entry key-ref="investigatedTrendChart" value-ref="OldBuildFilterStrategy"/>
+		<entry key-ref="statisticTrendChart" value-ref="OldBuildFilterStrategy"/>
+		<entry key-ref="launchStatistics" value-ref="OldBuildFilterStrategy"/>
+		<entry key-ref="overallStatistics" value-ref="OldBuildFilterStrategy"/>
+		<entry key-ref="casesTrendChart" value-ref="OldBuildFilterStrategy"/>
+		<entry key-ref="notPassedTestsChart" value-ref="OldBuildFilterStrategy"/>
+		<entry key-ref="uniqueBugTable" value-ref="UniqueBugFilterStrategy"/>
+		<entry key-ref="bugTrendChart" value-ref="OldBuildFilterStrategy"/>
+		<entry key-ref="activity" value-ref="ActivityFilterStrategy"/>
+		<entry key-ref="launchesComparisonChart" value-ref="CompareLaunchesFilterStrategy"/>
+		<entry key-ref="launchesDurationChart" value-ref="CompareLaunchesFilterStrategy"/>
+		<entry key-ref="launchesTable" value-ref="OldBuildFilterStrategy"/>
+		<!-- UNDER DEVELOPMENT SECTION -->
+		<entry key-ref="mostFailedTestCases" value-ref="MostFailedTestCasesFilterStrategy"/>		
+	</util:map>
+
+	<util:map id="groupingStrategy" map-class="java.util.HashMap">
+		<entry key-ref="oneMonth" value-ref="byDay" />
+		<entry key-ref="threeMonths" value-ref="byWeek" />
+		<entry key-ref="sixMonths" value-ref="byWeek" />
+	</util:map>
+	<util:constant id="byDay" static-field="com.epam.ta.reportportal.database.entity.project.info.ProjectInfoGroup.BY_DAY" />
+	<util:constant id="byWeek" static-field="com.epam.ta.reportportal.database.entity.project.info.ProjectInfoGroup.BY_WEEK" />
+
+	<util:constant id="oneMonth" static-field="com.epam.ta.reportportal.database.entity.project.info.InfoInterval.ONE_MONTH" />
+	<util:constant id="threeMonths" static-field="com.epam.ta.reportportal.database.entity.project.info.InfoInterval.THREE_MONTHS" />
+	<util:constant id="sixMonths" static-field="com.epam.ta.reportportal.database.entity.project.info.InfoInterval.SIX_MONTHS" />
+
+</beans>

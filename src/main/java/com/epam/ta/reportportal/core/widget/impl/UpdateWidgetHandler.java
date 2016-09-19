@@ -1,0 +1,220 @@
+/*
+ * Copyright 2016 EPAM Systems
+ * 
+ * 
+ * This file is part of EPAM Report Portal.
+ * https://github.com/epam/ReportPortal
+ * 
+ * Report Portal is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * Report Portal is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ */ 
+
+package com.epam.ta.reportportal.core.widget.impl;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.core.widget.content.GadgetTypes.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+
+import java.util.List;
+
+import com.epam.ta.reportportal.events.WidgetUpdatedEvent;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
+import com.epam.ta.reportportal.core.acl.AclUtils;
+import com.epam.ta.reportportal.core.acl.SharingService;
+import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
+import com.epam.ta.reportportal.database.dao.UserFilterRepository;
+import com.epam.ta.reportportal.database.dao.WidgetRepository;
+import com.epam.ta.reportportal.database.entity.filter.UserFilter;
+import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
+import com.epam.ta.reportportal.database.entity.widget.Widget;
+import com.epam.ta.reportportal.database.search.CriteriaMap;
+import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
+import com.epam.ta.reportportal.util.LazyReference;
+import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import com.google.common.collect.Lists;
+import org.springframework.util.SerializationUtils;
+
+/**
+ * Default implementation of {@link IUpdateWidgetHandler}
+ * 
+ * @author Aliaksei_Makayed
+ * 
+ */
+@Service
+public class UpdateWidgetHandler implements IUpdateWidgetHandler {
+
+	@Autowired
+	private WidgetRepository widgetRepository;
+
+	@Autowired
+	private UserFilterRepository filterRepository;
+
+	@Autowired
+	@Qualifier("widgetBuilder.reference")
+	private LazyReference<WidgetBuilder> widgetBuilder;
+
+	@Autowired
+	private CriteriaMapFactory criteriaMapFactory;
+
+	@Autowired
+	private SharingService sharingService;
+
+	@Autowired
+	private ApplicationEventPublisher eventPublisher;
+
+
+	@Override
+	public OperationCompletionRS updateWidget(String widgetId, WidgetRQ updateRQ, String userName, String projectName) {
+		Widget widget = widgetRepository.findOne(widgetId);
+		Widget beforeUpdate = org.apache.commons.lang3.SerializationUtils.clone(widget);
+		expect(widget, notNull()).verify(WIDGET_NOT_FOUND, widgetId);
+
+		List<Widget> widgetList = widgetRepository.findByProjectAndUser(projectName, userName);
+		if (null != updateRQ.getName() && !widget.getName().equals(updateRQ.getName())) {
+			WidgetUtils.checkUniqueName(updateRQ.getName(), widgetList);
+		}
+
+		AclUtils.validateOwner(widget.getAcl(), userName, widget.getName());
+		expect(widget.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
+
+		UserFilter newFilter = null;
+		if (null != updateRQ.getApplyingFilter()) {
+			String filterId = updateRQ.getApplyingFilter();
+			newFilter = filterRepository.findOneLoadACL(userName, filterId, projectName);
+
+			// skip filter validation for Activity and Most Failed Test Cases
+			// widgets
+			if (!(null != updateRQ.getContentParameters() && findByName(updateRQ.getContentParameters().getGadget()).isPresent()
+					&& (findByName(updateRQ.getContentParameters().getGadget()).get() == ACTIVITY)
+					&& (findByName(updateRQ.getContentParameters().getGadget()).get() == MOST_FAILED_TEST_CASES))) {
+				expect(newFilter, notNull()).verify(USER_FILTER_NOT_FOUND, updateRQ.getApplyingFilter(), userName);
+				expect(newFilter.isLink(), equalTo(false)).verify(UNABLE_TO_CREATE_WIDGET, "Widget cannot be based on a link");
+			}
+		}
+		Widget newWidget = widgetBuilder.get().addWidgetRQ(updateRQ).build();
+
+		validateWidgetFields(newWidget, newFilter, widget, userName, projectName);
+
+		updateWidget(widget, newWidget, newFilter);
+
+		shareIfRequired(updateRQ.getShare(), widget, userName, projectName, newFilter);
+
+		widgetRepository.save(widget);
+
+		eventPublisher.publishEvent(new WidgetUpdatedEvent(beforeUpdate, updateRQ, userName));
+		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
+	}
+
+	private void shareIfRequired(Boolean isShare, Widget widget, String userName, String projectName, UserFilter newfilter) {
+		if (isShare != null) {
+			if (null != newfilter) {
+				AclUtils.isPossibleToRead(newfilter.getAcl(), userName, projectName);
+			}
+			sharingService.modifySharing(Lists.newArrayList(widget), userName, projectName, isShare);
+		}
+	}
+
+	private void updateWidget(Widget oldWidget, Widget newValues, UserFilter filter) {
+		if (newValues.getContentOptions() != null) {
+			oldWidget.setContentOptions(newValues.getContentOptions());
+		}
+		if (newValues.getName() != null) {
+			oldWidget.setName(newValues.getName());
+		}
+		if (filter != null) {
+			oldWidget.setApplyingFilterId(filter.getId());
+		}
+	}
+
+	/**
+	 * Validate is content fields known to server and if them agreed with
+	 * filter(new filter or current filter).
+	 * 
+	 * @param newWidget
+	 * @param newFilter
+	 * @param widget
+	 * @param userName
+	 * @param projectName
+	 */
+	void validateWidgetFields(Widget newWidget, UserFilter newFilter, Widget widget, String userName, String projectName) {
+		// if new filter, new content options are absent - validations is
+		// redundant
+		ContentOptions contentOptions = newWidget.getContentOptions();
+		if (newFilter == null && null == contentOptions) {
+			return;
+		}
+		Class<?> target = null;
+
+		if ((null == contentOptions)
+				|| (findByName(contentOptions.getGadgetType()).isPresent() && (findByName(contentOptions.getGadgetType()).get() != ACTIVITY)
+						&& (findByName(contentOptions.getGadgetType()).get() != MOST_FAILED_TEST_CASES))) {
+			if (newFilter == null) {
+				UserFilter currentFilter = filterRepository.findOneLoadACLAndType(userName, widget.getApplyingFilterId(), projectName);
+				expect(currentFilter, notNull()).verify(BAD_UPDATE_WIDGET_REQUEST,
+						formattedSupplier(
+								"Unable update widget content parameters. Please specify new filter for widget. Current filter with id {} removed.",
+								widget.getApplyingFilterId()));
+
+				target = currentFilter.getFilter().getTarget();
+			} else {
+				target = newFilter.getFilter().getTarget();
+			}
+		}
+
+		// check is new content fields agreed with new or current filter
+		if (null != contentOptions) {
+			if (TestItem.class.equals(target)) {
+				removeLaunchSpecificFields(contentOptions);
+			}
+
+			WidgetUtils.validateWidgetDataType(contentOptions.getType(), BAD_UPDATE_WIDGET_REQUEST);
+			WidgetUtils.validateGadgetType(contentOptions.getGadgetType(), BAD_UPDATE_WIDGET_REQUEST);
+
+			if (findByName(contentOptions.getGadgetType()).get() == ACTIVITY) {
+				target = Activity.class;
+			}
+
+			if (findByName(contentOptions.getGadgetType()).get() == MOST_FAILED_TEST_CASES) {
+				target = TestItem.class;
+			}
+
+			CriteriaMap<?> criteriaMap = criteriaMapFactory.getCriteriaMap(target);
+			if (null != contentOptions.getContentFields()) {
+				WidgetUtils.validateFields(contentOptions.getContentFields(), criteriaMap, BAD_UPDATE_WIDGET_REQUEST);
+			}
+			if (null != contentOptions.getMetadataFields()) {
+				WidgetUtils.validateFields(contentOptions.getMetadataFields(), criteriaMap, BAD_UPDATE_WIDGET_REQUEST);
+			}
+		}
+	}
+
+	void removeLaunchSpecificFields(ContentOptions contentOptions) {
+		if (null != contentOptions.getMetadataFields() && contentOptions.getMetadataFields().contains(WidgetUtils.NUMBER))
+			contentOptions.getMetadataFields().remove(WidgetUtils.NUMBER);
+		if (null != contentOptions.getContentFields() && contentOptions.getContentFields().contains(WidgetUtils.NUMBER))
+			contentOptions.getContentFields().remove(WidgetUtils.NUMBER);
+		if (null != contentOptions.getContentFields() && contentOptions.getContentFields().contains(WidgetUtils.USER))
+			contentOptions.getContentFields().remove(WidgetUtils.USER);
+	}
+}

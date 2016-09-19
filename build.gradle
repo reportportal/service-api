@@ -1,0 +1,194 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://maven.eveoh.nl/content/repositories/releases"
+        }
+    }
+    dependencies {
+      classpath "io.spring.gradle:dependency-management-plugin:0.6.0.RELEASE"
+      classpath("org.springframework.boot:spring-boot-gradle-plugin:1.4.0.RELEASE")
+      classpath 'com.github.jengelman.gradle.plugins:gradle-processes:0.3.0'
+      classpath 'com.bmuschko:gradle-docker-plugin:3.0.1'
+    }
+}
+
+
+plugins {
+    id 'net.researchgate.release' version '2.4.1'
+    id "com.jfrog.bintray" version "1.7"
+}
+
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+apply plugin: "spring-boot"
+apply plugin: "io.spring.dependency-management"
+apply plugin: 'jacoco'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+description = 'EPAM Report portal. WebService and UI'
+
+
+project.ext {
+    limits = [
+            'instruction': 68,
+            'branch'     : 41,
+            'line'       : 67,
+            'complexity' : 49,
+            'method'     : 73,
+            'class'      : 87
+    ]
+}
+
+repositories {
+    mavenCentral()
+    maven { url  "http://dl.bintray.com/epam/reportportal" }
+
+    maven { url 'https://repo.spring.io/libs-milestone' }
+
+    maven { url "http://jasperreports.sourceforge.net/maven2" }
+    maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Camden.RC1"
+
+    }
+}
+
+dependencies {
+    compile 'com.epam.reportportal:commons-model:2.6.0'
+    compile 'com.epam.reportportal:commons-dao:2.6.0'
+    compile 'com.epam.reportportal:commons-rules:2.6.0'
+    compile 'com.epam.reportportal:commons:2.6.0'
+
+    compile 'org.reflections:reflections:0.9.9-RC1'
+    compile 'org.jasypt:jasypt:1.9.2'
+
+
+    compile 'commons-fileupload:commons-fileupload:1.3.1'
+    compile 'commons-validator:commons-validator:1.4.1'
+    compile 'org.slf4j:slf4j-api:1.7.21'
+    compile 'org.apache.commons:commons-lang3:3.2.1'
+    compile 'org.mongodb:mongo-java-driver:3.0.1'
+    compile "ch.qos.logback:logback-classic:${logback}"
+    compile 'joda-time:joda-time:2.3'
+    compile('org.hibernate:hibernate-validator:5.0.2.Final') {
+        exclude(module: 'validation-api')
+    }
+    compile 'net.coobird:thumbnailator:0.4.7'
+    compile 'com.sun.mail:javax.mail:1.5.4'
+    compile 'org.apache.velocity:velocity:1.7'
+
+    compile 'com.rallydev.rest:rally-rest-api:2.1.1'
+    compile 'commons-codec:commons-codec:1.6'
+
+    compile 'org.springframework.cloud:spring-cloud-config-client'
+    compile("org.springframework.retry:spring-retry")
+
+    compile 'org.springframework.cloud:spring-cloud-starter-eureka'
+    compile 'org.springframework.cloud:spring-cloud-starter-security'
+
+
+    compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework.boot:spring-boot-starter-actuator'
+    compile 'org.springframework.boot:spring-boot-starter-redis'
+    compile 'org.springframework.cloud:spring-cloud-starter-oauth2'
+
+
+    compile 'org.apache.poi:poi:3.14'
+    compile 'net.sf.jasperreports:jasperreports:6.3.0'
+
+    compile 'javax.inject:javax.inject:1'
+
+    compile 'io.springfox:springfox-swagger2:2.3.0'
+    compile 'io.springfox:springfox-swagger-ui:2.3.0'
+
+
+    testCompile 'org.hamcrest:hamcrest-all:1.3'
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-all:2.0.2-beta'
+
+    testCompile 'com.jayway.jsonpath:json-path:1.2.0'
+    testCompile 'com.github.fakemongo:fongo:2.0.1'
+
+    testCompile 'org.apache.commons:commons-math3:3.5'
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+
+}
+
+
+task staticResources(type: Copy) {
+
+    from("${project.projectDir}/../../public/common", {
+        include '*.jks'
+        into 'certificate'
+//        rename {'reportportal-client-v2.jks'}
+    })
+}
+
+
+processResources.dependsOn staticResources
+build.dependsOn jacocoTestReport
+test {
+    jacocoTestReport {
+        reports {
+            xml.enabled true
+        }
+        afterEvaluate {
+            classDirectories = files(classDirectories.files.collect {
+                fileTree(dir: it, exclude: ['**/entity/**', '**/aop/**', '**/jasper/**', '**/configs/**'])
+            })
+        }
+        doLast {
+            def report = file("${reportsDir}/jacoco/test/jacocoTestReport.xml")
+            logger.lifecycle("Checking coverage results: ${report}")
+
+            def parser = new XmlParser()
+            parser.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            parser.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false)
+            def results = parser.parse(report)
+
+            def percentage = {
+                def covered = it.'@covered' as Double
+                def missed = it.'@missed' as Double
+                ((covered / (covered + missed)) * 100).round(2)
+            }
+
+            def counters = results.counter
+            def metrics = [:]
+            metrics << [
+                    'instruction': percentage(counters.find { it.'@type'.equals('INSTRUCTION') }),
+                    'branch'     : percentage(counters.find { it.'@type'.equals('BRANCH') }),
+                    'line'       : percentage(counters.find { it.'@type'.equals('LINE') }),
+                    'complexity' : percentage(counters.find { it.'@type'.equals('COMPLEXITY') }),
+                    'method'     : percentage(counters.find { it.'@type'.equals('METHOD') }),
+                    'class'      : percentage(counters.find { it.'@type'.equals('CLASS') })
+            ]
+
+
+            def failures = []
+            metrics.each {
+                def limit = limits[it.key]
+                if (it.value < limit) {
+                    failures.add("- ${it.key} coverage rate is: ${it.value}%, minimum is ${limit}%")
+                }
+            }
+
+            if (failures) {
+                logger.quiet("------------------ Code Coverage Failed -----------------------")
+                failures.each {
+                    logger.quiet(it)
+                }
+                logger.quiet("---------------------------------------------------------------")
+                throw new GradleException("Code coverage failed")
+            } else {
+                logger.quiet("Passed Code Coverage Checks")
+            }
+        }
+    }
+}

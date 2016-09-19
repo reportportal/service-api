@@ -1,0 +1,145 @@
+/*
+ * Copyright 2016 EPAM Systems
+ * 
+ * 
+ * This file is part of EPAM Report Portal.
+ * https://github.com/epam/ReportPortal
+ * 
+ * Report Portal is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * Report Portal is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ */ 
+
+package com.epam.ta.reportportal.ws.controller.impl;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+
+import java.security.Principal;
+import java.util.List;
+import java.util.Map;
+
+import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.ws.validation.WidgetRQCustomValidator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+import com.epam.ta.reportportal.core.widget.ICreateWidgetHandler;
+import com.epam.ta.reportportal.core.widget.IGetWidgetHandler;
+import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
+import com.epam.ta.reportportal.ws.controller.IWidgetController;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.SharedEntity;
+import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
+
+import io.swagger.annotations.ApiOperation;
+import springfox.documentation.annotations.ApiIgnore;
+
+/**
+ * Controller implementation for
+ * {@link com.epam.ta.reportportal.database.entity.widget.Widget} entity
+ * 
+ * @author Aliaksei_Makayed
+ * 
+ */
+@Controller
+@RequestMapping("/{projectName}/widget")
+@PreAuthorize(ASSIGNED_TO_PROJECT)
+public class WidgetController implements IWidgetController {
+
+	@Autowired
+	private IGetWidgetHandler getHandler;
+
+	@Autowired
+	private ICreateWidgetHandler createHandler;
+
+	@Autowired
+	private IUpdateWidgetHandler updateHandler;
+
+	@Autowired
+	private WidgetRQCustomValidator validator;
+
+	@InitBinder
+	@PreAuthorize("permitAll")
+	protected void initBinder(WebDataBinder binder) {
+		binder.setValidator(validator);
+	}
+
+	@Override
+	@RequestMapping(method = RequestMethod.POST)
+	@ResponseStatus(HttpStatus.CREATED)
+	@ResponseBody
+	@ApiOperation("Create new widget")
+	public EntryCreatedRS createWidget(@PathVariable String projectName,
+			@RequestBody @Validated(WidgetRQCustomValidator.class) WidgetRQ createWidgetRQ, Principal principal) {
+		return createHandler.createWidget(createWidgetRQ, EntityUtils.normalizeProjectName(projectName), principal.getName());
+	}
+
+	@Override
+	@RequestMapping(value = "/{widgetId}", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	@ApiOperation("Get widget by ID")
+	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable String widgetId, Principal principal) {
+		return getHandler.getWidget(widgetId, principal.getName(), EntityUtils.normalizeProjectName(projectName));
+	}
+
+	@Override
+	@RequestMapping(value = "/{widgetId}", method = RequestMethod.PUT)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	@ApiOperation("Update specified widget")
+	public OperationCompletionRS updateWidget(@PathVariable String projectName, @PathVariable String widgetId,
+			@RequestBody @Validated WidgetRQ updateRQ, Principal principal) {
+		return updateHandler.updateWidget(widgetId, updateRQ, principal.getName(), EntityUtils.normalizeProjectName(projectName));
+	}
+
+	@Override
+	@RequestMapping(value = "/names/shared", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	@Deprecated
+	@ApiIgnore
+	public Map<String, SharedEntity> getSharedWidgets(Principal principal, @PathVariable String projectName) {
+		return getHandler.getSharedWidgetNames(principal.getName(), EntityUtils.normalizeProjectName(projectName));
+	}
+
+	@Override
+	@RequestMapping(value = "/shared", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	@ApiOperation("Load shared widgets")
+	public List<WidgetResource> getSharedWidgetsList(Principal principal, @PathVariable String projectName) {
+		return getHandler.getSharedWidgetsList(principal.getName(), EntityUtils.normalizeProjectName(projectName));
+	}
+
+	@Override
+	@RequestMapping(value = "/names/all", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	@ApiOperation("Load all widget names which belong to a user")
+	public List<String> getWidgetNames(@PathVariable String projectName, Principal principal) {
+		return getHandler.getWidgetNames(EntityUtils.normalizeProjectName(projectName), principal.getName());
+	}
+}

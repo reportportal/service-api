@@ -1,0 +1,156 @@
+/*
+ * Copyright 2016 EPAM Systems
+ * 
+ * 
+ * This file is part of EPAM Report Portal.
+ * https://github.com/epam/ReportPortal
+ * 
+ * Report Portal is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * Report Portal is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ */ 
+
+package com.epam.ta.reportportal.core.item;
+
+import static com.epam.ta.reportportal.commons.Preconditions.IN_PROGRESS;
+import static com.epam.ta.reportportal.commons.Preconditions.hasProjectRoles;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.LEAD;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_IS_NOT_FINISHED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_IS_NOT_FINISHED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_NOT_FOUND;
+
+import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.Project.UserConfig;
+import com.epam.ta.reportportal.database.entity.Status;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.google.common.collect.Lists;
+
+/**
+ * Default implementation of {@link DeleteTestItemHandler}
+ * 
+ * @author Andrei Varabyeu
+ * @author Andrei_Ramanchuk
+ * 
+ */
+@Service
+class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
+
+	@Autowired
+	private TestItemRepository testItemRepository;
+
+	@Autowired
+	private StatisticsFacadeFactory statisticsFacadeFactory;
+
+	@Autowired
+	private LaunchRepository launchRepository;
+
+	@Autowired
+	private ProjectRepository projectRepository;
+
+	@Autowired
+	private UserRepository userRepository;
+
+	@Override
+	public OperationCompletionRS deleteTestItem(String itemId, String projectName, String username) {
+		Project project = projectRepository.findOne(projectName);
+		expect(project, notNull()).verify(ErrorType.PROJECT_NOT_FOUND, project);
+
+		User user = userRepository.findOne(username);
+		expect(user, notNull()).verify(ErrorType.USER_NOT_FOUND, username);
+
+		TestItem item = testItemRepository.findOne(itemId);
+		validate(itemId, item, projectName);
+		validateRoles(item, user, project);
+		try {
+			final Project project1 = projectRepository.findOne(launchRepository.findOne(item.getLaunchRef()).getProjectRef());
+			statisticsFacadeFactory.getStatisticsFacade(project1.getConfiguration().getStatisticsCalculationStrategy())
+					.deleteExecutionStatistics(item);
+
+			if (!item.getStatistics().getIssueCounter().isEmpty()) {
+				statisticsFacadeFactory.getStatisticsFacade(project1.getConfiguration().getStatisticsCalculationStrategy())
+						.deleteIssueStatistics(item);
+			}
+
+			testItemRepository.delete(item);
+
+			if (null != item.getParent()) {
+				TestItem parent = testItemRepository.findOne(item.getParent());
+				if (!testItemRepository.findAllDescendants(parent.getId()).isEmpty()) {
+					statisticsFacadeFactory.getStatisticsFacade(project1.getConfiguration().getStatisticsCalculationStrategy())
+							.updateParentStatusFromStatistics(parent);
+				} else {
+					parent.setHasChilds(false);
+					parent.setStatus(Status.RESETED);
+					testItemRepository.save(parent);
+				}
+			}
+
+			Launch launch = launchRepository.findOne(item.getLaunchRef());
+			/*
+			 * We do not have to update launch statistics in case launch is in
+			 * progress
+			 */
+			if (not(IN_PROGRESS).test(launch)) {
+				statisticsFacadeFactory.getStatisticsFacade(project1.getConfiguration().getStatisticsCalculationStrategy())
+						.updateLaunchFromStatistics(launch);
+			}
+		} catch (Exception e) {
+			throw new ReportPortalException("Error during deleting TestStep item", e);
+		}
+		return new OperationCompletionRS("Test Item with ID = '" + itemId + "' has been successfully deleted.");
+	}
+
+	private void validate(String testItemId, TestItem testItem, String projectName) {
+		expect(testItem, notNull()).verify(TEST_ITEM_NOT_FOUND, testItemId);
+		expect(testItem, not(IN_PROGRESS)).verify(TEST_ITEM_IS_NOT_FINISHED,
+				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getId()));
+		Launch parentLaunch = launchRepository.findOne(testItem.getLaunchRef());
+		expect(parentLaunch, not(IN_PROGRESS)).verify(LAUNCH_IS_NOT_FINISHED,
+				formattedSupplier("Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state", testItem.getId(),
+						testItem.getLaunchRef()));
+		expect(projectName, equalTo(parentLaunch.getProjectRef())).verify(FORBIDDEN_OPERATION,
+				formattedSupplier("Deleting testItem '{}' is not under specified project '{}'", testItem.getId(), projectName));
+	}
+
+	private void validateRoles(TestItem testItem, User user, Project project) {
+		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
+		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
+			/*
+			 * Only LEAD and PROJECT_MANAGER roles could delete testItems
+			 */
+			UserConfig userConfig = project.getUsers().get(user.getId());
+			expect(userConfig, hasProjectRoles(Lists.newArrayList(PROJECT_MANAGER, LEAD))).verify(ACCESS_DENIED);
+		}
+	}
+}

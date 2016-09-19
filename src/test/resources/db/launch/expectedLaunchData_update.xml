@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+	<Launch idLaunch = "0" name = "launch0 updated" description = "launch 0 updated" startTime = "2013-02-19 16:02:33.1" endTime = "2013-02-19 16:10:33.1" status = "IN_PROGRESS" idUserProject="1" /> 
+	<Launch idLaunch = "1" name = "launch1" description = "launch 1" startTime = "2013-02-19 16:03:33.0" endTime = "2013-02-19 16:20:33.0" status = "FAILED" idUserProject="1"/> 
+</dataset>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+	<Test idTest = "0" idTestSuite = "0" name = "updated_name" description = "updated_description" startTime = "2012-12-12 0:0:0.0" endTime = "2012-12-12 0:0:0.0" status = "IN_PROGRESS" />
+	<Test idTest = "1" idTestSuite = "1" name = "test1" description = "test 1" startTime = "2013-02-19 16:03:33.0" endTime = "2013-02-19 16:20:33.0" status = "IN_PROGRESS" />
+</dataset>

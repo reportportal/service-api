@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+	<User idUser = "0" login = "user0_updated" password = "1q2w3e_updated" email = "testmail_updated@test.test" idRole = "0" linkToPhoto = ""/>
+	<User idUser = "1" login = "user1" password = "1q2w3e" email = "testmail1@test.test" idRole = "1" linkToPhoto = ""/>
+</dataset>

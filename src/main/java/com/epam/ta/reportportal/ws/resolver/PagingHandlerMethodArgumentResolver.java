@@ -36,13 +36,13 @@ import org.springframework.web.method.support.ModelAndViewContainer;
  * @author Andrei Varabyeu
  * 
  */
-public class PageableHandlerMethodArgumentResolver extends org.springframework.data.web.PageableHandlerMethodArgumentResolver {
+public class PagingHandlerMethodArgumentResolver extends org.springframework.data.web.PageableHandlerMethodArgumentResolver {
 
-	public PageableHandlerMethodArgumentResolver() {
+	public PagingHandlerMethodArgumentResolver() {
 		super();
 	}
 
-	public PageableHandlerMethodArgumentResolver(SortHandlerMethodArgumentResolver sortResolver) {
+	public PagingHandlerMethodArgumentResolver(SortHandlerMethodArgumentResolver sortResolver) {
 		super(sortResolver);
 	}
 

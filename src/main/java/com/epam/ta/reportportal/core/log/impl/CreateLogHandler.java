@@ -44,6 +44,8 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 
+import javax.annotation.Nonnull;
+
 /**
  * Create log handler. Save log and binary data related to it
  * 
@@ -87,12 +89,12 @@ public class CreateLogHandler implements ICreateLogHandler {
 		TestItem testItem = testItemRepository.findOne(createLogRQ.getTestItemId());
 		validate(testItem, createLogRQ);
 
-		String binaryDataId = null;
+		BinaryContent binaryContent = null;
 		if (null != binaryData) {
-			binaryDataId = dataStorage.saveData(binaryData, filename);
+			String binaryDataId	= dataStorage.saveData(binaryData, filename);
+			binaryContent = new BinaryContent(binaryDataId, null, binaryData.getContentType());
 		}
 
-		BinaryContent binaryContent = new BinaryContent(binaryDataId, null, binaryData.getContentType());
 		Log log = logBuilder.get().addSaveLogRQ(createLogRQ).addBinaryContent(binaryContent).addTestItem(testItem).build();
 
 		try {

@@ -54,7 +54,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.events.handler.ExternalSystemActivityHandler;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -193,6 +195,9 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 			break;
 		case LAST_LAUNCH:
 			result = getLastLaunchStatistics(projectId);
+			break;
+		default:
+			//do nothing
 		}
 		return result;
 	}

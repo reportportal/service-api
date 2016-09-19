@@ -25,6 +25,7 @@ apply plugin: "spring-boot"
 apply plugin: "io.spring.dependency-management"
 apply plugin: 'jacoco'
 
+apply from: 'build-quality.gradle'
 apply from: 'build-docker.gradle'
 
 sourceCompatibility = 1.8
@@ -105,6 +106,7 @@ dependencies {
     compile 'net.sf.jasperreports:jasperreports:6.3.0'
 
     compile 'javax.inject:javax.inject:1'
+    compile 'com.google.code.findbugs:annotations:3.0.1'
 
     compile 'io.springfox:springfox-swagger2:2.3.0'
     compile 'io.springfox:springfox-swagger-ui:2.3.0'

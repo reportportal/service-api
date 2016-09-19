@@ -44,7 +44,7 @@ import com.epam.ta.reportportal.commons.exception.rest.RestExceptionHandler;
 import com.epam.ta.reportportal.ws.resolver.ActiveUserWebArgumentResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.JsonViewSupportFactoryBean;
-import com.epam.ta.reportportal.ws.resolver.PageableHandlerMethodArgumentResolver;
+import com.epam.ta.reportportal.ws.resolver.PagingHandlerMethodArgumentResolver;
 import com.epam.ta.reportportal.ws.resolver.SortArgumentResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,7 +117,7 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
         argumentResolvers.clear();
-        PageableHandlerMethodArgumentResolver pageableResolver = new PageableHandlerMethodArgumentResolver(
+        PagingHandlerMethodArgumentResolver pageableResolver = new PagingHandlerMethodArgumentResolver(
                 sortArgumentResolver());
         pageableResolver.setPrefix("page.");
         pageableResolver.setOneIndexedParameters(true);

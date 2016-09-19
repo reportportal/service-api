@@ -27,7 +27,7 @@ task prepareDockerfile(type: Copy) {
     /* copy dockerfile and replace version of JAR */
     from 'docker/Dockerfile-develop'
     into "${project.buildDir}/libs"
-    expand(version: project.property("version"))
+    expand(project.properties)
     rename ('Dockerfile-develop', 'Dockerfile')
 }
 

@@ -5,7 +5,7 @@ MAINTAINER Andrei Varabyeu <andrei_varabyeu@epam.com>
 RUN apk --no-cache add ttf-droid
 
 VOLUME /tmp
-ADD ws-${version}.jar app.jar
+ADD ${project.name}-${version}.jar app.jar
 
 RUN sh -c 'touch /app.jar'
 EXPOSE 8080

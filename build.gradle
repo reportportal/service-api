@@ -29,7 +29,7 @@ apply plugin: 'jacoco'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-description = 'EPAM Report portal. WebService and UI'
+description = 'EPAM Report portal. Main API Service'
 
 
 project.ext {

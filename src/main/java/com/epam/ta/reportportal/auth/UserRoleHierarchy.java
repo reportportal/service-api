@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -50,6 +51,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
  */
 public class UserRoleHierarchy implements RoleHierarchy {
 
+	/** Special additional role for other microservices */
+	public static final String ROLE_INTERNAL = "ROLE_INTERNAL";
+
 	private static final Logger logger = LoggerFactory.getLogger(UserRoleHierarchy.class);
 
 	private Map<GrantedAuthority, Set<GrantedAuthority>> authoritiesMap;
@@ -60,6 +64,12 @@ public class UserRoleHierarchy implements RoleHierarchy {
 			authoritiesMap.put(asAuthority(role), findReachableRoles(role));
 		}
 
+		/*
+		 * Specify authorities explicitly. It additionally has USER role to allow other services to pass login check
+		 */
+		GrantedAuthority internal = new SimpleGrantedAuthority(ROLE_INTERNAL);
+		authoritiesMap.put(internal, ImmutableSet.<GrantedAuthority>builder().add(internal)
+						.addAll(findReachableRoles(UserRole.USER)).build());
 	}
 
 	@Override

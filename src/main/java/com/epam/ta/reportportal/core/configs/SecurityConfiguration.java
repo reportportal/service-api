@@ -61,6 +61,7 @@ import org.springframework.security.web.access.expression.WebExpressionVoter;
 
 import java.util.List;
 
+
 /**
  * Spring's Security Configuration
  *
@@ -142,6 +143,8 @@ class SecurityConfiguration {
 
                             "/documentation.html")
                         .permitAll()
+                    /* set of special endpoints for another microservices from RP ecosystem */
+                    .antMatchers("/internal/**").hasRole("COMPONENT")
                     .antMatchers(
                             "/v2/**",
                             "/swagger-resources",

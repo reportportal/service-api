@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -54,6 +55,7 @@ public class ChartInvestigatedContentLoader extends StatisticBasedContentLoader 
 	@Autowired
 	private LaunchRepository launchRepository;
 
+	@SuppressFBWarnings("NP_NULL_PARAM_DEREF")
 	@Override
 	public Map<String, List<ChartObject>> loadContent(Filter filter, Sort sorting, int quantity, List<String> contentFields,
 			List<String> metaDataFields, Map<String, List<String>> options) {
@@ -99,7 +101,7 @@ public class ChartInvestigatedContentLoader extends StatisticBasedContentLoader 
 		double investigated = 0;
 		double toInvestigate = 0;
 		for (String key : init.getValues().keySet()) {
-			if (Arrays.asList(getIssueStatFields()).contains(key))
+			if (getIssueStatFields().contains(key))
 				investigated = investigated + Double.valueOf(init.getValues().get(key));
 			if (key.equalsIgnoreCase(getToInvestigateFieldName()))
 				toInvestigate = Double.valueOf(init.getValues().get(key));

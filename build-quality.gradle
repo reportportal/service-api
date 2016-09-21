@@ -1,0 +1,6 @@
+apply plugin: 'findbugs'
+
+findbugs {
+    sourceSets = [sourceSets.main]
+    reportLevel = "high"
+}

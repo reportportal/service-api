@@ -61,7 +61,4 @@ public class UniqueBugContentLoader implements IContentLoadingStrategy {
 		return uniqueBugDocumentHandler.getResult();
 	}
 
-	public String[] getMetaDataFields() {
-		return META_DATA_FIELDS;
-	}
 }

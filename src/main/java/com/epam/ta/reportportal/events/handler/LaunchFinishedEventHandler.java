@@ -218,6 +218,8 @@ public class LaunchFinishedEventHandler {
 			if (getSuccessRate(launch) > 0.5)
 				shouldBeSend = true;
 			break;
+		default:
+			//do nothing
 		}
 		return shouldBeSend;
 	}

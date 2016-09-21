@@ -25,6 +25,7 @@ apply plugin: "spring-boot"
 apply plugin: "io.spring.dependency-management"
 apply plugin: 'jacoco'
 
+apply from: 'build-quality.gradle'
 apply from: 'build-docker.gradle'
 
 sourceCompatibility = 1.8
@@ -97,7 +98,7 @@ dependencies {
 
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.boot:spring-boot-starter-actuator'
-    compile 'org.springframework.boot:spring-boot-starter-redis'
+    compile 'org.springframework.boot:spring-boot-starter-data-redis'
     compile 'org.springframework.cloud:spring-cloud-starter-oauth2'
 
 
@@ -105,6 +106,7 @@ dependencies {
     compile 'net.sf.jasperreports:jasperreports:6.3.0'
 
     compile 'javax.inject:javax.inject:1'
+    compile 'com.google.code.findbugs:annotations:3.0.1'
 
     compile 'io.springfox:springfox-swagger2:2.3.0'
     compile 'io.springfox:springfox-swagger-ui:2.3.0'
@@ -120,6 +122,12 @@ dependencies {
     testCompile 'org.apache.commons:commons-math3:3.5'
     testCompile 'org.springframework.boot:spring-boot-starter-test'
 
+}
+
+processResources {
+    filesMatching('**/bootstrap.yaml') {
+        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [version: project.property("version")])
+    }
 }
 
 

@@ -50,6 +50,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.epam.ta.reportportal.events.DefectTypeCreatedEvent;
+import com.google.common.base.Charsets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -147,7 +148,7 @@ public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandl
 	}
 
 	private static String shortUUID() {
-		long l = ByteBuffer.wrap(UUID.randomUUID().toString().getBytes()).getLong();
+		long l = ByteBuffer.wrap(UUID.randomUUID().toString().getBytes(Charsets.UTF_8)).getLong();
 		return Long.toString(l, Character.MAX_RADIX);
 	}
 }

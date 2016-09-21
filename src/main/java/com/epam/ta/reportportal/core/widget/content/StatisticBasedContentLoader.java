@@ -48,15 +48,15 @@ public class StatisticBasedContentLoader {
 
 	public static final String RESULT = "result";
 
-	private static final String[] STATZZ = { "statistics.executionCounter.passed", "statistics.executionCounter.failed",
-			"statistics.executionCounter.skipped" };
+	private static final List<String> STATZZ = Arrays.asList( "statistics.executionCounter.passed", "statistics.executionCounter.failed",
+			"statistics.executionCounter.skipped");
 	private static final String PASSED = "statistics.executionCounter.passed";
 	private static final String FAILED = "statistics.executionCounter.failed";
 	private static final String SKIPPED = "statistics.executionCounter.skipped";
 	private static final String TOTAL = "statistics.executionCounter.total";
 
-	private static final String[] BUGZZ = { "statistics.issueCounter.productBug.total", "statistics.issueCounter.automationBug.total",
-			"statistics.issueCounter.systemIssue.total", "statistics.issueCounter.noDefect.total" };
+	private static final List<String> BUGZZ = Arrays.asList( "statistics.issueCounter.productBug.total", "statistics.issueCounter.automationBug.total",
+			"statistics.issueCounter.systemIssue.total", "statistics.issueCounter.noDefect.total");
 	private static final String TO_INVESTIGATE = "statistics.issueCounter.toInvestigate.total";
 	private static final String PRODUCT_BUG = "statistics.issueCounter.productBug.total";
 	private static final String AUTOMATION_BUG = "statistics.issueCounter.automationBug.total";
@@ -76,11 +76,11 @@ public class StatisticBasedContentLoader {
 		return new String(chars);
 	}
 
-	public String[] getExecutionStatFields() {
+	public List<String> getExecutionStatFields() {
 		return STATZZ;
 	}
 
-	public String[] getIssueStatFields() {
+	public List<String> getIssueStatFields() {
 		return BUGZZ;
 	}
 

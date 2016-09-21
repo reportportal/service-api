@@ -2,6 +2,8 @@ FROM frolvlad/alpine-oraclejdk8:slim
 
 MAINTAINER Andrei Varabyeu <andrei_varabyeu@epam.com>
 
+RUN apk --no-cache add ttf-droid
+
 VOLUME /tmp
 ADD https://dl.bintray.com/reportportal/reportportal/com/epam/reportportal/${project.name}/${version}/${project.name}-${version}.jar /app.jar
 RUN sh -c 'touch /app.jar'

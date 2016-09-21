@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -53,6 +54,7 @@ public class LaunchStatisticsChartContentLoader extends StatisticBasedContentLoa
 	@Autowired
 	private LaunchRepository launchRepository;
 
+	@SuppressFBWarnings("NP_NULL_PARAM_DEREF")
 	@Override
 	public Map<String, List<ChartObject>> loadContent(Filter filter, Sort sorting, int quantity, List<String> contentFields,
 			List<String> metaDataFields, Map<String, List<String>> options) {

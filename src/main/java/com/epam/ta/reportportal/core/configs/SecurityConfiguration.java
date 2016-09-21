@@ -144,7 +144,7 @@ class SecurityConfiguration {
                             "/documentation.html")
                         .permitAll()
                     /* set of special endpoints for another microservices from RP ecosystem */
-                    .antMatchers("/internal/**").hasRole("COMPONENT")
+                    .antMatchers("/api-internal/**").hasRole("COMPONENT")
                     .antMatchers(
                             "/v2/**",
                             "/swagger-resources",

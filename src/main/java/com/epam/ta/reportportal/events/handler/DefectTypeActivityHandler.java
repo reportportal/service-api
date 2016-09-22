@@ -28,15 +28,12 @@ public class DefectTypeActivityHandler {
 	private static final String DELETE_DEFECT = "delete_defect";
 
 	private final ActivityRepository activityRepository;
-
 	private final Provider<ActivityBuilder> activityBuilder;
 
-	private final ProjectSettingsRepository projectSettingsRepository;
 
 	@Autowired
 	public DefectTypeActivityHandler(ProjectSettingsRepository projectSettingsRepository, ActivityRepository activityRepository,
 			Provider<ActivityBuilder> activityBuilder) {
-		this.projectSettingsRepository = projectSettingsRepository;
 		this.activityRepository = activityRepository;
 		this.activityBuilder = activityBuilder;
 	}
@@ -60,10 +57,10 @@ public class DefectTypeActivityHandler {
 
 	@EventListener
 	public void onDefectTypeDeleted(DefectTypeDeletedEvent event) {
-		ProjectSettings projectSettings = projectSettingsRepository.findOne(event.getProject().toLowerCase());
+		ProjectSettings projectSettings = event.getBefore();
 		projectSettings.getSubTypes().values().stream().flatMap(Collection::stream)
 				.filter(it -> it.getLocator().equalsIgnoreCase(event.getId())).findFirst().ifPresent(subType -> {
-			Activity activity = activityBuilder.get().addProjectRef(event.getProject().toLowerCase()).addObjectType(DEFECT_TYPE)
+			Activity activity = activityBuilder.get().addProjectRef(projectSettings.getName()).addObjectType(DEFECT_TYPE)
 					.addActionType(DELETE_DEFECT).addLoggedObjectRef(event.getId()).addUserRef(event.getUpdatedBy().toLowerCase())
 					.addObjectName(subType.getLongName()).build();
 			activityRepository.save(activity);

@@ -20,36 +20,37 @@
  */
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import com.dumbster.smtp.SimpleSmtpServer;
+import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.test.web.servlet.MvcResult;
-
-import com.epam.ta.reportportal.auth.AuthConstants;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.user.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.List;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author Dzmitry_Kavalets
  */
 public class UserControllerTest extends BaseMvcTest {
+
+	private static SimpleSmtpServer SMTP;
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -59,6 +60,16 @@ public class UserControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private ActivityRepository activityRepository;
+
+	@BeforeClass
+	public static void startSmtpServer() {
+		SMTP = SimpleSmtpServer.start(10025);
+	}
+
+	@AfterClass
+	public static void shutdownSmtpServer() {
+		SMTP.stop();
+	}
 
 	@Test
 	public void createUserByAdminPositive() throws Exception {
@@ -70,9 +81,8 @@ public class UserControllerTest extends BaseMvcTest {
 		rq.setAccountRole("USER");
 		rq.setProjectRole("MEMBER");
 		rq.setDefaultProject("proJect1");
-		this.mvcMock
-				.perform(
-						post("/user").principal(authentication()).contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
+		this.mvcMock.perform(
+				post("/user").principal(authentication()).contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
 				.andExpect(status().isCreated());
 		Assert.assertTrue(projectRepository.findOne("project1").getUsers().containsKey("testlogin"));
 	}

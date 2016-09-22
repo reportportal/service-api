@@ -24,6 +24,7 @@ import java.util.Properties;
 
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,6 +50,18 @@ public class EmailConfiguration {
 
 	@Autowired
 	private BasicTextEncryptor simpleEncryptor;
+
+	@Autowired
+	@Value("${rp.email.server}")
+	private String defaultEmailServer;
+
+	@Autowired
+	@Value("${rp.email.port}")
+	private Integer defaultEmailPort;
+
+	@Autowired
+	@Value("${rp.email.protocol}")
+	private String defaultEmailProtocol;
 
 	@Bean
 	@Scope(BeanDefinition.SCOPE_PROTOTYPE)
@@ -79,9 +92,9 @@ public class EmailConfiguration {
 
 			EmailService emailService = new EmailService(javaMailProperties);
 			emailService.setTemplateEngine(getVelocityTemplateEngine());
-			emailService.setHost("epmvd022.minsk.epam.com");
-			emailService.setPort(25);
-			emailService.setProtocol("smtp");
+			emailService.setHost(defaultEmailServer);
+			emailService.setPort(defaultEmailPort);
+			emailService.setProtocol(defaultEmailProtocol);
 			return emailService;
 		}
 	}

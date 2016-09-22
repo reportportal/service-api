@@ -36,21 +36,6 @@
  */
 package com.epam.ta.reportportal.core.project.settings.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.*;
-import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.*;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.stream.Collectors.toList;
-
-import java.util.List;
-
-import com.epam.ta.reportportal.events.DefectTypeDeletedEvent;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.project.settings.IDeleteProjectSettingsHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.*;
@@ -61,9 +46,23 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
+import com.epam.ta.reportportal.events.DefectTypeDeletedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Sets;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.*;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Initial realization of
@@ -112,6 +111,7 @@ public class DeleteProjectSettingsHandler implements IDeleteProjectSettingsHandl
 		/* Validate project settings existence */
 		ProjectSettings settings = settingsRepository.findOne(projectName);
 		expect(settings, notNull()).verify(PROJECT_SETTINGS_NOT_FOUND, projectName);
+		ProjectSettings settingsClone = org.apache.commons.lang3.SerializationUtils.clone(settings);
 
 		/* Validate target issue sub-type existence */
 		StatisticSubType type = settings.getByLocator(id);
@@ -174,7 +174,7 @@ public class DeleteProjectSettingsHandler implements IDeleteProjectSettingsHandl
 			throw new ReportPortalException("Error during project settings issue sub-type update saving.", e);
 		}
 
-		eventPublisher.publishEvent(new DefectTypeDeletedEvent(projectName, user, id));
+		eventPublisher.publishEvent(new DefectTypeDeletedEvent(id, settingsClone, user));
 		return new OperationCompletionRS("Issue sub-type delete operation completed successfully.");
 	}
 }

@@ -10,6 +10,6 @@
 
 ### Bugfixes
 
-* XXX
+* EPMRPP-20705 - No action for delete defect type in Project activity panel
 
 

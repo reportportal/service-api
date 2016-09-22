@@ -2922,8 +2922,8 @@
 		<property name="active" value="true"/>
 		<property name="serverEmailConfig">
 			<bean class="com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig">
-				<property name="host" value="epmvd022.minsk.epam.com"/>
-				<property name="port" value="25"/>
+				<property name="host" value="localhost"/>
+				<property name="port" value="10025"/>
 				<property name="protocol" value="smtp"/>
 				<property name="authEnabled" value="false"/>
 				<property name="debug" value="false"/>

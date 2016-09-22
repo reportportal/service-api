@@ -21,24 +21,17 @@
 
 package com.epam.ta.reportportal.auth;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
-
-import com.epam.ta.reportportal.database.entity.user.UserRole;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * UserRoleHierarchy processor. Actually, hierarchy is pretty simple: role in
@@ -52,7 +45,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 public class UserRoleHierarchy implements RoleHierarchy {
 
 	/** Special additional role for other microservices */
-	public static final String ROLE_INTERNAL = "ROLE_INTERNAL";
+	public static final String ROLE_COMPONENT = "ROLE_COMPONENT";
 
 	private static final Logger logger = LoggerFactory.getLogger(UserRoleHierarchy.class);
 
@@ -67,9 +60,8 @@ public class UserRoleHierarchy implements RoleHierarchy {
 		/*
 		 * Specify authorities explicitly. It additionally has USER role to allow other services to pass login check
 		 */
-		GrantedAuthority internal = new SimpleGrantedAuthority(ROLE_INTERNAL);
-		authoritiesMap.put(internal, ImmutableSet.<GrantedAuthority>builder().add(internal)
-						.addAll(findReachableRoles(UserRole.USER)).build());
+		GrantedAuthority component = new SimpleGrantedAuthority(ROLE_COMPONENT);
+		authoritiesMap.put(component, ImmutableSet.<GrantedAuthority>builder().add(component).build());
 	}
 
 	@Override

@@ -51,13 +51,6 @@ public class ProjectLeadPermissionTest extends BaseMvcTest {
 	private ObjectMapper objectMapper;
 
 	/**
-	 * All provided data is correct
-	 *
-	 * @throws JsonProcessingException
-	 * @throws Exception
-	 */
-
-	/**
 	 * Request to non existing project
 	 *
 	 * @throws JsonProcessingException
@@ -78,7 +71,6 @@ public class ProjectLeadPermissionTest extends BaseMvcTest {
 	 * @throws Exception
 	 */
 	@Test
-	@Ignore
 	public void userNotAssigned() throws Exception {
 		Authentication vasia = AuthConstants.newAuthentication("Vasia", AuthConstants.USER_PASSWORD, true,
 				new SimpleGrantedAuthority(UserRole.USER.name()));

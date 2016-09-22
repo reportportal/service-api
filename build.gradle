@@ -147,6 +147,8 @@ task wrapper(type: Wrapper) {
 processResources.dependsOn staticResources
 build.dependsOn jacocoTestReport
 test {
+    testLogging.showStandardStreams = true
+
     jacocoTestReport {
         reports {
             xml.enabled true

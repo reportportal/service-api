@@ -121,7 +121,7 @@ dependencies {
 
     testCompile 'org.apache.commons:commons-math3:3.5'
     testCompile 'org.springframework.boot:spring-boot-starter-test'
-    testCompile 'dumbster:dumbster:1.6'
+    testCompile 'com.bitmechanic:dumbster:1.9.0.2'
 
 }
 
@@ -148,7 +148,7 @@ task wrapper(type: Wrapper) {
 processResources.dependsOn staticResources
 build.dependsOn jacocoTestReport
 test {
-    testLogging.showStandardStreams = true
+//    testLogging.showStandardStreams = true
 
     jacocoTestReport {
         reports {

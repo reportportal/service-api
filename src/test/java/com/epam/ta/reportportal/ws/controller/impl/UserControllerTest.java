@@ -20,7 +20,9 @@
  */
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import com.dumbster.smtp.SimpleSmtpServer;
+import com.dumbster.smtp.ServerOptions;
+import com.dumbster.smtp.SmtpServer;
+import com.dumbster.smtp.SmtpServerFactory;
 import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
@@ -38,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.io.IOException;
 import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -50,7 +53,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 public class UserControllerTest extends BaseMvcTest {
 
-	private static SimpleSmtpServer SMTP;
+	private static SmtpServer SMTP;
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -62,8 +65,10 @@ public class UserControllerTest extends BaseMvcTest {
 	private ActivityRepository activityRepository;
 
 	@BeforeClass
-	public static void startSmtpServer() {
-		SMTP = SimpleSmtpServer.start(10025);
+	public static void startSmtpServer() throws IOException {
+		ServerOptions so = new ServerOptions();
+		so.port = 10025;
+		SMTP = SmtpServerFactory.startServer(so);
 	}
 
 	@AfterClass

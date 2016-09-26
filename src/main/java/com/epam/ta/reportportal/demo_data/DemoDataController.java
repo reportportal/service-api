@@ -11,7 +11,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 @ApiIgnore
 @RestController
-@RequestMapping("/demo_data/{project}")
+@RequestMapping("/demo/{project}")
 @PreAuthorize(ADMIN_ONLY)
 class DemoDataController {
 

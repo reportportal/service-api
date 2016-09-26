@@ -38,7 +38,7 @@ public class DemoDataControllerTest extends BaseMvcTest {
 		DemoDataRq rq = new DemoDataRq();
 		rq.setCreateDashboard(true);
 		rq.setLaunchesQuantity(1);
-		mvcMock.perform(post("/demo_data/project1").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+		mvcMock.perform(post("/demo/project1").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
 				.principal(authentication())).andExpect(status().is(200));
 		List<Launch> byName = launchRepository.findByName(rq.getLaunchName());
 		Assert.assertFalse(byName.isEmpty());

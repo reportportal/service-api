@@ -2,21 +2,18 @@ package com.epam.ta.reportportal.demo_data;
 
 import static com.epam.ta.reportportal.database.entity.sharing.AclPermissions.READ;
 import static com.epam.ta.reportportal.database.search.Condition.HAS;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.reflect.Type;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.database.dao.DashboardRepository;
@@ -31,26 +28,29 @@ import com.epam.ta.reportportal.database.entity.sharing.AclEntry;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 class DemoDashboardsService {
-	private static final String DEMO_WIDGETS = "demo_widgets.json";
 	private UserFilterRepository userFilterRepository;
 	private DashboardRepository dashboardRepository;
 	private WidgetRepository widgetRepository;
+	private ObjectMapper objectMapper;
+	@Value("classpath:demo/demo_widgets.json")
+	private Resource resource;
 
 	@Autowired
 	DemoDashboardsService(UserFilterRepository userFilterRepository, DashboardRepository dashboardRepository,
-			WidgetRepository widgetRepository) {
+			WidgetRepository widgetRepository, ObjectMapper objectMapper) {
 		this.userFilterRepository = userFilterRepository;
 		this.dashboardRepository = dashboardRepository;
 		this.widgetRepository = widgetRepository;
+		this.objectMapper = objectMapper;
 	}
 
 	Dashboard createDemoDashboard(DemoDataRq rq, String user, String project) {
-		final Dashboard dashboard = dashboardRepository.findOneByUserProject(user, project, rq.getDashboardName());
+		Dashboard dashboard = dashboardRepository.findOneByUserProject(user, project, rq.getDashboardName());
 		if (dashboard != null) {
 			throw new ReportPortalException(
 					"Dashboard with name " + rq.getDashboardName() + " already exists. You couldn't create the duplicate.");
@@ -58,31 +58,27 @@ class DemoDashboardsService {
 		String filterId = createDemoFilter(rq.getFilterName(), user, project);
 		Acl acl = acl(user, project);
 		try {
-			final URL resource = this.getClass().getClassLoader().getResource(DEMO_WIDGETS);
-			if (resource == null) {
-				throw new ReportPortalException("Unable to find demo_widgets.json");
-			}
-			try (InputStreamReader json = new InputStreamReader(new FileInputStream(resource.getPath()), UTF_8)) {
-				Type type = new TypeToken<List<Widget>>() {
-				}.getType();
-				List<Widget> widgets = ((List<Widget>) new Gson().fromJson(json, type)).stream().map(it -> {
-					it.setProjectName(project);
-					it.setApplyingFilterId(filterId);
-					it.setAcl(acl);
-					return it;
-				}).collect(toList());
-				List<Widget> save = widgetRepository.save(widgets);
-				for (Widget widget : save) {
-					System.out.println(widget.getId());
-				}
-				return createDemoDashboard(widgets, user, project, rq.getDashboardName());
-			}
+			TypeReference<List<Widget>> type = new TypeReference<List<Widget>>() {
+			};
+			List<Widget> widgets = ((List<Widget>) objectMapper.readValue(resource.getURL(), type)).stream().map(it -> {
+				it.setProjectName(project);
+				it.setApplyingFilterId(filterId);
+				it.setAcl(acl);
+				return it;
+			}).collect(toList());
+			widgetRepository.save(widgets);
+			return createDemoDashboard(widgets, user, project, rq.getDashboardName());
+
 		} catch (IOException e) {
 			throw new ReportPortalException("Unable to load demo_widgets.json");
 		}
 	}
 
 	private String createDemoFilter(String filterName, String user, String project) {
+		UserFilter existingFilter = userFilterRepository.findOneByName(user, filterName, project);
+		if (existingFilter != null) {
+			throw new ReportPortalException("User filter with name " + filterName + " already exists.  You couldn't create the duplicate.");
+		}
 		UserFilter userFilter = new UserFilter();
 		userFilter.setName(filterName);
 		userFilter.setFilter(new Filter(Launch.class, HAS, false, "demo", "tags"));
@@ -94,12 +90,7 @@ class DemoDashboardsService {
 		userFilter.setSelectionOptions(selectionOptions);
 		userFilter.setProjectName(project);
 		userFilter.setIsLink(false);
-		Acl acl = acl(user, project);
-		userFilter.setAcl(acl);
-		UserFilter existingFilter = userFilterRepository.findOneByName(user, filterName, project);
-		if (existingFilter != null) {
-			throw new ReportPortalException("User filter with name " + filterName + " already exists.  You couldn't create the duplicate.");
-		}
+		userFilter.setAcl(acl(user, project));
 		return userFilterRepository.save(userFilter).getId();
 	}
 

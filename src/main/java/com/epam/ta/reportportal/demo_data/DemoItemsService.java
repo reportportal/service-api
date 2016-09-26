@@ -40,7 +40,7 @@ class DemoItemsService {
 
 	void finishTestItem(String testItemId, String status) {
 		TestItem testItem = testItemRepository.findOne(testItemId);
-		if ("FAILED".equals(status)) {
+		if ("FAILED".equals(status) && !hasChildren(testItem.getType())) {
 			testItem.setIssue(new TestItemIssue(issueType(), null));
 		}
 		testItem.setStatus(Status.fromValue(status).get());
@@ -48,12 +48,11 @@ class DemoItemsService {
 		testItemRepository.save(testItem);
 		TestItemType testItemType = testItem.getType();
 		taskExecutor.execute(() -> {
-			if ((testItemType == STEP || testItemType == BEFORE_CLASS || testItemType == BEFORE_METHOD || testItemType == AFTER_CLASS
-					|| testItemType == AFTER_METHOD)) {
+			if (!hasChildren(testItemType)) {
 				StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(TEST_BASED);
 				statisticsFacade.updateExecutionStatistics(testItem);
 				if (null != testItem.getIssue()) {
-					statisticsFacadeFactory.getStatisticsFacade(TEST_BASED).updateIssueStatistics(testItem);
+					statisticsFacade.updateIssueStatistics(testItem);
 				}
 			}
 		});
@@ -65,14 +64,17 @@ class DemoItemsService {
 		testItem.setStartTime(new Date());
 		testItem.setName(name);
 		testItem.setParent(rootItemId.getId());
-		boolean hasChildren = !(testItemType == STEP || testItemType == BEFORE_CLASS || testItemType == BEFORE_METHOD
-				|| testItemType == AFTER_CLASS || testItemType == AFTER_METHOD);
-		testItem.setHasChilds(hasChildren);
+		testItem.setHasChilds(hasChildren(testItemType));
 		testItem.setStatus(IN_PROGRESS);
 		testItem.setType(testItemType);
 		testItem.getPath().addAll(rootItemId.getPath());
 		testItem.getPath().add(rootItemId.getId());
 		return testItemRepository.save(testItem);
+	}
+
+	boolean hasChildren(TestItemType testItemType) {
+		return !(testItemType == STEP || testItemType == BEFORE_CLASS || testItemType == BEFORE_METHOD || testItemType == AFTER_CLASS
+				|| testItemType == AFTER_METHOD);
 	}
 
 	TestItem startRootItem(String rootItemName, String launchId) {

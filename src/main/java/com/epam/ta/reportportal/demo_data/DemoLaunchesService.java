@@ -4,19 +4,17 @@ import static com.epam.ta.reportportal.core.statistics.StatisticsHelper.getStatu
 import static com.epam.ta.reportportal.database.entity.Status.*;
 import static com.epam.ta.reportportal.database.entity.item.TestItemType.*;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.*;
 import java.util.stream.IntStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -25,26 +23,26 @@ import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 class DemoLaunchesService {
 
-	static final String SUITES_STRUCTURE = "demo_data.json";
 	private Random random = new Random();
 
 	@Autowired
 	private DemoLogsService logDemoDataService;
-
 	@Autowired
 	private DemoItemsService demoItemsService;
-
 	@Autowired
 	private LaunchRepository launchRepository;
-
 	@Autowired
 	private LaunchMetaInfoRepository launchCounter;
+	@Value("classpath:demo/demo_data.json")
+	private Resource resource;
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	@Autowired
 	@Qualifier("saveLogsTaskExecutor")
@@ -53,15 +51,8 @@ class DemoLaunchesService {
 	List<String> generateDemoLaunches(DemoDataRq demoDataRq, String user, String projectName) {
 		Map<String, Map<String, List<String>>> suites;
 		try {
-			URL suitesStructure = this.getClass().getClassLoader().getResource(SUITES_STRUCTURE);
-			if (suitesStructure == null) {
-				throw new ReportPortalException("Unable to find suites description");
-			}
-			try (InputStreamReader fileReader = new InputStreamReader(
-					new FileInputStream(this.getClass().getClassLoader().getResource(SUITES_STRUCTURE).getPath()), UTF_8)) {
-				suites = new Gson().fromJson(fileReader, new TypeToken<Map<String, Map<String, List<String>>>>() {
-				}.getType());
-			}
+			suites = objectMapper.readValue(resource.getURL(), new TypeReference<Map<String, Map<String, List<String>>>>() {
+			});
 		} catch (IOException e) {
 			throw new ReportPortalException("Unable to load suites description");
 		}
@@ -89,8 +80,8 @@ class DemoLaunchesService {
 					beforeClassStatus = beforeClassStatus();
 					demoItemsService.finishTestItem(beforeClass.getId(), beforeClassStatus);
 				}
-				boolean isGenerateBeforeMethod = random.nextInt(3) == 2;
-				boolean isGenerateAfterMethod = random.nextInt(3) == 2;
+				boolean isGenerateBeforeMethod = random.nextBoolean();
+				boolean isGenerateAfterMethod = random.nextBoolean();
 				tests.getValue().stream().forEach(name -> {
 					if (isGenerateBeforeMethod) {
 						demoItemsService.finishTestItem(
@@ -107,7 +98,7 @@ class DemoLaunchesService {
 						}
 					});
 				});
-				if (random.nextInt(3) == 1) {
+				if (random.nextBoolean()) {
 					TestItem afterClass = demoItemsService.startTestItem(testItem, launchId, "afterClass", AFTER_CLASS);
 					demoItemsService.finishTestItem(afterClass.getId(), status());
 				}

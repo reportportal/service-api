@@ -1,13 +1,11 @@
 package com.epam.ta.reportportal.demo_data;
 
 import static com.epam.ta.reportportal.database.entity.LogLevel.*;
+import static com.epam.ta.reportportal.database.entity.Status.FAILED;
 import static java.util.stream.Collectors.toList;
+import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Date;
@@ -16,6 +14,8 @@ import java.util.Random;
 import java.util.stream.IntStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.database.BinaryData;
@@ -29,13 +29,15 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 @Service
 class DemoLogsService {
 
-	public static final String CONTENT_TYPE = "image/png";
-	public static final String IMAGE = "img.png";
-	public static final String DEMO_LOGS = "demo_logs.txt";
-	public static final String ERROR_LOGS = "error_logs.txt";
 	private Random random;
 	private LogRepository logRepository;
 	private DataStorage dataStorage;
+	@Value("classpath:demo/img.png")
+	private Resource img;
+	@Value("classpath:demo/demo_logs.txt")
+	private Resource demoLogs;
+	@Value("classpath:demo/error_logs.txt")
+	private Resource errorLogsResource;
 
 	@Autowired
 	DemoLogsService(DataStorage dataStorage, LogRepository logRepository) {
@@ -46,16 +48,8 @@ class DemoLogsService {
 
 	List<Log> generateDemoLogs(String itemId, String status) {
 		try {
-			URL errorLogsUrl = this.getClass().getClassLoader().getResource(ERROR_LOGS);
-			if (errorLogsUrl == null) {
-				throw new ReportPortalException("Unable to find file with error logs");
-			}
-			List<String> errorLogs = Files.readAllLines(Paths.get(errorLogsUrl.toURI()));
-			URL resource = this.getClass().getClassLoader().getResource(DEMO_LOGS);
-			if (resource == null) {
-				throw new ReportPortalException("Unable to find file with demo logs");
-			}
-			List<String> logMessages = Files.readAllLines(Paths.get(resource.toURI()));
+			List<String> errorLogs = Files.readAllLines(Paths.get(errorLogsResource.getURI()));
+			List<String> logMessages = Files.readAllLines(Paths.get(demoLogs.getURI()));
 			int t = random.nextInt(30);
 			List<Log> logs = IntStream.range(1, t + 1).mapToObj(it -> {
 				Log log = new Log();
@@ -65,22 +59,21 @@ class DemoLogsService {
 				log.setLogMsg(logMessages.get(random.nextInt(logMessages.size())));
 				return log;
 			}).collect(toList());
-			if ("FAILED".equals(status)) {
-				File img = new File(this.getClass().getClassLoader().getResource(IMAGE).toURI());
-				InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(IMAGE);
-				String file = dataStorage.saveData(new BinaryData(CONTENT_TYPE, img.length(), resourceAsStream), "file");
+			if (FAILED.name().equals(status)) {
+				String file = dataStorage.saveData(new BinaryData(IMAGE_PNG_VALUE, img.getFile().length(), img.getInputStream()), "file");
 				logs.addAll(errorLogs.stream().map(msg -> {
 					Log log = new Log();
 					log.setLevel(ERROR);
 					log.setLogTime(new Date());
 					log.setTestItemRef(itemId);
 					log.setLogMsg(msg);
-					log.setBinaryContent(new BinaryContent(file, file, CONTENT_TYPE));
+					final BinaryContent binaryContent = new BinaryContent(file, file, IMAGE_PNG_VALUE);
+					log.setBinaryContent(binaryContent);
 					return log;
 				}).collect(toList()));
 			}
 			return logRepository.save(logs);
-		} catch (URISyntaxException | IOException e) {
+		} catch (IOException e) {
 			throw new ReportPortalException("Unable to generate demo logs", e);
 		}
 	}

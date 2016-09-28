@@ -6,7 +6,7 @@ jdk:
   - oraclejdk8
 
 notifications:
-  slack: reportportal:fl6xWHVQp1jvsMmCJxYW9YKP
+  slack: reportportal-dev:fl6xWHVQp1jvsMmCJxYW9YKP
 
 cache:
   directories:

@@ -175,5 +175,31 @@
       "testGetSharedFilters",
       "testGetSharedWidgetNames"
     ]
+  },
+  "Widgets": {
+    "Widget Type Tab": [
+      "checkIsVisibleElementsOnWidgetTypePage",
+      "checkWidgetTemplatesContent",
+      "checkWidgetTemplatesContentImages",
+      "checkWidgetTemplatesContentDescriptions",
+      "checkIsActiveSelectedWidgetTypeOnWidgetTemplatesTab",
+      "checkIsVisibleElementsOnWidgetTypePageSharedWidgetsTab",
+      "checkSharedWidgetsOwner",
+      "checkSharedWidgetsContent",
+      "checkSharedWidgetsContentImages",
+      "checkSharedWidgetsContentNames",
+      "checkSelectedWidgetTypeActiveOnSharedWidgetsTab"
+    ],
+    "Add Widget from Filters page" : [
+      "checkIsVisibleElementsOnFiltersPage",
+      "checkAddWidgetButton",
+      "checkIsVisibleElementsOnFiltersPage",
+      "checkIsVisibleElementsOnFiltersPageOwnFiltersTab",
+      "checkOwnFiltersContent",
+      "checkIsActiveSelectedSharedFilterNameRow",
+      "verifyResultsOfSearchFilterNameWhenInputOwnFilterNameField",
+      "checkInputOwnNameFilterPositive",
+      "checkInputOwnNameFilterNegative"
+    ]
   }
 }

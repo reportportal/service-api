@@ -63,26 +63,26 @@ class DemoLaunchesService {
 			String project) {
 		return IntStream.range(0, rq.getLaunchesQuantity()).mapToObj(i -> {
 			String launchId = startLaunch(rq.getLaunchName(), i, project, user);
-			generateSuites(suitesStructure, launchId);
+			generateSuites(suitesStructure, i, launchId);
 			finishLaunch(launchId);
 			return launchId;
 		}).collect(toList());
 	}
 
-	private List<String> generateSuites(Map<String, Map<String, List<String>>> suitesStructure, String launchId) {
-		return suitesStructure.entrySet().parallelStream().limit(random.nextInt(suitesStructure.size()) + 1).map(suites -> {
+	private List<String> generateSuites(Map<String, Map<String, List<String>>> suitesStructure, int i, String launchId) {
+		return suitesStructure.entrySet().parallelStream().limit(i + 1).map(suites -> {
 			TestItem suiteItem = demoItemsService.startRootItem(suites.getKey(), launchId);
 			suites.getValue().entrySet().forEach(tests -> {
 				TestItem testItem = demoItemsService.startTestItem(suiteItem, launchId, tests.getKey(), TEST);
 				String beforeClassStatus = "";
-				if (random.nextInt(2) == 1) {
+				if (random.nextBoolean()) {
 					TestItem beforeClass = demoItemsService.startTestItem(testItem, launchId, "beforeClass", BEFORE_CLASS);
 					beforeClassStatus = beforeClassStatus();
 					demoItemsService.finishTestItem(beforeClass.getId(), beforeClassStatus);
 				}
 				boolean isGenerateBeforeMethod = random.nextBoolean();
 				boolean isGenerateAfterMethod = random.nextBoolean();
-				tests.getValue().stream().forEach(name -> {
+				tests.getValue().stream().limit(i + 1).forEach(name -> {
 					if (isGenerateBeforeMethod) {
 						demoItemsService.finishTestItem(
 								demoItemsService.startTestItem(testItem, launchId, "beforeMethod", BEFORE_METHOD).getId(), status());
@@ -124,6 +124,7 @@ class DemoLaunchesService {
 	}
 
 	private String status() {
+		// magic numbers to generate a distribution of steps statuses
 		int value = random.nextInt(71);
 		if (value <= 5) {
 			return SKIPPED.name();
@@ -135,6 +136,7 @@ class DemoLaunchesService {
 	}
 
 	private String beforeClassStatus() {
+		// magic numbers to generate a distribution of before/after statuses
 		int value = random.nextInt(71);
 		if (value <= 3) {
 			return SKIPPED.name();

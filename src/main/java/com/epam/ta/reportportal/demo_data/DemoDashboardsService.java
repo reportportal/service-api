@@ -98,15 +98,15 @@ class DemoDashboardsService {
 		Dashboard dashboard = new Dashboard();
 		dashboard.setName(name);
 		ArrayList<Dashboard.WidgetObject> widgetObjects = new ArrayList<>();
-		widgetObjects.add(new Dashboard.WidgetObject(widgets.get(0).getId(), asList(6, 6), asList(0, 0)));
-		widgetObjects.add(new Dashboard.WidgetObject(widgets.get(1).getId(), asList(6, 6), asList(6, 0)));
-		widgetObjects.add(new Dashboard.WidgetObject(widgets.get(2).getId(), asList(12, 7), asList(0, 6)));
-		widgetObjects.add(new Dashboard.WidgetObject(widgets.get(3).getId(), asList(12, 5), asList(0, 13)));
-		widgetObjects.add(new Dashboard.WidgetObject(widgets.get(4).getId(), asList(7, 5), asList(0, 18)));
-		widgetObjects.add(new Dashboard.WidgetObject(widgets.get(5).getId(), asList(5, 5), asList(7, 18)));
-		widgetObjects.add(new Dashboard.WidgetObject(widgets.get(6).getId(), asList(7, 5), asList(0, 23)));
-		widgetObjects.add(new Dashboard.WidgetObject(widgets.get(7).getId(), asList(5, 5), asList(7, 23)));
-		widgetObjects.add(new Dashboard.WidgetObject(widgets.get(8).getId(), asList(12, 5), asList(0, 28)));
+		widgetObjects.add(new Dashboard.WidgetObject(widgets.get(0).getId(), asList(6, 5), asList(0, 0)));
+		widgetObjects.add(new Dashboard.WidgetObject(widgets.get(1).getId(), asList(6, 5), asList(6, 0)));
+		widgetObjects.add(new Dashboard.WidgetObject(widgets.get(2).getId(), asList(6, 4), asList(0, 5)));
+		widgetObjects.add(new Dashboard.WidgetObject(widgets.get(3).getId(), asList(7, 4), asList(0, 9)));
+		widgetObjects.add(new Dashboard.WidgetObject(widgets.get(4).getId(), asList(6, 4), asList(6, 5)));
+		widgetObjects.add(new Dashboard.WidgetObject(widgets.get(5).getId(), asList(5, 4), asList(7, 9)));
+		widgetObjects.add(new Dashboard.WidgetObject(widgets.get(6).getId(), asList(7, 5), asList(0, 13)));
+		widgetObjects.add(new Dashboard.WidgetObject(widgets.get(7).getId(), asList(5, 5), asList(7, 13)));
+		widgetObjects.add(new Dashboard.WidgetObject(widgets.get(8).getId(), asList(12, 5), asList(0, 18)));
 
 		dashboard.setWidgets(widgetObjects);
 		dashboard.setProjectName(project);

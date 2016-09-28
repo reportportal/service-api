@@ -1,0 +1,217 @@
+[
+  {
+    "name": "LAUNCH STATISTICS TREND CHART",
+    "contentOptions": {
+      "type": "trends_chart",
+      "gadgetType": "statistic_trend",
+      "metadataFields": [
+        "name",
+        "number",
+        "start_time"
+      ],
+      "contentFields": [
+        "statistics$defects$product_bug$PB001",
+        "statistics$defects$automation_bug$AB001",
+        "statistics$defects$system_issue$SI001",
+        "statistics$defects$to_investigate$TI001"
+      ],
+      "itemsCount": 50
+    },
+    "applyingFilterId": "",
+    "projectName": "",
+    "acl": {}
+  },
+  {
+    "name": "LAUNCH STATISTICS LINE CHART",
+    "contentOptions": {
+      "type": "line_chart",
+      "gadgetType": "old_line_chart",
+      "metadataFields": [
+        "name",
+        "number",
+        "start_time"
+      ],
+      "contentFields": [
+        "statistics$executions$passed",
+        "statistics$executions$failed",
+        "statistics$executions$skipped"
+      ],
+      "itemsCount": 50
+    },
+    "applyingFilterId": "",
+    "projectName": "",
+    "acl": {}
+  },
+  {
+    "name": "INVESTIGATED PERCENTAGE OF LAUNCHES",
+    "contentOptions": {
+      "type": "column_chart",
+      "gadgetType": "investigated_trend",
+      "metadataFields": [
+        "name",
+        "number",
+        "start_time"
+      ],
+      "contentFields": [
+        "statistics$defects$product_bug$total",
+        "statistics$defects$automation_bug$total",
+        "statistics$defects$system_issue$total",
+        "statistics$defects$no_defect$total",
+        "statistics$defects$to_investigate$total"
+      ],
+      "itemsCount": 50
+    },
+    "applyingFilterId": "",
+    "projectName": "",
+    "acl": {}
+  },
+  {
+    "name": "OVERALL STATISTICS PANEL",
+    "contentOptions": {
+      "type": "statistics_panel",
+      "gadgetType": "overall_statistics",
+      "metadataFields": [
+        "name",
+        "number",
+        "start_time"
+      ],
+      "contentFields": [
+        "statistics$executions$total",
+        "statistics$executions$passed",
+        "statistics$executions$failed",
+        "statistics$executions$skipped",
+        "statistics$defects$product_bug$PB001",
+        "statistics$defects$automation_bug$AB001",
+        "statistics$defects$system_issue$SI001",
+        "statistics$defects$no_defect$ND001",
+        "statistics$defects$to_investigate$TI001"
+      ],
+      "itemsCount": 50
+    },
+    "applyingFilterId": "",
+    "projectName": "",
+    "acl": {}
+  },
+  {
+    "name": "TEST CASES GROWTH TREND CHART",
+    "contentOptions": {
+      "type": "cases_trend_chart",
+      "gadgetType": "cases_trend",
+      "metadataFields": [
+        "name",
+        "number",
+        "start_time"
+      ],
+      "contentFields": [
+        "statistics$executions$total"
+      ],
+      "itemsCount": 50
+    },
+    "applyingFilterId": "",
+    "projectName": "",
+    "acl": {}
+  },
+  {
+    "name": "LAUNCHES DURATION CHART",
+    "contentOptions": {
+      "type": "column_chart",
+      "gadgetType": "launches_duration_chart",
+      "metadataFields": [
+        "name",
+        "number",
+        "start_time"
+      ],
+      "contentFields": [
+        "start_time",
+        "end_time",
+        "name",
+        "number",
+        "status"
+      ],
+      "itemsCount": 50
+    },
+    "applyingFilterId": "",
+    "projectName": "",
+    "acl": {}
+  },
+  {
+    "name": "LAUNCH EXECUTION AND ISSUE STATISTICS",
+    "contentOptions": {
+      "type": "combine_pie_chart",
+      "gadgetType": "launch_statistics",
+      "metadataFields": [
+        "name",
+        "number",
+        "start_time"
+      ],
+      "contentFields": [
+        "statistics$executions$total",
+        "statistics$executions$passed",
+        "statistics$executions$failed",
+        "statistics$executions$skipped",
+        "statistics$defects$product_bug$PB001",
+        "statistics$defects$automation_bug$AB001",
+        "statistics$defects$system_issue$SI001",
+        "statistics$defects$no_defect$ND001",
+        "statistics$defects$to_investigate$TI001"
+      ],
+      "itemsCount": 50
+    },
+    "applyingFilterId": "",
+    "projectName": "",
+    "acl": {}
+  },
+  {
+    "name": "FAILED CASES TREND CHART",
+    "contentOptions": {
+      "type": "bug_trend",
+      "gadgetType": "bug_trend",
+      "metadataFields": [
+        "name",
+        "number",
+        "start_time"
+      ],
+      "contentFields": [
+        "statistics$defects$product_bug$total",
+        "statistics$defects$automation_bug$total",
+        "statistics$defects$system_issue$total",
+        "statistics$defects$no_defect$total",
+        "statistics$defects$to_investigate$total"
+      ],
+      "itemsCount": 50
+    },
+    "applyingFilterId": "",
+    "projectName": "",
+    "acl": {}
+  },
+  {
+    "name": "LAUNCH TABLE",
+    "contentOptions": {
+      "type": "launches_table",
+      "gadgetType": "launches_table",
+      "contentFields": [
+        "statistics$executions$total",
+        "statistics$executions$passed",
+        "statistics$executions$failed",
+        "statistics$executions$skipped",
+        "statistics$defects$product_bug$PB001",
+        "statistics$defects$automation_bug$AB001",
+        "statistics$defects$system_issue$SI001",
+        "statistics$defects$to_investigate$TI001",
+        "tags",
+        "user",
+        "start_time",
+        "end_time",
+        "description",
+        "name",
+        "number",
+        "last_modified",
+        "status"
+      ],
+      "itemsCount": 50
+    },
+    "applyingFilterId": "",
+    "projectName": "",
+    "acl": {}
+  }
+]

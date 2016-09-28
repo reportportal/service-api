@@ -1,0 +1,9 @@
+[main] com.epam.ta.utils.logger.Logger - Attempt to find element by By.xpath: //a[@href='#widgetTemplates'].
+[Forwarding findElement on session 477bee808ca0c415a7aae2de2edc5cc9 to remote] DEBUG o.a.h.c.protocol.RequestAddCookies - CookieSpec selected: default
+[Forwarding findElement on session 477bee808ca0c415a7aae2de2edc5cc9 to remote] DEBUG o.a.h.c.protocol.RequestAuthCache - Auth cache not set in the context
+[Forwarding findElement on session 477bee808ca0c415a7aae2de2edc5cc9 to remote] DEBUG o.a.h.i.c.PoolingHttpClientConnectionManager - Connection request: [route: {}->http://localhost:19511][total kept alive: 0; route allocated: 0 of 2000; total allocated: 0 of 2000]
+[Forwarding findElement on session 477bee808ca0c415a7aae2de2edc5cc9 to remote] DEBUG o.a.h.i.c.PoolingHttpClientConnectionManager - Connection leased: [id: 51][route: {}->http://localhost:19511][total kept alive: 0; route allocated: 1 of 2000; total allocated: 1 of 2000]
+[Forwarding findElement on session 477bee808ca0c415a7aae2de2edc5cc9 to remote] DEBUG o.a.h.impl.execchain.MainClientExec - Opening connection {}->http://localhost:19511
+[main] com.epam.ta.utils.logger.Logger - Attempt to find element by By.xpath: //div[@data-id='allCases']/span[@class='name-text multiple-spaces'].
+[main] DEBUG com.epam.ta.utils.logger.Logger - Find element by By.xpath: //div[@data-id='allCases']/span[@class='name-text multiple-spaces'] was performed.
+[main] INFO com.epam.ta.utils.logger.Logger - Create new filter EPMCDP-7196ra8j.

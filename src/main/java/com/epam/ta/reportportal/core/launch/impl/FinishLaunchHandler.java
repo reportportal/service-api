@@ -92,6 +92,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 
 	@Override
 	public OperationCompletionRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String username) {
+
 		Launch launch = launchRepository.findOne(launchId);
 		validate(launchId, launch, finishLaunchRQ);
 		Project project = validateRoles(launch, username, projectName);

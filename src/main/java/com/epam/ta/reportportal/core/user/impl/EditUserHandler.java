@@ -25,8 +25,8 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.database.entity.project.EntryType.INTERNAL;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
+import static com.epam.ta.reportportal.database.entity.user.UserType.INTERNAL;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
 
@@ -114,7 +114,7 @@ public class EditUserHandler implements IEditUserHandler {
 	@Override
 	public OperationCompletionRS deletePhoto(String login) {
 		User user = userRepository.findOne(login);
-		expect(user.getEntryType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change photo for external user");
+		expect(user.getType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change photo for external user");
 		if (null != user.getPhotoId())
 			dataStorage.deleteData(user.getPhotoId());
 		return new OperationCompletionRS("Profile photo has been deleted successfully");
@@ -123,7 +123,7 @@ public class EditUserHandler implements IEditUserHandler {
 	@Override
 	public OperationCompletionRS changePassword(String userName, ChangePasswordRQ changePasswordRQ) {
 		User user = userRepository.findOne(userName);
-		expect(user.getEntryType(), equalTo(INTERNAL)).verify(FORBIDDEN_OPERATION, "Impossible to change password for internal users.");
+		expect(user.getType(), equalTo(INTERNAL)).verify(FORBIDDEN_OPERATION, "Impossible to change password for internal users.");
 
 		expect(user.getPassword(), equalTo(UserUtils.generateMD5(changePasswordRQ.getOldPassword()))).verify(FORBIDDEN_OPERATION,
 				"Old password not match with stored.");
@@ -154,7 +154,7 @@ public class EditUserHandler implements IEditUserHandler {
 
 		if (null != editUserRQ.getEmail()) {
 			String updEmail = editUserRQ.getEmail().toLowerCase().trim();
-			expect(user.getEntryType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change email for internal user");
+			expect(user.getType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change email for internal user");
 			expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR, " wrong email: " + updEmail);
 			User byEmail = userRepository.findByEmail(updEmail);
 			if (null != byEmail)
@@ -162,7 +162,7 @@ public class EditUserHandler implements IEditUserHandler {
 			expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR, updEmail);
 
 			List<Project> userProjects = projectRepository.findUserProjects(username);
-			userProjects.stream().forEach(project -> ProjectUtils.updateProjectRecipients(user.getEmail(), updEmail, project));
+			userProjects.forEach(project -> ProjectUtils.updateProjectRecipients(user.getEmail(), updEmail, project));
 			user.setEmail(updEmail);
 			try {
 				projectRepository.save(userProjects);
@@ -172,7 +172,7 @@ public class EditUserHandler implements IEditUserHandler {
 		}
 
 		if (null != editUserRQ.getFullName()) {
-			expect(user.getEntryType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change full name for internal user");
+			expect(user.getType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change full name for internal user");
 			user.setFullName(editUserRQ.getFullName());
 		}
 

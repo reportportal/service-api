@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.commons.Constants;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.project.EntryType;
 import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.database.entity.user.UserType;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -56,10 +57,10 @@ public class UserResourceBuilder extends ResourceBuilder<UserResource> {
 			resource.setEmail(user.getEmail());
 			resource.setPhotoId(user.getPhotoId());
 			resource.setFullName(user.getFullName());
-			resource.setAccountType(user.getEntryType().toString());
+			resource.setAccountType(user.getType().toString());
 			resource.setUserRole(user.getRole().toString());
 			resource.setLastlogin(user.getMetaInfo().getLastLogin());
-			resource.setIsLoaded(EntryType.UPSA != user.getEntryType());
+			resource.setIsLoaded(UserType.UPSA != user.getType());
 
 			if (projects.size() > 1)
 				Collections.sort(projects, PROJECT_NAME_ALPHABET);

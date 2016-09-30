@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import java.util.Calendar;
 
+import com.epam.ta.reportportal.database.entity.user.UserType;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -45,7 +46,7 @@ public class UserBuilder extends Builder<User> {
 			user.setEmail(EntityUtils.normalizeEmail(request.getEmail().trim()));
 			user.setDefaultProject(EntityUtils.normalizeProjectName(request.getDefaultProject()));
 			user.setFullName(request.getFullName());
-			user.setEntryType(EntryType.INTERNAL);
+			user.setType(UserType.INTERNAL);
 			user.setIsExpired(false);
 			user.getMetaInfo().setLastLogin(Calendar.getInstance().getTime());
 		}

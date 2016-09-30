@@ -68,7 +68,7 @@ public class DemoFixtureTest extends BaseTest {
 	@Ignore
 	public void checkReference() {
 		List<TestItem> steps = testStepRepository.findAll();
-		List<Log> logs = logRepository.findLogIdsByTestItem(steps.get(0));
+		List<Log> logs = logRepository.findByTestItemRef(steps.get(0).getId());
 		Assert.assertThat(logs.size(), greaterThan(0));
 	}
 }

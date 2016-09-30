@@ -162,7 +162,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 	public Map<String, List<ChartObject>> getLaunchesComparisonInfo(String projectName, String[] ids) {
 		Map<String, List<ChartObject>> result = new LinkedHashMap<>();
 		List<ChartObject> objects = new ArrayList<>();
-		List<Launch> launches = launchRepository.findLaunches(Arrays.asList(ids));
+		List<Launch> launches = launchRepository.find(Arrays.asList(ids));
 		for (Launch launch : launches) {
 			ChartObject object = new ChartObject();
 			object.setName(launch.getName());
@@ -194,7 +194,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 
 	@Override
 	public Map<String, String> getStatuses(String projectName, String[] ids) {
-		return launchRepository.findLaunches(Arrays.asList(ids)).stream().filter(launch -> launch.getProjectRef().equals(projectName))
+		return launchRepository.find(Arrays.asList(ids)).stream().filter(launch -> launch.getProjectRef().equals(projectName))
 				.collect(Collectors.toMap(Launch::getId, launch -> launch.getStatus().toString()));
 	}
 

@@ -17,9 +17,12 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.database.triggers;
+
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,88 +35,60 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.epam.ta.BaseTest;
 import com.epam.ta.reportportal.commons.Constants;
 import com.epam.ta.reportportal.database.dao.*;
-import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.fixture.SpringFixture;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
+import com.epam.ta.reportportal.triggers.CascadeDeleteProjectsService;
 
 @SpringFixture("unitTestsProjectTriggers")
 public class TriggerProjectTest extends BaseTest {
 
 	@Autowired
 	private LaunchRepository launchRepository;
-
 	@Autowired
 	private ProjectRepository projectRepository;
-
 	@Autowired
 	private DashboardRepository dashboardRepository;
-
 	@Autowired
 	private UserRepository userRepository;
-
 	@Autowired
 	private TestItemRepository testItemRepository;
+	@Autowired
+	private CascadeDeleteProjectsService cascadeDeleteProjectsService;
 
 	@Rule
 	@Autowired
 	public SpringFixtureRule dfRule;
 
 	@Test
-	public void testDeleteById() {
-		Launch savedLaunch = launchRepository.findAll().get(0);
-		String toDelete = projectRepository.findOne(savedLaunch.getProjectRef()).getId();
-		List<Dashboard> dashboards = dashboardRepository.findByProject(toDelete);
-		Assert.assertNotNull(dashboards);
-		Assert.assertEquals(1, dashboards.size());
-		projectRepository.delete(toDelete);
-		dashboards = dashboardRepository.findByProject(toDelete);
-		Assert.assertNotNull(dashboards);
-		Assert.assertEquals(0, dashboards.size());
-		Assert.assertNull(projectRepository.findOne(toDelete));
-		Assert.assertNotNull(launchRepository.findOne(savedLaunch.getId()));
-		Assert.assertTrue(testItemRepository.findIdsByLaunch(savedLaunch.getId()).isEmpty());
-	}
-
-	@Test
-	public void testDeleteByProject() {
-		Launch savedLaunch = launchRepository.findAll().get(1);
-		Project toDelete = projectRepository.findOne(savedLaunch.getProjectRef());
-		projectRepository.delete(toDelete);
-		Assert.assertNull(projectRepository.findOne(toDelete.getId()));
-		Assert.assertNotNull(launchRepository.findOne(savedLaunch.getId()));
-		Assert.assertTrue(testItemRepository.findIdsByLaunch(savedLaunch.getId()).isEmpty());
-	}
-
-	@Test
 	public void testDeleteByProjectList() {
-		List<Launch> launchs = launchRepository.findAll();
+		List<Launch> launches = launchRepository.findAll();
 		List<Project> projects = new ArrayList<>();
 
-		Project project2 = projectRepository.findOne(launchs.get(2).getProjectRef());
-		Project project3 = projectRepository.findOne(launchs.get(3).getProjectRef());
+		Project project2 = projectRepository.findOne(launches.get(2).getProjectRef());
+		Project project3 = projectRepository.findOne(launches.get(3).getProjectRef());
 
 		projects.add(project2);
 		projects.add(project3);
 
-		projectRepository.delete(projects);
+		cascadeDeleteProjectsService.delete(projects.stream().map(Project::getId).collect(toList()));
 		Assert.assertNull(projectRepository.findOne(project2.getId()));
 		Assert.assertNull(projectRepository.findOne(project3.getId()));
-		Launch launch2 = launchRepository.findOne(launchs.get(2).getId());
-		Launch launch3 = launchRepository.findOne(launchs.get(3).getId());
-		Assert.assertNotNull(launch2);
-		Assert.assertNotNull(launch3);
-		Assert.assertTrue(testItemRepository.findIdsByLaunch(launch2.getId()).isEmpty());
-		Assert.assertTrue(testItemRepository.findIdsByLaunch(launch3.getId()).isEmpty());
+		Launch launch2 = launchRepository.findOne(launches.get(2).getId());
+		Launch launch3 = launchRepository.findOne(launches.get(3).getId());
+		Assert.assertNull(launch2);
+		Assert.assertNull(launch3);
+		Assert.assertTrue(testItemRepository.findIdsByLaunch(launches.get(2).getId()).isEmpty());
+		Assert.assertTrue(testItemRepository.findIdsByLaunch(launches.get(3).getId()).isEmpty());
 	}
 
 	@Test
 	public void testDeleteDefaultProject() {
 		User user = userRepository.findOne("user1");
 		Assert.assertEquals("test_123", user.getDefaultProject());
-		projectRepository.delete("test_123");
+		cascadeDeleteProjectsService.delete(singletonList("test_123"));
 		user = userRepository.findOne("user1");
 		Assert.assertEquals(Constants.DEFAULT_PROJECT.toString(), user.getDefaultProject());
 	}

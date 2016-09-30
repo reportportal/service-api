@@ -17,30 +17,25 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.item;
 
 import static com.epam.ta.reportportal.commons.Preconditions.IN_PROGRESS;
 import static com.epam.ta.reportportal.commons.Preconditions.hasProjectRoles;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.LEAD;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
-import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_IS_NOT_FINISHED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_IS_NOT_FINISHED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.Collections.singletonList;
 
-import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -52,6 +47,7 @@ import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.triggers.CascadeDeleteItemsService;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
@@ -68,18 +64,16 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 	@Autowired
 	private TestItemRepository testItemRepository;
-
 	@Autowired
 	private StatisticsFacadeFactory statisticsFacadeFactory;
-
 	@Autowired
 	private LaunchRepository launchRepository;
-
 	@Autowired
 	private ProjectRepository projectRepository;
-
 	@Autowired
 	private UserRepository userRepository;
+	@Autowired
+	private CascadeDeleteItemsService cascadeDeleteItemsService;
 
 	@Override
 	public OperationCompletionRS deleteTestItem(String itemId, String projectName, String username) {
@@ -102,7 +96,7 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 						.deleteIssueStatistics(item);
 			}
 
-			testItemRepository.delete(item);
+			cascadeDeleteItemsService.delete(singletonList(itemId));
 
 			if (null != item.getParent()) {
 				TestItem parent = testItemRepository.findOne(item.getParent());

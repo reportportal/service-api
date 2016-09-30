@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.database.triggers;
 
@@ -31,9 +31,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.epam.ta.BaseTest;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.fixture.SpringFixture;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
+import com.epam.ta.reportportal.triggers.CascadeDeleteItemsService;
 
 /**
  * Unit tests for TestItem triggers
@@ -48,35 +48,17 @@ public class TestItemTriggerTest extends BaseTest {
 
 	@Autowired
 	private TestItemRepository testItemRepository;
-
 	@Autowired
 	private LogRepository logRepository;
-
+	@Autowired
+	private CascadeDeleteItemsService cascadeDeleteItemsService;
 	@Rule
 	@Autowired
 	public SpringFixtureRule dfRule;
 
 	@Test
-	public void testDeleteAsObject() {
-		TestItem item = testItemRepository.findOne(CHILD_ID);
-		testItemRepository.delete(item);
-
-		Assert.assertNull(testItemRepository.findOne(CHILD_ID));
-		Assert.assertTrue(logRepository.findLogIdsByTestItemId(CHILD_ID).isEmpty());
-	}
-
-	@Test
-	public void testDeleteAsId() {
-		testItemRepository.delete(CHILD_ID);
-
-		Assert.assertNull(testItemRepository.findOne(CHILD_ID));
-		Assert.assertTrue(logRepository.findLogIdsByTestItemId(CHILD_ID).isEmpty());
-	}
-
-	@Test
 	public void testDeleteByAsList() {
-		TestItem item = testItemRepository.findOne(CHILD_ID);
-		testItemRepository.delete(Collections.singletonList(item));
+		cascadeDeleteItemsService.delete(Collections.singletonList(CHILD_ID));
 
 		Assert.assertNull(testItemRepository.findOne(CHILD_ID));
 		Assert.assertTrue(logRepository.findLogIdsByTestItemId(CHILD_ID).isEmpty());

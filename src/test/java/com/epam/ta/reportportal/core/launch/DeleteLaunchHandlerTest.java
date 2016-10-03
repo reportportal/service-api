@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.launch;
 
@@ -28,11 +28,13 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 
-import com.epam.ta.reportportal.commons.validation.Suppliers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
+import org.springframework.context.ApplicationEventPublisher;
 
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.launch.impl.DeleteLaunchHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
@@ -43,8 +45,7 @@ import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import org.mockito.Mockito;
-import org.springframework.context.ApplicationEventPublisher;
+import com.epam.ta.reportportal.triggers.CascadeDeleteLaunchesService;
 
 public class DeleteLaunchHandlerTest {
 
@@ -57,7 +58,8 @@ public class DeleteLaunchHandlerTest {
 		final String projectId = "project";
 		final String member = "member";
 		DeleteLaunchHandler deleteLaunchHandler = new DeleteLaunchHandler(Mockito.mock(ApplicationEventPublisher.class),
-				launchRepositoryMock(launchId, projectId), projectRepositoryMock(projectId, member), userRepositoryMock(member));
+				launchRepositoryMock(launchId, projectId), projectRepositoryMock(projectId, member), userRepositoryMock(member),
+				mock(CascadeDeleteLaunchesService.class));
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage(Suppliers.clearPlaceholders(ACCESS_DENIED.getDescription()));
 		deleteLaunchHandler.deleteLaunch(launchId, projectId, member);

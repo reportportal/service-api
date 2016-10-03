@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.epam.ta.reportportal.database.entity.*;
+import com.epam.ta.reportportal.database.entity.user.UserType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,7 +117,7 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		User user = new User();
 		user.setLogin(Constants.DEFAULT_ADMIN.toString());
 		user.setPassword(Constants.DEFAULT_ADMIN_PASS.toString());
-		user.setEntryType(EntryType.INTERNAL);
+		user.setType(UserType.INTERNAL);
 		user.setEmail("defaultadministrator@example.com");
 		user.setFullName("RP Admin");
 		user.setDefaultProject(Constants.DEFAULT_PROJECT.toString());
@@ -131,7 +132,7 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		User user = new User();
 		user.setLogin(Constants.DEFAULT_USER.toString());
 		user.setPassword(Constants.DEFAULT_USER_PASS.toString());
-		user.setEntryType(EntryType.INTERNAL);
+		user.setType(UserType.INTERNAL);
 		user.setEmail("defaulttester@example.com");
 		user.setFullName("RP Tester");
 		user.setDefaultProject(Constants.DEFAULT_PROJECT.toString());

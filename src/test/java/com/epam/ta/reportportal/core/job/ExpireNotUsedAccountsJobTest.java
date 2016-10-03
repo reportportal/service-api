@@ -21,13 +21,15 @@
 
 package com.epam.ta.reportportal.core.job;
 
-import static org.hamcrest.Matchers.emptyIterable;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-
-import java.util.Calendar;
-import java.util.UUID;
-
+import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.entity.project.EntryType;
+import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.database.entity.user.UserRole;
+import com.epam.ta.reportportal.database.entity.user.UserType;
+import com.epam.ta.reportportal.database.fixture.SpringFixture;
+import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
+import com.epam.ta.reportportal.job.ExpireNotUsedAccountsJob;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Assert;
@@ -38,14 +40,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
-import com.epam.ta.BaseTest;
-import com.epam.ta.reportportal.job.ExpireNotUsedAccountsJob;
-import com.epam.ta.reportportal.database.dao.UserRepository;
-import com.epam.ta.reportportal.database.entity.project.EntryType;
-import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.database.entity.user.UserRole;
-import com.epam.ta.reportportal.database.fixture.SpringFixture;
-import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
+import java.util.Calendar;
+
+import static org.hamcrest.Matchers.emptyIterable;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 /**
  * Tests for {@link ExpireNotUsedAccountsJob}
@@ -72,7 +71,7 @@ public class ExpireNotUsedAccountsJobTest extends BaseTest {
 		String random = RandomStringUtils.randomAlphabetic(5);
 		demoUser.setLogin(random);
 		demoUser.setPassword(random);
-		demoUser.setEntryType(EntryType.UPSA);
+		demoUser.setType(UserType.UPSA);
 		demoUser.setIsExpired(false);
 		demoUser.setEmail(random + "epam.com");
 

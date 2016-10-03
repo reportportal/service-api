@@ -39,6 +39,7 @@ import com.epam.ta.reportportal.database.entity.ProjectSpecific;
 import com.epam.ta.reportportal.database.entity.project.*;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
+import com.epam.ta.reportportal.database.entity.user.UserType;
 import com.epam.ta.reportportal.database.entity.user.UserUtils;
 import com.epam.ta.reportportal.events.EmailConfigUpdatedEvent;
 import com.epam.ta.reportportal.events.ProjectUpdatedEvent;
@@ -277,8 +278,8 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			/* Verify user existence in database */
 			User singleUser = userRepository.findOne(login);
 			expect(singleUser, notNull()).verify(USER_NOT_FOUND, login, "User is not found in database.");
-			EntryType userType = singleUser.getEntryType();
-			if (projectType.equals(EntryType.UPSA) && userType.equals(EntryType.UPSA)) {
+			UserType userType = singleUser.getType();
+			if (projectType.equals(EntryType.UPSA) && userType.equals(UserType.UPSA)) {
 				fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Project and user has UPSA type!");
 			}
 			if (!users.containsKey(singleUser.getId())) {
@@ -348,9 +349,9 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		for (String username : assignUsersRQ.getUserNames().keySet()) {
 			User user = userRepository.findOne(username.toLowerCase());
 			expect(user, notNull()).verify(USER_NOT_FOUND, username);
-			EntryType userType = user.getEntryType();
+			UserType userType = user.getType();
 
-			if (projectType.equals(EntryType.UPSA) && userType.equals(EntryType.UPSA))
+			if (projectType.equals(EntryType.UPSA) && userType.equals(UserType.UPSA))
 				fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Project and user has UPSA type!");
 
 			UserConfig config = new UserConfig();

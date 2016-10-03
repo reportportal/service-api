@@ -294,7 +294,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 		User user = userRepository.findByEmail(email);
 		expect(user, notNull()).verify(USER_NOT_FOUND, email);
-		expect(user.getEntryType(), equalTo(EntryType.INTERNAL)).verify(BAD_REQUEST_ERROR, "Unable to change password for external user");
+		expect(user.getType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR, "Unable to change password for external user");
 		RestorePasswordBid bid = restorePasswordBidBuilder.get().addRestorePasswordBid(rq).build();
 		restorePasswordBidRepository.save(bid);
 		try {
@@ -315,7 +315,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 		User byEmail = userRepository.findByEmail(email);
 		expect(byEmail, notNull()).verify(USER_NOT_FOUND);
-		expect(byEmail.getEntryType(), equalTo(EntryType.INTERNAL)).verify(BAD_REQUEST_ERROR,
+		expect(byEmail.getType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR,
 				"Unable to change password for external user");
 		byEmail.setPassword(UserUtils.generateMD5(rq.getPassword()));
 		userRepository.save(byEmail);

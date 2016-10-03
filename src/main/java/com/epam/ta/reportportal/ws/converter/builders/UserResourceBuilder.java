@@ -22,10 +22,12 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.commons.Constants;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.project.EntryType;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -44,12 +46,17 @@ import java.util.List;
 @Scope("prototype")
 public class UserResourceBuilder extends ResourceBuilder<UserResource> {
 
+	@Autowired
+	private ProjectRepository projectRepository;
 
 	public UserResourceBuilder addUser(User user) {
-		return addUser(user, Collections.emptyList());
+		if (null != user){
+			return addUser(user, projectRepository.findUserProjects(user.getLogin()));
+		}
+		return this;
 	}
 
-	public UserResourceBuilder addUser(User user, List<Project> projects) {
+	private UserResourceBuilder addUser(User user, List<Project> projects) {
 		if (user != null) {
 			UserResource resource = getObject();
 			resource.setUserId(user.getLogin());

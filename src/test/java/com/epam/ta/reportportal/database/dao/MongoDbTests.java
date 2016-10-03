@@ -25,6 +25,7 @@ import java.util.Calendar;
 import java.util.Collections;
 
 import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.database.entity.user.UserType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,7 +34,6 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
-import com.epam.ta.reportportal.database.entity.project.EntryType;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 
@@ -61,7 +61,7 @@ public class MongoDbTests  extends BaseTest {
 		User user = new User();
 		user.setLogin("default");
 		user.setPassword("3fde6bb0541387e4ebdadf7c2ff31123");
-		user.setEntryType(EntryType.INTERNAL);
+		user.setType(UserType.INTERNAL);
 		user.setDefaultProject(DEFAULT_PROJECT);
 		user.getMetaInfo().setLastLogin(Calendar.getInstance().getTime());
 		user.setRole(UserRole.ADMINISTRATOR);

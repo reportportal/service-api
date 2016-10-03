@@ -875,8 +875,8 @@
 		<property name="role"
 			value="#{T(com.epam.ta.reportportal.database.entity.user.UserRole).ADMINISTRATOR}"
 			/>
-		<property name="entryType"
-			value="#{T(com.epam.ta.reportportal.database.entity.project.EntryType).INTERNAL}" />
+		<property name="type"
+			value="#{T(com.epam.ta.reportportal.database.entity.user.UserType).INTERNAL}" />
 	</bean>
 
 	<bean id="upsa_user" class="com.epam.ta.reportportal.database.entity.user.User">
@@ -887,8 +887,8 @@
 		<property name="role"
 			value="#{T(com.epam.ta.reportportal.database.entity.user.UserRole).ADMINISTRATOR}"
 			/>
-		<property name="entryType"
-			value="#{T(com.epam.ta.reportportal.database.entity.project.EntryType).UPSA}" />
+		<property name="type"
+			value="#{T(com.epam.ta.reportportal.database.entity.user.UserType).UPSA}" />
 	</bean>
 
 	<bean id="customer" class="com.epam.ta.reportportal.database.entity.user.User">
@@ -899,8 +899,8 @@
 		<property name="role"
 				  value="#{T(com.epam.ta.reportportal.database.entity.user.UserRole).USER}"
 		/>
-		<property name="entryType"
-				  value="#{T(com.epam.ta.reportportal.database.entity.project.EntryType).INTERNAL}" />
+		<property name="type"
+				  value="#{T(com.epam.ta.reportportal.database.entity.user.UserType).INTERNAL}" />
 	</bean>
 
 	<bean id="user2" class="com.epam.ta.reportportal.database.entity.user.User">
@@ -911,8 +911,8 @@
 		<property name="role"
 			value="#{T(com.epam.ta.reportportal.database.entity.user.UserRole).ADMINISTRATOR}"
 			/>
-		<property name="entryType"
-			value="#{T(com.epam.ta.reportportal.database.entity.project.EntryType).INTERNAL}" />
+		<property name="type"
+			value="#{T(com.epam.ta.reportportal.database.entity.user.UserType).INTERNAL}" />
 	</bean>
 
 	<bean id="user3" class="com.epam.ta.reportportal.database.entity.user.User">
@@ -923,8 +923,8 @@
 		<property name="role"
 			value="#{T(com.epam.ta.reportportal.database.entity.user.UserRole).USER}"
 				/>
-		<property name="entryType"
-			value="#{T(com.epam.ta.reportportal.database.entity.project.EntryType).INTERNAL}" />
+		<property name="type"
+			value="#{T(com.epam.ta.reportportal.database.entity.user.UserType).INTERNAL}" />
 	</bean>
 
 	<bean id="user4" class="com.epam.ta.reportportal.database.entity.user.User">
@@ -935,8 +935,8 @@
 		<property name="role"
 				  value="#{T(com.epam.ta.reportportal.database.entity.user.UserRole).USER}"
 		/>
-		<property name="entryType"
-				  value="#{T(com.epam.ta.reportportal.database.entity.project.EntryType).INTERNAL}" />
+		<property name="type"
+				  value="#{T(com.epam.ta.reportportal.database.entity.user.UserType).INTERNAL}" />
 	</bean>
 
 	<bean id="testStep4" class="com.epam.ta.reportportal.database.entity.item.TestItem">

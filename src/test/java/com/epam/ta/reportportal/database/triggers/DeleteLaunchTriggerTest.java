@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.database.triggers;
 
@@ -31,9 +31,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.epam.ta.BaseTest;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.fixture.SpringFixture;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
+import com.epam.ta.reportportal.triggers.CascadeDeleteLaunchesService;
 
 @SpringFixture("aspectTriggersTests")
 public class DeleteLaunchTriggerTest extends BaseTest {
@@ -49,25 +49,12 @@ public class DeleteLaunchTriggerTest extends BaseTest {
 	@Autowired
 	private TestItemRepository testItemRepository;
 
-	@Test
-	public void testDeleteAsObject() {
-		Launch launch = launchRepository.findOne(LAUNCH_ID);
-		launchRepository.delete(launch);
-		Assert.assertNull(launchRepository.findOne(LAUNCH_ID));
-		Assert.assertTrue(testItemRepository.findIdsByLaunch(LAUNCH_ID).isEmpty());
-	}
-
-	@Test
-	public void testDeleteAsId() {
-		launchRepository.delete(LAUNCH_ID);
-		Assert.assertNull(launchRepository.findOne(LAUNCH_ID));
-		Assert.assertTrue(testItemRepository.findIdsByLaunch(LAUNCH_ID).isEmpty());
-	}
+	@Autowired
+	private CascadeDeleteLaunchesService deleteLaunchesService;
 
 	@Test
 	public void testDeleteByAsList() {
-		Launch launch = launchRepository.findOne(LAUNCH_ID);
-		launchRepository.delete(Collections.singleton(launch));
+		deleteLaunchesService.delete(Collections.singletonList(LAUNCH_ID));
 		Assert.assertNull(launchRepository.findOne(LAUNCH_ID));
 		Assert.assertTrue(testItemRepository.findIdsByLaunch(LAUNCH_ID).isEmpty());
 	}

@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.database.triggers;
 import java.io.IOException;
 
 import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.database.entity.user.UserType;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -39,7 +40,6 @@ import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.project.EntryType;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.fixture.SpringFixture;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
@@ -77,7 +77,7 @@ public class DeleteUserTriggerTest extends BaseTest {
 		String photoId = dataStorage.saveData(data, "some file name");
 
 		User user = new User();
-		user.setEntryType(EntryType.UPSA);
+		user.setType(UserType.UPSA);
 		user.setEmail("email@email.com");
 		user.setDefaultProject("some_default_project");
 		user.setLogin("some login");

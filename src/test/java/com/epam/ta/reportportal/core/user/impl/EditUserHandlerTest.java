@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.user.impl;
 
-import static com.epam.ta.reportportal.database.entity.project.EntryType.UPSA;
+import static com.epam.ta.reportportal.database.entity.user.UserType.UPSA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -23,7 +23,7 @@ public class EditUserHandlerTest {
 		EditUserHandler editUserHandler = new EditUserHandler();
 		UserRepository userRepository = mock(UserRepository.class);
 		User user = new User();
-		user.setEntryType(UPSA);
+		user.setType(UPSA);
 		when(userRepository.findOne(login)).thenReturn(user);
 		editUserHandler.setUserRepository(userRepository);
 

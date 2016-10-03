@@ -87,7 +87,7 @@ public class TestItemsHistoryService implements ITestItemsHistoryService {
 		BusinessRule.expect(itemsForHistory, Preconditions.NOT_EMPTY_COLLECTION).verify(UNABLE_LOAD_TEST_ITEM_HISTORY,
 				"Unable to find history for items '" + ids + "'.");
 
-		Set<String> projectIds = launchRepository.findLaunches(itemsForHistory.stream().map(TestItem::getLaunchRef).collect(toList()))
+		Set<String> projectIds = launchRepository.find(itemsForHistory.stream().map(TestItem::getLaunchRef).collect(toList()))
 				.stream().map(Launch::getProjectRef).collect(toSet());
 
 		BusinessRule.expect((projectIds.size() == 1) && (projectIds.contains(projectName)), Predicates.equalTo(TRUE))

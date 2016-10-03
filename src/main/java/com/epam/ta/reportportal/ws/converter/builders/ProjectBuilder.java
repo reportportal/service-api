@@ -55,7 +55,7 @@ public class ProjectBuilder extends Builder<Project> {
 			getObject().setName(createProjectRQ.getProjectName().trim());
 			getObject().setCreationDate(new Date());
 
-			getObject().getConfiguration().setEntryType(EntryType.findByName(createProjectRQ.getEntryType()));
+			getObject().getConfiguration().setEntryType(EntryType.findByName(createProjectRQ.getEntryType()).orElse(null));
 			if (null != createProjectRQ.getCustomer())
 				getObject().setCustomer(createProjectRQ.getCustomer().trim());
 			if (null != createProjectRQ.getAddInfo())

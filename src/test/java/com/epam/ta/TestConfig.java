@@ -21,6 +21,7 @@
 
 package com.epam.ta;
 
+import com.epam.ta.reportportal.auth.UatClient;
 import com.epam.ta.reportportal.database.fixture.MongoFixtureImporter;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
 import com.github.fakemongo.Fongo;
@@ -112,6 +113,11 @@ public class TestConfig {
 	@Bean
 	public SpringFixtureRule springFixtureRule() {
 		return new SpringFixtureRule();
+	}
+
+	@Bean
+	public UatClient uatClient() {
+		return Mockito.mock(UatClient.class);
 	}
 
 	@Bean

@@ -105,9 +105,10 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 		final Project project = projectRepository.findOne(projectName);
 		launches.forEach(launch -> validate(launch, user, project));
 		cascadeDeleteLaunchesService.delete(toDelete);
-		launches.forEach(launch -> eventPublisher.publishEvent(new LaunchDeletedEvent(launch, userName)));
-		return toDelete.stream().map(it -> new OperationCompletionRS("Launch with ID = '" + it + "' successfully deleted."))
-				.collect(toList());
+		return launches.stream().map(launch -> {
+			eventPublisher.publishEvent(new LaunchDeletedEvent(launch, userName));
+			return new OperationCompletionRS("Launch with ID = '" + launch.getId() + "' successfully deleted.");
+		}).collect(toList());
 	}
 
 	private void validate(Launch launch, User user, Project project) {

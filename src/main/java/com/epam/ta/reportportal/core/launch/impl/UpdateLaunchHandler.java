@@ -17,34 +17,26 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.CUSTOMER;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.LEAD;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.core.statistics.StatisticsHelper.getStatusFromStatistics;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.*;
+import static com.epam.ta.reportportal.database.entity.Status.IN_PROGRESS;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_FILTER_PARAMETERS;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
-import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_IS_NOT_FINISHED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
+import static java.util.stream.Collectors.toList;
 
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
-import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
@@ -52,19 +44,12 @@ import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
-import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.launch.IUpdateLaunchHandler;
-import com.epam.ta.reportportal.database.dao.LaunchMetaInfoRepository;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
-import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.launch.AutoAnalyzeStrategy;
@@ -77,13 +62,9 @@ import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.ws.converter.LaunchResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
+import com.epam.ta.reportportal.ws.model.launch.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -159,10 +140,10 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	public LaunchResource mergeLaunches(String projectName, String userName, MergeLaunchesRQ mergeLaunchesRQ) {
 		User user = userRepository.findOne(userName);
 		Project project = projectRepository.findOne(projectName);
-		BusinessRule.expect(project, Predicates.notNull()).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
+		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
 		Set<String> launchesIds = mergeLaunchesRQ.getLaunches();
-		List<Launch> launchesList = launchesIds.stream().map(id -> launchRepository.findOne(id)).collect(Collectors.toList());
+		List<Launch> launchesList = launchRepository.find(launchesIds);
 
 		validateMergingLaunches(launchesList, user, project);
 
@@ -172,10 +153,9 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		startRQ.setName(mergeLaunchesRQ.getName());
 		startRQ.setTags(mergeLaunchesRQ.getTags());
 
-		Collections.sort(launchesList, (arg0, arg1) -> arg0.getStartTime().compareTo(arg1.getStartTime()));
+		launchesList.sort(Comparator.comparing(Launch::getStartTime));
 		startRQ.setStartTime(launchesList.get(0).getStartTime());
-		Launch launch = launchBuilder.get().addStartRQ(startRQ).addProject(projectName).addStatus(Status.IN_PROGRESS).addUser(userName)
-				.build();
+		Launch launch = launchBuilder.get().addStartRQ(startRQ).addProject(projectName).addStatus(IN_PROGRESS).addUser(userName).build();
 		launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
 		launchRepository.save(launch);
 
@@ -184,10 +164,10 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		List<TestItem> statisticsBase = updateChildrenOfLaunch(launch.getId(), mergeLaunchesRQ.getLaunches(),
 				mergeLaunchesRQ.isExtendSuitesDescription());
 		launch.setStatistics(getLaunchStatisticFromItems(statisticsBase));
-		launch.setStatus(StatisticsHelper.getStatusFromStatistics(launch.getStatistics()));
+		launch.setStatus(getStatusFromStatistics(launch.getStatistics()));
 		launchRepository.save(launch);
 
-		launchesIds.forEach(launchRepository::delete);
+		launchRepository.delete(launchesIds);
 
 		return launchResourceAssembler.toResource(launch);
 	}
@@ -208,11 +188,11 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		expect(launch.getMode(), equalTo(DEFAULT)).verify(INCORRECT_REQUEST, "Cannot analyze launches in debug mode.");
 
 		Project project = projectRepository.findOne(projectName);
-		BusinessRule.expect(project, Predicates.notNull()).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
+		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
 		/* Prevent AA for already processing launches */
 		if (!analyzerService.isPossible(launchId) && type.equals(AutoAnalyzeStrategy.HISTORY)) {
-			BusinessRule.fail().withError(FORBIDDEN_OPERATION,
+			fail().withError(FORBIDDEN_OPERATION,
 					Suppliers.formattedSupplier("Launch with ID '{}' in auto-analyzer cache already", launchId));
 		}
 
@@ -220,9 +200,9 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		 * Stupid requirement -> for IN_PROGRESS launches: AA is possible, but
 		 * Match is not
 		 */
-		if ((launch.getStatus().equals(Status.IN_PROGRESS) || !analyzerService.isPossible(launchId))
+		if ((launch.getStatus().equals(IN_PROGRESS) || !analyzerService.isPossible(launchId))
 				&& !(type.equals(AutoAnalyzeStrategy.HISTORY)))
-			BusinessRule.fail().withError(FORBIDDEN_OPERATION,
+			fail().withError(FORBIDDEN_OPERATION,
 					Suppliers.formattedSupplier("Launch with ID '{}' in auto-analyzer cache already and/or in progress still", launchId));
 
 		List<TestItem> toInvestigate = testItemRepository.findInIssueTypeItems(TestItemIssueType.TO_INVESTIGATE.getLocator(), launchId);
@@ -239,6 +219,12 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 			taskExecutor.execute(() -> analyzerService.analyze(launchId, toInvestigate, got));
 		}
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launchId + "' started.");
+	}
+
+	@Override
+	public List<OperationCompletionRS> updateLaunch(BulkRQ<UpdateLaunchRQ> rq, String projectName, String userName) {
+		return rq.getEntities().entrySet().stream().map(entry -> updateLaunch(entry.getKey(), projectName, userName, entry.getValue()))
+				.collect(toList());
 	}
 
 	/**
@@ -261,7 +247,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 			expect(analyzerService.isPossible(launch.getId()), equalTo(true)).verify(FORBIDDEN_OPERATION,
 					"Impossible to merge launch which under AA processing");
 
-			expect(launch.getStatus(), not(Preconditions.statusIn(Status.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
+			expect(launch.getStatus(), not(Preconditions.statusIn(IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
 					Suppliers.formattedSupplier("Cannot merge launch '{}' with status '{}'", launch.getId(), launch.getStatus()));
 
 			expect(launch.getProjectRef(), equalTo(project.getId())).verify(FORBIDDEN_OPERATION,
@@ -319,10 +305,10 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 					item.setItemDescription(newDescription.get());
 				}
 				return item;
-			}).collect(Collectors.toList());
-		}).flatMap(List::stream).collect(Collectors.toList());
+			}).collect(toList());
+		}).flatMap(List::stream).collect(toList());
 		testItemRepository.save(testItems);
-		return testItems.stream().filter(item -> item.getPath().size() == 0).collect(Collectors.toList());
+		return testItems.stream().filter(item -> item.getPath().size() == 0).collect(toList());
 	}
 
 	/**

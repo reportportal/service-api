@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import java.util.LinkedHashSet;
@@ -46,45 +46,43 @@ import com.epam.ta.reportportal.ws.model.filter.UserFilterEntity;
 @Service
 @Scope("prototype")
 public class UserFilterBuilder extends ShareableEntityBuilder<UserFilter> {
-	
+
 	public UserFilterBuilder addCreateRQ(CreateUserFilterRQ request) {
 		if (request != null) {
 			getObject().setName(request.getName().trim());
 			getObject().setIsLink(request.getIsLink());
 			Set<UserFilterEntity> filterEntities = request.getEntities();
-			getObject().setFilter(
-					getFilter(filterEntities, request.getObjectType()));
-			
+			getObject().setFilter(getFilter(filterEntities, request.getObjectType()));
+			getObject().setDescription(request.getDescription());
+
 			addSelectionParamaters(request.getSelectionParameters());
 		}
 		return this;
 	}
-	
-	
+
 	public UserFilterBuilder addSelectionParamaters(SelectionParameters parameters) {
 		if (parameters != null) {
 			SelectionOptions selectionOptions = new SelectionOptions();
 			selectionOptions.setIsAsc(parameters.getIsAsc());
 			selectionOptions.setQuantity(parameters.getQuantity());
-			selectionOptions
-					.setSortingColumnName(parameters.getSortingColumnName());
+			selectionOptions.setSortingColumnName(parameters.getSortingColumnName());
 			selectionOptions.setPageNumber(parameters.getPageNumber());
 			getObject().setSelectionOptions(selectionOptions);
 		}
 		return this;
 	}
-	
+
 	@Override
 	public UserFilterBuilder addSharing(String owner, String project, boolean isShare) {
 		super.addAcl(owner, project, isShare);
 		return this;
 	}
-	
+
 	public UserFilterBuilder addProject(String projectName) {
 		getObject().setProjectName(projectName);
 		return this;
 	}
-	
+
 	@Override
 	protected UserFilter initObject() {
 		return new UserFilter();
@@ -96,20 +94,16 @@ public class UserFilterBuilder extends ShareableEntityBuilder<UserFilter> {
 	 * @param filterEntities
 	 * @return
 	 */
-	private Filter getFilter(Set<UserFilterEntity> filterEntities,
-			String objectType) {
+	private Filter getFilter(Set<UserFilterEntity> filterEntities, String objectType) {
 		if (filterEntities == null) {
 			return null;
 		}
 
-		Set<FilterCondition> filterConditions = new LinkedHashSet<>(
-				filterEntities.size());
+		Set<FilterCondition> filterConditions = new LinkedHashSet<>(filterEntities.size());
 		for (UserFilterEntity filterEntity : filterEntities) {
 			Condition conditionObject = Condition.findByMarker(filterEntity.getCondition());
-			FilterCondition filterCondition = new FilterCondition(
-					conditionObject,
-					filterEntity.getIsNegative(), filterEntity.getValue().trim(),
-					filterEntity.getFilteringField().trim());
+			FilterCondition filterCondition = new FilterCondition(conditionObject, filterEntity.getIsNegative(),
+					filterEntity.getValue().trim(), filterEntity.getFilteringField().trim());
 			filterConditions.add(filterCondition);
 		}
 		return new Filter(ObjectType.getTypeByName(objectType), filterConditions);

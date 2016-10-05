@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 /*
  * This file is part of Report Portal.
  *
@@ -49,6 +49,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -75,6 +76,8 @@ public interface ILaunchController {
 	 * @return
 	 */
 	EntryCreatedRS startLaunch(String project, StartLaunchRQ startLaunchRQ, Principal principal);
+
+	List<OperationCompletionRS> updateLaunches(String projectName, BulkRQ<UpdateLaunchRQ> rq, Principal principal);
 
 	/**
 	 * Delete LaunchR
@@ -172,6 +175,8 @@ public interface ILaunchController {
 	 */
 	List<String> getAllLaunchNames(String project, String value, Principal principal);
 
+	List<OperationCompletionRS> bulkForceFinish(String projectName, BulkRQ<FinishExecutionRQ> rq, Principal principal);
+
 	/**
 	 * Update specified by id launch
 	 *
@@ -229,4 +234,6 @@ public interface ILaunchController {
 
 	void getLaunchReport(String projectName, String launchId, String view, Principal principal, HttpServletResponse response)
 			throws IOException;
+
+	List<OperationCompletionRS> deleteLaunches(String projectName, String[] ids, Principal principal);
 }

@@ -22,10 +22,13 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.auth.UatClient;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.security.oauth2.client.OAuth2ClientContext;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 
 /**
  * Configuration of clients for other services
@@ -37,12 +40,12 @@ public class ServicesConfiguration {
 
 	@LoadBalanced
 	@Bean
-	public RestTemplate loadBalancedRestTemplate() {
-		return new RestTemplate();
+	public OAuth2RestTemplate loadBalancedOauth2RestTemplate(OAuth2ProtectedResourceDetails resource, OAuth2ClientContext context) {
+		return new OAuth2RestTemplate(resource, context);
 	}
 
 	@Bean
-	public UatClient uatClient() {
-		return new UatClient(loadBalancedRestTemplate());
+	public UatClient uatClient(@Qualifier("loadBalancedOauth2RestTemplate") OAuth2RestTemplate restTemplate) {
+		return new UatClient(restTemplate);
 	}
 }

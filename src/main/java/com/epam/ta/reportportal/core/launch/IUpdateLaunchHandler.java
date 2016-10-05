@@ -21,10 +21,13 @@
 
 package com.epam.ta.reportportal.core.launch;
 
+import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
+
+import java.util.List;
 
 /**
  * Update launch operation handler
@@ -76,4 +79,6 @@ public interface IUpdateLaunchHandler {
 	 * @return OperationCompletionRS - Response Data
 	 */
 	OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId, String scope);
+
+	List<OperationCompletionRS> updateLaunch(BulkRQ<UpdateLaunchRQ> rq, String projectName, String userName);
 }

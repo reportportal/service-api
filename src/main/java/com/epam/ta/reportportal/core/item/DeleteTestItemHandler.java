@@ -17,13 +17,14 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+
+import java.util.List;
 
 /**
  * Handler for delete test item operation
@@ -37,11 +38,12 @@ public interface DeleteTestItemHandler {
 	/**
 	 * Deletes {@link TestItem} instance
 	 * 
-	 * @param testStepId
+	 * @param itemId
+	 * @param project
+	 * @param username
 	 * @return
-	 * @throws ProjectNotFoundException
-	 * @throws TestStepNotFoundException
-	 * @throws ReportPortalException
 	 */
 	OperationCompletionRS deleteTestItem(String itemId, String project, String username);
+
+	List<OperationCompletionRS> deleteTestItem(String[] ids, String project, String user);
 }

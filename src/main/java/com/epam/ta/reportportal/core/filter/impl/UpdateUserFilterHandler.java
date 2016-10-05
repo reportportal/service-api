@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.filter.impl;
 
@@ -136,6 +136,7 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 		if (null != updateRQ.getEntities()) {
 			toUpdate.setFilter(createFilter(updateRQ.getObjectType(), updateRQ.getEntities()));
 		}
+		toUpdate.setDescription(updateRQ.getDescription());
 		toUpdate.setIsLink(updateRQ.getIsLink());
 		if (null != updateRQ.getSelectionParameters()) {
 			userFilterService.validateSortingColumnName(toUpdate.getFilter().getTarget(),

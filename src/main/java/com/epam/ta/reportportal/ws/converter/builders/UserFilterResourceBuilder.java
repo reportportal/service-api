@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import java.util.LinkedHashSet;
@@ -53,6 +53,7 @@ public class UserFilterResourceBuilder extends ResourceBuilder<UserFilterResourc
 		if (userFilter != null) {
 			getObject().setFilterId(userFilter.getId());
 			getObject().setName(userFilter.getName());
+			getObject().setDescription(userFilter.getDescription());
 			Filter filter = userFilter.getFilter();
 			if (filter != null) {
 				getObject().setObjectType(filter.getTarget().getSimpleName().toLowerCase());

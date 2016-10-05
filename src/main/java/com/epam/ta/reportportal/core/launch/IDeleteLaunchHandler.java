@@ -24,6 +24,8 @@ package com.epam.ta.reportportal.core.launch;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
+import java.util.List;
+
 /**
  * Delete Launch request handler
  *
@@ -42,4 +44,5 @@ public interface IDeleteLaunchHandler {
      */
     OperationCompletionRS deleteLaunch(String launchId, String projectName, String principal);
 
+    List<OperationCompletionRS> deleteLaunches(String[] ids, String projectName, String name);
 }

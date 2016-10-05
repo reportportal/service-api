@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller;
 
@@ -95,6 +95,8 @@ public interface ITestItemController {
 	 * @return OperationCompletionRS
 	 */
 	OperationCompletionRS deleteTestItem(String projectName, String item, Principal principal);
+
+	List<OperationCompletionRS> deleteTestItems(String projectName, String[] ids, Principal principal);
 
 	/**
 	 * Update test item issue block (defects) and updated statistics

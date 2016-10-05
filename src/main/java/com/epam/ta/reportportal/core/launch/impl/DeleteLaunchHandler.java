@@ -30,7 +30,11 @@ import static com.epam.ta.reportportal.database.entity.ProjectRole.LEAD;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -48,7 +52,6 @@ import com.epam.ta.reportportal.events.LaunchDeletedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.triggers.CascadeDeleteLaunchesService;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.google.common.collect.Lists;
 
 /**
  * Default implementation of {@link IDeleteLaunchHandler}
@@ -94,6 +97,20 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully deleted.");
 	}
 
+	@Override
+	public List<OperationCompletionRS> deleteLaunches(String[] ids, String projectName, String userName) {
+		final List<String> toDelete = asList(ids);
+		final List<Launch> launches = launchRepository.find(toDelete);
+		final User user = userRepository.findOne(userName);
+		final Project project = projectRepository.findOne(projectName);
+		launches.forEach(launch -> validate(launch, user, project));
+		cascadeDeleteLaunchesService.delete(toDelete);
+		return launches.stream().map(launch -> {
+			eventPublisher.publishEvent(new LaunchDeletedEvent(launch, userName));
+			return new OperationCompletionRS("Launch with ID = '" + launch.getId() + "' successfully deleted.");
+		}).collect(toList());
+	}
+
 	private void validate(Launch launch, User user, Project project) {
 		expect(launch.getProjectRef(), equalTo(project.getName())).verify(FORBIDDEN_OPERATION,
 				formattedSupplier("Target launch '{}' not under specified project '{}'", launch.getId(), project.getName()));
@@ -104,7 +121,7 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
 			/* Only LEAD and PROJECT_MANAGER roles could delete launches */
 			UserConfig userConfig = project.getUsers().get(user.getId());
-			expect(userConfig, hasProjectRoles(Lists.newArrayList(PROJECT_MANAGER, LEAD))).verify(ACCESS_DENIED);
+			expect(userConfig, hasProjectRoles(asList(PROJECT_MANAGER, LEAD))).verify(ACCESS_DENIED);
 		}
 	}
 }

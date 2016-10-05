@@ -17,25 +17,35 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 package com.epam.ta.reportportal.ws.controller.impl;
 
+import static com.epam.ta.reportportal.auth.AuthConstants.ADMINISTRATOR;
+import static com.epam.ta.reportportal.auth.AuthConstants.USER_PROJECT;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.IntStream.range;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
+import org.springframework.test.web.servlet.MvcResult;
 
-import com.epam.ta.reportportal.auth.AuthConstants;
+import com.epam.ta.reportportal.database.dao.UserFilterRepository;
+import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.filter.*;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -45,24 +55,33 @@ public class UserFilterControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+	@Autowired
+	private UserFilterRepository userFilterRepository;
 
 	@Test
 	public void createFilterPositive() throws Exception {
+		String name = "userFilter";
+		String description = "description";
 		CreateUserFilterRQ createUserFilterRQ = new CreateUserFilterRQ();
-		createUserFilterRQ.setName("userFilter");
+		createUserFilterRQ.setName(name);
 		createUserFilterRQ.setObjectType("Launch");
 		createUserFilterRQ.setIsLink(false);
-		SelectionParameters selectionParameters = new SelectionParameters();
-		selectionParameters.setIsAsc(false);
-		selectionParameters.setSortingColumnName("start_time");
-		selectionParameters.setQuantity(10);
-		selectionParameters.setPageNumber(2);
+		createUserFilterRQ.setDescription(description);
+		SelectionParameters selectionParameters = selectionParameters();
 		createUserFilterRQ.setSelectionParameters(selectionParameters);
 		createUserFilterRQ.setEntities(generateFilterEntities());
 		CollectionsRQ<CreateUserFilterRQ> rq = new CollectionsRQ<>();
 		rq.setElements(Collections.singletonList(createUserFilterRQ));
-		this.mvcMock.perform(post(PROJECT_BASE_URL + "/filter").principal(authentication()).content(objectMapper.writeValueAsBytes(rq))
-				.contentType(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+		MvcResult mvcResult = this.mvcMock.perform(post(PROJECT_BASE_URL + "/filter").principal(authentication())
+				.content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)).andExpect(status().isCreated()).andReturn();
+		List<EntryCreatedRS> entries = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
+				new TypeReference<List<EntryCreatedRS>>() {
+				});
+		Assert.assertEquals(1, entries.size());
+		UserFilter userFilter = userFilterRepository.findOne(entries.get(0).getId());
+		Assert.assertEquals(name, userFilter.getName());
+		Assert.assertEquals(description, userFilter.getDescription());
+		Assert.assertEquals(USER_PROJECT, userFilter.getProjectName());
 	}
 
 	@Test
@@ -102,10 +121,12 @@ public class UserFilterControllerTest extends BaseMvcTest {
 		UpdateUserFilterRQ updateUserFilterRQ = new UpdateUserFilterRQ();
 		updateUserFilterRQ.setObjectType("Launch");
 		updateUserFilterRQ.setEntities(generateFilterEntities());
+		updateUserFilterRQ.setDescription("new description");
 		this.mvcMock
 				.perform(put(PROJECT_BASE_URL + "/filter/566e1f3818177ca344439d38").principal(authentication())
-						.content(objectMapper.writeValueAsBytes(updateUserFilterRQ)).contentType(MediaType.APPLICATION_JSON))
+						.content(objectMapper.writeValueAsBytes(updateUserFilterRQ)).contentType(APPLICATION_JSON))
 				.andExpect(status().is(200));
+		Assert.assertEquals("new description", userFilterRepository.findOne("566e1f3818177ca344439d38").getDescription());
 	}
 
 	@Test
@@ -118,17 +139,60 @@ public class UserFilterControllerTest extends BaseMvcTest {
 	public void updateUserFiltersPositive() throws Exception {
 		CollectionsRQ<BulkUpdateFilterRQ> rq = new CollectionsRQ<>();
 		BulkUpdateFilterRQ bulkUpdateFilterRQ = new BulkUpdateFilterRQ();
-		bulkUpdateFilterRQ.setId("566e1f3818177ca344439d38");
+		String id = "566e1f3818177ca344439d38";
+		bulkUpdateFilterRQ.setId(id);
 		bulkUpdateFilterRQ.setObjectType("Launch");
+		bulkUpdateFilterRQ.setDescription("new description");
 		bulkUpdateFilterRQ.setEntities(generateFilterEntities());
 		rq.setElements(Collections.singletonList(bulkUpdateFilterRQ));
-		this.mvcMock.perform(put(PROJECT_BASE_URL + "/filter").principal(authentication()).contentType(MediaType.APPLICATION_JSON)
+		this.mvcMock.perform(put(PROJECT_BASE_URL + "/filter").principal(authentication()).contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
+		UserFilter userFilter = userFilterRepository.findOne(id);
+		Assert.assertEquals("new description", userFilter.getDescription());
+	}
+
+	@Test
+	public void createUserFiltersLongDescription() throws Exception {
+		CollectionsRQ<CreateUserFilterRQ> createRq = new CollectionsRQ<>();
+		CreateUserFilterRQ filterRQ = new CreateUserFilterRQ();
+		filterRQ.setName("filterName");
+		filterRQ.setObjectType("Launch");
+		filterRQ.setEntities(generateFilterEntities());
+		filterRQ.setSelectionParameters(selectionParameters());
+		filterRQ.setIsLink(false);
+		filterRQ.setDescription(range(0, 257).mapToObj(String::valueOf).collect(joining()));
+		createRq.setElements(Collections.singletonList(filterRQ));
+		mvcMock.perform(post(PROJECT_BASE_URL + "/filter").principal(authentication()).contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(createRq))).andExpect(status().is4xxClientError());
+	}
+
+	@Test
+	public void createUserFiltersZeroDescription() throws Exception {
+		CollectionsRQ<CreateUserFilterRQ> createRq = new CollectionsRQ<>();
+		CreateUserFilterRQ filterRQ = new CreateUserFilterRQ();
+		filterRQ.setName("filterName");
+		filterRQ.setObjectType("Launch");
+		filterRQ.setEntities(generateFilterEntities());
+		filterRQ.setSelectionParameters(selectionParameters());
+		filterRQ.setIsLink(false);
+		filterRQ.setDescription("");
+		createRq.setElements(Collections.singletonList(filterRQ));
+		mvcMock.perform(post(PROJECT_BASE_URL + "/filter").principal(authentication()).contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(createRq))).andExpect(status().is4xxClientError());
+	}
+
+	private SelectionParameters selectionParameters() {
+		SelectionParameters selectionParameters = new SelectionParameters();
+		selectionParameters.setIsAsc(false);
+		selectionParameters.setSortingColumnName("start_time");
+		selectionParameters.setQuantity(10);
+		selectionParameters.setPageNumber(2);
+		return selectionParameters;
 	}
 
 	@Override
 	protected Authentication authentication() {
-		return AuthConstants.ADMINISTRATOR;
+		return ADMINISTRATOR;
 	}
 
 	private static Set<UserFilterEntity> generateFilterEntities() {

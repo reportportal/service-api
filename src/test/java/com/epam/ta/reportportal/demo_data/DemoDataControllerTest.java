@@ -21,13 +21,13 @@
 package com.epam.ta.reportportal.demo_data;
 
 import static com.epam.ta.reportportal.auth.AuthConstants.ADMINISTRATOR;
+import static org.junit.Assert.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -56,18 +56,21 @@ public class DemoDataControllerTest extends BaseMvcTest {
 	@Test
 	public void generateDemoData() throws Exception {
 		DemoDataRq rq = new DemoDataRq();
+		rq.setPostfix("postfix");
 		rq.setCreateDashboard(true);
 		rq.setLaunchesQuantity(1);
 		mvcMock.perform(post("/demo/project1").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
 				.principal(authentication())).andExpect(status().is(200));
-		List<Launch> byName = launchRepository.findByName(rq.getLaunchName());
-		Assert.assertFalse(byName.isEmpty());
-		Assert.assertEquals(rq.getLaunchesQuantity(), byName.size());
-		Dashboard dashboard = dashboardRepository.findOneByUserProject(AuthConstants.TEST_USER, "project1", rq.getDashboardName());
-		Assert.assertNotNull(dashboard);
-		Assert.assertEquals(9, dashboardRepository.findOne(dashboard.getId()).getWidgets().size());
-		final UserFilter filter = userFilterRepository.findOneByName(AuthConstants.TEST_USER, rq.getFilterName(), "project1");
-		Assert.assertNotNull(filter);
+		List<Launch> byName = launchRepository.findByName(DemoLaunchesService.NAME + "#" + rq.getPostfix());
+		assertFalse(byName.isEmpty());
+		assertEquals(rq.getLaunchesQuantity(), byName.size());
+		Dashboard dashboard = dashboardRepository.findOneByUserProject(AuthConstants.TEST_USER, "project1",
+				DemoDashboardsService.D_NAME + "#" + rq.getPostfix());
+		assertNotNull(dashboard);
+		assertEquals(9, dashboardRepository.findOne(dashboard.getId()).getWidgets().size());
+		final UserFilter filter = userFilterRepository.findOneByName(AuthConstants.TEST_USER,
+				DemoDashboardsService.F_NAME + "#" + rq.getPostfix(), "project1");
+		assertNotNull(filter);
 
 	}
 

@@ -49,8 +49,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 class DemoLaunchesService {
 
+	static final String NAME = "Demo Api Tests";
 	private Random random = new Random();
-
 	@Autowired
 	private DemoLogsService logDemoDataService;
 	@Autowired
@@ -74,7 +74,7 @@ class DemoLaunchesService {
 			suites = objectMapper.readValue(resource.getURL(), new TypeReference<Map<String, Map<String, List<String>>>>() {
 			});
 		} catch (IOException e) {
-			throw new ReportPortalException("Unable to load suites description");
+			throw new ReportPortalException("Unable to load suites description. " + e.getMessage(), e);
 		}
 		return generateLaunches(demoDataRq, suites, user, projectName);
 	}
@@ -82,7 +82,7 @@ class DemoLaunchesService {
 	private List<String> generateLaunches(DemoDataRq rq, Map<String, Map<String, List<String>>> suitesStructure, String user,
 			String project) {
 		return IntStream.range(0, rq.getLaunchesQuantity()).mapToObj(i -> {
-			String launchId = startLaunch(rq.getLaunchName(), i, project, user);
+			String launchId = startLaunch(NAME + "#" + rq.getPostfix(), i, project, user);
 			generateSuites(suitesStructure, i, launchId);
 			finishLaunch(launchId);
 			return launchId;

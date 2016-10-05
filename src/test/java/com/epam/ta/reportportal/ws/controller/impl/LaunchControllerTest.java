@@ -17,14 +17,18 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
+import static com.epam.ta.reportportal.auth.AuthConstants.ADMINISTRATOR;
+import static com.epam.ta.reportportal.auth.AuthConstants.USER_PROJECT;
 import static com.epam.ta.reportportal.events.handler.LaunchActivityHandler.START;
+import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.*;
+import static org.junit.Assert.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -32,22 +36,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
-import com.epam.ta.reportportal.database.entity.Launch;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
-import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
@@ -65,9 +68,10 @@ public class LaunchControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
-
 	@Autowired
 	private ActivityRepository activityRepository;
+	@Autowired
+	private LaunchRepository launchRepository;
 
 	@Test
 	public void happyCreateLaunch() throws Exception {
@@ -197,8 +201,33 @@ public class LaunchControllerTest extends BaseMvcTest {
 				.andExpect(status().is(200));
 	}
 
+	@Test
+	public void bulkDeleteLaunches() throws Exception {
+		List<String> toDelete = asList("89224678053de743b3e5aa3e", "51824cc1323de743b3e5aa2c");
+		mvcMock.perform(delete(PROJECT_BASE_URL + "/launch?ids=" + toDelete.stream().collect(joining(","))).contentType(APPLICATION_JSON)
+				.principal(authentication())).andExpect(status().is(200));
+		List<Launch> launches = launchRepository.find(toDelete);
+		assertTrue(launches.isEmpty());
+	}
+
+	@Test
+	public void bulkMoveToDebug() throws Exception {
+		final List<String> ids = launchRepository.findLaunchIdsByProjectId(USER_PROJECT).stream().filter(it -> it.getMode() == DEFAULT)
+				.map(Launch::getId).collect(toList());
+		final Map<String, UpdateLaunchRQ> entities = ids.stream().collect(toMap(it -> it, it -> {
+			final UpdateLaunchRQ updateLaunchRQ = new UpdateLaunchRQ();
+			updateLaunchRQ.setMode(DEBUG);
+			return updateLaunchRQ;
+		}));
+		final BulkRQ<UpdateLaunchRQ> bulkRQ = new BulkRQ<>();
+		bulkRQ.setEntities(entities);
+		mvcMock.perform(put(PROJECT_BASE_URL + "/launch/update").principal(authentication()).content(objectMapper.writeValueAsBytes(bulkRQ))
+				.contentType(APPLICATION_JSON)).andExpect(status().is(200));
+		launchRepository.find(ids).forEach(it -> assertTrue(it.getMode() == DEBUG));
+	}
+
 	@Override
 	protected Authentication authentication() {
-		return AuthConstants.ADMINISTRATOR;
+		return ADMINISTRATOR;
 	}
 }

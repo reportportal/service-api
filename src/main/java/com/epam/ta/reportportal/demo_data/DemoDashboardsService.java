@@ -53,6 +53,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 class DemoDashboardsService {
+	static final String D_NAME = "DEMO DASHBOARD";
+	static final String F_NAME = "DEMO_FILTER";
 	private UserFilterRepository userFilterRepository;
 	private DashboardRepository dashboardRepository;
 	private WidgetRepository widgetRepository;
@@ -70,12 +72,13 @@ class DemoDashboardsService {
 	}
 
 	Dashboard createDemoDashboard(DemoDataRq rq, String user, String project) {
-		Dashboard dashboard = dashboardRepository.findOneByUserProject(user, project, rq.getDashboardName());
+		String dashboardName = D_NAME + "#" + rq.getPostfix();
+		String filterName = F_NAME + "#" + rq.getPostfix();
+		Dashboard dashboard = dashboardRepository.findOneByUserProject(user, project, dashboardName);
 		if (dashboard != null) {
-			throw new ReportPortalException(
-					"Dashboard with name " + rq.getDashboardName() + " already exists. You couldn't create the duplicate.");
+			throw new ReportPortalException("Dashboard with name " + dashboardName + " already exists. You couldn't create the duplicate.");
 		}
-		String filterId = createDemoFilter(rq.getFilterName(), user, project);
+		String filterId = createDemoFilter(filterName, user, project);
 		Acl acl = acl(user, project);
 		try {
 			TypeReference<List<Widget>> type = new TypeReference<List<Widget>>() {
@@ -84,13 +87,14 @@ class DemoDashboardsService {
 				it.setProjectName(project);
 				it.setApplyingFilterId(filterId);
 				it.setAcl(acl);
+				it.setName(it.getName() + "#" + rq.getPostfix());
 				return it;
 			}).collect(toList());
 			widgetRepository.save(widgets);
-			return createDemoDashboard(widgets, user, project, rq.getDashboardName());
+			return createDemoDashboard(widgets, user, project, dashboardName);
 
 		} catch (IOException e) {
-			throw new ReportPortalException("Unable to load demo_widgets.json");
+			throw new ReportPortalException("Unable to load demo_widgets.json. " + e.getMessage(), e);
 		}
 	}
 

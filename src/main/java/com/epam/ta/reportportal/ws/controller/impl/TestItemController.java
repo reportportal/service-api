@@ -17,31 +17,24 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeProjectName;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 import java.security.Principal;
 import java.util.List;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
-import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
-import com.epam.ta.reportportal.ws.resolver.FilterFor;
-import com.epam.ta.reportportal.ws.resolver.SortFor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import springfox.documentation.annotations.ApiIgnore;
-
 
 import com.epam.ta.reportportal.core.item.*;
 import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
@@ -55,7 +48,12 @@ import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.item.AddExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
+import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
+import com.epam.ta.reportportal.ws.resolver.SortFor;
+
 import io.swagger.annotations.ApiOperation;
+import springfox.documentation.annotations.ApiIgnore;
 
 @Controller
 @RequestMapping("/{projectName}/item")
@@ -84,7 +82,7 @@ public class TestItemController implements ITestItemController {
 	private UpdateTestItemHandler updateTestItemHandler;
 
 	@Override
-	@RequestMapping(method = POST)
+	@PostMapping
 	@ResponseBody
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a root test item")
@@ -94,7 +92,7 @@ public class TestItemController implements ITestItemController {
 	}
 
 	@Override
-	@RequestMapping(value = "/{parentItem}", method = POST)
+	@PostMapping("/{parentItem}")
 	@ResponseBody
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a child test item")
@@ -104,7 +102,7 @@ public class TestItemController implements ITestItemController {
 	}
 
 	@Override
-	@RequestMapping(value = "/{testItemId}", method = PUT)
+	@PutMapping("/{testItemId}")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Finish test item")
@@ -114,7 +112,7 @@ public class TestItemController implements ITestItemController {
 	}
 
 	@Override
-	@RequestMapping(value = "/{testItemId}", method = GET)
+	@GetMapping("/{testItemId}")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Find test item by ID")
@@ -123,7 +121,7 @@ public class TestItemController implements ITestItemController {
 	}
 
 	@Override
-	@RequestMapping(method = GET)
+	@GetMapping
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiIgnore
@@ -133,27 +131,36 @@ public class TestItemController implements ITestItemController {
 		return getTestItemHandler.getTestItems(filter, pageable);
 	}
 
-	@RequestMapping(value = "/{item}", method = DELETE)
+	@DeleteMapping("/{item}")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@Override
 	@ApiOperation("Delete test item")
 	public OperationCompletionRS deleteTestItem(@PathVariable String projectName, @PathVariable String item, Principal principal) {
-		return deleteTestItemHandler.deleteTestItem(item, EntityUtils.normalizeProjectName(projectName), principal.getName());
+		return deleteTestItemHandler.deleteTestItem(item, normalizeProjectName(projectName), principal.getName());
 	}
 
 	@Override
-	@RequestMapping(method = PUT)
+	@ResponseBody
+	@ResponseStatus(OK)
+	@DeleteMapping
+	public List<OperationCompletionRS> deleteTestItems(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
+			Principal principal) {
+		return deleteTestItemHandler.deleteTestItem(ids, normalizeProjectName(projectName), principal.getName());
+	}
+
+	@Override
+	@PutMapping
 	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiOperation("Update issues of specified test items")
 	public List<Issue> defineTestItemIssueType(@PathVariable String projectName, @RequestBody @Validated DefineIssueRQ request,
 			Principal principal) {
-		return updateTestItemHandler.defineTestItemsIssues(EntityUtils.normalizeProjectName(projectName), request, principal.getName());
+		return updateTestItemHandler.defineTestItemsIssues(normalizeProjectName(projectName), request, principal.getName());
 	}
 
 	@Override
-	@RequestMapping(value = "/history", method = GET)
+	@GetMapping("/history")
 	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiOperation("Load history of test items")
@@ -162,12 +169,11 @@ public class TestItemController implements ITestItemController {
 			@RequestParam(value = "ids") String[] ids,
 			@RequestParam(value = "is_full", required = false, defaultValue = DEFAULT_HISTORY_FULL) boolean showBrokenLaunches,
 			Principal principal) {
-		return testItemsHistoryHandler.getItemsHistory(EntityUtils.normalizeProjectName(projectName), ids, historyDepth,
-				showBrokenLaunches);
+		return testItemsHistoryHandler.getItemsHistory(normalizeProjectName(projectName), ids, historyDepth, showBrokenLaunches);
 	}
 
 	@Override
-	@RequestMapping(value = "/tags", method = GET)
+	@GetMapping("/tags")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique tags of specified launch")
@@ -178,29 +184,29 @@ public class TestItemController implements ITestItemController {
 	}
 
 	@Override
-	@RequestMapping(value = "/{item}/update", method = PUT)
+	@PutMapping("/{item}/update")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Update test item")
 	public OperationCompletionRS updateTestItem(@PathVariable String projectName, @PathVariable String item,
 			@RequestBody @Validated UpdateTestItemRQ rq, Principal principal) {
-		return updateTestItemHandler.updateTestItem(EntityUtils.normalizeProjectName(projectName), item, rq, principal.getName());
+		return updateTestItemHandler.updateTestItem(normalizeProjectName(projectName), item, rq, principal.getName());
 	}
 
 	@Override
-	@RequestMapping(value = "/issue/add", method = PUT)
+	@PutMapping("/issue/add")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Attach external issue for specified test items")
 	public List<OperationCompletionRS> addExternalIssues(@PathVariable String projectName, @RequestBody @Validated AddExternalIssueRQ rq,
 			Principal principal) {
-		return updateTestItemHandler.addExternalIssues(EntityUtils.normalizeProjectName(projectName), rq, principal.getName());
+		return updateTestItemHandler.addExternalIssues(normalizeProjectName(projectName), rq, principal.getName());
 	}
 
 	@Override
-	@RequestMapping(value = "/items", method = GET)
+	@GetMapping("/items")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)

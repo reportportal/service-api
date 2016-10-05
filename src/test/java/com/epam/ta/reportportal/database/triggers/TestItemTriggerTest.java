@@ -21,9 +21,10 @@
 
 package com.epam.ta.reportportal.database.triggers;
 
-import java.util.Collections;
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,9 +59,9 @@ public class TestItemTriggerTest extends BaseTest {
 
 	@Test
 	public void testDeleteByAsList() {
-		cascadeDeleteItemsService.delete(Collections.singletonList(CHILD_ID));
+		cascadeDeleteItemsService.delete(singletonList(CHILD_ID));
 
-		Assert.assertNull(testItemRepository.findOne(CHILD_ID));
-		Assert.assertTrue(logRepository.findLogIdsByTestItemId(CHILD_ID).isEmpty());
+		assertNull(testItemRepository.findOne(CHILD_ID));
+		assertTrue(logRepository.findLogIdsByTestItemId(CHILD_ID).isEmpty());
 	}
 }

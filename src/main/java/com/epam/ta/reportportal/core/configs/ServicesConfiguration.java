@@ -22,13 +22,16 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.auth.UatClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.security.oauth2.OAuth2ClientProperties;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
+import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 
 /**
  * Configuration of clients for other services
@@ -38,14 +41,22 @@ import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResour
 @Configuration
 public class ServicesConfiguration {
 
+	@Autowired
+	private OAuth2ClientProperties oauthClientProperties;
+
 	@LoadBalanced
 	@Bean
-	public OAuth2RestTemplate loadBalancedOauth2RestTemplate(OAuth2ProtectedResourceDetails resource, OAuth2ClientContext context) {
-		return new OAuth2RestTemplate(resource, context);
+	public OAuth2RestTemplate rpInternalRestTemplate(OAuth2ProtectedResourceDetails resource, OAuth2ClientContext context) {
+		ClientCredentialsResourceDetails clientCredentialsResourceDetails = new ClientCredentialsResourceDetails();
+		clientCredentialsResourceDetails.setClientId(oauthClientProperties.getClientId());
+		clientCredentialsResourceDetails.setClientSecret(oauthClientProperties.getClientSecret());
+		clientCredentialsResourceDetails.setAccessTokenUri(resource.getAccessTokenUri());
+		clientCredentialsResourceDetails.setScope(resource.getScope());
+		return new OAuth2RestTemplate(clientCredentialsResourceDetails, context);
 	}
 
 	@Bean
-	public UatClient uatClient(@Qualifier("loadBalancedOauth2RestTemplate") OAuth2RestTemplate restTemplate) {
+	public UatClient uatClient(@Qualifier("rpInternalRestTemplate") OAuth2RestTemplate restTemplate) {
 		return new UatClient(restTemplate);
 	}
 }

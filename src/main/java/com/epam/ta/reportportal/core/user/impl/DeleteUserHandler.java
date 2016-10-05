@@ -74,8 +74,8 @@ public class DeleteUserHandler implements IDeleteUserHandler {
 		}
 
 		try {
-			userRepository.delete(user);
 			uatClient.revokeUserTokens(userId);
+			userRepository.delete(user);
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while deleting user", exp);
 		}

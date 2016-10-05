@@ -1,13 +1,34 @@
+/*
+ * Copyright 2016 EPAM Systems
+ *
+ *
+ * This file is part of EPAM Report Portal.
+ * https://github.com/reportportal/service-api
+ *
+ * Report Portal is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Report Portal is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package com.epam.ta.reportportal.demo_data;
 
 import static com.epam.ta.reportportal.database.entity.LogLevel.*;
 import static com.epam.ta.reportportal.database.entity.Status.FAILED;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -47,9 +68,10 @@ class DemoLogsService {
 	}
 
 	List<Log> generateDemoLogs(String itemId, String status) {
-		try {
-			List<String> errorLogs = Files.readAllLines(Paths.get(errorLogsResource.getURI()));
-			List<String> logMessages = Files.readAllLines(Paths.get(demoLogs.getURI()));
+		try (BufferedReader errorsBufferedReader = new BufferedReader(new InputStreamReader(errorLogsResource.getInputStream(), UTF_8));
+				BufferedReader demoLogsBufferedReader = new BufferedReader(new InputStreamReader(demoLogs.getInputStream(), UTF_8))) {
+			List<String> errorLogs = errorsBufferedReader.lines().collect(toList());
+			List<String> logMessages = demoLogsBufferedReader.lines().collect(toList());
 			int t = random.nextInt(30);
 			List<Log> logs = IntStream.range(1, t + 1).mapToObj(it -> {
 				Log log = new Log();
@@ -60,7 +82,7 @@ class DemoLogsService {
 				return log;
 			}).collect(toList());
 			if (FAILED.name().equals(status)) {
-				String file = dataStorage.saveData(new BinaryData(IMAGE_PNG_VALUE, img.getFile().length(), img.getInputStream()), "file");
+				String file = dataStorage.saveData(new BinaryData(IMAGE_PNG_VALUE, img.contentLength(), img.getInputStream()), "file");
 				logs.addAll(errorLogs.stream().map(msg -> {
 					Log log = new Log();
 					log.setLevel(ERROR);

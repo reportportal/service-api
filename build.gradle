@@ -61,11 +61,10 @@ dependencyManagement {
 
 dependencies {
     compile 'com.epam.reportportal:commons-model:2.6.2'
-    compile 'com.epam.reportportal:commons-dao:2.6.2'
+    compile 'com.epam.reportportal:commons-dao:2.6.3'
     compile 'com.epam.reportportal:commons-rules:2.6.0'
     compile 'com.epam.reportportal:commons:2.6.0'
 
-    compile 'org.reflections:reflections:0.9.9-RC1'
     compile 'org.jasypt:jasypt:1.9.2'
 
 

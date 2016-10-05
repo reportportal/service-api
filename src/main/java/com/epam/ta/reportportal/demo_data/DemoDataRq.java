@@ -20,20 +20,15 @@
  */
 package com.epam.ta.reportportal.demo_data;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+import com.epam.ta.reportportal.ws.annotations.NotEmpty;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-class DemoDataRq {
-
-	@JsonProperty(defaultValue = "Demo Api Tests")
-	private String launchName = "Demo Api Tests";
-
-	@JsonProperty(defaultValue = "DEMO DASHBOARD")
-	private String dashboardName = "DEMO DASHBOARD";
-
-	@JsonProperty(defaultValue = "DEMO FILTER")
-	private String filterName = "DEMO FILTER";
+public class DemoDataRq {
 
 	@JsonProperty(defaultValue = "10")
 	private int launchesQuantity = 10;
@@ -41,36 +36,18 @@ class DemoDataRq {
 	@JsonProperty(defaultValue = "false")
 	private boolean isCreateDashboard = false;
 
+	@NotNull
+	@NotEmpty
+	@JsonProperty(required = true)
+	@Size(min = 1, max = 90)
+	private String postfix;
+
 	public boolean isCreateDashboard() {
 		return isCreateDashboard;
 	}
 
 	public void setCreateDashboard(boolean createDashboard) {
 		isCreateDashboard = createDashboard;
-	}
-
-	public String getLaunchName() {
-		return launchName;
-	}
-
-	public void setLaunchName(String launchName) {
-		this.launchName = launchName;
-	}
-
-	public String getDashboardName() {
-		return dashboardName;
-	}
-
-	public void setDashboardName(String dashboardName) {
-		this.dashboardName = dashboardName;
-	}
-
-	public String getFilterName() {
-		return filterName;
-	}
-
-	public void setFilterName(String filterName) {
-		this.filterName = filterName;
 	}
 
 	public int getLaunchesQuantity() {
@@ -81,9 +58,17 @@ class DemoDataRq {
 		this.launchesQuantity = launchesQuantity;
 	}
 
+	public String getPostfix() {
+		return postfix;
+	}
+
+	public void setPostfix(String postfix) {
+		this.postfix = postfix;
+	}
+
 	@Override
 	public String toString() {
-		return "DemoDataRq{" + "launchName='" + launchName + '\'' + ", dashboardName='" + dashboardName + '\'' + ", filterName='"
-				+ filterName + '\'' + ", launchesQuantity=" + launchesQuantity + ", isCreateDashboard=" + isCreateDashboard + '}';
+		return "DemoDataRq{" + "launchesQuantity=" + launchesQuantity + ", isCreateDashboard=" + isCreateDashboard + ", postfix='" + postfix
+				+ '\'' + '}';
 	}
 }

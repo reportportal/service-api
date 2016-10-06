@@ -81,8 +81,6 @@ dependencies {
     compile 'com.sun.mail:javax.mail:1.5.4'
     compile 'org.apache.velocity:velocity:1.7'
 
-//    compile 'commons-codec:commons-codec:1.6'
-
     compile 'org.springframework.cloud:spring-cloud-config-client'
     compile("org.springframework.retry:spring-retry")
 

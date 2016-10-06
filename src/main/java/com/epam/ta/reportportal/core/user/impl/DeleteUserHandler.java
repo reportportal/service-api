@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.user.impl;
 
 import java.util.List;
 
+import com.epam.ta.reportportal.auth.UatClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -54,6 +55,9 @@ public class DeleteUserHandler implements IDeleteUserHandler {
 	@Autowired
 	private ProjectRepository projectRepository;
 
+	@Autowired
+	private UatClient uatClient;
+
 	@Override
 	public OperationCompletionRS deleteUser(String userId, String principal) {
 		User user = userRepository.findOne(userId);
@@ -62,7 +66,7 @@ public class DeleteUserHandler implements IDeleteUserHandler {
 				"You cannot delete own account");
 		try {
 			List<Project> userProjects = projectRepository.findUserProjects(userId);
-			userProjects.stream().forEach(project -> ProjectUtils.excludeProjectRecipients(Lists.newArrayList(user), project));
+			userProjects.forEach(project -> ProjectUtils.excludeProjectRecipients(Lists.newArrayList(user), project));
 			projectRepository.removeUserFromProjects(userId);
 			projectRepository.save(userProjects);
 		} catch (Exception exp) {
@@ -70,18 +74,12 @@ public class DeleteUserHandler implements IDeleteUserHandler {
 		}
 
 		try {
+			uatClient.revokeUserTokens(userId);
 			userRepository.delete(user);
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while deleting user", exp);
 		}
 
-		OperationCompletionRS response = new OperationCompletionRS();
-		StringBuilder message = new StringBuilder();
-		message.append("User with ID = '");
-		message.append(userId);
-		message.append("' successfully deleted.");
-
-		response.setResultMessage(message.toString());
-		return response;
+		return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
 	}
 }

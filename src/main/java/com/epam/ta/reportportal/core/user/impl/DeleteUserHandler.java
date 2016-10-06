@@ -80,10 +80,6 @@ public class DeleteUserHandler implements IDeleteUserHandler {
 			throw new ReportPortalException("Error while deleting user", exp);
 		}
 
-		OperationCompletionRS response = new OperationCompletionRS();
-		String message = "User with ID = '" + userId + "' successfully deleted.";
-
-		response.setResultMessage(message);
-		return response;
+		return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
 	}
 }

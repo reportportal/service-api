@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
@@ -122,6 +123,7 @@ public class UserControllerTest extends BaseMvcTest {
 		Assert.assertFalse(activityList.isEmpty());
 		Assert.assertEquals(1, activityList.size());
 		Assert.assertEquals("create_user", activityList.get(0).getActionType());
+		Assert.assertTrue("Personal project isn't created", projectRepository.exists(PersonalProjectUtils.personalProjectName("testLogin1")));
 	}
 
 	@Test

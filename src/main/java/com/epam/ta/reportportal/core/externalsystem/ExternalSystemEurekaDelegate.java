@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.externalsystem;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
+import com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
@@ -37,6 +38,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Delegates executions to microservices registered with Eureka
@@ -80,6 +84,14 @@ public class ExternalSystemEurekaDelegate implements ExternalSystemStrategy {
 				.exchange(getServiceInstance(system).getUri().toString() + "/{systemId}/ticket/{issueType}/fields", HttpMethod.GET, null,
 						new ParameterizedTypeReference<List<PostFormField>>() {
 						}, system.getId(), issueType).getBody();
+	}
+
+	@Override
+	public Stream<ExternalSystemType> getAvailableSystems() {
+		return discoveryClient.getServices().stream()
+				.map(ExternalSystemType::findByName)
+				.filter(Optional::isPresent)
+				.map(Optional::get);
 	}
 
 	private ServiceInstance getServiceInstance(ExternalSystem externalSystem) {

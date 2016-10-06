@@ -21,11 +21,11 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import java.security.Principal;
-
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import com.epam.ta.reportportal.ws.model.settings.UpdateEmailSettingsRQ;
+
+import java.security.Principal;
 
 /**
  * Controller interface for specific ADMIN ONLY features like server
@@ -34,6 +34,11 @@ import com.epam.ta.reportportal.ws.model.settings.UpdateEmailSettingsRQ;
  * @author Andrei_Ramanchuk
  */
 public interface ISettingsController {
+
+	/**
+	 * @return Available external system types
+	 */
+	Iterable<String> getAvailableExternalSystems();
 
 	/**
 	 * Get server settings for specified profile name

@@ -24,19 +24,19 @@ package com.epam.ta.reportportal.ws.controller.impl;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 
 import java.security.Principal;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.core.externalsystem.ExternalSystemStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 import com.epam.ta.reportportal.core.admin.ServerAdminHandler;
 import com.epam.ta.reportportal.ws.controller.ISettingsController;
@@ -53,17 +53,29 @@ import io.swagger.annotations.ApiOperation;
  */
 @Controller
 @RequestMapping("/settings")
-@PreAuthorize(ADMIN_ONLY)
 public class SettingsController implements ISettingsController {
 
 	@Autowired
 	private ServerAdminHandler serverHandler;
+
+	@Autowired
+	private ExternalSystemStrategy externalSystemStrategy;
+
+	@Override
+	@GetMapping(path = "/external-systems")
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Get available external system types")
+	public List<String> getAvailableExternalSystems() {
+		return externalSystemStrategy.getAvailableSystems().map(Enum::name).collect(Collectors.toList());
+	}
 
 	@Override
 	@RequestMapping(value = "/{profileId}", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation(value = "Get server email settings for specified profile", notes = "'default' profile is using till additional UI implementations")
+	@PreAuthorize(ADMIN_ONLY)
 	public ServerSettingsResource getServerSettings(@PathVariable String profileId, Principal principal) {
 		return serverHandler.getServerSettings(EntityUtils.normalizeId(profileId));
 	}
@@ -73,6 +85,7 @@ public class SettingsController implements ISettingsController {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation(value = "Set server email settings for specified profile", notes = "'default' profile is using till additional UI implementations")
+	@PreAuthorize(ADMIN_ONLY)
 	public OperationCompletionRS setServerSettings(@PathVariable String profileId, @RequestBody @Validated UpdateEmailSettingsRQ request,
 			Principal principal) {
 		return serverHandler.setServerSettings(EntityUtils.normalizeId(profileId), request);

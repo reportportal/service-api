@@ -25,10 +25,12 @@ def dockerProjectName = "reportportal-dev/${project.name}".toLowerCase()
 
 task prepareDockerfile(type: Copy) {
     /* copy dockerfile and replace version of JAR */
-    from 'docker/Dockerfile-develop'
+    outputs.upToDateWhen { false }
+    def dockerFileName = (System.getProperty("DEBUG", "false") == "true") ? "Dockerfile-test" : "Dockerfile-develop"
+    from "docker/${dockerFileName}"
     into "${project.buildDir}/libs"
     expand(project.properties)
-    rename ('Dockerfile-develop', 'Dockerfile')
+    rename(dockerFileName, 'Dockerfile')
 }
 
 task buildDocker(type: DockerBuildImage, dependsOn: prepareDockerfile) {

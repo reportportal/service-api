@@ -36,11 +36,6 @@ import java.security.Principal;
 public interface ISettingsController {
 
 	/**
-	 * @return Available external system types
-	 */
-	Iterable<String> getAvailableExternalSystems();
-
-	/**
 	 * Get server settings for specified profile name
 	 * 
 	 * @param profileId

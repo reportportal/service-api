@@ -53,29 +53,17 @@ import io.swagger.annotations.ApiOperation;
  */
 @Controller
 @RequestMapping("/settings")
+@PreAuthorize(ADMIN_ONLY)
 public class SettingsController implements ISettingsController {
 
 	@Autowired
 	private ServerAdminHandler serverHandler;
-
-	@Autowired
-	private ExternalSystemStrategy externalSystemStrategy;
-
-	@Override
-	@GetMapping(path = "/external-systems")
-	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Get available external system types")
-	public List<String> getAvailableExternalSystems() {
-		return externalSystemStrategy.getAvailableSystems().map(Enum::name).collect(Collectors.toList());
-	}
 
 	@Override
 	@RequestMapping(value = "/{profileId}", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation(value = "Get server email settings for specified profile", notes = "'default' profile is using till additional UI implementations")
-	@PreAuthorize(ADMIN_ONLY)
 	public ServerSettingsResource getServerSettings(@PathVariable String profileId, Principal principal) {
 		return serverHandler.getServerSettings(EntityUtils.normalizeId(profileId));
 	}
@@ -85,7 +73,6 @@ public class SettingsController implements ISettingsController {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation(value = "Set server email settings for specified profile", notes = "'default' profile is using till additional UI implementations")
-	@PreAuthorize(ADMIN_ONLY)
 	public OperationCompletionRS setServerSettings(@PathVariable String profileId, @RequestBody @Validated UpdateEmailSettingsRQ request,
 			Principal principal) {
 		return serverHandler.setServerSettings(EntityUtils.normalizeId(profileId), request);

@@ -23,10 +23,8 @@ package com.epam.ta.reportportal.core.externalsystem;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
-import com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
@@ -77,8 +75,4 @@ public interface ExternalSystemStrategy {
 	 */
 	List<PostFormField> getTicketFields(String issueType, ExternalSystem system);
 
-	/**
-	 * @return List of available external systems
-	 */
-	Stream<ExternalSystemType> getAvailableSystems();
 }

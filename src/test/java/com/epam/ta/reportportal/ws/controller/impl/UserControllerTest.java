@@ -91,6 +91,7 @@ public class UserControllerTest extends BaseMvcTest {
 				post("/user").principal(authentication()).contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
 				.andExpect(status().isCreated());
 		Assert.assertTrue(projectRepository.findOne("project1").getUsers().containsKey("testlogin"));
+		Assert.assertTrue("Personal project isn't created", projectRepository.exists(PersonalProjectUtils.personalProjectName("testLogin")));
 	}
 
 	@Test
@@ -123,7 +124,6 @@ public class UserControllerTest extends BaseMvcTest {
 		Assert.assertFalse(activityList.isEmpty());
 		Assert.assertEquals(1, activityList.size());
 		Assert.assertEquals("create_user", activityList.get(0).getActionType());
-		Assert.assertTrue("Personal project isn't created", projectRepository.exists(PersonalProjectUtils.personalProjectName("testLogin1")));
 	}
 
 	@Test

@@ -10,6 +10,9 @@ buildscript {
 
 apply plugin: com.bmuschko.gradle.docker.DockerRemoteApiPlugin
 
+project.ext {
+    isDebugMode = System.getProperty("DEBUG", "false") == "true"
+}
 
 //DOCKER
 
@@ -25,10 +28,11 @@ def dockerProjectName = "reportportal-dev/${project.name}".toLowerCase()
 
 task prepareDockerfile(type: Copy) {
     /* copy dockerfile and replace version of JAR */
-    from 'docker/Dockerfile-develop'
+    def dockerFileName = isDebugMode ? "Dockerfile-test" : "Dockerfile-develop"
+    from "docker/${dockerFileName}"
     into "${project.buildDir}/libs"
     expand(project.properties)
-    rename ('Dockerfile-develop', 'Dockerfile')
+    rename(dockerFileName, 'Dockerfile')
 }
 
 task buildDocker(type: DockerBuildImage, dependsOn: prepareDockerfile) {

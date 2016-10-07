@@ -21,25 +21,6 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.*;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.*;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-
-import java.security.Principal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import com.epam.ta.reportportal.events.UserCreatedEvent;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DuplicateKeyException;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.Constants;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
@@ -47,13 +28,13 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.user.ICreateUserHandler;
 import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
-import com.epam.ta.reportportal.database.entity.project.EntryType;
+import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.user.*;
 import com.epam.ta.reportportal.database.entity.user.UserUtils;
+import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
+import com.epam.ta.reportportal.events.UserCreatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.ws.converter.builders.RestorePasswordBidBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
@@ -61,6 +42,25 @@ import com.epam.ta.reportportal.ws.converter.builders.UserCreationBidBuilder;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.stereotype.Service;
+
+import javax.inject.Provider;
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static com.epam.ta.reportportal.commons.Predicates.*;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Implementation of Create User handler
@@ -69,6 +69,8 @@ import com.epam.ta.reportportal.ws.model.user.*;
  */
 @Service
 public class CreateUserHandler implements ICreateUserHandler {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(CreateUserHandler.class);
 
 	private UserRepository userRepository;
 	private ProjectRepository projectRepository;

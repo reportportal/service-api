@@ -154,7 +154,7 @@ public class EditUserHandler implements IEditUserHandler {
 
 		if (null != editUserRQ.getEmail()) {
 			String updEmail = editUserRQ.getEmail().toLowerCase().trim();
-			expect(user.getType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change email for internal user");
+			expect(user.getType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change email for external user");
 			expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR, " wrong email: " + updEmail);
 			User byEmail = userRepository.findByEmail(updEmail);
 			if (null != byEmail)
@@ -172,7 +172,7 @@ public class EditUserHandler implements IEditUserHandler {
 		}
 
 		if (null != editUserRQ.getFullName()) {
-			expect(user.getType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change full name for internal user");
+			expect(user.getType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change full name for external user");
 			user.setFullName(editUserRQ.getFullName());
 		}
 

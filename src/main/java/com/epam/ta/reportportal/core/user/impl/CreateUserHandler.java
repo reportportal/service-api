@@ -33,10 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
 import com.epam.ta.reportportal.events.UserCreatedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -50,9 +49,11 @@ import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
+import com.epam.ta.reportportal.database.entity.project.EntryType;
 import com.epam.ta.reportportal.database.entity.user.*;
 import com.epam.ta.reportportal.database.entity.user.UserUtils;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.ws.converter.builders.RestorePasswordBidBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
@@ -60,8 +61,6 @@ import com.epam.ta.reportportal.ws.converter.builders.UserCreationBidBuilder;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.*;
-
-import javax.inject.Provider;
 
 /**
  * Implementation of Create User handler
@@ -181,6 +180,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 			emailService.reconfig(settingsRepository.findOne("default").getServerEmailConfig());
 			emailService.testConnection();
 		} catch (Exception ex) {
+			LOGGER.error("Cannot send email to user", ex);
 			fail().withError(FORBIDDEN_OPERATION,
 					"Email configuration is broken or switched-off. Please config email server in Report Portal settings.");
 		}

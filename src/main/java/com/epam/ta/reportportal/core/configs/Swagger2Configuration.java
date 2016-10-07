@@ -21,7 +21,6 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -71,7 +70,7 @@ public class Swagger2Configuration {
 	public Docket docket() {
 		/* For more information see default params at {@link ApiInfo} */
 		ApiInfo rpInfo = new ApiInfo("Report Portal", "Report Portal API documentation", buildVersion, "urn:tos", "EPAM Systems",
-				StringUtils.EMPTY, StringUtils.EMPTY);
+				"GPLv3", "https://www.gnu.org/licenses/licenses.html#GPL");
 
 		// @formatter:off
 		Docket rpDocket = new Docket(DocumentationType.SWAGGER_2)

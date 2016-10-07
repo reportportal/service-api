@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.epam.ta.reportportal.events.UserCreatedEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -49,7 +51,6 @@ import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
-import com.epam.ta.reportportal.database.entity.project.EntryType;
 import com.epam.ta.reportportal.database.entity.user.*;
 import com.epam.ta.reportportal.database.entity.user.UserUtils;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -69,6 +70,9 @@ import com.epam.ta.reportportal.ws.model.user.*;
  */
 @Service
 public class CreateUserHandler implements ICreateUserHandler {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(CreateUserHandler.class);
+
 	private UserRepository userRepository;
 	private ProjectRepository projectRepository;
 
@@ -175,6 +179,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 			emailService.reconfig(settingsRepository.findOne("default").getServerEmailConfig());
 			emailService.testConnection();
 		} catch (Exception ex) {
+			LOGGER.error("Cannot send email to user", ex);
 			fail().withError(FORBIDDEN_OPERATION,
 					"Email configuration is broken or switched-off. Please config email server in Report Portal settings.");
 		}

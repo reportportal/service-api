@@ -281,7 +281,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 			 * Generate personal project for the user
 			 */
 			Project personalProject = PersonalProjectUtils.generatePersonalProject(user);
-			if (defaultProject.getId().equals(personalProject.getId())){
+			if (!defaultProject.getId().equals(personalProject.getId())){
 				projectRepository.save(personalProject);
 			}
 

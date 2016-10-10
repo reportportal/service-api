@@ -91,7 +91,7 @@ public class GetUserHandler implements IGetUserHandler {
 		String criteria = project.getUsers().keySet().stream().collect(joining(","));
 		filter.addCondition(new FilterCondition(Condition.IN, true, criteria, User.LOGIN));
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, project);
-		return userResourceAssembler.toPagedResources(userRepository.findByFilter(filter, pageable));
+		return userResourceAssembler.toPagedResources(userRepository.findByFilterExcluding(filter, pageable, "email"));
 	}
 
 	@Override

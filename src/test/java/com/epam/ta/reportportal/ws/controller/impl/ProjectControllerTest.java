@@ -188,11 +188,11 @@ public class ProjectControllerTest extends BaseMvcTest {
 				new TypeToken<PagedResources<UserResource>>() {
 				}.getType());
 		Map<String, UserResource> userResourceMap = userResources.getContent().stream()
-				.collect(Collectors.toMap(UserResource::getEmail, it -> it));
+				.collect(Collectors.toMap(UserResource::getUserId, it -> it));
 		Assert.assertEquals(3, userResourceMap.size());
-		Assert.assertTrue(userResourceMap.containsKey("user1email@epam.com"));
-		Assert.assertTrue(userResourceMap.containsKey("user2email@epam.com"));
-		Assert.assertTrue(userResourceMap.containsKey("user4email@epam.by"));
+		Assert.assertTrue(userResourceMap.containsKey("user1"));
+		Assert.assertTrue(userResourceMap.containsKey("user2"));
+		Assert.assertTrue(userResourceMap.containsKey("user4"));
 	}
 
 	@Override

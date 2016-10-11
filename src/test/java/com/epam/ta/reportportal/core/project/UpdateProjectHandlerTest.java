@@ -21,9 +21,18 @@
 
 package com.epam.ta.reportportal.core.project;
 
+import com.epam.ta.reportportal.auth.AuthConstants;
+import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.database.entity.user.UserType;
+import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.epam.ta.BaseTest;
@@ -36,6 +45,12 @@ import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 
+import java.util.Arrays;
+import java.util.Collections;
+
+import static java.util.Collections.singletonList;
+import static org.hamcrest.Matchers.containsString;
+
 /**
  * @author Dzmitry_Kavalets
  */
@@ -46,11 +61,18 @@ public class UpdateProjectHandlerTest extends BaseTest {
 	@Autowired
 	public SpringFixtureRule dfRule;
 
+	@Rule
+	public ExpectedException exception = ExpectedException.none();
+
+
 	@Autowired
 	private UpdateProjectHandler updateProjectHandler;
 
 	@Autowired
 	private ProjectRepository projectRepository;
+
+	@Autowired
+	private UserRepository userRepository;
 
 	@Test
 	public void checkEmptyEmailOptions() {
@@ -66,5 +88,24 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		updateProjectHandler.updateProject(project1, updateProjectRQ, userName);
 		Project one = projectRepository.findOne(project1);
 		Assert.assertNotNull(one.getConfiguration().getEmailConfig());
+	}
+
+	@Test
+	public void checkUnassignFromPersonal() {
+		User user = new User();
+		user.setEmail("checkUnassignFromPersonal@gmail.com");
+		user.setLogin("checkUnassignFromPersonal");
+		user.setType(UserType.INTERNAL);
+		Project project = PersonalProjectUtils.generatePersonalProject(user);
+		userRepository.save(user);
+		projectRepository.save(project);
+
+		UnassignUsersRQ rq = new UnassignUsersRQ();
+		rq.setUsernames(singletonList(user.getLogin()));
+
+		exception.expect(ReportPortalException.class);
+		exception.expectMessage(containsString("Unable to unassign user from his personal project"));
+		updateProjectHandler.unassignUsers(project.getName(), AuthConstants.ADMINISTRATOR.getName(), rq);
+
 	}
 }

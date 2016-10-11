@@ -120,8 +120,8 @@ public class EmailService extends JavaMailSenderImpl {
 		this.setHost(config.getHost());
 		this.setPort(config.getPort());
 		this.setProtocol(config.getProtocol());
-		this.authRequired = config.getAuthEnabled();
-		if (config.getAuthEnabled()) {
+		this.authRequired = (null != config.getAuthEnabled() && config.getAuthEnabled());
+		if (authRequired) {
 			this.setUsername(config.getUsername());
 			this.setPassword(config.getPassword());
 		}

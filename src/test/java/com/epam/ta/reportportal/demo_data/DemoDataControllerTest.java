@@ -40,6 +40,7 @@ import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class DemoDataControllerTest extends BaseMvcTest {
@@ -71,7 +72,21 @@ public class DemoDataControllerTest extends BaseMvcTest {
 		final UserFilter filter = userFilterRepository.findOneByName(AuthConstants.TEST_USER,
 				DemoDashboardsService.F_NAME + "#" + rq.getPostfix(), "project1");
 		assertNotNull(filter);
+	}
 
+	@Test
+	public void filterNameAlreadyExists() throws Exception {
+		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
+		createDashboardRQ.setName("DEMO DASHBOARD#postfix");
+		mvcMock.perform(post(PROJECT_BASE_URL + "/dashboard").principal(authentication())
+				.content(objectMapper.writeValueAsBytes(createDashboardRQ)).contentType(APPLICATION_JSON)).andExpect(status().isCreated());
+
+		DemoDataRq demoDataRq = new DemoDataRq();
+		demoDataRq.setPostfix("postfix");
+		demoDataRq.setCreateDashboard(true);
+		demoDataRq.setLaunchesQuantity(1);
+		mvcMock.perform(post("/demo/project1").content(objectMapper.writeValueAsBytes(demoDataRq)).contentType(APPLICATION_JSON)
+				.principal(authentication())).andExpect(status().is4xxClientError());
 	}
 
 	@Override

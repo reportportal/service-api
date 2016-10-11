@@ -15,5 +15,5 @@
 * EPMRPP-20755 - Personal project should be NOT removable
 * EPMRPP-20838 - Personal project is not deleted with user deletion
 * EPMRPP-20858 - Generate BTS list on UI dynamically
-
+* EPMRPP-20835 - Disable "Unassign" button for Personal space "owner"
 

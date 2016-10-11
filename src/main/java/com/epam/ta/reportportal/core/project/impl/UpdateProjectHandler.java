@@ -41,6 +41,7 @@ import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.entity.user.UserType;
 import com.epam.ta.reportportal.database.entity.user.UserUtils;
+import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
 import com.epam.ta.reportportal.events.EmailConfigUpdatedEvent;
 import com.epam.ta.reportportal.events.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -71,6 +72,7 @@ import java.util.stream.StreamSupport;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.toList;
 
@@ -279,6 +281,9 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			User singleUser = userRepository.findOne(login);
 			expect(singleUser, notNull()).verify(USER_NOT_FOUND, login, "User is not found in database.");
 			UserType userType = singleUser.getType();
+			if (EntryType.PERSONAL.equals(projectType) && projectName.equalsIgnoreCase(personalProjectName(singleUser.getId()))) {
+				fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Unable to unassign user from his personal project");
+			}
 			if (projectType.equals(EntryType.UPSA) && userType.equals(UserType.UPSA)) {
 				fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Project and user has UPSA type!");
 			}

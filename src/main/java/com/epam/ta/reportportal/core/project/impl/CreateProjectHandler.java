@@ -71,7 +71,7 @@ public class CreateProjectHandler implements ICreateProjectHandler {
 		Optional<EntryType> projectType = EntryType.findByName(createProjectRQ.getEntryType());
 		BusinessRule.expect(projectType, isPresent()).verify(ErrorType.BAD_REQUEST_ERROR,
 				createProjectRQ.getEntryType());
-		BusinessRule.expect(projectType.get(), not(equalTo(EntryType.PERSONAL))).verify(ErrorType.BAD_REQUEST_ERROR, "Cannot create personal project manually");
+		BusinessRule.expect(projectType.get(), equalTo(EntryType.INTERNAL)).verify(ErrorType.BAD_REQUEST_ERROR, "Only internal projects can be created via API");
 
 		Project project = projectBuilder.get().addCreateProjectRQ(createProjectRQ).build();
 		Project.UserConfig userConfig = new Project.UserConfig();

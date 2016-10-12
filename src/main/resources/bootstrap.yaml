@@ -15,5 +15,3 @@ spring:
       retry:
         max-attempts: 20
         initial-interval: 3000
-      allow-override: true
-      override-system-properties: false

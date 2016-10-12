@@ -41,6 +41,12 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
 
+import java.util.Optional;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+
 /**
  * @author Hanna_Sukhadolava
  * 
@@ -64,8 +70,11 @@ public class CreateProjectHandler implements ICreateProjectHandler {
 		String projectName = createProjectRQ.getProjectName().toLowerCase().trim();
 		Project existProject = projectRepository.findByName(projectName);
 		BusinessRule.expect(existProject, Predicates.isNull()).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectName);
-		BusinessRule.expect(EntryType.findByName(createProjectRQ.getEntryType()), Predicates.notNull()).verify(ErrorType.BAD_REQUEST_ERROR,
+		Optional<EntryType> projectType = EntryType.findByName(createProjectRQ.getEntryType());
+		BusinessRule.expect(projectType, notNull()).verify(ErrorType.BAD_REQUEST_ERROR,
 				createProjectRQ.getEntryType());
+		BusinessRule.expect(projectType, not(equalTo(EntryType.PERSONAL))).verify(ErrorType.BAD_REQUEST_ERROR, "Cannot create personal project manually");
+
 		Project project = projectBuilder.get().addCreateProjectRQ(createProjectRQ).build();
 		Project.UserConfig userConfig = new Project.UserConfig();
 		userConfig.setProjectRole(ProjectRole.PROJECT_MANAGER);

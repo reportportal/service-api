@@ -166,7 +166,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {
-			throw new ReportPortalException("Error while User creating.", exp);
+			throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
 		}
 
 		eventPublisher.publishEvent(new UserCreatedEvent(user, userName));

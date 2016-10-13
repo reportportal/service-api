@@ -3,7 +3,7 @@
  *
  *
  * This file is part of EPAM Report Portal.
- * https://github.com/epam/ReportPortal
+ * https://github.com/reportportal/service-api
  *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 package com.epam.ta.reportportal.events.handler;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -176,7 +177,7 @@ public class LaunchFinishedEventHandler {
 	 * @param launch
 	 * @return
 	 */
-	private double getSuccessRate(Launch launch) {
+	static double getSuccessRate(Launch launch) {
 		Double ti = launch.getStatistics().getIssueCounter().getToInvestigateTotal().doubleValue();
 		Double pb = launch.getStatistics().getIssueCounter().getProductBugTotal().doubleValue();
 		Double si = launch.getStatistics().getIssueCounter().getSystemIssueTotal().doubleValue();
@@ -192,36 +193,23 @@ public class LaunchFinishedEventHandler {
 	 * @param option
 	 * @return
 	 */
-	private boolean isSuccessRateEnough(Launch launch, SendCase option) {
-		boolean shouldBeSend = false;
+	static boolean isSuccessRateEnough(Launch launch, SendCase option) {
 		switch (option) {
 		case ALWAYS:
-			shouldBeSend = true;
-			break;
+			return true;
 		case FAILED:
-			if (launch.getStatus().equals(Status.FAILED))
-				shouldBeSend = true;
-			break;
+			return launch.getStatus().equals(Status.FAILED);
 		case TO_INVESTIGATE:
-			if (launch.getStatistics().getIssueCounter().getToInvestigateTotal() > 0)
-				shouldBeSend = true;
-			break;
+			return launch.getStatistics().getIssueCounter().getToInvestigateTotal() > 0;
 		case MORE_10:
-			if (getSuccessRate(launch) > 0.1)
-				shouldBeSend = true;
-			break;
+			return getSuccessRate(launch) > 0.1;
 		case MORE_20:
-			if (getSuccessRate(launch) > 0.2)
-				shouldBeSend = true;
-			break;
+			return getSuccessRate(launch) > 0.2;
 		case MORE_50:
-			if (getSuccessRate(launch) > 0.5)
-				shouldBeSend = true;
-			break;
+			return getSuccessRate(launch) > 0.5;
 		default:
-			//do nothing
+			return false;
 		}
-		return shouldBeSend;
 	}
 
 	/**
@@ -232,9 +220,9 @@ public class LaunchFinishedEventHandler {
 	 * @param oneCase
 	 * @return
 	 */
-	private boolean isLaunchNameMatched(Launch launch, EmailSenderCase oneCase) {
+	static boolean isLaunchNameMatched(Launch launch, EmailSenderCase oneCase) {
 		List<String> configuredNames = oneCase.getLaunchNames();
-		return ((null == configuredNames) || (configuredNames.isEmpty())) || configuredNames.contains(launch.getName());
+		return (null == configuredNames) || (configuredNames.isEmpty()) || configuredNames.contains(launch.getName());
 	}
 
 	/**
@@ -247,10 +235,7 @@ public class LaunchFinishedEventHandler {
 	 */
 	@VisibleForTesting
 	static boolean isTagsMatched(Launch launch, EmailSenderCase oneCase) {
-		if (null != oneCase.getTags() && !oneCase.getTags().isEmpty()) {
-			return null == launch.getTags() ? false : oneCase.getTags().containsAll(launch.getTags());
-		} else
-			return true;
+		return !(null != oneCase.getTags() && !oneCase.getTags().isEmpty()) || null != launch.getTags() && oneCase.getTags().containsAll(launch.getTags());
 	}
 
 	/**
@@ -259,7 +244,7 @@ public class LaunchFinishedEventHandler {
 	 * @param launch
 	 * @param project
 	 */
-	private void sendEmailRightNow(Launch launch, Project project, ServerEmailConfig emailConfig) {
+	void sendEmailRightNow(Launch launch, Project project, ServerEmailConfig emailConfig) {
 		ProjectEmailConfig projectConfig = project.getConfiguration().getEmailConfig();
 		for (EmailSenderCase one : projectConfig.getEmailCases()) {
 			Optional<SendCase> option = SendCase.findByName(one.getSendCase());
@@ -267,15 +252,8 @@ public class LaunchFinishedEventHandler {
 			boolean matchedNames = isLaunchNameMatched(launch, one);
 			boolean matchedTags = isTagsMatched(launch, one);
 			List<String> recipients = one.getRecipients();
-			if (successRate && matchedNames && matchedTags && null != recipients) {
-				if (recipients.contains(ProjectUtils.getOwner())) {
-					/* user can be deleted during a launch execution */
-					User user = userRepository.findOne(launch.getUserRef());
-					if (null != user)
-						recipients.set(recipients.indexOf(ProjectUtils.getOwner()), user.getEmail());
-				}
-				String[] recipientsArray = new String[recipients.size()];
-				recipients.toArray(recipientsArray);
+			if (successRate && matchedNames && matchedTags) {
+				String[] recipientsArray = findRecipients(launch.getUserRef(), recipients);
 				try {
 					/* Update with static Util resources provider */
 					String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(currentRequest.get()))
@@ -293,6 +271,21 @@ public class LaunchFinishedEventHandler {
 				}
 			}
 		}
+	}
+
+	String[] findRecipients(String owner, List<String> recipients) {
+		return recipients.stream().map(recipient -> {
+			if (recipient.contains("@")) {
+				return recipient;
+			} else {
+				String toFind = recipient.equals(ProjectUtils.getOwner()) ? owner : recipient;
+				User user = userRepository.findOne(toFind);
+				if (user != null) {
+					return user.getEmail();
+				}
+				return null;
+			}
+		}).filter(Objects::nonNull).distinct().toArray(String[]::new);
 	}
 
 }

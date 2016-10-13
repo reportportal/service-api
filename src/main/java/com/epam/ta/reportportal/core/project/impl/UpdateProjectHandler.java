@@ -83,27 +83,21 @@ import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
 @Service
 public class UpdateProjectHandler implements IUpdateProjectHandler {
 
-	private ProjectRepository projectRepository;
-
-	private UserRepository userRepository;
-
-	@Autowired
-	private FavoriteResourceRepository favoriteResourceRepository;
-
-	@Autowired
-	private UserPreferenceRepository preferenceRepository;
+	private final ProjectRepository projectRepository;
+	private final UserRepository userRepository;
+	private final FavoriteResourceRepository favoriteResourceRepository;
+	private final UserPreferenceRepository preferenceRepository;
+	private final ApplicationEventPublisher publisher;
 
 	@Autowired
-	private ApplicationEventPublisher publisher;
-
-	@Autowired
-	public void setProjectRepository(ProjectRepository projectRepository) {
+	public UpdateProjectHandler(ProjectRepository projectRepository, UserRepository userRepository,
+			FavoriteResourceRepository favoriteResourceRepository, UserPreferenceRepository userPreferenceRepository,
+			ApplicationEventPublisher applicationEventPublisher) {
 		this.projectRepository = projectRepository;
-	}
-
-	@Autowired
-	public void setUserRepository(UserRepository userRepository) {
 		this.userRepository = userRepository;
+		this.favoriteResourceRepository = favoriteResourceRepository;
+		this.preferenceRepository = userPreferenceRepository;
+		this.publisher = applicationEventPublisher;
 	}
 
 	@Override

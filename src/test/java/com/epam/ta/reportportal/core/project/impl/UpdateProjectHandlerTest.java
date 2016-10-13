@@ -14,8 +14,12 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.springframework.context.ApplicationEventPublisher;
 
+import com.epam.ta.reportportal.database.dao.FavoriteResourceRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.dao.UserPreferenceRepository;
+import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
@@ -32,14 +36,14 @@ public class UpdateProjectHandlerTest {
 
 	@Before
 	public void before() {
-		updateProjectHandler = new UpdateProjectHandler();
 		final ProjectRepository projectRepository = mock(ProjectRepository.class);
 		final Project project = new Project();
 		final Project.Configuration configuration = new Project.Configuration();
 		configuration.setEmailConfig(new ProjectEmailConfig());
 		project.setConfiguration(configuration);
 		when(projectRepository.findOne(this.project)).thenReturn(project);
-		updateProjectHandler.setProjectRepository(projectRepository);
+		updateProjectHandler = new UpdateProjectHandler(projectRepository, mock(UserRepository.class),
+				mock(FavoriteResourceRepository.class), mock(UserPreferenceRepository.class), mock(ApplicationEventPublisher.class));
 	}
 
 	@Test

@@ -30,8 +30,6 @@ apply from: 'build-docker.gradle'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
-//def isDebugMode = System.getProperty("DEBUG", "false") == "true"
-//project.ext.set("isDebugMode", System.getProperty("DEBUG", "false") == "true")
 
 
 description = 'EPAM Report portal. Main API Service'
@@ -48,8 +46,6 @@ project.ext {
     ]
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
 }
-
-//ext.isDebugMode = System.getProperty("DEBUG", "false") == "true"
 
 repositories {
     mavenCentral()

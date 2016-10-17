@@ -27,6 +27,7 @@ apply plugin: 'jacoco'
 
 apply from: 'build-quality.gradle'
 apply from: 'build-docker.gradle'
+apply from: 'release-service.gradle'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8

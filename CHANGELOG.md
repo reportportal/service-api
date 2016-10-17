@@ -1,7 +1,7 @@
 # Changelog
 
-## 2.6.0-SNAPSHOT
-##### Released: XXX September 2016
+## 2.6.0
+##### Released: 17 October 2016
 
 ### New Features
 

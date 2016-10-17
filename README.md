@@ -4,3 +4,4 @@
 
 [![Build Status](https://travis-ci.org/reportportal/service-api.svg?branch=master)](https://travis-ci.org/reportportal/service-api)
 [ ![Download](https://api.bintray.com/packages/epam/reportportal/service-api/images/download.svg) ](https://bintray.com/epam/reportportal/service-api/_latestVersion)
+[![Docker Pulls](https://img.shields.io/docker/pulls/reportportal/service-api.svg?maxAge=2592000)](https://hub.docker.com/r/reportportal/service-api/)

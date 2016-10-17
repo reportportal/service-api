@@ -19,8 +19,6 @@ plugins {
 }
 
 apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: 'maven-publish'
 apply plugin: "spring-boot"
 apply plugin: "io.spring.dependency-management"
 apply plugin: 'jacoco'

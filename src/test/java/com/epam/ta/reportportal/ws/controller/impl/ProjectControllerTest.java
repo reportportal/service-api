@@ -171,7 +171,6 @@ public class ProjectControllerTest extends BaseMvcTest {
 		assertThat(content.stream().map(ProjectInfoResource::getProjectId).collect(Collectors.toList())).containsSequence("project2",
 				"project1");
 		content.stream().forEach(it -> assertThat(it.getEntryType()).isEqualTo("INTERNAL"));
-		assertThat(entries.getMetadata().getSize()).isEqualTo(50);
 	}
 
 	@Test

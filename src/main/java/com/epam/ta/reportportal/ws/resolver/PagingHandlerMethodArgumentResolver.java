@@ -38,11 +38,6 @@ import org.springframework.web.method.support.ModelAndViewContainer;
  */
 public class PagingHandlerMethodArgumentResolver extends org.springframework.data.web.PageableHandlerMethodArgumentResolver {
 
-	public static final String ALL_PROJECTS_INFO_METHOD = "getAllProjectsInfo";
-	public static final int MAX_PROJECTS_INFO_PAGE_SIZE = 50;
-	public static final int DEFAULT_PAGE_SIZE = 50;
-	public static final int MAX_PAGE_SIZE = 300;
-
 	public PagingHandlerMethodArgumentResolver() {
 		super();
 	}
@@ -51,16 +46,16 @@ public class PagingHandlerMethodArgumentResolver extends org.springframework.dat
 		super(sortResolver);
 	}
 
+	public static final int DEFAULT_PAGE_SIZE = 50;
+	public static final int MAX_PAGE_SIZE = 300;
+
 	@Override
 	public Pageable resolveArgument(MethodParameter methodParameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest,
 			WebDataBinderFactory binderFactory) {
 		Pageable pageable = super.resolveArgument(methodParameter, mavContainer, webRequest, binderFactory);
 		if (0 == pageable.getPageSize()) {
 			return new PageRequest(pageable.getPageNumber(), DEFAULT_PAGE_SIZE, pageable.getSort());
-		} else if (methodParameter.getMethod().getName().equals(ALL_PROJECTS_INFO_METHOD)
-				&& pageable.getPageSize() > MAX_PROJECTS_INFO_PAGE_SIZE) {
-			return new PageRequest(pageable.getPageNumber(), MAX_PROJECTS_INFO_PAGE_SIZE, pageable.getSort());
-		} else if (MAX_PAGE_SIZE < pageable.getPageSize()) {
+		} else if(MAX_PAGE_SIZE < pageable.getPageSize()) {
 			return new PageRequest(pageable.getPageNumber(), MAX_PAGE_SIZE, pageable.getSort());
 		}
 		return pageable;

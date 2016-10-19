@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
@@ -31,12 +31,9 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
-import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
-import com.epam.ta.reportportal.ws.resolver.FilterFor;
-import com.epam.ta.reportportal.ws.resolver.ResponseView;
-import com.epam.ta.reportportal.ws.resolver.SortFor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -62,6 +59,10 @@ import com.epam.ta.reportportal.ws.model.project.*;
 import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
+import com.epam.ta.reportportal.ws.resolver.ResponseView;
+import com.epam.ta.reportportal.ws.resolver.SortFor;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -131,7 +132,8 @@ public class ProjectController implements IProjectController {
 	@ApiOperation("Update project email configuration")
 	public OperationCompletionRS updateProjectEmailConfig(@PathVariable String projectName,
 			@RequestBody @Validated UpdateProjectEmailRQ updateProjectRQ, Principal principal) {
-		return updateProjectHandler.updateProjectEmailConfig(EntityUtils.normalizeProjectName(projectName), principal.getName(), updateProjectRQ);
+		return updateProjectHandler.updateProjectEmailConfig(EntityUtils.normalizeProjectName(projectName), principal.getName(),
+				updateProjectRQ);
 	}
 
 	@Override
@@ -239,8 +241,9 @@ public class ProjectController implements IProjectController {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	@ApiIgnore
-	public Iterable<ProjectInfoResource> getAllProjectsInfo(Principal principal) {
-		return getProjectInfoHandler.getAllProjectsInfo();
+	public PagedResources<ProjectInfoResource> getAllProjectsInfo(@FilterFor(Project.class) Filter filter,
+			@SortFor(Project.class) Pageable pageable, Principal principal) {
+		return getProjectInfoHandler.getAllProjectsInfo(filter, pageable);
 	}
 
 	@Override

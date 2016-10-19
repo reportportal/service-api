@@ -162,19 +162,18 @@ public class UpdateProjectHandlerTest {
 	}
 
 	@Test
-	public void login3Symbols() {
+	public void emptyLogin() {
 		final String always = "ALWAYS";
 		final UpdateProjectEmailRQ updateProjectEmailRQ = new UpdateProjectEmailRQ();
 		final ProjectEmailConfig projectEmailConfig = new ProjectEmailConfig();
 		final EmailSenderCase emailSenderCase = new EmailSenderCase();
 		emailSenderCase.setSendCase(always);
-		final String login = "log";
-		emailSenderCase.setRecipients(singletonList(login));
+		emailSenderCase.setRecipients(singletonList(""));
 		projectEmailConfig.setEmailCases(singletonList(emailSenderCase));
 		projectEmailConfig.setFrom("user1@fake.com");
 		updateProjectEmailRQ.setConfiguration(projectEmailConfig);
 		expected.expect(ReportPortalException.class);
-		expected.expectMessage("Error in handled Request. Please, check specified parameters: 'Acceptable login length  [4..128]'");
+		expected.expectMessage("Error in handled Request. Please, check specified parameters: 'Acceptable login length  [1..128]'");
 		updateProjectHandler.updateProjectEmailConfig(project, user, updateProjectEmailRQ);
 	}
 

@@ -212,7 +212,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 						} else {
 							final String login = it.trim();
 							expect(MIN_LOGIN_LENGTH <= login.length() && login.length() <= MAX_LOGIN_LENGTH, equalTo(true))
-									.verify(BAD_REQUEST_ERROR, "Acceptable login length  [4..128]");
+									.verify(BAD_REQUEST_ERROR, "Acceptable login length  [1..128]");
 							return login;
 						}
 						return it;

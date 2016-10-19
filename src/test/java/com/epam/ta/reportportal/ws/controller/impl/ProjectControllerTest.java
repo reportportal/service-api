@@ -32,6 +32,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedResources;
@@ -155,6 +156,8 @@ public class ProjectControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	@Ignore
+	//TODO Test requires commons-dao 2.6.5+
 	public void getAllProjectsInfo() throws Exception {
 		final MvcResult mvcResult = mvcMock
 				.perform(get("/project/list?page.page=1&page.size=51&page.sort=name,DESC&filter.eq.configuration$entryType=INTERNAL")

@@ -145,14 +145,9 @@ public class CreateUserHandler implements ICreateUserHandler {
 		projectUsers.put(user.getId(), UserConfig.newOne().withProjectRole(projectRole.get()).withProposedRole(projectRole.get()));
 		defaultProject.setUsers(projectUsers);
 
-		Map<String, UserConfig> demoUsers = new HashMap<>();
-		demoUsers.put(user.getId(), UserConfig.newOne().withProjectRole(MEMBER).withProposedRole(MEMBER));
-
 		try {
 			userRepository.save(user);
 			projectRepository.addUsers(projectName, projectUsers);
-			if (!Constants.DEFAULT_PROJECT.toString().equalsIgnoreCase(projectName))
-				projectRepository.addUsers(Constants.DEFAULT_PROJECT.toString(), demoUsers);
 
 			/*
 			 * Generate personal project for the user
@@ -273,9 +268,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 		try {
 			userRepository.save(user);
-			projectRepository.addUsers(Constants.DEFAULT_PROJECT.toString(), demoUsers);
-			if (!Constants.DEFAULT_PROJECT.toString().equalsIgnoreCase(request.getDefaultProject()))
-				projectRepository.addUsers(request.getDefaultProject(), projectUsers);
+			projectRepository.addUsers(request.getDefaultProject(), projectUsers);
 
 			/*
 			 * Generate personal project for the user

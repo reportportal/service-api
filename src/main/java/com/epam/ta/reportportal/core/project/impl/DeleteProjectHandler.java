@@ -65,7 +65,6 @@ public class DeleteProjectHandler implements IDeleteProjectHandler {
 
 	@Override
 	public OperationCompletionRS deleteProject(String projectName) {
-		expect(projectName, not(equalTo(Constants.DEFAULT_PROJECT.toString()))).verify(UNABLE_TO_UPDATE_DEFAULT_PROJECT);
 
 		Project project = projectRepository.findOne(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);

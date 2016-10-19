@@ -28,10 +28,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -48,14 +45,12 @@ import com.epam.ta.reportportal.database.dao.ProjectSettingsRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectSettings;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
-import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
-import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
-import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
+import com.epam.ta.reportportal.ws.model.project.*;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
@@ -161,7 +156,19 @@ public class ProjectControllerTest extends BaseMvcTest {
 
 	@Test
 	public void getAllProjectsInfo() throws Exception {
-		mvcMock.perform(get("/project/list").principal(authentication())).andExpect(status().is(200));
+		final MvcResult mvcResult = mvcMock
+				.perform(get("/project/list?page.page=1&page.size=51&page.sort=name,DESC&filter.eq.configuration$entryType=INTERNAL")
+						.principal(authentication()))
+				.andExpect(status().is(200)).andReturn();
+		PagedResources<ProjectInfoResource> entries = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
+				new TypeReference<PagedResources<ProjectInfoResource>>() {
+				});
+		final Collection<ProjectInfoResource> content = entries.getContent();
+		assertThat(content).hasSize(2);
+		assertThat(content.stream().map(ProjectInfoResource::getProjectId).collect(Collectors.toList())).containsSequence("project2",
+				"project1");
+		content.stream().forEach(it -> assertThat(it.getEntryType()).isEqualTo("INTERNAL"));
+		assertThat(entries.getMetadata().getSize()).isEqualTo(50);
 	}
 
 	@Test

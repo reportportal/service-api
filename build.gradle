@@ -19,14 +19,13 @@ plugins {
 }
 
 apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: 'maven-publish'
 apply plugin: "spring-boot"
 apply plugin: "io.spring.dependency-management"
 apply plugin: 'jacoco'
 
 apply from: 'build-quality.gradle'
 apply from: 'build-docker.gradle'
+apply from: 'release-service.gradle'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8

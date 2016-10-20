@@ -66,7 +66,6 @@ import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
  * @author Andrei_Ramanchuk
  */
 public class EmailService extends JavaMailSenderImpl {
-	private static final Logger LOGGER = LoggerFactory.getLogger(EmailService.class);
 
 	private static final String FINISH_LAUNCH_EMAIL_SUBJECT = " Report Portal Notification: launch '%s' #%s finished";
 	public static final String LOGO = "templates/email/rp_logo.png";
@@ -109,19 +108,18 @@ public class EmailService extends JavaMailSenderImpl {
 	 * @return
 	 */
 	public EmailService reconfig(ServerEmailConfig config) {
-		LOGGER.info("Email configuration before:" + config);
+		this.authRequired = (null != config.getAuthEnabled() && config.getAuthEnabled());
 
 		Properties javaMailProperties = new Properties();
 		javaMailProperties.put("mail.smtp.connectiontimeout", 5000);
-		javaMailProperties.put("mail.smtp.auth", config.getAuthEnabled());
+		javaMailProperties.put("mail.smtp.auth", this.authRequired);
 		javaMailProperties.put("mail.debug", config.getDebug());
 		EmailService refreshed = new EmailService(javaMailProperties);
 		refreshed.setTemplateEngine(templateEngine);
 		this.setHost(config.getHost());
 		this.setPort(config.getPort());
 		this.setProtocol(config.getProtocol());
-		this.authRequired = config.getAuthEnabled();
-		if (config.getAuthEnabled()) {
+		if (authRequired) {
 			this.setUsername(config.getUsername());
 			this.setPassword(config.getPassword());
 		}

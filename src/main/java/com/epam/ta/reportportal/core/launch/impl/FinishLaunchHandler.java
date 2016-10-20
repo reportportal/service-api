@@ -17,9 +17,29 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.launch.impl;
+
+import static com.epam.ta.reportportal.commons.Preconditions.hasProjectRoles;
+import static com.epam.ta.reportportal.commons.Predicates.*;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.LEAD;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.database.entity.Status.*;
+import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.stream.Collectors.toList;
+
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import org.slf4j.helpers.MessageFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.commons.DbUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
@@ -37,27 +57,10 @@ import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.events.LaunchFinishForcedEvent;
 import com.epam.ta.reportportal.events.LaunchFinishedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
-import org.slf4j.helpers.MessageFormatter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
-import java.util.*;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.commons.Preconditions.hasProjectRoles;
-import static com.epam.ta.reportportal.commons.Predicates.*;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.LEAD;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
-import static com.epam.ta.reportportal.database.entity.Status.*;
-import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Default implementation of {@link IFinishLaunchHandler}
@@ -159,6 +162,12 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		}
 		eventPublisher.publishEvent(new LaunchFinishForcedEvent(launch, userName));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully stopped.");
+	}
+
+	@Override
+	public List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, String projectName, String userName) {
+		return bulkRQ.getEntities().entrySet().stream().map(entry -> stopLaunch(entry.getKey(), entry.getValue(), projectName, userName))
+				.collect(toList());
 	}
 
 	private void validate(final String launchId, Launch launch, FinishExecutionRQ finishExecutionRQ) {

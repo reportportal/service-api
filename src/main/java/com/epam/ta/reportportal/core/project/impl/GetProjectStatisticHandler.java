@@ -17,24 +17,20 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.project.impl;
 
-import static com.epam.ta.reportportal.events.handler.UserActivityHandler.CREATE_USER;
-import static com.epam.ta.reportportal.events.handler.LaunchActivityHandler.START;
-import static com.epam.ta.reportportal.events.handler.LaunchActivityHandler.FINISH;
-import static com.epam.ta.reportportal.events.handler.LaunchActivityHandler.DELETE;
-import static com.epam.ta.reportportal.events.handler.WidgetActivityEventHandler.SHARE;
-import static com.epam.ta.reportportal.events.handler.WidgetActivityEventHandler.UNSHARE;
-import static com.epam.ta.reportportal.events.handler.TicketActivitySubscriber.POST_ISSUE;
-import static com.epam.ta.reportportal.events.handler.ExternalSystemActivityHandler.UPDATE;
-import static com.epam.ta.reportportal.events.handler.ProjectActivityHandler.UPDATE_PROJECT;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.database.search.Condition.EQUALS;
-import static com.epam.ta.reportportal.database.search.Condition.GREATER_THAN_OR_EQUALS;
-import static com.epam.ta.reportportal.database.search.Condition.IN;
+import static com.epam.ta.reportportal.database.search.Condition.*;
+import static com.epam.ta.reportportal.events.handler.ExternalSystemActivityHandler.UPDATE;
+import static com.epam.ta.reportportal.events.handler.LaunchActivityHandler.*;
+import static com.epam.ta.reportportal.events.handler.ProjectActivityHandler.UPDATE_PROJECT;
+import static com.epam.ta.reportportal.events.handler.TicketActivitySubscriber.POST_ISSUE;
+import static com.epam.ta.reportportal.events.handler.UserActivityHandler.CREATE_USER;
+import static com.epam.ta.reportportal.events.handler.WidgetActivityEventHandler.SHARE;
+import static com.epam.ta.reportportal.events.handler.WidgetActivityEventHandler.UNSHARE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
@@ -43,33 +39,19 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
 
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.events.handler.ExternalSystemActivityHandler;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.core.project.IGetProjectInfoHandler;
-import com.epam.ta.reportportal.database.dao.ActivityRepository;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.Activity;
@@ -80,6 +62,7 @@ import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
+import com.epam.ta.reportportal.events.handler.ExternalSystemActivityHandler;
 import com.epam.ta.reportportal.ws.converter.ProjectInfoResourceAssembler;
 import com.epam.ta.reportportal.ws.model.project.LaunchesPerUser;
 import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
@@ -119,17 +102,15 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 	private ProjectInfoWidgetDataConverter dataConverter;
 
 	@Override
-	public Iterable<ProjectInfoResource> getAllProjectsInfo() {
-		List<ProjectInfoResource> projectInfoResources = new ArrayList<>();
-		for (Project project : projectRepository.findAll(new Sort(Direction.DESC, Project.CREATION_DATE))) {
-			ProjectInfoResource projectInfoResource = projectInfoResourceAssembler.toResource(project);
-			final Optional<Launch> lastLaunch = launchRepository.findLastLaunch(project.getId(), DEFAULT.name());
-			if (lastLaunch.isPresent())
-				projectInfoResource.setLastRun(lastLaunch.get().getStartTime());
-			projectInfoResource.setLaunchesQuantity(launchRepository.findLaunchesQuantity(project.getId(), DEFAULT.name(), null));
-			projectInfoResources.add(projectInfoResource);
+	public PagedResources<ProjectInfoResource> getAllProjectsInfo(Filter filter, Pageable pageable) {
+		final PagedResources<ProjectInfoResource> preAssembled = projectInfoResourceAssembler
+				.toPagedResources(projectRepository.findByFilter(filter, pageable));
+		for (ProjectInfoResource project : preAssembled) {
+			final Optional<Launch> lastLaunch = launchRepository.findLastLaunch(project.getProjectId(), DEFAULT.name());
+			lastLaunch.ifPresent(launch -> project.setLastRun(launch.getStartTime()));
+			project.setLaunchesQuantity(launchRepository.findLaunchesQuantity(project.getProjectId(), DEFAULT.name(), null));
 		}
-		return projectInfoResources;
+		return preAssembled;
 	}
 
 	@Override
@@ -197,7 +178,7 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 			result = getLastLaunchStatistics(projectId);
 			break;
 		default:
-			//do nothing
+			// do nothing
 		}
 		return result;
 	}

@@ -3,7 +3,7 @@
  * 
  * 
  * This file is part of EPAM Report Portal.
- * https://github.com/epam/ReportPortal
+ * https://github.com/reportportal/service-api
  * 
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,12 +21,34 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import static com.epam.ta.reportportal.commons.Predicates.*;
+import static com.epam.ta.reportportal.commons.SendCase.findByName;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.database.entity.user.UserUtils.isEmailValid;
+import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.stream.Collectors.toList;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.stream.StreamSupport;
+
+import org.apache.commons.lang3.SerializationUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
 import com.epam.ta.reportportal.commons.Constants;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.commons.SendCase;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.project.IUpdateProjectHandler;
 import com.epam.ta.reportportal.database.dao.FavoriteResourceRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
@@ -40,13 +62,11 @@ import com.epam.ta.reportportal.database.entity.project.*;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.entity.user.UserType;
-import com.epam.ta.reportportal.database.entity.user.UserUtils;
 import com.epam.ta.reportportal.events.EmailConfigUpdatedEvent;
 import com.epam.ta.reportportal.events.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
@@ -54,25 +74,6 @@ import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
-import com.google.common.base.Strings;
-import org.apache.commons.lang3.SerializationUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import static com.epam.ta.reportportal.commons.Predicates.*;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Update project handler
@@ -82,20 +83,22 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class UpdateProjectHandler implements IUpdateProjectHandler {
 
-	@Autowired
-	private ProjectRepository projectRepository;
+	private final ProjectRepository projectRepository;
+	private final UserRepository userRepository;
+	private final FavoriteResourceRepository favoriteResourceRepository;
+	private final UserPreferenceRepository preferenceRepository;
+	private final ApplicationEventPublisher publisher;
 
 	@Autowired
-	private UserRepository userRepository;
-
-	@Autowired
-	private FavoriteResourceRepository favoriteResourceRepository;
-
-	@Autowired
-	private UserPreferenceRepository preferenceRepository;
-
-	@Autowired
-	private ApplicationEventPublisher publisher;
+	public UpdateProjectHandler(ProjectRepository projectRepository, UserRepository userRepository,
+			FavoriteResourceRepository favoriteResourceRepository, UserPreferenceRepository userPreferenceRepository,
+			ApplicationEventPublisher applicationEventPublisher) {
+		this.projectRepository = projectRepository;
+		this.userRepository = userRepository;
+		this.favoriteResourceRepository = favoriteResourceRepository;
+		this.preferenceRepository = userPreferenceRepository;
+		this.publisher = applicationEventPublisher;
+	}
 
 	@Override
 	public OperationCompletionRS updateProject(String projectName, UpdateProjectRQ updateProjectRQ, String principalName) {
@@ -118,7 +121,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 				 * Validate user exists
 				 */
 				expect(project.getUsers(), Preconditions.containsKey(user.getKey())).verify(USER_NOT_FOUND, user.getKey(),
-						Suppliers.formattedSupplier("User '{}' not found in '{}' project", user.getKey(), projectName));
+						formattedSupplier("User '{}' not found in '{}' project", user.getKey(), projectName));
 				Optional<ProjectRole> role = ProjectRole.forName(user.getValue());
 				/*
 				 * Validate role exists
@@ -188,48 +191,54 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		if (null != updateProjectEmailRQ.getConfiguration()) {
 			ProjectEmailConfig config = updateProjectEmailRQ.getConfiguration();
 			if (null != config.getFrom()) {
-				expect(UserUtils.isEmailValid(config.getFrom()), equalTo(true))
-						.verify(BAD_REQUEST_ERROR, Suppliers.formattedSupplier("Provided FROM value '{}' is invalid", config.getFrom()));
+				expect(isEmailValid(config.getFrom()), equalTo(true)).verify(BAD_REQUEST_ERROR,
+						formattedSupplier("Provided FROM value '{}' is invalid", config.getFrom()));
 				project.getConfiguration().getEmailConfig().setFrom(config.getFrom());
 			}
 
 			List<EmailSenderCase> cases = config.getEmailCases();
 			if (null != cases) {
 				expect(cases.size() > 0, equalTo(true)).verify(BAD_REQUEST_ERROR, "At least one rule should be present.");
-				cases.forEach(c -> {
-					expect(SendCase.findByName(c.getSendCase()).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, c.getSendCase());
-					c.setRecipients(c.getRecipients().stream().filter(r -> !Strings.isNullOrEmpty(r)).collect(Collectors.toList()));
-					expect(c.getRecipients().size() > 0, equalTo(true))
-							.verify(BAD_REQUEST_ERROR, Suppliers.formattedSupplier("Empty recipience list for email case '{}' ", c));
-					c.getRecipients().stream().filter(r -> !r.equals(ProjectUtils.getOwner())).forEach(r -> {
-						expect(r, notNull())
-								.verify(BAD_REQUEST_ERROR, Suppliers.formattedSupplier("Provided recipient email '{}' is invalid", r));
-						expect(UserUtils.isEmailValid(r), equalTo(true))
-								.verify(BAD_REQUEST_ERROR, Suppliers.formattedSupplier("Provided recipient email '{}' is invalid", r));
-					});
+				cases.forEach(sendCase -> {
+					expect(findByName(sendCase.getSendCase()).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, sendCase.getSendCase());
+					expect(sendCase.getRecipients(), notNull()).verify(BAD_REQUEST_ERROR, "Recipients list should not be null");
+					expect(sendCase.getRecipients().size() > 0, equalTo(true)).verify(BAD_REQUEST_ERROR,
+							formattedSupplier("Empty recipients list for email case '{}' ", sendCase));
+					sendCase.setRecipients(sendCase.getRecipients().stream().map(it -> {
+						expect(it, notNull()).verify(BAD_REQUEST_ERROR, formattedSupplier("Provided recipient email '{}' is invalid", it));
+						if (it.contains("@")) {
+							expect(isEmailValid(it), equalTo(true)).verify(BAD_REQUEST_ERROR,
+									formattedSupplier("Provided recipient email '{}' is invalid", it));
+						} else {
+							final String login = it.trim();
+							expect(MIN_LOGIN_LENGTH <= login.length() && login.length() <= MAX_LOGIN_LENGTH, equalTo(true)).verify(
+									BAD_REQUEST_ERROR, "Acceptable login length  [" + MIN_LOGIN_LENGTH + ".." + MAX_LOGIN_LENGTH + "]");
+							return login;
+						}
+						return it;
+					}).distinct().collect(toList()));
 
-					if ((null != c.getLaunchNames())) {
-						c.setLaunchNames(c.getLaunchNames().stream().filter(x -> !Strings.isNullOrEmpty(x)).map(x -> x.trim()).distinct()
-								.collect(Collectors.toList()));
-						c.getLaunchNames().forEach(s -> {
-							expect(Strings.isNullOrEmpty(s), equalTo(false)).verify(BAD_REQUEST_ERROR,
+					if ((null != sendCase.getLaunchNames())) {
+						sendCase.setLaunchNames(sendCase.getLaunchNames().stream().map(name -> {
+							expect(isNullOrEmpty(name), equalTo(false)).verify(BAD_REQUEST_ERROR,
 									"Launch name values cannot be empty. Please specify it or not include in request.");
-							expect(s.length() <= ValidationConstraints.MAX_NAME_LENGTH, equalTo(true)).verify(BAD_REQUEST_ERROR, Suppliers
-									.formattedSupplier("One of provided launch names '{}' is too long. Acceptable name length is [1..256]",
-											s));
-						});
+							expect(name.length() <= MAX_NAME_LENGTH, equalTo(true)).verify(BAD_REQUEST_ERROR, formattedSupplier(
+									"One of provided launch names '{}' is too long. Acceptable name length is [1..256]", name));
+							return name.trim();
+						}).distinct().collect(toList()));
 					}
 
-					if ((null != c.getTags())) {
-						c.setTags(c.getTags().stream().filter(x -> !Strings.isNullOrEmpty(x)).map(x -> x.trim()).distinct()
-								.collect(Collectors.toList()));
-						c.getTags().forEach(t -> expect(Strings.isNullOrEmpty(t), equalTo(false))
-								.verify(BAD_REQUEST_ERROR, "Tags values cannot be empty. Please specify it or not include in request."));
+					if ((null != sendCase.getTags())) {
+						sendCase.setTags(sendCase.getTags().stream().map(tag -> {
+							expect(isNullOrEmpty(tag), equalTo(false)).verify(BAD_REQUEST_ERROR,
+									"Tags values cannot be empty. Please specify it or not include in request.");
+							return tag.trim();
+						}).distinct().collect(toList()));
 					}
 				});
 
 				/* If project email settings */
-				List<EmailSenderCase> withoutDuplicateCases = cases.parallelStream().distinct().collect(toList());
+				List<EmailSenderCase> withoutDuplicateCases = cases.stream().distinct().collect(toList());
 				if (cases.size() != withoutDuplicateCases.size())
 					fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
 
@@ -279,6 +288,9 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			User singleUser = userRepository.findOne(login);
 			expect(singleUser, notNull()).verify(USER_NOT_FOUND, login, "User is not found in database.");
 			UserType userType = singleUser.getType();
+			if (EntryType.PERSONAL.equals(projectType) && projectName.equalsIgnoreCase(personalProjectName(singleUser.getId()))) {
+				fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Unable to unassign user from his personal project");
+			}
 			if (projectType.equals(EntryType.UPSA) && userType.equals(UserType.UPSA)) {
 				fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Project and user has UPSA type!");
 			}
@@ -287,14 +299,14 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			}
 
 			if (UserRole.ADMINISTRATOR != principal.getRole()) {
-					/* Modifier cannot un-assign users with higher roles */
+				/* Modifier cannot un-assign users with higher roles */
 				expect(users.get(singleUser.getId()).getProjectRole().getRoleLevel(),
 						Preconditions.isLevelEnough(users.get(modifier).getProjectRole().getRoleLevel())).verify(ACCESS_DENIED);
 			}
 			candidatesForUnassign.add(singleUser.getId());
-				/*
-				 * placed removing before validation to reduce number of cycles
-				 */
+			/*
+			 * placed removing before validation to reduce number of cycles
+			 */
 			users.remove(singleUser.getId());
 
 		}
@@ -341,7 +353,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 
 		for (String username : assignUsersRQ.getUserNames().keySet()) {
 			expect(username.toLowerCase(), not(in(project.getUsers().keySet()))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
-					Suppliers.formattedSupplier("User '{}' cannot be assigned to project twice.", username));
+					formattedSupplier("User '{}' cannot be assigned to project twice.", username));
 		}
 
 		UserConfig principalRoles = project.getUsers().get(modifier);
@@ -356,7 +368,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 
 			UserConfig config = new UserConfig();
 			String userToAssign = assignUsersRQ.getUserNames().get(username);
-			if (!Strings.isNullOrEmpty(userToAssign)) {
+			if (!isNullOrEmpty(userToAssign)) {
 				Optional<ProjectRole> proposedRole = ProjectRole.forName(userToAssign);
 				expect(proposedRole, Preconditions.IS_PRESENT).verify(ROLE_NOT_FOUND, userToAssign);
 
@@ -385,9 +397,8 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		}
 
 		OperationCompletionRS response = new OperationCompletionRS();
-		String msg =
-				"User(s) with username='" + assignUsersRQ.getUserNames().keySet() + "' was successfully assigned to project='" + projectName
-						+ "'";
+		String msg = "User(s) with username='" + assignUsersRQ.getUserNames().keySet() + "' was successfully assigned to project='"
+				+ projectName + "'";
 		response.setResultMessage(msg);
 		return response;
 	}

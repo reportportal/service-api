@@ -21,25 +21,6 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.*;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.*;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-
-import java.security.Principal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import com.epam.ta.reportportal.events.UserCreatedEvent;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DuplicateKeyException;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.Constants;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
@@ -47,13 +28,13 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.user.ICreateUserHandler;
 import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
-import com.epam.ta.reportportal.database.entity.project.EntryType;
+import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.user.*;
 import com.epam.ta.reportportal.database.entity.user.UserUtils;
+import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
+import com.epam.ta.reportportal.events.UserCreatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.ws.converter.builders.RestorePasswordBidBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
@@ -61,6 +42,25 @@ import com.epam.ta.reportportal.ws.converter.builders.UserCreationBidBuilder;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.stereotype.Service;
+
+import javax.inject.Provider;
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static com.epam.ta.reportportal.commons.Predicates.*;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Implementation of Create User handler
@@ -69,6 +69,9 @@ import com.epam.ta.reportportal.ws.model.user.*;
  */
 @Service
 public class CreateUserHandler implements ICreateUserHandler {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(CreateUserHandler.class);
+
 	private UserRepository userRepository;
 	private ProjectRepository projectRepository;
 
@@ -86,15 +89,14 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 	private ApplicationEventPublisher eventPublisher;
 
-	private LazyReference<UserBuilder> userBuilder;
+	@Autowired
+	private Provider<UserBuilder> userBuilder;
 
 	@Autowired
-	@Qualifier("userCreationBidBuilder.reference")
-	private LazyReference<UserCreationBidBuilder> userCreationBidBuilder;
+	private Provider<UserCreationBidBuilder> userCreationBidBuilder;
 
 	@Autowired
-	@Qualifier("restorePasswordBidBuilder.reference")
-	private LazyReference<RestorePasswordBidBuilder> restorePasswordBidBuilder;
+	private Provider<RestorePasswordBidBuilder> restorePasswordBidBuilder;
 
 	@Autowired
 	public void setUserRepository(UserRepository userRepository) {
@@ -106,11 +108,6 @@ public class CreateUserHandler implements ICreateUserHandler {
 		this.projectRepository = projectRepository;
 	}
 
-	@Autowired
-	@Qualifier("userBuilder.reference")
-	public void setUserBuilder(LazyReference<UserBuilder> userBuilder) {
-		this.userBuilder = userBuilder;
-	}
 
 	@Autowired
 	public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
@@ -120,8 +117,9 @@ public class CreateUserHandler implements ICreateUserHandler {
 	@Override
 	public CreateUserRS createUserByAdmin(CreateUserRQFull request, String userName, String basicUrl) {
 		String newUsername = EntityUtils.normalizeUsername(request.getLogin());
-		User user = userRepository.findOne(newUsername);
-		expect(user, isNull()).verify(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("login='{}'", newUsername));
+
+		expect(userRepository.exists(newUsername), equalTo(false))
+				.verify(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("login='{}'", newUsername));
 
 		String projectName = EntityUtils.normalizeProjectName(request.getDefaultProject());
 		Project defaultProject = projectRepository.findOne(projectName);
@@ -139,7 +137,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 		final Optional<UserRole> userRole = UserRole.findByName(request.getAccountRole());
 		expect(userRole.isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter.");
-		user = userBuilder.get().addCreateUserRQ(req).addUserRole(userRole.get()).build();
+		User user = userBuilder.get().addCreateUserRQ(req).addUserRole(userRole.get()).build();
 		Optional<ProjectRole> projectRole = forName(request.getProjectRole());
 		expect(projectRole, Preconditions.IS_PRESENT).verify(ROLE_NOT_FOUND, request.getProjectRole());
 
@@ -155,11 +153,20 @@ public class CreateUserHandler implements ICreateUserHandler {
 			projectRepository.addUsers(projectName, projectUsers);
 			if (!Constants.DEFAULT_PROJECT.toString().equalsIgnoreCase(projectName))
 				projectRepository.addUsers(Constants.DEFAULT_PROJECT.toString(), demoUsers);
+
+			/*
+			 * Generate personal project for the user
+			 */
+			Project personalProject = PersonalProjectUtils.generatePersonalProject(user);
+			if (!defaultProject.getId().equals(personalProject.getId())){
+				projectRepository.save(personalProject);
+			}
+
 			emailService.sendConfirmationEmail(request, basicUrl);
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {
-			throw new ReportPortalException("Error while User creating.", exp);
+			throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
 		}
 
 		eventPublisher.publishEvent(new UserCreatedEvent(user, userName));
@@ -175,6 +182,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 			emailService.reconfig(settingsRepository.findOne("default").getServerEmailConfig());
 			emailService.testConnection();
 		} catch (Exception ex) {
+			LOGGER.error("Cannot send email to user", ex);
 			fail().withError(FORBIDDEN_OPERATION,
 					"Email configuration is broken or switched-off. Please config email server in Report Portal settings.");
 		}
@@ -268,6 +276,15 @@ public class CreateUserHandler implements ICreateUserHandler {
 			projectRepository.addUsers(Constants.DEFAULT_PROJECT.toString(), demoUsers);
 			if (!Constants.DEFAULT_PROJECT.toString().equalsIgnoreCase(request.getDefaultProject()))
 				projectRepository.addUsers(request.getDefaultProject(), projectUsers);
+
+			/*
+			 * Generate personal project for the user
+			 */
+			Project personalProject = PersonalProjectUtils.generatePersonalProject(user);
+			if (!defaultProject.getId().equals(personalProject.getId())){
+				projectRepository.save(personalProject);
+			}
+
 			userCreationBidRepository.delete(uuid);
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("email='{}'", request.getEmail()));

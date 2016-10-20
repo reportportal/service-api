@@ -122,19 +122,6 @@
 		</constructor-arg>
 	</bean>
 
-	<bean id="userBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
-		<constructor-arg name="clazz">
-			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.UserBuilder
-			</value>
-		</constructor-arg>
-	</bean>
-
-	<bean id="userCreationBidBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
-		<constructor-arg name="clazz">
-			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.UserCreationBidBuilder
-			</value>
-		</constructor-arg>
-	</bean>
 
 	<bean id="userResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
 		<constructor-arg name="clazz">
@@ -224,12 +211,6 @@
 	<bean id="externalSystemResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
 		<constructor-arg name="clazz">
 			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.ExternalSystemResourceBuilder</value>
-		</constructor-arg>
-	</bean>
-
-	<bean id="restorePasswordBidBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
-		<constructor-arg name="clazz">
-			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.RestorePasswordBidBuilder</value>
 		</constructor-arg>
 	</bean>
 

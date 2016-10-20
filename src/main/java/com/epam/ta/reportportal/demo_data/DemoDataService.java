@@ -45,7 +45,7 @@ class DemoDataService {
 		final List<String> launches = demoLaunchesService.generateDemoLaunches(rq, user, project);
 		demoDataRs.setLaunches(launches);
 		if (rq.isCreateDashboard()) {
-			Dashboard demoDashboard = demoDashboardsService.createDemoDashboard(rq, user, project);
+			Dashboard demoDashboard = demoDashboardsService.generate(rq, user, project);
 			demoDataRs.setDashboards(Collections.singletonList(demoDashboard.getId()));
 		}
 		return demoDataRs;

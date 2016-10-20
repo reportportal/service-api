@@ -21,11 +21,11 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import java.security.Principal;
-
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import com.epam.ta.reportportal.ws.model.settings.UpdateEmailSettingsRQ;
+
+import java.security.Principal;
 
 /**
  * Controller interface for specific ADMIN ONLY features like server

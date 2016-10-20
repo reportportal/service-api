@@ -74,4 +74,5 @@ public interface ExternalSystemStrategy {
 	 * @return
 	 */
 	List<PostFormField> getTicketFields(String issueType, ExternalSystem system);
+
 }

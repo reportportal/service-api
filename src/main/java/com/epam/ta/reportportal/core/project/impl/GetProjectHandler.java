@@ -94,7 +94,7 @@ public class GetProjectHandler implements IGetProjectHandler {
 		filter.addCondition(new FilterCondition(Condition.IN, false, criteria, User.LOGIN));
 		// Filter filter = new Filter(User.class, Condition.IN, false, criteria,
 		// User.LOGIN);
-		Page<User> users = userRepository.findByFilter(filter, pageable);
+		Page<User> users = userRepository.findByFilterExcluding(filter, pageable, "email");
 		return userResourceAssembler.toPagedResources(users, dbProject);
 	}
 

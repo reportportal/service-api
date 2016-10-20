@@ -24,20 +24,19 @@ package com.epam.ta.reportportal.ws.converter.builders;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 
 import com.epam.ta.BaseTest;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQConfirm;
+
+import javax.inject.Provider;
 
 public class UserBuilderTest extends BaseTest {
 
 	@Autowired
-	@Qualifier("userBuilder.reference")
-	private LazyReference<UserBuilder> userBuilderProvider;
+	private Provider<UserBuilder> userBuilderProvider;
 
 	@Autowired
 	private ApplicationContext applicationContext;

@@ -28,13 +28,19 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.LEAD;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.database.entity.Status.RESETED;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+
+import java.util.List;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
@@ -43,12 +49,10 @@ import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
-import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.triggers.CascadeDeleteItemsService;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
 
@@ -78,22 +82,22 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	@Override
 	public OperationCompletionRS deleteTestItem(String itemId, String projectName, String username) {
 		Project project = projectRepository.findOne(projectName);
-		expect(project, notNull()).verify(ErrorType.PROJECT_NOT_FOUND, project);
+		expect(project, notNull()).verify(PROJECT_NOT_FOUND, project);
 
 		User user = userRepository.findOne(username);
-		expect(user, notNull()).verify(ErrorType.USER_NOT_FOUND, username);
+		expect(user, notNull()).verify(USER_NOT_FOUND, username);
 
 		TestItem item = testItemRepository.findOne(itemId);
 		validate(itemId, item, projectName);
 		validateRoles(item, user, project);
 		try {
-			final Project project1 = projectRepository.findOne(launchRepository.findOne(item.getLaunchRef()).getProjectRef());
-			statisticsFacadeFactory.getStatisticsFacade(project1.getConfiguration().getStatisticsCalculationStrategy())
-					.deleteExecutionStatistics(item);
+
+			StatisticsFacade statisticsFacade = statisticsFacadeFactory
+					.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
+			statisticsFacade.deleteExecutionStatistics(item);
 
 			if (!item.getStatistics().getIssueCounter().isEmpty()) {
-				statisticsFacadeFactory.getStatisticsFacade(project1.getConfiguration().getStatisticsCalculationStrategy())
-						.deleteIssueStatistics(item);
+				statisticsFacade.deleteIssueStatistics(item);
 			}
 
 			cascadeDeleteItemsService.delete(singletonList(itemId));
@@ -101,11 +105,10 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 			if (null != item.getParent()) {
 				TestItem parent = testItemRepository.findOne(item.getParent());
 				if (!testItemRepository.findAllDescendants(parent.getId()).isEmpty()) {
-					statisticsFacadeFactory.getStatisticsFacade(project1.getConfiguration().getStatisticsCalculationStrategy())
-							.updateParentStatusFromStatistics(parent);
+					statisticsFacade.updateParentStatusFromStatistics(parent);
 				} else {
 					parent.setHasChilds(false);
-					parent.setStatus(Status.RESETED);
+					parent.setStatus(RESETED);
 					testItemRepository.save(parent);
 				}
 			}
@@ -116,13 +119,17 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 			 * progress
 			 */
 			if (not(IN_PROGRESS).test(launch)) {
-				statisticsFacadeFactory.getStatisticsFacade(project1.getConfiguration().getStatisticsCalculationStrategy())
-						.updateLaunchFromStatistics(launch);
+				statisticsFacade.updateLaunchFromStatistics(launch);
 			}
 		} catch (Exception e) {
 			throw new ReportPortalException("Error during deleting TestStep item", e);
 		}
 		return new OperationCompletionRS("Test Item with ID = '" + itemId + "' has been successfully deleted.");
+	}
+
+	@Override
+	public List<OperationCompletionRS> deleteTestItem(String[] ids, String project, String user) {
+		return Stream.of(ids).map(it -> deleteTestItem(it, project, user)).collect(toList());
 	}
 
 	private void validate(String testItemId, TestItem testItem, String projectName) {

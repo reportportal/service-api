@@ -82,7 +82,7 @@ class DemoLaunchesService {
 	private List<String> generateLaunches(DemoDataRq rq, Map<String, Map<String, List<String>>> suitesStructure, String user,
 			String project) {
 		return IntStream.range(0, rq.getLaunchesQuantity()).mapToObj(i -> {
-			String launchId = startLaunch(NAME + "#" + rq.getPostfix(), i, project, user);
+			String launchId = startLaunch(NAME + "_" + rq.getPostfix(), i, project, user);
 			generateSuites(suitesStructure, i, launchId);
 			finishLaunch(launchId);
 			return launchId;

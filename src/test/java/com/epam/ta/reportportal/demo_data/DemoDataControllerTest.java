@@ -62,7 +62,7 @@ public class DemoDataControllerTest extends BaseMvcTest {
 		rq.setLaunchesQuantity(1);
 		mvcMock.perform(post("/demo/project1").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
 				.principal(authentication())).andExpect(status().is(200));
-		List<Launch> byName = launchRepository.findByName(DemoLaunchesService.NAME + "#" + rq.getPostfix());
+		List<Launch> byName = launchRepository.findByName(DemoLaunchesService.NAME + "_" + rq.getPostfix());
 		assertFalse(byName.isEmpty());
 		assertEquals(rq.getLaunchesQuantity(), byName.size());
 		Dashboard dashboard = dashboardRepository.findOneByUserProject(AuthConstants.TEST_USER, "project1",

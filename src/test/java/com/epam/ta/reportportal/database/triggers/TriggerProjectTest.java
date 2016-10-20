@@ -21,19 +21,7 @@
 
 package com.epam.ta.reportportal.database.triggers;
 
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.epam.ta.BaseTest;
-import com.epam.ta.reportportal.commons.Constants;
 import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
@@ -41,6 +29,17 @@ import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.fixture.SpringFixture;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
 import com.epam.ta.reportportal.triggers.CascadeDeleteProjectsService;
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 @SpringFixture("unitTestsProjectTriggers")
 public class TriggerProjectTest extends BaseTest {
@@ -49,8 +48,6 @@ public class TriggerProjectTest extends BaseTest {
 	private LaunchRepository launchRepository;
 	@Autowired
 	private ProjectRepository projectRepository;
-	@Autowired
-	private DashboardRepository dashboardRepository;
 	@Autowired
 	private UserRepository userRepository;
 	@Autowired
@@ -90,6 +87,6 @@ public class TriggerProjectTest extends BaseTest {
 		Assert.assertEquals("test_123", user.getDefaultProject());
 		cascadeDeleteProjectsService.delete(singletonList("test_123"));
 		user = userRepository.findOne("user1");
-		Assert.assertEquals(Constants.DEFAULT_PROJECT.toString(), user.getDefaultProject());
+		Assert.assertEquals(personalProjectName(user.getId()), user.getDefaultProject());
 	}
 }

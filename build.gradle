@@ -60,7 +60,7 @@ dependencyManagement {
 
 dependencies {
     compile 'com.epam.reportportal:commons-model:2.6.2'
-    compile 'com.epam.reportportal:commons-dao:2.6.4'
+    compile 'com.epam.reportportal:commons-dao:2.7.0-ALPHA-4'
     compile 'com.epam.reportportal:commons-rules:2.6.0'
     compile 'com.epam.reportportal:commons:2.6.1'
 
@@ -81,7 +81,7 @@ dependencies {
     compile 'org.apache.velocity:velocity:1.7'
 
     compile 'org.springframework.cloud:spring-cloud-config-client'
-    compile("org.springframework.retry:spring-retry")
+    compile 'org.springframework.retry:spring-retry'
 
     compile 'org.springframework.cloud:spring-cloud-starter-eureka'
     compile 'org.springframework.cloud:spring-cloud-starter-security'

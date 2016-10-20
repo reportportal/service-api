@@ -211,8 +211,8 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 									formattedSupplier("Provided recipient email '{}' is invalid", it));
 						} else {
 							final String login = it.trim();
-							expect(MIN_LOGIN_LENGTH <= login.length() && login.length() <= MAX_LOGIN_LENGTH, equalTo(true))
-									.verify(BAD_REQUEST_ERROR, "Acceptable login length  [4..128]");
+							expect(MIN_LOGIN_LENGTH <= login.length() && login.length() <= MAX_LOGIN_LENGTH, equalTo(true)).verify(
+									BAD_REQUEST_ERROR, "Acceptable login length  [" + MIN_LOGIN_LENGTH + ".." + MAX_LOGIN_LENGTH + "]");
 							return login;
 						}
 						return it;

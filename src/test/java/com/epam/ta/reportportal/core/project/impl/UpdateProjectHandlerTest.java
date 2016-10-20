@@ -1,5 +1,7 @@
 package com.epam.ta.reportportal.core.project.impl;
 
+import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_LOGIN_LENGTH;
+import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_LOGIN_LENGTH;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -162,19 +164,19 @@ public class UpdateProjectHandlerTest {
 	}
 
 	@Test
-	public void login3Symbols() {
+	public void emptyLogin() {
 		final String always = "ALWAYS";
 		final UpdateProjectEmailRQ updateProjectEmailRQ = new UpdateProjectEmailRQ();
 		final ProjectEmailConfig projectEmailConfig = new ProjectEmailConfig();
 		final EmailSenderCase emailSenderCase = new EmailSenderCase();
 		emailSenderCase.setSendCase(always);
-		final String login = "log";
-		emailSenderCase.setRecipients(singletonList(login));
+		emailSenderCase.setRecipients(singletonList(""));
 		projectEmailConfig.setEmailCases(singletonList(emailSenderCase));
 		projectEmailConfig.setFrom("user1@fake.com");
 		updateProjectEmailRQ.setConfiguration(projectEmailConfig);
 		expected.expect(ReportPortalException.class);
-		expected.expectMessage("Error in handled Request. Please, check specified parameters: 'Acceptable login length  [4..128]'");
+		expected.expectMessage("Error in handled Request. Please, check specified parameters: 'Acceptable login length  ["
+				+ MIN_LOGIN_LENGTH + ".." + MAX_LOGIN_LENGTH + "]'");
 		updateProjectHandler.updateProjectEmailConfig(project, user, updateProjectEmailRQ);
 	}
 

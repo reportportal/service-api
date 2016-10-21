@@ -40,6 +40,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
+import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -267,8 +268,6 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 
 	@Override
 	public OperationCompletionRS unassignUsers(String projectName, String modifier, UnassignUsersRQ unassignUsersRQ) {
-		BusinessRule.expect(projectName, Predicates.not(Predicates.equalTo(Constants.DEFAULT_PROJECT.toString())))
-				.verify(ErrorType.UNABLE_TO_UPDATE_DEFAULT_PROJECT, "Users cannot be unassigned from default project");
 
 		Project project = projectRepository.findOne(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
@@ -413,7 +412,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 	private void processCandidateForUnaassign(Iterable<User> users, String projectName) {
 		List<User> updated = StreamSupport.stream(users.spliterator(), false).filter(it -> it.getDefaultProject().equals(projectName))
 				.map(it -> {
-					it.setDefaultProject(Constants.DEFAULT_PROJECT.toString());
+					it.setDefaultProject(personalProjectName(it.getId()));
 					return it;
 				}).collect(toList());
 		userRepository.save(updated);

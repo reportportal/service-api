@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.project.EntryType;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserType;
+import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -36,6 +37,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+
+import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
 
 /**
  * Response {@link UserResource} builder for controllers
@@ -86,7 +89,7 @@ public class UserResourceBuilder extends ResourceBuilder<UserResource> {
 			if (userProjects.containsKey(user.getDefaultProject())) {
 				resource.setDefaultProject(user.getDefaultProject());
 			} else {
-				resource.setDefaultProject(Constants.DEFAULT_PROJECT.toString());
+				resource.setDefaultProject(personalProjectName(user.getId()));
 			}
 		}
 		return this;

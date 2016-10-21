@@ -17,3 +17,14 @@
 * EPMRPP-20858 - Generate BTS list on UI dynamically
 * EPMRPP-20835 - Disable "Unassign" button for Personal space "owner"
 * EPMRPP-20926 - Don't allow to create project with type = Personal
+
+## 2.7.0
+##### Released: XXX October 2016
+
+### New Features
+
+* EPMRPP-20859 - Remove default projects. Replace with Personal spaces
+
+### Bugfixes
+
+* EPMRPP-20324 - Fix incorrect user photo processing

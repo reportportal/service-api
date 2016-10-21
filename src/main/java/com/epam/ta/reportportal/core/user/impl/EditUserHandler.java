@@ -99,12 +99,7 @@ public class EditUserHandler implements IEditUserHandler {
 		try {
 			validatePhoto(file);
 			BinaryData binaryData = new BinaryData(file.getContentType(), file.getSize(), file.getInputStream());
-			String photo = userRepository.saveUserPhoto(username, binaryData);
-			User user = userRepository.findOne(username);
-			if (user.getPhotoId() != null)
-				dataStorage.deleteData(user.getPhotoId());
-			user.setPhotoId(photo);
-			userRepository.save(user);
+			userRepository.replaceUserPhoto(username, binaryData);
 		} catch (IOException e) {
 			fail().withError(BINARY_DATA_CANNOT_BE_SAVED);
 		}

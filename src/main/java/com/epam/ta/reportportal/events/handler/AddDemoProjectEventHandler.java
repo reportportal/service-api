@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.epam.ta.reportportal.database.entity.*;
 import com.epam.ta.reportportal.database.entity.user.UserType;
+import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +57,9 @@ import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+
+import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.generatePersonalProject;
+import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
 
 /**
  * Initial deploy data
@@ -120,7 +124,7 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		user.setType(UserType.INTERNAL);
 		user.setEmail("defaultadministrator@example.com");
 		user.setFullName("RP Admin");
-		user.setDefaultProject(Constants.DEFAULT_PROJECT.toString());
+		user.setDefaultProject(personalProjectName(user.getLogin()));
 		user.setIsExpired(false);
 		user.getMetaInfo().setLastLogin(Calendar.getInstance().getTime());
 		user.setRole(UserRole.ADMINISTRATOR);
@@ -135,29 +139,13 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		user.setType(UserType.INTERNAL);
 		user.setEmail("defaulttester@example.com");
 		user.setFullName("RP Tester");
-		user.setDefaultProject(Constants.DEFAULT_PROJECT.toString());
+		user.setDefaultProject(personalProjectName(user.getLogin()));
 		user.setIsExpired(false);
 		user.getMetaInfo().setLastLogin(Calendar.getInstance().getTime());
 		user.setRole(UserRole.USER);
 		return user;
 	});
 
-	public static final Supplier<Project> DEFAULT_PROJECT = Suppliers.memoize(() -> {
-		LOGGER.info("========== DEFAULT PROJECT CREATION ==========");
-		Project project = new Project();
-		project.setName(Constants.DEFAULT_PROJECT.toString());
-		project.setCustomer("some customer");
-		project.setAddInfo("some additional info");
-		project.setCreationDate(new Date());
-
-		Map<String, UserConfig> users = new HashMap<>();
-		users.put(DEFAULT_ADMIN.get().getId(), UserConfig.newOne().withProjectRole(DEMO_ROLE).withProposedRole(DEMO_ROLE));
-		users.put(DEFAULT_USER.get().getId(), UserConfig.newOne().withProjectRole(DEMO_ROLE).withProposedRole(DEMO_ROLE));
-		project.setUsers(users);
-		project = setPredefinedConfiguration(project);
-		project.getConfiguration().setExternalSystem(new ArrayList<>());
-		return project;
-	});
 
 	public final Supplier<ServerSettings> DEFAULT_PROFILE = Suppliers.memoize(() -> {
 		LOGGER.info("======= DEFAULT SERVER PROFILE CREATION =======");
@@ -177,9 +165,6 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 	@Autowired
 	private ServerSettingsRepository serverSettingsRepository;
 
-	@Autowired
-	private ProjectSettingsRepository projectSettingsRepository;
-
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		/*
@@ -188,72 +173,33 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		 */
 		if (IMPORTED_FLAG.compareAndSet(false, true)) {
 			// Save non-existing user photo
-			userRepository.saveUserPhoto(Constants.NONAME_USER.toString(), NONAME_USER_PHOTO.get());
+			userRepository.uploadUserPhoto(Constants.NONAME_USER.toString(), NONAME_USER_PHOTO.get());
 
 			// Super administrator
 			if (null == userRepository.findOne(DEFAULT_ADMIN.get().getLogin())) {
 				User user = DEFAULT_ADMIN.get();
-				String photoId = userRepository.saveUserPhoto(user.getLogin(), DEFAULT_ADMIN_PHOTO.get());
+				String photoId = userRepository.uploadUserPhoto(user.getLogin(), DEFAULT_ADMIN_PHOTO.get());
 				user.setPhotoId(photoId);
+
+				projectRepository.save(generatePersonalProject(user));
 				userRepository.save(user);
 			}
 
 			// Down-graded user (previous administrator)
 			if (null == userRepository.findOne(DEFAULT_USER.get().getLogin())) {
 				User user = DEFAULT_USER.get();
-				String photoId = userRepository.saveUserPhoto(user.getLogin(), DEMO_USER_PHOTO.get());
+				String photoId = userRepository.uploadUserPhoto(user.getLogin(), DEMO_USER_PHOTO.get());
 				user.setPhotoId(photoId);
-				userRepository.save(user);
-			}
 
-			if (null == projectRepository.findOne(DEFAULT_PROJECT.get().getId())) {
-				projectRepository.save(DEFAULT_PROJECT.get());
+				projectRepository.save(generatePersonalProject(user));
+				userRepository.save(user);
 			}
 
 			/* Create server settings repository with default profile */
 			if (null == serverSettingsRepository.findOne(DEFAULT_PROFILE.get().getId())) {
 				serverSettingsRepository.save(DEFAULT_PROFILE.get());
 			}
-
-			if (null == projectSettingsRepository.findOne(DEFAULT_PROJECT.get().getId())) {
-				projectSettingsRepository.save(new ProjectSettings(DEFAULT_PROJECT.get().getId()));
-			}
 		}
 	}
 
-	/**
-	 * Added for unit testing.
-	 * 
-	 * @param flag
-	 */
-	public static void setImportedFlag(boolean flag) {
-		synchronized (AddDemoProjectEventHandler.class) {
-			IMPORTED_FLAG.set(flag);
-		}
-	}
-
-	/**
-	 * Set predefined project configuration
-	 * 
-	 * @param project
-	 * @return Project
-	 */
-	/*
-	 * TODO move default project configuration declaration in {@link
-	 * ProjectUtils}
-	 */
-	private static Project setPredefinedConfiguration(Project project) {
-		project.getConfiguration().setStatisticsCalculationStrategy(StatisticsCalculationStrategy.TEST_BASED);
-		project.getConfiguration().setEntryType(EntryType.INTERNAL);
-		project.getConfiguration().setInterruptJobTime(InterruptionJobDelay.ONE_DAY.getValue());
-		project.getConfiguration().setKeepLogs(KeepLogsDelay.THREE_MONTHS.getValue());
-		project.getConfiguration().setKeepScreenshots(KeepScreenshotsDelay.ONE_MONTH.getValue());
-		project.getConfiguration().setProjectSpecific(ProjectSpecific.DEFAULT);
-		project.getConfiguration().setIsAutoAnalyzerEnabled(false);
-
-		/* Default email configuration */
-		project = ProjectUtils.setDefaultEmailCofiguration(project);
-
-		return project;
-	}
 }

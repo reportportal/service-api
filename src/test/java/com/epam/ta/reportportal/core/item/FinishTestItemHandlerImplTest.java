@@ -39,7 +39,6 @@ import com.epam.ta.reportportal.database.dao.FailReferenceResourceRepository;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
 import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
@@ -62,13 +61,15 @@ public class FinishTestItemHandlerImplTest {
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage(
 				"Invalid test item issue type definition 'null' is requested for item 'itemId'. Valid issue types are: [NOT_ISSUE, PRODUCT_BUG, AUTOMATION_BUG, SYSTEM_ISSUE, TO_INVESTIGATE, NO_DEFECT]");
-		finishTestItemHandler.verifyIssue("itemId", new Issue(), new ProjectSettings());
+		finishTestItemHandler.verifyIssue("itemId", new Issue(), new Project.Configuration());
 	}
 
 	@Test
 	public void verifyCustomIssueType() {
 		String locator = "PB002";
-		ProjectSettings projectSettings = new ProjectSettings();
+		final Project project = new Project();
+		Project.Configuration projectSettings = new Project.Configuration();
+		project.setConfiguration(projectSettings);
 		Map<TestItemIssueType, List<StatisticSubType>> subTypes = projectSettings.getSubTypes();
 		List<StatisticSubType> statisticSubTypes = new ArrayList<>(subTypes.get(PRODUCT_BUG));
 		statisticSubTypes.add(new StatisticSubType(locator, PRODUCT_BUG.getValue(), "NEW PRODUCT BUG", "NPB", "green"));
@@ -77,7 +78,7 @@ public class FinishTestItemHandlerImplTest {
 		issue.setIssueType(locator);
 		TestItem item = new TestItem();
 		item.setStatus(FAILED);
-		TestItem testItem = finishTestItemHandler.awareTestItemIssueTypeFromStatus(item, issue, projectSettings, new Project());
+		TestItem testItem = finishTestItemHandler.awareTestItemIssueTypeFromStatus(item, issue, project);
 		Assert.assertNotNull(testItem);
 		TestItemIssue testItemIssue = testItem.getIssue();
 		Assert.assertNotNull(testItemIssue);
@@ -92,7 +93,7 @@ public class FinishTestItemHandlerImplTest {
 		thrown.expectMessage(
 				"Invalid test item issue type definition 'PB004' is requested for item 'itemId'. Valid issue types are: [NOT_ISSUE, PRODUCT_BUG, AUTOMATION_BUG, SYSTEM_ISSUE, TO_INVESTIGATE, NO_DEFECT]");
 		thrown.expect(ReportPortalException.class);
-		finishTestItemHandler.verifyIssue("itemId", issue, new ProjectSettings());
+		finishTestItemHandler.verifyIssue("itemId", issue, new Project.Configuration());
 	}
 
 	@Test
@@ -102,8 +103,7 @@ public class FinishTestItemHandlerImplTest {
 		Issue providedIssue = new Issue();
 		providedIssue.setIssueType("not_Issue");
 
-		TestItem updated = finishTestItemHandler.awareTestItemIssueTypeFromStatus(testItem, providedIssue, new ProjectSettings(),
-				new Project());
+		TestItem updated = finishTestItemHandler.awareTestItemIssueTypeFromStatus(testItem, providedIssue, new Project());
 		TestItemIssue issue = updated.getIssue();
 		Assert.assertNull(issue);
 	}
@@ -128,7 +128,7 @@ public class FinishTestItemHandlerImplTest {
 		configuration.setIsAutoAnalyzerEnabled(true);
 		project.setConfiguration(configuration);
 
-		TestItem updatedTestItem = finishTestItemHandler.awareTestItemIssueTypeFromStatus(testItem, null, new ProjectSettings(), project);
+		TestItem updatedTestItem = finishTestItemHandler.awareTestItemIssueTypeFromStatus(testItem, null, project);
 
 		Assert.assertNotNull(updatedTestItem);
 		Assert.assertNotNull(updatedTestItem.getIssue());

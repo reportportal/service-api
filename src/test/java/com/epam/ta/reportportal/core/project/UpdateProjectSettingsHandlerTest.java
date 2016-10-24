@@ -21,24 +21,23 @@
 
 package com.epam.ta.reportportal.core.project;
 
-import com.epam.ta.reportportal.core.project.settings.impl.UpdateProjectSettingsHandler;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.ProjectSettingsRepository;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
-import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.Collections;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.context.ApplicationEventPublisher;
 
-import java.util.Collections;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.epam.ta.reportportal.core.project.settings.impl.UpdateProjectSettingsHandler;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
+import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
 
 public class UpdateProjectSettingsHandlerTest {
 
@@ -50,12 +49,10 @@ public class UpdateProjectSettingsHandlerTest {
 
 	@Before
 	public void before() {
-		ProjectSettingsRepository settingsRepo = mock(ProjectSettingsRepository.class);
-		when(settingsRepo.findOne(project)).thenReturn(new ProjectSettings());
 
 		ProjectRepository projectRepo = mock(ProjectRepository.class);
 		when(projectRepo.findOne(project)).thenReturn(new Project());
-		updateProjectSettingsHandler = new UpdateProjectSettingsHandler(settingsRepo, projectRepo, mock(ApplicationEventPublisher.class));
+		updateProjectSettingsHandler = new UpdateProjectSettingsHandler(projectRepo, mock(ApplicationEventPublisher.class));
 
 	}
 

@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.project.impl;
 
@@ -26,8 +26,6 @@ import static java.util.stream.Collectors.joining;
 
 import java.util.List;
 
-import com.epam.ta.reportportal.database.search.FilterCondition;
-import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,20 +37,20 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.project.IGetProjectHandler;
 import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.ProjectSettingsRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.ws.converter.ProjectResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.UserResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.google.common.base.Preconditions;
 
 /**
@@ -69,9 +67,6 @@ public class GetProjectHandler implements IGetProjectHandler {
 
 	@Autowired
 	private ExternalSystemRepository externalSystemRepository;
-
-	@Autowired
-	private ProjectSettingsRepository settingsRepo;
 
 	@Autowired
 	private UserResourceAssembler userResourceAssembler;
@@ -114,14 +109,13 @@ public class GetProjectHandler implements IGetProjectHandler {
 		// TODO !!!!!! UPDATE after new statistics !!!!!!
 		// ======================================================
 
-		ProjectSettings settings = settingsRepo.findOne(project);
 		if (null != dbProject.getConfiguration().getExternalSystem() && !dbProject.getConfiguration().getExternalSystem().isEmpty()
-				&& null != settings) {
+				&& null != dbProject.getConfiguration().getSubTypes()) {
 			Iterable<ExternalSystem> systems = externalSystemRepository.findAll(dbProject.getConfiguration().getExternalSystem());
-			return projectResourceAssembler.toResource(dbProject, settings, systems);
+			return projectResourceAssembler.toResource(dbProject, systems);
 		}
-		if (null != settings)
-			return projectResourceAssembler.toResource(dbProject, settings);
+		if (null != dbProject.getConfiguration().getSubTypes())
+			return projectResourceAssembler.toResource(dbProject);
 		else
 			return projectResourceAssembler.toResource(dbProject);
 	}

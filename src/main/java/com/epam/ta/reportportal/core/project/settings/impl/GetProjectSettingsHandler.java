@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.project.settings.impl;
 
@@ -29,8 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.core.project.settings.IGetProjectSettingsHandler;
-import com.epam.ta.reportportal.database.dao.ProjectSettingsRepository;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.ws.converter.ProjectSettingsResourceAssembler;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
 
@@ -44,12 +44,12 @@ import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
 @Service
 public class GetProjectSettingsHandler implements IGetProjectSettingsHandler {
 
-	private ProjectSettingsRepository settingsRepo;
+	private ProjectRepository settingsRepo;
 
 	private ProjectSettingsResourceAssembler assembler;
 
 	@Autowired
-	public GetProjectSettingsHandler(ProjectSettingsRepository projectSettingsRepository,
+	public GetProjectSettingsHandler(ProjectRepository projectSettingsRepository,
 			ProjectSettingsResourceAssembler projectSettingsResourceAssembler) {
 		this.settingsRepo = projectSettingsRepository;
 		this.assembler = projectSettingsResourceAssembler;
@@ -57,7 +57,7 @@ public class GetProjectSettingsHandler implements IGetProjectSettingsHandler {
 
 	@Override
 	public ProjectSettingsResource getProjectSettings(String projectName) {
-		ProjectSettings settings = settingsRepo.findOne(projectName);
+		Project settings = settingsRepo.findOne(projectName);
 		expect(settings, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 		return assembler.toResource(settings);
 	}

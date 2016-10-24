@@ -74,8 +74,8 @@ public class LaunchFinishedEventHandlerTest {
 		final Provider provider = mock(Provider.class);
 		when(provider.get()).thenReturn(new MockHttpServletRequest(HttpMethod.PUT.name(), "https://localhost:8443"));
 		emailService = mock(EmailService.class);
-		launchFinishedEventHandler = new LaunchFinishedEventHandler(mock(IIssuesAnalyzer.class), mock(ProjectSettingsRepository.class),
-				userRepository, mock(TestItemRepository.class), provider, mock(LaunchRepository.class), emailService,
+		launchFinishedEventHandler = new LaunchFinishedEventHandler(mock(IIssuesAnalyzer.class), userRepository,
+				mock(TestItemRepository.class), provider, mock(LaunchRepository.class), emailService,
 				mock(FailReferenceResourceRepository.class), mock(ServerSettingsRepository.class));
 	}
 

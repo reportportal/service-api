@@ -44,8 +44,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.epam.ta.reportportal.database.entity.Project;
 import org.springframework.core.io.UrlResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -53,7 +52,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
 
 import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
+
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.reportportal.commons.template.TemplateEngine;
@@ -158,7 +157,7 @@ public class EmailService extends JavaMailSenderImpl {
 	 * @param launch
 	 */
 	public void sendLaunchFinishNotification(final String[] recipients, final String url, final Launch launch, final String resource,
-			final ProjectSettings settings) {
+			final Project.Configuration settings) {
 		String subject = String.format(FINISH_LAUNCH_EMAIL_SUBJECT, launch.getName(), launch.getNumber());
 		MimeMessagePreparator preparator = mimeMessage -> {
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");

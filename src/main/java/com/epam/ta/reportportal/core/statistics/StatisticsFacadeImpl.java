@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.statistics;
 
@@ -25,10 +25,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.ProjectSettingsRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
+import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 
 /**
@@ -47,7 +47,7 @@ public class StatisticsFacadeImpl implements StatisticsFacade {
 	private LaunchRepository launchRepository;
 
 	@Autowired
-	private ProjectSettingsRepository settingsRepository;
+	private ProjectRepository projectRepository;
 
 	@Override
 	public TestItem updateExecutionStatistics(final TestItem testItem) {
@@ -59,18 +59,18 @@ public class StatisticsFacadeImpl implements StatisticsFacade {
 	@Override
 	public TestItem updateIssueStatistics(final TestItem testItem) {
 		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-		ProjectSettings prjSettings = settingsRepository.findOne(launch.getProjectRef());
-		testItemRepository.updateIssueStatistics(testItem, prjSettings);
-		launchRepository.updateIssueStatistics(testItem, prjSettings);
+		Project project = projectRepository.findOne(launch.getProjectRef());
+		testItemRepository.updateIssueStatistics(testItem, project.getConfiguration());
+		launchRepository.updateIssueStatistics(testItem, project.getConfiguration());
 		return testItemRepository.findOne(testItem.getId());
 	}
 
 	@Override
 	public TestItem resetIssueStatistics(final TestItem testItem) {
 		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-		ProjectSettings prjSettings = settingsRepository.findOne(launch.getProjectRef());
-		testItemRepository.resetIssueStatistics(testItem, prjSettings);
-		launchRepository.resetIssueStatistics(testItem, prjSettings);
+		Project project = projectRepository.findOne(launch.getProjectRef());
+		testItemRepository.resetIssueStatistics(testItem, project.getConfiguration());
+		launchRepository.resetIssueStatistics(testItem, project.getConfiguration());
 		return testItemRepository.findOne(testItem.getId());
 	}
 

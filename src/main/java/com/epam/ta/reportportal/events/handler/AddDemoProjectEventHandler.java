@@ -17,20 +17,16 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.events.handler;
 
-import java.util.ArrayList;
+import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.generatePersonalProject;
+import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
+
 import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.epam.ta.reportportal.database.entity.*;
-import com.epam.ta.reportportal.database.entity.user.UserType;
-import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,23 +39,16 @@ import org.springframework.stereotype.Component;
 import com.epam.ta.reportportal.commons.Constants;
 import com.epam.ta.reportportal.database.BinaryData;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.ProjectSettingsRepository;
 import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
-import com.epam.ta.reportportal.database.entity.Project.UserConfig;
-import com.epam.ta.reportportal.database.entity.project.EntryType;
-import com.epam.ta.reportportal.database.entity.project.InterruptionJobDelay;
-import com.epam.ta.reportportal.database.entity.project.KeepLogsDelay;
-import com.epam.ta.reportportal.database.entity.project.KeepScreenshotsDelay;
-import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.database.entity.ProjectRole;
+import com.epam.ta.reportportal.database.entity.ServerSettings;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
+import com.epam.ta.reportportal.database.entity.user.UserType;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-
-import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.generatePersonalProject;
-import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
 
 /**
  * Initial deploy data
@@ -145,7 +134,6 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		user.setRole(UserRole.USER);
 		return user;
 	});
-
 
 	public final Supplier<ServerSettings> DEFAULT_PROFILE = Suppliers.memoize(() -> {
 		LOGGER.info("======= DEFAULT SERVER PROFILE CREATION =======");

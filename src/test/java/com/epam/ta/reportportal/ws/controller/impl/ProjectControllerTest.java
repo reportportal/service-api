@@ -42,9 +42,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.commons.SendCase;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.ProjectSettingsRepository;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.project.*;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
@@ -66,8 +64,6 @@ public class ProjectControllerTest extends BaseMvcTest {
 	private ObjectMapper objectMapper;
 
 	@Autowired
-	private ProjectSettingsRepository projectSettingsRepository;
-	@Autowired
 	private ProjectRepository projectRepository;
 
 	@Test
@@ -78,10 +74,10 @@ public class ProjectControllerTest extends BaseMvcTest {
 		mvcMock.perform(
 				post("/project").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON).principal(authentication()))
 				.andExpect(status().isCreated());
-		ProjectSettings settings = projectSettingsRepository.findOne("TestProject".toLowerCase());
-		assertNotNull(settings);
-		assertNotNull(settings.getSubTypes());
-		assertFalse(settings.getSubTypes().isEmpty());
+		Project project = projectRepository.findOne("TestProject".toLowerCase());
+		assertNotNull(project.getConfiguration());
+		assertNotNull(project.getConfiguration().getSubTypes());
+		assertFalse(project.getConfiguration().getSubTypes().isEmpty());
 	}
 
 	@Test
@@ -157,7 +153,7 @@ public class ProjectControllerTest extends BaseMvcTest {
 
 	@Test
 	@Ignore
-	//TODO Test requires commons-dao 2.6.5+
+	// TODO Test requires commons-dao 2.6.5+
 	public void getAllProjectsInfo() throws Exception {
 		final MvcResult mvcResult = mvcMock
 				.perform(get("/project/list?page.page=1&page.size=51&page.sort=name,DESC&filter.eq.configuration$entryType=INTERNAL")

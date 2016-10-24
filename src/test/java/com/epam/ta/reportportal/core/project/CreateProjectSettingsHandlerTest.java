@@ -34,10 +34,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.core.project.settings.impl.CreateProjectSettingsHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.ProjectSettingsRepository;
 import com.epam.ta.reportportal.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
 
@@ -53,9 +51,8 @@ public class CreateProjectSettingsHandlerTest {
 	public void before() {
 		ProjectRepository projectRepository = mock(ProjectRepository.class);
 		when(projectRepository.findOne(project)).thenReturn(new Project());
-		ProjectSettingsRepository settingsRepository = mock(ProjectSettingsRepository.class);
-		when(settingsRepository.findOne(project)).thenReturn(new ProjectSettings());
-		projectSettingsHandler = new CreateProjectSettingsHandler(projectRepository, settingsRepository, mock(WidgetRepository.class),
+
+		projectSettingsHandler = new CreateProjectSettingsHandler(projectRepository, mock(WidgetRepository.class),
 				mock(ApplicationEventPublisher.class));
 
 	}

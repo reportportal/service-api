@@ -20,10 +20,20 @@
  */
 package com.epam.ta.reportportal.events.handler;
 
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import javax.inject.Provider;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
-import com.epam.ta.reportportal.database.dao.ProjectSettingsRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
+import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
@@ -34,14 +44,6 @@ import com.epam.ta.reportportal.events.TicketPostedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.google.common.collect.ImmutableMap;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
-
-import javax.inject.Provider;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
  * @author Andrei Varabyeu
@@ -63,11 +65,11 @@ public class TicketActivitySubscriber {
 
 	private final TestItemRepository testItemRepository;
 
-	private final ProjectSettingsRepository projectSettingsRepository;
+	private final ProjectRepository projectSettingsRepository;
 
 	@Autowired
 	public TicketActivitySubscriber(ActivityRepository activityRepository, Provider<ActivityBuilder> activityBuilder,
-			TestItemRepository testItemRepository, ProjectSettingsRepository projectSettingsRepository) {
+			TestItemRepository testItemRepository, ProjectRepository projectSettingsRepository) {
 		this.activityRepository = activityRepository;
 		this.activityBuilder = activityBuilder;
 		this.testItemRepository = testItemRepository;
@@ -117,7 +119,7 @@ public class TicketActivitySubscriber {
 
 			Activity activity = activityBuilder.get().addProjectRef(event.getProject()).addActionType(ATTACH_ISSUE)
 					.addLoggedObjectRef(testItem.getId()).addObjectType(TestItem.TEST_ITEM).addUserRef(event.getPostedBy())
-					.addHistory(ImmutableMap.<String, Activity.FieldValues>builder().put(TICKET_ID, fieldValues).build()).build();
+					.addHistory(ImmutableMap.<String, Activity.FieldValues> builder().put(TICKET_ID, fieldValues).build()).build();
 			activities.add(activity);
 		}
 		activityRepository.save(activities);
@@ -144,15 +146,15 @@ public class TicketActivitySubscriber {
 	private List<Activity> processTestItemIssues(String projectName, String principal, Map<IssueDefinition, TestItem> data) {
 		String emptyString = "";
 		List<Activity> activities = new ArrayList<>();
-		final ProjectSettings projectSettings = projectSettingsRepository.findOne(projectName);
+		final Project projectSettings = projectSettingsRepository.findOne(projectName);
 		Set<Map.Entry<IssueDefinition, TestItem>> entries = data.entrySet();
 		for (Map.Entry<IssueDefinition, TestItem> entry : entries) {
 			IssueDefinition issueDefinition = entry.getKey();
 			TestItem testItem = entry.getValue();
 			TestItemIssue testItemIssue = testItem.getIssue();
 			String oldIssueDescription = testItemIssue.getIssueDescription();
-			StatisticSubType statisticSubType = projectSettings.getByLocator(issueDefinition.getIssue().getIssueType());
-			String oldIssueType = projectSettings.getByLocator(testItemIssue.getIssueType()).getLongName();
+			StatisticSubType statisticSubType = projectSettings.getConfiguration().getByLocator(issueDefinition.getIssue().getIssueType());
+			String oldIssueType = projectSettings.getConfiguration().getByLocator(testItemIssue.getIssueType()).getLongName();
 			String initialComment = issueDefinition.getIssue().getComment();
 			String comment = (null != initialComment) ? initialComment.trim() : emptyString;
 			if (null == oldIssueDescription) {

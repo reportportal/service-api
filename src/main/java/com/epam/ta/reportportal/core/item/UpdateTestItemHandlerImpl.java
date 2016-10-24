@@ -89,9 +89,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	private ProjectRepository projectRepository;
 
 	@Autowired
-	private ProjectSettingsRepository settingsRepository;
-
-	@Autowired
 	private LaunchRepository launchRepository;
 
 	@Autowired
@@ -120,10 +117,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 								testItem.getId(), launch.getId()));
 
 				final Project project = projectRepository.findOne(launch.getProjectRef());
-				final ProjectSettings settings = settingsRepository.findOne(launch.getProjectRef());
 
 				Issue issue = issueDefinition.getIssue();
-				String issueType = verifyTestItemDefinedIssueType(issue.getIssueType(), settings);
+				String issueType = verifyTestItemDefinedIssueType(issue.getIssueType(), project.getConfiguration());
 
 				testItem = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.resetIssueStatistics(testItem);
@@ -227,7 +223,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 *            - project settings
 	 * @return verified issue type
 	 */
-	public String verifyTestItemDefinedIssueType(final String type, final ProjectSettings settings) {
+	public String verifyTestItemDefinedIssueType(final String type, final Project.Configuration settings) {
 		StatisticSubType defined = settings.getByLocator(type);
 		expect(settings.getByLocator(type), notNull()).verify(ISSUE_TYPE_NOT_FOUND, type);
 		return defined.getLocator();

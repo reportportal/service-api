@@ -52,9 +52,7 @@ import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.core.project.settings.IUpdateProjectSettingsHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.ProjectSettingsRepository;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
@@ -74,16 +72,12 @@ import com.google.common.collect.Sets;
 @Service
 public class UpdateProjectSettingsHandler implements IUpdateProjectSettingsHandler {
 
-	private ProjectSettingsRepository settingsRepo;
-
 	private ProjectRepository projectRepo;
 
 	private ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	public UpdateProjectSettingsHandler(ProjectSettingsRepository settingsRepo, ProjectRepository projectRepo,
-			ApplicationEventPublisher eventPublisher) {
-		this.settingsRepo = settingsRepo;
+	public UpdateProjectSettingsHandler(ProjectRepository projectRepo, ApplicationEventPublisher eventPublisher) {
 		this.projectRepo = projectRepo;
 		this.eventPublisher = eventPublisher;
 	}
@@ -96,13 +90,12 @@ public class UpdateProjectSettingsHandler implements IUpdateProjectSettingsHandl
 		Project project = projectRepo.findOne(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
-		ProjectSettings settings = settingsRepo.findOne(projectName);
-		expect(settings, notNull()).verify(PROJECT_SETTINGS_NOT_FOUND, projectName);
+		expect(project.getConfiguration(), notNull()).verify(PROJECT_SETTINGS_NOT_FOUND, projectName);
 
-		rq.getIds().stream().forEach(r -> validateAndUpdate(r, settings));
+		rq.getIds().stream().forEach(r -> validateAndUpdate(r, project.getConfiguration()));
 
 		try {
-			settingsRepo.save(settings);
+			projectRepo.save(project);
 		} catch (Exception e) {
 			throw new ReportPortalException("Error during update of custom project issue sub-type", e);
 		}
@@ -126,7 +119,7 @@ public class UpdateProjectSettingsHandler implements IUpdateProjectSettingsHandl
 	 *
 	 * @param one
 	 */
-	private void validateAndUpdate(UpdateOneIssueSubTypeRQ one, ProjectSettings settings) {
+	private void validateAndUpdate(UpdateOneIssueSubTypeRQ one, Project.Configuration settings) {
 		/* Check if global issue type reference is valid */
 		TestItemIssueType expectedType = fromValue(one.getTypeRef());
 		expect(expectedType, notNull()).verify(ISSUE_TYPE_NOT_FOUND, one.getTypeRef());

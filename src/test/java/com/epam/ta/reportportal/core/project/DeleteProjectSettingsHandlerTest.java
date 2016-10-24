@@ -25,17 +25,15 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.epam.ta.reportportal.auth.AuthConstants;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.core.project.settings.impl.DeleteProjectSettingsHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.ProjectSettingsRepository;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 
 public class DeleteProjectSettingsHandlerTest {
@@ -55,11 +53,7 @@ public class DeleteProjectSettingsHandlerTest {
 		ProjectRepository projectRepository = mock(ProjectRepository.class);
 		when(projectRepository.findOne(withoutSettings)).thenReturn(new Project());
 		when(projectRepository.findOne(project)).thenReturn(new Project());
-		ProjectSettingsRepository projectSettingsRepository = mock(ProjectSettingsRepository.class);
-		when(projectSettingsRepository.findOne(withoutSettings)).thenReturn(null);
-		when(projectSettingsRepository.findOne(project)).thenReturn(new ProjectSettings());
 		deleteProjectSettingsHandler.setProjectRepository(projectRepository);
-		deleteProjectSettingsHandler.setSettingsRepository(projectSettingsRepository);
 
 	}
 
@@ -70,12 +64,12 @@ public class DeleteProjectSettingsHandlerTest {
 		deleteProjectSettingsHandler.deleteProjectIssueSubType(notExists, "", AuthConstants.TEST_USER);
 	}
 
-	@Test
-	public void settingsNotExists() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage(formattedSupplier(PROJECT_SETTINGS_NOT_FOUND.getDescription(), withoutSettings).get());
-		deleteProjectSettingsHandler.deleteProjectIssueSubType(withoutSettings, "", AuthConstants.TEST_USER);
-	}
+//	@Test
+//	public void settingsNotExists() {
+//		thrown.expect(ReportPortalException.class);
+//		thrown.expectMessage(formattedSupplier(PROJECT_SETTINGS_NOT_FOUND.getDescription(), withoutSettings).get());
+//		deleteProjectSettingsHandler.deleteProjectIssueSubType(withoutSettings, "", AuthConstants.TEST_USER);
+//	}
 
 	@Test
 	public void subTypeNotExists() {

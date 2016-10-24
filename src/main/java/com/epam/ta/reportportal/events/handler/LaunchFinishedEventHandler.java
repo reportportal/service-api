@@ -40,7 +40,6 @@ import com.epam.ta.reportportal.commons.SendCase;
 import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
@@ -71,8 +70,6 @@ public class LaunchFinishedEventHandler {
 
 	private final LaunchRepository launchRepository;
 
-	private final ProjectSettingsRepository projectSettingsRepository;
-
 	private final IIssuesAnalyzer analyzerService;
 
 	private final EmailService emailService;
@@ -82,12 +79,10 @@ public class LaunchFinishedEventHandler {
 	private final Provider<HttpServletRequest> currentRequest;
 
 	@Autowired
-	public LaunchFinishedEventHandler(IIssuesAnalyzer analyzerService, ProjectSettingsRepository projectSettingsRepository,
-			UserRepository userRepository, TestItemRepository testItemRepository, Provider<HttpServletRequest> currentRequest,
-			LaunchRepository launchRepository, EmailService emailService, FailReferenceResourceRepository issuesRepository,
-			ServerSettingsRepository settingsRepository) {
+	public LaunchFinishedEventHandler(IIssuesAnalyzer analyzerService, UserRepository userRepository, TestItemRepository testItemRepository,
+			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, EmailService emailService,
+			FailReferenceResourceRepository issuesRepository, ServerSettingsRepository settingsRepository) {
 		this.analyzerService = analyzerService;
-		this.projectSettingsRepository = projectSettingsRepository;
 		this.userRepository = userRepository;
 		this.testItemRepository = testItemRepository;
 		this.currentRequest = currentRequest;
@@ -235,7 +230,8 @@ public class LaunchFinishedEventHandler {
 	 */
 	@VisibleForTesting
 	static boolean isTagsMatched(Launch launch, EmailSenderCase oneCase) {
-		return !(null != oneCase.getTags() && !oneCase.getTags().isEmpty()) || null != launch.getTags() && oneCase.getTags().containsAll(launch.getTags());
+		return !(null != oneCase.getTags() && !oneCase.getTags().isEmpty())
+				|| null != launch.getTags() && oneCase.getTags().containsAll(launch.getTags());
 	}
 
 	/**
@@ -262,10 +258,10 @@ public class LaunchFinishedEventHandler {
 					String resourcesURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(currentRequest.get()))
 							.replacePath("/img").build().toUriString();
 
-					ProjectSettings settings = projectSettingsRepository.findOne(launch.getProjectRef());
 					emailService.reconfig(emailConfig);
 					emailService.setAddressFrom(project.getConfiguration().getEmailConfig().getFrom());
-					emailService.sendLaunchFinishNotification(recipientsArray, basicURL + launch.getId(), launch, resourcesURL, settings);
+					emailService.sendLaunchFinishNotification(recipientsArray, basicURL + launch.getId(), launch, resourcesURL,
+							project.getConfiguration());
 				} catch (Exception e) {
 					LOGGER.error("Unable to send email. Error: \n{}", e);
 				}

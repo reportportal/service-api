@@ -21,15 +21,16 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
-import com.epam.ta.reportportal.ws.model.project.config.IssueSubTypeResource;
-import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
+
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.ws.model.project.config.IssueSubTypeResource;
+import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
 
 /**
  * {@link com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource}
@@ -41,13 +42,15 @@ import java.util.stream.Collectors;
 @Scope("prototype")
 public class ProjectSettingsResourceBuilder extends ResourceBuilder<ProjectSettingsResource> {
 
-	public ProjectSettingsResourceBuilder addProjectSettings(ProjectSettings settings) {
+	public ProjectSettingsResourceBuilder addProjectSettings(Project settings) {
 		ProjectSettingsResource resource = getObject();
 		resource.setProjectId(settings.getId());
-		Map<String, List<IssueSubTypeResource>> result = settings.getSubTypes().entrySet().stream().collect(Collectors
-				.toMap(entry -> entry.getKey().getValue(), entry -> entry.getValue().stream()
-						.map(subType -> new IssueSubTypeResource(subType.getLocator(), subType.getTypeRef(), subType.getLongName(),
-								subType.getShortName(), subType.getHexColor())).collect(Collectors.toList())));
+		Map<String, List<IssueSubTypeResource>> result = settings.getConfiguration().getSubTypes().entrySet().stream()
+				.collect(Collectors.toMap(entry -> entry.getKey().getValue(),
+						entry -> entry.getValue()
+								.stream().map(subType -> new IssueSubTypeResource(subType.getLocator(), subType.getTypeRef(),
+										subType.getLongName(), subType.getShortName(), subType.getHexColor()))
+								.collect(Collectors.toList())));
 
 		resource.setSubTypes(result);
 		return this;

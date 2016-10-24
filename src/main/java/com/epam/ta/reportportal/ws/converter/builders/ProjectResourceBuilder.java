@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
@@ -31,7 +31,6 @@ import org.springframework.stereotype.Service;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
 import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
@@ -48,7 +47,7 @@ import com.google.common.collect.Lists;
 @Scope("prototype")
 public class ProjectResourceBuilder extends ResourceBuilder<ProjectResource> {
 
-	public ProjectResourceBuilder addProject(Project prj, ProjectSettings settings, Iterable<ExternalSystem> systems) {
+	public ProjectResourceBuilder addProject(Project prj, Iterable<ExternalSystem> systems) {
 		ProjectResource resource = getObject();
 		resource.setProjectId(prj.getId());
 		resource.setCustomer(prj.getCustomer());
@@ -90,14 +89,12 @@ public class ProjectResourceBuilder extends ResourceBuilder<ProjectResource> {
 			// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 			// ============= External sub-types =================
-			if (null != settings) {
+			if (null != prj.getConfiguration().getSubTypes()) {
 				Map<String, List<IssueSubTypeResource>> result = new HashMap<>();
-				settings.getSubTypes().forEach((k, v) -> {
+				prj.getConfiguration().getSubTypes().forEach((k, v) -> {
 					List<IssueSubTypeResource> subTypeResources = Lists.newArrayList();
-					v.stream().forEach(subType -> {
-						subTypeResources.add(new IssueSubTypeResource(subType.getLocator(), subType.getTypeRef(), subType.getLongName(),
-								subType.getShortName(), subType.getHexColor()));
-					});
+					v.stream().forEach(subType -> subTypeResources.add(new IssueSubTypeResource(subType.getLocator(), subType.getTypeRef(), subType.getLongName(),
+                            subType.getShortName(), subType.getHexColor())));
 					result.put(k.getValue(), subTypeResources);
 				});
 				configuration.setSubTypes(result);

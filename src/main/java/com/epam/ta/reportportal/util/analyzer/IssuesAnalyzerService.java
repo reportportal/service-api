@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 /*
  * This file is part of Report Portal.
  *
@@ -47,17 +47,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.core.item.history.ITestItemsHistoryService;
+import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.ProjectSettingsRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
@@ -85,9 +83,6 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 
 	@Autowired
 	private ProjectRepository projectRepository;
-
-	@Autowired
-	private ProjectSettingsRepository settingsRepository;
 
 	@Autowired
 	private LaunchRepository launchRepository;
@@ -140,7 +135,6 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 
 			Launch launch = launchRepository.findOne(current.getLaunchRef());
 			Project project = projectRepository.findOne(launch.getProjectRef());
-			ProjectSettings settings = settingsRepository.findOne(project.getName());
 
 			for (TestItem item : scope) {
 				/*
@@ -183,7 +177,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 				if ((null != currentIssue.getExternalSystemIssues())
 						|| (!currentIssue.getIssueType().equalsIgnoreCase(TestItemIssueType.TO_INVESTIGATE.getLocator()))
 						|| (null != currentIssue.getIssueDescription())) {
-					currentIssue.setIssueDescription(this.suggest(currentIssue.getIssueDescription(), issue, settings));
+					currentIssue.setIssueDescription(this.suggest(currentIssue.getIssueDescription(), issue, project.getConfiguration()));
 					current.setIssue(currentIssue);
 					testItemRepository.save(current);
 					/* If system investigate item from scratch */
@@ -246,7 +240,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	 * Add additional description for already investigated test-items during
 	 * launch running
 	 */
-	private String suggest(String currentDescription, TestItemIssue previousIssue, ProjectSettings settings) {
+	private String suggest(String currentDescription, TestItemIssue previousIssue, Project.Configuration settings) {
 		StringBuilder builder = new StringBuilder();
 		if (null != currentDescription)
 			builder.append(currentDescription);

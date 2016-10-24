@@ -75,7 +75,6 @@
 		<ref bean="upsa_user" />
 		<ref bean="project1" />
 		<ref bean="project2" />
-		<ref bean="project1settings" />
 		<ref bean="restorePasswordBidUser1" />
 		<ref bean="externalSystem" />
 		<ref bean="externalSystem1" />
@@ -424,6 +423,72 @@
 		</property>
 		<property name="configuration">
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
+				<property name="subTypes">
+					<util:map>
+						<entry key="AUTOMATION_BUG">
+							<util:list>
+								<bean class="com.epam.ta.reportportal.database.entity.statistics.StatisticSubType">
+									<property name="locator" value="AB001" />
+									<property name="typeRef" value="AUTOMATION_BUG" />
+									<property name="longName" value="Automation Bug" />
+									<property name="shortName" value="AB" />
+									<property name="hexColor" value="#111111" />
+								</bean>
+								<bean class="com.epam.ta.reportportal.database.entity.statistics.StatisticSubType">
+									<property name="locator" value="AB002" />
+									<property name="typeRef" value="AUTOMATION_BUG" />
+									<property name="longName" value="Automation Bug #2" />
+									<property name="shortName" value="AB2" />
+									<property name="hexColor" value="#010101" />
+								</bean>
+							</util:list>
+						</entry>
+						<entry key="PRODUCT_BUG">
+							<util:list>
+								<bean class="com.epam.ta.reportportal.database.entity.statistics.StatisticSubType">
+									<property name="locator" value="PB001" />
+									<property name="typeRef" value="PRODUCT_BUG" />
+									<property name="longName" value="Product Bug" />
+									<property name="shortName" value="PB" />
+									<property name="hexColor" value="#222222" />
+								</bean>
+							</util:list>
+						</entry>
+						<entry key="SYSTEM_ISSUE">
+							<util:list>
+								<bean class="com.epam.ta.reportportal.database.entity.statistics.StatisticSubType">
+									<property name="locator" value="SI001" />
+									<property name="typeRef" value="SYSTEM_ISSUE" />
+									<property name="longName" value="System Issue" />
+									<property name="shortName" value="SI" />
+									<property name="hexColor" value="#333333" />
+								</bean>
+							</util:list>
+						</entry>
+						<entry key="NO_DEFECT">
+							<util:list>
+								<bean class="com.epam.ta.reportportal.database.entity.statistics.StatisticSubType">
+									<property name="locator" value="ND001" />
+									<property name="typeRef" value="NO_DEFECT" />
+									<property name="longName" value="No Defect" />
+									<property name="shortName" value="ND" />
+									<property name="hexColor" value="#444444" />
+								</bean>
+							</util:list>
+						</entry>
+						<entry key="TO_INVESTIGATE">
+							<util:list>
+								<bean class="com.epam.ta.reportportal.database.entity.statistics.StatisticSubType">
+									<property name="locator" value="TI001" />
+									<property name="typeRef" value="TO_INVESTIGATE" />
+									<property name="longName" value="To Investigate" />
+									<property name="shortName" value="TI" />
+									<property name="hexColor" value="#555555" />
+								</bean>
+							</util:list>
+						</entry>
+					</util:map>
+				</property>
 				<property name="statisticsCalculationStrategy"
 					value="#{T(com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy).TEST_BASED}">
 				</property>
@@ -458,76 +523,6 @@
 					</bean>
 				</property>
 			</bean>
-		</property>
-	</bean>
-
-	<bean id="project1settings" class="com.epam.ta.reportportal.database.entity.ProjectSettings">
-		<property name="name" value="project1" />
-		<property name="subTypes">
-			<util:map>
-				<entry key="AUTOMATION_BUG">
-					<util:list>
-						<bean class="com.epam.ta.reportportal.database.entity.statistics.StatisticSubType">
-							<property name="locator" value="AB001" />
-							<property name="typeRef" value="AUTOMATION_BUG" />
-							<property name="longName" value="Automation Bug" />
-							<property name="shortName" value="AB" />
-							<property name="hexColor" value="#111111" />
-						</bean>
-						<bean class="com.epam.ta.reportportal.database.entity.statistics.StatisticSubType">
-							<property name="locator" value="AB002" />
-							<property name="typeRef" value="AUTOMATION_BUG" />
-							<property name="longName" value="Automation Bug #2" />
-							<property name="shortName" value="AB2" />
-							<property name="hexColor" value="#010101" />
-						</bean>
-					</util:list>
-				</entry>
-				<entry key="PRODUCT_BUG">
-					<util:list>
-						<bean class="com.epam.ta.reportportal.database.entity.statistics.StatisticSubType">
-							<property name="locator" value="PB001" />
-							<property name="typeRef" value="PRODUCT_BUG" />
-							<property name="longName" value="Product Bug" />
-							<property name="shortName" value="PB" />
-							<property name="hexColor" value="#222222" />
-						</bean>
-					</util:list>
-				</entry>
-				<entry key="SYSTEM_ISSUE">
-					<util:list>
-						<bean class="com.epam.ta.reportportal.database.entity.statistics.StatisticSubType">
-							<property name="locator" value="SI001" />
-							<property name="typeRef" value="SYSTEM_ISSUE" />
-							<property name="longName" value="System Issue" />
-							<property name="shortName" value="SI" />
-							<property name="hexColor" value="#333333" />
-						</bean>
-					</util:list>
-				</entry>
-				<entry key="NO_DEFECT">
-					<util:list>
-						<bean class="com.epam.ta.reportportal.database.entity.statistics.StatisticSubType">
-							<property name="locator" value="ND001" />
-							<property name="typeRef" value="NO_DEFECT" />
-							<property name="longName" value="No Defect" />
-							<property name="shortName" value="ND" />
-							<property name="hexColor" value="#444444" />
-						</bean>
-					</util:list>
-				</entry>
-				<entry key="TO_INVESTIGATE">
-					<util:list>
-						<bean class="com.epam.ta.reportportal.database.entity.statistics.StatisticSubType">
-							<property name="locator" value="TI001" />
-							<property name="typeRef" value="TO_INVESTIGATE" />
-							<property name="longName" value="To Investigate" />
-							<property name="shortName" value="TI" />
-							<property name="hexColor" value="#555555" />
-						</bean>
-					</util:list>
-				</entry>
-			</util:map>
 		</property>
 	</bean>
 

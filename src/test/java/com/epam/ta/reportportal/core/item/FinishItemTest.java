@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.item;
 
@@ -29,20 +29,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.epam.ta.reportportal.commons.validation.Suppliers;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.ProjectSettingsRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
@@ -100,15 +98,12 @@ public class FinishItemTest {
 		final String projectId = "projectId";
 		String testItemId = "testItemId";
 		final Date time = new Date();
-		
+
 		final ProjectRepository projectRepository = mock(ProjectRepository.class);
 		final Project project = new Project();
 		project.setName(projectId);
 		when(projectRepository.findOne(projectId)).thenReturn(project);
 
-		final ProjectSettingsRepository settingsRepo = mock(ProjectSettingsRepository.class);
-		final ProjectSettings settings = new ProjectSettings();
-		settings.setName(projectId);
 		Map<TestItemIssueType, List<StatisticSubType>> types = new HashMap<TestItemIssueType, List<StatisticSubType>>() {
 			{
 				put(TestItemIssueType.AUTOMATION_BUG, Lists.newArrayList(new StatisticSubType(TestItemIssueType.AUTOMATION_BUG.getLocator(),
@@ -123,8 +118,6 @@ public class FinishItemTest {
 						TestItemIssueType.TO_INVESTIGATE.getValue(), "To Investigate", "TI", "#ffa500")));
 			}
 		};
-		settings.setSubTypes(types);
-		when(settingsRepo.findOne(projectId)).thenReturn(settings);
 
 		final LaunchRepository launchRepository = mock(LaunchRepository.class);
 		final Launch launch = new Launch();
@@ -143,7 +136,6 @@ public class FinishItemTest {
 
 		final FinishTestItemHandlerImpl finishTestItemHandler = new FinishTestItemHandlerImpl();
 		finishTestItemHandler.setProjectRepository(projectRepository);
-		finishTestItemHandler.setProjectSettingsRepository(settingsRepo);
 		finishTestItemHandler.setLaunchRepository(launchRepository);
 		finishTestItemHandler.setTestItemRepository(testItemRepository);
 		finishTestItemHandler.setStatisticsFacadeFactory(mock(StatisticsFacadeFactory.class));

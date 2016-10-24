@@ -42,31 +42,30 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.LAUNCHES_TABLE;
 import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.PIE_CHART;
 import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.*;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.epam.ta.reportportal.events.DefectTypeCreatedEvent;
-import com.google.common.base.Charsets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.core.project.settings.ICreateProjectSettingsHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.ProjectSettingsRepository;
 import com.epam.ta.reportportal.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
+import com.epam.ta.reportportal.events.DefectTypeCreatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -78,24 +77,20 @@ import com.google.common.collect.ImmutableMap;
 @Service
 public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandler {
 
-	private static final Map<String, String> PREFIX = ImmutableMap.<String, String> builder()
-			.put(AUTOMATION_BUG.getValue(), "ab_").put(PRODUCT_BUG.getValue(), "pb_")
-			.put(SYSTEM_ISSUE.getValue(), "si_").put(NO_DEFECT.getValue(), "nd_")
+	private static final Map<String, String> PREFIX = ImmutableMap.<String, String> builder().put(AUTOMATION_BUG.getValue(), "ab_")
+			.put(PRODUCT_BUG.getValue(), "pb_").put(SYSTEM_ISSUE.getValue(), "si_").put(NO_DEFECT.getValue(), "nd_")
 			.put(TO_INVESTIGATE.getValue(), "ti_").build();
 
 	private ProjectRepository projectRepo;
-
-	private ProjectSettingsRepository settingsRepo;
 
 	private WidgetRepository widgetRepository;
 
 	private ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	public CreateProjectSettingsHandler(ProjectRepository projectRepository, ProjectSettingsRepository projectSettingsRepository,
-			WidgetRepository widgetRepository, ApplicationEventPublisher eventPublisher) {
+	public CreateProjectSettingsHandler(ProjectRepository projectRepository, WidgetRepository widgetRepository,
+			ApplicationEventPublisher eventPublisher) {
 		this.projectRepo = projectRepository;
-		this.settingsRepo = projectSettingsRepository;
 		this.widgetRepository = widgetRepository;
 		this.eventPublisher = eventPublisher;
 	}
@@ -104,9 +99,6 @@ public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandl
 	public EntryCreatedRS createProjectIssueSubType(String projectName, String username, CreateIssueSubTypeRQ rq) {
 		Project project = projectRepo.findOne(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
-
-		ProjectSettings settings = settingsRepo.findOne(projectName);
-		expect(settings, notNull()).verify(PROJECT_SETTINGS_NOT_FOUND, projectName);
 
 		expect(TO_INVESTIGATE.getValue().equalsIgnoreCase(rq.getTypeRef()), equalTo(false)).verify(BAD_REQUEST_ERROR,
 				"Impossible to create sub-type for 'To Investigate' type.");
@@ -120,7 +112,7 @@ public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandl
 		/* Settings should be created by external DB script */
 
 		/* Already existing types */
-		Map<TestItemIssueType, List<StatisticSubType>> subTypes = settings.getSubTypes();
+		Map<TestItemIssueType, List<StatisticSubType>> subTypes = project.getConfiguration().getSubTypes();
 
 		expect(subTypes.get(expectedType).size() < ValidationConstraints.MAX_ISSUE_SUBTYPES, equalTo(true)).verify(BAD_REQUEST_ERROR,
 				"Sub Issues count is bound of size limit");
@@ -130,11 +122,11 @@ public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandl
 		StatisticSubType subType = new StatisticSubType(newID, expectedType.getValue(), rq.getLongName(), rq.getShortName().toUpperCase(),
 				rq.getColor());
 		subTypes.get(expectedType).add(subType);
-		settings.setSubTypes(subTypes);
+		project.getConfiguration().setSubTypes(subTypes);
 
 		/* May be change on direct Update operation */
 		try {
-			settingsRepo.save(settings);
+			projectRepo.save(project);
 			widgetRepository.findByProject(projectName).stream()
 					.filter(it -> it.getContentOptions().getType().equals(PIE_CHART.getType())
 							|| it.getContentOptions().getType().equals(LAUNCHES_TABLE.getType()))

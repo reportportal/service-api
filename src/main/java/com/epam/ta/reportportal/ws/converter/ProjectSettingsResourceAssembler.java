@@ -17,26 +17,27 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.converter;
 
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
-import com.epam.ta.reportportal.ws.controller.impl.ProjectSettingsController;
-import com.epam.ta.reportportal.ws.converter.builders.ProjectSettingsResourceBuilder;
-import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
+import javax.inject.Provider;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Provider;
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.ws.controller.impl.ProjectSettingsController;
+import com.epam.ta.reportportal.ws.converter.builders.ProjectSettingsResourceBuilder;
+import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
 
 /**
  * @author Andrei_Ramanchuk
  */
 @Service
-public class ProjectSettingsResourceAssembler extends ResourceAssemblerSupport<ProjectSettings, ProjectSettingsResource> {
+public class ProjectSettingsResourceAssembler extends ResourceAssemblerSupport<Project, ProjectSettingsResource> {
 
 	@Autowired
 	private Provider<ProjectSettingsResourceBuilder> builder;
@@ -46,7 +47,7 @@ public class ProjectSettingsResourceAssembler extends ResourceAssemblerSupport<P
 	}
 
 	@Override
-	public ProjectSettingsResource toResource(ProjectSettings entity) {
+	public ProjectSettingsResource toResource(Project entity) {
 		return builder.get().addProjectSettings(entity)
 				.addLink(ControllerLinkBuilder.linkTo(ProjectSettingsController.class, entity.getId()).withSelfRel()).build();
 	}

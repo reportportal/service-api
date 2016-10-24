@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 package com.epam.ta.reportportal.core.project;
 
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
@@ -30,7 +30,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import com.epam.ta.reportportal.core.project.settings.impl.GetProjectSettingsHandler;
-import com.epam.ta.reportportal.database.dao.ProjectSettingsRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.ProjectSettingsResourceAssembler;
 
@@ -42,7 +42,7 @@ public class GetProjectSettingsHandlerTest {
 	@Test
 	public void projectNotExists() {
 		String notExists = "notExists";
-		ProjectSettingsRepository settingsRepository = mock(ProjectSettingsRepository.class);
+		ProjectRepository settingsRepository = mock(ProjectRepository.class);
 		when(settingsRepository.findOne(notExists)).thenReturn(null);
 		GetProjectSettingsHandler settingsHandler = new GetProjectSettingsHandler(settingsRepository,
 				mock(ProjectSettingsResourceAssembler.class));

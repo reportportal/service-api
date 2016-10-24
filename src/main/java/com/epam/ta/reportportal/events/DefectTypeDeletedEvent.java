@@ -20,23 +20,24 @@
  */
 package com.epam.ta.reportportal.events;
 
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
+
+import com.epam.ta.reportportal.database.entity.Project;
 
 /**
  * @author Andrei Varabyeu
  */
 public class DefectTypeDeletedEvent {
-	private final ProjectSettings before;
+	private final Project before;
 	private final String updatedBy;
 	private final String id;
 
-	public DefectTypeDeletedEvent(String id, ProjectSettings before, String updatedBy) {
+	public DefectTypeDeletedEvent(String id, Project before, String updatedBy) {
 		this.before = before;
 		this.updatedBy = updatedBy;
 		this.id = id;
 	}
 
-	public ProjectSettings getBefore() {
+	public Project getBefore() {
 		return before;
 	}
 

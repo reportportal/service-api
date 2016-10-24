@@ -36,12 +36,28 @@
  */
 package com.epam.ta.reportportal.core.project.settings.impl;
 
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.*;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.stream.Collectors.toList;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
 import com.epam.ta.reportportal.core.project.settings.IDeleteProjectSettingsHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
-import com.epam.ta.reportportal.database.dao.*;
+import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
@@ -50,19 +66,6 @@ import com.epam.ta.reportportal.events.DefectTypeDeletedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Sets;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.*;
-import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.*;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Initial realization of
@@ -75,9 +78,6 @@ public class DeleteProjectSettingsHandler implements IDeleteProjectSettingsHandl
 
 	@Autowired
 	private ProjectRepository projectRepository;
-
-	@Autowired
-	private ProjectSettingsRepository settingsRepository;
 
 	@Autowired
 	private LaunchRepository launchRepository;
@@ -98,10 +98,6 @@ public class DeleteProjectSettingsHandler implements IDeleteProjectSettingsHandl
 		this.projectRepository = projectRepository;
 	}
 
-	public void setSettingsRepository(ProjectSettingsRepository settingsRepository) {
-		this.settingsRepository = settingsRepository;
-	}
-
 	@Override
 	public OperationCompletionRS deleteProjectIssueSubType(String projectName, String user, String id) {
 		/* Validate project existence */
@@ -109,14 +105,12 @@ public class DeleteProjectSettingsHandler implements IDeleteProjectSettingsHandl
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
 		/* Validate project settings existence */
-		ProjectSettings settings = settingsRepository.findOne(projectName);
-		expect(settings, notNull()).verify(PROJECT_SETTINGS_NOT_FOUND, projectName);
-		ProjectSettings settingsClone = org.apache.commons.lang3.SerializationUtils.clone(settings);
+		Project projectsClone = org.apache.commons.lang3.SerializationUtils.clone(project);
 
 		/* Validate target issue sub-type existence */
-		StatisticSubType type = settings.getByLocator(id);
+		StatisticSubType type = project.getConfiguration().getByLocator(id);
 		expect(type, notNull()).verify(ISSUE_TYPE_NOT_FOUND, id);
-		StatisticSubType group = settings.getByLocator(type.getTypeRef());
+		StatisticSubType group = project.getConfiguration().getByLocator(type.getTypeRef());
 
 		/* Any other BRs? */
 		if (Sets.newHashSet(AUTOMATION_BUG.getLocator(), PRODUCT_BUG.getLocator(), SYSTEM_ISSUE.getLocator(), NO_DEFECT.getLocator(),
@@ -125,8 +119,8 @@ public class DeleteProjectSettingsHandler implements IDeleteProjectSettingsHandl
 			fail().withError(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
 		}
 
-		settings.getSubTypes()
-				.forEach((k, v) -> settings.getSubTypes().put(k, v.stream().filter(one -> !one.getLocator().equals(id)).collect(toList())));
+		project.getConfiguration().getSubTypes().forEach((k, v) -> project.getConfiguration().getSubTypes().put(k,
+				v.stream().filter(one -> !one.getLocator().equals(id)).collect(toList())));
 
 		List<String> ids = launchRepository.findLaunchesWithSpecificStat(projectName, type).stream().map(Launch::getId).collect(toList());
 
@@ -143,7 +137,7 @@ public class DeleteProjectSettingsHandler implements IDeleteProjectSettingsHandl
 					TestItemIssue testItemIssue = testItem.getIssue();
 					testItemIssue.setIssueType(group.getLocator());
 					testItemRepository.save(testItem);
-					testItem = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
+					statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 							.updateIssueStatistics(testItem);
 				}
 			}
@@ -161,7 +155,7 @@ public class DeleteProjectSettingsHandler implements IDeleteProjectSettingsHandl
 		testItemsAddition.forEach(testItem -> testItemRepository.dropIssueStatisticsType(testItem.getId(), type));
 
 		try {
-			settingsRepository.save(settings);
+			projectRepository.save(project);
 			widgetRepository.findByProject(projectName).stream().filter(it -> {
 				String widgetType = it.getContentOptions().getType();
 				return widgetType.equals(LINE_CHART.getType()) || widgetType.equals(COLUMN_CHART.getType())
@@ -174,7 +168,7 @@ public class DeleteProjectSettingsHandler implements IDeleteProjectSettingsHandl
 			throw new ReportPortalException("Error during project settings issue sub-type update saving.", e);
 		}
 
-		eventPublisher.publishEvent(new DefectTypeDeletedEvent(id, settingsClone, user));
+		eventPublisher.publishEvent(new DefectTypeDeletedEvent(id, projectsClone, user));
 		return new OperationCompletionRS("Issue sub-type delete operation completed successfully.");
 	}
 }

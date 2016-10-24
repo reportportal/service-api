@@ -42,10 +42,12 @@ import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
-import com.epam.ta.reportportal.database.dao.*;
+import com.epam.ta.reportportal.database.dao.FailReferenceResourceRepository;
+import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
@@ -69,18 +71,12 @@ import com.epam.ta.reportportal.ws.model.launch.Mode;
 @Service
 class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
-	private ProjectSettingsRepository settingsRepository;
 	private ProjectRepository projectRepository;
 	private LaunchRepository launchRepository;
 	private TestItemRepository testItemRepository;
 	private StatisticsFacadeFactory statisticsFacadeFactory;
 	private FailReferenceResourceRepository issuesRepository;
 	private LazyReference<FailReferenceResourceBuilder> failReferenceResourceBuilder;
-
-	@Autowired
-	public void setProjectSettingsRepository(ProjectSettingsRepository settingsRepo) {
-		this.settingsRepository = settingsRepo;
-	}
 
 	@Autowired
 	public void setProjectRepository(ProjectRepository projectRepository) {
@@ -122,7 +118,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, testItem.getLaunchRef());
 		if (!launch.getUserRef().equalsIgnoreCase(username))
 			fail().withError(FINISH_ITEM_NOT_ALLOWED, "You are not launch owner.");
-		final ProjectSettings settings = settingsRepository.findOne(launch.getProjectRef());
 		final Project project = projectRepository.findOne(launch.getProjectRef());
 
 		Optional<Status> actualStatus = fromValue(finishExecutionRQ.getStatus());
@@ -146,7 +141,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		 * items that does not have descendants
 		 */
 		if (!hasDescendants) {
-			testItem = awareTestItemIssueTypeFromStatus(testItem, providedIssue, settings, project);
+			testItem = awareTestItemIssueTypeFromStatus(testItem, providedIssue, project);
 		}
 		try {
 			testItemRepository.save(testItem);
@@ -205,7 +200,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		return testItem;
 	}
 
-	void verifyIssue(String testItemId, Issue issue, ProjectSettings projectSettings) {
+	void verifyIssue(String testItemId, Issue issue, Project.Configuration projectSettings) {
 		if (issue != null && !NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(issue.getIssueType())) {
 			expect(projectSettings.getByLocator(issue.getIssueType()), notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS,
 					formattedSupplier("Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types are: {}",
@@ -220,14 +215,14 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param providedIssue
 	 * @return TestItem
 	 */
-	TestItem awareTestItemIssueTypeFromStatus(final TestItem testItem, final Issue providedIssue, final ProjectSettings settings,
-			final Project project) {
+	TestItem awareTestItemIssueTypeFromStatus(final TestItem testItem, final Issue providedIssue, final Project project) {
 		if (FAILED.equals(testItem.getStatus()) || SKIPPED.equals(testItem.getStatus())) {
 			if (null != providedIssue) {
-				verifyIssue(testItem.getId(), providedIssue, settings);
+				verifyIssue(testItem.getId(), providedIssue, project.getConfiguration());
 				String issueType = providedIssue.getIssueType();
 				if (!issueType.equalsIgnoreCase(NOT_ISSUE_FLAG.getValue())) {
-					testItem.setIssue(new TestItemIssue(settings.getByLocator(issueType).getLocator(), providedIssue.getComment()));
+					testItem.setIssue(
+							new TestItemIssue(project.getConfiguration().getByLocator(issueType).getLocator(), providedIssue.getComment()));
 				}
 			} else {
 				testItem.setIssue(new TestItemIssue());

@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.converter;
 
@@ -31,11 +31,9 @@ import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectSettings;
 import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.controller.impl.ExternalSystemController;
 import com.epam.ta.reportportal.ws.controller.impl.ProjectController;
-import com.epam.ta.reportportal.ws.controller.impl.ProjectSettingsController;
 import com.epam.ta.reportportal.ws.converter.builders.ProjectResourceBuilder;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 
@@ -57,12 +55,11 @@ public class ProjectResourceAssembler extends PagedResourcesAssember<Project, Pr
 		super(ProjectController.class, ProjectResource.class);
 	}
 
-	public ProjectResource toResource(Project project, ProjectSettings settings, Iterable<ExternalSystem> systems) {
+	public ProjectResource toResource(Project project, Iterable<ExternalSystem> systems) {
 		Link selfLink = ControllerLinkBuilder.linkTo(ProjectController.class).slash(project).withSelfRel();
-		Link settingsLink = ControllerLinkBuilder.linkTo(ProjectSettingsController.class, settings.getId()).withRel(REL);
 
 		ProjectResourceBuilder resourceBuilder = builder.get();
-		resourceBuilder.addProject(project, settings, systems).addLink(selfLink).addLink(settingsLink);
+		resourceBuilder.addProject(project, systems).addLink(selfLink);
 
 		for (String systemId : project.getConfiguration().getExternalSystem()) {
 			Link sysLink = ControllerLinkBuilder.linkTo(ExternalSystemController.class, project.getId()).slash(systemId).withRel(REL);
@@ -72,21 +69,11 @@ public class ProjectResourceAssembler extends PagedResourcesAssember<Project, Pr
 		return resourceBuilder.build();
 	}
 
-	public ProjectResource toResource(Project project, ProjectSettings settings) {
-		Link selfLink = ControllerLinkBuilder.linkTo(ProjectController.class).slash(project).withSelfRel();
-		Link settingsLink = ControllerLinkBuilder.linkTo(ProjectSettingsController.class, settings.getId()).withRel(REL);
-
-		ProjectResourceBuilder resourceBuilder = builder.get();
-		resourceBuilder.addProject(project, settings, new ArrayList<>()).addLink(selfLink).addLink(settingsLink);
-
-		return resourceBuilder.build();
-	}
-
 	@Override
 	public ProjectResource toResource(Project entity) {
 		Link selfLink = ControllerLinkBuilder.linkTo(ProjectController.class).slash(entity).withSelfRel();
 		ProjectResourceBuilder resourceBuilder = builder.get();
-		resourceBuilder.addProject(entity, null, new ArrayList<>()).addLink(selfLink);
+		resourceBuilder.addProject(entity, new ArrayList<>()).addLink(selfLink);
 
 		for (String systemId : entity.getConfiguration().getExternalSystem()) {
 			Link widgetLink = ControllerLinkBuilder.linkTo(ExternalSystemController.class, entity.getId()).slash(systemId).withRel(REL);

@@ -25,6 +25,7 @@ apply plugin: 'jacoco'
 
 apply from: 'build-quality.gradle'
 apply from: 'build-docker.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
 apply from: 'release-service.gradle'
 
 sourceCompatibility = 1.8
@@ -121,12 +122,6 @@ dependencies {
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     testCompile 'com.bitmechanic:dumbster:1.9.0.2'
 
-}
-
-processResources {
-    filesMatching('**/bootstrap.yaml') {
-        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [version: project.property("version")])
-    }
 }
 
 

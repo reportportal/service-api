@@ -31,7 +31,6 @@ import com.epam.ta.reportportal.database.entity.project.EntryType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.epam.ta.reportportal.commons.Constants;
 import com.epam.ta.reportportal.core.project.IDeleteProjectHandler;
 import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;

@@ -127,10 +127,6 @@ public class TestConfig {
 		return Mockito.mock(OAuth2ProtectedResourceDetails.class);
 	}
 
-	@Bean
-	public OAuth2ClientContext mockOauthContext(){
-		return Mockito.mock(OAuth2ClientContext.class);
-	}
 
 	@Bean
 	public MongoFixtureImporter mongoFixtureImporter() {

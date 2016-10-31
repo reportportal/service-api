@@ -3,7 +3,7 @@ info:
     name: API Service
     description: ReportPortal API Service
     version: '@version@'
-    branch: '@branch@git '
+    branch: '@branch@'
 
 spring:
   application:

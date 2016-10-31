@@ -25,6 +25,7 @@ apply plugin: 'jacoco'
 
 apply from: 'build-quality.gradle'
 apply from: 'build-docker.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
 apply from: 'release-service.gradle'
 
 sourceCompatibility = 1.8
@@ -79,9 +80,6 @@ dependencies {
 
     compile "ch.qos.logback:logback-classic:${logback}"
     compile 'joda-time:joda-time:2.3'
-    compile('org.hibernate:hibernate-validator:5.0.2.Final') {
-        exclude(module: 'validation-api')
-    }
     compile 'net.coobird:thumbnailator:0.4.8'
     compile 'com.sun.mail:javax.mail:1.5.6'
     compile 'org.apache.velocity:velocity:1.7'
@@ -121,12 +119,6 @@ dependencies {
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     testCompile 'com.bitmechanic:dumbster:1.9.0.2'
 
-}
-
-processResources {
-    filesMatching('**/bootstrap.yaml') {
-        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [version: project.property("version")])
-    }
 }
 
 

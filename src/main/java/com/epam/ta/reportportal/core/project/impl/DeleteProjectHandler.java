@@ -24,10 +24,10 @@ package com.epam.ta.reportportal.core.project.impl;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_TO_UPDATE_DEFAULT_PROJECT;
 import static java.util.Collections.singletonList;
 
 import com.epam.ta.reportportal.database.entity.project.EntryType;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -67,7 +67,7 @@ public class DeleteProjectHandler implements IDeleteProjectHandler {
 
 		Project project = projectRepository.findOne(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
-		expect(project.getConfiguration().getEntryType(), not(equalTo(EntryType.PERSONAL))).verify(UNABLE_TO_UPDATE_DEFAULT_PROJECT);
+		expect(project.getConfiguration().getEntryType(), not(equalTo(EntryType.PERSONAL))).verify(ErrorType.UNABLE_TO_DELETE_PERSONAL_PROJECT);
 		Iterable<ExternalSystem> externalSystems = externalSystemRepository.findAll(project.getConfiguration().getExternalSystem());
 
 		try {

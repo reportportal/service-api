@@ -157,6 +157,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 				projectRepository.save(personalProject);
 			}
 
+			setupEmailService();
 			emailService.sendConfirmationEmail(request, basicUrl);
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("email='{}'", request.getEmail()));
@@ -172,15 +173,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 	@Override
 	public CreateUserBidRS createUserBid(CreateUserRQ request, Principal principal, String emailURL) {
-		// TODO BR for not existing profile
-		try {
-			emailService.reconfig(settingsRepository.findOne("default").getServerEmailConfig());
-			emailService.testConnection();
-		} catch (Exception ex) {
-			LOGGER.error("Cannot send email to user", ex);
-			fail().withError(FORBIDDEN_OPERATION,
-					"Email configuration is broken or switched-off. Please config email server in Report Portal settings.");
-		}
+		setupEmailService();
 		User creator = userRepository.findOne(principal.getName());
 		expect(creator, notNull()).verify(ACCESS_DENIED);
 
@@ -339,5 +332,16 @@ public class CreateUserHandler implements ICreateUserHandler {
 	public YesNoRS isResetPasswordBidExist(String id) {
 		RestorePasswordBid bid = restorePasswordBidRepository.findOne(id);
 		return new YesNoRS(null != bid);
+	}
+
+	private void setupEmailService(){
+		try {
+			emailService.reconfig(settingsRepository.findOne("default").getServerEmailConfig());
+			emailService.testConnection();
+		} catch (Exception ex) {
+			LOGGER.error("Cannot send email to user", ex);
+			fail().withError(FORBIDDEN_OPERATION,
+					"Email configuration is broken or switched-off. Please config email server in Report Portal settings.");
+		}
 	}
 }

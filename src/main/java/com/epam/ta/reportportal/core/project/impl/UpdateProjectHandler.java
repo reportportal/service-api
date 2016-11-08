@@ -21,11 +21,13 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import static com.epam.ta.reportportal.commons.Preconditions.*;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.SendCase.findByName;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.*;
 import static com.epam.ta.reportportal.database.entity.user.UserUtils.isEmailValid;
 import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -40,16 +42,11 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
-import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import com.epam.ta.reportportal.commons.Constants;
-import com.epam.ta.reportportal.commons.Preconditions;
-import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.project.IUpdateProjectHandler;
 import com.epam.ta.reportportal.database.dao.FavoriteResourceRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
@@ -59,14 +56,16 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.ProjectSpecific;
-import com.epam.ta.reportportal.database.entity.project.*;
+import com.epam.ta.reportportal.database.entity.project.EntryType;
+import com.epam.ta.reportportal.database.entity.project.InterruptionJobDelay;
+import com.epam.ta.reportportal.database.entity.project.KeepLogsDelay;
+import com.epam.ta.reportportal.database.entity.project.KeepScreenshotsDelay;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.entity.user.UserType;
 import com.epam.ta.reportportal.events.EmailConfigUpdatedEvent;
 import com.epam.ta.reportportal.events.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
@@ -121,14 +120,14 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 				/*
 				 * Validate user exists
 				 */
-				expect(project.getUsers(), Preconditions.containsKey(user.getKey())).verify(USER_NOT_FOUND, user.getKey(),
+				expect(project.getUsers(), containsKey(user.getKey())).verify(USER_NOT_FOUND, user.getKey(),
 						formattedSupplier("User '{}' not found in '{}' project", user.getKey(), projectName));
 				Optional<ProjectRole> role = ProjectRole.forName(user.getValue());
 				/*
 				 * Validate role exists
 				 */
-				expect(role, Preconditions.IS_PRESENT).verify(ROLE_NOT_FOUND, user.getValue());
-
+				expect(role, IS_PRESENT).verify(ROLE_NOT_FOUND, user.getValue());
+				ProjectRole projectRole = role.get();
 				if (UserRole.ADMINISTRATOR != principal.getRole()) {
 					int principalRoleLevel = project.getUsers().get(principalName).getProjectRole().getRoleLevel();
 					int userRoleLevel = project.getUsers().get(user.getKey()).getProjectRole().getRoleLevel();
@@ -136,16 +135,15 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 					 * Validate principal role level is high enough
 					 */
 					if (principalRoleLevel >= userRoleLevel) {
-						expect(role.get().getRoleLevel(), Preconditions.isLevelEnough(principalRoleLevel)).verify(ACCESS_DENIED);
+						expect(projectRole.getRoleLevel(), isLevelEnough(principalRoleLevel)).verify(ACCESS_DENIED);
 					} else {
-						expect(userRoleLevel, Preconditions.isLevelEnough(principalRoleLevel)).verify(ACCESS_DENIED);
+						expect(userRoleLevel, isLevelEnough(principalRoleLevel)).verify(ACCESS_DENIED);
 					}
 				}
 				project.getUsers().get(user.getKey()).setProjectRole(role.get());
 			}
 		}
 
-		// TODO Custom fields exceptions handling with readable messages
 		if (null != updateProjectRQ.getConfiguration()) {
 			ProjectConfiguration modelConfig = updateProjectRQ.getConfiguration();
 			if (null != modelConfig.getKeepLogs()) {
@@ -199,37 +197,25 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 
 			List<EmailSenderCase> cases = config.getEmailCases();
 			if (null != cases) {
-				expect(cases.size() > 0, equalTo(true)).verify(BAD_REQUEST_ERROR, "At least one rule should be present.");
+				expect(cases.isEmpty(), equalTo(false)).verify(BAD_REQUEST_ERROR, "At least one rule should be present.");
 				cases.forEach(sendCase -> {
 					expect(findByName(sendCase.getSendCase()).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, sendCase.getSendCase());
 					expect(sendCase.getRecipients(), notNull()).verify(BAD_REQUEST_ERROR, "Recipients list should not be null");
-					expect(sendCase.getRecipients().size() > 0, equalTo(true)).verify(BAD_REQUEST_ERROR,
+					expect(sendCase.getRecipients().isEmpty(), equalTo(false)).verify(BAD_REQUEST_ERROR,
 							formattedSupplier("Empty recipients list for email case '{}' ", sendCase));
 					sendCase.setRecipients(sendCase.getRecipients().stream().map(it -> {
-						expect(it, notNull()).verify(BAD_REQUEST_ERROR, formattedSupplier("Provided recipient email '{}' is invalid", it));
-						if (it.contains("@")) {
-							expect(isEmailValid(it), equalTo(true)).verify(BAD_REQUEST_ERROR,
-									formattedSupplier("Provided recipient email '{}' is invalid", it));
-						} else {
-							final String login = it.trim();
-							expect(MIN_LOGIN_LENGTH <= login.length() && login.length() <= MAX_LOGIN_LENGTH, equalTo(true)).verify(
-									BAD_REQUEST_ERROR, "Acceptable login length  [" + MIN_LOGIN_LENGTH + ".." + MAX_LOGIN_LENGTH + "]");
-							return login;
-						}
-						return it;
+						validateRecipient(project, it);
+						return it.trim();
 					}).distinct().collect(toList()));
 
-					if ((null != sendCase.getLaunchNames())) {
+					if (null != sendCase.getLaunchNames()) {
 						sendCase.setLaunchNames(sendCase.getLaunchNames().stream().map(name -> {
-							expect(isNullOrEmpty(name), equalTo(false)).verify(BAD_REQUEST_ERROR,
-									"Launch name values cannot be empty. Please specify it or not include in request.");
-							expect(name.length() <= MAX_NAME_LENGTH, equalTo(true)).verify(BAD_REQUEST_ERROR, formattedSupplier(
-									"One of provided launch names '{}' is too long. Acceptable name length is [1..256]", name));
+							validateLaunchName(name);
 							return name.trim();
 						}).distinct().collect(toList()));
 					}
 
-					if ((null != sendCase.getTags())) {
+					if (null != sendCase.getTags()) {
 						sendCase.setTags(sendCase.getTags().stream().map(tag -> {
 							expect(isNullOrEmpty(tag), equalTo(false)).verify(BAD_REQUEST_ERROR,
 									"Tags values cannot be empty. Please specify it or not include in request.");
@@ -247,9 +233,8 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			}
 
 			/* If enable parameter is FALSE, previous settings be dropped */
-			// TODO NPE?
 			if (!config.getEmailEnabled())
-				ProjectUtils.setDefaultEmailCofiguration(project);
+				setDefaultEmailCofiguration(project);
 			else
 				project.getConfiguration().getEmailConfig().setEmailEnabled(true);
 		} else {
@@ -276,8 +261,8 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		User principal = userRepository.findOne(modifier);
 		if (UserRole.ADMINISTRATOR != principal.getRole()) {
 			/* user shouldn't have possibility un-assign himself */
-			expect(unassignUsersRQ.getUsernames(), not(Preconditions.contains(equalTo(modifier))))
-					.verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "User should not unassign himself from project.");
+			expect(unassignUsersRQ.getUsernames(), not(contains(equalTo(modifier)))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+					"User should not unassign himself from project.");
 		}
 
 		Map<String, UserConfig> users = project.getUsers();
@@ -300,7 +285,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			if (UserRole.ADMINISTRATOR != principal.getRole()) {
 				/* Modifier cannot un-assign users with higher roles */
 				expect(users.get(singleUser.getId()).getProjectRole().getRoleLevel(),
-						Preconditions.isLevelEnough(users.get(modifier).getProjectRole().getRoleLevel())).verify(ACCESS_DENIED);
+						isLevelEnough(users.get(modifier).getProjectRole().getRoleLevel())).verify(ACCESS_DENIED);
 			}
 			candidatesForUnassign.add(singleUser.getId());
 			/*
@@ -313,17 +298,10 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		/* Update un-assigning user's default projects */
 		Iterable<User> dbUsers = userRepository.findAll(candidatesForUnassign);
 		processCandidateForUnaassign(dbUsers, projectName);
-		project = ProjectUtils.excludeProjectRecipients(dbUsers, project);
+		project = excludeProjectRecipients(dbUsers, project);
 		try {
 			project.setUsers(users);
 			projectRepository.save(project);
-			// Clear 'userRef' field in users's launches of specified project
-			/*
-			 * Commented due new logic of DEBUG section
-			 */
-			// for(String user : unassignUsersRQ.getUserNames()) {
-			// this.processLaunchesOfUnassignedUser(projectName, user);
-			// }
 			for (String user : unassignUsersRQ.getUsernames()) {
 				String normalized = user.toLowerCase();
 				favoriteResourceRepository.removeFavoriteResources(normalized, projectName);
@@ -347,8 +325,8 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		EntryType projectType = project.getConfiguration().getEntryType();
 		User principal = userRepository.findOne(modifier);
 		if (!principal.getRole().equals(UserRole.ADMINISTRATOR))
-			expect(assignUsersRQ.getUserNames().keySet(), not(Preconditions.contains(equalTo(modifier))))
-					.verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "User should not assign himself to project.");
+			expect(assignUsersRQ.getUserNames().keySet(), not(contains(equalTo(modifier)))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+					"User should not assign himself to project.");
 
 		for (String username : assignUsersRQ.getUserNames().keySet()) {
 			expect(username.toLowerCase(), not(in(project.getUsers().keySet()))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
@@ -368,18 +346,19 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			UserConfig config = new UserConfig();
 			String userToAssign = assignUsersRQ.getUserNames().get(username);
 			if (!isNullOrEmpty(userToAssign)) {
-				Optional<ProjectRole> proposedRole = ProjectRole.forName(userToAssign);
-				expect(proposedRole, Preconditions.IS_PRESENT).verify(ROLE_NOT_FOUND, userToAssign);
+				Optional<ProjectRole> proposedRoleOptional = ProjectRole.forName(userToAssign);
+				expect(proposedRoleOptional, IS_PRESENT).verify(ROLE_NOT_FOUND, userToAssign);
+				ProjectRole proposedRole = proposedRoleOptional.get();
 
 				if (principal.getRole() != UserRole.ADMINISTRATOR) {
 					int creatorProjectRoleLevel = principalRoles.getProjectRole().getRoleLevel();
-					int newUserProjectRoleLevel = proposedRole.get().getRoleLevel();
+					int newUserProjectRoleLevel = proposedRole.getRoleLevel();
 					expect(creatorProjectRoleLevel >= newUserProjectRoleLevel, equalTo(Boolean.TRUE)).verify(ACCESS_DENIED);
-					config.setProjectRole(proposedRole.get());
-					config.setProposedRole(proposedRole.get());
+					config.setProjectRole(proposedRole);
+					config.setProposedRole(proposedRole);
 				} else {
-					config.setProjectRole(proposedRole.get());
-					config.setProposedRole(proposedRole.get());
+					config.setProjectRole(proposedRole);
+					config.setProposedRole(proposedRole);
 				}
 			} else {
 				config.setProjectRole(ProjectRole.MEMBER);
@@ -400,6 +379,28 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 				+ projectName + "'";
 		response.setResultMessage(msg);
 		return response;
+	}
+
+	void validateRecipient(Project project, String recipient) {
+		expect(recipient, notNull()).verify(BAD_REQUEST_ERROR, formattedSupplier("Provided recipient email '{}' is invalid", recipient));
+		if (recipient.contains("@")) {
+			expect(isEmailValid(recipient), equalTo(true)).verify(BAD_REQUEST_ERROR,
+					formattedSupplier("Provided recipient email '{}' is invalid", recipient));
+		} else {
+			final String login = recipient.trim();
+			expect(MIN_LOGIN_LENGTH <= login.length() && login.length() <= MAX_LOGIN_LENGTH, equalTo(true)).verify(BAD_REQUEST_ERROR,
+					"Acceptable login length  [" + MIN_LOGIN_LENGTH + ".." + MAX_LOGIN_LENGTH + "]");
+			if (!getOwner().equals(login))
+				expect(project.getUsers().containsKey(login.toLowerCase()), equalTo(true)).verify(USER_NOT_FOUND, login,
+						String.format("User not found in project %s", project.getId()));
+		}
+	}
+
+	void validateLaunchName(String name) {
+		expect(isNullOrEmpty(name), equalTo(false)).verify(BAD_REQUEST_ERROR,
+				"Launch name values cannot be empty. Please specify it or not include in request.");
+		expect(name.length() <= MAX_NAME_LENGTH, equalTo(true)).verify(BAD_REQUEST_ERROR,
+				formattedSupplier("One of provided launch names '{}' is too long. Acceptable name length is [1..256]", name));
 	}
 
 	/**

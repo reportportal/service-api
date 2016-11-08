@@ -40,6 +40,7 @@ public class UpdateProjectHandlerTest {
 	public void before() {
 		final ProjectRepository projectRepository = mock(ProjectRepository.class);
 		final Project project = new Project();
+		project.setName(this.project);
 		final Project.Configuration configuration = new Project.Configuration();
 		configuration.setEmailConfig(new ProjectEmailConfig());
 		project.setConfiguration(configuration);
@@ -177,6 +178,22 @@ public class UpdateProjectHandlerTest {
 		expected.expect(ReportPortalException.class);
 		expected.expectMessage("Error in handled Request. Please, check specified parameters: 'Acceptable login length  ["
 				+ MIN_LOGIN_LENGTH + ".." + MAX_LOGIN_LENGTH + "]'");
+		updateProjectHandler.updateProjectEmailConfig(project, user, updateProjectEmailRQ);
+	}
+
+	@Test
+	public void projectWithoutSuchUser() {
+		final String always = "ALWAYS";
+		final UpdateProjectEmailRQ updateProjectEmailRQ = new UpdateProjectEmailRQ();
+		final ProjectEmailConfig projectEmailConfig = new ProjectEmailConfig();
+		final EmailSenderCase emailSenderCase = new EmailSenderCase();
+		emailSenderCase.setSendCase(always);
+		emailSenderCase.setRecipients(singletonList("user"));
+		projectEmailConfig.setEmailCases(singletonList(emailSenderCase));
+		projectEmailConfig.setFrom("user1@fake.com");
+		updateProjectEmailRQ.setConfiguration(projectEmailConfig);
+		expected.expect(ReportPortalException.class);
+		expected.expectMessage("User '" + user + "' not found. User not found in project " + project);
 		updateProjectHandler.updateProjectEmailConfig(project, user, updateProjectEmailRQ);
 	}
 

@@ -391,7 +391,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			expect(MIN_LOGIN_LENGTH <= login.length() && login.length() <= MAX_LOGIN_LENGTH, equalTo(true)).verify(BAD_REQUEST_ERROR,
 					"Acceptable login length  [" + MIN_LOGIN_LENGTH + ".." + MAX_LOGIN_LENGTH + "]");
 			if (!getOwner().equals(login))
-				expect(project.getUsers().containsKey(login.toLowerCase()), equalTo(true)).verify(USER_NOT_FOUND, login,
+				expect(project.getUsers(), containsKey(login.toLowerCase())).verify(USER_NOT_FOUND, login,
 						String.format("User not found in project %s", project.getId()));
 		}
 	}

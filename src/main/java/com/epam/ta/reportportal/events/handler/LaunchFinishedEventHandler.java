@@ -231,7 +231,7 @@ public class LaunchFinishedEventHandler {
 	@VisibleForTesting
 	static boolean isTagsMatched(Launch launch, EmailSenderCase oneCase) {
 		return !(null != oneCase.getTags() && !oneCase.getTags().isEmpty())
-				|| null != launch.getTags() && oneCase.getTags().containsAll(launch.getTags());
+				|| null != launch.getTags() && launch.getTags().containsAll(oneCase.getTags());
 	}
 
 	/**

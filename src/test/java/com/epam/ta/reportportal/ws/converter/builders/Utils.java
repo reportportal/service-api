@@ -17,38 +17,21 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import static com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants.BINARY_CONTENT;
-import static com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants.DATE_END;
-import static com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants.DATE_START;
-import static com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants.DESCRIPTION;
-import static com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants.EMAIL;
-import static com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants.LOG_MESSAGE;
-import static com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants.LOG_TIME;
-import static com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants.NAME;
-import static com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants.TAG;
+import static com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants.*;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.springframework.hateoas.Link;
 
-import com.epam.ta.reportportal.database.entity.Dashboard;
+import com.epam.ta.reportportal.database.entity.*;
 import com.epam.ta.reportportal.database.entity.Dashboard.WidgetObject;
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Log;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.filter.SelectionOptions;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
@@ -182,7 +165,6 @@ public class Utils {
 		UserFilter userFilter = new UserFilter();
 		SelectionOptions selectionOptions = new SelectionOptions();
 		selectionOptions.setIsAsc(true);
-		selectionOptions.setQuantity(3);
 		selectionOptions.setPageNumber(43);
 		selectionOptions.setSortingColumnName("name");
 		userFilter.setIsLink(true);
@@ -209,7 +191,6 @@ public class Utils {
 		rq.setEntities(entities);
 		SelectionParameters selectionParameters = new SelectionParameters();
 		selectionParameters.setIsAsc(true);
-		selectionParameters.setQuantity(3);
 		selectionParameters.setPageNumber(43);
 		selectionParameters.setSortingColumnName("name");
 		rq.setSelectionParameters(selectionParameters);
@@ -263,7 +244,6 @@ public class Utils {
 		filterResource.setEntities(entities);
 		SelectionParameters selectionParameters = new SelectionParameters();
 		selectionParameters.setIsAsc(true);
-		selectionParameters.setQuantity(3);
 		selectionParameters.setPageNumber(43);
 		selectionParameters.setSortingColumnName("name");
 		filterResource.setSelectionParameters(selectionParameters);
@@ -278,7 +258,7 @@ public class Utils {
 		dashboardResource.add(new Link(BuilderTestsConstants.LINK));
 		return dashboardResource;
 	}
-	
+
 	public static TestItem getTestItem() {
 		TestItem testItem = new TestItem();
 		testItem.setName(NAME);
@@ -295,7 +275,7 @@ public class Utils {
 		testItem.setStatus(Status.PASSED);
 		return testItem;
 	}
-	
+
 	public static TestItemResource getTestItemResource() {
 		TestItemResource testItem = new TestItemResource();
 		testItem.setName(NAME);
@@ -311,7 +291,7 @@ public class Utils {
 		testItem.setPathNames(new HashMap<>());
 		return testItem;
 	}
-	
+
 	private static String generateMD5(String initial) {
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
@@ -323,11 +303,9 @@ public class Utils {
 				sb.append(Integer.toString((aByteInitial & 0xff) + 0x100, 16).substring(1));
 			}
 			return sb.toString();
-		}
-		catch(NoSuchAlgorithmException ex) {
-            throw new RuntimeException("Unable apply MD5 algorithm for password hashing: ", ex);
-		}
-		catch(UnsupportedEncodingException unsEx) {
+		} catch (NoSuchAlgorithmException ex) {
+			throw new RuntimeException("Unable apply MD5 algorithm for password hashing: ", ex);
+		} catch (UnsupportedEncodingException unsEx) {
 			throw new RuntimeException("Unable apply UTF-8 encoding for password string: ", unsEx);
 		}
 	}

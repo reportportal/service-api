@@ -142,7 +142,6 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 			userFilterService.validateSortingColumnName(toUpdate.getFilter().getTarget(),
 					updateRQ.getSelectionParameters().getSortingColumnName());
 			SelectionOptions selectionOptions = new SelectionOptions();
-			selectionOptions.setQuantity(updateRQ.getSelectionParameters().getQuantity());
 			selectionOptions.setSortingColumnName(updateRQ.getSelectionParameters().getSortingColumnName());
 			selectionOptions.setIsAsc(updateRQ.getSelectionParameters().getIsAsc());
 			selectionOptions.setPageNumber(updateRQ.getSelectionParameters().getPageNumber());

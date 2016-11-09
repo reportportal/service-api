@@ -49,7 +49,7 @@ project.ext {
 
 repositories {
     mavenCentral()
-    maven { url  "http://dl.bintray.com/epam/reportportal" }
+    maven { url "http://dl.bintray.com/epam/reportportal" }
     maven { url "http://jasperreports.sourceforge.net/maven2" }
     maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
 }

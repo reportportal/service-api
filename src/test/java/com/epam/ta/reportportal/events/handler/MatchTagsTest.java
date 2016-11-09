@@ -20,13 +20,17 @@
  */
 package com.epam.ta.reportportal.events.handler;
 
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
+import static com.epam.ta.reportportal.events.handler.LaunchFinishedEventHandler.isTagsMatched;
+import static java.util.Arrays.asList;
+import static java.util.Collections.*;
+
+import java.util.HashSet;
+
 import org.junit.Assert;
 import org.junit.Test;
 
-import static com.epam.ta.reportportal.events.handler.LaunchFinishedEventHandler.isTagsMatched;
-import static java.util.Collections.*;
+import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
 
 public class MatchTagsTest {
 
@@ -54,5 +58,13 @@ public class MatchTagsTest {
 		launch.setTags(singleton("tag"));
 		boolean matched = isTagsMatched(launch, new EmailSenderCase(null, "ALWAYS", null, singletonList("tag")));
 		Assert.assertTrue(matched);
+	}
+
+	@Test
+	public void launchTagsSmallerSubsetOfSendCaseTags() {
+		Launch launch = new Launch();
+		launch.setTags(new HashSet<>(asList("tag1", "tag2")));
+		boolean isTagsMatched = isTagsMatched(launch, new EmailSenderCase(null, "ALWAYS", null, asList("tag1", "tag2", "tag3")));
+		Assert.assertFalse(isTagsMatched);
 	}
 }

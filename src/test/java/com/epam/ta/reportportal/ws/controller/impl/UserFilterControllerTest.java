@@ -185,7 +185,6 @@ public class UserFilterControllerTest extends BaseMvcTest {
 		SelectionParameters selectionParameters = new SelectionParameters();
 		selectionParameters.setIsAsc(false);
 		selectionParameters.setSortingColumnName("start_time");
-		selectionParameters.setQuantity(10);
 		selectionParameters.setPageNumber(2);
 		return selectionParameters;
 	}

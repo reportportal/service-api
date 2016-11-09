@@ -61,7 +61,6 @@ public class UserFilterResourceBuilder extends ResourceBuilder<UserFilterResourc
 			}
 			if (null != userFilter.getSelectionOptions()) {
 				SelectionParameters selectionParameters = new SelectionParameters();
-				selectionParameters.setQuantity(userFilter.getSelectionOptions().getQuantity());
 				selectionParameters.setSortingColumnName(userFilter.getSelectionOptions().getSortingColumnName());
 				selectionParameters.setIsAsc(userFilter.getSelectionOptions().isAsc());
 				selectionParameters.setPageNumber(userFilter.getSelectionOptions().getPageNumber());

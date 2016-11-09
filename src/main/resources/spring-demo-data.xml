@@ -2415,7 +2415,6 @@
 			<bean class="com.epam.ta.reportportal.database.entity.filter.SelectionOptions">
 				<property name="sortingColumnName" value="start_time"/>
 				<property name="isAsc" value="false"/>
-				<property name="quantity" value="50"/>
 				<property name="pageNumber" value="1"/>
 			</bean>
 		</property>
@@ -2464,7 +2463,6 @@
 			<bean class="com.epam.ta.reportportal.database.entity.filter.SelectionOptions">
 				<property name="sortingColumnName" value="start_time"/>
 				<property name="isAsc" value="false"/>
-				<property name="quantity" value="50"/>
 				<property name="pageNumber" value="1"/>
 			</bean>
 		</property>

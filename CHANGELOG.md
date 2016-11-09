@@ -28,3 +28,4 @@
 ### Bugfixes
 
 * EPMRPP-20324 - Fix incorrect user photo processing
+* EPMRPP-21048 - Incorrect message for changing password for github user through API

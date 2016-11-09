@@ -118,7 +118,7 @@ public class EditUserHandler implements IEditUserHandler {
 	@Override
 	public OperationCompletionRS changePassword(String userName, ChangePasswordRQ changePasswordRQ) {
 		User user = userRepository.findOne(userName);
-		expect(user.getType(), equalTo(INTERNAL)).verify(FORBIDDEN_OPERATION, "Impossible to change password for internal users.");
+		expect(user.getType(), equalTo(INTERNAL)).verify(FORBIDDEN_OPERATION, "Impossible to change password for external users.");
 
 		expect(user.getPassword(), equalTo(UserUtils.generateMD5(changePasswordRQ.getOldPassword()))).verify(FORBIDDEN_OPERATION,
 				"Old password not match with stored.");

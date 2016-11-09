@@ -17,17 +17,17 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.epam.ta.BaseTest;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 
+import com.epam.ta.BaseTest;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
@@ -78,7 +78,6 @@ public class UserFilterBuilderTest extends BaseTest {
 		Assert.assertEquals(expectedValue.getFilter(), actualValue.getFilter());
 		if (expectedValue.getSelectionOptions() != null) {
 			Assert.assertEquals(expectedValue.getSelectionOptions().isAsc(), actualValue.getSelectionOptions().isAsc());
-			Assert.assertEquals(expectedValue.getSelectionOptions().getQuantity(), actualValue.getSelectionOptions().getQuantity());
 			Assert.assertEquals(expectedValue.getSelectionOptions().getSortingColumnName(),
 					actualValue.getSelectionOptions().getSortingColumnName());
 		} else {

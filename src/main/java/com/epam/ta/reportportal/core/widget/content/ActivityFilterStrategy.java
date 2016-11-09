@@ -72,7 +72,6 @@ public class ActivityFilterStrategy implements BuildFilterStrategy {
 		}
 
 		SelectionOptions selectionOptions = new SelectionOptions();
-		selectionOptions.setQuantity(QUANTITY);
 		selectionOptions.setIsAsc(false);
 		selectionOptions.setSortingColumnName(LAST_MODIFIED);
 		selectionOptions.setPageNumber(PAGE_NUMBER);

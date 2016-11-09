@@ -226,6 +226,12 @@ public class LaunchControllerTest extends BaseMvcTest {
 		launchRepository.find(ids).forEach(it -> assertTrue(it.getMode() == DEBUG));
 	}
 
+	@Test
+	public void getLaunches() throws Exception {
+		mvcMock.perform(get(PROJECT_BASE_URL + "/launch?page.page=1&page.size=50&page.sort=statistics$defects$product_bug,ASC")
+				.contentType(APPLICATION_JSON).principal(authentication())).andExpect(status().is(200));
+	}
+
 	@Override
 	protected Authentication authentication() {
 		return ADMINISTRATOR;

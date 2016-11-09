@@ -64,7 +64,6 @@ public class UserFilterBuilder extends ShareableEntityBuilder<UserFilter> {
 		if (parameters != null) {
 			SelectionOptions selectionOptions = new SelectionOptions();
 			selectionOptions.setIsAsc(parameters.getIsAsc());
-			selectionOptions.setQuantity(parameters.getQuantity());
 			selectionOptions.setSortingColumnName(parameters.getSortingColumnName());
 			selectionOptions.setPageNumber(parameters.getPageNumber());
 			getObject().setSelectionOptions(selectionOptions);

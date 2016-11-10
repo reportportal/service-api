@@ -34,6 +34,7 @@ import static java.util.stream.Collectors.toSet;
 import java.util.*;
 import java.util.stream.StreamSupport;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -251,7 +252,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		expect(extSystem, notNull()).verify(EXTERNAL_SYSTEM_NOT_FOUND, rq.getExternalSystemId());
 
 		Iterable<TestItem> testItems = testItemRepository.findAll(rq.getTestItemIds());
-		List<TestItem> before = Lists.newArrayList(testItems);
+		List<TestItem> before = SerializationUtils.clone(Lists.newArrayList(testItems));
 		StreamSupport.stream(testItems.spliterator(), false).forEach(testItem -> {
 			try {
 				verifyTestItem(testItem, testItem.getId());

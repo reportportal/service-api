@@ -50,7 +50,7 @@ import java.util.Optional;
  */
 public enum ReportFormat {
 	//@formatter:off
-	XLS("xls", "application/xls"),
+	XLS("xls", MediaType.MICROSOFT_EXCEL.withoutParameters().toString()),
 	HTML("html", MediaType.HTML_UTF_8.withoutParameters().toString()),
 	PDF("pdf", MediaType.PDF.withoutParameters().toString());
 	//@formatter:on

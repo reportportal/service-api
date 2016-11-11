@@ -97,8 +97,10 @@ dependencies {
     compile 'org.springframework.cloud:spring-cloud-starter-oauth2'
 
 
-    compile 'org.apache.poi:poi:3.15'
     compile 'net.sf.jasperreports:jasperreports:6.3.1'
+    //JasperReport's export to XLS uses Apache POI. Reports 6.3.1 needs version NOT
+    //higher than 3.14 since 3.15 contains breaking API changes
+    compile 'org.apache.poi:poi:3.14'
 
     compile 'javax.inject:javax.inject:1'
     compile 'com.google.code.findbugs:annotations:3.0.1'

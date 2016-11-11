@@ -89,7 +89,7 @@ public class ExternalSystemEurekaDelegate implements ExternalSystemStrategy {
 				.flatMap(service -> discoveryClient.getInstances(service).stream())
 				.filter(instance -> externalSystemType.equals(instance.getMetadata().get("extension"))).findAny();
 
-		BusinessRule.expect(delegate, Preconditions.IS_PRESENT).verify(ErrorType.EXTERNAL_SYSTEM_NOT_FOUND, externalSystem.getId());
+		BusinessRule.expect(delegate, Preconditions.IS_PRESENT).verify(ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "External system with type " + externalSystemType + "is not deployed or not available");
 		return delegate.get();
 	}
 }

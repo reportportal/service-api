@@ -29,3 +29,4 @@
 
 * EPMRPP-20324 - Fix incorrect user photo processing
 * EPMRPP-21048 - Incorrect message for changing password for github user through API
+* EPMRPP-22340 - API: It's possible to delete project with entryType=UPSA

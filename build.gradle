@@ -56,7 +56,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Camden.SR1"
+        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Camden.SR2"
 
     }
 }
@@ -66,8 +66,8 @@ configurations {
 }
 
 dependencies {
-    compile 'com.epam.reportportal:commons-model:2.7.0-ALPHA-4'
-    compile 'com.epam.reportportal:commons-dao:2.7.0-ALPHA-8'
+    compile 'com.epam.reportportal:commons-model:2.7.0-ALPHA-7'
+    compile 'com.epam.reportportal:commons-dao:2.7.0-ALPHA-11'
     compile 'com.epam.reportportal:commons-rules:2.7.0-ALPHA-2'
     compile 'com.epam.reportportal:commons:2.6.1'
 

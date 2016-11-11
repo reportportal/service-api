@@ -72,7 +72,9 @@ public class EmailConfiguration {
 			Properties javaMailProperties = new Properties();
 			javaMailProperties.put("mail.smtp.connectiontimeout", 5000);
 			javaMailProperties.put("mail.smtp.auth", config.getAuthEnabled());
-			javaMailProperties.put("mail.debug", config.getDebug());
+			javaMailProperties.put("mail.smtp.starttls.enable", config.isStarTlsEnabled());
+
+			javaMailProperties.put("mail.debug", config.isDebug());
 
 			EmailService emailService = new EmailService(javaMailProperties);
 			emailService.setTemplateEngine(getVelocityTemplateEngine());

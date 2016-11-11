@@ -112,7 +112,8 @@ public class EmailService extends JavaMailSenderImpl {
 		Properties javaMailProperties = new Properties();
 		javaMailProperties.put("mail.smtp.connectiontimeout", 5000);
 		javaMailProperties.put("mail.smtp.auth", this.authRequired);
-		javaMailProperties.put("mail.debug", config.getDebug());
+		javaMailProperties.put("mail.smtp.starttls.enable", this.authRequired && config.isStarTlsEnabled());
+		javaMailProperties.put("mail.debug", config.isDebug());
 		EmailService refreshed = new EmailService(javaMailProperties);
 		refreshed.setTemplateEngine(templateEngine);
 		this.setHost(config.getHost());

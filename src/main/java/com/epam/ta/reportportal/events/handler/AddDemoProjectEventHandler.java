@@ -60,7 +60,6 @@ import com.google.common.base.Suppliers;
 public class AddDemoProjectEventHandler implements ApplicationListener<ContextRefreshedEvent> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AddDemoProjectEventHandler.class);
 	private static final AtomicBoolean IMPORTED_FLAG = new AtomicBoolean(false);
-	private static final ProjectRole DEMO_ROLE = ProjectRole.MEMBER;
 	private static final String DEFAULT_PROFILE_ID = "default";
 
 	@Value("${rp.email.server}")
@@ -140,7 +139,7 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		ServerSettings settings = new ServerSettings();
 		settings.setId(DEFAULT_PROFILE_ID);
 		settings.setActive(true);
-		settings.setServerEmailConfig(new ServerEmailConfig(host, port, protocol, isEnable, username, password, isDebug));
+		settings.setServerEmailConfig(new ServerEmailConfig(host, port, protocol, isEnable, false, username, password, isDebug));
 		return settings;
 	});
 

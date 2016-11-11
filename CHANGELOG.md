@@ -32,3 +32,4 @@
 * EPMRPP-20925 - Error is a bit incorrect, If BTS is not up and user tries to post bug to the system
 * EPMRPP-20906 - Incorrect message from ws in case user tryes to submit BTS that does not enabled
 * EPMRPP-21497 - Export in XLS format doesn't work
+* EPMRPP-22340 - API: It's possible to delete project with entryType=UPSA

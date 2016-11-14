@@ -54,6 +54,7 @@ public class ServerSettingsBuilder extends Builder<ServerSettings> {
 			if (request.getServerEmailConfig().getAuthEnabled()) {
 				config.setUsername(request.getServerEmailConfig().getUsername());
 				config.setPassword(simpleEncryptor.encrypt(request.getServerEmailConfig().getPassword()));
+				config.setStarTlsEnabled(request.getServerEmailConfig().isStarTlsEnabled());
 			}
 			getObject().setServerEmailConfig(config);
 		}

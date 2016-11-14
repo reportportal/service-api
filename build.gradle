@@ -66,9 +66,9 @@ configurations {
 }
 
 dependencies {
-    compile 'com.epam.reportportal:commons-model:2.7.0-ALPHA-8'
-    compile 'com.epam.reportportal:commons-dao:2.7.0-ALPHA-12'
-    compile 'com.epam.reportportal:commons-rules:2.7.0-ALPHA-3'
+    compile 'com.epam.reportportal:commons-model:2.7.0-ALPHA-9'
+    compile 'com.epam.reportportal:commons-dao:2.7.0-ALPHA-13'
+    compile 'com.epam.reportportal:commons-rules:2.7.0-ALPHA-4'
     compile 'com.epam.reportportal:commons:2.6.1'
 
     compile 'org.jasypt:jasypt:1.9.2'

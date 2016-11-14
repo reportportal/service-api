@@ -20,24 +20,10 @@
  */
 package com.epam.ta.reportportal.events.handler;
 
-import static com.epam.ta.reportportal.commons.SendCase.*;
-import static com.epam.ta.reportportal.events.handler.LaunchFinishedEventHandler.isLaunchNameMatched;
-import static com.epam.ta.reportportal.events.handler.LaunchFinishedEventHandler.isSuccessRateEnough;
-import static java.util.Arrays.asList;
-import static java.util.Collections.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
-
-import java.util.Collections;
-
-import javax.inject.Provider;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.http.HttpMethod;
-import org.springframework.mock.web.MockHttpServletRequest;
-
-import com.epam.ta.reportportal.database.dao.*;
+import com.epam.ta.reportportal.database.dao.FailReferenceResourceRepository;
+import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Status;
@@ -47,9 +33,24 @@ import com.epam.ta.reportportal.database.entity.statistics.Statistics;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.util.email.EmailService;
+import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
-import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.http.HttpMethod;
+import org.springframework.mock.web.MockHttpServletRequest;
+
+import javax.inject.Provider;
+import java.util.Collections;
+
+import static com.epam.ta.reportportal.commons.SendCase.*;
+import static com.epam.ta.reportportal.events.handler.LaunchFinishedEventHandler.isLaunchNameMatched;
+import static com.epam.ta.reportportal.events.handler.LaunchFinishedEventHandler.isSuccessRateEnough;
+import static java.util.Arrays.asList;
+import static java.util.Collections.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 public class LaunchFinishedEventHandlerTest {
 
@@ -75,17 +76,21 @@ public class LaunchFinishedEventHandlerTest {
 		when(provider.get()).thenReturn(new MockHttpServletRequest(HttpMethod.PUT.name(), "https://localhost:8443"));
 		emailService = mock(EmailService.class);
 		launchFinishedEventHandler = new LaunchFinishedEventHandler(mock(IIssuesAnalyzer.class), userRepository,
-				mock(TestItemRepository.class), provider, mock(LaunchRepository.class), emailService,
-				mock(FailReferenceResourceRepository.class), mock(ServerSettingsRepository.class));
+				mock(TestItemRepository.class), provider, mock(LaunchRepository.class), new MailServiceFactory() {
+			@Override
+			public EmailService getDefaultEmailService() {
+				return emailService;
+			}
+		}, mock(FailReferenceResourceRepository.class));
 	}
 
 	@Test
 	public void arrayOfRecipients() {
 
-		String[] recipients = launchFinishedEventHandler.findRecipients("owner",
-				asList("OWNER", "user1", "user2", "user3@fake.com", "user4@fake.com", "notExists"));
-		assertThat(recipients).isNotNull().hasSize(5).contains("owner@fake.com", "user1@fake.com", "user2@fake.com", "user3@fake.com",
-				"user4@fake.com");
+		String[] recipients = launchFinishedEventHandler
+				.findRecipients("owner", asList("OWNER", "user1", "user2", "user3@fake.com", "user4@fake.com", "notExists"));
+		assertThat(recipients).isNotNull().hasSize(5)
+				.contains("owner@fake.com", "user1@fake.com", "user2@fake.com", "user3@fake.com", "user4@fake.com");
 		verify(userRepository, times(4)).findOne(anyString());
 	}
 
@@ -111,64 +116,72 @@ public class LaunchFinishedEventHandlerTest {
 	@Test
 	public void lessThan10() {
 		final Launch launch = new Launch();
-		launch.setStatistics(new Statistics(new ExecutionCounter(100, 91, 7, 2), new IssueCounter(singletonMap("total", 3),
-				singletonMap("total", 1), singletonMap("total", 2), singletonMap("total", 3), singletonMap("total", 0))));
+		launch.setStatistics(new Statistics(new ExecutionCounter(100, 91, 7, 2),
+				new IssueCounter(singletonMap("total", 3), singletonMap("total", 1), singletonMap("total", 2), singletonMap("total", 3),
+						singletonMap("total", 0))));
 		assertThat(isSuccessRateEnough(launch, MORE_10)).isFalse();
 	}
 
 	@Test
 	public void moreThan10() {
 		final Launch launch = new Launch();
-		launch.setStatistics(new Statistics(new ExecutionCounter(100, 89, 8, 3), new IssueCounter(singletonMap("total", 3),
-				singletonMap("total", 2), singletonMap("total", 2), singletonMap("total", 4), singletonMap("total", 0))));
+		launch.setStatistics(new Statistics(new ExecutionCounter(100, 89, 8, 3),
+				new IssueCounter(singletonMap("total", 3), singletonMap("total", 2), singletonMap("total", 2), singletonMap("total", 4),
+						singletonMap("total", 0))));
 		assertThat(isSuccessRateEnough(launch, MORE_10)).isTrue();
 	}
 
 	@Test
 	public void lessThan20() {
 		final Launch launch = new Launch();
-		launch.setStatistics(new Statistics(new ExecutionCounter(100, 81, 17, 2), new IssueCounter(singletonMap("total", 16),
-				singletonMap("total", 1), singletonMap("total", 1), singletonMap("total", 1), singletonMap("total", 0))));
+		launch.setStatistics(new Statistics(new ExecutionCounter(100, 81, 17, 2),
+				new IssueCounter(singletonMap("total", 16), singletonMap("total", 1), singletonMap("total", 1), singletonMap("total", 1),
+						singletonMap("total", 0))));
 		assertThat(isSuccessRateEnough(launch, MORE_20)).isFalse();
 	}
 
 	@Test
 	public void moreThan20() {
 		final Launch launch = new Launch();
-		launch.setStatistics(new Statistics(new ExecutionCounter(100, 79, 8, 13), new IssueCounter(singletonMap("total", 1),
-				singletonMap("total", 2), singletonMap("total", 6), singletonMap("total", 14), singletonMap("total", 0))));
+		launch.setStatistics(new Statistics(new ExecutionCounter(100, 79, 8, 13),
+				new IssueCounter(singletonMap("total", 1), singletonMap("total", 2), singletonMap("total", 6), singletonMap("total", 14),
+						singletonMap("total", 0))));
 		assertThat(isSuccessRateEnough(launch, MORE_20)).isTrue();
 	}
 
 	@Test
 	public void lessThan50() {
 		final Launch launch = new Launch();
-		launch.setStatistics(new Statistics(new ExecutionCounter(100, 51, 47, 2), new IssueCounter(singletonMap("total", 40),
-				singletonMap("total", 4), singletonMap("total", 2), singletonMap("total", 3), singletonMap("total", 0))));
+		launch.setStatistics(new Statistics(new ExecutionCounter(100, 51, 47, 2),
+				new IssueCounter(singletonMap("total", 40), singletonMap("total", 4), singletonMap("total", 2), singletonMap("total", 3),
+						singletonMap("total", 0))));
 		assertThat(isSuccessRateEnough(launch, MORE_50)).isFalse();
 	}
 
 	@Test
 	public void moreThan50() {
 		final Launch launch = new Launch();
-		launch.setStatistics(new Statistics(new ExecutionCounter(100, 49, 50, 1), new IssueCounter(singletonMap("total", 48),
-				singletonMap("total", 1), singletonMap("total", 1), singletonMap("total", 1), singletonMap("total", 0))));
+		launch.setStatistics(new Statistics(new ExecutionCounter(100, 49, 50, 1),
+				new IssueCounter(singletonMap("total", 48), singletonMap("total", 1), singletonMap("total", 1), singletonMap("total", 1),
+						singletonMap("total", 0))));
 		assertThat(isSuccessRateEnough(launch, MORE_50)).isTrue();
 	}
 
 	@Test
 	public void investigateLaunchWithoutToInvestigate() {
 		final Launch launch = new Launch();
-		launch.setStatistics(new Statistics(new ExecutionCounter(10, 9, 1, 0), new IssueCounter(singletonMap("total", 0),
-				singletonMap("total", 0), singletonMap("total", 1), singletonMap("total", 0), singletonMap("total", 0))));
+		launch.setStatistics(new Statistics(new ExecutionCounter(10, 9, 1, 0),
+				new IssueCounter(singletonMap("total", 0), singletonMap("total", 0), singletonMap("total", 1), singletonMap("total", 0),
+						singletonMap("total", 0))));
 		assertThat(isSuccessRateEnough(launch, TO_INVESTIGATE)).isFalse();
 	}
 
 	@Test
 	public void investigateLaunchWithToInvestigate() {
 		final Launch launch = new Launch();
-		launch.setStatistics(new Statistics(new ExecutionCounter(10, 9, 1, 0), new IssueCounter(singletonMap("total", 0),
-				singletonMap("total", 0), singletonMap("total", 0), singletonMap("total", 1), singletonMap("total", 0))));
+		launch.setStatistics(new Statistics(new ExecutionCounter(10, 9, 1, 0),
+				new IssueCounter(singletonMap("total", 0), singletonMap("total", 0), singletonMap("total", 0), singletonMap("total", 1),
+						singletonMap("total", 0))));
 		assertThat(isSuccessRateEnough(launch, TO_INVESTIGATE)).isTrue();
 	}
 
@@ -217,8 +230,8 @@ public class LaunchFinishedEventHandlerTest {
 		emailConfig.setEmailCases(singletonList(emailSenderCase));
 		configuration.setEmailConfig(emailConfig);
 		project.setConfiguration(configuration);
-		launchFinishedEventHandler.sendEmailRightNow(launch, project, new ServerEmailConfig());
-		verify(emailService, times(1)).sendLaunchFinishNotification(anyVararg(), anyString(), any(Launch.class), anyString(), any());
+		launchFinishedEventHandler.sendEmailRightNow(launch, project, emailService);
+		verify(emailService, times(1)).sendLaunchFinishNotification(anyVararg(), anyString(), any(Launch.class), any());
 	}
 
 }

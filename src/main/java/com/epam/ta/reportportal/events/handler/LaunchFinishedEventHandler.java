@@ -20,24 +20,11 @@
  */
 package com.epam.ta.reportportal.events.handler;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import javax.inject.Provider;
-import javax.servlet.http.HttpServletRequest;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.http.server.ServletServerHttpRequest;
-import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
-
 import com.epam.ta.reportportal.commons.SendCase;
-import com.epam.ta.reportportal.database.dao.*;
+import com.epam.ta.reportportal.database.dao.FailReferenceResourceRepository;
+import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Status;
@@ -48,11 +35,25 @@ import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.events.LaunchFinishedEvent;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.util.email.EmailService;
+import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
-import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
 import com.google.common.annotations.VisibleForTesting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import javax.inject.Provider;
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Andrei Varabyeu
@@ -62,8 +63,6 @@ public class LaunchFinishedEventHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LaunchFinishedEventHandler.class);
 
-	private final ServerSettingsRepository settingsRepository;
-
 	private final FailReferenceResourceRepository issuesRepository;
 
 	private final TestItemRepository testItemRepository;
@@ -72,7 +71,7 @@ public class LaunchFinishedEventHandler {
 
 	private final IIssuesAnalyzer analyzerService;
 
-	private final EmailService emailService;
+	private final MailServiceFactory emailServiceFactory;
 
 	private final UserRepository userRepository;
 
@@ -80,16 +79,15 @@ public class LaunchFinishedEventHandler {
 
 	@Autowired
 	public LaunchFinishedEventHandler(IIssuesAnalyzer analyzerService, UserRepository userRepository, TestItemRepository testItemRepository,
-			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, EmailService emailService,
-			FailReferenceResourceRepository issuesRepository, ServerSettingsRepository settingsRepository) {
+			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory,
+			FailReferenceResourceRepository issuesRepository) {
 		this.analyzerService = analyzerService;
 		this.userRepository = userRepository;
 		this.testItemRepository = testItemRepository;
 		this.currentRequest = currentRequest;
 		this.launchRepository = launchRepository;
-		this.emailService = emailService;
+		this.emailServiceFactory = emailServiceFactory;
 		this.issuesRepository = issuesRepository;
-		this.settingsRepository = settingsRepository;
 	}
 
 	@EventListener
@@ -106,11 +104,10 @@ public class LaunchFinishedEventHandler {
 		 * If server settings profiling will be added - update would be required
 		 * for profile ID
 		 */
-		ServerEmailConfig emailConfig = settingsRepository.findOne("default").getServerEmailConfig();
 		boolean emailEnabled;
+		EmailService emailService = null;
 		try {
-			emailService.reconfig(emailConfig);
-			emailService.testConnection();
+			emailService = emailServiceFactory.getDefaultEmailService();
 			emailEnabled = true;
 		} catch (Exception e) {
 			/* Something wrong with email service or remote server */
@@ -129,7 +126,7 @@ public class LaunchFinishedEventHandler {
 
 		/* If email enabled and AA disabled then send results immediately */
 		if (emailEnabled && project.getConfiguration().getEmailConfig().getEmailEnabled() && !shouldSendIt) {
-			sendEmailRightNow(launch, project, emailConfig);
+			sendEmailRightNow(launch, project, emailService);
 			shouldSendIt = false;
 		}
 
@@ -153,26 +150,24 @@ public class LaunchFinishedEventHandler {
 		if (emailEnabled && project.getConfiguration().getEmailConfig().getEmailEnabled() && shouldSendIt) {
 			// Get launch with AA results
 			launch = launchRepository.findOne(launch.getId());
-			sendEmailRightNow(launch, project, emailConfig);
+			sendEmailRightNow(launch, project, emailService);
 		}
 	}
 
 	/**
 	 * Clear failReferences repository
 	 *
-	 * @param issues
+	 * @param issues List of references to be deleted
 	 */
 	private void clearInvestigatedIssues(List<FailReferenceResource> issues) {
 		issuesRepository.delete(issues);
 	}
 
 	/**
-	 * Calculate success rate of provided launch in %
-	 *
-	 * @param launch
-	 * @return
+	 * @param launch launch to be evaluated
+	 * @return success rate of provided launch in %
 	 */
-	static double getSuccessRate(Launch launch) {
+	private static double getSuccessRate(Launch launch) {
 		Double ti = launch.getStatistics().getIssueCounter().getToInvestigateTotal().doubleValue();
 		Double pb = launch.getStatistics().getIssueCounter().getProductBugTotal().doubleValue();
 		Double si = launch.getStatistics().getIssueCounter().getSystemIssueTotal().doubleValue();
@@ -182,11 +177,9 @@ public class LaunchFinishedEventHandler {
 	}
 
 	/**
-	 * Check if success rate is enough for notification
-	 *
-	 * @param launch
-	 * @param option
-	 * @return
+	 * @param launch Launch to be evaluated
+	 * @param option SendCase option
+	 * @return TRUE of success rate is enough for notification
 	 */
 	static boolean isSuccessRateEnough(Launch launch, SendCase option) {
 		switch (option) {
@@ -211,9 +204,9 @@ public class LaunchFinishedEventHandler {
 	 * Validate matching of finished launch name and project settings for
 	 * emailing
 	 *
-	 * @param launch
-	 * @param oneCase
-	 * @return
+	 * @param launch  Launch to be evaluated
+	 * @param oneCase Mail case
+	 * @return TRUE if launch name matched
 	 */
 	static boolean isLaunchNameMatched(Launch launch, EmailSenderCase oneCase) {
 		List<String> configuredNames = oneCase.getLaunchNames();
@@ -224,23 +217,24 @@ public class LaunchFinishedEventHandler {
 	 * Validate matching of finished launch tags and project settings for
 	 * emailing
 	 *
-	 * @param launch
-	 * @param oneCase
-	 * @return
+	 * @param launch  Launch to be evaluated
+	 * @param oneCase Mail case
+	 * @return TRUE if tags matched
 	 */
 	@VisibleForTesting
 	static boolean isTagsMatched(Launch launch, EmailSenderCase oneCase) {
-		return !(null != oneCase.getTags() && !oneCase.getTags().isEmpty())
-				|| null != launch.getTags() && launch.getTags().containsAll(oneCase.getTags());
+		return !(null != oneCase.getTags() && !oneCase.getTags().isEmpty()) || null != launch.getTags() && launch.getTags()
+				.containsAll(oneCase.getTags());
 	}
 
 	/**
 	 * Try to send email when it is needed
 	 *
-	 * @param launch
-	 * @param project
+	 * @param launch       Launch to be used
+	 * @param project      Project to be used
+	 * @param emailService Mail Service
 	 */
-	void sendEmailRightNow(Launch launch, Project project, ServerEmailConfig emailConfig) {
+	void sendEmailRightNow(Launch launch, Project project, EmailService emailService) {
 		ProjectEmailConfig projectConfig = project.getConfiguration().getEmailConfig();
 		for (EmailSenderCase one : projectConfig.getEmailCases()) {
 			Optional<SendCase> option = SendCase.findByName(one.getSendCase());
@@ -255,13 +249,9 @@ public class LaunchFinishedEventHandler {
 					String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(currentRequest.get()))
 							.replacePath(String.format("/#%s/launches/all/", project.getName())).build().toUriString();
 
-					String resourcesURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(currentRequest.get()))
-							.replacePath("/img").build().toUriString();
-
-					emailService.reconfig(emailConfig);
 					emailService.setAddressFrom(project.getConfiguration().getEmailConfig().getFrom());
-					emailService.sendLaunchFinishNotification(recipientsArray, basicURL + launch.getId(), launch, resourcesURL,
-							project.getConfiguration());
+					emailService
+							.sendLaunchFinishNotification(recipientsArray, basicURL + launch.getId(), launch, project.getConfiguration());
 				} catch (Exception e) {
 					LOGGER.error("Unable to send email. Error: \n{}", e);
 				}

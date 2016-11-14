@@ -17,26 +17,20 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
-/*
- * This file is part of Report Portal.
- *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 package com.epam.ta.reportportal.util.email;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeUsername;
+import com.epam.reportportal.commons.template.TemplateEngine;
+import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
+import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
+import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
+import org.springframework.core.io.UrlResource;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.mail.javamail.MimeMessagePreparator;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -44,20 +38,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import com.epam.ta.reportportal.database.entity.Project;
-import org.springframework.core.io.UrlResource;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.mail.javamail.MimeMessagePreparator;
-
-import com.epam.ta.reportportal.database.entity.Launch;
-
-import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
-import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
-import com.epam.reportportal.commons.template.TemplateEngine;
-import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeUsername;
 
 /**
  * Email Sending Service based on {@link JavaMailSender}
@@ -67,7 +48,7 @@ import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 public class EmailService extends JavaMailSenderImpl {
 
 	private static final String FINISH_LAUNCH_EMAIL_SUBJECT = " Report Portal Notification: launch '%s' #%s finished";
-	public static final String LOGO = "templates/email/rp_logo.png";
+	private static final String LOGO = "templates/email/rp_logo.png";
 	private TemplateEngine templateEngine;
 
 	/*
@@ -79,59 +60,16 @@ public class EmailService extends JavaMailSenderImpl {
 	/* Default value for FROM project notifications field */
 	private String addressFrom = RP_EMAIL;
 
-	/* Default authRequired value */
-	private boolean authRequired = false;
-
 	public EmailService(Properties javaMailProperties) {
 		super.setJavaMailProperties(javaMailProperties);
-	}
-
-	@Override
-	public String getUsername() {
-		if (!authRequired)
-			return null;
-		return super.getUsername();
-	}
-
-	@Override
-	public String getPassword() {
-		if (!authRequired)
-			return null;
-		return super.getPassword();
-	}
-
-	/**
-	 * Reconfiguration possibility with database properties
-	 *
-	 * @param config
-	 * @return
-	 */
-	public EmailService reconfig(ServerEmailConfig config) {
-		this.authRequired = (null != config.getAuthEnabled() && config.getAuthEnabled());
-
-		Properties javaMailProperties = new Properties();
-		javaMailProperties.put("mail.smtp.connectiontimeout", 5000);
-		javaMailProperties.put("mail.smtp.auth", this.authRequired);
-		javaMailProperties.put("mail.smtp.starttls.enable", this.authRequired && config.isStarTlsEnabled());
-		javaMailProperties.put("mail.debug", config.isDebug());
-		EmailService refreshed = new EmailService(javaMailProperties);
-		refreshed.setTemplateEngine(templateEngine);
-		this.setHost(config.getHost());
-		this.setPort(config.getPort());
-		this.setProtocol(config.getProtocol());
-		if (authRequired) {
-			this.setUsername(config.getUsername());
-			this.setPassword(config.getPassword());
-		}
-		return refreshed;
 	}
 
 	/**
 	 * User creation confirmation email
 	 *
-	 * @param subject
-	 * @param recipients
-	 * @param url
+	 * @param subject    Letter's subject
+	 * @param recipients Letter's recipients
+	 * @param url        ReportPortal URL
 	 */
 	public void sendConfirmationEmail(final String subject, final String[] recipients, final String url) {
 		MimeMessagePreparator preparator = mimeMessage -> {
@@ -152,12 +90,11 @@ public class EmailService extends JavaMailSenderImpl {
 	/**
 	 * Finish launch notification
 	 *
-	 * @param subject
-	 * @param recipients
-	 * @param url
-	 * @param launch
+	 * @param recipients List of recipients
+	 * @param url        ReportPortal URL
+	 * @param launch     Launch
 	 */
-	public void sendLaunchFinishNotification(final String[] recipients, final String url, final Launch launch, final String resource,
+	public void sendLaunchFinishNotification(final String[] recipients, final String url, final Launch launch,
 			final Project.Configuration settings) {
 		String subject = String.format(FINISH_LAUNCH_EMAIL_SUBJECT, launch.getName(), launch.getNumber());
 		MimeMessagePreparator preparator = mimeMessage -> {

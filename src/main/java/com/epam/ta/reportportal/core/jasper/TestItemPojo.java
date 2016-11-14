@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 /*
  * This file is part of Report Portal.
  *
@@ -37,6 +37,7 @@
 package com.epam.ta.reportportal.core.jasper;
 
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 
@@ -62,7 +63,17 @@ public class TestItemPojo {
 
 	public TestItemPojo(TestItem input) {
 		this.type = input.getType().name();
-		this.name = input.getName();
+		String issueDescription = "";
+		if (input.getIssue() != null) {
+			final TestItemIssue issue = input.getIssue();
+			if (issue.getIssueDescription() != null)
+				issueDescription = "\r\n" + " DEFECT COMMENT: " + issue.getIssueDescription();
+		}
+		String description = "";
+		if (input.getItemDescription() != null) {
+			description = "\r\n" + " ITEM DESCRIPTION: " + input.getItemDescription();
+		}
+		this.name = input.getName() + description + issueDescription;
 		this.status = input.getStatus().name();
 
 		ExecutionCounter exec = input.getStatistics().getExecutionCounter();

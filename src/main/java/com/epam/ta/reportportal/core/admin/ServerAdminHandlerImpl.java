@@ -21,24 +21,20 @@
 
 package com.epam.ta.reportportal.core.admin;
 
-import static com.epam.ta.reportportal.ws.model.ErrorType.SERVER_SETTINGS_NOT_FOUND;
-
-import org.jasypt.util.text.BasicTextEncryptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.database.entity.ServerSettings;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.converter.ServerSettingsResourceAssembler;
-import com.epam.ta.reportportal.ws.converter.builders.ServerSettingsBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import com.epam.ta.reportportal.ws.model.settings.UpdateEmailSettingsRQ;
+import org.jasypt.util.text.BasicTextEncryptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import static com.epam.ta.reportportal.ws.model.ErrorType.SERVER_SETTINGS_NOT_FOUND;
 
 /**
  * Basic implementation of server administration interface
@@ -54,10 +50,6 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 
 	@Autowired
 	private ServerSettingsRepository repository;
-
-	@Autowired
-	@Qualifier("serverSettingsBuilder.reference")
-	private LazyReference<ServerSettingsBuilder> settingsBuilder;
 
 	@Autowired
 	private ServerSettingsResourceAssembler settingsAssembler;

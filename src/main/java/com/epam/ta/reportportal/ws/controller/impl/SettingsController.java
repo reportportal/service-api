@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.ws.controller.impl;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 
 import java.security.Principal;
 import java.util.Iterator;
@@ -65,7 +66,7 @@ public class SettingsController implements ISettingsController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation(value = "Get server email settings for specified profile", notes = "'default' profile is using till additional UI implementations")
 	public ServerSettingsResource getServerSettings(@PathVariable String profileId, Principal principal) {
-		return serverHandler.getServerSettings(EntityUtils.normalizeId(profileId));
+		return serverHandler.getServerSettings(normalizeId(profileId));
 	}
 
 	@Override
@@ -75,6 +76,6 @@ public class SettingsController implements ISettingsController {
 	@ApiOperation(value = "Set server email settings for specified profile", notes = "'default' profile is using till additional UI implementations")
 	public OperationCompletionRS setServerSettings(@PathVariable String profileId, @RequestBody @Validated UpdateEmailSettingsRQ request,
 			Principal principal) {
-		return serverHandler.setServerSettings(EntityUtils.normalizeId(profileId), request);
+		return serverHandler.saveEmailSettings(normalizeId(profileId), request);
 	}
 }

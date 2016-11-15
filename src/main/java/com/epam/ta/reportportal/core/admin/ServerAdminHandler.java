@@ -41,11 +41,11 @@ public interface ServerAdminHandler {
     ServerSettingsResource getServerSettings(String profileId);
 
     /**
-     * Update server settings for specified profile
+     * Updates email settings for specified profile
      *
      * @param profileId Profile ID
      * @param request   Update data
      * @return Operation results
      */
-    OperationCompletionRS setServerSettings(String profileId, UpdateEmailSettingsRQ request);
+    OperationCompletionRS saveEmailSettings(String profileId, UpdateEmailSettingsRQ request);
 }

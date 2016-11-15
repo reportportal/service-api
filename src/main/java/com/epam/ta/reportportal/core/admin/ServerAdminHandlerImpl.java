@@ -25,15 +25,23 @@ import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.database.entity.ServerSettings;
+import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.ServerSettingsResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import com.epam.ta.reportportal.ws.model.settings.UpdateEmailSettingsRQ;
 import org.jasypt.util.text.BasicTextEncryptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.mail.MessagingException;
+
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.ta.reportportal.ws.model.ErrorType.SERVER_SETTINGS_NOT_FOUND;
 
 /**
@@ -45,6 +53,8 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.SERVER_SETTINGS_NOT_FO
 @Service
 public class ServerAdminHandlerImpl implements ServerAdminHandler {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServerAdminHandlerImpl.class);
+
 	@Autowired
 	private BasicTextEncryptor simpleEncryptor;
 
@@ -54,6 +64,9 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 	@Autowired
 	private ServerSettingsResourceAssembler settingsAssembler;
 
+	@Autowired
+	private MailServiceFactory emailServiceFactory;
+
 	@Override
 	public ServerSettingsResource getServerSettings(String profileId) {
 		ServerSettings settings = repository.findOne(profileId);
@@ -62,40 +75,48 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 	}
 
 	@Override
-	public OperationCompletionRS setServerSettings(String profileId, UpdateEmailSettingsRQ request) {
+	public OperationCompletionRS saveEmailSettings(String profileId, UpdateEmailSettingsRQ request) {
 		ServerSettings settings = repository.findOne(profileId);
 		BusinessRule.expect(settings, Predicates.notNull()).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, profileId);
 		if (null != request) {
+			ServerEmailConfig serverEmailConfig = settings.getServerEmailConfig();
 			if (request.getDebug())
-				settings.getServerEmailConfig().setDebug(request.getDebug());
+				serverEmailConfig.setDebug(request.getDebug());
 			if (null != request.getHost())
-				settings.getServerEmailConfig().setHost(request.getHost());
+				serverEmailConfig.setHost(request.getHost());
 			if (null != request.getPort()) {
 				try {
 					int port = Integer.parseInt(request.getPort());
 					if ((port <= 0) || (port > 65535))
 						BusinessRule.fail().withError(ErrorType.INCORRECT_REQUEST, "Incorrect 'Port' value. Allowed value is [1..65535]");
-					settings.getServerEmailConfig().setPort(port);
+					serverEmailConfig.setPort(port);
 				} catch (NumberFormatException e) {
 					BusinessRule.fail().withError(ErrorType.INCORRECT_REQUEST, "Incorrect 'Port' value. Allowed value is [1..65535]");
 				}
 			}
 			if (null != request.getProtocol())
-				settings.getServerEmailConfig().setProtocol(request.getProtocol());
+				serverEmailConfig.setProtocol(request.getProtocol());
 			if (request.getAuthEnabled()) {
-				settings.getServerEmailConfig().setAuthEnabled(request.getAuthEnabled());
+				serverEmailConfig.setAuthEnabled(request.getAuthEnabled());
 				if (null != request.getUsername())
-					settings.getServerEmailConfig().setUsername(request.getUsername());
+					serverEmailConfig.setUsername(request.getUsername());
 				if (null != request.getPassword())
-					settings.getServerEmailConfig().setPassword(simpleEncryptor.encrypt(request.getPassword()));
+					serverEmailConfig.setPassword(simpleEncryptor.encrypt(request.getPassword()));
 
-				settings.getServerEmailConfig().setStarTlsEnabled(Boolean.TRUE.equals(request.getStarTlsEnabled()));
-				settings.getServerEmailConfig().setSslEnabled(Boolean.TRUE.equals(request.getSslEnabled()));
+				serverEmailConfig.setStarTlsEnabled(Boolean.TRUE.equals(request.getStarTlsEnabled()));
+				serverEmailConfig.setSslEnabled(Boolean.TRUE.equals(request.getSslEnabled()));
 			} else {
-				settings.getServerEmailConfig().setAuthEnabled(false);
+				serverEmailConfig.setAuthEnabled(false);
 				/* Auto-drop values on switched-off authentication */
-				settings.getServerEmailConfig().setUsername(null);
-				settings.getServerEmailConfig().setPassword(null);
+				serverEmailConfig.setUsername(null);
+				serverEmailConfig.setPassword(null);
+			}
+			try {
+				emailServiceFactory.getEmailService(serverEmailConfig).testConnection();
+			} catch (MessagingException ex) {
+				LOGGER.error("Cannot send email to user", ex);
+				fail().withError(FORBIDDEN_OPERATION,
+						"Email configuration is incorrect. Please, check your configuration. " + ex.getMessage());
 			}
 		}
 		repository.save(settings);

@@ -65,8 +65,7 @@ public class JacksonViewAwareModule extends SimpleModule {
 		}
 
 		@Override
-		public void serialize(JacksonViewAware value, JsonGenerator jgen, SerializerProvider provider) throws IOException,
-				JsonGenerationException {
+		public void serialize(JacksonViewAware value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
 			/*
 			 * Writes bean with specified view
 			 */

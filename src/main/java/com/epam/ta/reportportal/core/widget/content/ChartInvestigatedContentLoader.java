@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.core.widget.content;
 
 import java.text.DecimalFormat;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

@@ -27,12 +27,10 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 import java.util.Optional;
 
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.externalsystem.ExternalSystemStrategy;
 import com.epam.ta.reportportal.core.externalsystem.StrategyProvider;
 import com.epam.ta.reportportal.database.entity.AuthType;
 import com.epam.ta.reportportal.events.ExternalSystemUpdatedEvent;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;

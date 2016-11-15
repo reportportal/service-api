@@ -41,8 +41,6 @@ import com.epam.ta.reportportal.triggers.CascadeDeleteProjectsService;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
-import java.util.Arrays;
-
 /**
  * Initial implementation of
  * {@link com.epam.ta.reportportal.core.project.IDeleteProjectHandler}

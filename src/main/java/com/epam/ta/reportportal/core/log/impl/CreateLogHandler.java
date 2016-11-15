@@ -44,8 +44,6 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 
-import javax.annotation.Nonnull;
-
 /**
  * Create log handler. Save log and binary data related to it
  * 

@@ -64,7 +64,7 @@ public class MailServiceFactory {
 		javaMailProperties.put("mail.smtp.starttls.enable", authRequired && config.isStarTlsEnabled());
 		javaMailProperties.put("mail.debug", config.isDebug());
 
-		if (config.isSslEnabled()){
+		if (config.isSslEnabled()) {
 			javaMailProperties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
 			javaMailProperties.put("mail.smtp.socketFactory.fallback", "false");
 		}

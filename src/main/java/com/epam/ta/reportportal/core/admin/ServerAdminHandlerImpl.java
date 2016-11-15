@@ -90,6 +90,7 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 					settings.getServerEmailConfig().setPassword(simpleEncryptor.encrypt(request.getPassword()));
 
 				settings.getServerEmailConfig().setStarTlsEnabled(Boolean.TRUE.equals(request.getStarTlsEnabled()));
+				settings.getServerEmailConfig().setSslEnabled(Boolean.TRUE.equals(request.getSslEnabled()));
 			} else {
 				settings.getServerEmailConfig().setAuthEnabled(false);
 				/* Auto-drop values on switched-off authentication */

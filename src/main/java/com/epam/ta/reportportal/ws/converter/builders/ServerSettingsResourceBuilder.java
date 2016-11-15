@@ -46,6 +46,8 @@ public class ServerSettingsResourceBuilder extends ResourceBuilder<ServerSetting
 		output.setPort(doc.getServerEmailConfig().getPort());
 		output.setProtocol(doc.getServerEmailConfig().getProtocol());
 		output.setAuthEnabled(doc.getServerEmailConfig().getAuthEnabled());
+		output.setSslEnabled(doc.getServerEmailConfig().isSslEnabled());
+		output.setStarTlsEnabled(doc.getServerEmailConfig().isStarTlsEnabled());
 		if (doc.getServerEmailConfig().getAuthEnabled()) {
 			output.setUsername(doc.getServerEmailConfig().getUsername());
 			/* Password field not provided in response */

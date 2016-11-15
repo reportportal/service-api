@@ -21,29 +21,29 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import com.epam.ta.reportportal.commons.Constants;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.user.ICreateUserHandler;
-import com.epam.ta.reportportal.database.dao.*;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.dao.RestorePasswordBidRepository;
+import com.epam.ta.reportportal.database.dao.UserCreationBidRepository;
+import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.user.*;
-import com.epam.ta.reportportal.database.entity.user.UserUtils;
 import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
 import com.epam.ta.reportportal.events.UserCreatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
+import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.builders.RestorePasswordBidBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.UserCreationBidBuilder;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
@@ -64,22 +64,17 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Implementation of Create User handler
- * 
+ *
  * @author Andrei_Ramanchuk
  */
 @Service
 public class CreateUserHandler implements ICreateUserHandler {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(CreateUserHandler.class);
-
 	private UserRepository userRepository;
 	private ProjectRepository projectRepository;
 
 	@Autowired
-	private EmailService emailService;
-
-	@Autowired
-	private ServerSettingsRepository settingsRepository;
+	private MailServiceFactory emailServiceFactory;
 
 	@Autowired
 	private UserCreationBidRepository userCreationBidRepository;
@@ -107,7 +102,6 @@ public class CreateUserHandler implements ICreateUserHandler {
 	public void setProjectRepository(ProjectRepository projectRepository) {
 		this.projectRepository = projectRepository;
 	}
-
 
 	@Autowired
 	public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
@@ -153,12 +147,11 @@ public class CreateUserHandler implements ICreateUserHandler {
 			 * Generate personal project for the user
 			 */
 			Project personalProject = PersonalProjectUtils.generatePersonalProject(user);
-			if (!defaultProject.getId().equals(personalProject.getId())){
+			if (!defaultProject.getId().equals(personalProject.getId())) {
 				projectRepository.save(personalProject);
 			}
 
-			setupEmailService();
-			emailService.sendConfirmationEmail(request, basicUrl);
+			emailServiceFactory.getDefaultEmailService().sendConfirmationEmail(request, basicUrl);
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {
@@ -173,7 +166,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 	@Override
 	public CreateUserBidRS createUserBid(CreateUserRQ request, Principal principal, String emailURL) {
-		setupEmailService();
+		EmailService emailService = emailServiceFactory.getDefaultEmailService();
 		User creator = userRepository.findOne(principal.getName());
 		expect(creator, notNull()).verify(ACCESS_DENIED);
 
@@ -267,7 +260,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 			 * Generate personal project for the user
 			 */
 			Project personalProject = PersonalProjectUtils.generatePersonalProject(user);
-			if (!defaultProject.getId().equals(personalProject.getId())){
+			if (!defaultProject.getId().equals(personalProject.getId())) {
 				projectRepository.save(personalProject);
 			}
 
@@ -286,13 +279,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 	@Override
 	public OperationCompletionRS createRestorePasswordBid(RestorePasswordRQ rq, String baseUrl) {
-		try {
-			emailService.reconfig(settingsRepository.findOne("default").getServerEmailConfig());
-			emailService.testConnection();
-		} catch (Exception ex) {
-			fail().withError(FORBIDDEN_OPERATION,
-					"Email configuration is broken or switched-off. Please config email server in Report Portal settings.");
-		}
+		EmailService emailService = emailServiceFactory.getDefaultEmailService();
 		String email = EntityUtils.normalizeEmail(rq.getEmail());
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 		User user = userRepository.findByEmail(email);
@@ -302,8 +289,9 @@ public class CreateUserHandler implements ICreateUserHandler {
 		restorePasswordBidRepository.save(bid);
 		try {
 			// TODO use default 'from' param or project specified?
-			emailService.sendRestorePasswordEmail("Password recovery", new String[] { rq.getEmail() },
-					baseUrl + "#login?reset=" + bid.getId(), user.getLogin());
+			emailService
+					.sendRestorePasswordEmail("Password recovery", new String[] { rq.getEmail() }, baseUrl + "#login?reset=" + bid.getId(),
+							user.getLogin());
 		} catch (Exception e) {
 			fail().withError(FORBIDDEN_OPERATION, Suppliers.formattedSupplier("Unable to send email for bid '{}'.", bid.getId()));
 		}
@@ -318,8 +306,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 		User byEmail = userRepository.findByEmail(email);
 		expect(byEmail, notNull()).verify(USER_NOT_FOUND);
-		expect(byEmail.getType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR,
-				"Unable to change password for external user");
+		expect(byEmail.getType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR, "Unable to change password for external user");
 		byEmail.setPassword(UserUtils.generateMD5(rq.getPassword()));
 		userRepository.save(byEmail);
 		restorePasswordBidRepository.delete(rq.getUuid());
@@ -334,14 +321,4 @@ public class CreateUserHandler implements ICreateUserHandler {
 		return new YesNoRS(null != bid);
 	}
 
-	private void setupEmailService(){
-		try {
-			emailService.reconfig(settingsRepository.findOne("default").getServerEmailConfig());
-			emailService.testConnection();
-		} catch (Exception ex) {
-			LOGGER.error("Cannot send email to user", ex);
-			fail().withError(FORBIDDEN_OPERATION,
-					"Email configuration is broken or switched-off. Please config email server in Report Portal settings.");
-		}
-	}
 }

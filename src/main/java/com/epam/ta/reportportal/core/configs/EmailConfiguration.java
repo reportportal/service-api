@@ -20,21 +20,11 @@
  */ 
 
 package com.epam.ta.reportportal.core.configs;
-import java.util.Properties;
-
-import org.jasypt.util.text.BasicTextEncryptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.BeanDefinition;
+import com.epam.reportportal.commons.template.VelocityTemplateEngine;
+import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 import org.springframework.ui.velocity.VelocityEngineFactoryBean;
-
-import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
-import com.epam.ta.reportportal.util.email.EmailService;
-import com.epam.reportportal.commons.template.VelocityTemplateEngine;
-import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
 
 /**
  * Global Email Configuration<br>
@@ -45,60 +35,9 @@ import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
 @Configuration
 public class EmailConfiguration {
 
-	@Autowired
-	private ServerSettingsRepository settingsRepository;
-
-	@Autowired
-	private BasicTextEncryptor simpleEncryptor;
-
-	@Autowired
-	@Value("${rp.email.server}")
-	private String defaultEmailServer;
-
-	@Autowired
-	@Value("${rp.email.port}")
-	private Integer defaultEmailPort;
-
-	@Autowired
-	@Value("${rp.email.protocol}")
-	private String defaultEmailProtocol;
-
 	@Bean
-	@Scope(BeanDefinition.SCOPE_PROTOTYPE)
-	public EmailService initializeEmailService() {
-		if (null != settingsRepository.findOne("default")) {
-			ServerEmailConfig config = settingsRepository.findOne("default").getServerEmailConfig();
-
-			Properties javaMailProperties = new Properties();
-			javaMailProperties.put("mail.smtp.connectiontimeout", 5000);
-			javaMailProperties.put("mail.smtp.auth", config.getAuthEnabled());
-			javaMailProperties.put("mail.smtp.starttls.enable", config.isStarTlsEnabled());
-
-			javaMailProperties.put("mail.debug", config.isDebug());
-
-			EmailService emailService = new EmailService(javaMailProperties);
-			emailService.setTemplateEngine(getVelocityTemplateEngine());
-			emailService.setHost(config.getHost());
-			emailService.setPort(config.getPort());
-			emailService.setProtocol(config.getProtocol());
-			if (config.getAuthEnabled()) {
-				emailService.setUsername(config.getUsername());
-				emailService.setPassword(simpleEncryptor.decrypt(config.getPassword()));
-			}
-			return emailService;
-		} else {
-			Properties javaMailProperties = new Properties();
-			javaMailProperties.put("mail.smtp.connectiontimeout", 5000);
-			javaMailProperties.put("mail.smtp.auth", false);
-			javaMailProperties.put("mail.debug", false);
-
-			EmailService emailService = new EmailService(javaMailProperties);
-			emailService.setTemplateEngine(getVelocityTemplateEngine());
-			emailService.setHost(defaultEmailServer);
-			emailService.setPort(defaultEmailPort);
-			emailService.setProtocol(defaultEmailProtocol);
-			return emailService;
-		}
+	public MailServiceFactory initializeEmailServiceFactory() {
+		return new MailServiceFactory();
 	}
 
 	@Bean(name = "velocityEngine")

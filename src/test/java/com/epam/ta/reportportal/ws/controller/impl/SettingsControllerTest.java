@@ -26,6 +26,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.dumbster.smtp.ServerOptions;
+import com.dumbster.smtp.SmtpServer;
+import com.dumbster.smtp.SmtpServerFactory;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -35,6 +40,8 @@ import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.settings.UpdateEmailSettingsRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
+
 /**
  * Administration controller test
  * 
@@ -43,8 +50,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class SettingsControllerTest extends BaseMvcTest {
 
+	private static SmtpServer SMTP;
+
+
 	@Autowired
 	private ObjectMapper objectMapper;
+
+	@BeforeClass
+	public static void startSmtpServer() throws IOException {
+		ServerOptions so = new ServerOptions();
+		so.port = 10025;
+		SMTP = SmtpServerFactory.startServer(so);
+	}
+
+	@AfterClass
+	public static void shutdownSmtpServer() {
+		SMTP.stop();
+	}
 
 	@Test
 	public void getServerSettings() throws Exception {
@@ -52,10 +74,20 @@ public class SettingsControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void updateServerSettings() throws Exception {
+	public void updateServerSettingsNegative() throws Exception {
 		UpdateEmailSettingsRQ rq = new UpdateEmailSettingsRQ();
 		rq.setHost("fake.host.com");
 		rq.setPort("25");
+		rq.setProtocol("smtp");
+		this.mvcMock.perform(put("/settings/default").principal(authentication()).contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
+				.andExpect(status().is(400));
+	}
+
+	@Test
+	public void updateServerSettings() throws Exception {
+		UpdateEmailSettingsRQ rq = new UpdateEmailSettingsRQ();
+		rq.setHost("localhost");
+		rq.setPort("10025");
 		rq.setProtocol("smtp");
 		rq.setAuthEnabled(true);
 		rq.setUsername("user");

@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.admin;
 
@@ -47,7 +47,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.SERVER_SETTINGS_NOT_FO
 /**
  * Basic implementation of server administration interface
  * {@link ServerAdminHandler}
- * 
+ *
  * @author Andrei_Ramanchuk
  */
 @Service
@@ -112,7 +112,7 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 				serverEmailConfig.setPassword(null);
 			}
 			try {
-				emailServiceFactory.getEmailService(serverEmailConfig).testConnection();
+				emailServiceFactory.getEmailService(serverEmailConfig, false).testConnection();
 			} catch (MessagingException ex) {
 				LOGGER.error("Cannot send email to user", ex);
 				fail().withError(FORBIDDEN_OPERATION,

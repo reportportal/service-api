@@ -25,6 +25,8 @@ import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.database.entity.ServerSettings;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
 import org.jasypt.util.text.BasicTextEncryptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Properties;
@@ -39,6 +41,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
  */
 public class MailServiceFactory {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(MailServiceFactory.class);
 	private static final int DEFAULT_CONNECTION_TIMEOUT = 5000;
 	private static final String DEFAULT_SETTINGS_PROFILE = "default";
 
@@ -52,10 +55,11 @@ public class MailServiceFactory {
 	/**
 	 * Build mail service based on provided configs
 	 *
-	 * @param config Email server configs
+	 * @param config          Email server configs
+	 * @param connectionCheck check connection flag
 	 * @return Built email service
 	 */
-	public EmailService getEmailService(ServerEmailConfig config) {
+	public EmailService getEmailService(ServerEmailConfig config, boolean connectionCheck) {
 		boolean authRequired = (null != config.getAuthEnabled() && config.getAuthEnabled());
 
 		Properties javaMailProperties = new Properties();
@@ -78,11 +82,15 @@ public class MailServiceFactory {
 			service.setUsername(config.getUsername());
 			service.setPassword(encryptor.decrypt(config.getPassword()));
 		}
+
+		if (connectionCheck) {
+			checkConnection(service);
+		}
 		return service;
 	}
 
 	/**
-	 * Build mail service based on default server configs
+	 * Build mail service based on default server configs and checks connection
 	 *
 	 * @return Built email service
 	 */
@@ -94,9 +102,19 @@ public class MailServiceFactory {
 			fail().withError(FORBIDDEN_OPERATION,
 					"Email configuration is broken or switched-off. Please config email server in Report Portal settings.");
 		} else {
-			emailService = getEmailService(serverSettings.getServerEmailConfig());
+			emailService = getEmailService(serverSettings.getServerEmailConfig(), true);
 		}
 		return emailService;
+	}
 
+	private void checkConnection(EmailService service) {
+		try {
+			service.testConnection();
+		} catch (Exception e) {
+			LOGGER.error("Cannot send email to user", e);
+			fail().withError(FORBIDDEN_OPERATION,
+					"Email configuration is broken or switched-off. Please config email server in Report Portal settings. " + e
+							.getMessage());
+		}
 	}
 }

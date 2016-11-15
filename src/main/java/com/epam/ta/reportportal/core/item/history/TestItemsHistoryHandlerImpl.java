@@ -17,15 +17,13 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.item.history;
 
 import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_LOAD_TEST_ITEM_HISTORY;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_HISTORY_DEPTH_BOUND;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_HISTORY_SIZE_BOUND;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_HISTORY_DEPTH_BOUND;
+import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,10 +31,10 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import com.epam.ta.reportportal.commons.DbUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.epam.ta.reportportal.commons.DbUtils;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
@@ -116,8 +114,7 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 				loadParentIds(itemsForHistory.get(0), historyLaunchesIds));
 
 		Map<String, List<TestItem>> groupedItems = history.stream().collect(Collectors.groupingBy(TestItem::getLaunchRef));
-		return launches.stream()
-				.map(launch -> buildHistoryElement(launch, groupedItems.get(launch.getId()))).collect(Collectors.toList());
+		return launches.stream().map(launch -> buildHistoryElement(launch, groupedItems.get(launch.getId()))).collect(Collectors.toList());
 	}
 
 	TestItemHistoryElement buildHistoryElement(Launch launch, List<TestItem> testItems) {
@@ -142,7 +139,7 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 		}
 		TestItem parent = testItemRepository.findOne(testItem.getParent());
 		BusinessRule.expect(parent, Predicates.notNull()).verify(TEST_ITEM_NOT_FOUND,
-				"Unable to find parent for '" + testItem.getId() + "' with ID '" + parent.getId() + "'.");
+				"Unable to find parent for '" + testItem.getId() + "' with ID '" + testItem.getParent() + "'.");
 		List<TestItem> history = testItemRepository.loadItemsHistory(Lists.newArrayList(parent), launchesIds, null);
 		return DbUtils.toIds(history);
 	}

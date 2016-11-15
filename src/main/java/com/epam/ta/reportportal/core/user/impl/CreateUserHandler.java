@@ -249,9 +249,6 @@ public class CreateUserHandler implements ICreateUserHandler {
 		}
 		defaultProject.setUsers(projectUsers);
 
-		Map<String, UserConfig> demoUsers = new HashMap<>();
-		demoUsers.put(user.getId(), UserConfig.newOne().withProjectRole(MEMBER).withProposedRole(MEMBER));
-
 		try {
 			userRepository.save(user);
 			projectRepository.addUsers(request.getDefaultProject(), projectUsers);

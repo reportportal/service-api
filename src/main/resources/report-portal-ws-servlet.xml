@@ -215,12 +215,6 @@
 	</bean>
 
 
-	<bean id="serverSettingsBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
-		<constructor-arg name="clazz">
-			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.ServerSettingsBuilder</value>
-		</constructor-arg>
-	</bean>
-
 	<bean id="serverSettingsResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
 		<constructor-arg name="clazz">
 			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.ServerSettingsResourceBuilder</value>

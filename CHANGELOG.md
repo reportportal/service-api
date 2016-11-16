@@ -24,6 +24,7 @@
 ### New Features
 
 * EPMRPP-20859 - Remove default projects. Replace with Personal spaces
+* EPMRPP-22776 - Add STARTTLS and SSL email connections support
 
 ### Bugfixes
 

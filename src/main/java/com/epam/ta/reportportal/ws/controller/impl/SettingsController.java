@@ -25,13 +25,6 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 
 import java.security.Principal;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import com.epam.ta.reportportal.commons.EntityUtils;
-import com.epam.ta.reportportal.core.externalsystem.ExternalSystemStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;

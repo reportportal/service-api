@@ -21,15 +21,6 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import static com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter.*;
-import static com.epam.ta.reportportal.database.entity.statistics.IssueCounter.*;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.widget.impl.WidgetUtils;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
@@ -43,6 +34,14 @@ import com.epam.ta.reportportal.database.search.FilterConditionUtils;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of
@@ -61,16 +60,9 @@ public class GeneralFilterStrategy implements BuildFilterStrategy {
 	private WidgetContentProvider widgetContentProvider;
 
 	private final FilterCondition modeCondition;
-	private final ContentOptions contentOptions;
 
 	public GeneralFilterStrategy() {
 		modeCondition = new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.toString(), Launch.MODE_CRITERIA);
-		contentOptions = new ContentOptions();
-		contentOptions.setMetadataFields(Arrays.asList(WidgetUtils.NAME, WidgetUtils.NUMBER, WidgetUtils.START_TIME));
-		contentOptions.setContentFields(Arrays.asList(TOTAL_CRITERIA, PASSED_CRITERIA, FAILED_CRITERIA, SKIPPED_CRITERIA,
-				PRODUCT_BUG_CRITERIA, SYSTEM_ISSUE_CRITERIA, AUTOMATION_BUG_CRITERIA, TO_INVESTIGATE_CRITERIA));
-		contentOptions.setType(WidgetDataTypes.LINE_CHART.getType());
-		contentOptions.setGadgetType(GadgetTypes.OLD_LINE_CHART.getType());
 	}
 
 	@Override

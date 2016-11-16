@@ -51,7 +51,6 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -59,7 +58,8 @@ import java.util.Optional;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.*;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.CUSTOMER;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.forName;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**

@@ -48,7 +48,7 @@ import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 public class ActivityFilterStrategy implements BuildFilterStrategy {
 
 	public static final Integer QUANTITY = 50;
-	public static final Integer PAGE_NUMBER = 1;
+	private static final Integer PAGE_NUMBER = 1;
 	private static final String LAST_MODIFIED = "last_modified";
 	private static final String SEPARATOR = ",";
 	private static final String[] options = { Activity.ACTION_TYPE, Activity.USER_REF, Activity.OBJECT_TYPE };

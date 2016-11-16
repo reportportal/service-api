@@ -56,8 +56,7 @@ public class JsonViewSupportFactoryBean implements InitializingBean {
 		 * unmodifiable
 		 */
 		List<HandlerMethodReturnValueHandler> updatedHandlers = new ArrayList<>(handlers.size());
-		for (int i = 0; i < handlers.size(); i++) {
-			HandlerMethodReturnValueHandler handler = handlers.get(i);
+		for (HandlerMethodReturnValueHandler handler : handlers) {
 			if (handler instanceof RequestResponseBodyMethodProcessor) {
 				updatedHandlers.add(new JacksonViewReturnValueHandler(handler));
 			} else {

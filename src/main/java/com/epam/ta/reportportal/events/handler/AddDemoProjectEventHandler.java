@@ -21,12 +21,18 @@
 
 package com.epam.ta.reportportal.events.handler;
 
-import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.generatePersonalProject;
-import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
-
-import java.util.Calendar;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.epam.ta.reportportal.commons.Constants;
+import com.epam.ta.reportportal.database.BinaryData;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
+import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.entity.ServerSettings;
+import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.database.entity.user.UserRole;
+import com.epam.ta.reportportal.database.entity.user.UserType;
+import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,19 +42,11 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
-import com.epam.ta.reportportal.commons.Constants;
-import com.epam.ta.reportportal.database.BinaryData;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
-import com.epam.ta.reportportal.database.dao.UserRepository;
-import com.epam.ta.reportportal.database.entity.ProjectRole;
-import com.epam.ta.reportportal.database.entity.ServerSettings;
-import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.database.entity.user.UserRole;
-import com.epam.ta.reportportal.database.entity.user.UserType;
-import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
+import java.util.Calendar;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.generatePersonalProject;
+import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
 
 /**
  * Initial deploy data

@@ -53,7 +53,6 @@ import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.google.common.collect.Lists;
-import org.springframework.util.SerializationUtils;
 
 /**
  * Default implementation of {@link IUpdateWidgetHandler}

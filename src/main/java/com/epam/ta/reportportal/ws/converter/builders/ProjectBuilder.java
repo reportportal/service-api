@@ -72,10 +72,6 @@ public class ProjectBuilder extends Builder<Project> {
 			getObject().getConfiguration().setKeepLogs(KeepLogsDelay.THREE_MONTHS.getValue());
 			getObject().getConfiguration().setKeepScreenshots(KeepScreenshotsDelay.TWO_WEEKS.getValue());
 			getObject().getConfiguration().setIsAutoAnalyzerEnabled(false);
-			getObject().getConfiguration().setStatisticsCalculationStrategy(
-					Optional.of(createProjectRQ.getStatsCalculationStrategy()).flatMap(StatisticsCalculationStrategy::fromString)
-							.orElseThrow(
-									() -> new ReportPortalException(ErrorType.PROJECT_NOT_CONFIGURED, createProjectRQ.getProjectName())));
 
 			// Email settings by default
 			EmailSenderCase defaultOne = new EmailSenderCase(newArrayList("OWNER"), SendCase.ALWAYS.name(), emptyList(), emptyList());

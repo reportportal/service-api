@@ -49,6 +49,7 @@ project.ext {
 
 repositories {
     mavenCentral()
+    mavenLocal()
     maven { url "http://dl.bintray.com/epam/reportportal" }
     maven { url "http://jasperreports.sourceforge.net/maven2" }
     maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
@@ -66,9 +67,12 @@ configurations {
 }
 
 dependencies {
-    compile 'com.epam.reportportal:commons-model:2.7.0-ALPHA-9'
-    compile 'com.epam.reportportal:commons-dao:2.7.0-ALPHA-13'
-    compile 'com.epam.reportportal:commons-rules:2.7.0-ALPHA-4'
+//    compile 'com.epam.reportportal:commons-model:2.7.0-ALPHA-9'
+    compile 'com.epam.reportportal:commons-dao:2.7.0-bdd'
+    compile ('com.epam.reportportal:commons-rules:2.7.0-ALPHA-4'){
+        exclude module: 'com.epam.reportportal:commons-rules'
+
+    }
     compile 'com.epam.reportportal:commons:2.6.1'
 
     compile 'org.jasypt:jasypt:1.9.2'

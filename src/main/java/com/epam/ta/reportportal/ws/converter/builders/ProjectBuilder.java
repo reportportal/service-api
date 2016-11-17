@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -40,6 +41,9 @@ import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import com.google.common.collect.Lists;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Collections.emptyList;
 
 /**
  * New project object builder
@@ -68,12 +72,12 @@ public class ProjectBuilder extends Builder<Project> {
 			getObject().getConfiguration().setKeepLogs(KeepLogsDelay.THREE_MONTHS.getValue());
 			getObject().getConfiguration().setKeepScreenshots(KeepScreenshotsDelay.TWO_WEEKS.getValue());
 			getObject().getConfiguration().setIsAutoAnalyzerEnabled(false);
-			getObject().getConfiguration().setStatisticsCalculationStrategy(StatisticsCalculationStrategy.TEST_BASED);
+			getObject().getConfiguration().setStatisticsCalculationStrategy(StatisticsCalculationStrategy
+					.fromString(createProjectRQ.getStatsCalculationStrategy()).orElse(StatisticsCalculationStrategy.STEP_BASED));
 
 			// Email settings by default
-			EmailSenderCase defaultOne = new EmailSenderCase(Lists.newArrayList("OWNER"), SendCase.ALWAYS.name(), Lists.newArrayList(),
-					Lists.newArrayList());
-			ProjectEmailConfig config = new ProjectEmailConfig(false, "reportportal@example.com", Lists.newArrayList(defaultOne));
+			EmailSenderCase defaultOne = new EmailSenderCase(newArrayList("OWNER"), SendCase.ALWAYS.name(), emptyList(), emptyList());
+			ProjectEmailConfig config = new ProjectEmailConfig(false, "reportportal@example.com", newArrayList(defaultOne));
 			getObject().getConfiguration().setEmailConfig(config);
 
 			// Users

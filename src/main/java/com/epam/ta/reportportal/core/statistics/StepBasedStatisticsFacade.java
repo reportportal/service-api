@@ -21,9 +21,9 @@
 
 package com.epam.ta.reportportal.core.statistics;
 
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import org.springframework.stereotype.Service;
+
+import com.epam.ta.reportportal.database.entity.item.TestItem;
 
 /**
  * Statistics facade for case when we need to caclulate statistics only for
@@ -33,12 +33,11 @@ import org.springframework.stereotype.Service;
  * 
  */
 @Service
-public class TestBasedStatisticsFacade extends StatisticsFacadeImpl implements StatisticsFacade {
+public class StepBasedStatisticsFacade extends StatisticsFacadeImpl implements StatisticsFacade {
 
 	@Override
 	public TestItem updateExecutionStatistics(final TestItem testItem) {
-		TestItemType type = testItem.getType();
-		if (type.awareStatistics() & type.higherThan(TestItemType.TEST)) {
+		if (testItem.getType().awareStatistics()) {
 			return super.updateExecutionStatistics(testItem);
 		} else {
 			return testItem;
@@ -47,8 +46,7 @@ public class TestBasedStatisticsFacade extends StatisticsFacadeImpl implements S
 
 	@Override
 	public TestItem resetExecutionStatistics(TestItem testItem) {
-		TestItemType type = testItem.getType();
-		if (type.awareStatistics() & type.higherThan(TestItemType.TEST)) {
+		if (testItem.getType().awareStatistics()) {
 			return super.resetExecutionStatistics(testItem);
 		} else {
 			return testItem;
@@ -57,8 +55,7 @@ public class TestBasedStatisticsFacade extends StatisticsFacadeImpl implements S
 
 	@Override
 	public TestItem deleteExecutionStatistics(TestItem testItem) {
-		TestItemType type = testItem.getType();
-		if (type.awareStatistics() & type.higherThan(TestItemType.TEST)) {
+		if (testItem.getType().awareStatistics()) {
 			return super.deleteExecutionStatistics(testItem);
 		} else {
 			return testItem;

@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.statistics;
 
@@ -26,42 +26,42 @@ import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import org.springframework.stereotype.Service;
 
 /**
- * Statistics facade for case when we need to caclulate statistics only for
- * tests (not for before and after methods)
- * 
+ * BDD Optimized statistics calculation strategy
+ * Do not calculates stats for step-level
+ * @see TestItemType#level
+ *
  * @author Andrei Varabyeu
- * 
  */
 @Service
 public class TestBasedStatisticsFacade extends StatisticsFacadeImpl implements StatisticsFacade {
 
-	@Override
-	public TestItem updateExecutionStatistics(final TestItem testItem) {
-		TestItemType type = testItem.getType();
-		if (type.awareStatistics() & type.higherThan(TestItemType.TEST)) {
-			return super.updateExecutionStatistics(testItem);
-		} else {
-			return testItem;
-		}
-	}
+    @Override
+    public TestItem updateExecutionStatistics(final TestItem testItem) {
+        TestItemType type = testItem.getType();
+        if (type.awareStatistics() && type.higherThan(TestItemType.TEST)) {
+            return super.updateExecutionStatistics(testItem);
+        } else {
+            return testItem;
+        }
+    }
 
-	@Override
-	public TestItem resetExecutionStatistics(TestItem testItem) {
-		TestItemType type = testItem.getType();
-		if (type.awareStatistics() & type.higherThan(TestItemType.TEST)) {
-			return super.resetExecutionStatistics(testItem);
-		} else {
-			return testItem;
-		}
-	}
+    @Override
+    public TestItem resetExecutionStatistics(TestItem testItem) {
+        TestItemType type = testItem.getType();
+        if (type.awareStatistics() && type.higherThan(TestItemType.TEST)) {
+            return super.resetExecutionStatistics(testItem);
+        } else {
+            return testItem;
+        }
+    }
 
-	@Override
-	public TestItem deleteExecutionStatistics(TestItem testItem) {
-		TestItemType type = testItem.getType();
-		if (type.awareStatistics() & type.higherThan(TestItemType.TEST)) {
-			return super.deleteExecutionStatistics(testItem);
-		} else {
-			return testItem;
-		}
-	}
+    @Override
+    public TestItem deleteExecutionStatistics(TestItem testItem) {
+        TestItemType type = testItem.getType();
+        if (type.awareStatistics() && type.higherThan(TestItemType.TEST)) {
+            return super.deleteExecutionStatistics(testItem);
+        } else {
+            return testItem;
+        }
+    }
 }

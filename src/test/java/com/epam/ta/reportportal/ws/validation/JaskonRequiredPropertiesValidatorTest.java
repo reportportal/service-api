@@ -3,7 +3,7 @@
  * 
  * 
  * This file is part of EPAM Report Portal.
- * https://github.com/epam/ReportPortal
+ * https://github.com/reportportal/service-api
  * 
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ public class JaskonRequiredPropertiesValidatorTest {
 		StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
 		startLaunchRQ.setDescription("some description");
 		startLaunchRQ.setName("some launch name");
-		startLaunchRQ.setTags(Collections.<String> emptySet());
+		startLaunchRQ.setTags(Collections.emptySet());
 		JaskonRequiredPropertiesValidator validator = new JaskonRequiredPropertiesValidator();
 		Errors errors = new BeanPropertyBindingResult(startLaunchRQ, "startLaunchRq");
 		validator.validate(startLaunchRQ, errors);

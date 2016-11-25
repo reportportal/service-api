@@ -3,7 +3,7 @@
  * 
  * 
  * This file is part of EPAM Report Portal.
- * https://github.com/epam/ReportPortal
+ * https://github.com/reportportal/service-api
  * 
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,18 +17,11 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.LongSummaryStatistics;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -48,15 +41,16 @@ public class StatisticBasedContentLoader {
 
 	public static final String RESULT = "result";
 
-	private static final List<String> STATZZ = Arrays.asList( "statistics.executionCounter.passed", "statistics.executionCounter.failed",
+	private static final List<String> STATZZ = Arrays.asList("statistics.executionCounter.passed", "statistics.executionCounter.failed",
 			"statistics.executionCounter.skipped");
 	private static final String PASSED = "statistics.executionCounter.passed";
 	private static final String FAILED = "statistics.executionCounter.failed";
 	private static final String SKIPPED = "statistics.executionCounter.skipped";
 	private static final String TOTAL = "statistics.executionCounter.total";
 
-	private static final List<String> BUGZZ = Arrays.asList( "statistics.issueCounter.productBug.total", "statistics.issueCounter.automationBug.total",
-			"statistics.issueCounter.systemIssue.total", "statistics.issueCounter.noDefect.total");
+	private static final List<String> BUGZZ = Arrays.asList("statistics.issueCounter.productBug.total",
+			"statistics.issueCounter.automationBug.total", "statistics.issueCounter.systemIssue.total",
+			"statistics.issueCounter.noDefect.total");
 	private static final String TO_INVESTIGATE = "statistics.issueCounter.toInvestigate.total";
 	private static final String PRODUCT_BUG = "statistics.issueCounter.productBug.total";
 	private static final String AUTOMATION_BUG = "statistics.issueCounter.automationBug.total";
@@ -162,14 +156,13 @@ public class StatisticBasedContentLoader {
 				.toString(DATE_PATTERN);
 		final BinaryOperator<ChartObject> chartObjectReducer = (o1,
 				o2) -> Integer.valueOf(o1.getValues().get(maxSeries)) > Integer.valueOf(o2.getValues().get(maxSeries)) ? o1 : o2;
-		final Map<String, Optional<ChartObject>> groupByDate = input.stream()
-				.sorted((o1, o2) -> o1.getStartTime().compareTo(o2.getStartTime()))
+		final Map<String, Optional<ChartObject>> groupByDate = input.stream().sorted(Comparator.comparing(ChartObject::getStartTime))
 				.collect(Collectors.groupingBy(chartObjectToDate, LinkedHashMap::new, Collectors.reducing(chartObjectReducer)));
 		final Map<String, ChartObject> range = buildRange(input, period);
 		final LinkedHashMap<String, List<ChartObject>> result = new LinkedHashMap<>();
 		// used forEach cause aspectj compiler can't infer types properly
 		range.forEach((key, value) -> result.put(key,
-				Arrays.asList(groupByDate.getOrDefault(key, Optional.of(createChartObject(input.get(0)))).get())));
+				Collections.singletonList(groupByDate.getOrDefault(key, Optional.of(createChartObject(input.get(0)))).get())));
 		return result;
 	}
 

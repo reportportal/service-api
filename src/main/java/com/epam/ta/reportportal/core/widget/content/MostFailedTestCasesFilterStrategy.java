@@ -3,7 +3,7 @@
  * 
  * 
  * This file is part of EPAM Report Portal.
- * https://github.com/epam/ReportPortal
+ * https://github.com/reportportal/service-api
  * 
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -156,7 +156,7 @@ public class MostFailedTestCasesFilterStrategy implements BuildFilterStrategy {
 	private static <K, ComplexValue extends Comparable<? super ComplexValue>> LinkedHashMap<K, ComplexValue> sortByValue(
 			Map<K, ComplexValue> map) {
 		List<Map.Entry<K, ComplexValue>> list = new LinkedList<>(map.entrySet());
-		Collections.sort(list, (object1, object2) -> (object1.getValue()).compareTo(object2.getValue()));
+		Collections.sort(list, Comparator.comparing(object -> (object.getValue())));
 		// Splitter for TOP-20 values included
 		LinkedHashMap<K, ComplexValue> result = new LinkedHashMap<>();
 		int counter = 0;

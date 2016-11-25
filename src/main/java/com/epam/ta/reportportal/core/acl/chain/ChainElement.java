@@ -3,7 +3,7 @@
  * 
  * 
  * This file is part of EPAM Report Portal.
- * https://github.com/epam/ReportPortal
+ * https://github.com/reportportal/service-api
  * 
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,11 +17,12 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.acl.chain;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.acl.AclUtils;
@@ -52,9 +53,8 @@ abstract class ChainElement implements IChainElement {
 			}
 			return nextChainElement.process(message);
 		}
-		message.getElements().stream().filter(shareable -> null != shareable).forEach(shareable -> {
-			AclUtils.modifyACL(shareable.getAcl(), message.getProjectName(), message.getUserName(), message.isShare());
-		});
+		message.getElements().stream().filter(Objects::nonNull).forEach(
+				shareable -> AclUtils.modifyACL(shareable.getAcl(), message.getProjectName(), message.getUserName(), message.isShare()));
 		if (message.isSave()) {
 			saveElements(message.getElements());
 		}

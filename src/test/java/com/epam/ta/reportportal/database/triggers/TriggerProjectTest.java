@@ -21,25 +21,22 @@
 
 package com.epam.ta.reportportal.database.triggers;
 
-import com.epam.ta.BaseTest;
-import com.epam.ta.reportportal.database.dao.*;
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.database.fixture.SpringFixture;
-import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
-import com.epam.ta.reportportal.triggers.CascadeDeleteProjectsService;
+import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
+import static java.util.Collections.singletonList;
+
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
+import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.database.fixture.SpringFixture;
+import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
 
 @SpringFixture("unitTestsProjectTriggers")
 public class TriggerProjectTest extends BaseTest {
@@ -52,40 +49,16 @@ public class TriggerProjectTest extends BaseTest {
 	private UserRepository userRepository;
 	@Autowired
 	private TestItemRepository testItemRepository;
-	@Autowired
-	private CascadeDeleteProjectsService cascadeDeleteProjectsService;
 
 	@Rule
 	@Autowired
 	public SpringFixtureRule dfRule;
 
 	@Test
-	public void testDeleteByProjectList() {
-		List<Launch> launches = launchRepository.findAll();
-		List<Project> projects = new ArrayList<>();
-
-		Project project2 = projectRepository.findOne(launches.get(2).getProjectRef());
-		Project project3 = projectRepository.findOne(launches.get(3).getProjectRef());
-
-		projects.add(project2);
-		projects.add(project3);
-
-		cascadeDeleteProjectsService.delete(projects.stream().map(Project::getId).collect(toList()));
-		Assert.assertNull(projectRepository.findOne(project2.getId()));
-		Assert.assertNull(projectRepository.findOne(project3.getId()));
-		Launch launch2 = launchRepository.findOne(launches.get(2).getId());
-		Launch launch3 = launchRepository.findOne(launches.get(3).getId());
-		Assert.assertNull(launch2);
-		Assert.assertNull(launch3);
-		Assert.assertTrue(testItemRepository.findIdsByLaunch(launches.get(2).getId()).isEmpty());
-		Assert.assertTrue(testItemRepository.findIdsByLaunch(launches.get(3).getId()).isEmpty());
-	}
-
-	@Test
 	public void testDeleteDefaultProject() {
 		User user = userRepository.findOne("user1");
 		Assert.assertEquals("test_123", user.getDefaultProject());
-		cascadeDeleteProjectsService.delete(singletonList("test_123"));
+		projectRepository.delete(singletonList("test_123"));
 		user = userRepository.findOne("user1");
 		Assert.assertEquals(personalProjectName(user.getId()), user.getDefaultProject());
 	}

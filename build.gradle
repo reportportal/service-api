@@ -67,7 +67,7 @@ configurations {
 
 dependencies {
     compile 'com.epam.reportportal:commons-model:2.7.0-ALPHA-9'
-    compile 'com.epam.reportportal:commons-dao:2.7.0-ALPHA-13'
+    compile 'com.epam.reportportal:commons-dao:2.7.0-ALPHA-14'
     compile 'com.epam.reportportal:commons-rules:2.7.0-ALPHA-4'
     compile 'com.epam.reportportal:commons:2.6.1'
 
@@ -177,7 +177,7 @@ test {
             logger.lifecycle("Checking coverage results: ${report}")
 
             def parser = new XmlParser()
-            parser.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            parser.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
             parser.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false)
             def results = parser.parse(report)
 
@@ -190,12 +190,12 @@ test {
             def counters = results.counter
             def metrics = [:]
             metrics << [
-                    'instruction': percentage(counters.find { it.'@type'.equals('INSTRUCTION') }),
-                    'branch'     : percentage(counters.find { it.'@type'.equals('BRANCH') }),
-                    'line'       : percentage(counters.find { it.'@type'.equals('LINE') }),
-                    'complexity' : percentage(counters.find { it.'@type'.equals('COMPLEXITY') }),
-                    'method'     : percentage(counters.find { it.'@type'.equals('METHOD') }),
-                    'class'      : percentage(counters.find { it.'@type'.equals('CLASS') })
+                    'instruction': percentage(counters.find { (it.'@type' == 'INSTRUCTION') }),
+                    'branch'     : percentage(counters.find { (it.'@type' == 'BRANCH') }),
+                    'line'       : percentage(counters.find { (it.'@type' == 'LINE') }),
+                    'complexity' : percentage(counters.find { (it.'@type' == 'COMPLEXITY') }),
+                    'method'     : percentage(counters.find { (it.'@type' == 'METHOD') }),
+                    'class'      : percentage(counters.find { (it.'@type' == 'CLASS') })
             ]
 
 

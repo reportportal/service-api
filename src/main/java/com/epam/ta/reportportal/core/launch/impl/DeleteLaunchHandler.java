@@ -50,7 +50,6 @@ import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.events.LaunchDeletedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.triggers.CascadeDeleteLaunchesService;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 /**
@@ -66,16 +65,14 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 	private final ProjectRepository projectRepository;
 	private final UserRepository userRepository;
 	private final ApplicationEventPublisher eventPublisher;
-	private final CascadeDeleteLaunchesService cascadeDeleteLaunchesService;
 
 	@Autowired
 	public DeleteLaunchHandler(ApplicationEventPublisher eventPublisher, LaunchRepository launchRepository,
-			ProjectRepository projectRepository, UserRepository userRepository, CascadeDeleteLaunchesService cascadeDeleteLaunchesService) {
+			ProjectRepository projectRepository, UserRepository userRepository) {
 		this.eventPublisher = eventPublisher;
 		this.launchRepository = launchRepository;
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
-		this.cascadeDeleteLaunchesService = cascadeDeleteLaunchesService;
 	}
 
 	@Override
@@ -89,7 +86,7 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 		User user = userRepository.findOne(principal);
 		validate(launch, user, project);
 		try {
-			cascadeDeleteLaunchesService.delete(singletonList(launchId));
+			launchRepository.delete(singletonList(launchId));
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while Launch deleting.", exp);
 		}
@@ -104,7 +101,7 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 		final User user = userRepository.findOne(userName);
 		final Project project = projectRepository.findOne(projectName);
 		launches.forEach(launch -> validate(launch, user, project));
-		cascadeDeleteLaunchesService.delete(toDelete);
+		launchRepository.delete(toDelete);
 		return launches.stream().map(launch -> {
 			eventPublisher.publishEvent(new LaunchDeletedEvent(launch, userName));
 			return new OperationCompletionRS("Launch with ID = '" + launch.getId() + "' successfully deleted.");

@@ -31,13 +31,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.core.project.IDeleteProjectHandler;
-import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.project.EntryType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.triggers.CascadeDeleteProjectsService;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
@@ -51,17 +48,12 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 @Service
 public class DeleteProjectHandler implements IDeleteProjectHandler {
 
-	@Autowired
 	private ProjectRepository projectRepository;
 
-	/*
-	 * TODO may be put in triggers after stabilizing of project data for
-	 * removing functionality
-	 */
 	@Autowired
-	private ExternalSystemRepository externalSystemRepository;
-	@Autowired
-	private CascadeDeleteProjectsService cascadeDeleteProjectsService;
+	public DeleteProjectHandler(ProjectRepository projectRepository) {
+		this.projectRepository = projectRepository;
+	}
 
 	@Override
 	public OperationCompletionRS deleteProject(String projectName) {
@@ -70,11 +62,8 @@ public class DeleteProjectHandler implements IDeleteProjectHandler {
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 		expect(project.getConfiguration().getEntryType(), and(asList(not(equalTo(EntryType.PERSONAL)), not(equalTo(EntryType.UPSA)))))
 				.verify(ErrorType.PROJECT_UPDATE_NOT_ALLOWED, project.getConfiguration().getEntryType());
-		Iterable<ExternalSystem> externalSystems = externalSystemRepository.findAll(project.getConfiguration().getExternalSystem());
-
 		try {
-			cascadeDeleteProjectsService.delete(singletonList(projectName));
-			externalSystemRepository.delete(externalSystems);
+			projectRepository.delete(singletonList(projectName));
 		} catch (Exception e) {
 			throw new ReportPortalException("Error during deleting Project and attributes", e);
 		}

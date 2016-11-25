@@ -33,7 +33,6 @@ import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.fixture.SpringFixture;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
-import com.epam.ta.reportportal.triggers.CascadeDeleteLaunchesService;
 
 @SpringFixture("aspectTriggersTests")
 public class DeleteLaunchTriggerTest extends BaseTest {
@@ -49,12 +48,9 @@ public class DeleteLaunchTriggerTest extends BaseTest {
 	@Autowired
 	private TestItemRepository testItemRepository;
 
-	@Autowired
-	private CascadeDeleteLaunchesService deleteLaunchesService;
-
 	@Test
 	public void testDeleteByAsList() {
-		deleteLaunchesService.delete(Collections.singletonList(LAUNCH_ID));
+		launchRepository.delete(Collections.singletonList(LAUNCH_ID));
 		Assert.assertNull(launchRepository.findOne(LAUNCH_ID));
 		Assert.assertTrue(testItemRepository.findIdsByLaunch(LAUNCH_ID).isEmpty());
 	}

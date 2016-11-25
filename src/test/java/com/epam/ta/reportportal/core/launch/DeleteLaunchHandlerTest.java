@@ -45,7 +45,6 @@ import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.triggers.CascadeDeleteLaunchesService;
 
 public class DeleteLaunchHandlerTest {
 
@@ -58,8 +57,7 @@ public class DeleteLaunchHandlerTest {
 		final String projectId = "project";
 		final String member = "member";
 		DeleteLaunchHandler deleteLaunchHandler = new DeleteLaunchHandler(Mockito.mock(ApplicationEventPublisher.class),
-				launchRepositoryMock(launchId, projectId), projectRepositoryMock(projectId, member), userRepositoryMock(member),
-				mock(CascadeDeleteLaunchesService.class));
+				launchRepositoryMock(launchId, projectId), projectRepositoryMock(projectId, member), userRepositoryMock(member));
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage(Suppliers.clearPlaceholders(ACCESS_DENIED.getDescription()));
 		deleteLaunchHandler.deleteLaunch(launchId, projectId, member);

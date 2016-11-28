@@ -3,7 +3,7 @@
  * 
  * 
  * This file is part of EPAM Report Portal.
- * https://github.com/epam/ReportPortal
+ * https://github.com/reportportal/service-api
  * 
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@ public class DatabaseUserDetailsProviderTest extends BaseTest {
 		Assert.assertEquals("Incorrect Granted Authorities size", 1, details.getAuthorities().size());
 
 		GrantedAuthority authority = details.getAuthorities().iterator().next();
-		Assert.assertEquals("Incorrect Granted Authorities", AuthConstants.ROLE, authority);
+		Assert.assertEquals("Incorrect Granted Authorities", AuthConstants.ROLE.name(), authority.getAuthority());
 
 	}
 }

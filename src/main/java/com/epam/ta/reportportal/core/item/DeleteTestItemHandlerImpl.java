@@ -3,7 +3,7 @@
  * 
  * 
  * This file is part of EPAM Report Portal.
- * https://github.com/epam/ReportPortal
+ * https://github.com/reportportal/service-api
  * 
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,6 @@ import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAG
 import static com.epam.ta.reportportal.database.entity.Status.RESETED;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
@@ -52,7 +51,6 @@ import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.triggers.CascadeDeleteItemsService;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
 
@@ -76,8 +74,6 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	private ProjectRepository projectRepository;
 	@Autowired
 	private UserRepository userRepository;
-	@Autowired
-	private CascadeDeleteItemsService cascadeDeleteItemsService;
 
 	@Override
 	public OperationCompletionRS deleteTestItem(String itemId, String projectName, String username) {
@@ -100,7 +96,7 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 				statisticsFacade.deleteIssueStatistics(item);
 			}
 
-			cascadeDeleteItemsService.delete(singletonList(itemId));
+			testItemRepository.delete(itemId);
 
 			if (null != item.getParent()) {
 				TestItem parent = testItemRepository.findOne(item.getParent());

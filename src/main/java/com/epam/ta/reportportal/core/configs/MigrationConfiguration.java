@@ -21,14 +21,15 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.config.MongodbConfiguration;
-import com.epam.ta.reportportal.migration.ChangeSets_2_7;
-import com.github.mongobee.Mongobee;
-import com.mongodb.MongoClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
+
+import com.epam.ta.reportportal.config.MongodbConfiguration;
+import com.github.mongobee.Mongobee;
+import com.mongodb.MongoClient;
 
 /**
  * Mongo Migration tool configs
@@ -37,16 +38,19 @@ import org.springframework.context.annotation.Profile;
  */
 @Configuration
 public class MigrationConfiguration {
-    @Autowired
-    private MongodbConfiguration.MongoProperies mongoProperties;
+	@Autowired
+	private MongodbConfiguration.MongoProperies mongoProperties;
+	@Autowired
+	private Environment environment;
 
-    @Bean
-    @Autowired
-    @Profile({ "!unittest" })
-    public Mongobee mongobee(MongoClient mongoClient) {
-        Mongobee runner = new Mongobee(mongoClient);
-        runner.setDbName(mongoProperties.getDbName());
-        runner.setChangeLogsScanPackage(ChangeSets_2_7.class.getCanonicalName());
-        return runner;
-    }
+	@Bean
+	@Autowired
+	@Profile({ "!unittest" })
+	public Mongobee mongobee(MongoClient mongoClient) {
+		Mongobee runner = new Mongobee(mongoClient);
+		runner.setDbName(mongoProperties.getDbName());
+		runner.setChangeLogsScanPackage("com.epam.ta.reportportal.migration");
+		runner.setSpringEnvironment(environment);
+		return runner;
+	}
 }

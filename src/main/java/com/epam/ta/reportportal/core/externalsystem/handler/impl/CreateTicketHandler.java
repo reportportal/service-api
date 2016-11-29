@@ -74,7 +74,7 @@ public class CreateTicketHandler implements ICreateTicketHandler {
 		expect(system, notNull()).verify(EXTERNAL_SYSTEM_NOT_FOUND, systemId);
 		expect(system.getFields(), notNull()).verify(BAD_REQUEST_ERROR,
 				"There aren't any submitted BTS fields!");
-		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name(), project);
+		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name());
 		Ticket ticket = externalSystemStrategy.submitTicket(postTicketRQ, system);
 		eventPublisher.publishEvent(new TicketPostedEvent(ticket, postTicketRQ.getTestItemId(), username, projectName));
 		return ticket;

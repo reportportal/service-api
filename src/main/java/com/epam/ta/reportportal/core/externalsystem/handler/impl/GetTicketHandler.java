@@ -67,7 +67,7 @@ public class GetTicketHandler implements IGetTicketHandler {
 		// TODO update if project will be used different systems
 		ExternalSystem system = externalSystemRepository.findOne(systemId);
 		expect(system, notNull()).verify(EXTERNAL_SYSTEM_NOT_FOUND, systemId);
-		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name(), project);
+		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name());
 		return externalSystemStrategy.getTicket(ticketId, system).orElse(null);
 	}
 
@@ -77,7 +77,7 @@ public class GetTicketHandler implements IGetTicketHandler {
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 		ExternalSystem system = externalSystemRepository.findOne(systemId);
 		expect(system, notNull()).verify(EXTERNAL_SYSTEM_NOT_FOUND, systemId);
-		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name(), project);
+		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name());
 		return externalSystemStrategy.getTicketFields(ticketType, system);
 	}
 }

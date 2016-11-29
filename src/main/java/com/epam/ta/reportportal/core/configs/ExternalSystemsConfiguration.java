@@ -40,7 +40,7 @@ import java.util.Collections;
 public class ExternalSystemsConfiguration {
 
 	@Bean
-	public ExternalSystemStrategy externalSystemStrategy() {
+	public ExternalSystemEurekaDelegate externalSystemStrategy() {
 		return new ExternalSystemEurekaDelegate(restTemplate());
 	}
 

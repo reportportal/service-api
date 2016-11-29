@@ -95,6 +95,8 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 			expect(type.isPresent(), equalTo(Boolean.TRUE)).verify(INCORRECT_EXTERNAL_SYSTEM_NAME, request.getExternalSystemType());
 			exist.setExternalSystemType(type.get());
 		}
+		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(exist.getExternalSystemType().name(), project);
+
 		if (null != request.getProject())
 			exist.setProject(request.getProject());
 		/* Hard referenced project update */
@@ -153,8 +155,6 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 			default:
 				//do nothing
 			}
-
-			ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(exist.getExternalSystemType().name(), project);
 
 			if (auth.requiresPassword()) {
 				String decrypted = exist.getPassword();

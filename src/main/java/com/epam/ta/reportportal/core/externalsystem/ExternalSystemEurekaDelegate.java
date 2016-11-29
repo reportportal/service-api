@@ -17,12 +17,13 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 package com.epam.ta.reportportal.core.externalsystem;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
+import com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
@@ -54,42 +55,49 @@ public class ExternalSystemEurekaDelegate implements ExternalSystemStrategy {
 		this.eurekaTemplate = eurekaTemplate;
 	}
 
+	void checkAvailable(ExternalSystemType systemType) {
+		getServiceInstance(systemType);
+	}
+
 	@Override
-	public boolean connectionTest(ExternalSystem system, String principal) {
+	public boolean connectionTest(ExternalSystem system) {
 		return eurekaTemplate
-				.postForObject(getServiceInstance(system).getUri().toString() + "/check", system, YesNoRS.class, system.getId()).getIs();
+				.postForObject(getServiceInstance(system.getExternalSystemType()).getUri().toString() + "/check", system, YesNoRS.class,
+						system.getId()).getIs();
 	}
 
 	@Override
 	public Optional<Ticket> getTicket(String id, ExternalSystem system) {
 		return Optional.of(eurekaTemplate
-				.getForObject(getServiceInstance(system).getUri().toString() + "/{systemId}/ticket/{id}", Ticket.class, system.getId(),
-						id));
+				.getForObject(getServiceInstance(system.getExternalSystemType()).getUri().toString() + "/{systemId}/ticket/{id}",
+						Ticket.class, system.getId(), id));
 	}
 
 	@Override
 	public Ticket submitTicket(PostTicketRQ ticketRQ, ExternalSystem system) {
-		return eurekaTemplate.postForObject(getServiceInstance(system).getUri().toString() + "/{systemId}/ticket", ticketRQ, Ticket.class,
-				system.getId());
+		return eurekaTemplate
+				.postForObject(getServiceInstance(system.getExternalSystemType()).getUri().toString() + "/{systemId}/ticket", ticketRQ,
+						Ticket.class, system.getId());
 
 	}
 
 	@Override
 	public List<PostFormField> getTicketFields(String issueType, ExternalSystem system) {
 		return eurekaTemplate
-				.exchange(getServiceInstance(system).getUri().toString() + "/{systemId}/ticket/{issueType}/fields", HttpMethod.GET, null,
-						new ParameterizedTypeReference<List<PostFormField>>() {
+				.exchange(getServiceInstance(system.getExternalSystemType()).getUri().toString() + "/{systemId}/ticket/{issueType}/fields",
+						HttpMethod.GET, null, new ParameterizedTypeReference<List<PostFormField>>() {
 						}, system.getId(), issueType).getBody();
 	}
 
-	private ServiceInstance getServiceInstance(ExternalSystem externalSystem) {
-		String externalSystemType = externalSystem.getExternalSystemType().name().toLowerCase();
+	private ServiceInstance getServiceInstance(ExternalSystemType externalSystem) {
+		String externalSystemType = externalSystem.name().toLowerCase();
 
 		Optional<ServiceInstance> delegate = discoveryClient.getServices().stream()
 				.flatMap(service -> discoveryClient.getInstances(service).stream())
 				.filter(instance -> externalSystemType.equals(instance.getMetadata().get("extension"))).findAny();
 
-		BusinessRule.expect(delegate, Preconditions.IS_PRESENT).verify(ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "External system with type " + externalSystem + " is not deployed or not available");
+		BusinessRule.expect(delegate, Preconditions.IS_PRESENT).verify(ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
+				"External system with type " + externalSystem + " is not deployed or not available");
 		return delegate.get();
 	}
 }

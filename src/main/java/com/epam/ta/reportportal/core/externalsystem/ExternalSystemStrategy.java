@@ -17,40 +17,36 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.externalsystem;
-
-import java.util.List;
-import java.util.Optional;
 
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 
+import java.util.List;
+import java.util.Optional;
+
 /**
  * Define operations for working with external system.
- * 
- * @author Andrei Varabyeu
  *
+ * @author Andrei Varabyeu
  */
 public interface ExternalSystemStrategy {
 
 	/**
 	 * Test connection to external system with provided details
-	 * 
-	 * @param system
-	 *            - external system details
-	 * @param principal
-	 *            - request principal name (for OAuth only)
-	 * @return
+	 *
+	 * @param system - external system details
+	 * @return TRUE if connection is successful. Otherwise FALSE or throws an exception if no such external system is present
 	 */
-	boolean connectionTest(ExternalSystem system, String principal);
+	boolean connectionTest(ExternalSystem system);
 
 	/**
 	 * Get ticket by ID
-	 * 
+	 *
 	 * @param id
 	 * @param system
 	 * @return
@@ -59,7 +55,7 @@ public interface ExternalSystemStrategy {
 
 	/**
 	 * Submit ticket into external system
-	 * 
+	 *
 	 * @param ticketRQ
 	 * @param system
 	 * @return
@@ -68,7 +64,7 @@ public interface ExternalSystemStrategy {
 
 	/**
 	 * Get map of fields for ticket POST into external system
-	 * 
+	 *
 	 * @param issueType
 	 * @param system
 	 * @return

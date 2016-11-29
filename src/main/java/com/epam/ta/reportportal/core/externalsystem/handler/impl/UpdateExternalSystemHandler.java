@@ -95,7 +95,7 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 			expect(type.isPresent(), equalTo(Boolean.TRUE)).verify(INCORRECT_EXTERNAL_SYSTEM_NAME, request.getExternalSystemType());
 			exist.setExternalSystemType(type.get());
 		}
-		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(exist.getExternalSystemType().name(), project);
+		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(exist.getExternalSystemType().name());
 
 		if (null != request.getProject())
 			exist.setProject(request.getProject());
@@ -159,11 +159,11 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 			if (auth.requiresPassword()) {
 				String decrypted = exist.getPassword();
 				exist.setPassword(simpleEncryptor.decrypt(exist.getPassword()));
-				expect(externalSystemStrategy.connectionTest(exist, null), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
+				expect(externalSystemStrategy.connectionTest(exist), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
 						projectName);
 				exist.setPassword(decrypted);
 			} else {
-				expect(externalSystemStrategy.connectionTest(exist, principalName), equalTo(true))
+				expect(externalSystemStrategy.connectionTest(exist), equalTo(true))
 						.verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, projectName);
 			}
 		}
@@ -185,7 +185,7 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 
 		Project project = projectRepository.findByName(system.getProjectRef());
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, system.getProjectRef());
-		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(updateRQ.getExternalSystemType(), project);
+		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(updateRQ.getExternalSystemType());
 
 		ExternalSystem details = new ExternalSystem();
 		details.setUrl(updateRQ.getUrl());
@@ -200,12 +200,11 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 			details.setPassword(updateRQ.getPassword());
 			details.setDomain(updateRQ.getDomain());
 			details.setAccessKey(updateRQ.getAccessKey());
-			expect(externalSystemStrategy.connectionTest(details, null), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
-					system.getProjectRef());
-		} else {
-			expect(externalSystemStrategy.connectionTest(details, principalName), equalTo(true))
-					.verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, system.getProjectRef());
+
 		}
+		expect(externalSystemStrategy.connectionTest(details), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
+				system.getProjectRef());
+
 		return new OperationCompletionRS("Conntection to ExternalSystem with ID = '" + id + "' is successfully performed.");
 	}
 

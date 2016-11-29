@@ -89,7 +89,7 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 		ExternalSystem exist = externalSystemRepository.findByUrlAndProject(sysUrl, sysProject, projectName);
 		expect(exist, isNull()).verify(EXTERNAL_SYSTEM_ALREADY_EXISTS, sysUrl + " & " + sysProject);
 
-		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(createRQ.getExternalSystemType(), project);
+		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(createRQ.getExternalSystemType());
 		expect(externalSystemStrategy, notNull()).verify(EXTERNAL_SYSTEM_NOT_FOUND, createRQ.getExternalSystemType());
 		ExternalSystem details = new ExternalSystem();
 		details.setUrl(createRQ.getUrl());
@@ -104,12 +104,10 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 			details.setUsername(createRQ.getUsername());
 			details.setPassword(createRQ.getPassword());
 			details.setDomain(createRQ.getDomain());
-			expect(externalSystemStrategy.connectionTest(details, null), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
-					projectName);
-		} else {
-			expect(externalSystemStrategy.connectionTest(details, username), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
-					projectName);
+
 		}
+		expect(externalSystemStrategy.connectionTest(details), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
+				projectName);
 
 		ExternalSystem newOne = builder.get().addExternalSystem(createRQ, projectName).build();
 		ExternalSystem createOne;

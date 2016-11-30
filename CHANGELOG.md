@@ -34,3 +34,4 @@
 * EPMRPP-20906 - Incorrect message from ws in case user tryes to submit BTS that does not enabled
 * EPMRPP-21497 - Export in XLS format doesn't work
 * EPMRPP-22340 - API: It's possible to delete project with entryType=UPSA
+* reportportal/reportportal#9 - Fix incorrect statistics calculation

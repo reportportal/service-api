@@ -141,8 +141,7 @@ class SecurityConfiguration {
                             "/**/user/password/reset",
                             "/**/user/password/restore**",
 
-                            "/documentation.html",
-                            "/health", "/info")
+                            "/documentation.html")
                         .permitAll()
                     /* set of special endpoints for another microservices from RP ecosystem */
                     .antMatchers("/api-internal/**").hasRole("COMPONENT")

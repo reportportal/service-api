@@ -103,8 +103,10 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		TestItem item = testItemBuilder.get().addStartItemRequest(rq).addParent(parentItem).addPath(parentItem)
 				.addStatus(Status.IN_PROGRESS).build();
 		testItemRepository.save(item);
-		parentItem.setHasChilds(true);
-		testItemRepository.save(parentItem);
+
+		if (!parentItem.hasChilds()){
+			testItemRepository.updateHasChilds(parentItem.getId(), true);
+		}
 		return new EntryCreatedRS(item.getId());
 	}
 

@@ -66,8 +66,8 @@ configurations {
 }
 
 dependencies {
-    compile 'com.epam.reportportal:commons-model:2.7.0'
-    compile 'com.epam.reportportal:commons-dao:2.7.0.1'
+    compile 'com.epam.reportportal:commons-model:2.7.1-SNAPSHOT'
+    compile 'com.epam.reportportal:commons-dao:2.7.1-SNAPSHOT'
     compile 'com.epam.reportportal:commons-rules:2.7.0'
     compile 'com.epam.reportportal:commons:2.6.1'
 

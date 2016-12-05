@@ -45,6 +45,7 @@ public class DashboardResourceBuilder extends ResourceBuilder<DashboardResource>
 		if (dashboard != null) {
 			getObject().setDashboardId(dashboard.getId());
 			getObject().setName(dashboard.getName());
+			getObject().setDescription(dashboard.getDescription());
 			if (null != dashboard.getWidgets()) {
 				List<WidgetObjectModel> models = dashboard.getWidgets().stream()
 						.map(widgetObject -> new WidgetObjectModel(widgetObject.getWidgetId(), widgetObject.getWidgetSize(),

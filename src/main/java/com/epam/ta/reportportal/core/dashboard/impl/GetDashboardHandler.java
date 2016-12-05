@@ -89,17 +89,17 @@ public class GetDashboardHandler implements IGetDashboardHandler {
 
 	@Override
 	public Iterable<DashboardResource> getAllDashboards(String userName, String projectName) {
-		// Get list of registered favorites recources for specified user
+		// Get list of registered favorites resources for specified user
 		List<FavoriteResource> favoriteResources = favoriteResourceRepository
 				.findByFilter(getFavoriteDashboardsFilter(userName, projectName));
 		List<String> favoriteDashboardsIds = favoriteResources.stream().map(FavoriteResource::getResourceId).collect(Collectors.toList());
 
 		// Get list of REAL existing dashboards by Ids
-		Iterable<Dashboard> favoriteDashboars = dashboardRepository.findAll(favoriteDashboardsIds);
+		Iterable<Dashboard> favoriteDashboards = dashboardRepository.findAll(favoriteDashboardsIds);
 
 		// Get list of owned dashboards
 		List<Dashboard> dashboards = dashboardRepository.findAll(userName, creationDateSort, projectName);
-		dashboards.addAll(Lists.newArrayList(favoriteDashboars));
+		dashboards.addAll(Lists.newArrayList(favoriteDashboards));
 		addRemovedDashboards(favoriteDashboardsIds, dashboards);
 		return resourceAssembler.toResources(dashboards);
 	}

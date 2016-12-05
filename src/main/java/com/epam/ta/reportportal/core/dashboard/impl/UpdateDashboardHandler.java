@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
@@ -26,18 +26,12 @@ import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.DASHBOARD_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ErrorType.DASHBOARD_UPDATE_ERROR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.RESOURCE_ALREADY_EXISTS;
-import static com.epam.ta.reportportal.ws.model.ErrorType.WIDGET_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ErrorType.WIDGET_NOT_FOUND_IN_DASHBOARD;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.epam.ta.reportportal.events.DashboardUpdatedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -50,6 +44,7 @@ import com.epam.ta.reportportal.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.Dashboard.WidgetObject;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
+import com.epam.ta.reportportal.events.DashboardUpdatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -78,7 +73,6 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
 
-
 	@Override
 	public OperationCompletionRS updateDashboard(UpdateDashboardRQ rq, String dashboardId, String userName, String projectName) {
 
@@ -95,10 +89,11 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 				fail().withError(RESOURCE_ALREADY_EXISTS, rq.getName());
 			dashboard.setName(rq.getName().trim());
 		}
+		dashboard.setDescription(rq.getDescription());
 
 		expect(null != rq.getAddWidget() && null != rq.getDeleteWidgetId()
 				&& rq.getDeleteWidgetId().equalsIgnoreCase(rq.getAddWidget().getWidgetId()), equalTo(Boolean.FALSE))
-						.verify(DASHBOARD_UPDATE_ERROR, "Unable delete and add the same widget simmulteniuosly.");
+						.verify(DASHBOARD_UPDATE_ERROR, "Unable delete and add the same widget simultaneously.");
 
 		// update widget (or list of widgets if one of them change position on
 		// dashboard)

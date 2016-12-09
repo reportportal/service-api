@@ -129,11 +129,13 @@ public class ChangeSets_2_7 {
                "             db.project.save(project)\n" +
                "        }\n" +
                "})");
-       mongoTemplate.getDb().doEval("db.getCollection('projectSettings').find({}).forEach(\n" +
+       mongoTemplate.getDb().doEval("db.projectSettings.find({}).forEach(\n" +
                "    function(doc) {\n" +
                "            var project = db.project.findOne({'_id':doc._id})\n" +
-               "            project.configuration.subTypes = doc.subTypes\n" +
-               "            db.project.save(project)\n" +
+               "            if (project != null) {" +
+               "                project.configuration.subTypes = doc.subTypes\n" +
+               "                db.project.save(project)\n" +
+               "            }\n" +
                "    }\n" +
                ")");
        mongoTemplate.getDb().doEval("db.projectSettings.drop()");

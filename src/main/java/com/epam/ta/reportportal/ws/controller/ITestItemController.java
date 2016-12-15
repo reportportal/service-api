@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.ws.controller;
 import java.security.Principal;
 import java.util.List;
 
+import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
 import org.springframework.data.domain.Pageable;
 
 import com.epam.ta.reportportal.database.search.Filter;
@@ -164,4 +165,14 @@ public interface ITestItemController {
 
 	List<TestItemResource> getTestItems(String projectName, String[] ids, Principal principal);
 
+	/**
+	 * Merge Suites
+	 *
+	 * @param projectName
+	 * @param item
+	 * @param rq
+	 * @param principal
+	 * @return OperationCompletionRS
+	 */
+	OperationCompletionRS mergeTestItem(String projectName, String item, MergeTestItemRQ rq, Principal principal);
 }

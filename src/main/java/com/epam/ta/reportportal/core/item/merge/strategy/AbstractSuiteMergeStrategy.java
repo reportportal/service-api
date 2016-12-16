@@ -38,7 +38,6 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
     }
 
     @Override
-
     public abstract TestItem mergeTestItems(TestItem itemTarget, List<TestItem> items);
 
     public abstract boolean isTestItemAcceptableToMerge(TestItem item);
@@ -67,6 +66,7 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
 
     private void setLaunchRefForChilds(TestItem testItemParent, String launchRef) {
         List<TestItem> childItems = testItemRepository.findAllDescendants(testItemParent.getId());
+
         for (TestItem child : childItems) {
             child.setLaunchRef(launchRef);
             List<String> path = new ArrayList<>(testItemParent.getPath());
@@ -82,20 +82,6 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
     private void mergeAllChildItems(TestItem testItemParent) {
         List<TestItem> childItems = testItemRepository.findAllDescendants(testItemParent.getId());
         List<TestItem> suites = childItems.stream().filter(this::isTestItemAcceptableToMerge).collect(toList());
-//        List<List<TestItem>> combinedByName = new ArrayList<>();
-//        Set<String> names = suites.stream().map(TestItem::getName).collect(toSet());
-
-//        names.stream().map((name) -> suites.stream().filter(item -> item.getName().equals(name)))
-//                .map((s) -> s.collect(toList())).map((l) -> moveAllChildTestItems(l.get(0), l.subList(1, l.size())));
-
-//        for (String name : names) {
-//            List<TestItem> suitesWithEqualName = suites.stream().filter(item -> item.getName().equals(name)).collect(toList());
-//            combinedByName.add(suitesWithEqualName);
-//        }
-//        for (List<TestItem> items : combinedByName) {
-//            moveAllChildTestItems(items.get(0), items.subList(1, items.size()));
-//        }
-
 
         suites.stream()
                 .collect(Collectors.groupingBy(TestItem::getName))

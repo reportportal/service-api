@@ -22,17 +22,17 @@
 package com.epam.ta.reportportal.core.item.merge.strategy;
 
 
+import java.util.Arrays;
+import java.util.Optional;
+
 public enum MergeStrategyType {
     SUITE,
     TEST;
 
     public static MergeStrategyType fromValue(String value) {
-        MergeStrategyType[] values = MergeStrategyType.values();
-        for (MergeStrategyType type : values) {
-            if (type.name().equals(value)) {
-                return type;
-            }
-        }
-        return null;
+        Optional<MergeStrategyType> optional = Arrays.stream(MergeStrategyType.values())
+                .filter((t) -> value.equals(t.name()))
+                .findFirst();
+        return optional.isPresent() ? optional.get() : null;
     }
 }

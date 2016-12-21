@@ -5,7 +5,7 @@ LABEL version="@version@"
 LABEL description="@description@"
 
 ENV APP_FILE @name@-@version@
-ENV APP_DOWNLOAD_URL https://dl.bintray.com/epam/reportportal/com/epam/reportportal/@name@/@version@/$APP_FILE.zip
+ENV APP_DOWNLOAD_URL https://dl.bintray.com/epam/reportportal/com/epam/reportportal/@name@/@version@/$APP_FILE.jar
 ENV JAVA_OPTS="-Xmx1g"
 
 RUN apk --no-cache add ttf-droid

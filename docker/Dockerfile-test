@@ -4,6 +4,8 @@ MAINTAINER Andrei Varabyeu <andrei_varabyeu@epam.com>
 
 RUN apk --no-cache add ttf-droid
 
+ENV JAVA_OPTS="-Xmx1g -javaagent:/jacocoagent.jar=destfile=/jacoco/jacoco.exec,append=false"
+
 VOLUME /tmp
 ADD ${project.name}-${version}.jar app.jar
 ADD jacocoagent.jar jacocoagent.jar
@@ -13,4 +15,4 @@ RUN sh -c 'touch /jacocoagent.jar'
 
 EXPOSE 8080
 
-ENTRYPOINT ["java","-Xmx1g","-Djava.security.egd=file:/dev/./urandom", "-javaagent:/jacocoagent.jar=destfile=/jacoco/jacoco.exec,append=false", "-jar","/app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app.jar"]

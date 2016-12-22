@@ -9,7 +9,7 @@ ENV JAVA_OPTS="-Xmx1g"
 RUN apk --no-cache add ttf-droid
 
 VOLUME /tmp
-ADD ${project.name}-${version}.jar app.jar
+ADD @name@-@version@.jar app.jar
 
 RUN sh -c 'touch /app.jar'
 EXPOSE 8080

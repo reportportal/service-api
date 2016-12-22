@@ -1,6 +1,7 @@
 buildscript {
     repositories {
         mavenCentral()
+        jcenter()
         maven {
             url "https://maven.eveoh.nl/content/repositories/releases"
         }
@@ -8,7 +9,7 @@ buildscript {
     dependencies {
         classpath "io.spring.gradle:dependency-management-plugin:0.6.0.RELEASE"
         classpath("org.springframework.boot:spring-boot-gradle-plugin:1.4.0.RELEASE")
-        classpath 'com.bmuschko:gradle-docker-plugin:3.0.3'
+        classpath 'com.bmuschko:gradle-docker-plugin:3.0.4'
     }
 }
 

@@ -49,6 +49,7 @@ repositories {
     maven { url "http://dl.bintray.com/epam/reportportal" }
     maven { url "http://jasperreports.sourceforge.net/maven2" }
     maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
+    maven { url "https://jitpack.io" }
 }
 
 dependencyManagement {
@@ -62,10 +63,14 @@ configurations {
     api
 }
 
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
 dependencies {
-    compile 'com.epam.reportportal:commons-model:2.7.0'
-    compile 'com.epam.reportportal:commons-dao:2.7.1.1'
-    compile 'com.epam.reportportal:commons-rules:2.7.0'
+    compile 'com.github.reportportal:commons-model:master-SNAPSHOT'
+    compile 'com.github.reportportal:commons-dao:master-SNAPSHOT'
+    compile 'com.github.reportportal:commons-rules:master-SNAPSHOT'
     compile 'com.epam.reportportal:commons:2.6.1'
 
     compile 'org.jasypt:jasypt:1.9.2'

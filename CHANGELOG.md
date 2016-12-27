@@ -35,3 +35,19 @@
 * EPMRPP-21497 - Export in XLS format doesn't work
 * EPMRPP-22340 - API: It's possible to delete project with entryType=UPSA
 * reportportal/reportportal#9 - Fix incorrect statistics calculation
+
+
+## 2.7.1
+##### Released: 21 October 2016
+
+### Bugfixes
+
+* Minor fix: incorrect project version in /info endpoint
+
+
+## 2.7.2
+##### Released: 22 October 2016
+
+### Bugfixes
+
+* Expose JVM args as ENV variable to make it configurable 

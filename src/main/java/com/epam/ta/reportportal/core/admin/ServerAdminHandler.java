@@ -22,8 +22,11 @@
 package com.epam.ta.reportportal.core.admin;
 
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.settings.OAuthDetailsResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import com.epam.ta.reportportal.ws.model.settings.UpdateEmailSettingsRQ;
+
+import java.util.Map;
 
 /**
  * Server settings administration interface
@@ -48,4 +51,13 @@ public interface ServerAdminHandler {
      * @return Operation results
      */
     OperationCompletionRS saveEmailSettings(String profileId, UpdateEmailSettingsRQ request);
+
+    /**
+     * Updates oauth settings
+     * @param profileId Settings profile ID
+     * @param oauthProviderName Name/ID of oauth integration
+     * @param oauthDetails OAuth details
+     * @return All OAuth configurations
+     */
+    Map<String, OAuthDetailsResource> updateOAuthSettings(String profileId, String oauthProviderName, OAuthDetailsResource oauthDetails);
 }

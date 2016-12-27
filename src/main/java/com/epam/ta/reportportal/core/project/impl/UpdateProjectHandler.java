@@ -42,6 +42,8 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
+import com.epam.ta.reportportal.commons.Predicates;
+import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -168,6 +170,14 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 
 			if (null != modelConfig.getIsAAEnabled()) {
 				project.getConfiguration().setIsAutoAnalyzerEnabled(modelConfig.getIsAAEnabled());
+			}
+
+
+			if (null != modelConfig.getStatisticCalculationStrategy()) {
+				Optional<StatisticsCalculationStrategy> statsStrategyUpdate = StatisticsCalculationStrategy
+						.fromString(modelConfig.getStatisticCalculationStrategy());
+				expect(statsStrategyUpdate, Predicates.isPresent()).verify(BAD_REQUEST_ERROR);
+				project.getConfiguration().setStatisticsCalculationStrategy(statsStrategyUpdate.get());
 			}
 		}
 

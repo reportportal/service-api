@@ -27,6 +27,7 @@ import static com.epam.ta.reportportal.commons.SendCase.findByName;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy.fromString;
 import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.*;
 import static com.epam.ta.reportportal.database.entity.user.UserUtils.isEmailValid;
 import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
@@ -42,8 +43,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
-import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -172,12 +172,13 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 				project.getConfiguration().setIsAutoAnalyzerEnabled(modelConfig.getIsAAEnabled());
 			}
 
-
 			if (null != modelConfig.getStatisticCalculationStrategy()) {
-				Optional<StatisticsCalculationStrategy> statsStrategyUpdate = StatisticsCalculationStrategy
-						.fromString(modelConfig.getStatisticCalculationStrategy());
-				expect(statsStrategyUpdate, Predicates.isPresent()).verify(BAD_REQUEST_ERROR);
-				project.getConfiguration().setStatisticsCalculationStrategy(statsStrategyUpdate.get());
+				project.getConfiguration()
+						.setStatisticsCalculationStrategy(
+								fromString(modelConfig.getStatisticCalculationStrategy()).orElseThrow(
+										() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+												"Incorrect statistics calculation type: " +
+												modelConfig.getStatisticCalculationStrategy())));
 			}
 		}
 

@@ -44,6 +44,7 @@ public class StatisticsFacadeFactoryImpl implements StatisticsFacadeFactory, App
 	
 	private static final Map<StatisticsCalculationStrategy, Class<? extends StatisticsFacade>> MAPPING =
 			ImmutableMap.<StatisticsCalculationStrategy, Class<? extends StatisticsFacade>>builder()
+					.put(StatisticsCalculationStrategy.STEP_BASED, StepBasedStatisticsFacade.class)
 					.put(StatisticsCalculationStrategy.TEST_BASED, TestBasedStatisticsFacade.class)
 					.put(StatisticsCalculationStrategy.ALL_ITEMS_BASED, StatisticsFacadeImpl.class)
 					.build();

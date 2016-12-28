@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
@@ -134,6 +135,6 @@ public class MergeTestItemHandlerImpl implements MergeTestItemHandler {
     }
 
     private void validateTestItemIsSuite(TestItem testItem) {
-        expect(true, equalTo(testItem.getType().getLevel() == 0)).verify(ErrorType.INCORRECT_REQUEST, testItem.getId());
+        expect(true, equalTo(testItem.getType().sameLevel(TestItemType.SUITE))).verify(ErrorType.INCORRECT_REQUEST, testItem.getId());
     }
 }

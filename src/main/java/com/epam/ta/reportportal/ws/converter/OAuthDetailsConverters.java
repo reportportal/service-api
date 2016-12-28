@@ -58,7 +58,7 @@ public class OAuthDetailsConverters {
 		resource.setClientSecret(db.getClientSecret());
 		resource.setGrantType(db.getGrantType());
 		resource.setScope(db.getScope());
-		resource.setRestrictions((Map<String, String>) db.getRestrictions());
+		resource.setRestrictions(db.getRestrictions());
 		resource.setAuthenticationScheme(db.getAuthenticationScheme());
 		resource.setTokenName(db.getTokenName());
 		return resource;

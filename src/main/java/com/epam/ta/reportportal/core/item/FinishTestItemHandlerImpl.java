@@ -20,23 +20,6 @@
  */
 package com.epam.ta.reportportal.core.item;
 
-import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.database.entity.Status.*;
-import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.NOT_ISSUE_FLAG;
-import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.validValues;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
@@ -59,6 +42,22 @@ import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.database.entity.Status.*;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.NOT_ISSUE_FLAG;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.validValues;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Default implementation of {@link FinishTestItemHandler}
@@ -145,13 +144,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		}
 		try {
 			testItemRepository.save(testItem);
-			if (!hasDescendants) {
-				testItem = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
-						.updateExecutionStatistics(testItem);
-				if (null != testItem.getIssue()) {
-					statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
-							.updateIssueStatistics(testItem);
-				}
+			testItem = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
+					.updateExecutionStatistics(testItem);
+			if (null != testItem.getIssue()) {
+				statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
+						.updateIssueStatistics(testItem);
 			}
 		} catch (Exception e) {
 			throw new ReportPortalException("Error during updating TestItem " + e.getMessage(), e);
@@ -163,10 +160,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	/**
 	 * Validation procedure for specified test item
 	 *
-	 * @param testItemId
-	 * @param finishExecutionRQ
-	 * @param actualStatus
-	 * @return TestItem
+	 * @param testItemId        ID of test item
+	 * @param finishExecutionRQ Request data
+	 * @param actualStatus      Actual status of item
+	 * @return TestItem updated item
 	 */
 	private TestItem verifyTestItem(final String testItemId, FinishTestItemRQ finishExecutionRQ, Optional<Status> actualStatus) {
 		TestItem testItem = testItemRepository.findOne(testItemId);
@@ -179,13 +176,13 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			List<TestItem> descendants = testItemRepository.findDescendants(testItem.getId());
 			boolean hasDescendants = !descendants.isEmpty();
 
-			expect(!statusProvided && !hasDescendants, Predicates.equalTo(Boolean.FALSE),
-					formattedSupplier(
-							"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
-							testItemId)).verify();
+			expect(!statusProvided && !hasDescendants, Predicates.equalTo(Boolean.FALSE), formattedSupplier(
+					"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
+					testItemId)).verify();
 
-			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED, formattedSupplier(
-					"Test item '{}' has descendants with '{}' status. All descendants '{}'", testItemId, IN_PROGRESS.name(), descendants));
+			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED,
+					formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'", testItemId,
+							IN_PROGRESS.name(), descendants));
 
 			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime()))
 					.verify(FINISH_TIME_EARLIER_THAN_START_TIME, finishExecutionRQ.getEndTime(), testItem.getStartTime(), testItemId);
@@ -211,8 +208,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	/**
 	 * Issue type recognition for specified test item from
 	 *
-	 * @param testItem
-	 * @param providedIssue
+	 * @param testItem      Test item
+	 * @param providedIssue Issue
+	 * @param project       Project
 	 * @return TestItem
 	 */
 	TestItem awareTestItemIssueTypeFromStatus(final TestItem testItem, final Issue providedIssue, final Project project) {
@@ -239,7 +237,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	/**
 	 * Add test item reference into specific repository for AA processing after.
 	 *
-	 * @param testItem
+	 * @param testItem Item to be finalized
 	 */
 	private void finalizeFailed(final TestItem testItem) {
 		FailReferenceResource resource = failReferenceResourceBuilder.get().addLaunchRef(testItem.getLaunchRef())

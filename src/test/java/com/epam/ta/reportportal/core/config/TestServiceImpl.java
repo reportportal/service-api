@@ -30,9 +30,11 @@ import com.epam.ta.reportportal.config.CacheConfiguration;
 @Component
 class TestServiceImpl implements TestService {
 
+	private static final Random RANDOM = new Random();
+
 	@Cacheable(value = CacheConfiguration.USERS_CACHE)
 	public String cachedMethod(String param1) {
-		return "response " + new Random().nextInt();
+		return "response " + RANDOM.nextInt();
 	}
 
 }

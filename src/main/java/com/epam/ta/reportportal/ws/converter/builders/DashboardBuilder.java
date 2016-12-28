@@ -44,6 +44,7 @@ public class DashboardBuilder extends ShareableEntityBuilder<Dashboard> {
 	public DashboardBuilder addCreateDashboardRQ(CreateDashboardRQ request) {
 		if (request != null) {
 			getObject().setName(request.getName().trim());
+			getObject().setDescription(request.getDescription());
 		}
 		return this;
 	}

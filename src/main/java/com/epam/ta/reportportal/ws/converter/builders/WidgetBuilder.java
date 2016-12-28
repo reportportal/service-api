@@ -17,12 +17,10 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -31,12 +29,14 @@ import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * Builder for {@link Widget}
- * 
+ *
  * @author Aliaksei_Makayed
- * 
+ *
  */
 @Service
 @Scope("prototype")
@@ -44,6 +44,7 @@ public class WidgetBuilder extends ShareableEntityBuilder<Widget> {
 
 	public WidgetBuilder addWidgetRQ(WidgetRQ createRQ) {
 		if (createRQ != null) {
+			getObject().setDescription(createRQ.getDescription());
 			if (createRQ.getName() != null) {
 				getObject().setName(createRQ.getName().trim());
 			}
@@ -57,10 +58,10 @@ public class WidgetBuilder extends ShareableEntityBuilder<Widget> {
 			ContentOptions contentOptions = new ContentOptions();
 			contentOptions.setType(parameters.getType());
 			contentOptions.setGadgetType(parameters.getGadget());
-			contentOptions.setContentFields(null != parameters.getContentFields() ? Lists.newArrayList(EntityUtils.trimStrings(parameters
-					.getContentFields())) : null);
-			contentOptions.setMetadataFields(null != parameters.getMetadataFields() ? Lists.newArrayList(EntityUtils.trimStrings(parameters
-					.getMetadataFields())) : null);
+			contentOptions.setContentFields(null != parameters.getContentFields()
+					? Lists.newArrayList(EntityUtils.trimStrings(parameters.getContentFields())) : null);
+			contentOptions.setMetadataFields(null != parameters.getMetadataFields()
+					? Lists.newArrayList(EntityUtils.trimStrings(parameters.getMetadataFields())) : null);
 			contentOptions.setItemsCount(parameters.getItemsCount());
 			contentOptions.setWidgetOptions(null != parameters.getWidgetOptions() ? Maps.newHashMap(parameters.getWidgetOptions()) : null);
 			getObject().setContentOptions(contentOptions);

@@ -24,7 +24,6 @@ package com.epam.ta.reportportal.ws.controller.impl;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandler;
 import com.epam.ta.reportportal.ws.controller.ISettingsController;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.settings.OAuthDetailsResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import com.epam.ta.reportportal.ws.model.settings.UpdateEmailSettingsRQ;
 import io.swagger.annotations.ApiOperation;
@@ -36,7 +35,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -72,15 +70,5 @@ public class SettingsController implements ISettingsController {
 	public OperationCompletionRS setServerSettings(@PathVariable String profileId, @RequestBody @Validated UpdateEmailSettingsRQ request,
 			Principal principal) {
 		return serverHandler.saveEmailSettings(normalizeId(profileId), request);
-	}
-
-	@Override
-	@RequestMapping(value = "/{profileId}/oauth/{authId}", method = RequestMethod.PUT)
-	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation(value = "Updates ThirdParty OAuth Server Settings", notes = "'default' profile is using till additional UI implementations")
-	public Map<String, OAuthDetailsResource> updateOAuthSettings(@PathVariable String profileId, @PathVariable String authId, @RequestBody @Validated OAuthDetailsResource request,
-			Principal principal) {
-		return serverHandler.updateOAuthSettings(normalizeId(profileId), normalizeId(authId), request);
 	}
 }

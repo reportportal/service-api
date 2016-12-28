@@ -24,14 +24,11 @@ package com.epam.ta.reportportal.core.admin;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
-import com.epam.ta.reportportal.database.entity.OAuth2LoginDetails;
 import com.epam.ta.reportportal.database.entity.ServerSettings;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.ws.converter.OAuthDetailsConverters;
 import com.epam.ta.reportportal.ws.converter.ServerSettingsResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.settings.OAuthDetailsResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import com.epam.ta.reportportal.ws.model.settings.UpdateEmailSettingsRQ;
@@ -42,15 +39,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.ta.reportportal.ws.model.ErrorType.SERVER_SETTINGS_NOT_FOUND;
-import static java.util.stream.Collectors.toMap;
 
 /**
  * Basic implementation of server administration interface
@@ -131,19 +123,5 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 		}
 		repository.save(settings);
 		return new OperationCompletionRS("Server Settings with profile '" + profileId + "' is successfully updated.");
-	}
-
-	@Override
-	public Map<String, OAuthDetailsResource> updateOAuthSettings(String profileId, String oauthProviderName,
-			OAuthDetailsResource oauthDetails) {
-		ServerSettings settings = repository.findOne(profileId);
-		BusinessRule.expect(settings, Predicates.notNull()).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, profileId);
-		Map<String, OAuth2LoginDetails> serverOAuthDetails = Optional.of(settings.getoAuth2LoginDetails()).orElse(new HashMap<>());
-		serverOAuthDetails.put(oauthProviderName, OAuthDetailsConverters.FROM_RESOURCE.apply(oauthDetails));
-		settings.setoAuth2LoginDetails(serverOAuthDetails);
-
-
-		repository.save(settings);
-		return serverOAuthDetails.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> OAuthDetailsConverters.TO_RESOURCE.apply(e.getValue())));
 	}
 }

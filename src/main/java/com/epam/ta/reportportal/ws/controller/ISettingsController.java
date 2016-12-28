@@ -22,15 +22,10 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.settings.OAuthDetailsResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import com.epam.ta.reportportal.ws.model.settings.UpdateEmailSettingsRQ;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.security.Principal;
-import java.util.Map;
 
 /**
  * Controller interface for specific ADMIN ONLY features like server
@@ -61,15 +56,4 @@ public interface ISettingsController {
 	 */
 	OperationCompletionRS setServerSettings(String profileId, UpdateEmailSettingsRQ request, Principal principal);
 
-	/**
-	 * Updates oauth integration settings
-	 *
-	 * @param profileId settings ProfileID
-	 * @param request   OAuth details resource update
-	 * @param authId    ID of third-party OAuth provider
-	 * @param principal Name of logged-in user
-	 * @return All defined OAuth integration settings
-	 */
-	Map<String, OAuthDetailsResource> updateOAuthSettings(@PathVariable String profileId, @PathVariable String authId,
-			@RequestBody @Validated OAuthDetailsResource request, Principal principal);
 }

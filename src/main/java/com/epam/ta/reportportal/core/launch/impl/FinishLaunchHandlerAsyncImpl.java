@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LAUNCH_FINISH;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_PREFIX;
 
 /**
  * @author Konstantin Antipin
@@ -47,7 +47,8 @@ public class FinishLaunchHandlerAsyncImpl implements FinishLaunchHandler {
 			ReportPortalUser user, String baseUrl) {
 
 		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
-		amqpTemplate.convertAndSend(QUEUE_LAUNCH_FINISH, request, message -> {
+		// todo fix queue name
+		amqpTemplate.convertAndSend(QUEUE_PREFIX, request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
 			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_LAUNCH);
 			headers.put(MessageHeaders.USERNAME, user.getUsername());

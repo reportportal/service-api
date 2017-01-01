@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_ITEM_FINISH;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_PREFIX;
 
 /**
  * @author Konstantin Antipin
@@ -47,7 +47,8 @@ public class FinishTestItemHandlerAsyncImpl implements FinishTestItemHandler {
 			FinishTestItemRQ request) {
 
 		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
-		amqpTemplate.convertAndSend(QUEUE_ITEM_FINISH, request, message -> {
+		// todo fix queue name
+		amqpTemplate.convertAndSend(QUEUE_PREFIX, request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
 			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_TEST);
 			headers.put(MessageHeaders.USERNAME, user.getUsername());

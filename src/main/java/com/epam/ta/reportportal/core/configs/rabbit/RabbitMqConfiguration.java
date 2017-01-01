@@ -62,16 +62,16 @@ public class RabbitMqConfiguration {
 		return new RabbitAdmin(connectionFactory);
 	}
 
-	@Bean
-	public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(@Autowired ConnectionFactory connectionFactory) {
-		SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
-		factory.setConnectionFactory(connectionFactory);
-		factory.setDefaultRequeueRejected(false);
-		factory.setMessageConverter(jsonMessageConverter());
-		factory.setConcurrentConsumers(3);
-		factory.setMaxConcurrentConsumers(10);
-		return factory;
-	}
+//	@Bean
+//	public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(@Autowired ConnectionFactory connectionFactory) {
+//		SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+//		factory.setConnectionFactory(connectionFactory);
+//		factory.setDefaultRequeueRejected(false);
+//		factory.setMessageConverter(jsonMessageConverter());
+//		factory.setConcurrentConsumers(3);
+//		factory.setMaxConcurrentConsumers(10);
+//		return factory;
+//	}
 
 
 	@Bean(name = "rabbitTemplate")

@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
+import com.epam.ta.reportportal.ws.rabbit.RequestType;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -48,6 +49,7 @@ public class FinishLaunchHandlerAsyncImpl implements FinishLaunchHandler {
 		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
 		amqpTemplate.convertAndSend(QUEUE_LAUNCH_FINISH, request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
+			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_LAUNCH);
 			headers.put(MessageHeaders.USERNAME, user.getUsername());
 			headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
 			headers.put(MessageHeaders.LAUNCH_ID, launchId);

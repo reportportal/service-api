@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
+import com.epam.ta.reportportal.ws.rabbit.RequestType;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -50,9 +51,10 @@ class StartTestItemHandlerAsyncImpl implements StartTestItemHandler {
 		request.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
 		amqpTemplate.convertAndSend(QUEUE_ITEM_START, request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
+			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
 			headers.put(MessageHeaders.USERNAME, user.getUsername());
 			headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
-			headers.put(MessageHeaders.PARENT_ID, "");
+			headers.put(MessageHeaders.PARENT_ITEM_ID, "");
 			return message;
 		});
 
@@ -69,9 +71,10 @@ class StartTestItemHandlerAsyncImpl implements StartTestItemHandler {
 		request.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
 		amqpTemplate.convertAndSend(QUEUE_ITEM_START, request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
+			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
 			headers.put(MessageHeaders.USERNAME, user.getUsername());
 			headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
-			headers.put(MessageHeaders.PARENT_ID, parentId);
+			headers.put(MessageHeaders.PARENT_ITEM_ID, parentId);
 			return message;
 		});
 

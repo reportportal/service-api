@@ -21,7 +21,6 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import com.epam.reportportal.commons.Safe;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -37,11 +36,13 @@ import com.epam.ta.reportportal.database.entity.user.*;
 import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
 import com.epam.ta.reportportal.events.UserCreatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.Predicates;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.builders.RestorePasswordBidBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.UserCreationBidBuilder;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
@@ -117,6 +118,9 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 		expect(userRepository.exists(newUsername), equalTo(false))
 				.verify(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("login='{}'", newUsername));
+
+		expect(newUsername, Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
+				Suppliers.formattedSupplier("Username '{}' consists only of special characters", newUsername));
 
 		String projectName = EntityUtils.normalizeProjectName(request.getDefaultProject());
 		Project defaultProject = projectRepository.findOne(projectName);
@@ -207,7 +211,8 @@ public class CreateUserHandler implements ICreateUserHandler {
 			emailService.setAddressFrom(projectEmailConfig == null ? null : projectEmailConfig.getFrom());
 			emailService.sendConfirmationEmail("User registration confirmation", new String[] { bid.getEmail() }, emailLink.toString());
 		} catch (Exception e) {
-			fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT, Suppliers.formattedSupplier("Unable to send email for bid '{}'.", bid.getId()));
+			fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
+					Suppliers.formattedSupplier("Unable to send email for bid '{}'.", bid.getId()));
 		}
 
 		CreateUserBidRS response = new CreateUserBidRS();

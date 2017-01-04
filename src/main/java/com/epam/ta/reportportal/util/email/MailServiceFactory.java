@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Properties;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.ws.model.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
 
 /**
@@ -99,8 +100,8 @@ public class MailServiceFactory {
 
 		ServerSettings serverSettings = settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE);
 		if (null == serverSettings || null == serverSettings.getServerEmailConfig()) {
-			fail().withError(FORBIDDEN_OPERATION,
-					"Email configuration is broken or switched-off. Please config email server in Report Portal settings.");
+			fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
+					"Email server is not configured. Please config email server in Report Portal settings.");
 		} else {
 			emailService = getEmailService(serverSettings.getServerEmailConfig(), true);
 		}
@@ -113,8 +114,7 @@ public class MailServiceFactory {
 		} catch (Exception e) {
 			LOGGER.error("Cannot send email to user", e);
 			fail().withError(FORBIDDEN_OPERATION,
-					"Email configuration is broken or switched-off. Please config email server in Report Portal settings. " + e
-							.getMessage());
+					"Email server is incorrect. " + e.getMessage());
 		}
 	}
 }

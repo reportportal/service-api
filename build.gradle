@@ -69,9 +69,9 @@ configurations.all {
 
 dependencies {
 
-    compile 'com.github.reportportal:commons-model:4f26e1dd93'
+    compile 'com.github.reportportal:commons-model:f9e6b8c5f6'
     compile 'com.github.reportportal:commons-dao:33888c36e9'
-    compile 'com.github.reportportal:commons-rules:9f74f39744'
+    compile 'com.github.reportportal:commons-rules:7fa95723ba'
     
     compile 'com.epam.reportportal:commons:2.6.1'
 

@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
+import com.epam.reportportal.commons.Safe;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -56,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.epam.reportportal.commons.Safe.safe;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
@@ -152,7 +154,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 				projectRepository.save(personalProject);
 			}
 
-			emailServiceFactory.getDefaultEmailService().sendConfirmationEmail(request, basicUrl);
+			safe(() -> emailServiceFactory.getDefaultEmailService().sendConfirmationEmail(request, basicUrl));
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {

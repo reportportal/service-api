@@ -43,6 +43,7 @@ import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.UserCreationBidBuilder;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.ws.model.user.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -200,11 +201,11 @@ public class CreateUserHandler implements ICreateUserHandler {
 		try {
 			emailLink.append("/ui/#registration?uuid=");
 			emailLink.append(bid.getId());
-			// TODO NPE handler! Use default from instead...
-			emailService.setAddressFrom(defaultProject.getConfiguration().getEmailConfig().getFrom());
+			ProjectEmailConfig projectEmailConfig = defaultProject.getConfiguration().getEmailConfig();
+			emailService.setAddressFrom(projectEmailConfig == null ? null : projectEmailConfig.getFrom());
 			emailService.sendConfirmationEmail("User registration confirmation", new String[] { bid.getEmail() }, emailLink.toString());
 		} catch (Exception e) {
-			fail().withError(FORBIDDEN_OPERATION, Suppliers.formattedSupplier("Unable to send email for bid '{}'.", bid.getId()));
+			fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT, Suppliers.formattedSupplier("Unable to send email for bid '{}'.", bid.getId()));
 		}
 
 		CreateUserBidRS response = new CreateUserBidRS();

@@ -41,5 +41,5 @@ public class Predicates {
 	/**
 	 * Checker whether string contains special characters only
 	 */
-	public static Predicate<String> SPECIAL_CHARS_ONLY = str -> CharMatcher.anyOf(SPECIAL_CHARACTERS).matchesAllOf(str);
+	public static final Predicate<String> SPECIAL_CHARS_ONLY = str -> CharMatcher.anyOf(SPECIAL_CHARACTERS).matchesAllOf(str);
 }

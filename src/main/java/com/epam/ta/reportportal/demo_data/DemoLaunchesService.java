@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.IntStream;
 
+import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,7 +69,7 @@ class DemoLaunchesService {
 	@Qualifier("saveLogsTaskExecutor")
 	private TaskExecutor taskExecutor;
 
-	List<String> generateDemoLaunches(DemoDataRq demoDataRq, String user, String projectName) {
+	List<String> generateDemoLaunches(DemoDataRq demoDataRq, String user, String projectName, StatisticsCalculationStrategy statsStrategy) {
 		Map<String, Map<String, List<String>>> suites;
 		try {
 			suites = objectMapper.readValue(resource.getURL(), new TypeReference<Map<String, Map<String, List<String>>>>() {
@@ -76,20 +77,20 @@ class DemoLaunchesService {
 		} catch (IOException e) {
 			throw new ReportPortalException("Unable to load suites description. " + e.getMessage(), e);
 		}
-		return generateLaunches(demoDataRq, suites, user, projectName);
+		return generateLaunches(demoDataRq, suites, user, projectName, statsStrategy);
 	}
 
 	private List<String> generateLaunches(DemoDataRq rq, Map<String, Map<String, List<String>>> suitesStructure, String user,
-			String project) {
+			String project, StatisticsCalculationStrategy statsStrategy) {
 		return IntStream.range(0, rq.getLaunchesQuantity()).mapToObj(i -> {
 			String launchId = startLaunch(NAME + "_" + rq.getPostfix(), i, project, user);
-			generateSuites(suitesStructure, i, launchId);
+			generateSuites(suitesStructure, i, launchId, statsStrategy);
 			finishLaunch(launchId);
 			return launchId;
 		}).collect(toList());
 	}
 
-	private List<String> generateSuites(Map<String, Map<String, List<String>>> suitesStructure, int i, String launchId) {
+	private List<String> generateSuites(Map<String, Map<String, List<String>>> suitesStructure, int i, String launchId, StatisticsCalculationStrategy statsStrategy) {
 		return suitesStructure.entrySet().parallelStream().limit(i + 1).map(suites -> {
 			TestItem suiteItem = demoItemsService.startRootItem(suites.getKey(), launchId);
 			suites.getValue().entrySet().forEach(tests -> {
@@ -98,31 +99,31 @@ class DemoLaunchesService {
 				if (random.nextBoolean()) {
 					TestItem beforeClass = demoItemsService.startTestItem(testItem, launchId, "beforeClass", BEFORE_CLASS);
 					beforeClassStatus = beforeClassStatus();
-					demoItemsService.finishTestItem(beforeClass.getId(), beforeClassStatus);
+					demoItemsService.finishTestItem(beforeClass.getId(), beforeClassStatus, statsStrategy);
 				}
 				boolean isGenerateBeforeMethod = random.nextBoolean();
 				boolean isGenerateAfterMethod = random.nextBoolean();
 				tests.getValue().stream().limit(i + 1).forEach(name -> {
 					if (isGenerateBeforeMethod) {
 						demoItemsService.finishTestItem(
-								demoItemsService.startTestItem(testItem, launchId, "beforeMethod", BEFORE_METHOD).getId(), status());
+								demoItemsService.startTestItem(testItem, launchId, "beforeMethod", BEFORE_METHOD).getId(), status(), statsStrategy);
 					}
 					TestItem stepId = demoItemsService.startTestItem(testItem, launchId, name, STEP);
 					String status = status();
 					taskExecutor.execute(() -> {
 						logDemoDataService.generateDemoLogs(stepId.getId(), status);
-						demoItemsService.finishTestItem(stepId.getId(), status);
+						demoItemsService.finishTestItem(stepId.getId(), status, statsStrategy);
 						if (isGenerateAfterMethod) {
 							demoItemsService.finishTestItem(
-									demoItemsService.startTestItem(testItem, launchId, "afterMethod", AFTER_METHOD).getId(), status());
+									demoItemsService.startTestItem(testItem, launchId, "afterMethod", AFTER_METHOD).getId(), status(), statsStrategy);
 						}
 					});
 				});
 				if (random.nextBoolean()) {
 					TestItem afterClass = demoItemsService.startTestItem(testItem, launchId, "afterClass", AFTER_CLASS);
-					demoItemsService.finishTestItem(afterClass.getId(), status());
+					demoItemsService.finishTestItem(afterClass.getId(), status(), statsStrategy);
 				}
-				demoItemsService.finishTestItem(testItem.getId(), !beforeClassStatus.isEmpty() ? beforeClassStatus : "FAILED");
+				demoItemsService.finishTestItem(testItem.getId(), !beforeClassStatus.isEmpty() ? beforeClassStatus : "FAILED", statsStrategy);
 			});
 			demoItemsService.finishRootItem(suiteItem.getId());
 			return suiteItem.getId();

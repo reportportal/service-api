@@ -23,6 +23,12 @@ package com.epam.ta.reportportal.demo_data;
 import java.util.Collections;
 import java.util.List;
 
+import com.epam.ta.reportportal.commons.Predicates;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,21 +37,26 @@ import com.epam.ta.reportportal.database.entity.Dashboard;
 @Service
 class DemoDataService {
 
-	private DemoLaunchesService demoLaunchesService;
-	private DemoDashboardsService demoDashboardsService;
+	private final DemoLaunchesService demoLaunchesService;
+	private final DemoDashboardsService demoDashboardsService;
+	private final ProjectRepository projectRepository;
 
 	@Autowired
-	DemoDataService(DemoLaunchesService demoLaunchesService, DemoDashboardsService demoDashboardsService) {
+	DemoDataService(DemoLaunchesService demoLaunchesService, DemoDashboardsService demoDashboardsService, ProjectRepository projectRepository) {
 		this.demoLaunchesService = demoLaunchesService;
 		this.demoDashboardsService = demoDashboardsService;
+		this.projectRepository = projectRepository;
 	}
 
-	DemoDataRs generate(DemoDataRq rq, String project, String user) {
+	DemoDataRs generate(DemoDataRq rq, String projectName, String user) {
 		DemoDataRs demoDataRs = new DemoDataRs();
-		final List<String> launches = demoLaunchesService.generateDemoLaunches(rq, user, project);
+		Project project = projectRepository.findOne(projectName);
+		StatisticsCalculationStrategy statsStrategy = project.getConfiguration().getStatisticsCalculationStrategy();
+		BusinessRule.expect(project, Predicates.notNull()).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
+		final List<String> launches = demoLaunchesService.generateDemoLaunches(rq, user, projectName, statsStrategy);
 		demoDataRs.setLaunches(launches);
 		if (rq.isCreateDashboard()) {
-			Dashboard demoDashboard = demoDashboardsService.generate(rq, user, project);
+			Dashboard demoDashboard = demoDashboardsService.generate(rq, user, projectName);
 			demoDataRs.setDashboards(Collections.singletonList(demoDashboard.getId()));
 		}
 		return demoDataRs;

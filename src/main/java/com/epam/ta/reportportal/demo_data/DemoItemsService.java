@@ -28,6 +28,7 @@ import static com.epam.ta.reportportal.database.entity.item.TestItemType.*;
 import java.util.Date;
 import java.util.Random;
 
+import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
@@ -58,7 +59,7 @@ class DemoItemsService {
 		this.statisticsFacadeFactory = statisticsFacadeFactory;
 	}
 
-	void finishTestItem(String testItemId, String status) {
+	void finishTestItem(String testItemId, String status, StatisticsCalculationStrategy statsStrategy) {
 		TestItem testItem = testItemRepository.findOne(testItemId);
 		if ("FAILED".equals(status) && !hasChildren(testItem.getType())) {
 			testItem.setIssue(new TestItemIssue(issueType(), null));
@@ -69,7 +70,7 @@ class DemoItemsService {
 		TestItemType testItemType = testItem.getType();
 		taskExecutor.execute(() -> {
 			if (!hasChildren(testItemType)) {
-				StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(TEST_BASED);
+				StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(statsStrategy);
 				statisticsFacade.updateExecutionStatistics(testItem);
 				if (null != testItem.getIssue()) {
 					statisticsFacade.updateIssueStatistics(testItem);

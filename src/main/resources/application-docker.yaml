@@ -7,16 +7,15 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://registry:8761/eureka/
+
 security:
   oauth2:
     resource:
       userInfoUri: http://uat:9999/sso/me
       loadBalanced: true
-  oauth2:
     client:
       accessTokenUri: http://uat:9999/sso/oauth/token
       userAuthorizationUri: http://uat:9999/sso/oauth/authorize
-
 
 rp:
   mongo:
@@ -25,7 +24,6 @@ rp:
     dbName: reportportal
     user:
     password:
-
 
 spring:
   redis:

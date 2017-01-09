@@ -1,0 +1,39 @@
+server:
+  port: 8080
+
+eureka:
+  instance:
+    hostname: ${HOSTNAME:api}
+  client:
+    serviceUrl:
+      defaultZone: http://registry:8761/eureka/
+security:
+  oauth2:
+    resource:
+      userInfoUri: http://uat:9999/sso/me
+      loadBalanced: true
+  oauth2:
+    client:
+      accessTokenUri: http://uat:9999/sso/oauth/token
+      userAuthorizationUri: http://uat:9999/sso/oauth/authorize
+
+
+rp:
+  mongo:
+    host: mongodb
+    port: 27017
+    dbName: reportportal
+    user:
+    password:
+
+
+spring:
+  redis:
+    host: redis
+    port: 6379
+  cloud:
+    consul:
+      host: consul
+      discovery:
+        hostname: api
+        prefer-ip-address: false

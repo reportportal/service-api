@@ -56,6 +56,10 @@
 ## 3.0.0
 ##### Released: XXX XXX 2017
 
+### New Features
+
+* Consul service discovery support
+
 ### Bugfixes
 
 * EPMRPP-23001 - In case login contains only underscore symbol the unclassified error (500) is returned 

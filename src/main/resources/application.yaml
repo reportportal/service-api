@@ -1,0 +1,48 @@
+spring:
+  profiles:
+    ## Default one is still Eureka
+    active: ${rp.profiles:eureka}
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        tags:
+          - urlprefix-${server.contextPath}
+          - traefik.frontend.rule=PathPrefixStrip:/uat
+        healthCheckPath: ${server.contextPath}/admin/health
+        host-info: ${server.contextPath}/admin/info
+        ip-address: 10.200.10.1
+        prefer-ip-address: true
+eureka:
+  instance:
+    hostname: ${HOSTNAME:localhost}
+    status-page-url-path: ${server.contextPath}/info
+    health-check-url-path: ${server.contextPath}/health
+
+
+
+## Consul as service registry
+---
+spring:
+  profiles: eureka
+  cloud:
+    consul:
+      enabled: false
+      discovery:
+        register: false
+
+## Consul as service registry
+---
+spring:
+  profiles: consul
+  cloud:
+    consul:
+      enabled: true
+      discovery:
+        register: true
+eureka:
+  client:
+    register-with-eureka: false
+    enabled: false
+---

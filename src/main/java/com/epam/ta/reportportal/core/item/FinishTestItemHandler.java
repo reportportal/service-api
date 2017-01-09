@@ -37,9 +37,9 @@ public interface FinishTestItemHandler {
 	/**
 	 * Updates {@link TestItem} instance
 	 * 
-	 * @param testStepId
+	 * @param testItemId
 	 *            Test item ID
-	 * @param finishTestStepRQ
+	 * @param finishExecutionRQ
 	 *            Request with finish Test Item data
 	 * @param username
 	 *            RQ principal

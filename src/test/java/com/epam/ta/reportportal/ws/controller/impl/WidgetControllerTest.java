@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 package com.epam.ta.reportportal.ws.controller.impl;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -27,12 +27,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Arrays;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.test.web.servlet.MvcResult;
 
 import com.epam.ta.reportportal.auth.AuthConstants;
+import com.epam.ta.reportportal.database.dao.WidgetRepository;
+import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,11 +49,14 @@ public class WidgetControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+	@Autowired
+	private WidgetRepository widgetRepository;
 
 	@Test
 	public void createWidgetPositive() throws Exception {
 		WidgetRQ rq = new WidgetRQ();
 		rq.setName("widget");
+		rq.setDescription("description");
 		ContentParameters contentParameters = new ContentParameters();
 		contentParameters.setGadget("old_line_chart");
 		contentParameters.setType("line_chart");
@@ -58,8 +66,12 @@ public class WidgetControllerTest extends BaseMvcTest {
 		rq.setApplyingFilter("566e1f3818177ca344439d40");
 		rq.setContentParameters(contentParameters);
 		rq.setShare(true);
-		this.mvcMock.perform(post(PROJECT_BASE_URL + "/widget").principal(authentication()).content(objectMapper.writeValueAsBytes(rq))
-				.contentType(APPLICATION_JSON)).andExpect(status().isCreated());
+		final MvcResult mvcResult = mvcMock.perform(post(PROJECT_BASE_URL + "/widget").principal(authentication())
+				.content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)).andExpect(status().isCreated()).andReturn();
+		final EntryCreatedRS entryCreatedRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), EntryCreatedRS.class);
+		final Widget widget = widgetRepository.findOne(entryCreatedRS.getId());
+		Assert.assertNotNull(widget);
+		Assert.assertEquals("description", widget.getDescription());
 	}
 
 	@Test
@@ -72,6 +84,7 @@ public class WidgetControllerTest extends BaseMvcTest {
 	public void updateWidgetPositive() throws Exception {
 		final WidgetRQ rq = new WidgetRQ();
 		rq.setName("Most failure test-cases table new");
+		rq.setDescription("description");
 		rq.setApplyingFilter("566e1f3818177ca344439d40");
 		rq.setShare(true);
 		final ContentParameters contentParameters = new ContentParameters();
@@ -83,6 +96,8 @@ public class WidgetControllerTest extends BaseMvcTest {
 		rq.setContentParameters(contentParameters);
 		this.mvcMock.perform(put(PROJECT_BASE_URL + "/widget/613e1f3818127ca356339f38").principal(authentication())
 				.content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)).andExpect(status().is(200));
+		final Widget widget = widgetRepository.findOne("613e1f3818127ca356339f38");
+		Assert.assertEquals("description", widget.getDescription());
 	}
 
 	@Test

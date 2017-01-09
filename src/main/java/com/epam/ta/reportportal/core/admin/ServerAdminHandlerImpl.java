@@ -79,7 +79,7 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 		ServerSettings settings = repository.findOne(profileId);
 		BusinessRule.expect(settings, Predicates.notNull()).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, profileId);
 		if (null != request) {
-			ServerEmailConfig serverEmailConfig = settings.getServerEmailConfig();
+			ServerEmailConfig serverEmailConfig = new ServerEmailConfig();
 			if (request.getDebug())
 				serverEmailConfig.setDebug(request.getDebug());
 			if (null != request.getHost())
@@ -120,8 +120,9 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 				fail().withError(FORBIDDEN_OPERATION,
 						"Email configuration is incorrect. Please, check your configuration. " + ex.getMessage());
 			}
+			settings.setServerEmailConfig(serverEmailConfig);
+			repository.save(settings);
 		}
-		repository.save(settings);
 		return new OperationCompletionRS("Server Settings with profile '" + profileId + "' is successfully updated.");
 	}
 }

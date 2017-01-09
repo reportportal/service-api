@@ -21,10 +21,12 @@
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-
-import java.security.Principal;
+import com.epam.ta.reportportal.core.admin.ServerAdminHandler;
+import com.epam.ta.reportportal.ws.controller.ISettingsController;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
+import com.epam.ta.reportportal.ws.model.settings.UpdateEmailSettingsRQ;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,18 +34,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.epam.ta.reportportal.core.admin.ServerAdminHandler;
-import com.epam.ta.reportportal.ws.controller.ISettingsController;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
-import com.epam.ta.reportportal.ws.model.settings.UpdateEmailSettingsRQ;
+import java.security.Principal;
 
-import io.swagger.annotations.ApiOperation;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 
 /**
  * Basic implementation of administrator interface {@link ISettingsController}
  * 
  * @author Andrei_Ramanchuk
+ * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
  */
 @Controller
 @RequestMapping("/settings")

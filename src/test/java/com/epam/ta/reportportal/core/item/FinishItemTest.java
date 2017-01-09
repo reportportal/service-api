@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.item;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.epam.ta.reportportal.core.statistics.StepBasedStatisticsFacade;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,6 +52,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
+import org.mockito.Mockito;
 
 /**
  * @author Dzmitry_Kavalets
@@ -138,7 +141,14 @@ public class FinishItemTest {
 		finishTestItemHandler.setProjectRepository(projectRepository);
 		finishTestItemHandler.setLaunchRepository(launchRepository);
 		finishTestItemHandler.setTestItemRepository(testItemRepository);
-		finishTestItemHandler.setStatisticsFacadeFactory(mock(StatisticsFacadeFactory.class));
+
+		StatisticsFacadeFactory facadeFactoryMock = mock(StatisticsFacadeFactory.class);
+		StepBasedStatisticsFacade facadeMock = mock(StepBasedStatisticsFacade.class);
+		when(facadeMock.updateExecutionStatistics(any())).thenReturn(testItem);
+
+		when(facadeFactoryMock.getStatisticsFacade(any()))
+				.thenReturn(facadeMock);
+		finishTestItemHandler.setStatisticsFacadeFactory(facadeFactoryMock);
 
 		final FinishTestItemRQ finishExecutionRQ = new FinishTestItemRQ();
 		finishExecutionRQ.setStatus(Status.PASSED.name());

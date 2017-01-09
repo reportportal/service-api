@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.impl;
 
@@ -30,7 +30,6 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 import java.util.List;
 
-import com.epam.ta.reportportal.events.WidgetUpdatedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -48,6 +47,7 @@ import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.database.search.CriteriaMap;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
+import com.epam.ta.reportportal.events.WidgetUpdatedEvent;
 import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -82,7 +82,6 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
 
-
 	@Override
 	public OperationCompletionRS updateWidget(String widgetId, WidgetRQ updateRQ, String userName, String projectName) {
 		Widget widget = widgetRepository.findOne(widgetId);
@@ -93,6 +92,7 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 		if (null != updateRQ.getName() && !widget.getName().equals(updateRQ.getName())) {
 			WidgetUtils.checkUniqueName(updateRQ.getName(), widgetList);
 		}
+		widget.setDescription(updateRQ.getDescription());
 
 		AclUtils.validateOwner(widget.getAcl(), userName, widget.getName());
 		expect(widget.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
@@ -125,10 +125,10 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
 	}
 
-	private void shareIfRequired(Boolean isShare, Widget widget, String userName, String projectName, UserFilter newfilter) {
+	private void shareIfRequired(Boolean isShare, Widget widget, String userName, String projectName, UserFilter newFilter) {
 		if (isShare != null) {
-			if (null != newfilter) {
-				AclUtils.isPossibleToRead(newfilter.getAcl(), userName, projectName);
+			if (null != newFilter) {
+				AclUtils.isPossibleToRead(newFilter.getAcl(), userName, projectName);
 			}
 			sharingService.modifySharing(Lists.newArrayList(widget), userName, projectName, isShare);
 		}

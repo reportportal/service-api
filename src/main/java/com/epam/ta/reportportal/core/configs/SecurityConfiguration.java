@@ -138,7 +138,7 @@ class SecurityConfiguration {
                             "/**/user/registration/info*",
                             "/**/user/registration**",
                             "/**/user/password/reset/*",
-                            "/**/user/password/reset",
+                            "/**/user/password/reset**",
                             "/**/user/password/restore**",
                             "/**/composite/*",
 

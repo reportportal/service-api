@@ -32,10 +32,6 @@ apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/maste
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-
-description = 'EPAM Report portal. Main API Service'
-
-
 project.ext {
     limits = [
             'instruction': 68,
@@ -50,6 +46,7 @@ project.ext {
 
 repositories {
     mavenCentral()
+    mavenLocal()
     maven { url "http://dl.bintray.com/epam/reportportal" }
     maven { url "http://jasperreports.sourceforge.net/maven2" }
     maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
@@ -72,9 +69,11 @@ configurations.all {
 }
 
 dependencies {
-    compile 'com.github.reportportal:commons-model:master-SNAPSHOT'
-    compile 'com.github.reportportal:commons-dao:master-SNAPSHOT'
-    compile 'com.github.reportportal:commons-rules:master-SNAPSHOT'
+
+    compile 'com.github.reportportal:commons-model:f9e6b8c5f6'
+    compile 'com.github.reportportal:commons-dao:33888c36e9'
+    compile 'com.github.reportportal:commons-rules:7fa95723ba'
+
     compile 'com.epam.reportportal:commons:2.6.1'
 
     compile 'org.jasypt:jasypt:1.9.2'
@@ -187,7 +186,7 @@ test {
             logger.lifecycle("Checking coverage results: ${report}")
 
             def parser = new XmlParser()
-            parser.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            parser.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
             parser.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false)
             def results = parser.parse(report)
 

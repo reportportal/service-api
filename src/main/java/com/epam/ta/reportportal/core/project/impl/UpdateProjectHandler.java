@@ -43,7 +43,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
-import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;

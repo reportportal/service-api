@@ -48,4 +48,5 @@ public interface ServerAdminHandler {
      * @return Operation results
      */
     OperationCompletionRS saveEmailSettings(String profileId, UpdateEmailSettingsRQ request);
+
 }

@@ -36,13 +36,16 @@ import com.epam.ta.reportportal.database.entity.user.*;
 import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
 import com.epam.ta.reportportal.events.UserCreatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.Predicates;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.builders.RestorePasswordBidBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.UserCreationBidBuilder;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.ws.model.user.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -55,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.epam.reportportal.commons.Safe.safe;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
@@ -115,6 +119,9 @@ public class CreateUserHandler implements ICreateUserHandler {
 		expect(userRepository.exists(newUsername), equalTo(false))
 				.verify(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("login='{}'", newUsername));
 
+		expect(newUsername, Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
+				Suppliers.formattedSupplier("Username '{}' consists only of special characters", newUsername));
+
 		String projectName = EntityUtils.normalizeProjectName(request.getDefaultProject());
 		Project defaultProject = projectRepository.findOne(projectName);
 		expect(defaultProject, notNull()).verify(PROJECT_NOT_FOUND, projectName);
@@ -151,7 +158,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 				projectRepository.save(personalProject);
 			}
 
-			emailServiceFactory.getDefaultEmailService().sendConfirmationEmail(request, basicUrl);
+			safe(() -> emailServiceFactory.getDefaultEmailService().sendConfirmationEmail(request, basicUrl));
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {
@@ -200,11 +207,12 @@ public class CreateUserHandler implements ICreateUserHandler {
 		try {
 			emailLink.append("/ui/#registration?uuid=");
 			emailLink.append(bid.getId());
-			// TODO NPE handler! Use default from instead...
-			emailService.setAddressFrom(defaultProject.getConfiguration().getEmailConfig().getFrom());
+			ProjectEmailConfig projectEmailConfig = defaultProject.getConfiguration().getEmailConfig();
+			emailService.setAddressFrom(projectEmailConfig == null ? null : projectEmailConfig.getFrom());
 			emailService.sendConfirmationEmail("User registration confirmation", new String[] { bid.getEmail() }, emailLink.toString());
 		} catch (Exception e) {
-			fail().withError(FORBIDDEN_OPERATION, Suppliers.formattedSupplier("Unable to send email for bid '{}'.", bid.getId()));
+			fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
+					Suppliers.formattedSupplier("Unable to send email for bid '{}'.", bid.getId()));
 		}
 
 		CreateUserBidRS response = new CreateUserBidRS();

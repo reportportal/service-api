@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.item.merge.strategy;
 
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -40,12 +41,12 @@ public class TestMergeStrategy extends AbstractSuiteMergeStrategy {
     }
 
     public boolean isTestItemAcceptableToMerge(TestItem item) {
-        if (item.getType().getLevel() != 0) {
+        if (!item.getType().sameLevel(TestItemType.SUITE)) {
             return false;
         }
         List<TestItem> childItems = testItemRepository.findAllDescendants(item.getId());
         for (TestItem testItem : childItems) {
-            if (testItem.getType().getLevel() != 0) {
+            if (!testItem.getType().sameLevel(TestItemType.SUITE)) {
                 return false;
             }
         }

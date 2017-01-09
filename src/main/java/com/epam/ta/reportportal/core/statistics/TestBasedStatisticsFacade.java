@@ -38,7 +38,7 @@ public class TestBasedStatisticsFacade extends StatisticsFacadeImpl implements S
     @Override
     public TestItem updateExecutionStatistics(final TestItem testItem) {
         TestItemType type = testItem.getType();
-        if (type.awareStatistics() && type.higherThan(TestItemType.STEP)) {
+        if (type.awareStatistics() && type.sameLevel(TestItemType.TEST)) {
             return super.updateExecutionStatistics(testItem);
         } else {
             return testItem;
@@ -48,7 +48,7 @@ public class TestBasedStatisticsFacade extends StatisticsFacadeImpl implements S
     @Override
     public TestItem resetExecutionStatistics(TestItem testItem) {
         TestItemType type = testItem.getType();
-        if (type.awareStatistics() && type.higherThan(TestItemType.STEP)) {
+        if (type.awareStatistics() && type.sameLevel(TestItemType.TEST)) {
             return super.resetExecutionStatistics(testItem);
         } else {
             return testItem;
@@ -58,7 +58,7 @@ public class TestBasedStatisticsFacade extends StatisticsFacadeImpl implements S
     @Override
     public TestItem deleteExecutionStatistics(TestItem testItem) {
         TestItemType type = testItem.getType();
-        if (type.awareStatistics() && type.higherThan(TestItemType.STEP)) {
+        if (type.awareStatistics() && type.sameLevel(TestItemType.TEST)) {
             return super.deleteExecutionStatistics(testItem);
         } else {
             return testItem;

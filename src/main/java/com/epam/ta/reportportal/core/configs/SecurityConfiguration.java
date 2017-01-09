@@ -140,7 +140,6 @@ class SecurityConfiguration {
                             "/**/user/password/reset/*",
                             "/**/user/password/reset**",
                             "/**/user/password/restore**",
-                            "/**/composite/*",
 
                             "/documentation.html")
                         .permitAll()

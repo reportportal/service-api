@@ -3,7 +3,7 @@
  * 
  * 
  * This file is part of EPAM Report Portal.
- * https://github.com/epam/ReportPortal
+ * https://github.com/reportportal/service-api
  * 
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,6 @@ import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.fixture.SpringFixture;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
-import com.epam.ta.reportportal.triggers.CascadeDeleteItemsService;
 
 /**
  * Unit tests for TestItem triggers
@@ -51,15 +50,14 @@ public class TestItemTriggerTest extends BaseTest {
 	private TestItemRepository testItemRepository;
 	@Autowired
 	private LogRepository logRepository;
-	@Autowired
-	private CascadeDeleteItemsService cascadeDeleteItemsService;
+
 	@Rule
 	@Autowired
 	public SpringFixtureRule dfRule;
 
 	@Test
 	public void testDeleteByAsList() {
-		cascadeDeleteItemsService.delete(singletonList(CHILD_ID));
+		testItemRepository.delete(singletonList(CHILD_ID));
 
 		assertNull(testItemRepository.findOne(CHILD_ID));
 		assertTrue(logRepository.findLogIdsByTestItemId(CHILD_ID).isEmpty());

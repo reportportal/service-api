@@ -3,7 +3,7 @@
  * 
  * 
  * This file is part of EPAM Report Portal.
- * https://github.com/epam/ReportPortal
+ * https://github.com/reportportal/service-api
  * 
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.statistics;
 
 import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 
 /**
@@ -105,8 +106,14 @@ public interface StatisticsFacade {
 	/**
 	 * Updates launch statistics
 	 * 
-	 * @param item
+	 * @param launch
 	 */
 	void updateLaunchFromStatistics(Launch launch);
 
+	/**
+	 * Recalculate launch statistics
+	 *
+	 * @param launch
+	 */
+	void recalculateStatistics(Launch launch);
 }

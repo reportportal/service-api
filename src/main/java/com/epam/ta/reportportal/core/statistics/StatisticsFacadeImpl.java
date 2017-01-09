@@ -3,7 +3,7 @@
  * 
  * 
  * This file is part of EPAM Report Portal.
- * https://github.com/epam/ReportPortal
+ * https://github.com/reportportal/service-api
  * 
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@
 
 package com.epam.ta.reportportal.core.statistics;
 
+import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
+import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +32,8 @@ import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+
+import java.util.List;
 
 /**
  * Default implementation of {@link StatisticsFacade}
@@ -109,5 +113,32 @@ public class StatisticsFacadeImpl implements StatisticsFacade {
 	public void updateLaunchFromStatistics(Launch launch) {
 		launch.setStatus(StatisticsHelper.getStatusFromStatistics(launch.getStatistics()));
 		launchRepository.save(launch);
+	}
+
+	@Override
+	public void recalculateStatistics(Launch launch) {
+		deleteLaunchStatistics(launch);
+		testItemRepository.findByHasChildStatus(false,
+				launch.getId()).forEach(this::recalculateTestItemStatistics);
+
+		List<TestItem> withIssues = testItemRepository.findTestItemWithIssues(launch.getId());
+		withIssues.forEach(this::updateIssueStatistics);
+	}
+
+	private void recalculateTestItemStatistics(TestItem item) {
+		this.updateExecutionStatistics(item);
+	}
+
+	private void deleteLaunchStatistics(Launch launch) {
+		testItemRepository.findByLaunch(launch).forEach(this::deleteTestItemStatistics);
+		launch.getStatistics().setExecutionCounter(new ExecutionCounter(0, 0, 0, 0));
+		launch.getStatistics().setIssueCounter(new IssueCounter());
+		launchRepository.save(launch);
+	}
+
+	private void deleteTestItemStatistics(TestItem item) {
+		item.getStatistics().setExecutionCounter(new ExecutionCounter(0, 0, 0, 0));
+		item.getStatistics().setIssueCounter(new IssueCounter());
+		testItemRepository.save(item);
 	}
 }

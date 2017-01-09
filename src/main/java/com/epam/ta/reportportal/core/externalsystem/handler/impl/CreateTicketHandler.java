@@ -3,7 +3,7 @@
  * 
  * 
  * This file is part of EPAM Report Portal.
- * https://github.com/epam/ReportPortal
+ * https://github.com/reportportal/service-api
  * 
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,7 +74,7 @@ public class CreateTicketHandler implements ICreateTicketHandler {
 		expect(system, notNull()).verify(EXTERNAL_SYSTEM_NOT_FOUND, systemId);
 		expect(system.getFields(), notNull()).verify(BAD_REQUEST_ERROR,
 				"There aren't any submitted BTS fields!");
-		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name(), project);
+		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name());
 		Ticket ticket = externalSystemStrategy.submitTicket(postTicketRQ, system);
 		eventPublisher.publishEvent(new TicketPostedEvent(ticket, postTicketRQ.getTestItemId(), username, projectName));
 		return ticket;

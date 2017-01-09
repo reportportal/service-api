@@ -3,7 +3,7 @@
  * 
  * 
  * This file is part of EPAM Report Portal.
- * https://github.com/epam/ReportPortal
+ * https://github.com/reportportal/service-api
  * 
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,13 +33,13 @@ public class PredicatesTest {
 	@Test
 	public void notNullPredicate() {
 		Assert.assertFalse(Predicates.notNull().test(null));
-		Assert.assertTrue(Predicates.notNull().test(new Integer(5)));
+		Assert.assertTrue(Predicates.notNull().test(5));
 	}
 
 	@Test
 	public void isNullPredicate() {
 		Assert.assertTrue(Predicates.isNull().test(null));
-		Assert.assertFalse(Predicates.isNull().test(new Integer(5)));
+		Assert.assertFalse(Predicates.isNull().test(5));
 	}
 
 	@Test

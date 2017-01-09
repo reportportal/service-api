@@ -1,6 +1,7 @@
 buildscript {
     repositories {
         mavenCentral()
+        jcenter()
         maven {
             url "https://maven.eveoh.nl/content/repositories/releases"
         }
@@ -8,7 +9,7 @@ buildscript {
     dependencies {
         classpath "io.spring.gradle:dependency-management-plugin:0.6.0.RELEASE"
         classpath("org.springframework.boot:spring-boot-gradle-plugin:1.4.0.RELEASE")
-        classpath 'com.bmuschko:gradle-docker-plugin:3.0.3'
+        classpath 'com.bmuschko:gradle-docker-plugin:3.0.4'
     }
 }
 
@@ -24,9 +25,9 @@ apply plugin: "io.spring.dependency-management"
 apply plugin: 'jacoco'
 
 apply from: 'build-quality.gradle'
-apply from: 'build-docker.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-docker.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
-apply from: 'release-service.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -49,15 +50,15 @@ project.ext {
 
 repositories {
     mavenCentral()
-    mavenLocal()
     maven { url "http://dl.bintray.com/epam/reportportal" }
     maven { url "http://jasperreports.sourceforge.net/maven2" }
     maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
+    maven { url "https://jitpack.io" }
 }
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Camden.SR2"
+        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Camden.SR3"
 
     }
 }
@@ -66,10 +67,14 @@ configurations {
     api
 }
 
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
 dependencies {
-//    compile 'com.epam.reportportal:commons-model:2.7.0-ALPHA-9'
-    compile 'com.epam.reportportal:commons-dao:2.7.0-bdd'
-    compile ('com.epam.reportportal:commons-rules:2.7.0-bdd')
+    compile 'com.github.reportportal:commons-model:master-SNAPSHOT'
+    compile 'com.github.reportportal:commons-dao:master-SNAPSHOT'
+    compile 'com.github.reportportal:commons-rules:master-SNAPSHOT'
     compile 'com.epam.reportportal:commons:2.6.1'
 
     compile 'org.jasypt:jasypt:1.9.2'
@@ -98,6 +103,8 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-actuator'
     compile 'org.springframework.boot:spring-boot-starter-data-redis'
     compile 'org.springframework.cloud:spring-cloud-starter-oauth2'
+
+    compile 'com.github.mongobee:mongobee:0.12'
 
 
     compile 'net.sf.jasperreports:jasperreports:6.3.1'
@@ -193,12 +200,12 @@ test {
             def counters = results.counter
             def metrics = [:]
             metrics << [
-                    'instruction': percentage(counters.find { it.'@type'.equals('INSTRUCTION') }),
-                    'branch'     : percentage(counters.find { it.'@type'.equals('BRANCH') }),
-                    'line'       : percentage(counters.find { it.'@type'.equals('LINE') }),
-                    'complexity' : percentage(counters.find { it.'@type'.equals('COMPLEXITY') }),
-                    'method'     : percentage(counters.find { it.'@type'.equals('METHOD') }),
-                    'class'      : percentage(counters.find { it.'@type'.equals('CLASS') })
+                    'instruction': percentage(counters.find { (it.'@type' == 'INSTRUCTION') }),
+                    'branch'     : percentage(counters.find { (it.'@type' == 'BRANCH') }),
+                    'line'       : percentage(counters.find { (it.'@type' == 'LINE') }),
+                    'complexity' : percentage(counters.find { (it.'@type' == 'COMPLEXITY') }),
+                    'method'     : percentage(counters.find { (it.'@type' == 'METHOD') }),
+                    'class'      : percentage(counters.find { (it.'@type' == 'CLASS') })
             ]
 
 

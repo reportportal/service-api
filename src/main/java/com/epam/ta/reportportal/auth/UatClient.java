@@ -31,13 +31,15 @@ import org.springframework.web.client.RestTemplate;
  */
 public class UatClient {
 
-	private RestTemplate restTemplate;
+	private final RestTemplate restTemplate;
+	private final String uatServiceUrl;
 
-	public UatClient(RestTemplate restTemplate) {
+	public UatClient(String uatServiceUrl, RestTemplate restTemplate) {
 		this.restTemplate = Preconditions.checkNotNull(restTemplate, "RestTemplate should not be null");
+		this.uatServiceUrl = Preconditions.checkNotNull(uatServiceUrl, "UAT service URL should not be null");
 	}
 
 	public void revokeUserTokens(String user) {
-		this.restTemplate.delete("http://uat/sso/internal/user/{user}", user);
+		this.restTemplate.delete(uatServiceUrl + "/sso/internal/user/{user}", user);
 	}
 }

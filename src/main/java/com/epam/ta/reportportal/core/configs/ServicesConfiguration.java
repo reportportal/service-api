@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.core.configs;
 import com.epam.ta.reportportal.auth.UatClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.oauth2.OAuth2ClientProperties;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
@@ -56,7 +57,8 @@ public class ServicesConfiguration {
 	}
 
 	@Bean
-	public UatClient uatClient(@Qualifier("rpInternalRestTemplate") OAuth2RestTemplate restTemplate) {
-		return new UatClient(restTemplate);
+	public UatClient uatClient(@Value("${rp.uat.serviceUrl}") String uatServiceUrl,
+			@Qualifier("rpInternalRestTemplate") OAuth2RestTemplate restTemplate) {
+		return new UatClient(uatServiceUrl, restTemplate);
 	}
 }

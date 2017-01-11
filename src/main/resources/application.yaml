@@ -9,7 +9,7 @@ spring:
       discovery:
         tags:
           - urlprefix-${server.contextPath}
-          - traefik.frontend.rule=PathPrefixStrip:/uat
+          - traefik.frontend.rule=PathPrefixStrip:/api
         healthCheckPath: ${server.contextPath}/admin/health
         host-info: ${server.contextPath}/admin/info
         ip-address: 10.200.10.1

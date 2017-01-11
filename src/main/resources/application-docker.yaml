@@ -12,14 +12,10 @@ security:
   oauth2:
     resource:
       loadBalanced: true
-      user-info-uri: http://uat:9999/sso/me
-    client:
-      access-token-uri: http://uat:9999/sso/oauth/token
-      user-authorization-uri: http://uat:9999/sso/oauth/authorize
-      client-id: internal
-      client-secret: internal_man
 
 rp:
+  uat:
+    serviceUrl: http://uat:9999/uat
   mongo:
     host: mongodb
     port: 27017

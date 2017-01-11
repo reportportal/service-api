@@ -11,11 +11,13 @@ eureka:
 security:
   oauth2:
     resource:
-      userInfoUri: http://uat:9999/sso/me
       loadBalanced: true
+      user-info-uri: http://uat:9999/sso/me
     client:
-      accessTokenUri: http://uat:9999/sso/oauth/token
-      userAuthorizationUri: http://uat:9999/sso/oauth/authorize
+      access-token-uri: http://uat:9999/sso/oauth/token
+      user-authorization-uri: http://uat:9999/sso/oauth/authorize
+      client-id: internal
+      client-secret: internal_man
 
 rp:
   mongo:

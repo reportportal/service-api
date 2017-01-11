@@ -15,7 +15,7 @@ security:
 
 rp:
   uat:
-    serviceUrl: http://uat
+    serviceUrl: http://uat:9999
   mongo:
     host: mongodb
     port: 27017

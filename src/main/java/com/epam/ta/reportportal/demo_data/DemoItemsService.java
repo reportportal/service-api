@@ -20,27 +20,25 @@
  */
 package com.epam.ta.reportportal.demo_data;
 
-import static com.epam.ta.reportportal.core.statistics.StatisticsHelper.getStatusFromStatistics;
-import static com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy.TEST_BASED;
-import static com.epam.ta.reportportal.database.entity.Status.IN_PROGRESS;
-import static com.epam.ta.reportportal.database.entity.item.TestItemType.*;
-
-import java.util.Date;
-import java.util.Random;
-
+import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
+import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
+import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
+import com.epam.ta.reportportal.database.entity.Status;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.TestItemType;
+import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
-import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
-import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.entity.Status;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.item.TestItemType;
-import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
+import java.util.Date;
+import java.util.Random;
+
+import static com.epam.ta.reportportal.core.statistics.StatisticsHelper.getStatusFromStatistics;
+import static com.epam.ta.reportportal.database.entity.Status.IN_PROGRESS;
+import static com.epam.ta.reportportal.database.entity.item.TestItemType.*;
 
 @Service
 class DemoItemsService {
@@ -67,15 +65,13 @@ class DemoItemsService {
 		testItem.setStatus(Status.fromValue(status).get());
 		testItem.setEndTime(new Date());
 		testItemRepository.save(testItem);
-		TestItemType testItemType = testItem.getType();
 		taskExecutor.execute(() -> {
-			if (!hasChildren(testItemType)) {
-				StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(statsStrategy);
-				statisticsFacade.updateExecutionStatistics(testItem);
-				if (null != testItem.getIssue()) {
-					statisticsFacade.updateIssueStatistics(testItem);
-				}
+			StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(statsStrategy);
+			statisticsFacade.updateExecutionStatistics(testItem);
+			if (null != testItem.getIssue()) {
+				statisticsFacade.updateIssueStatistics(testItem);
 			}
+
 		});
 	}
 

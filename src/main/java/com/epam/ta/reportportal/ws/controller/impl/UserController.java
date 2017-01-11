@@ -243,6 +243,7 @@ public class UserController implements IUserController {
 	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiIgnore
+	@PreAuthorize(ADMIN_ONLY)
 	public Iterable<UserResource> findUsers(@PathVariable String term, Pageable pageable, Principal principal) {
 		return getUserHandler.searchUsers(term, pageable);
 	}

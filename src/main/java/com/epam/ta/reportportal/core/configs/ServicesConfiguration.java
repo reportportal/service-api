@@ -53,7 +53,7 @@ public class ServicesConfiguration {
 		clientCredentialsResourceDetails.setClientSecret(oauthClientProperties.getClientSecret());
 		clientCredentialsResourceDetails.setAccessTokenUri(resource.getAccessTokenUri());
 		clientCredentialsResourceDetails.setScope(resource.getScope());
-		return new OAuth2RestTemplate(resource, context);
+		return new OAuth2RestTemplate(clientCredentialsResourceDetails, context);
 	}
 
 	@Bean

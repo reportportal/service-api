@@ -38,6 +38,6 @@ public class UatClient {
 	}
 
 	public void revokeUserTokens(String user) {
-		this.restTemplate.delete("http://uat/sso/internal/user/{user}", user);
+		this.restTemplate.delete("http://uat/uat/sso/internal/user/{user}", user);
 	}
 }

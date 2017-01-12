@@ -21,7 +21,6 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.epam.ta.reportportal.commons.SendCase;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectSpecific;
 import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
@@ -29,21 +28,14 @@ import com.epam.ta.reportportal.database.entity.project.EntryType;
 import com.epam.ta.reportportal.database.entity.project.InterruptionJobDelay;
 import com.epam.ta.reportportal.database.entity.project.KeepLogsDelay;
 import com.epam.ta.reportportal.database.entity.project.KeepScreenshotsDelay;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
-import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Optional;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Collections.emptyList;
 
 /**
  * New project object builder
@@ -72,11 +64,10 @@ public class ProjectBuilder extends Builder<Project> {
 			getObject().getConfiguration().setKeepLogs(KeepLogsDelay.THREE_MONTHS.getValue());
 			getObject().getConfiguration().setKeepScreenshots(KeepScreenshotsDelay.TWO_WEEKS.getValue());
 			getObject().getConfiguration().setIsAutoAnalyzerEnabled(false);
+			getObject().getConfiguration().setStatisticsCalculationStrategy(StatisticsCalculationStrategy.STEP_BASED);
 
 			// Email settings by default
-			EmailSenderCase defaultOne = new EmailSenderCase(newArrayList("OWNER"), SendCase.ALWAYS.name(), emptyList(), emptyList());
-			ProjectEmailConfig config = new ProjectEmailConfig(false, "reportportal@example.com", newArrayList(defaultOne));
-			getObject().getConfiguration().setEmailConfig(config);
+			ProjectUtils.setDefaultEmailCofiguration(getObject());
 
 			// Users
 			getObject().setUsers(new HashMap<>());

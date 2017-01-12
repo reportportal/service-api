@@ -80,7 +80,7 @@ public class SettingsControllerTest extends BaseMvcTest {
 		rq.setHost("fake.host.com");
 		rq.setPort("25");
 		rq.setProtocol("smtp");
-		this.mvcMock.perform(put("/settings/default").principal(authentication()).contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
+		this.mvcMock.perform(put("/settings/default/email").principal(authentication()).contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
 				.andExpect(status().is(400));
 	}
 

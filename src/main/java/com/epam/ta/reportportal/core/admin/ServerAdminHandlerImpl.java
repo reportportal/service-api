@@ -32,17 +32,23 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import com.epam.ta.reportportal.ws.model.settings.UpdateEmailSettingsRQ;
+import com.mongodb.WriteResult;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
-import static com.epam.ta.reportportal.ws.model.ErrorType.SERVER_SETTINGS_NOT_FOUND;
+import static org.springframework.data.mongodb.core.query.Query.query;
 
 /**
  * Basic implementation of server administration interface
@@ -67,17 +73,17 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 	@Autowired
 	private MailServiceFactory emailServiceFactory;
 
+	@Autowired
+	private MongoOperations mongoOperations;
+
 	@Override
 	public ServerSettingsResource getServerSettings(String profileId) {
-		ServerSettings settings = repository.findOne(profileId);
-		BusinessRule.expect(settings, Predicates.notNull()).verify(SERVER_SETTINGS_NOT_FOUND, profileId);
-		return settingsAssembler.toResource(settings);
+		return settingsAssembler.toResource(findServerSettings(profileId));
 	}
 
 	@Override
 	public OperationCompletionRS saveEmailSettings(String profileId, UpdateEmailSettingsRQ request) {
-		ServerSettings settings = repository.findOne(profileId);
-		BusinessRule.expect(settings, Predicates.notNull()).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, profileId);
+		ServerSettings settings = findServerSettings(profileId);
 		if (null != request) {
 			ServerEmailConfig serverEmailConfig = new ServerEmailConfig();
 			if (request.getDebug())
@@ -120,9 +126,28 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 				fail().withError(FORBIDDEN_OPERATION,
 						"Email configuration is incorrect. Please, check your configuration. " + ex.getMessage());
 			}
-			settings.setServerEmailConfig(serverEmailConfig);
-			repository.save(settings);
+			ServerSettings update = new ServerSettings();
+			update.setId(settings.getId());
+			//TODO active primitive should be replaced with Object(Boolean) type
+			update.setActive(settings.getActive());
+			update.setServerEmailConfig(serverEmailConfig);
+
+			repository.partialUpdate(update);
 		}
 		return new OperationCompletionRS("Server Settings with profile '" + profileId + "' is successfully updated.");
+	}
+
+	public OperationCompletionRS deleteEmailSettings(String profileId) {
+		WriteResult result = mongoOperations
+				.updateFirst(query(Criteria.where("_id").is(profileId)), Update.update("serverEmailConfig", null), ServerSettings.class);
+		BusinessRule.expect(result.getN(), not(equalTo(0))).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, profileId);
+
+		return new OperationCompletionRS("Server Settings with profile '" + profileId + "' is successfully updated.");
+	}
+
+	private ServerSettings findServerSettings(String profileId) {
+		ServerSettings settings = repository.findOne(profileId);
+		BusinessRule.expect(settings, Predicates.notNull()).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, profileId);
+		return settings;
 	}
 }

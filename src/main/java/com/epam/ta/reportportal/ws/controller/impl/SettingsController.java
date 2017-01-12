@@ -63,12 +63,20 @@ public class SettingsController implements ISettingsController {
 	}
 
 	@Override
-	@RequestMapping(value = "/{profileId}", method = RequestMethod.PUT)
+	@RequestMapping(value = "/{profileId}/email", method = {RequestMethod.POST, RequestMethod.PUT} )
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation(value = "Set server email settings for specified profile", notes = "'default' profile is using till additional UI implementations")
-	public OperationCompletionRS setServerSettings(@PathVariable String profileId, @RequestBody @Validated UpdateEmailSettingsRQ request,
+	public OperationCompletionRS saveEmailSettings(@PathVariable String profileId, @RequestBody @Validated UpdateEmailSettingsRQ request,
 			Principal principal) {
 		return serverHandler.saveEmailSettings(normalizeId(profileId), request);
+	}
+
+	@RequestMapping(value = "/{profileId}/email", method = RequestMethod.DELETE)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation(value = "Deletes email settings for specified profile", notes = "'default' profile is using till additional UI implementations")
+	public OperationCompletionRS deleteEmailSettings(@PathVariable String profileId) {
+		return serverHandler.deleteEmailSettings(profileId);
 	}
 }

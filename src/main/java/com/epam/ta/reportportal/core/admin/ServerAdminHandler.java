@@ -49,4 +49,12 @@ public interface ServerAdminHandler {
      */
     OperationCompletionRS saveEmailSettings(String profileId, UpdateEmailSettingsRQ request);
 
+    /**
+     * Deletes email settings for specified profile
+     *
+     * @param profileId Profile ID
+     * @return Operation results
+     */
+    OperationCompletionRS deleteEmailSettings(String profileId);
+
 }

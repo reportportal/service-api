@@ -54,6 +54,6 @@ public interface ISettingsController {
 	 * @param principal Name of logged-in user
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS setServerSettings(String profileId, UpdateEmailSettingsRQ request, Principal principal);
+	OperationCompletionRS saveEmailSettings(String profileId, UpdateEmailSettingsRQ request, Principal principal);
 
 }

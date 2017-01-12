@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.ws.controller.impl;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.dumbster.smtp.ServerOptions;
@@ -95,6 +96,15 @@ public class SettingsControllerTest extends BaseMvcTest {
 		this.mvcMock.perform(put("/settings/default/email").principal(authentication()).contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
 				.andExpect(status().is(200));
 	}
+
+	@Test
+	public void deleteServerSettings() throws Exception {
+		updateServerSettings();
+		this.mvcMock.perform(
+				delete("/settings/default/email").principal(authentication()).contentType(APPLICATION_JSON))
+				.andExpect(status().is(200));
+	}
+
 
 	@Override
 	protected Authentication authentication() {

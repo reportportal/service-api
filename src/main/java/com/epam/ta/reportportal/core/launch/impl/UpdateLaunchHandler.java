@@ -39,6 +39,7 @@ import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -68,6 +69,8 @@ import com.epam.ta.reportportal.ws.model.launch.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import javax.inject.Provider;
+
 /**
  * Default implementation of {@link IUpdateLaunchHandler}
  *
@@ -85,8 +88,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	private UserRepository userRepository;
 
 	@Autowired
-	@Qualifier("launchBuilder.reference")
-	private LazyReference<LaunchBuilder> launchBuilder;
+	private Provider<LaunchBuilder> launchBuilder;
 
 	@Autowired
 	private LaunchMetaInfoRepository launchCounter;
@@ -100,6 +102,9 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	@Autowired
 	@Qualifier("autoAnalyzeTaskExecutor")
 	private TaskExecutor taskExecutor;
+
+	@Value("${rp.issue.analyzer.depth}")
+	private Integer autoAnalysisDepth;
 
 	@Autowired
 	public void setLaunchRepository(LaunchRepository launchRepository) {
@@ -212,7 +217,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 			got = analyzerService.collectPreviousIssues(1, launchId, projectName);
 		} else {
 			/* General AA flow */
-			got = analyzerService.collectPreviousIssues(5, launchId, projectName);
+			got = analyzerService.collectPreviousIssues(autoAnalysisDepth, launchId, projectName);
 		}
 
 		if (analyzerService.analyzeStarted(launchId)) {

@@ -64,3 +64,4 @@
 
 * EPMRPP-23001 - In case login contains only underscore symbol the unclassified error (500) is returned 
 * EPMRPP-23342 - Permissions: User with not admin account role is able to get list of users of PR if using search
+* Make auto-analysis depth configurable through JVM/ENV variables

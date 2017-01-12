@@ -43,6 +43,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -77,10 +78,12 @@ public class LaunchFinishedEventHandler {
 
 	private final Provider<HttpServletRequest> currentRequest;
 
+	private final Integer autoAnalysisDepth;
+
 	@Autowired
 	public LaunchFinishedEventHandler(IIssuesAnalyzer analyzerService, UserRepository userRepository, TestItemRepository testItemRepository,
 			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory,
-			FailReferenceResourceRepository issuesRepository) {
+			FailReferenceResourceRepository issuesRepository, @Value("${rp.issue.analyzer.depth}") Integer autoAnalysisDepth) {
 		this.analyzerService = analyzerService;
 		this.userRepository = userRepository;
 		this.testItemRepository = testItemRepository;
@@ -88,6 +91,7 @@ public class LaunchFinishedEventHandler {
 		this.launchRepository = launchRepository;
 		this.emailServiceFactory = emailServiceFactory;
 		this.issuesRepository = issuesRepository;
+		this.autoAnalysisDepth = autoAnalysisDepth;
 	}
 
 	@EventListener
@@ -138,7 +142,7 @@ public class LaunchFinishedEventHandler {
 			this.clearInvestigatedIssues(resources);
 			return;
 		}
-		List<TestItem> previous = analyzerService.collectPreviousIssues(5, launch.getId(), project.getName());
+		List<TestItem> previous = analyzerService.collectPreviousIssues(autoAnalysisDepth, launch.getId(), project.getName());
 		List<TestItem> converted = resources.stream().map(resource -> testItemRepository.findOne(resource.getTestItemRef()))
 				.collect(Collectors.toList());
 		analyzerService.analyze(launch.getId(), converted, previous);

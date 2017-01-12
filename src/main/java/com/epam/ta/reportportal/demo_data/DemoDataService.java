@@ -22,6 +22,7 @@ package com.epam.ta.reportportal.demo_data;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -51,7 +52,9 @@ class DemoDataService {
 	DemoDataRs generate(DemoDataRq rq, String projectName, String user) {
 		DemoDataRs demoDataRs = new DemoDataRs();
 		Project project = projectRepository.findOne(projectName);
-		StatisticsCalculationStrategy statsStrategy = project.getConfiguration().getStatisticsCalculationStrategy();
+		StatisticsCalculationStrategy statsStrategy =
+				Optional.ofNullable(project.getConfiguration().getStatisticsCalculationStrategy())
+						.orElse(StatisticsCalculationStrategy.STEP_BASED);
 		BusinessRule.expect(project, Predicates.notNull()).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
 		final List<String> launches = demoLaunchesService.generateDemoLaunches(rq, user, projectName, statsStrategy);
 		demoDataRs.setLaunches(launches);

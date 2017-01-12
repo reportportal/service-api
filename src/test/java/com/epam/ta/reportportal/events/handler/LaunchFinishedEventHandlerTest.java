@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
+import com.epam.ta.reportportal.ws.controller.impl.TestItemController;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import org.junit.Before;
@@ -81,7 +82,7 @@ public class LaunchFinishedEventHandlerTest {
 			public EmailService getDefaultEmailService() {
 				return emailService;
 			}
-		}, mock(FailReferenceResourceRepository.class));
+		}, mock(FailReferenceResourceRepository.class), Integer.valueOf(TestItemController.DEFAULT_HISTORY_DEPTH));
 	}
 
 	@Test

@@ -54,6 +54,8 @@ import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 
+import javax.inject.Provider;
+
 /**
  * Default implementation of {@link IStartLaunchHandler}
  *
@@ -63,7 +65,7 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 class StartLaunchHandler implements IStartLaunchHandler {
 
 	private final LaunchRepository launchRepository;
-	private final LazyReference<LaunchBuilder> launchBuilder;
+	private final Provider<LaunchBuilder> launchBuilder;
 	private final LaunchMetaInfoRepository launchCounter;
 	private final ProjectRepository projectRepository;
 	private final ApplicationEventPublisher eventPublisher;
@@ -71,7 +73,7 @@ class StartLaunchHandler implements IStartLaunchHandler {
 	@Autowired
 	public StartLaunchHandler(LaunchMetaInfoRepository launchCounter, ProjectRepository projectRepository,
 			LaunchRepository launchRepository, ApplicationEventPublisher eventPublisher,
-			@Qualifier("launchBuilder.reference") LazyReference<LaunchBuilder> launchBuilder) {
+			Provider<LaunchBuilder> launchBuilder) {
 		this.launchCounter = launchCounter;
 		this.projectRepository = projectRepository;
 		this.launchRepository = launchRepository;

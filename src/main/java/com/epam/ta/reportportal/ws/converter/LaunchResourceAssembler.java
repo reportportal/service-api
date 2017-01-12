@@ -22,15 +22,15 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.controller.impl.LaunchController;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchResourceBuilder;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+
+import javax.inject.Provider;
 
 /**
  * Resource Assembler for the {@link Launch} DB entity.
@@ -42,8 +42,7 @@ import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 public class LaunchResourceAssembler extends PagedResourcesAssember<Launch, LaunchResource> {
 
 	@Autowired
-	@Qualifier("launchResourceBuilder.reference")
-	private LazyReference<LaunchResourceBuilder> launchRecordBuilder;
+	private Provider<LaunchResourceBuilder> launchRecordBuilder;
 
 	public LaunchResourceAssembler() {
 		super(LaunchController.class, LaunchResource.class);

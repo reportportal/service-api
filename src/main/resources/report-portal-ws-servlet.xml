@@ -74,13 +74,6 @@
 	</bean>
 
 
-	<bean id="launchResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
-		<constructor-arg name="clazz">
-			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.LaunchResourceBuilder
-			</value>
-		</constructor-arg>
-	</bean>
-
 	<bean id="logBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
 		<constructor-arg name="clazz">
 			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.LogBuilder

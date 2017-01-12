@@ -25,17 +25,16 @@ import com.epam.ta.BaseTest;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+
+import javax.inject.Provider;
 
 public class LaunchResourceBuilderTest extends BaseTest {
 
 	@Autowired
-	@Qualifier("launchResourceBuilder.reference")
-	private LazyReference<LaunchResourceBuilder> launchResourceBuilderProvider;
+	private Provider<LaunchResourceBuilder> launchResourceBuilderProvider;
 
 	@Autowired
 	private ApplicationContext applicationContext;

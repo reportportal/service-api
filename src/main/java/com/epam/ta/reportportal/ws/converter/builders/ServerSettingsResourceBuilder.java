@@ -17,20 +17,19 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.converter.builders;
-
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.database.entity.ServerSettings;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 /**
  * Email server settings resource response assembler
- * 
+ *
  * @author Andrei_Ramanchuk
  */
 @Service
@@ -41,18 +40,21 @@ public class ServerSettingsResourceBuilder extends ResourceBuilder<ServerSetting
 		ServerSettingsResource resource = getObject();
 		resource.setProfile(doc.getId());
 		resource.setActive(doc.getActive());
-		ServerEmailConfig output = new ServerEmailConfig();
-		output.setHost(doc.getServerEmailConfig().getHost());
-		output.setPort(doc.getServerEmailConfig().getPort());
-		output.setProtocol(doc.getServerEmailConfig().getProtocol());
-		output.setAuthEnabled(doc.getServerEmailConfig().getAuthEnabled());
-		output.setSslEnabled(doc.getServerEmailConfig().isSslEnabled());
-		output.setStarTlsEnabled(doc.getServerEmailConfig().isStarTlsEnabled());
-		if (doc.getServerEmailConfig().getAuthEnabled()) {
-			output.setUsername(doc.getServerEmailConfig().getUsername());
+		if (null != doc.getServerEmailConfig()) {
+			ServerEmailConfig output = new ServerEmailConfig();
+			output.setHost(doc.getServerEmailConfig().getHost());
+			output.setPort(doc.getServerEmailConfig().getPort());
+			output.setProtocol(doc.getServerEmailConfig().getProtocol());
+			output.setAuthEnabled(doc.getServerEmailConfig().getAuthEnabled());
+			output.setSslEnabled(doc.getServerEmailConfig().isSslEnabled());
+			output.setStarTlsEnabled(doc.getServerEmailConfig().isStarTlsEnabled());
+			if (doc.getServerEmailConfig().getAuthEnabled()) {
+				output.setUsername(doc.getServerEmailConfig().getUsername());
 			/* Password field not provided in response */
+			}
+			resource.setServerEmailConfig(output);
 		}
-		resource.setServerEmailConfig(output);
+
 		return this;
 	}
 

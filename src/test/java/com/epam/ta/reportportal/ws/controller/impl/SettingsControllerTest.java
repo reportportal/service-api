@@ -92,7 +92,7 @@ public class SettingsControllerTest extends BaseMvcTest {
 		rq.setAuthEnabled(true);
 		rq.setUsername("user");
 		rq.setPassword("password");
-		this.mvcMock.perform(put("/settings/default").principal(authentication()).contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
+		this.mvcMock.perform(put("/settings/default/email").principal(authentication()).contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
 				.andExpect(status().is(200));
 	}
 

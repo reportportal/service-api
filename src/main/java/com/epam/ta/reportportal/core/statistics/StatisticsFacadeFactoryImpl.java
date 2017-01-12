@@ -17,47 +17,45 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.statistics;
 
-import java.util.Map;
-
+import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
+import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
-import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
-import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 
 /**
  * Default implementation of factory for statistics facades
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @Service
 public class StatisticsFacadeFactoryImpl implements StatisticsFacadeFactory, ApplicationContextAware {
 
-	private ApplicationContext applicationContext;
-	
-	private static final Map<StatisticsCalculationStrategy, Class<? extends StatisticsFacade>> MAPPING =
-			ImmutableMap.<StatisticsCalculationStrategy, Class<? extends StatisticsFacade>>builder()
-					.put(StatisticsCalculationStrategy.STEP_BASED, StepBasedStatisticsFacade.class)
-					.put(StatisticsCalculationStrategy.TEST_BASED, TestBasedStatisticsFacade.class)
-					.put(StatisticsCalculationStrategy.ALL_ITEMS_BASED, StatisticsFacadeImpl.class)
-					.build();
+    private ApplicationContext applicationContext;
 
-	@Override
-	public StatisticsFacade getStatisticsFacade(StatisticsCalculationStrategy strategy) {
-		return applicationContext.getBean(MAPPING.get(strategy));
-	}
+    private static final Map<StatisticsCalculationStrategy, Class<? extends StatisticsFacade>> MAPPING =
+            ImmutableMap.<StatisticsCalculationStrategy, Class<? extends StatisticsFacade>>builder()
+                    .put(StatisticsCalculationStrategy.STEP_BASED, StepBasedStatisticsFacade.class)
+                    .put(StatisticsCalculationStrategy.TEST_BASED, TestBasedStatisticsFacade.class)
+                    .put(StatisticsCalculationStrategy.ALL_ITEMS_BASED, StatisticsFacadeImpl.class)
+                    .build();
 
-	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;
+    @Override
+    public StatisticsFacade getStatisticsFacade(StatisticsCalculationStrategy strategy) {
+        return applicationContext.getBean(MAPPING.getOrDefault(strategy, StepBasedStatisticsFacade.class));
+    }
 
-	}
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+
+    }
 
 }

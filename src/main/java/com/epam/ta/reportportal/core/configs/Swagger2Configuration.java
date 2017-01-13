@@ -90,7 +90,7 @@ public class Swagger2Configuration {
 
 	@Bean
 	public PathProvider rpPathProvider() {
-		return new RPPathProvider(servletContext, eurekaName);
+		return new RelativePathProvider(servletContext);
 	}
 
 	@Bean

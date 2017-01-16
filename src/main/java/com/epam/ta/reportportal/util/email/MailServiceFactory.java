@@ -22,18 +22,20 @@ package com.epam.ta.reportportal.util.email;
 
 import com.epam.reportportal.commons.template.TemplateEngine;
 import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
-import com.epam.ta.reportportal.database.entity.ServerSettings;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Nullable;
+import java.util.Optional;
 import java.util.Properties;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.ws.model.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
+import static java.util.Optional.ofNullable;
 
 /**
  * Factory for {@link EmailService}
@@ -56,38 +58,60 @@ public class MailServiceFactory {
 	/**
 	 * Build mail service based on provided configs
 	 *
-	 * @param config          Email server configs
-	 * @param connectionCheck check connection flag
+	 * @param projectConfig Project-level configuration
+	 * @param serverConfig  Server-level configuration
 	 * @return Built email service
 	 */
-	public EmailService getEmailService(ServerEmailConfig config, boolean connectionCheck) {
-		boolean authRequired = (null != config.getAuthEnabled() && config.getAuthEnabled());
+	public Optional<EmailService> getEmailService(ProjectEmailConfig projectConfig, ServerEmailConfig serverConfig) {
 
-		Properties javaMailProperties = new Properties();
-		javaMailProperties.put("mail.smtp.connectiontimeout", DEFAULT_CONNECTION_TIMEOUT);
-		javaMailProperties.put("mail.smtp.auth", authRequired);
-		javaMailProperties.put("mail.smtp.starttls.enable", authRequired && config.isStarTlsEnabled());
-		javaMailProperties.put("mail.debug", config.isDebug());
+		return getEmailService(serverConfig).flatMap(service -> {
+			// if there is server email config, let's check project config
+			Optional<ProjectEmailConfig> projectConf = ofNullable(projectConfig);
+			if (projectConf.isPresent()) {
+				// if project config is present, check whether sending emails is enabled and replace server properties with project properties
+				return projectConf.filter(ProjectEmailConfig::getEmailEnabled).flatMap(pc -> {
+					service.setAddressFrom(pc.getFrom());
+					return Optional.of(service);
+				});
 
-		if (config.isSslEnabled()) {
-			javaMailProperties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-			javaMailProperties.put("mail.smtp.socketFactory.fallback", "false");
-		}
+			} else {
+				return Optional.of(service);
+			}
+		});
+	}
 
-		EmailService service = new EmailService(javaMailProperties);
-		service.setTemplateEngine(templateEngine);
-		service.setHost(config.getHost());
-		service.setPort(config.getPort());
-		service.setProtocol(config.getProtocol());
-		if (authRequired) {
-			service.setUsername(config.getUsername());
-			service.setPassword(encryptor.decrypt(config.getPassword()));
-		}
+	/**
+	 * Build mail service based on provided configs
+	 *
+	 * @param serverConfig Server-level configuration
+	 * @return Built email service
+	 */
+	public Optional<EmailService> getEmailService(ServerEmailConfig serverConfig) {
+		return ofNullable(serverConfig).map(serverConf -> {
+			boolean authRequired = (null != serverConf.getAuthEnabled() && serverConf.getAuthEnabled());
 
-		if (connectionCheck) {
-			checkConnection(service);
-		}
-		return service;
+			Properties javaMailProperties = new Properties();
+			javaMailProperties.put("mail.smtp.connectiontimeout", DEFAULT_CONNECTION_TIMEOUT);
+			javaMailProperties.put("mail.smtp.auth", authRequired);
+			javaMailProperties.put("mail.smtp.starttls.enable", authRequired && serverConf.isStarTlsEnabled());
+			javaMailProperties.put("mail.debug", serverConf.isDebug());
+
+			if (serverConf.isSslEnabled()) {
+				javaMailProperties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+				javaMailProperties.put("mail.smtp.socketFactory.fallback", "false");
+			}
+
+			EmailService service = new EmailService(javaMailProperties);
+			service.setTemplateEngine(templateEngine);
+			service.setHost(serverConf.getHost());
+			service.setPort(serverConf.getPort());
+			service.setProtocol(serverConf.getProtocol());
+			if (authRequired) {
+				service.setUsername(serverConf.getUsername());
+				service.setPassword(encryptor.decrypt(serverConf.getPassword()));
+			}
+			return service;
+		});
 	}
 
 	/**
@@ -95,26 +119,72 @@ public class MailServiceFactory {
 	 *
 	 * @return Built email service
 	 */
-	public EmailService getDefaultEmailService() {
-		EmailService emailService = null;
+	public Optional<EmailService> getDefaultEmailService() {
+		return ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE))
+				.flatMap(serverSettings -> getEmailService(serverSettings.getServerEmailConfig()));
 
-		ServerSettings serverSettings = settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE);
-		if (null == serverSettings || null == serverSettings.getServerEmailConfig()) {
-			fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
-					"Email server is not configured. Please config email server in Report Portal settings.");
-		} else {
-			emailService = getEmailService(serverSettings.getServerEmailConfig(), true);
+	}
+
+	/**
+	 * Build mail service based on default server configs and checks connection
+	 *
+	 * @return Built email service
+	 */
+	public Optional<EmailService> getDefaultEmailService(ProjectEmailConfig projectEmailConfig) {
+		return ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE))
+				.flatMap(serverSettings -> getEmailService(projectEmailConfig, serverSettings.getServerEmailConfig()));
+	}
+
+	/**
+	 * Build mail service based on default server configs and checks connection
+	 *
+	 * @return Built email service
+	 */
+	public EmailService getDefaultEmailService(ProjectEmailConfig projectEmailConfig, boolean checkConnection) {
+		EmailService emailService = ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE))
+				.flatMap(serverSettings -> getEmailService(projectEmailConfig, serverSettings.getServerEmailConfig()))
+				.orElseThrow(() -> emailConfigurationFail(null));
+
+		if (checkConnection) {
+			checkConnection(emailService);
 		}
 		return emailService;
 	}
 
-	private void checkConnection(EmailService service) {
+	/**
+	 * Build mail service based on default server configs and checks connection
+	 *
+	 * @return Built email service
+	 */
+	public EmailService getDefaultEmailService(boolean checkConnection) {
+		EmailService emailService = ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE))
+				.flatMap(serverSettings -> getEmailService(serverSettings.getServerEmailConfig()))
+				.orElseThrow(() -> emailConfigurationFail(null));
+
+		if (checkConnection) {
+			checkConnection(emailService);
+		}
+		return emailService;
+	}
+
+	public void checkConnection(@Nullable EmailService service) {
 		try {
-			service.testConnection();
+			if (null == service) {
+				throw emailConfigurationFail(null);
+			} else {
+				service.testConnection();
+			}
 		} catch (Exception e) {
-			LOGGER.error("Cannot send email to user", e);
-			fail().withError(FORBIDDEN_OPERATION,
-					"Email server is incorrect. " + e.getMessage());
+			throw emailConfigurationFail(e);
 		}
 	}
+
+	private ReportPortalException emailConfigurationFail(Throwable e) {
+		if (null != e) {
+			LOGGER.error("Cannot send email to user", e);
+		}
+		return new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
+				"Email server is not configured or configuration is incorrect. Please config email server in Report Portal settings.");
+	}
+
 }

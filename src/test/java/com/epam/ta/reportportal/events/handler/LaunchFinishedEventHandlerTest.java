@@ -44,6 +44,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 
 import javax.inject.Provider;
 import java.util.Collections;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.SendCase.*;
 import static com.epam.ta.reportportal.events.handler.LaunchFinishedEventHandler.isLaunchNameMatched;
@@ -79,8 +80,8 @@ public class LaunchFinishedEventHandlerTest {
 		launchFinishedEventHandler = new LaunchFinishedEventHandler(mock(IIssuesAnalyzer.class), userRepository,
 				mock(TestItemRepository.class), provider, mock(LaunchRepository.class), new MailServiceFactory() {
 			@Override
-			public EmailService getDefaultEmailService() {
-				return emailService;
+			public Optional<EmailService> getDefaultEmailService() {
+				return Optional.of(emailService);
 			}
 		}, mock(FailReferenceResourceRepository.class), Integer.valueOf(TestItemController.DEFAULT_HISTORY_DEPTH));
 	}

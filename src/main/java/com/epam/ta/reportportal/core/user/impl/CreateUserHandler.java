@@ -158,7 +158,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 				projectRepository.save(personalProject);
 			}
 
-			safe(() -> emailServiceFactory.getDefaultEmailService().sendConfirmationEmail(request, basicUrl));
+			emailServiceFactory.getDefaultEmailService().ifPresent(service -> service.sendConfirmationEmail(request, basicUrl));
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {
@@ -173,7 +173,9 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 	@Override
 	public CreateUserBidRS createUserBid(CreateUserRQ request, Principal principal, String emailURL) {
-		EmailService emailService = emailServiceFactory.getDefaultEmailService();
+		EmailService emailService = emailServiceFactory
+				.getDefaultEmailService(true);
+
 		User creator = userRepository.findOne(principal.getName());
 		expect(creator, notNull()).verify(ACCESS_DENIED);
 
@@ -181,6 +183,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 
 		Project defaultProject = projectRepository.findOne(EntityUtils.normalizeProjectName(request.getDefaultProject()));
+
 		expect(defaultProject, notNull()).verify(PROJECT_NOT_FOUND, request.getDefaultProject());
 		UserConfig userConfig = defaultProject.getUsers().get(principal.getName());
 		List<Project> projects = projectRepository.findUserProjects(principal.getName());
@@ -284,7 +287,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 	@Override
 	public OperationCompletionRS createRestorePasswordBid(RestorePasswordRQ rq, String baseUrl) {
-		EmailService emailService = emailServiceFactory.getDefaultEmailService();
+		EmailService emailService = emailServiceFactory.getDefaultEmailService(true);
 		String email = EntityUtils.normalizeEmail(rq.getEmail());
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 		User user = userRepository.findByEmail(email);

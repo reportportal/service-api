@@ -40,6 +40,7 @@ import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,39 +100,24 @@ public class LaunchFinishedEventHandler {
 		afterFinishLaunch(event.getProject(), event.getLaunch());
 	}
 
-	private void afterFinishLaunch(Project project, Launch launch) { // NOSONAR
+	private void afterFinishLaunch(final Project project, final Launch launch) { // NOSONAR
 
 		/* Should we send email right now or wait till AA is finished? */
-		boolean shouldSendIt = false;
+		boolean waitForAutoAnalysis = false;
 
-		/*
-		 * If server settings profiling will be added - update would be required
-		 * for profile ID
-		 */
-		boolean emailEnabled;
-		EmailService emailService = null;
-		try {
-			emailService = emailServiceFactory.getDefaultEmailService();
-			emailEnabled = true;
-		} catch (Exception e) {
-			/* Something wrong with email service or remote server */
-			LOGGER.error("Email configuration exception!", e);
-			emailEnabled = false;
-		}
+		Optional<EmailService> emailService = emailServiceFactory.getDefaultEmailService();
+
 
 		/* Avoid NULL object processing */
 		if (null == project || null == launch)
 			return;
 
 		/* If AA enabled then waiting results processing */
-		if (project.getConfiguration().getIsAutoAnalyzerEnabled()) {
-			shouldSendIt = true;
-		}
+		waitForAutoAnalysis = BooleanUtils.toBoolean(project.getConfiguration().getIsAutoAnalyzerEnabled());
 
 		/* If email enabled and AA disabled then send results immediately */
-		if (emailEnabled && project.getConfiguration().getEmailConfig().getEmailEnabled() && !shouldSendIt) {
-			sendEmailRightNow(launch, project, emailService);
-			shouldSendIt = false;
+		if (!waitForAutoAnalysis) {
+			emailService.ifPresent(service -> sendEmailRightNow(launch, project, service));
 		}
 
 		// Do not process debug launches.
@@ -151,10 +137,10 @@ public class LaunchFinishedEventHandler {
 		this.clearInvestigatedIssues(resources);
 
 		/* Previous email sending cycle was skipped due waiting AA results */
-		if (emailEnabled && project.getConfiguration().getEmailConfig().getEmailEnabled() && shouldSendIt) {
+		if (waitForAutoAnalysis) {
 			// Get launch with AA results
-			launch = launchRepository.findOne(launch.getId());
-			sendEmailRightNow(launch, project, emailService);
+			Launch freshLaunch = launchRepository.findOne(launch.getId());
+			emailService.ifPresent(it -> sendEmailRightNow(freshLaunch, project, it));
 		}
 	}
 
@@ -253,7 +239,6 @@ public class LaunchFinishedEventHandler {
 					String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(currentRequest.get()))
 							.replacePath(String.format("/#%s/launches/all/", project.getName())).build().toUriString();
 
-					emailService.setAddressFrom(project.getConfiguration().getEmailConfig().getFrom());
 					emailService
 							.sendLaunchFinishNotification(recipientsArray, basicURL + launch.getId(), launch, project.getConfiguration());
 				} catch (Exception e) {

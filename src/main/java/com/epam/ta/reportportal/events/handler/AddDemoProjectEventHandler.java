@@ -137,7 +137,7 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		ServerSettings settings = new ServerSettings();
 		settings.setId(DEFAULT_PROFILE_ID);
 		settings.setActive(true);
-		settings.setServerEmailConfig(new ServerEmailConfig(host, port, protocol, isEnable, false, false, username, password, isDebug));
+		settings.setServerEmailConfig(new ServerEmailConfig(host, port, protocol, isEnable, false, false, username, password, "rp@epam.com", isDebug));
 		return settings;
 	});
 

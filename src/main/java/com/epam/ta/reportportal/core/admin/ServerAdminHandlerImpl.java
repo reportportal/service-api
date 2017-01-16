@@ -120,7 +120,8 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 			serverEmailConfig.setSslEnabled(Boolean.TRUE.equals(request.getSslEnabled()));
 
 			try {
-				emailServiceFactory.getEmailService(serverEmailConfig, false).testConnection();
+				emailServiceFactory
+						.getEmailService(serverEmailConfig).get().testConnection();
 			} catch (MessagingException ex) {
 				LOGGER.error("Cannot send email to user", ex);
 				fail().withError(FORBIDDEN_OPERATION,

@@ -25,18 +25,17 @@ import com.epam.ta.BaseTest;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 
 import com.epam.ta.reportportal.database.entity.Dashboard;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
+
+import javax.inject.Provider;
 
 public class DashboardBuilderTest extends BaseTest {
 
 	@Autowired
-	@Qualifier("dashboardBuilder.reference")
-	private LazyReference<DashboardBuilder> dashboardBuilderProvider;
+	private Provider<DashboardBuilder> dashboardBuilderProvider;
 
 	@Autowired
 	private ApplicationContext applicationContext;

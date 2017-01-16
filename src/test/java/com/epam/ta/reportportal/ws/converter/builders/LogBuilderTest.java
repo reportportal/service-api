@@ -25,19 +25,18 @@ import com.epam.ta.BaseTest;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+
+import javax.inject.Provider;
 
 public class LogBuilderTest extends BaseTest {
 
 	@Autowired
-	@Qualifier("logBuilder.reference")
-	private LazyReference<LogBuilder> logBuilderProvider;
+	private Provider<LogBuilder> logBuilderProvider;
 
 	@Autowired
 	private ApplicationContext applicationContext;

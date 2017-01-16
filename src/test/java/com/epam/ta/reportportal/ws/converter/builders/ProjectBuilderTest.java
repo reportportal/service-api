@@ -25,19 +25,18 @@ import com.epam.ta.BaseTest;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.project.EntryType;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
+
+import javax.inject.Provider;
 
 public class ProjectBuilderTest extends BaseTest {
 
 	@Autowired
-	@Qualifier("projectBuilder.reference")
-	private LazyReference<ProjectBuilder> projectProvider;
+	private Provider<ProjectBuilder> projectProvider;
 
 	@Autowired
 	private ApplicationContext applicationContext;

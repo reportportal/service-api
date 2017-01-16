@@ -29,21 +29,20 @@ import com.epam.ta.BaseTest;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.hateoas.Link;
 
 import com.epam.ta.reportportal.database.entity.Dashboard;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource.WidgetObjectModel;
+
+import javax.inject.Provider;
 
 public class DashBoardResourceBuilderTest extends BaseTest {
 
 	
 	@Autowired
-	@Qualifier("dashboardResourceBuilder.reference")
-	private LazyReference<DashboardResourceBuilder> dashboardResourceBuilderProvider;
+	private Provider<DashboardResourceBuilder> dashboardResourceBuilderProvider;
 	
 	@Autowired
 	private ApplicationContext applicationContext;

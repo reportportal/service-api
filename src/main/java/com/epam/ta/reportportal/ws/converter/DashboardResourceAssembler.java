@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
@@ -30,11 +29,12 @@ import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.Dashboard.WidgetObject;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.controller.impl.DashboardController;
 import com.epam.ta.reportportal.ws.controller.impl.WidgetController;
 import com.epam.ta.reportportal.ws.converter.builders.DashboardResourceBuilder;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
+
+import javax.inject.Provider;
 
 /**
  * Resource Assembler for the {@link Dashboard} DB entity.
@@ -49,8 +49,7 @@ public class DashboardResourceAssembler extends
 	public static final String REL = "related";
 
 	@Autowired
-	@Qualifier("dashboardResourceBuilder.reference")
-	private LazyReference<DashboardResourceBuilder> builderLazyReference;
+	private Provider<DashboardResourceBuilder> builderLazyReference;
 
 	public DashboardResourceAssembler() {
 		super(DashboardController.class, DashboardResource.class);

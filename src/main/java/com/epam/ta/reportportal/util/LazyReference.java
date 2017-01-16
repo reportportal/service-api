@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.util;
 
 import com.google.common.base.Preconditions;
@@ -30,11 +30,12 @@ import org.springframework.context.ApplicationContextAware;
 
 /**
  * Bean Reference. Added to simplify autowiring of prototype to singleton
- * 
- * @author Andrei Varabyeu
- * 
+ *
  * @param <T>
+ * @author Andrei Varabyeu
+ * @deprecated in favor of {@link javax.inject.Provider}
  */
+@Deprecated
 public class LazyReference<T> implements ApplicationContextAware {
 
 	/*
@@ -69,7 +70,7 @@ public class LazyReference<T> implements ApplicationContextAware {
 	/**
 	 * Creates bean supplier. Please, override this method in subclasses if
 	 * Necessary
-	 * 
+	 *
 	 * @param context
 	 * @return
 	 */
@@ -83,10 +84,9 @@ public class LazyReference<T> implements ApplicationContextAware {
 
 	/**
 	 * Strategy for retrieving beans from Spring's context
-	 * 
-	 * @author Andrei Varabyeu
-	 * 
+	 *
 	 * @param <T>
+	 * @author Andrei Varabyeu
 	 */
 	protected interface FindBeanStrategy<T> {
 		T findBean(ApplicationContext context);
@@ -94,10 +94,9 @@ public class LazyReference<T> implements ApplicationContextAware {
 
 	/**
 	 * Loads bean from Spring's context by bean name/ID
-	 * 
-	 * @author Andrei Varabyeu
-	 * 
+	 *
 	 * @param <T>
+	 * @author Andrei Varabyeu
 	 */
 	private static class ByNameFindStrategy<T> implements FindBeanStrategy<T> {
 
@@ -117,10 +116,9 @@ public class LazyReference<T> implements ApplicationContextAware {
 
 	/**
 	 * Loads bean from Spring's context by bean type
-	 * 
-	 * @author Andrei Varabyeu
-	 * 
+	 *
 	 * @param <T>
+	 * @author Andrei Varabyeu
 	 */
 	private static class ByClassFindStrategy<T> implements FindBeanStrategy<T> {
 

@@ -29,7 +29,6 @@ import java.util.Optional;
 
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.commons.Predicates;
@@ -40,11 +39,12 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.project.EntryType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.converter.builders.ProjectBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
+
+import javax.inject.Provider;
 
 /**
  * @author Hanna_Sukhadolava
@@ -57,8 +57,7 @@ public class CreateProjectHandler implements ICreateProjectHandler {
 	private ProjectRepository projectRepository;
 
 	@Autowired
-	@Qualifier("projectBuilder.reference")
-	private LazyReference<ProjectBuilder> projectBuilder;
+	private Provider<ProjectBuilder> projectBuilder;
 
 	@Override
 	public EntryCreatedRS createProject(CreateProjectRQ createProjectRQ, String username) {

@@ -23,7 +23,6 @@ package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.Predicates;
@@ -38,11 +37,12 @@ import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+
+import javax.inject.Provider;
 
 /**
  * Create log handler. Save log and binary data related to it
@@ -59,7 +59,7 @@ public class CreateLogHandler implements ICreateLogHandler {
 
 	private DataStorage dataStorage;
 
-	protected LazyReference<LogBuilder> logBuilder;
+	protected Provider<LogBuilder> logBuilder;
 
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
@@ -77,8 +77,7 @@ public class CreateLogHandler implements ICreateLogHandler {
 	}
 
 	@Autowired
-	@Qualifier("logBuilder.reference")
-	public void setLogBuilder(LazyReference<LogBuilder> logBuilder) {
+	public void setLogBuilder(Provider<LogBuilder> logBuilder) {
 		this.logBuilder = logBuilder;
 	}
 

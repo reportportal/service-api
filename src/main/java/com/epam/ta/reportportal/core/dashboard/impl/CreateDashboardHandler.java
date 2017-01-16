@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.core.dashboard.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.commons.Predicates;
@@ -30,11 +29,12 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.dashboard.ICreateDashboardHandler;
 import com.epam.ta.reportportal.database.dao.DashboardRepository;
 import com.epam.ta.reportportal.database.entity.Dashboard;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.converter.builders.DashboardBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
+
+import javax.inject.Provider;
 
 /**
  * Default implementation of {@link ICreateDashboardHandler}
@@ -49,8 +49,7 @@ public class CreateDashboardHandler implements ICreateDashboardHandler {
 	private DashboardRepository dashboardRepository;
 
 	@Autowired
-	@Qualifier("dashboardBuilder.reference")
-	private LazyReference<DashboardBuilder> dashboardBuilder;
+	private Provider<DashboardBuilder> dashboardBuilder;
 
 	@Override
 	public EntryCreatedRS createDashboard(String projectName, CreateDashboardRQ rq, String userName) {

@@ -28,7 +28,6 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.commons.Preconditions;
@@ -38,10 +37,11 @@ import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+
+import javax.inject.Provider;
 
 /**
  * Start Launch operation default implementation
@@ -54,7 +54,7 @@ import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 class StartTestItemHandlerImpl implements StartTestItemHandler {
 	private TestItemRepository testItemRepository;
 	private LaunchRepository launchRepository;
-	private LazyReference<TestItemBuilder> testItemBuilder;
+	private Provider<TestItemBuilder> testItemBuilder;
 	private LogRepository logRepository;
 
 	@Autowired
@@ -73,8 +73,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	}
 
 	@Autowired
-	@Qualifier("testItemBuilder.reference")
-	public void setTestItemBuilder(LazyReference<TestItemBuilder> testItemBuilder) {
+	public void setTestItemBuilder(Provider<TestItemBuilder> testItemBuilder) {
 		this.testItemBuilder = testItemBuilder;
 	}
 

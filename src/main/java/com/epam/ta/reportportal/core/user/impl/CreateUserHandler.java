@@ -146,6 +146,8 @@ public class CreateUserHandler implements ICreateUserHandler {
 		projectUsers.put(user.getId(), UserConfig.newOne().withProjectRole(projectRole.get()).withProposedRole(projectRole.get()));
 		defaultProject.setUsers(projectUsers);
 
+		CreateUserRS response = new CreateUserRS();
+
 		try {
 			userRepository.save(user);
 			projectRepository.addUsers(projectName, projectUsers);
@@ -158,7 +160,8 @@ public class CreateUserHandler implements ICreateUserHandler {
 				projectRepository.save(personalProject);
 			}
 
-			emailServiceFactory.getDefaultEmailService().ifPresent(service -> service.sendConfirmationEmail(request, basicUrl));
+			safe(() -> emailServiceFactory.getDefaultEmailService(true)
+					.sendConfirmationEmail(request, basicUrl), e -> response.setWarning(e.getMessage()));
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {
@@ -166,7 +169,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		}
 
 		eventPublisher.publishEvent(new UserCreatedEvent(user, userName));
-		CreateUserRS response = new CreateUserRS();
+
 		response.setLogin(user.getLogin());
 		return response;
 	}

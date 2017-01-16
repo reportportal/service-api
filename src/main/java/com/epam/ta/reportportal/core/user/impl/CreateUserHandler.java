@@ -235,6 +235,10 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 		User user = userRepository.findOne(request.getLogin());
 		expect(user, isNull()).verify(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("login='{}'", request.getLogin()));
+
+		expect(request.getLogin(), Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
+				Suppliers.formattedSupplier("Username '{}' consists only of special characters", request.getLogin()));
+
 		// synchronized (this)
 		Project defaultProject = projectRepository.findOne(bid.getDefaultProject());
 		expect(defaultProject, notNull()).verify(PROJECT_NOT_FOUND, bid.getDefaultProject());

@@ -23,9 +23,11 @@ package com.epam.ta.reportportal.core.project.impl;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.isPresent;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 import java.util.Optional;
 
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -64,6 +66,10 @@ public class CreateProjectHandler implements ICreateProjectHandler {
 		String projectName = createProjectRQ.getProjectName().toLowerCase().trim();
 		Project existProject = projectRepository.findByName(projectName);
 		BusinessRule.expect(existProject, Predicates.isNull()).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectName);
+
+		expect(projectName, com.epam.ta.reportportal.util.Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
+				Suppliers.formattedSupplier("Project name '{}' consists only of special characters", projectName));
+
 		Optional<EntryType> projectType = EntryType.findByName(createProjectRQ.getEntryType());
 		BusinessRule.expect(projectType, isPresent()).verify(ErrorType.BAD_REQUEST_ERROR, createProjectRQ.getEntryType());
 		BusinessRule.expect(projectType.get(), equalTo(EntryType.INTERNAL)).verify(ErrorType.BAD_REQUEST_ERROR,

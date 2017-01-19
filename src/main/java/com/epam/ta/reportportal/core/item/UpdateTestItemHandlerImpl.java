@@ -21,30 +21,15 @@
 
 package com.epam.ta.reportportal.core.item;
 
-import static com.epam.ta.reportportal.commons.Preconditions.NOT_EMPTY_COLLECTION;
-import static com.epam.ta.reportportal.commons.Predicates.*;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.database.entity.Status.PASSED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-
-import java.util.*;
-import java.util.stream.StreamSupport;
-
-import org.apache.commons.lang3.SerializationUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.*;
-import com.epam.ta.reportportal.database.entity.*;
+import com.epam.ta.reportportal.database.entity.ExternalSystem;
+import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
@@ -61,39 +46,56 @@ import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.SerializationUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.stream.StreamSupport;
+
+import static com.epam.ta.reportportal.commons.Preconditions.NOT_EMPTY_COLLECTION;
+import static com.epam.ta.reportportal.commons.Predicates.*;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.database.entity.Status.PASSED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Default implementation of {@link UpdateTestItemHandler}
- * 
+ *
  * @author Dzianis Shlychkou
  * @author Andrei_Ramanchuk
  */
 @Service
 public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
-	@Autowired
-	private IIssuesAnalyzer analyzerService;
+	private final IIssuesAnalyzer analyzerService;
+	private final ApplicationEventPublisher eventPublisher;
+	private final TestItemRepository testItemRepository;
+	private final StatisticsFacadeFactory statisticsFacadeFactory;
+	private final UserRepository userRepository;
+	private final ProjectRepository projectRepository;
+	private final LaunchRepository launchRepository;
+	private final ExternalSystemRepository externalSystemRepository;
 
 	@Autowired
-	private ApplicationEventPublisher eventPublisher;
-
-	@Autowired
-	private TestItemRepository testItemRepository;
-
-	@Autowired
-	private StatisticsFacadeFactory statisticsFacadeFactory;
-
-	@Autowired
-	private UserRepository userRepository;
-
-	@Autowired
-	private ProjectRepository projectRepository;
-
-	@Autowired
-	private LaunchRepository launchRepository;
-
-	@Autowired
-	private ExternalSystemRepository externalSystemRepository;
+	public UpdateTestItemHandlerImpl(IIssuesAnalyzer analyzerService,
+			TestItemRepository testItemRepository, StatisticsFacadeFactory statisticsFacadeFactory, UserRepository userRepository,
+			ProjectRepository projectRepository, LaunchRepository launchRepository, ExternalSystemRepository externalSystemRepository,
+			ApplicationEventPublisher eventPublisher) {
+		this.analyzerService = analyzerService;
+		this.eventPublisher = eventPublisher;
+		this.testItemRepository = testItemRepository;
+		this.statisticsFacadeFactory = statisticsFacadeFactory;
+		this.userRepository = userRepository;
+		this.projectRepository = projectRepository;
+		this.launchRepository = launchRepository;
+		this.externalSystemRepository = externalSystemRepository;
+	}
 
 	@Override
 	public List<Issue> defineTestItemsIssues(String projectName, DefineIssueRQ defineIssue, String userName) {
@@ -112,9 +114,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				eventData.put(issueDefinition, testItem);
 
 				final Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-				expect(analyzerService.isPossible(launch.getId()), equalTo(true)).verify(FORBIDDEN_OPERATION,
-						Suppliers.formattedSupplier(
-								"Cannot update specified '{}' Test Item cause target Launch '{}' is processing by Auto-Analyze",
+				expect(analyzerService.isPossible(launch.getId()), equalTo(true)).verify(FORBIDDEN_OPERATION, Suppliers
+						.formattedSupplier("Cannot update specified '{}' Test Item cause target Launch '{}' is processing by Auto-Analyze",
 								testItem.getId(), launch.getId()));
 
 				final Project project = projectRepository.findOne(launch.getProjectRef());
@@ -134,10 +135,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				}
 
 				if (null != issue.getExternalSystemIssues()) {
-					Set<TestItemIssue.ExternalSystemIssue> issuesFromDB = null == testItemIssue.getExternalSystemIssues() ? new HashSet<>()
-							: testItemIssue.getExternalSystemIssues();
-					Set<TestItemIssue.ExternalSystemIssue> issuesFromRequest = toDbExternalIssues(issue.getExternalSystemIssues(),
-							userName);
+					Set<TestItemIssue.ExternalSystemIssue> issuesFromDB =
+							null == testItemIssue.getExternalSystemIssues() ? new HashSet<>() : testItemIssue.getExternalSystemIssues();
+					Set<TestItemIssue.ExternalSystemIssue> issuesFromRequest = issue.getExternalSystemIssues().stream()
+							.map(TestItemUtils.externalIssueDtoConverter(userName)).collect(toSet());
 					Set<TestItemIssue.ExternalSystemIssue> difference = Sets.newHashSet(Sets.difference(issuesFromRequest, issuesFromDB));
 					if (!difference.isEmpty()) {
 						for (TestItemIssue.ExternalSystemIssue externalSystemIssue : difference) {
@@ -167,7 +168,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				testItemRepository.save(testItem);
 				testItem = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.updateIssueStatistics(testItem);
-				updated.add(toIssue(testItem));
+				updated.add(TestItemUtils.ISSUE_CONVERTER.apply(testItem.getIssue()));
 
 			} catch (BusinessRuleViolationException e) {
 				errors.add(e.getMessage());
@@ -178,56 +179,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		eventPublisher.publishEvent(new ItemIssueTypeDefined(eventData.build(), userName, projectName));
 		return updated;
-	}
-
-	/**
-	 * Complex of domain verification for test item. Verifies that test item
-	 * domain object could be processed correctly.
-	 * 
-	 * @param id
-	 *            - test item id
-	 * @return verified test item
-	 * @throws BusinessRuleViolationException
-	 *             when business rule violation
-	 */
-	public void verifyTestItem(TestItem testItem, String id) throws BusinessRuleViolationException {
-		expect(testItem, notNull(), Suppliers.formattedSupplier("Cannot update issue type for test item '{}', cause it is not found.", id))
-				.verify();
-
-		Status actualStatus = testItem.getStatus();
-		expect(actualStatus, not(equalTo(PASSED)), Suppliers
-				.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.", PASSED.name()))
-						.verify();
-
-		boolean hasDescendants = testItemRepository.hasDescendants(testItem.getId());
-		expect(hasDescendants, not(equalTo(TRUE)), Suppliers.formattedSupplier(
-				"It is not allowed to udpate issue type for items with descendants. Test item '{}' has descendants.", id)).verify();
-
-		TestItemIssue actualItemIssue = testItem.getIssue();
-		expect(actualItemIssue, notNull(), Suppliers.formattedSupplier(
-				"Cannot update issue type for test item '{}', cause there is no info about actual issue type value.", id)).verify();
-
-		String actualIssueType = actualItemIssue.getIssueType();
-		expect(actualIssueType, notNull(), Suppliers
-				.formattedSupplier("Cannot update issue type for test item {}, cause it's actual issue type value is not provided.", id))
-						.verify();
-	}
-
-	/**
-	 * 
-	 * Verifies that provided test item issue type is valid, and test item
-	 * domain object could be processed correctly
-	 * 
-	 * @param type
-	 *            - provided issue type
-	 * @param settings
-	 *            - project settings
-	 * @return verified issue type
-	 */
-	public String verifyTestItemDefinedIssueType(final String type, final Project.Configuration settings) {
-		StatisticSubType defined = settings.getByLocator(type);
-		expect(settings.getByLocator(type), notNull()).verify(ISSUE_TYPE_NOT_FOUND, type);
-		return defined.getLocator();
 	}
 
 	@Override
@@ -256,7 +207,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		StreamSupport.stream(testItems.spliterator(), false).forEach(testItem -> {
 			try {
 				verifyTestItem(testItem, testItem.getId());
-				Set<TestItemIssue.ExternalSystemIssue> tiIssues = buildExternalSystemIssues(rq, userName);
+				Set<TestItemIssue.ExternalSystemIssue> tiIssues = rq.getIssues().stream()
+						.filter(issue -> !issue.getTicketId().trim().isEmpty())
+						.map(TestItemUtils.externalIssueDtoConverter(rq.getExternalSystemId(), userName)).collect(toSet());
 				if (null == testItem.getIssue().getExternalSystemIssues()) {
 					testItem.getIssue().setExternalSystemIssues(tiIssues);
 				} else {
@@ -277,53 +230,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				.collect(toList());
 	}
 
-	private Set<TestItemIssue.ExternalSystemIssue> buildExternalSystemIssues(AddExternalIssueRQ rq, String userName) {
-		return rq.getIssues().stream().filter(issue -> !issue.getTicketId().trim().isEmpty()).map(issue -> {
-			TestItemIssue.ExternalSystemIssue externalSystemIssue = new TestItemIssue.ExternalSystemIssue();
-			externalSystemIssue.setTicketId(issue.getTicketId().trim());
-			externalSystemIssue.setSubmitDate(new Date().getTime());
-			externalSystemIssue.setSubmitter(userName);
-			externalSystemIssue.setExternalSystemId(rq.getExternalSystemId());
-			externalSystemIssue.setUrl(issue.getUrl());
-			return externalSystemIssue;
-		}).collect(toSet());
-	}
-
-	private Issue toIssue(TestItem item) {
-		Issue issue = new Issue();
-		TestItemIssue itemIssue = item.getIssue();
-		issue.setComment(itemIssue.getIssueDescription());
-		issue.setIssueType(itemIssue.getIssueType());
-		if (null != item.getIssue().getExternalSystemIssues()) {
-			issue.setExternalSystemIssues(toUiExternalIssues(item.getIssue().getExternalSystemIssues()));
-		}
-		return issue;
-	}
-
-	private Set<TestItemIssue.ExternalSystemIssue> toDbExternalIssues(Set<Issue.ExternalSystemIssue> issues, String userName) {
-		return issues.stream().map(externalSystemIssue -> {
-			TestItemIssue.ExternalSystemIssue dbExternalSystemIssue = new TestItemIssue.ExternalSystemIssue();
-			dbExternalSystemIssue.setSubmitDate(new Date().getTime());
-			dbExternalSystemIssue.setSubmitter(userName);
-			dbExternalSystemIssue.setTicketId(externalSystemIssue.getTicketId());
-			dbExternalSystemIssue.setExternalSystemId(externalSystemIssue.getExternalSystemId());
-			dbExternalSystemIssue.setUrl(externalSystemIssue.getUrl());
-			return dbExternalSystemIssue;
-		}).collect(toSet());
-	}
-
-	private Set<Issue.ExternalSystemIssue> toUiExternalIssues(Set<TestItemIssue.ExternalSystemIssue> issues) {
-		return issues.stream().map(externalSystemIssue -> {
-			Issue.ExternalSystemIssue dbExternalSystemIssue = new Issue.ExternalSystemIssue();
-			dbExternalSystemIssue.setSubmitDate(externalSystemIssue.getSubmitDate());
-			dbExternalSystemIssue.setSubmitter(externalSystemIssue.getSubmitter());
-			dbExternalSystemIssue.setTicketId(externalSystemIssue.getTicketId());
-			dbExternalSystemIssue.setExternalSystemId(externalSystemIssue.getExternalSystemId());
-			dbExternalSystemIssue.setUrl(externalSystemIssue.getUrl());
-			return dbExternalSystemIssue;
-		}).collect(toSet());
-	}
-
 	private TestItem validate(String projectName, String userName, String id) {
 		TestItem testItem = testItemRepository.findOne(id);
 		expect(testItem, notNull()).verify(TEST_ITEM_NOT_FOUND, id);
@@ -339,4 +245,52 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		}
 		return testItem;
 	}
+
+
+	/**
+	 * Verifies that provided test item issue type is valid, and test item
+	 * domain object could be processed correctly
+	 *
+	 * @param type     - provided issue type
+	 * @param settings - project settings
+	 * @return verified issue type
+	 */
+	private String verifyTestItemDefinedIssueType(final String type, final Project.Configuration settings) {
+		StatisticSubType defined = settings.getByLocator(type);
+		expect(settings.getByLocator(type), notNull()).verify(ISSUE_TYPE_NOT_FOUND, type);
+		return defined.getLocator();
+	}
+
+	/**
+	 * Complex of domain verification for test item. Verifies that test item
+	 * domain object could be processed correctly.
+	 *
+	 * @param id - test item id
+	 * @throws BusinessRuleViolationException when business rule violation
+	 */
+	private void verifyTestItem(TestItem testItem, String id) throws BusinessRuleViolationException {
+		expect(testItem, notNull(), Suppliers.formattedSupplier("Cannot update issue type for test item '{}', cause it is not found.", id))
+				.verify();
+
+		Status actualStatus = testItem.getStatus();
+		expect(actualStatus, not(equalTo(PASSED)), Suppliers
+				.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.", PASSED.name()))
+				.verify();
+
+		boolean hasDescendants = testItemRepository.hasDescendants(testItem.getId());
+		expect(hasDescendants, not(equalTo(TRUE)), Suppliers
+				.formattedSupplier("It is not allowed to udpate issue type for items with descendants. Test item '{}' has descendants.",
+						id)).verify();
+
+		TestItemIssue actualItemIssue = testItem.getIssue();
+		expect(actualItemIssue, notNull(), Suppliers
+				.formattedSupplier("Cannot update issue type for test item '{}', cause there is no info about actual issue type value.",
+						id)).verify();
+
+		String actualIssueType = actualItemIssue.getIssueType();
+		expect(actualIssueType, notNull(), Suppliers
+				.formattedSupplier("Cannot update issue type for test item {}, cause it's actual issue type value is not provided.", id))
+				.verify();
+	}
+
 }

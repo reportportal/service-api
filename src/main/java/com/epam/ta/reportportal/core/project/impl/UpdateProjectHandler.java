@@ -45,6 +45,7 @@ import java.util.stream.StreamSupport;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -208,8 +209,8 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			}
 
 			List<EmailSenderCase> cases = config.getEmailCases();
-			if (config.getEmailEnabled()) {
-				expect(Preconditions.NOT_EMPTY_COLLECTION, equalTo(false))
+			if (BooleanUtils.isNotFalse(config.getEmailEnabled())) {
+				expect(cases, Preconditions.NOT_EMPTY_COLLECTION)
 						.verify(BAD_REQUEST_ERROR, "At least one rule should be present.");
 				cases.forEach(sendCase -> {
 					expect(findByName(sendCase.getSendCase()).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, sendCase.getSendCase());

@@ -21,14 +21,11 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.Preconditions;
-import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
+import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
-import com.epam.ta.reportportal.database.dao.FailReferenceResourceRepository;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Status;
@@ -36,19 +33,20 @@ import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.converter.builders.FailReferenceResourceBuilder;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Provider;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -75,7 +73,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private TestItemRepository testItemRepository;
 	private StatisticsFacadeFactory statisticsFacadeFactory;
 	private FailReferenceResourceRepository issuesRepository;
-	private LazyReference<FailReferenceResourceBuilder> failReferenceResourceBuilder;
+	private Provider<FailReferenceResourceBuilder> failReferenceResourceBuilder;
+	private ExternalSystemRepository externalSystemRepository;
 
 	@Autowired
 	public void setProjectRepository(ProjectRepository projectRepository) {
@@ -103,9 +102,13 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	}
 
 	@Autowired
-	@Qualifier("failReferenceResourceBuilder.reference")
-	public void setFailReferenceResourceBuilder(LazyReference<FailReferenceResourceBuilder> failReferenceResourceBuilder) {
+	public void setFailReferenceResourceBuilder(Provider<FailReferenceResourceBuilder> failReferenceResourceBuilder) {
 		this.failReferenceResourceBuilder = failReferenceResourceBuilder;
+	}
+
+	@Autowired
+	public void setExternalSystemRepository(ExternalSystemRepository externalSystemRepository) {
+		this.externalSystemRepository = externalSystemRepository;
 	}
 
 	@Override
@@ -140,14 +143,16 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		 * items that does not have descendants
 		 */
 		if (!hasDescendants) {
-			testItem = awareTestItemIssueTypeFromStatus(testItem, providedIssue, project);
+			testItem = awareTestItemIssueTypeFromStatus(testItem, providedIssue, project, username);
 		}
 		try {
 			testItemRepository.save(testItem);
-			testItem = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
+			StatisticsFacade statisticsFacade = statisticsFacadeFactory
+					.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
+			testItem = statisticsFacade
 					.updateExecutionStatistics(testItem);
 			if (null != testItem.getIssue()) {
-				statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
+				statisticsFacade
 						.updateIssueStatistics(testItem);
 			}
 		} catch (Exception e) {
@@ -176,7 +181,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			List<TestItem> descendants = testItemRepository.findDescendants(testItem.getId());
 			boolean hasDescendants = !descendants.isEmpty();
 
-			expect(!statusProvided && !hasDescendants, Predicates.equalTo(Boolean.FALSE), formattedSupplier(
+			expect(!statusProvided && !hasDescendants, equalTo(Boolean.FALSE), formattedSupplier(
 					"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
 					testItemId)).verify();
 
@@ -213,14 +218,29 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param project       Project
 	 * @return TestItem
 	 */
-	TestItem awareTestItemIssueTypeFromStatus(final TestItem testItem, final Issue providedIssue, final Project project) {
+	TestItem awareTestItemIssueTypeFromStatus(final TestItem testItem, final Issue providedIssue, final Project project, String submitter) {
 		if (FAILED.equals(testItem.getStatus()) || SKIPPED.equals(testItem.getStatus())) {
 			if (null != providedIssue) {
 				verifyIssue(testItem.getId(), providedIssue, project.getConfiguration());
 				String issueType = providedIssue.getIssueType();
 				if (!issueType.equalsIgnoreCase(NOT_ISSUE_FLAG.getValue())) {
-					testItem.setIssue(
-							new TestItemIssue(project.getConfiguration().getByLocator(issueType).getLocator(), providedIssue.getComment()));
+					TestItemIssue issue = new TestItemIssue(project.getConfiguration().getByLocator(issueType).getLocator(),
+							providedIssue.getComment());
+
+					//set provided external issues if any present
+					issue.setExternalSystemIssues(Optional.ofNullable(providedIssue.getExternalSystemIssues())
+							.map(issues -> issues.stream()
+									.map(it -> 		{
+										//not sure if it propogates exception correctly
+										expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true))
+												.verify(EXTERNAL_SYSTEM_NOT_FOUND, it.getExternalSystemId());
+										return it;
+									})
+									.map(TestItemUtils.externalIssueDtoConverter(submitter))
+									.collect(Collectors.toSet()))
+							.orElse(null));
+
+					testItem.setIssue(issue);
 				}
 			} else {
 				testItem.setIssue(new TestItemIssue());

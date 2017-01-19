@@ -21,20 +21,7 @@
 
 package com.epam.ta.reportportal.core.item;
 
-import static com.epam.ta.reportportal.database.entity.Status.FAILED;
-import static com.epam.ta.reportportal.database.entity.Status.SKIPPED;
-import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.PRODUCT_BUG;
-import static org.mockito.Mockito.*;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
+import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
 import com.epam.ta.reportportal.database.dao.FailReferenceResourceRepository;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
@@ -45,9 +32,27 @@ import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.converter.builders.FailReferenceResourceBuilder;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
+import com.google.common.collect.Sets;
+import org.hamcrest.Matchers;
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
+
+import javax.inject.Provider;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.epam.ta.reportportal.database.entity.Status.FAILED;
+import static com.epam.ta.reportportal.database.entity.Status.SKIPPED;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.PRODUCT_BUG;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.not;
+import static org.mockito.Mockito.*;
 
 public class FinishTestItemHandlerImplTest {
 
@@ -78,7 +83,7 @@ public class FinishTestItemHandlerImplTest {
 		issue.setIssueType(locator);
 		TestItem item = new TestItem();
 		item.setStatus(FAILED);
-		TestItem testItem = finishTestItemHandler.awareTestItemIssueTypeFromStatus(item, issue, project);
+		TestItem testItem = finishTestItemHandler.awareTestItemIssueTypeFromStatus(item, issue, project, "someuser");
 		Assert.assertNotNull(testItem);
 		TestItemIssue testItemIssue = testItem.getIssue();
 		Assert.assertNotNull(testItemIssue);
@@ -103,7 +108,7 @@ public class FinishTestItemHandlerImplTest {
 		Issue providedIssue = new Issue();
 		providedIssue.setIssueType("not_Issue");
 
-		TestItem updated = finishTestItemHandler.awareTestItemIssueTypeFromStatus(testItem, providedIssue, new Project());
+		TestItem updated = finishTestItemHandler.awareTestItemIssueTypeFromStatus(testItem, providedIssue, new Project(), "user");
 		TestItemIssue issue = updated.getIssue();
 		Assert.assertNull(issue);
 	}
@@ -112,7 +117,7 @@ public class FinishTestItemHandlerImplTest {
 	@Test
 	public void failedWithoutIssue() {
 		String launchRef = "launchRef";
-		LazyReference lazyReference = mock(LazyReference.class);
+		Provider<FailReferenceResourceBuilder> lazyReference = Mockito.mock(Provider.class);
 		when(lazyReference.get()).thenReturn(new FailReferenceResourceBuilder());
 		finishTestItemHandler.setFailReferenceResourceBuilder(lazyReference);
 		FailReferenceResourceRepository referenceResourceRepository = mock(FailReferenceResourceRepository.class);
@@ -128,7 +133,7 @@ public class FinishTestItemHandlerImplTest {
 		configuration.setIsAutoAnalyzerEnabled(true);
 		project.setConfiguration(configuration);
 
-		TestItem updatedTestItem = finishTestItemHandler.awareTestItemIssueTypeFromStatus(testItem, null, project);
+		TestItem updatedTestItem = finishTestItemHandler.awareTestItemIssueTypeFromStatus(testItem, null, project, "someuser");
 
 		Assert.assertNotNull(updatedTestItem);
 		Assert.assertNotNull(updatedTestItem.getIssue());
@@ -137,5 +142,65 @@ public class FinishTestItemHandlerImplTest {
 		Assert.assertEquals("TI001", updatedTestItem.getIssue().getIssueType());
 		verify(referenceResourceRepository, times(1)).save(any(FailReferenceResource.class));
 		verify(launchRepository, times(1)).findOne(launchRef);
+	}
+
+	@Test
+	public void failedWithExternalIssue() {
+		Issue issue = new Issue();
+		issue.setIssueType(TestItemIssueType.AUTOMATION_BUG.getLocator());
+
+		Issue.ExternalSystemIssue externalIssue = new Issue.ExternalSystemIssue();
+		externalIssue.setExternalSystemId("mocked");
+		externalIssue.setTicketId("mocked");
+		externalIssue.setUrl("http://someUrl");
+		issue.setExternalSystemIssues(Sets.newHashSet(externalIssue));
+
+		TestItem item = new TestItem();
+		item.setStatus(FAILED);
+
+		Project project = new Project();
+		Project.Configuration configuration = new Project.Configuration();
+		configuration.setIsAutoAnalyzerEnabled(false);
+		project.setConfiguration(configuration);
+
+		ExternalSystemRepository externalSystemRepository = mock(ExternalSystemRepository.class);
+		when(externalSystemRepository.exists(Mockito.anyString())).thenReturn(true);
+		finishTestItemHandler.setExternalSystemRepository(externalSystemRepository);
+
+		TestItem testItem = finishTestItemHandler.awareTestItemIssueTypeFromStatus(item, issue, new Project(), "someuser");
+		Assert.assertNotNull(testItem);
+		TestItemIssue testItemIssue = testItem.getIssue();
+		Assert.assertNotNull(testItemIssue);
+		Assert.assertThat(testItemIssue.getExternalSystemIssues(), not(empty()));
+
+		Assert.assertThat(testItemIssue.getExternalSystemIssues().iterator().next().getTicketId(), Matchers.is("mocked"));
+	}
+
+	@Test
+	public void failedWithExternalIssueNotPresent() {
+		Issue issue = new Issue();
+		issue.setIssueType(TestItemIssueType.AUTOMATION_BUG.getLocator());
+
+		Issue.ExternalSystemIssue externalIssue = new Issue.ExternalSystemIssue();
+		externalIssue.setExternalSystemId("mocked");
+		externalIssue.setTicketId("mocked");
+		externalIssue.setUrl("http://someUrl");
+		issue.setExternalSystemIssues(Sets.newHashSet(externalIssue));
+
+		TestItem item = new TestItem();
+		item.setStatus(FAILED);
+
+		Project project = new Project();
+		Project.Configuration configuration = new Project.Configuration();
+		configuration.setIsAutoAnalyzerEnabled(false);
+		project.setConfiguration(configuration);
+
+		ExternalSystemRepository externalSystemRepository = mock(ExternalSystemRepository.class);
+		when(externalSystemRepository.exists(Mockito.anyString())).thenReturn(false);
+		finishTestItemHandler.setExternalSystemRepository(externalSystemRepository);
+
+		thrown.expect(ReportPortalException.class);
+		thrown.expectMessage(Matchers.containsString("ExternalSystem with ID 'mocked' not found"));
+		finishTestItemHandler.awareTestItemIssueTypeFromStatus(item, issue, project, "someuser");
 	}
 }

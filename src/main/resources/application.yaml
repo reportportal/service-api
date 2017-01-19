@@ -17,8 +17,8 @@ spring:
 eureka:
   instance:
     hostname: ${HOSTNAME:localhost}
-    status-page-url-path: ${server.contextPath}/${management.contextPath}/info
-    health-check-url-path: ${server.contextPath}/${management.contextPath}/health
+    status-page-url-path: ${server.contextPath}${management.contextPath}/info
+    health-check-url-path: ${server.contextPath}${management.contextPath}/health
 
 
 

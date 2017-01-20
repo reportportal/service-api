@@ -1,3 +1,8 @@
+rp:
+  upload:
+    maxUploadSize: 128MB
+    maxFileSize: 32MB
+
 spring:
   profiles:
     ## Default one is still Eureka

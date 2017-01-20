@@ -124,49 +124,45 @@ public class LogController implements ILogController {
 		Map<String, MultipartFile> uploadedFiles = getUploadedFiles(request);
 		BatchSaveOperatingRS response = new BatchSaveOperatingRS();
 		EntryCreatedRS responseItem;
-		try {
-			/* Go through all provided save log request items */
-			for (SaveLogRQ createLogRq : createLogRQs) {
-				try {
-					validateSaveRQ(createLogRq);
-					String filename = createLogRq.getFile() == null ? null : createLogRq.getFile().getName();
-					if (StringUtils.isEmpty(filename)) {
-						/*
-						 * There is no filename in request. Use simple save
-						 * method
-						 */
-						responseItem = createLog(prjName, createLogRq, principal);
+		/* Go through all provided save log request items */
+		for (SaveLogRQ createLogRq : createLogRQs) {
+			try {
+				validateSaveRQ(createLogRq);
+				String filename = createLogRq.getFile() == null ? null : createLogRq.getFile().getName();
+				if (StringUtils.isEmpty(filename)) {
+					/*
+					 * There is no filename in request. Use simple save
+					 * method
+					 */
+					responseItem = createLog(prjName, createLogRq, principal);
 
+				} else {
+					/* Find by request part */
+					MultipartFile data = findByFileName(filename, uploadedFiles);
+					BusinessRule.expect(data, Predicates.notNull()).verify(ErrorType.BINARY_DATA_CANNOT_BE_SAVED,
+							Suppliers.formattedSupplier("There is no request part or file with name {}", filename));
+					/*
+					 * If provided content type is null or this is octet
+					 * stream, try to detect real content type of binary
+					 * data
+					 */
+					if (!StringUtils.isEmpty(data.getContentType()) && !MediaType.APPLICATION_OCTET_STREAM_VALUE
+							.equals(data.getContentType())) {
+						responseItem = createLogMessageHandler
+								.createLog(createLogRq, new BinaryData(data.getContentType(), data.getSize(), data.getInputStream()),
+										data.getOriginalFilename(), prjName);
 					} else {
-						/* Find by request part */
-						MultipartFile data = findByFileName(filename, uploadedFiles);
-						BusinessRule.expect(data, Predicates.notNull()).verify(ErrorType.BINARY_DATA_CANNOT_BE_SAVED,
-								Suppliers.formattedSupplier("There is no request part or file with name {}", filename));
-						/*
-						 * If provided content type is null or this is octet
-						 * stream, try to detect real content type of binary
-						 * data
-						 */
-						if (!StringUtils.isEmpty(data.getContentType()) && !MediaType.APPLICATION_OCTET_STREAM_VALUE
-								.equals(data.getContentType())) {
-							responseItem = createLogMessageHandler
-									.createLog(createLogRq, new BinaryData(data.getContentType(), data.getSize(), data.getInputStream()),
-											data.getOriginalFilename(), prjName);
-						} else {
-							byte[] consumedData = IOUtils.toByteArray(data.getInputStream());
-							responseItem = createLogMessageHandler.createLog(createLogRq,
-									new BinaryData(contentTypeResolver.detectContentType(consumedData), data.getSize(),
-											new ByteArrayInputStream(consumedData)), data.getOriginalFilename(), prjName);
+						byte[] consumedData = IOUtils.toByteArray(data.getInputStream());
+						responseItem = createLogMessageHandler.createLog(createLogRq,
+								new BinaryData(contentTypeResolver.detectContentType(consumedData), data.getSize(),
+										new ByteArrayInputStream(consumedData)), data.getOriginalFilename(), prjName);
 
-						}
 					}
-					response.addResponse(new BatchElementCreatedRS(responseItem.getId()));
-				} catch (ReportPortalException e) {
-					response.addResponse(new BatchElementCreatedRS(ExceptionUtils.getStackTrace(e), ExceptionUtils.getMessage(e)));
 				}
+				response.addResponse(new BatchElementCreatedRS(responseItem.getId()));
+			} catch (Exception e) {
+				response.addResponse(new BatchElementCreatedRS(ExceptionUtils.getStackTrace(e), ExceptionUtils.getMessage(e)));
 			}
-		} catch (IOException e) {
-			throw new ReportPortalException("Unable to save binary data", e);
 		}
 		return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}

@@ -34,13 +34,6 @@
 	<bean id="jacksonRequestValidator" class="com.epam.ta.reportportal.ws.validation.JaskonRequiredPropertiesValidator" />
 
 
-	<!-- Configure the multipart resolver -->
-	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
-		<!-- one of the properties available; the maximum file size in bytes -->
-		<!-- 15 MB -->
-		<property name="maxUploadSize" value="15728640" />
-	</bean>
-
 	<bean class="com.epam.ta.reportportal.database.search.CriteriaMapFactory">
 		<constructor-arg name="basePackage"
 						 value="com.epam.ta.reportportal.database.entity" />

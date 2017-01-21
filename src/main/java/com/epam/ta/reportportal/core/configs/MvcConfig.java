@@ -188,14 +188,6 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
 		long maxUploadSize = 64 * 1024 * 1024;
 		long maxFileSize = 16 * 1024 * 1024;
 
-		public void setMaxUploadSize(long maxUploadSize) {
-			this.maxUploadSize = maxUploadSize;
-		}
-
-		public void setMaxFileSize(long maxFileSize) {
-			this.maxFileSize = maxFileSize;
-		}
-
 		public void setMaxUploadSize(String maxUploadSize) {
 			this.maxUploadSize = parseSize(maxUploadSize);
 		}

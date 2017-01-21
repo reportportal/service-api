@@ -208,13 +208,13 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
 			Preconditions.checkArgument(!isNullOrEmpty(size), "Size must not be empty");
 			size = size.toUpperCase();
 			if (size.endsWith("KB")) {
-				return Long.valueOf(size.substring(0, size.length() - 2)) * 1024;
+				return Long.parseLong(size.substring(0, size.length() - 2)) * 1024;
 			}
 			if (size.endsWith("MB")) {
-				return Long.valueOf(size.substring(0, size.length() - 2)) * 1024 * 1024;
+				return Long.parseLong(size.substring(0, size.length() - 2)) * 1024 * 1024;
 			}
 			if (size.endsWith("GB")) {
-				return Long.valueOf(size.substring(0, size.length() - 2)) * 1024 * 1024 * 1024;
+				return Long.parseLong(size.substring(0, size.length() - 2)) * 1024 * 1024 * 1024;
 			}
 			return Long.valueOf(size);
 		}

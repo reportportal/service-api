@@ -216,7 +216,7 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
 			if (size.endsWith("GB")) {
 				return Long.parseLong(size.substring(0, size.length() - 2)) * 1024 * 1024 * 1024;
 			}
-			return Long.valueOf(size);
+			return Long.parseLong(size);
 		}
 	}
 

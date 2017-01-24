@@ -23,10 +23,11 @@ package com.epam.ta.reportportal.util;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.base.Supplier;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+
+import java.util.function.Supplier;
 
 /**
  * Bean Reference. Added to simplify autowiring of prototype to singleton

@@ -26,13 +26,13 @@ import static org.hamcrest.Matchers.notNullValue;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.google.common.base.Supplier;
 
 /**
  * Tests for CriteriaMap Factory

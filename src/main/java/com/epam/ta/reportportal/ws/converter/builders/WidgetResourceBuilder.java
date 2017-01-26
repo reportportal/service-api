@@ -41,6 +41,7 @@ public class WidgetResourceBuilder extends ResourceBuilder<WidgetResource> {
 		if (widget != null) {
 			getObject().setWidgetId(widget.getId());
 			getObject().setName(widget.getName());
+			getObject().setDescription(widget.getDescription());
 			if (null != widget.getApplyingFilterId()) {
 				getObject().setApplyingFilterID(widget.getApplyingFilterId());
 			}

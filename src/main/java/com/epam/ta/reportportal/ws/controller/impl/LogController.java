@@ -136,7 +136,7 @@ public class LogController implements ILogController {
 
         String prjName = EntityUtils.normalizeProjectName(projectName);
         /*
-		 * Since this is multipart request we can retrieve list of uploaded
+         * Since this is multipart request we can retrieve list of uploaded
 		 * files
 		 */
         Map<String, MultipartFile> uploadedFiles = getUploadedFiles(request);
@@ -207,6 +207,17 @@ public class LogController implements ILogController {
             @SortFor(Log.class) Pageable pageble, Principal principal) {
         return getLogHandler.getLogs(testStepId, EntityUtils.normalizeProjectName(projectName), filter, pageble);
     }
+
+//    @RequestMapping(method = RequestMethod.GET)
+//    @ResponseBody
+//    @ApiOperation("Get logs by filter")
+//    public Map<String, String> getLogPage(@PathVariable String projectName,
+//            @RequestParam(FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ + "id") String logId,
+//            @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ
+//                    + Log.TEST_ITEM_ID) String testStepId, @FilterFor(Log.class) Filter filter,
+//            @SortFor(Log.class) Pageable pageble) {
+//        return getLogHandler.getLogs(testStepId, EntityUtils.normalizeProjectName(projectName), filter, pageble);
+//    }
 
     @Override
     @RequestMapping(value = "/{logId}", method = RequestMethod.GET)

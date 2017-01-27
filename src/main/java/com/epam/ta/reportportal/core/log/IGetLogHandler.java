@@ -17,45 +17,51 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.log;
-
-import org.springframework.data.domain.Pageable;
 
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
+import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.PagedResources;
 
 /**
  * GET operation for {@link Log} entity
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public interface IGetLogHandler {
 
-	/**
-	 * Returns logs for specified filter
-	 * 
-	 * @param testStepId
-	 *            - parent step ID value
-	 * @param filterable
-	 *            - filter definition
-	 * @param pageable
-	 *            - pageable definition
-	 * @return Iterable<LogResource>
-	 */
-	Iterable<LogResource> getLogs(String testStepId, String project, Filter filterable, Pageable pageable);
+    /**
+     * Returns logs for specified filter
+     *
+     * @param testStepId - parent step ID value
+     * @param filterable - filter definition
+     * @param pageable   - pageable definition
+     * @return Iterable<LogResource>
+     */
+    Iterable<LogResource> getLogs(String testStepId, String project, Filter filterable, Pageable pageable);
 
-	/**
-	 * Returns log by ID
-	 * 
-	 * @param logId
-	 *            - target log ID value
-	 * @param projectName
-	 *            - specified project name value
-	 * @return LogResource
-	 */
-	LogResource getLog(String logId, String projectName);
+    /**
+     * Returns log by ID
+     *
+     * @param logId       - target log ID value
+     * @param projectName - specified project name value
+     * @return LogResource
+     */
+    LogResource getLog(String logId, String projectName);
+
+    /**
+     * Calculates page number and returns entire page for specified log ID
+     *
+     * @param logId      ID of log to find
+     * @param project    Project name
+     * @param filterable Filter for paging
+     * @param pageable   Paging details
+     * @return Page Number
+     */
+    long getPageNumber(String logId, String project, Filter filterable,
+            Pageable pageable);
 }

@@ -42,14 +42,15 @@ import com.epam.ta.reportportal.ws.model.log.LogResource;
 @Service
 public class LogResourceAssembler extends ProjectRelatedResourceAssembler<Log, LogResource> {
 
-	@Autowired
-	private TestItemRepository testItemRepository;
+	private final TestItemRepository testItemRepository;
+
+	private final LaunchRepository launchRepository;
 
 	@Autowired
-	private LaunchRepository launchRepository;
-
-	public LogResourceAssembler() {
+	public LogResourceAssembler(TestItemRepository testItemRepository, LaunchRepository launchRepository) {
 		super(LogController.class, LogResource.class);
+		this.testItemRepository = testItemRepository;
+		this.launchRepository = launchRepository;
 	}
 
 	@Override

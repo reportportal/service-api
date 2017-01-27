@@ -31,7 +31,6 @@ import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.entity.user.UserType;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
-import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +43,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Calendar;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.generatePersonalProject;
 import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;

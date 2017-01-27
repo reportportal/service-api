@@ -119,6 +119,8 @@ dependencies {
     compile 'io.springfox:springfox-swagger2:2.3.0'
     compile 'io.springfox:springfox-swagger-ui:2.3.0'
 
+    compile 'com.google.guava:guava:21.0'
+
     api 'org.jacoco:org.jacoco.agent:0.7.7.201606060606'
 
     testCompile 'org.hamcrest:hamcrest-all:1.3'

@@ -151,7 +151,7 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 
 		Widget widget = widgetBuilder.get().addWidgetRQ(createWidgetRQ).addFilter(createWidgetRQ.getApplyingFilter())
 				.addProject(projectName)
-				.addSharing(userName, projectName, createWidgetRQ.getShare() == null ? false : createWidgetRQ.getShare()).build();
+				.addSharing(userName, projectName, createWidgetRQ.getDescription(), createWidgetRQ.getShare() == null ? false : createWidgetRQ.getShare()).build();
 
 		// shareIfRequired(createWidgetRQ.getShare(), filter, userName,
 		// projectName);

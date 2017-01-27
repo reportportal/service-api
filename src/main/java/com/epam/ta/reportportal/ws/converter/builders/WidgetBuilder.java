@@ -32,6 +32,9 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.trimStrings;
+import static com.google.common.collect.Lists.newArrayList;
+
 /**
  * Builder for {@link Widget}
  *
@@ -44,7 +47,6 @@ public class WidgetBuilder extends ShareableEntityBuilder<Widget> {
 
 	public WidgetBuilder addWidgetRQ(WidgetRQ createRQ) {
 		if (createRQ != null) {
-			getObject().setDescription(createRQ.getDescription());
 			if (createRQ.getName() != null) {
 				getObject().setName(createRQ.getName().trim());
 			}
@@ -59,9 +61,9 @@ public class WidgetBuilder extends ShareableEntityBuilder<Widget> {
 			contentOptions.setType(parameters.getType());
 			contentOptions.setGadgetType(parameters.getGadget());
 			contentOptions.setContentFields(null != parameters.getContentFields()
-					? Lists.newArrayList(EntityUtils.trimStrings(parameters.getContentFields())) : null);
+					? newArrayList(trimStrings(parameters.getContentFields())) : null);
 			contentOptions.setMetadataFields(null != parameters.getMetadataFields()
-					? Lists.newArrayList(EntityUtils.trimStrings(parameters.getMetadataFields())) : null);
+					? newArrayList(trimStrings(parameters.getMetadataFields())) : null);
 			contentOptions.setItemsCount(parameters.getItemsCount());
 			contentOptions.setWidgetOptions(null != parameters.getWidgetOptions() ? Maps.newHashMap(parameters.getWidgetOptions()) : null);
 			getObject().setContentOptions(contentOptions);
@@ -85,8 +87,8 @@ public class WidgetBuilder extends ShareableEntityBuilder<Widget> {
 	}
 
 	@Override
-	public WidgetBuilder addSharing(String owner, String project, boolean isShare) {
-		super.addAcl(owner, project, isShare);
+	public WidgetBuilder addSharing(String owner, String project, String description, boolean isShare) {
+		super.addAcl(owner, project, description, isShare);
 		return this;
 	}
 

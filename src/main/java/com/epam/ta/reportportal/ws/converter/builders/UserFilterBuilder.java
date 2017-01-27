@@ -53,7 +53,6 @@ public class UserFilterBuilder extends ShareableEntityBuilder<UserFilter> {
 			getObject().setIsLink(request.getIsLink());
 			Set<UserFilterEntity> filterEntities = request.getEntities();
 			getObject().setFilter(getFilter(filterEntities, request.getObjectType()));
-			getObject().setDescription(request.getDescription());
 
 			addSelectionParamaters(request.getSelectionParameters());
 		}
@@ -72,8 +71,8 @@ public class UserFilterBuilder extends ShareableEntityBuilder<UserFilter> {
 	}
 
 	@Override
-	public UserFilterBuilder addSharing(String owner, String project, boolean isShare) {
-		super.addAcl(owner, project, isShare);
+	public UserFilterBuilder addSharing(String owner, String project, String description, boolean isShare) {
+		super.addAcl(owner, project, description, isShare);
 		return this;
 	}
 

@@ -44,7 +44,6 @@ public class DashboardBuilder extends ShareableEntityBuilder<Dashboard> {
 	public DashboardBuilder addCreateDashboardRQ(CreateDashboardRQ request) {
 		if (request != null) {
 			getObject().setName(request.getName().trim());
-			getObject().setDescription(request.getDescription());
 		}
 		return this;
 	}
@@ -59,8 +58,8 @@ public class DashboardBuilder extends ShareableEntityBuilder<Dashboard> {
 		return this;
 	}
 	
-	public DashboardBuilder addSharing(String owner, String project, boolean isShare) {
-		super.addAcl(owner, project, isShare);
+	public DashboardBuilder addSharing(String owner, String project, String description, boolean isShare) {
+		super.addAcl(owner, project, description, isShare);
 		return this;
 	}
 

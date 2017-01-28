@@ -83,7 +83,7 @@ public class CreateUserFilterHandler implements ICreateUserFilterHandler {
 
 			/* Build user filter entity */
 			UserFilter userFilter = userFilterBuilder.get().addCreateRQ(rq).addProject(projectName)
-					.addSharing(userName, projectName, rq.getShare() == null ? false : rq.getShare()).build();
+					.addSharing(userName, projectName, rq.getDescription(), rq.getShare() == null ? false : rq.getShare()).build();
 
 			userFilterService.validateSortingColumnName(userFilter.getFilter().getTarget(),
 					userFilter.getSelectionOptions().getSortingColumnName());

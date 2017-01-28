@@ -65,7 +65,7 @@ public class CreateDashboardHandler implements ICreateDashboardHandler {
 		BusinessRule.expect(isExist, Predicates.isNull()).verify(ErrorType.RESOURCE_ALREADY_EXISTS, rq.getName());
 
 		Dashboard dashboard = dashboardBuilder.get().addCreateDashboardRQ(rq)
-				.addSharing(userName, projectName, rq.getShare() == null ? false : rq.getShare()).addProject(projectName).build();
+				.addSharing(userName, projectName, rq.getDescription(), rq.getShare() == null ? false : rq.getShare()).addProject(projectName).build();
 		dashboardRepository.save(dashboard);
 		return new EntryCreatedRS(dashboard.getId());
 	}

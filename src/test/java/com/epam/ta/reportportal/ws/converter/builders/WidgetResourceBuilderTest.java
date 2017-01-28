@@ -87,5 +87,7 @@ public class WidgetResourceBuilderTest extends BaseTest {
 		Assert.assertEquals(expectedValue.getWidgetId(), actualValue.getWidgetId());
 		Assert.assertEquals(expectedValue.getContentParameters(), actualValue.getContentParameters());
 		Assert.assertEquals(expectedValue.getLinks(), actualValue.getLinks());
+		Assert.assertEquals(expectedValue.getDescription(), actualValue.getDescription());
+
 	}
 }

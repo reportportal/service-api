@@ -34,11 +34,12 @@ import com.epam.ta.reportportal.database.entity.sharing.Shareable;
  */
 public abstract class ShareableEntityBuilder<T extends Shareable> extends Builder<T> {
 	
-	public abstract ShareableEntityBuilder<T> addSharing(String owner, String project, boolean isShare);
+	public abstract ShareableEntityBuilder<T> addSharing(String owner, String project, String description, boolean isShare);
 	
-	protected void addAcl(String owner, String project, boolean isShare) {
+	protected void addAcl(String owner, String project, String description, boolean isShare) {
 		if (owner != null && project != null) {
 			getObject().setOwner(owner);
+			getObject().setDescription(description);
 			if (isShare) {
 				AclEntry aclEntry = new AclEntry();
 				aclEntry.setProjectId(project);

@@ -17,53 +17,33 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.converter;
 
+import com.epam.ta.reportportal.database.entity.widget.Widget;
+import com.epam.ta.reportportal.ws.converter.builders.WidgetResourceBuilder;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.stereotype.Service;
 
-import com.epam.ta.reportportal.database.entity.widget.Widget;
-import com.epam.ta.reportportal.util.LazyReference;
-import com.epam.ta.reportportal.ws.controller.impl.UserFilterController;
-import com.epam.ta.reportportal.ws.controller.impl.WidgetController;
-import com.epam.ta.reportportal.ws.converter.builders.WidgetResourceBuilder;
+import javax.inject.Provider;
 
 /**
  * Resource Assembler for the {@link Widget} DB entity.
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 @Service
-public class WidgetResourceAssembler extends ResourceAssemblerSupport<Widget, WidgetResource> {
+public class WidgetResourceAssembler extends ResourceAssembler<Widget, WidgetResource> {
 
-	public static final String REL = "related";
+    @Autowired
+    private Provider<WidgetResourceBuilder> builderLazyReference;
 
-	@Autowired
-	@Qualifier("widgetResourceBuilder.reference")
-	private LazyReference<WidgetResourceBuilder> builderLazyReference;
-
-	public WidgetResourceAssembler() {
-		super(WidgetController.class, WidgetResource.class);
-	}
-
-	@Override
-	public WidgetResource toResource(Widget widget) {
-		Link selfLink = ControllerLinkBuilder.linkTo(WidgetController.class, widget.getProjectName()).slash(widget).withSelfRel();
-		WidgetResourceBuilder widgetResourceBuilder = builderLazyReference.get();
-		widgetResourceBuilder.addWidget(widget).addLink(selfLink);
-		if (widget.getApplyingFilterId() != null) {
-			Link filterLink = ControllerLinkBuilder.linkTo(UserFilterController.class, widget.getProjectName())
-					.slash(widget.getApplyingFilterId()).withRel(REL);
-			widgetResourceBuilder.addLink(filterLink);
-		}
-		return widgetResourceBuilder.build();
-	}
+    @Override
+    public WidgetResource toResource(Widget widget) {
+        WidgetResourceBuilder widgetResourceBuilder = builderLazyReference.get();
+        widgetResourceBuilder.addWidget(widget);
+        return widgetResourceBuilder.build();
+    }
 }

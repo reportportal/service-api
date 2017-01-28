@@ -34,7 +34,7 @@ import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
  */
 @Service
 @Scope("prototype")
-public class ExternalSystemResourceBuilder extends ResourceBuilder<ExternalSystemResource> {
+public class ExternalSystemResourceBuilder extends Builder<ExternalSystemResource> {
 
 	public ExternalSystemResourceBuilder addExternalSystem(ExternalSystem system) {
 		ExternalSystemResource resource = getObject();

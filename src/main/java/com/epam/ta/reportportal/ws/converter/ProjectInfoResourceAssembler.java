@@ -17,39 +17,29 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.converter;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.util.LazyReference;
-import com.epam.ta.reportportal.ws.controller.impl.ProjectController;
 import com.epam.ta.reportportal.ws.converter.builders.ProjectInfoResourceBuilder;
 import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.inject.Provider;
 
 /**
  * @author Dzmitry_Kavalets
  */
 @Service
-public class ProjectInfoResourceAssembler extends PagedResourcesAssember<Project, ProjectInfoResource> {
+public class ProjectInfoResourceAssembler extends PagedResourcesAssembler<Project, ProjectInfoResource> {
 
-	@Autowired
-	@Qualifier("projectInfoResourceBuilder.reference")
-	private LazyReference<ProjectInfoResourceBuilder> builder;
+    @Autowired
+    private Provider<ProjectInfoResourceBuilder> builder;
 
-	public ProjectInfoResourceAssembler() {
-		super(ProjectController.class, ProjectInfoResource.class);
-	}
-
-	@Override
-	public ProjectInfoResource toResource(Project entity) {
-		return builder.get().addProject(entity)
-				.addLink(ControllerLinkBuilder.linkTo(ProjectController.class).slash("info").slash(entity).withSelfRel())
-				.addLink(ControllerLinkBuilder.linkTo(ProjectController.class).slash(entity).withRel("project")).build();
-	}
+    @Override
+    public ProjectInfoResource toResource(Project entity) {
+        return builder.get().addProject(entity).build();
+    }
 }

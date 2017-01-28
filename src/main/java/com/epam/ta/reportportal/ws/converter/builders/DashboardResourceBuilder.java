@@ -39,7 +39,7 @@ import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource.WidgetObjec
  */
 @Service
 @Scope("prototype")
-public class DashboardResourceBuilder extends ResourceBuilder<DashboardResource> {
+public class DashboardResourceBuilder extends Builder<DashboardResource> {
 
 	public DashboardResourceBuilder addDashboard(Dashboard dashboard) {
 		if (dashboard != null) {

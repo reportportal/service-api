@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.PagedResources;
 
 import com.epam.ta.reportportal.database.entity.project.info.InfoInterval;
 import com.epam.ta.reportportal.database.entity.project.info.ProjectInfoWidget;
@@ -46,7 +45,7 @@ public interface IGetProjectInfoHandler {
 	 * 
 	 * @return
 	 */
-	PagedResources<ProjectInfoResource> getAllProjectsInfo(Filter filter, Pageable pageable);
+	Iterable<ProjectInfoResource> getAllProjectsInfo(Filter filter, Pageable pageable);
 
 	/**
 	 * Get project info

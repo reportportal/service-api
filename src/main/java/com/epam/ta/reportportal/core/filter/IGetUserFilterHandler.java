@@ -27,7 +27,6 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
 import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.Resources;
 
 import java.util.List;
 import java.util.Map;
@@ -60,7 +59,7 @@ public interface IGetUserFilterHandler {
      * @return {@link Iterable}
      * @throws ReportPortalException
      */
-    Resources<UserFilterResource> getFilters(String userName, Pageable pageable, Filter filter, String projectName);
+    Iterable<UserFilterResource> getFilters(String userName, Pageable pageable, Filter filter, String projectName);
 
     /**
      * Get owned user filters for specified project

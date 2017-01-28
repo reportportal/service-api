@@ -34,7 +34,7 @@ import com.epam.ta.reportportal.ws.model.ActivityResource;
  * model object
  */
 @Service
-public class ActivityResourceBuilder extends ResourceBuilder<ActivityResource> {
+public class ActivityResourceBuilder extends Builder<ActivityResource> {
 
 	public ActivityResourceBuilder addActivity(Activity activity) {
 		if (null != activity) {

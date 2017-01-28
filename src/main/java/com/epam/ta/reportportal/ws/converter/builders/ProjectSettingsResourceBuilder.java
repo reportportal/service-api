@@ -40,7 +40,7 @@ import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
  */
 @Service
 @Scope("prototype")
-public class ProjectSettingsResourceBuilder extends ResourceBuilder<ProjectSettingsResource> {
+public class ProjectSettingsResourceBuilder extends Builder<ProjectSettingsResource> {
 
 	public ProjectSettingsResourceBuilder addProjectSettings(Project settings) {
 		ProjectSettingsResource resource = getObject();

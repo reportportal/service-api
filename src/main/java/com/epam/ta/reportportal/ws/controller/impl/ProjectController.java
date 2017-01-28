@@ -241,7 +241,7 @@ public class ProjectController implements IProjectController {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	@ApiIgnore
-	public PagedResources<ProjectInfoResource> getAllProjectsInfo(@FilterFor(Project.class) Filter filter,
+	public Iterable<ProjectInfoResource> getAllProjectsInfo(@FilterFor(Project.class) Filter filter,
 			@SortFor(Project.class) Pageable pageable, Principal principal) {
 		return getProjectInfoHandler.getAllProjectsInfo(filter, pageable);
 	}

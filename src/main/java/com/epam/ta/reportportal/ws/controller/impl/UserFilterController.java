@@ -30,7 +30,6 @@ import java.util.Map;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -111,7 +110,7 @@ public class UserFilterController implements IUserFilterController {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get all filters")
-	public Resources<UserFilterResource> getAllFilters(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
+	public Iterable<UserFilterResource> getAllFilters(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
 			@FilterFor(UserFilter.class) Filter filter, Principal principal) {
 		return getFilterHandler.getFilters(principal.getName(), pageable, filter, EntityUtils.normalizeProjectName(projectName));
 	}

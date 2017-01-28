@@ -17,48 +17,39 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.converter;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.ws.controller.impl.LaunchController;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchResourceBuilder;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
 
 /**
  * Resource Assembler for the {@link Launch} DB entity.
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @Service
-public class LaunchResourceAssembler extends PagedResourcesAssember<Launch, LaunchResource> {
+public class LaunchResourceAssembler extends PagedResourcesAssembler<Launch, LaunchResource> {
 
-	@Autowired
-	private Provider<LaunchResourceBuilder> launchRecordBuilder;
+    @Autowired
+    private Provider<LaunchResourceBuilder> launchRecordBuilder;
 
-	public LaunchResourceAssembler() {
-		super(LaunchController.class, LaunchResource.class);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.hateoas.ResourceAssembler#toResource(java.lang.Object
-	 * )
-	 */
-	@Override
-	public LaunchResource toResource(Launch launch) {
-		return launchRecordBuilder.get().addLaunch(launch)
-				.addLink(ControllerLinkBuilder.linkTo(LaunchController.class, launch.getProjectRef()).slash(launch).withSelfRel()).build();
-	}
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * org.springframework.hateoas.ResourceAssembler#toResource(java.lang.Object
+     * )
+     */
+    @Override
+    public LaunchResource toResource(Launch launch) {
+        return launchRecordBuilder.get().addLaunch(launch).build();
+    }
 
 }

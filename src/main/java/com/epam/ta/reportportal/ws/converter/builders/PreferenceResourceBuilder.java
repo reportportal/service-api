@@ -33,7 +33,7 @@ import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
  * @author Dzmitry_Kavalets
  */
 @Service
-public class PreferenceResourceBuilder extends ResourceBuilder<PreferenceResource> {
+public class PreferenceResourceBuilder extends Builder<PreferenceResource> {
 	@Override
 	protected PreferenceResource initObject() {
 		return new PreferenceResource();

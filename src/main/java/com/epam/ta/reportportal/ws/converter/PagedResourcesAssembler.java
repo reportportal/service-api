@@ -17,30 +17,25 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.converter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.PagedResources.PageMetadata;
+import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.util.Assert;
 
-import java.util.stream.Collectors;
-
 /**
- * Extension of {@link PagedResourcesAssembler}. Added for improving performance of resource building operations.<br>
- * Added possibility to build paged resource with specified project.
+ * Extension of Spring's {@link ResourceAssemblerSupport}. Adds possibility to
+ * converter {@link Page} resources which is basically arrays of entities with
+ * pageable information like current page, max pages, total items, etc
  *
- * @param <T>
- * @param <R>
- * @author Aliaksei_Makayed
+ * @param <T> - Type of Entity to be converted
+ * @param <R> - Type of Resource to be created from entity
+ * @author Andrei Varabyeu
  */
-public abstract class ProjectRelatedResourceAssembler<T, R> extends PagedResourcesAssembler<T, R> {
-
-
-    public abstract R toResource(T element, String project);
-
+public abstract class PagedResourcesAssembler<T, R> extends ResourceAssembler<T, R> {
 
     /**
      * Creates {@link PagedResources} from {@link Page} DB query result
@@ -48,12 +43,11 @@ public abstract class ProjectRelatedResourceAssembler<T, R> extends PagedResourc
      * @param content
      * @return
      */
-    public PagedResources<R> toPagedResources(Page<T> content, final String project) {
+    public com.epam.ta.reportportal.ws.model.Page<R> toPagedResources(Page<T> content) {
         Assert.notNull(content);
 
-        return new PagedResources<>(content.getContent().stream()
-                    .map(c -> toResource(c, project)).collect(Collectors.toList()),
-                new PageMetadata(content.getSize(),
+        return new com.epam.ta.reportportal.ws.model.Page<>(toResources(content),
+                new com.epam.ta.reportportal.ws.model.Page.PageMetadata(content.getSize(),
                         content.getNumber() + 1, content.getTotalElements(), content.getTotalPages()));
     }
 

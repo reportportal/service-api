@@ -37,7 +37,7 @@ import com.epam.ta.reportportal.ws.model.log.LogResource;
 
 @Service
 @Scope("prototype")
-public class LogResourceBuilder extends ResourceBuilder<LogResource> {
+public class LogResourceBuilder extends Builder<LogResource> {
 
 	@Override
 	protected LogResource initObject() {

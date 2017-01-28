@@ -105,8 +105,7 @@ public class GetLogHandlerTest extends BaseTest {
 
         getLogHandler.setLogRepository(logRepository);
 
-        final LogResourceAssembler logResourceAssembler = new LogResourceAssembler(testItemRepository,
-                launchRepository);
+        final LogResourceAssembler logResourceAssembler = new LogResourceAssembler();
 
         getLogHandler.setLogResourceAssembler(logResourceAssembler);
         return getLogHandler;

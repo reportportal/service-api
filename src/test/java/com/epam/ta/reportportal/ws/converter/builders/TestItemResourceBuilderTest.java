@@ -28,7 +28,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.hateoas.Link;
 
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 
@@ -45,7 +44,7 @@ public class TestItemResourceBuilderTest extends BaseTest {
 
 	@Test
 	public void testNull() {
-		firstBuilder.addTestItem(null, null).addPathNames(null).addLink(new Link(BuilderTestsConstants.LINK)).build();
+		firstBuilder.addTestItem(null, null).addPathNames(null).build();
 	}
 
 	@Test

@@ -30,7 +30,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.hateoas.Link;
 
 import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
@@ -49,8 +48,7 @@ public class DashBoardResourceBuilderTest extends BaseTest {
 	
 	@Test
 	public void testNull() {
-		dashboardResourceBuilderProvider.get().addDashboard(null)
-				.addLink(new Link(BuilderTestsConstants.LINK)).build();
+		dashboardResourceBuilderProvider.get().addDashboard(null).build();
 	}
 	
 	@Test
@@ -58,7 +56,7 @@ public class DashBoardResourceBuilderTest extends BaseTest {
 		Dashboard dashboard = Utils.getDashboard();
 		dashboard.setWidgets(null);
 		dashboard.setId(BuilderTestsConstants.BINARY_DATA_ID);
-		DashboardResource actualValue = dashboardResourceBuilderProvider.get().addDashboard(dashboard).addLink(new Link(BuilderTestsConstants.LINK)).build();
+		DashboardResource actualValue = dashboardResourceBuilderProvider.get().addDashboard(dashboard).build();
 		validate(Utils.getDashboardResource(), actualValue);
 	}
 	
@@ -66,8 +64,7 @@ public class DashBoardResourceBuilderTest extends BaseTest {
 	public void testValues() {
 		Dashboard dashboard = Utils.getDashboard();
 		dashboard.setId(BuilderTestsConstants.BINARY_DATA_ID);
-		DashboardResource actualValue = dashboardResourceBuilderProvider.get().addDashboard(dashboard).
-				addLink(new Link(BuilderTestsConstants.LINK)).build();
+		DashboardResource actualValue = dashboardResourceBuilderProvider.get().addDashboard(dashboard).build();
 		List<WidgetObjectModel> actualWidgets = new LinkedList<>();
 		List<Integer> size = new ArrayList<>();
 		size.add(500);
@@ -98,7 +95,6 @@ public class DashBoardResourceBuilderTest extends BaseTest {
 	private void validate(DashboardResource expectedValue, DashboardResource actualValue) {
 		Assert.assertEquals(expectedValue.getDashboardId(), actualValue.getDashboardId());
 		Assert.assertEquals(expectedValue.getName(), actualValue.getName());
-		Assert.assertEquals(expectedValue.getLinks(), actualValue.getLinks());
 		if(null != expectedValue.getWidgets()) {
 			Assert.assertEquals(expectedValue.getWidgets().get(0).getWidgetId(), actualValue.getWidgets().get(0).getWidgetId());
 			Assert.assertEquals(expectedValue.getWidgets().get(0).getWidgetPosition(), actualValue.getWidgets().get(0).getWidgetPosition());

@@ -45,7 +45,7 @@ import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.pe
  */
 @Service
 @Scope("prototype")
-public class UserResourceBuilder extends ResourceBuilder<UserResource> {
+public class UserResourceBuilder extends Builder<UserResource> {
 
 	@Autowired
 	private ProjectRepository projectRepository;

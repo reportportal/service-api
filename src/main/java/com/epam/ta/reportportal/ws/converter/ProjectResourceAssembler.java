@@ -21,65 +21,37 @@
 
 package com.epam.ta.reportportal.ws.converter;
 
-import java.util.ArrayList;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.util.LazyReference;
-import com.epam.ta.reportportal.ws.controller.impl.ExternalSystemController;
-import com.epam.ta.reportportal.ws.controller.impl.ProjectController;
 import com.epam.ta.reportportal.ws.converter.builders.ProjectResourceBuilder;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.inject.Provider;
+import java.util.ArrayList;
 
 /**
  * Resource Assembler for the {@link Project} DB entity
- * 
+ *
  * @author Andrei_Ramanchuk
  */
 @Service
-public class ProjectResourceAssembler extends PagedResourcesAssember<Project, ProjectResource> {
+public class ProjectResourceAssembler extends PagedResourcesAssembler<Project, ProjectResource> {
 
-	public static final String REL = "related";
+    @Autowired
+    private Provider<ProjectResourceBuilder> builder;
 
-	@Autowired
-	@Qualifier("projectResourceBuilder.reference")
-	private LazyReference<ProjectResourceBuilder> builder;
+    public ProjectResource toResource(Project project, Iterable<ExternalSystem> systems) {
+        ProjectResourceBuilder resourceBuilder = builder.get();
+        resourceBuilder.addProject(project, systems);
+        return resourceBuilder.build();
+    }
 
-	public ProjectResourceAssembler() {
-		super(ProjectController.class, ProjectResource.class);
-	}
-
-	public ProjectResource toResource(Project project, Iterable<ExternalSystem> systems) {
-		Link selfLink = ControllerLinkBuilder.linkTo(ProjectController.class).slash(project).withSelfRel();
-
-		ProjectResourceBuilder resourceBuilder = builder.get();
-		resourceBuilder.addProject(project, systems).addLink(selfLink);
-
-		for (String systemId : project.getConfiguration().getExternalSystem()) {
-			Link sysLink = ControllerLinkBuilder.linkTo(ExternalSystemController.class, project.getId()).slash(systemId).withRel(REL);
-			resourceBuilder.addLink(sysLink);
-		}
-
-		return resourceBuilder.build();
-	}
-
-	@Override
-	public ProjectResource toResource(Project entity) {
-		Link selfLink = ControllerLinkBuilder.linkTo(ProjectController.class).slash(entity).withSelfRel();
-		ProjectResourceBuilder resourceBuilder = builder.get();
-		resourceBuilder.addProject(entity, new ArrayList<>()).addLink(selfLink);
-
-		for (String systemId : entity.getConfiguration().getExternalSystem()) {
-			Link widgetLink = ControllerLinkBuilder.linkTo(ExternalSystemController.class, entity.getId()).slash(systemId).withRel(REL);
-			resourceBuilder.addLink(widgetLink);
-		}
-
-		return resourceBuilder.build();
-	}
+    @Override
+    public ProjectResource toResource(Project entity) {
+        ProjectResourceBuilder resourceBuilder = builder.get();
+        resourceBuilder.addProject(entity, new ArrayList<>());
+        return resourceBuilder.build();
+    }
 }

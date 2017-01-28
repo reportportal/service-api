@@ -17,42 +17,31 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.converter;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
-import com.epam.ta.reportportal.util.LazyReference;
-import com.epam.ta.reportportal.ws.controller.impl.ExternalSystemController;
 import com.epam.ta.reportportal.ws.converter.builders.ExternalSystemResourceBuilder;
 import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.inject.Provider;
 
 /**
  * Resource assembler for {@link ExternalSystem} entities
- * 
+ *
  * @author Andrei_Ramanchuk
  */
 @Service
-public class ExternalSystemResourceAssembler extends ResourceAssemblerSupport<ExternalSystem, ExternalSystemResource> {
+public class ExternalSystemResourceAssembler extends ResourceAssembler<ExternalSystem, ExternalSystemResource> {
 
-	@Autowired
-	@Qualifier("externalSystemResourceBuilder.reference")
-	private LazyReference<ExternalSystemResourceBuilder> builder;
+    @Autowired
+    private Provider<ExternalSystemResourceBuilder> builder;
 
-	public ExternalSystemResourceAssembler() {
-		super(ExternalSystemController.class, ExternalSystemResource.class);
-	}
-
-	@Override
-	public ExternalSystemResource toResource(ExternalSystem entity) {
-		return builder.get().addExternalSystem(entity)
-				.addLink(ControllerLinkBuilder.linkTo(ExternalSystemController.class, entity.getProjectRef()).slash(entity).withSelfRel())
-				.build();
-	}
+    @Override
+    public ExternalSystemResource toResource(ExternalSystem entity) {
+        return builder.get().addExternalSystem(entity).build();
+    }
 }

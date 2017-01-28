@@ -47,17 +47,15 @@ public class LaunchResourceBuilderTest extends BaseTest {
 
 	@Test
 	public void testNull() {
-		LaunchResource actualResource = launchResourceBuilderProvider.get().addLaunch(null).addLink(BuilderTestsConstants.LINK_OBJECT)
+		LaunchResource actualResource = launchResourceBuilderProvider.get().addLaunch(null)
 				.build();
 		LaunchResource expectedResource = new LaunchResource();
-		expectedResource.add(BuilderTestsConstants.LINK_OBJECT);
 		validateResources(expectedResource, actualResource);
 	}
 
 	@Test
 	public void testValues() {
-		LaunchResource actualResource = launchResourceBuilderProvider.get().addLaunch(Utils.getLaunch())
-				.addLink(BuilderTestsConstants.LINK_OBJECT).build();
+		LaunchResource actualResource = launchResourceBuilderProvider.get().addLaunch(Utils.getLaunch()).build();
 		LaunchResource expectedResource = Utils.getLaunchResource();
 		validateResources(expectedResource, actualResource);
 	}

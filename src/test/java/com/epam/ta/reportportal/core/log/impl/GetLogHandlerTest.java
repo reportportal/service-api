@@ -49,16 +49,18 @@ import java.util.stream.IntStream;
  */
 public class GetLogHandlerTest extends BaseTest {
 
-    public static final String ITEM_ID = "someItem";
+    public static final String ITEM_ID = RandomStringUtils.randomAlphabetic(10);
     public static final String PROJECT_ID = "test-project";
+    public static final int ITEMS_COUNT = 10;
 
     @Inject
     private LogRepository logRepository;
 
     @Test
-    public void testGetLogPageNumberAsc() {
+    public void testGetLogFirstPage() {
         final List<Log> logs = generateLogs(logRepository);
-        final Log logToFind = logs.get(10);
+        //first log
+        final Log logToFind = logs.get(0);
         long pageNumber = prepareHandler().getPageNumber(logToFind.getId(), PROJECT_ID, Filter.builder()
                         .withCondition(FilterCondition.builder()
                                 .withCondition(Condition.EQUALS)
@@ -66,17 +68,33 @@ public class GetLogHandlerTest extends BaseTest {
                                 .withValue(ITEM_ID).build())
                         .withTarget(Log.class).build(),
 
-                new PageRequest(0, 5));
+                new PageRequest(0, 2));
+
+        Assert.assertThat(pageNumber, Matchers.equalTo(1L));
+    }
+
+    @Test
+    public void testGetLogPageNumberAsc() {
+        final List<Log> logs = generateLogs(logRepository);
+        final Log logToFind = logs.get(3);
+        long pageNumber = prepareHandler().getPageNumber(logToFind.getId(), PROJECT_ID, Filter.builder()
+                        .withCondition(FilterCondition.builder()
+                                .withCondition(Condition.EQUALS)
+                                .withSearchCriteria("item")
+                                .withValue(ITEM_ID).build())
+                        .withTarget(Log.class).build(),
+
+                new PageRequest(0, 2));
 
         Assert.assertThat(pageNumber, Matchers.equalTo(2L));
     }
 
     @Test
     public void testGetLogPageNumberDesc() {
-        final PageRequest pageRequest = new PageRequest(0, 5, new Sort(Sort.Direction.DESC, "id"));
+        final PageRequest pageRequest = new PageRequest(0, 2, new Sort(Sort.Direction.DESC, "id"));
 
         final List<Log> logs = generateLogs(logRepository);
-        final Log logToFind = logs.get(45);
+        final Log logToFind = logs.get(9);
 
         long pageNumber = prepareHandler().getPageNumber(logToFind.getId(), PROJECT_ID, Filter.builder()
                         .withCondition(FilterCondition.builder()
@@ -87,7 +105,7 @@ public class GetLogHandlerTest extends BaseTest {
 
                 pageRequest);
 
-        Assert.assertThat(pageNumber, Matchers.equalTo(9L));
+        Assert.assertThat(pageNumber, Matchers.equalTo(5L));
     }
 
     private GetLogHandler prepareHandler() {
@@ -113,7 +131,7 @@ public class GetLogHandlerTest extends BaseTest {
     }
 
     private List<Log> generateLogs(LogRepository logRepository) {
-        return IntStream.range(0, 50).mapToObj(i -> {
+        return IntStream.range(0, ITEMS_COUNT).mapToObj(i -> {
             Log log = new Log();
             log.setLevel(LogLevel.ERROR);
             log.setLogMsg(RandomStringUtils.random(10));

@@ -17,14 +17,9 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.controller;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-
-import org.springframework.data.domain.Pageable;
 
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.search.Filter;
@@ -34,20 +29,23 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import java.io.Serializable;
 import java.security.Principal;
+import java.util.Map;
 
 /**
- * 
  * @author Henadzi_Vrubleuski
- * 
  */
 public interface ILogController {
 
 	/**
 	 * Creates new {@link Log} instance
-	 * 
+	 *
 	 * @param projectName
 	 * @param createLogRQ
 	 * @param principal
@@ -58,7 +56,7 @@ public interface ILogController {
 
 	/**
 	 * Updates {@link Log} instance
-	 * 
+	 *
 	 * @param projectName
 	 * @param createLogRQs
 	 * @param request
@@ -66,11 +64,12 @@ public interface ILogController {
 	 * @return
 	 * @throws ReportPortalException
 	 */
-	ResponseEntity<BatchSaveOperatingRS> createLog(String projectName, @Valid SaveLogRQ[] createLogRQs, HttpServletRequest request, Principal principal);
+	ResponseEntity<BatchSaveOperatingRS> createLog(String projectName, @Valid SaveLogRQ[] createLogRQs, HttpServletRequest request,
+			Principal principal);
 
 	/**
 	 * Deletes specified {@link Log} instance
-	 * 
+	 *
 	 * @param projectName
 	 * @param logId
 	 * @param principal
@@ -81,7 +80,7 @@ public interface ILogController {
 
 	/**
 	 * Gets all Logs of specified test step
-	 * 
+	 *
 	 * @param projectName
 	 * @param testId
 	 * @param filter
@@ -92,8 +91,20 @@ public interface ILogController {
 	Iterable<LogResource> getLogs(String projectName, String testId, Filter filter, Pageable pageble, Principal principal);
 
 	/**
+	 * Calculates page number of provided log
+	 *
+	 * @param projectName
+	 * @param logId
+	 * @param filter
+	 * @param pageable
+	 * @param principal
+	 * @return
+	 */
+	Map<String, Serializable> getPageNumber(String projectName, String logId, Filter filter, Pageable pageable, Principal principal);
+
+	/**
 	 * Get by its ID
-	 * 
+	 *
 	 * @param projectName
 	 * @param logId
 	 * @param principal

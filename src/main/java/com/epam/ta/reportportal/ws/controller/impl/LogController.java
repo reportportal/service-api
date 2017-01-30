@@ -35,17 +35,13 @@ import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.controller.ILogController;
-import com.epam.ta.reportportal.ws.model.BatchElementCreatedRS;
-import com.epam.ta.reportportal.ws.model.BatchSaveOperatingRS;
-import com.epam.ta.reportportal.ws.model.Constants;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
+import com.google.common.collect.ImmutableMap;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -58,14 +54,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import springfox.documentation.annotations.ApiIgnore;
@@ -75,12 +64,9 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Path.Node;
 import javax.validation.Validator;
 import java.io.ByteArrayInputStream;
+import java.io.Serializable;
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -208,16 +194,18 @@ public class LogController implements ILogController {
         return getLogHandler.getLogs(testStepId, EntityUtils.normalizeProjectName(projectName), filter, pageble);
     }
 
-//    @RequestMapping(method = RequestMethod.GET)
-//    @ResponseBody
-//    @ApiOperation("Get logs by filter")
-//    public Map<String, String> getLogPage(@PathVariable String projectName,
-//            @RequestParam(FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ + "id") String logId,
-//            @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ
-//                    + Log.TEST_ITEM_ID) String testStepId, @FilterFor(Log.class) Filter filter,
-//            @SortFor(Log.class) Pageable pageble) {
-//        return getLogHandler.getLogs(testStepId, EntityUtils.normalizeProjectName(projectName), filter, pageble);
-//    }
+    @Override
+    @RequestMapping(value = "/{logId}/page", method = RequestMethod.GET)
+    @ResponseBody
+    @ApiOperation("Get logs by filter")
+    public Map<String,Serializable> getPageNumber(@PathVariable String projectName,
+            @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ + "id") String logId,
+            @FilterFor(Log.class) Filter filter,
+            @SortFor(Log.class) Pageable pageable, Principal principal) {
+        return ImmutableMap.<String, Serializable>builder().put("number", getLogHandler
+				.getPageNumber(logId, EntityUtils.normalizeProjectName(projectName), filter, pageable))
+				.build();
+    }
 
     @Override
     @RequestMapping(value = "/{logId}", method = RequestMethod.GET)

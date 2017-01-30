@@ -124,7 +124,6 @@ public class Utils {
 		resource.setStartTime(DATE_START);
 		resource.setEndTime(DATE_END);
 		resource.setMode(Mode.DEBUG);
-		resource.add(new Link("test/test"));
 		resource.setStatus(Status.IN_PROGRESS.toString());
 		resource.setOwner(getUser().getId());
 		resource.setIsProcessing(false);
@@ -255,7 +254,6 @@ public class Utils {
 		dashboardResource.setName(BuilderTestsConstants.NAME);
 		dashboardResource.setDashboardId(BuilderTestsConstants.BINARY_DATA_ID);
 		dashboardResource.setWidgets(null);
-		dashboardResource.add(new Link(BuilderTestsConstants.LINK));
 		return dashboardResource;
 	}
 

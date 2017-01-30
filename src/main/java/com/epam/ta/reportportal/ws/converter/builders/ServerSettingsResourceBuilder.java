@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Scope("prototype")
-public class ServerSettingsResourceBuilder extends ResourceBuilder<ServerSettingsResource> {
+public class ServerSettingsResourceBuilder extends Builder<ServerSettingsResource> {
 
 	public ServerSettingsResourceBuilder addServerSettings(ServerSettings doc) {
 		ServerSettingsResource resource = getObject();

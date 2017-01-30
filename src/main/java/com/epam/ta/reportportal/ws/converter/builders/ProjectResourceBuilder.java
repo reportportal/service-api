@@ -45,7 +45,7 @@ import com.google.common.collect.Lists;
  */
 @Service
 @Scope("prototype")
-public class ProjectResourceBuilder extends ResourceBuilder<ProjectResource> {
+public class ProjectResourceBuilder extends Builder<ProjectResource> {
 
 	public ProjectResourceBuilder addProject(Project prj, Iterable<ExternalSystem> systems) {
 		ProjectResource resource = getObject();

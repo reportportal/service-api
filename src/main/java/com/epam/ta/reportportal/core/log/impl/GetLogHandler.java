@@ -89,7 +89,7 @@ public class GetLogHandler implements IGetLogHandler {
     public Iterable<LogResource> getLogs(String testStepId, String project, Filter filterable, Pageable pageable) {
         // DO we need filter for project here?
         Page<Log> logs = logRepository.findByFilter(filterable, pageable);
-        return logResourceAssembler.toPagedResources(logs, project);
+        return logResourceAssembler.toPagedResources(logs);
     }
 
     @Override
@@ -104,9 +104,8 @@ public class GetLogHandler implements IGetLogHandler {
                 .withValue(String.valueOf(logToFind.getLastModified().getTime())).build());
         Filter pageNumberFilter = new Filter(filterable.getTarget(), filterConditions);
 
-        //calculate page number
-
-        return logRepository.countByFilter(pageNumberFilter) / pageable.getPageSize();
+        //calculate page number. Increment by one since RP paging is ONE-indexed (not ZERO-indexed)
+        return logRepository.countByFilter(pageNumberFilter) / pageable.getPageSize() + 1;
 
     }
 

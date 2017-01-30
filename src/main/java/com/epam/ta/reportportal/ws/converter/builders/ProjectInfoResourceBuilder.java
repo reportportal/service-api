@@ -37,7 +37,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Scope("prototype")
-public class ProjectInfoResourceBuilder extends ResourceBuilder<ProjectInfoResource> {
+public class ProjectInfoResourceBuilder extends Builder<ProjectInfoResource> {
 
 	public ProjectInfoResourceBuilder addProject(Project project) {
 		getObject().setUsersQuantity(null != project.getUsers() ? project.getUsers().size() : 0);

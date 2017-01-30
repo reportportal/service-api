@@ -82,7 +82,7 @@ public class GetUserFilterHandler implements IGetUserFilterHandler {
 	}
 
 	@Override
-	public Resources<UserFilterResource> getFilters(String userName, Pageable pageable, Filter filter, String projectName) {
+	public Iterable<UserFilterResource> getFilters(String userName, Pageable pageable, Filter filter, String projectName) {
 		Page<UserFilter> filters = filterRepository.findAllByFilter(filter, pageable, projectName, userName);
 		return resourceAssembler.toPagedResources(filters);
 	}

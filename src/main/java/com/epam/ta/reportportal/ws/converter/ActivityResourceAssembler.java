@@ -33,6 +33,8 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Provider;
+
 /**
  * Resource assembler for the
  * {@link com.epam.ta.reportportal.database.entity.item.Activity} db entity
@@ -43,12 +45,7 @@ import org.springframework.stereotype.Service;
 public class ActivityResourceAssembler extends ProjectRelatedResourceAssembler<Activity, ActivityResource> {
 
 	@Autowired
-	@Qualifier("activityResourceBuilder.reference")
-	private LazyReference<ActivityResourceBuilder> builderLazyReference;
-
-	public ActivityResourceAssembler() {
-		super(ITestItemController.class, ActivityResource.class);
-	}
+	private Provider<ActivityResourceBuilder> builderLazyReference;
 
 	@Override
 	public ActivityResource toResource(Activity entity) {
@@ -57,10 +54,6 @@ public class ActivityResourceAssembler extends ProjectRelatedResourceAssembler<A
 
 	@Override
 	public ActivityResource toResource(Activity element, String projectName) {
-		String item = element.getLoggedObjectRef();
-		Link link = ControllerLinkBuilder
-				.linkTo(ActivityController.class, null == projectName ? element.getProjectRef() : projectName,
-						item).slash(element).withSelfRel();
-		return builderLazyReference.get().addActivity(element).addLink(link).build();
+		return builderLazyReference.get().addActivity(element).build();
 	}
 }

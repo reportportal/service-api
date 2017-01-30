@@ -42,6 +42,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.Map.Entry;
 
+import com.epam.ta.reportportal.ws.model.Page;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,8 +103,8 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 	private ProjectInfoWidgetDataConverter dataConverter;
 
 	@Override
-	public PagedResources<ProjectInfoResource> getAllProjectsInfo(Filter filter, Pageable pageable) {
-		final PagedResources<ProjectInfoResource> preAssembled = projectInfoResourceAssembler
+	public Iterable<ProjectInfoResource> getAllProjectsInfo(Filter filter, Pageable pageable) {
+		final Page<ProjectInfoResource> preAssembled = projectInfoResourceAssembler
 				.toPagedResources(projectRepository.findByFilter(filter, pageable));
 		for (ProjectInfoResource project : preAssembled) {
 			final Optional<Launch> lastLaunch = launchRepository.findLastLaunch(project.getProjectId(), DEFAULT.name());

@@ -17,45 +17,33 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.converter;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.entity.ServerSettings;
-import com.epam.ta.reportportal.util.LazyReference;
-import com.epam.ta.reportportal.ws.controller.impl.SettingsController;
 import com.epam.ta.reportportal.ws.converter.builders.ServerSettingsResourceBuilder;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.inject.Provider;
 
 /**
  * REST Maturity Lvl3 rel object creation for response
- * 
- * @author Andrei_Ramanchuk
  *
+ * @author Andrei_Ramanchuk
  */
 @Service
-public class ServerSettingsResourceAssembler extends ResourceAssemblerSupport<ServerSettings, ServerSettingsResource> {
+public class ServerSettingsResourceAssembler extends ResourceAssembler<ServerSettings, ServerSettingsResource> {
 
-	@Autowired
-	@Qualifier("serverSettingsResourceBuilder.reference")
-	private LazyReference<ServerSettingsResourceBuilder> builder;
+    @Autowired
+    private Provider<ServerSettingsResourceBuilder> builder;
 
-	public ServerSettingsResourceAssembler() {
-		super(SettingsController.class, ServerSettingsResource.class);
-	}
-
-	@Override
-	public ServerSettingsResource toResource(ServerSettings settings) {
-		Link selfLink = ControllerLinkBuilder.linkTo(SettingsController.class).slash(settings).withSelfRel();
-		ServerSettingsResourceBuilder resourceBuilder = builder.get();
-		resourceBuilder.addServerSettings(settings).addLink(selfLink);
-		return resourceBuilder.build();
-	}
+    @Override
+    public ServerSettingsResource toResource(ServerSettings settings) {
+        ServerSettingsResourceBuilder resourceBuilder = builder.get();
+        resourceBuilder.addServerSettings(settings);
+        return resourceBuilder.build();
+    }
 }

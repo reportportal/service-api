@@ -17,53 +17,30 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.converter;
 
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.entity.Log;
-import com.epam.ta.reportportal.ws.controller.impl.LogController;
 import com.epam.ta.reportportal.ws.converter.builders.LogResourceBuilder;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
+import org.springframework.stereotype.Service;
 
 /**
  * Assembler for LogResources
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @Service
-public class LogResourceAssembler extends ProjectRelatedResourceAssembler<Log, LogResource> {
+public class LogResourceAssembler extends PagedResourcesAssembler<Log, LogResource> {
 
-	private final TestItemRepository testItemRepository;
+    public LogResourceAssembler() {
 
-	private final LaunchRepository launchRepository;
+    }
 
-	@Autowired
-	public LogResourceAssembler(TestItemRepository testItemRepository, LaunchRepository launchRepository) {
-		super(LogController.class, LogResource.class);
-		this.testItemRepository = testItemRepository;
-		this.launchRepository = launchRepository;
-	}
-
-	@Override
-	public LogResource toResource(Log log) {
-		return this.toResource(log, null);
-	}
-
-	@Override
-	public LogResource toResource(Log log, String project) {
-		Link link = ControllerLinkBuilder.linkTo(LogController.class, project == null
-				? launchRepository.findOne(testItemRepository.findOne(log.getTestItemRef()).getLaunchRef()).getProjectRef() : project)
-				.slash(log).withSelfRel();
-		// Removed lazy reference for performance increasing
-		return new LogResourceBuilder().addLog(log).addLink(link).build();
-	}
+    @Override
+    public LogResource toResource(Log log) {
+        // Removed lazy reference for performance increasing
+        return new LogResourceBuilder().addLog(log).build();
+    }
 }

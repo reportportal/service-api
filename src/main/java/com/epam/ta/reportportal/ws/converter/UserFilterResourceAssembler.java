@@ -17,47 +17,33 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.converter;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
-import com.epam.ta.reportportal.util.LazyReference;
-import com.epam.ta.reportportal.ws.controller.impl.UserFilterController;
 import com.epam.ta.reportportal.ws.converter.builders.UserFilterResourceBuilder;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.inject.Provider;
 
 /**
  * Resource Assembler for the {@link UserFilter} DB entity.
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 @Service
 public class UserFilterResourceAssembler extends
-	PagedResourcesAssember<UserFilter, UserFilterResource> {
+        PagedResourcesAssembler<UserFilter, UserFilterResource> {
 
-	@Autowired
-	@Qualifier("userFilterResourceBuilder.reference")
-	private LazyReference<UserFilterResourceBuilder> filterResourceBuilder;
+    @Autowired
+    private Provider<UserFilterResourceBuilder> filterResourceBuilder;
 
-	public UserFilterResourceAssembler() {
-		super(UserFilterController.class, UserFilterResource.class);
-	}
-
-	@Override
-	public UserFilterResource toResource(UserFilter userFilter) {
-		Link selfLink = ControllerLinkBuilder
-				.linkTo(UserFilterController.class, userFilter.getProjectName()).slash(userFilter)
-				.withSelfRel();
-		return filterResourceBuilder.get().addUserFilter(userFilter)
-				.addLink(selfLink).build();
-	}
+    @Override
+    public UserFilterResource toResource(UserFilter userFilter) {
+        return filterResourceBuilder.get().addUserFilter(userFilter).build();
+    }
 
 }

@@ -23,17 +23,13 @@ package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.util.LazyReference;
-import com.epam.ta.reportportal.ws.controller.impl.UserController;
 import com.epam.ta.reportportal.ws.converter.builders.UserResourceBuilder;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
-import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Provider;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,34 +39,29 @@ import java.util.Map;
  * @author Andrei_Ramanchuk
  */
 @Service
-public class UserResourceAssembler extends PagedResourcesAssember<User, UserResource> {
+public class UserResourceAssembler extends PagedResourcesAssembler<User, UserResource> {
 
-	@Autowired
-	@Qualifier("userResourceBuilder.reference")
-	private LazyReference<UserResourceBuilder> builder;
+    @Autowired
+    private Provider<UserResourceBuilder> builder;
 
-	public UserResourceAssembler() {
-		super(UserController.class, UserResource.class);
-	}
+    @Override
+    public UserResource toResource(User user) {
+        return builder.get().addUser(user).build();
+    }
 
-	@Override
-	public UserResource toResource(User user) {
-		return builder.get().addUser(user).addLink(ControllerLinkBuilder.linkTo(UserController.class).slash(user).withSelfRel()).build();
-	}
-
-	public PagedResources<UserResource> toPagedResources(Page<User> content, Project project) {
-		Map<String, Project.UserConfig> usersConfig = project.getUsers();
-		String entryType = project.getConfiguration().getEntryType().name();
-		PagedResources<UserResource> userResources = toPagedResources(content);
-		for (UserResource userResource : userResources) {
-			HashMap<String, UserResource.AssignedProject> assignedProjects = new HashMap<>();
-			UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-			assignedProject.setProposedRole(usersConfig.get(userResource.getUserId()).getProposedRole().name());
-			assignedProject.setProjectRole(usersConfig.get(userResource.getUserId()).getProjectRole().name());
-			assignedProject.setEntryType(entryType);
-			assignedProjects.put(project.getId(), assignedProject);
-			userResource.setAssignedProjects(assignedProjects);
-		}
-		return userResources;
-	}
+    public com.epam.ta.reportportal.ws.model.Page<UserResource> toPagedResources(Page<User> content, Project project) {
+        Map<String, Project.UserConfig> usersConfig = project.getUsers();
+        String entryType = project.getConfiguration().getEntryType().name();
+        com.epam.ta.reportportal.ws.model.Page<UserResource> userResources = toPagedResources(content);
+        for (UserResource userResource : userResources) {
+            HashMap<String, UserResource.AssignedProject> assignedProjects = new HashMap<>();
+            UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
+            assignedProject.setProposedRole(usersConfig.get(userResource.getUserId()).getProposedRole().name());
+            assignedProject.setProjectRole(usersConfig.get(userResource.getUserId()).getProjectRole().name());
+            assignedProject.setEntryType(entryType);
+            assignedProjects.put(project.getId(), assignedProject);
+            userResource.setAssignedProjects(assignedProjects);
+        }
+        return userResources;
+    }
 }

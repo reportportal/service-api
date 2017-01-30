@@ -42,7 +42,7 @@ import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
  */
 @Service
 @Scope("prototype")
-public class UserFilterResourceBuilder extends ResourceBuilder<UserFilterResource> {
+public class UserFilterResourceBuilder extends Builder<UserFilterResource> {
 
 	@Override
 	protected UserFilterResource initObject() {

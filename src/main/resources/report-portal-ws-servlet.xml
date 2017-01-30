@@ -60,20 +60,6 @@
 	</bean>
 
 
-	<bean id="userResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
-		<constructor-arg name="clazz">
-			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.UserResourceBuilder
-			</value>
-		</constructor-arg>
-	</bean>
-
-	<bean id="projectResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
-		<constructor-arg name="clazz">
-			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.ProjectResourceBuilder
-			</value>
-		</constructor-arg>
-	</bean>
-
 	<bean id="userFilterBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
 		<constructor-arg name="clazz">
 			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder
@@ -81,23 +67,9 @@
 		</constructor-arg>
 	</bean>
 
-	<bean id="userFilterResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
-		<constructor-arg name="clazz">
-			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.UserFilterResourceBuilder
-			</value>
-		</constructor-arg>
-	</bean>
-
 	<bean id="widgetBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
 		<constructor-arg name="clazz">
 			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder
-			</value>
-		</constructor-arg>
-	</bean>
-
-	<bean id="widgetResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
-		<constructor-arg name="clazz">
-			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.WidgetResourceBuilder
 			</value>
 		</constructor-arg>
 	</bean>
@@ -115,23 +87,6 @@
 		</constructor-arg>
 	</bean>
 
-	<bean id="activityResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
-		<constructor-arg name="clazz">
-			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.ActivityResourceBuilder</value>
-		</constructor-arg>
-	</bean>
-
-	<bean id="preferenceResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
-		<constructor-arg name="clazz">
-			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.PreferenceResourceBuilder</value>
-		</constructor-arg>
-	</bean>
-
-	<bean id="projectInfoResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
-		<constructor-arg name="clazz">
-			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.ProjectInfoResourceBuilder</value>
-		</constructor-arg>
-	</bean>
 
 	<bean id="externalSystemBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
 		<constructor-arg name="clazz">
@@ -139,18 +94,6 @@
 		</constructor-arg>
 	</bean>
 
-	<bean id="externalSystemResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
-		<constructor-arg name="clazz">
-			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.ExternalSystemResourceBuilder</value>
-		</constructor-arg>
-	</bean>
-
-
-	<bean id="serverSettingsResourceBuilder.reference" class="com.epam.ta.reportportal.util.LazyReference">
-		<constructor-arg name="clazz">
-			<value type="java.lang.Class">com.epam.ta.reportportal.ws.converter.builders.ServerSettingsResourceBuilder</value>
-		</constructor-arg>
-	</bean>
 
 	<!--<bean class="com.epam.ta.reportportal.aop.logging.ActivityLoggingAspect" factory-method="aspectOf"/>-->
 	<!--<bean class="com.epam.ta.reportportal.aop.logging.ProjectActivitiesAspect" factory-method="aspectOf"/>-->

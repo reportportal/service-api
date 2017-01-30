@@ -37,18 +37,14 @@ import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
  * @author Andrei_Ramanchuk
  */
 @Service
-public class ProjectSettingsResourceAssembler extends ResourceAssemblerSupport<Project, ProjectSettingsResource> {
+public class ProjectSettingsResourceAssembler extends ResourceAssembler<Project, ProjectSettingsResource> {
 
 	@Autowired
 	private Provider<ProjectSettingsResourceBuilder> builder;
 
-	public ProjectSettingsResourceAssembler() {
-		super(ProjectSettingsController.class, ProjectSettingsResource.class);
-	}
 
 	@Override
 	public ProjectSettingsResource toResource(Project entity) {
-		return builder.get().addProjectSettings(entity)
-				.addLink(ControllerLinkBuilder.linkTo(ProjectSettingsController.class, entity.getId()).withSelfRel()).build();
+		return builder.get().addProjectSettings(entity).build();
 	}
 }

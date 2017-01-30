@@ -17,47 +17,32 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.converter;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.entity.UserPreference;
-import com.epam.ta.reportportal.util.LazyReference;
-import com.epam.ta.reportportal.ws.controller.impl.ProjectController;
 import com.epam.ta.reportportal.ws.converter.builders.PreferenceResourceBuilder;
 import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.inject.Provider;
 
 /**
  * Resource assembler for
  * {@link com.epam.ta.reportportal.database.entity.UserPreference} db entity
- * 
+ *
  * @author Dzmitry_Kavalets
  */
 @Service
-public class UserPreferenceResourceAssembler extends PagedResourcesAssember<UserPreference, PreferenceResource> {
+public class UserPreferenceResourceAssembler extends PagedResourcesAssembler<UserPreference, PreferenceResource> {
 
-	private static final String PREFERENCE = "preference";
+    @Autowired
+    private Provider<PreferenceResourceBuilder> builder;
 
-	@Autowired
-	@Qualifier("preferenceResourceBuilder.reference")
-	private LazyReference<PreferenceResourceBuilder> builder;
-
-	public UserPreferenceResourceAssembler() {
-		super(ProjectController.class, PreferenceResource.class);
-	}
-
-	@Override
-	public PreferenceResource toResource(UserPreference entity) {
-		return builder
-				.get()
-				.addPreference(entity)
-				.addLink(
-						ControllerLinkBuilder.linkTo(ProjectController.class).slash(entity.getProjectRef()).slash(PREFERENCE)
-								.slash(entity.getUserRef()).withSelfRel()).build();
-	}
+    @Override
+    public PreferenceResource toResource(UserPreference entity) {
+        return builder.get().addPreference(entity).build();
+    }
 }

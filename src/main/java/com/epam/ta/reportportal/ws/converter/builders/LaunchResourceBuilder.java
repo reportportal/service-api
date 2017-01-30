@@ -36,7 +36,7 @@ import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 
 @Service
 @Scope("prototype")
-public class LaunchResourceBuilder extends ResourceBuilder<LaunchResource> {
+public class LaunchResourceBuilder extends Builder<LaunchResource> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LaunchResourceBuilder.class);
 

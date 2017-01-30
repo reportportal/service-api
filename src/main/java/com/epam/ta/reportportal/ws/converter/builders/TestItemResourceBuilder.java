@@ -44,7 +44,7 @@ import com.epam.ta.reportportal.ws.model.issue.Issue;
  */
 @Service
 @Scope("prototype")
-public class TestItemResourceBuilder extends ResourceBuilder<TestItemResource> {
+public class TestItemResourceBuilder extends Builder<TestItemResource> {
 
 	@Override
 	protected TestItemResource initObject() {

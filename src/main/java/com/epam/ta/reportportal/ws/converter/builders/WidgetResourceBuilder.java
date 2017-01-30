@@ -35,7 +35,7 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
  */
 @Service
 @Scope("prototype")
-public class WidgetResourceBuilder extends ResourceBuilder<WidgetResource> {
+public class WidgetResourceBuilder extends Builder<WidgetResource> {
 
 	public WidgetResourceBuilder addWidget(Widget widget) {
 		if (widget != null) {

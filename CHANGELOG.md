@@ -59,10 +59,11 @@
 ### New Features
 
 * Consul service discovery support
+* Make auto-analysis depth configurable through JVM/ENV variables
+* EPMRPP-22948 - Implement on WS side for links to "Stack Trace", "Go to Attachment in Log Message"
 
 ### Bugfixes
 
 * EPMRPP-23001 - In case login contains only underscore symbol the unclassified error (500) is returned 
 * EPMRPP-23342 - Permissions: User with not admin account role is able to get list of users of PR if using search
 * EPMRPP-23541 - Widget is not become shared after changing option of the dashboard via Edit Dashboard.
-* Make auto-analysis depth configurable through JVM/ENV variables

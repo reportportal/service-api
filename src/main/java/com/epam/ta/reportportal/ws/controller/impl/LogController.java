@@ -198,8 +198,7 @@ public class LogController implements ILogController {
     @RequestMapping(value = "/{logId}/page", method = RequestMethod.GET)
     @ResponseBody
     @ApiOperation("Get logs by filter")
-    public Map<String,Serializable> getPageNumber(@PathVariable String projectName,
-            @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ + "id") String logId,
+    public Map<String,Serializable> getPageNumber(@PathVariable String projectName, @PathVariable String logId,
             @FilterFor(Log.class) Filter filter,
             @SortFor(Log.class) Pageable pageable, Principal principal) {
         return ImmutableMap.<String, Serializable>builder().put("number", getLogHandler

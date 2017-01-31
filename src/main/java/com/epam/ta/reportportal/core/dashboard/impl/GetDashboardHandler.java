@@ -129,7 +129,7 @@ public class GetDashboardHandler implements IGetDashboardHandler {
 	}
 
 	/**
-	 * Transform {@link List} of {@link Dashboard}s to {@value Map} where:<br>
+	 * Transform {@link List} of {@link Dashboard}s to {@link java.util.Map} where:<br>
 	 * <li>key - dashboard id,
 	 * <li>value - shared entity
 	 *
@@ -141,6 +141,7 @@ public class GetDashboardHandler implements IGetDashboardHandler {
 		for (Dashboard dashboard : dashboards) {
 			SharedEntity sharedEntity = new SharedEntity();
 			sharedEntity.setName(dashboard.getName());
+			sharedEntity.setDescription(dashboard.getDescription());
 			if (null != dashboard.getAcl()) {
 				sharedEntity.setOwner(dashboard.getAcl().getOwnerUserId());
 			}

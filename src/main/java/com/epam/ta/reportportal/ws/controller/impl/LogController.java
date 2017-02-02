@@ -48,6 +48,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -190,8 +191,8 @@ public class LogController implements ILogController {
     public Iterable<LogResource> getLogs(@PathVariable String projectName,
             @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ
                     + Log.TEST_ITEM_ID) String testStepId, @FilterFor(Log.class) Filter filter,
-            @SortFor(Log.class) Pageable pageble, Principal principal) {
-        return getLogHandler.getLogs(testStepId, EntityUtils.normalizeProjectName(projectName), filter, pageble);
+           @SortDefault({Log.LAST_MODIFIED}) @SortFor(Log.class) Pageable pageable, Principal principal) {
+        return getLogHandler.getLogs(testStepId, EntityUtils.normalizeProjectName(projectName), filter, pageable);
     }
 
     @Override

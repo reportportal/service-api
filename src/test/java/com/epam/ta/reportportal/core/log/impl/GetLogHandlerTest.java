@@ -40,6 +40,7 @@ import org.springframework.data.domain.Sort;
 
 import javax.inject.Inject;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -137,7 +138,9 @@ public class GetLogHandlerTest extends BaseTest {
             log.setLogMsg(RandomStringUtils.random(10));
             log.setTestItemRef(ITEM_ID);
 
-            log.setLastModified(Calendar.getInstance().getTime());
+            final Date now = Calendar.getInstance().getTime();
+            log.setLastModified(now);
+            log.setLogTime(now);
             logRepository.save(log);
 
             return log;

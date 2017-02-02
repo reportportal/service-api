@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Log;
-import com.epam.ta.reportportal.database.entity.Modifiable;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
@@ -37,8 +36,10 @@ import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Iterator;
 import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -100,8 +101,8 @@ public class GetLogHandler implements IGetLogHandler {
         //find count of logs BEFORE provided one
         final Set<FilterCondition> filterConditions = Sets.newHashSet(filterable.getFilterConditions());
         filterConditions.add(FilterCondition.builder().withCondition(Condition.LOWER_THAN)
-                .withSearchCriteria(Modifiable.LAST_MODIFIED)
-                .withValue(String.valueOf(logToFind.getLastModified().getTime())).build());
+                .withSearchCriteria("time")
+                .withValue(String.valueOf(logToFind.getLogTime().getTime())).build());
         Filter pageNumberFilter = new Filter(filterable.getTarget(), filterConditions);
 
         //calculate page number. Increment by one since RP paging is ONE-indexed (not ZERO-indexed)

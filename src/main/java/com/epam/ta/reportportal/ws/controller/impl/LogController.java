@@ -191,7 +191,7 @@ public class LogController implements ILogController {
     public Iterable<LogResource> getLogs(@PathVariable String projectName,
             @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ
                     + Log.TEST_ITEM_ID) String testStepId, @FilterFor(Log.class) Filter filter,
-           @SortDefault({Log.LAST_MODIFIED}) @SortFor(Log.class) Pageable pageable, Principal principal) {
+           @SortDefault({"time"}) @SortFor(Log.class) Pageable pageable, Principal principal) {
         return getLogHandler.getLogs(testStepId, EntityUtils.normalizeProjectName(projectName), filter, pageable);
     }
 

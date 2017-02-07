@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
+import com.google.common.base.MoreObjects;
 import org.springframework.core.io.UrlResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -77,7 +78,7 @@ public class EmailService extends JavaMailSenderImpl {
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
 			message.setSubject(subject);
 			message.setTo(recipients);
-			message.setFrom(RP_EMAIL);
+			message.setFrom(getFromField());
 			Map<String, Object> email = new HashMap<>();
 			email.put("url", url);
 			String text = templateEngine.merge("registration-template.vm", email);
@@ -101,7 +102,7 @@ public class EmailService extends JavaMailSenderImpl {
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
 			message.setSubject(subject);
 			message.setTo(recipients);
-			message.setFrom(addressFrom);
+			message.setFrom(getFromField());
 
 			Map<String, Object> email = new HashMap<>();
 			/* Email fields values */
@@ -185,7 +186,7 @@ public class EmailService extends JavaMailSenderImpl {
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
 			message.setSubject(subject);
 			message.setTo(recipients);
-			message.setFrom(RP_EMAIL);
+			message.setFrom(getFromField());
 			Map<String, Object> email = new HashMap<>();
 			email.put("login", login);
 			email.put("url", url);
@@ -210,7 +211,7 @@ public class EmailService extends JavaMailSenderImpl {
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
 			message.setSubject("Welcome to Report Portal");
 			message.setTo(req.getEmail());
-			message.setFrom(RP_EMAIL);
+			message.setFrom(getFromField());
 			Map<String, Object> email = new HashMap<>();
 			email.put("url", basicUrl);
 			email.put("login", normalizeUsername(req.getLogin()));
@@ -220,5 +221,13 @@ public class EmailService extends JavaMailSenderImpl {
 			message.addInline("logoimg", new UrlResource(logoImg));
 		};
 		this.send(preparator);
+	}
+
+	/**
+	 * Returns FROM field or default value
+	 * @return FROM field config
+	 */
+	private String getFromField() {
+		return MoreObjects.firstNonNull(this.addressFrom, RP_EMAIL);
 	}
 }

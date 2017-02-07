@@ -48,12 +48,16 @@ public class MailServiceFactory {
 	private static final int DEFAULT_CONNECTION_TIMEOUT = 5000;
 	private static final String DEFAULT_SETTINGS_PROFILE = "default";
 
+	private final TemplateEngine templateEngine;
+	private final BasicTextEncryptor encryptor;
+	private final ServerSettingsRepository settingsRepository;
+
 	@Autowired
-	private TemplateEngine templateEngine;
-	@Autowired
-	private BasicTextEncryptor encryptor;
-	@Autowired
-	private ServerSettingsRepository settingsRepository;
+	public MailServiceFactory(TemplateEngine templateEngine, BasicTextEncryptor encryptor, ServerSettingsRepository settingsRepository) {
+		this.templateEngine = templateEngine;
+		this.encryptor = encryptor;
+		this.settingsRepository = settingsRepository;
+	}
 
 	/**
 	 * Build mail service based on provided configs

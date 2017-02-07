@@ -17,11 +17,15 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.configs;
+
+import com.epam.reportportal.commons.template.TemplateEngine;
 import com.epam.reportportal.commons.template.VelocityTemplateEngine;
+import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.ui.velocity.VelocityEngineFactoryBean;
@@ -29,15 +33,16 @@ import org.springframework.ui.velocity.VelocityEngineFactoryBean;
 /**
  * Global Email Configuration<br>
  * Probably will be replaces by configuration per project
- * 
+ *
  * @author Andrei_Ramanchuk
  */
 @Configuration
 public class EmailConfiguration {
 
 	@Bean
-	public MailServiceFactory initializeEmailServiceFactory() {
-		return new MailServiceFactory();
+	public MailServiceFactory initializeEmailServiceFactory(TemplateEngine templateEngine, BasicTextEncryptor encryptor,
+			ServerSettingsRepository settingsRepository) {
+		return new MailServiceFactory(templateEngine, encryptor, settingsRepository);
 	}
 
 	@Bean(name = "velocityEngine")

@@ -78,7 +78,7 @@ public class LaunchFinishedEventHandlerTest {
 		when(provider.get()).thenReturn(new MockHttpServletRequest(HttpMethod.PUT.name(), "https://localhost:8443"));
 		emailService = mock(EmailService.class);
 		launchFinishedEventHandler = new LaunchFinishedEventHandler(mock(IIssuesAnalyzer.class), userRepository,
-				mock(TestItemRepository.class), provider, mock(LaunchRepository.class), new MailServiceFactory() {
+				mock(TestItemRepository.class), provider, mock(LaunchRepository.class), new MailServiceFactory(null, null, null) {
 			@Override
 			public Optional<EmailService> getDefaultEmailService() {
 				return Optional.of(emailService);

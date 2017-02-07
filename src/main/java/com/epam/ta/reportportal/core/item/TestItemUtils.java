@@ -57,7 +57,7 @@ class TestItemUtils {
 			externalSystemIssue.setTicketId(issue.getTicketId().trim());
 			externalSystemIssue.setSubmitDate(new Date().getTime());
 			externalSystemIssue.setSubmitter(userName);
-			externalSystemIssue.setExternalSystemId(externalSystemIssue.getExternalSystemId());
+			externalSystemIssue.setExternalSystemId(issue.getExternalSystemId());
 			externalSystemIssue.setUrl(issue.getUrl());
 			return externalSystemIssue;
 		};

@@ -44,10 +44,13 @@ import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
 
+import java.util.Optional;
+
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
+import static java.util.Optional.ofNullable;
 import static org.springframework.data.mongodb.core.query.Query.query;
 
 /**
@@ -118,6 +121,7 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 
 			serverEmailConfig.setStarTlsEnabled(Boolean.TRUE.equals(request.getStarTlsEnabled()));
 			serverEmailConfig.setSslEnabled(Boolean.TRUE.equals(request.getSslEnabled()));
+			ofNullable(request.getFrom()).ifPresent(serverEmailConfig::setFrom);
 
 			try {
 				emailServiceFactory

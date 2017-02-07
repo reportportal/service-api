@@ -103,6 +103,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	@Qualifier("autoAnalyzeTaskExecutor")
 	private TaskExecutor taskExecutor;
 
+	@Autowired
 	@Value("${rp.issue.analyzer.depth}")
 	private Integer autoAnalysisDepth;
 

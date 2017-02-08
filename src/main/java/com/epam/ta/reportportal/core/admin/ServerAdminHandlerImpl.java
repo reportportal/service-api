@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.database.entity.ServerSettings;
+import com.epam.ta.reportportal.database.entity.user.UserUtils;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.ServerSettingsResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -48,7 +49,9 @@ import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
 import static java.util.Optional.ofNullable;
 import static org.springframework.data.mongodb.core.query.Query.query;
@@ -121,6 +124,8 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 
 			serverEmailConfig.setStarTlsEnabled(Boolean.TRUE.equals(request.getStarTlsEnabled()));
 			serverEmailConfig.setSslEnabled(Boolean.TRUE.equals(request.getSslEnabled()));
+
+			//expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 			ofNullable(request.getFrom()).ifPresent(serverEmailConfig::setFrom);
 
 			try {

@@ -70,3 +70,5 @@
 * EPMRPP-23564 - GET shared dashboard request does not contain 'description' parameter
 * EPMRPP-23197 - Email server: Add field for Sender address on server settings
 * EPMRPP-23601 - 'External-system' parameter is missed for GET ticket request of posted bug in case launches were merged
+* EPMRPP-23651 - The sender of email of user invitation is not the same as was set on Email server settings
+* EPMRPP-23664 - Sender of email notification of finish launch is not the same as mentioned on Project settings page

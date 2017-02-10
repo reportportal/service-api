@@ -103,14 +103,13 @@ public class LaunchFinishedEventHandler {
 	private void afterFinishLaunch(final Project project, final Launch launch) { // NOSONAR
 
 		/* Should we send email right now or wait till AA is finished? */
-		boolean waitForAutoAnalysis = false;
-
-		Optional<EmailService> emailService = emailServiceFactory.getDefaultEmailService();
-
+		boolean waitForAutoAnalysis;
 
 		/* Avoid NULL object processing */
 		if (null == project || null == launch)
 			return;
+
+		Optional<EmailService> emailService = emailServiceFactory.getDefaultEmailService(project.getConfiguration().getEmailConfig());
 
 		/* If AA enabled then waiting results processing */
 		waitForAutoAnalysis = BooleanUtils.toBoolean(project.getConfiguration().getIsAutoAnalyzerEnabled());

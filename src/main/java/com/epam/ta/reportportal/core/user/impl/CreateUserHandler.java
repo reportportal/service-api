@@ -213,12 +213,10 @@ public class CreateUserHandler implements ICreateUserHandler {
 		try {
 			emailLink.append("/ui/#registration?uuid=");
 			emailLink.append(bid.getId());
-			ProjectEmailConfig projectEmailConfig = defaultProject.getConfiguration().getEmailConfig();
-			emailService.setAddressFrom(projectEmailConfig == null ? null : projectEmailConfig.getFrom());
 			emailService.sendConfirmationEmail("User registration confirmation", new String[] { bid.getEmail() }, emailLink.toString());
 		} catch (Exception e) {
 			fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
-					Suppliers.formattedSupplier("Unable to send email for bid '{}'.", bid.getId()));
+					Suppliers.formattedSupplier("Unable to send email for bid '{}'." + e.getMessage(), bid.getId()));
 		}
 
 		CreateUserBidRS response = new CreateUserBidRS();

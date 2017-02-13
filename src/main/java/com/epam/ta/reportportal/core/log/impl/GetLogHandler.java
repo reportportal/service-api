@@ -36,6 +36,7 @@ import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -98,7 +99,14 @@ public class GetLogHandler implements IGetLogHandler {
 
         //find count of logs BEFORE provided one
         final Set<FilterCondition> filterConditions = Sets.newHashSet(filterable.getFilterConditions());
-        filterConditions.add(FilterCondition.builder().withCondition(Condition.LOWER_THAN)
+
+        Condition timeCondition = Condition.LOWER_THAN;
+        if (null != pageable.getSort() && null != pageable.getSort().getOrderFor("time")) {
+            final Sort.Order timeOrder = pageable.getSort().getOrderFor("time");
+            timeCondition = Sort.Direction.ASC.equals(timeOrder.getDirection()) ?
+                    Condition.LOWER_THAN : Condition.GREATER_THAN;
+        }
+        filterConditions.add(FilterCondition.builder().withCondition(timeCondition)
                 .withSearchCriteria("time")
                 .withValue(String.valueOf(logToFind.getLogTime().getTime())).build());
         Filter pageNumberFilter = new Filter(filterable.getTarget(), filterConditions);

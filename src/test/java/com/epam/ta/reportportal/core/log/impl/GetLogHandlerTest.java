@@ -92,7 +92,7 @@ public class GetLogHandlerTest extends BaseTest {
 
     @Test
     public void testGetLogPageNumberDesc() {
-        final PageRequest pageRequest = new PageRequest(0, 2, new Sort(Sort.Direction.DESC, "id"));
+        final PageRequest pageRequest = new PageRequest(0, 2, new Sort(Sort.Direction.DESC, "time"));
 
         final List<Log> logs = generateLogs(logRepository);
         final Log logToFind = logs.get(9);
@@ -106,7 +106,7 @@ public class GetLogHandlerTest extends BaseTest {
 
                 pageRequest);
 
-        Assert.assertThat(pageNumber, Matchers.equalTo(5L));
+        Assert.assertThat(pageNumber, Matchers.equalTo(1L));
     }
 
     private GetLogHandler prepareHandler() {

@@ -104,7 +104,7 @@ public class GetLogHandler implements IGetLogHandler {
         if (null != pageable.getSort() && null != pageable.getSort().getOrderFor("time")) {
             final Sort.Order timeOrder = pageable.getSort().getOrderFor("time");
             timeCondition = Sort.Direction.ASC.equals(timeOrder.getDirection()) ?
-                    Condition.LOWER_THAN : Condition.GREATER_THAN;
+                    Condition.LOWER_THAN_OR_EQUALS : Condition.GREATER_THAN_OR_EQUALS;
         }
         filterConditions.add(FilterCondition.builder().withCondition(timeCondition)
                 .withSearchCriteria("time")
@@ -112,7 +112,7 @@ public class GetLogHandler implements IGetLogHandler {
         Filter pageNumberFilter = new Filter(filterable.getTarget(), filterConditions);
 
         //calculate page number. Increment by one since RP paging is ONE-indexed (not ZERO-indexed)
-        return (long) Math.ceil((double)logRepository.countByFilter(pageNumberFilter) / (double) pageable.getPageSize()) + 1;
+        return logRepository.countByFilter(pageNumberFilter) / pageable.getPageSize() + 1;
 
     }
 

@@ -108,7 +108,7 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 
 		List<Launch> launches = historyServiceStrategy.loadLaunches(historyDepth, itemsForHistory.get(0).getLaunchRef(), projectName,
 				showBrokenLaunches);
-		List<String> historyLaunchesIds = DbUtils.toIds(launches);
+		List<String> historyLaunchesIds = launches.stream().map(Launch::getId).collect(Collectors.toList());
 
 		List<TestItem> history = testItemRepository.loadItemsHistory(itemsForHistory, historyLaunchesIds,
 				loadParentIds(itemsForHistory.get(0), historyLaunchesIds));

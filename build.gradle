@@ -55,7 +55,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Camden.SR3"
+        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Camden.SR5"
 
     }
 }
@@ -71,7 +71,7 @@ configurations.all {
 dependencies {
 
     compile 'com.github.reportportal:commons-model:22dbc6e91d'
-    compile ('com.github.reportportal:commons-dao:c969e1c86d'){
+    compile ('com.github.reportportal:commons-dao:10504f6'){
         exclude group: 'com.github.reportportal', module: 'commons-model'
     }
     compile 'com.github.reportportal:commons-rules:7fa95723ba'

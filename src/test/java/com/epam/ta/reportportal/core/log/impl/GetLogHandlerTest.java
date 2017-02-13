@@ -35,8 +35,10 @@ import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoOperations;
 
 import javax.inject.Inject;
 import java.util.Calendar;
@@ -56,6 +58,9 @@ public class GetLogHandlerTest extends BaseTest {
 
     @Inject
     private LogRepository logRepository;
+
+    @Autowired
+    private MongoOperations mongoOperations;
 
     @Test
     public void testGetLogFirstPage() {
@@ -123,6 +128,7 @@ public class GetLogHandlerTest extends BaseTest {
                 testItemRepository);
 
         getLogHandler.setLogRepository(logRepository);
+        getLogHandler.setMongoOperations(mongoOperations);
 
         final LogResourceAssembler logResourceAssembler = new LogResourceAssembler();
 

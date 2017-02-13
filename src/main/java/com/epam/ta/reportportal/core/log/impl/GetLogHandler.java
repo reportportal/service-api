@@ -100,9 +100,9 @@ public class GetLogHandler implements IGetLogHandler {
         //find count of logs BEFORE provided one
         final Set<FilterCondition> filterConditions = Sets.newHashSet(filterable.getFilterConditions());
 
-        Condition timeCondition = Condition.LOWER_THAN;
-        if (null != pageable.getSort() && null != pageable.getSort().getOrderFor("time")) {
-            final Sort.Order timeOrder = pageable.getSort().getOrderFor("time");
+        Condition timeCondition = Condition.LOWER_THAN_OR_EQUALS;
+        if (null != pageable.getSort() && null != pageable.getSort().getOrderFor("logTime")) {
+            final Sort.Order timeOrder = pageable.getSort().getOrderFor("logTime");
             timeCondition = Sort.Direction.ASC.equals(timeOrder.getDirection()) ?
                     Condition.LOWER_THAN_OR_EQUALS : Condition.GREATER_THAN_OR_EQUALS;
         }
@@ -112,6 +112,7 @@ public class GetLogHandler implements IGetLogHandler {
         Filter pageNumberFilter = new Filter(filterable.getTarget(), filterConditions);
 
         //calculate page number. Increment by one since RP paging is ONE-indexed (not ZERO-indexed)
+//         return (long)  (Math.ceil((double)logRepository.countByFilter(pageNumberFilter) / (double) pageable.getPageSize())) + 1;
         return logRepository.countByFilter(pageNumberFilter) / pageable.getPageSize() + 1;
 
     }

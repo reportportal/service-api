@@ -17,16 +17,13 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.log.impl;
 
-import com.epam.ta.reportportal.commons.validation.Suppliers;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.log.ICreateLogHandler;
 import com.epam.ta.reportportal.database.BinaryData;
 import com.epam.ta.reportportal.database.DataStorage;
@@ -41,15 +38,15 @@ import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.inject.Provider;
 
 /**
  * Create log handler. Save log and binary data related to it
- * 
+ *
  * @author Henadzi Vrubleuski
  * @author Andrei Varabyeu
- * 
  */
 public class CreateLogHandler implements ICreateLogHandler {
 
@@ -104,20 +101,22 @@ public class CreateLogHandler implements ICreateLogHandler {
 
 	/**
 	 * Validates business rules related to test item of this log
-	 * 
+	 *
 	 * @param testItem
 	 */
 	protected void validate(TestItem testItem, SaveLogRQ saveLogRQ) {
-		BusinessRule.expect(testItem, Predicates.notNull()).verify(ErrorType.LOGGING_IS_NOT_ALLOWED, Suppliers.formattedSupplier(
-				"Logging to test item '{}' is not allowed. Probably you try to log for Launch type.", saveLogRQ.getTestItemId()));
+		BusinessRule.expect(testItem, Predicates.notNull()).verify(ErrorType.LOGGING_IS_NOT_ALLOWED, Suppliers
+				.formattedSupplier("Logging to test item '{}' is not allowed. Probably you try to log for Launch type.",
+						saveLogRQ.getTestItemId()));
 
-		BusinessRule.expect(testItem, Preconditions.IN_PROGRESS).verify(ErrorType.REPORTING_ITEM_ALREADY_FINISHED, testItem.getId());
+		//removed as part of EPMRPP-23459
+//		BusinessRule.expect(testItem, Preconditions.IN_PROGRESS).verify(ErrorType.REPORTING_ITEM_ALREADY_FINISHED, testItem.getId());
+//		BusinessRule.expect(testItem.hasChilds(), Predicates.equalTo(Boolean.FALSE)).verify(ErrorType.LOGGING_IS_NOT_ALLOWED,
+//				Suppliers.formattedSupplier("Logging to item '{}' with descendants is not permitted", testItem.getId()));
 
-		BusinessRule.expect(testItem.hasChilds(), Predicates.equalTo(Boolean.FALSE)).verify(ErrorType.LOGGING_IS_NOT_ALLOWED,
-				Suppliers.formattedSupplier("Logging to item '{}' with descendants is not permitted", testItem.getId()));
-
-		BusinessRule.expect(testItem.getStartTime().before(saveLogRQ.getLogTime()), Predicates.equalTo(Boolean.TRUE)).verify(
-				ErrorType.LOGGING_IS_NOT_ALLOWED,
+		BusinessRule
+				.expect(testItem.getStartTime().before(saveLogRQ.getLogTime()) || testItem.getStartTime().equals(saveLogRQ.getLogTime()),
+						Predicates.equalTo(Boolean.TRUE)).verify(ErrorType.LOGGING_IS_NOT_ALLOWED,
 				Suppliers.formattedSupplier("Log has incorrect log time. Log time should be after parent item's start time."));
 
 		BusinessRule.expect(LogLevel.toLevelOrUnknown(saveLogRQ.getLevel()), Predicates.notNull()).verify(ErrorType.BAD_SAVE_LOG_REQUEST,

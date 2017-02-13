@@ -72,3 +72,5 @@
 * EPMRPP-23601 - 'External-system' parameter is missed for GET ticket request of posted bug in case launches were merged
 * EPMRPP-23651 - The sender of email of user invitation is not the same as was set on Email server settings
 * EPMRPP-23664 - Sender of email notification of finish launch is not the same as mentioned on Project settings page
+* EPMRPP-23459 - test log item time after parent item's start time
+* reportportal#64 - Please correct limitation: test log item time after parent item's start time

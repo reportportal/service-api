@@ -92,7 +92,7 @@ public class GetLogHandlerTest extends BaseTest {
 
     @Test
     public void testGetLogPageNumberDesc() {
-        final PageRequest pageRequest = new PageRequest(0, 2, new Sort(Sort.Direction.DESC, "time"));
+        final PageRequest pageRequest = new PageRequest(0, 2, new Sort(Sort.Direction.DESC, "logTime"));
 
         final List<Log> logs = generateLogs(logRepository);
         final Log logToFind = logs.get(9);

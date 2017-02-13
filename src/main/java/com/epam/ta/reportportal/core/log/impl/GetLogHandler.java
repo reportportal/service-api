@@ -112,7 +112,7 @@ public class GetLogHandler implements IGetLogHandler {
         Filter pageNumberFilter = new Filter(filterable.getTarget(), filterConditions);
 
         //calculate page number. Increment by one since RP paging is ONE-indexed (not ZERO-indexed)
-        return logRepository.countByFilter(pageNumberFilter) / pageable.getPageSize() + 1;
+        return (long) Math.ceil((double)logRepository.countByFilter(pageNumberFilter) / (double) pageable.getPageSize()) + 1;
 
     }
 

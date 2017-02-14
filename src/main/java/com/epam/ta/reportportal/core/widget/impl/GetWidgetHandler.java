@@ -129,7 +129,7 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 	@Override
 	public List<WidgetResource> getSharedWidgetsList(String userName, String projectName) {
 		List<Widget> widgets = widgetRepository.findSharedEntities(userName, projectName,
-				Arrays.asList(Widget.ID, Widget.NAME, Widget.DESCRIPTION, Widget.OWNER, Widget.GADGET_TYPE, Widget.CONTENT_FIELDS),
+				Arrays.asList(Widget.ID, Widget.NAME, "description", Widget.OWNER, Widget.GADGET_TYPE, Widget.CONTENT_FIELDS),
 				Shareable.NAME_OWNER_SORT);
 		return resourceAssembler.toResources(widgets);
 	}

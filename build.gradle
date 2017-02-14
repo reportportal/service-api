@@ -7,8 +7,8 @@ buildscript {
         }
     }
     dependencies {
-        classpath "io.spring.gradle:dependency-management-plugin:0.6.0.RELEASE"
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.4.0.RELEASE")
+        classpath "io.spring.gradle:dependency-management-plugin:1.0.0.RELEASE"
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.1.RELEASE")
         classpath 'com.bmuschko:gradle-docker-plugin:3.0.4'
     }
 }
@@ -20,7 +20,7 @@ plugins {
 }
 
 apply plugin: 'java'
-apply plugin: "spring-boot"
+apply plugin: "org.springframework.boot"
 apply plugin: "io.spring.dependency-management"
 apply plugin: 'jacoco'
 
@@ -56,7 +56,7 @@ repositories {
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Camden.SR5"
-
+        mavenBom "org.springframework.boot:spring-boot-dependencies:1.5.1.RELEASE"
     }
 }
 
@@ -71,10 +71,12 @@ configurations.all {
 dependencies {
 
     compile 'com.github.reportportal:commons-model:22dbc6e91d'
-    compile ('com.github.reportportal:commons-dao:10504f6'){
+    compile('com.github.reportportal:commons-dao:10504f6') {
         exclude group: 'com.github.reportportal', module: 'commons-model'
     }
-    compile 'com.github.reportportal:commons-rules:7fa95723ba'
+    compile('com.github.reportportal:commons-rules:7fa95723ba') {
+        exclude group: 'com.github.reportportal', module: 'commons-dao'
+    }
 
     compile 'com.epam.reportportal:commons:2.6.1'
 
@@ -105,6 +107,8 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-data-redis'
     compile 'org.springframework.cloud:spring-cloud-starter-oauth2'
 
+    compile 'org.springframework.data:spring-data-mongodb:1.10.0.RELEASE'
+
     compile 'com.github.mongobee:mongobee:0.12'
 
 
@@ -128,7 +132,7 @@ dependencies {
     testCompile 'org.mockito:mockito-all:2.0.2-beta'
 
     testCompile 'com.jayway.jsonpath:json-path:2.2.0'
-    testCompile 'com.github.fakemongo:fongo:2.0.9'
+    testCompile 'com.github.fakemongo:fongo:2.0.12'
 
     testCompile 'org.apache.commons:commons-math3:3.6.1'
     testCompile 'org.springframework.boot:spring-boot-starter-test'

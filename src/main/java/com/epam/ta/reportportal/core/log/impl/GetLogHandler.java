@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
+import com.epam.ta.reportportal.database.search.QueryBuilder;
 import com.epam.ta.reportportal.ws.converter.LogResourceAssembler;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.google.common.collect.Sets;
@@ -37,8 +38,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.aggregation.TypedAggregation;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -64,6 +71,13 @@ public class GetLogHandler implements IGetLogHandler {
     private TestItemRepository testItemRepository;
 
     private LaunchRepository launchRepository;
+
+    private MongoOperations mongoOperations;
+
+    @Autowired
+    public void setMongoOperations(MongoOperations mongoOperations) {
+        this.mongoOperations = mongoOperations;
+    }
 
     @Autowired
     public void setLogRepository(LogRepository logRepository) {
@@ -95,26 +109,23 @@ public class GetLogHandler implements IGetLogHandler {
     @Override
     public long getPageNumber(String logId, String project, Filter filterable,
             Pageable pageable) {
-        Log logToFind = findAndValidate(logId, project);
 
-        //find count of logs BEFORE provided one
-        final Set<FilterCondition> filterConditions = Sets.newHashSet(filterable.getFilterConditions());
+        QueryBuilder.newBuilder().with(filterable).build();
 
-        Condition timeCondition = Condition.LOWER_THAN_OR_EQUALS;
-        if (null != pageable.getSort() && null != pageable.getSort().getOrderFor("logTime")) {
-            final Sort.Order timeOrder = pageable.getSort().getOrderFor("logTime");
-            timeCondition = Sort.Direction.ASC.equals(timeOrder.getDirection()) ?
-                    Condition.LOWER_THAN_OR_EQUALS : Condition.GREATER_THAN_OR_EQUALS;
-        }
-        filterConditions.add(FilterCondition.builder().withCondition(timeCondition)
-                .withSearchCriteria("time")
-                .withValue(String.valueOf(logToFind.getLogTime().getTime())).build());
-        Filter pageNumberFilter = new Filter(filterable.getTarget(), filterConditions);
 
-        //calculate page number. Increment by one since RP paging is ONE-indexed (not ZERO-indexed)
-         return (long)  (Math.ceil((double)logRepository.countByFilter(pageNumberFilter) / (double) pageable.getPageSize()));
-//        return logRepository.countByFilter(pageNumberFilter) / pageable.getPageSize() + 1;
+        Aggregation a = Aggregation.newAggregation(
+                //                Aggregation.match(Criteria.where("")),
+                Aggregation.group("result").push("$_id").as("array"),
+                Aggregation.unwind("array", "ind",false),
+                Aggregation.match(Criteria.where("_id").is(logId)),
+                Aggregation.project("ind"));
+        final AggregationResults<Map> aggregate =
+                mongoOperations.aggregate( a, "log", Map.class);
+        System.out.println(aggregate.getMappedResults());
 
+
+        return (Integer) aggregate.getUniqueMappedResult().get("ind");
+//            return 1;
     }
 
     @Override

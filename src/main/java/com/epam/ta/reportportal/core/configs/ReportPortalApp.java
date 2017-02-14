@@ -41,7 +41,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.hateoas.HypermediaAutoConfiguration;
-import org.springframework.boot.autoconfigure.velocity.VelocityAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -54,7 +53,6 @@ import org.springframework.context.annotation.Import;
  */
 @SpringBootApplication(exclude = {
         MongoDataAutoConfiguration.class,
-        VelocityAutoConfiguration.class,
         HypermediaAutoConfiguration.class,
         /* configured explicitly for Apache Commons Multipart Resolver */  MultipartAutoConfiguration.class})
 @Import({ SecurityConfiguration.class, JobsConfiguration.class, MvcConfig.class, MongodbConfiguration.class, SecurityConfiguration.SecurityServerConfiguration.class })

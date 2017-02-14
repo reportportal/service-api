@@ -46,6 +46,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 
+import java.util.Optional;
+
 /**
  * Application Entry Point
  *
@@ -62,7 +64,7 @@ public class ReportPortalApp {
 
     public static void main(String[] args) {
         //workaround for https://github.com/spring-projects/spring-boot/issues/8234
-        System.setProperty("spring.profiles.active", System.getProperty("rp.profiles"));
+        Optional.ofNullable(System.getenv("rp.profiles")).ifPresent(p -> System.setProperty("spring.profiles.active",p));
         SpringApplication.run(ReportPortalApp.class, args);
     }
 

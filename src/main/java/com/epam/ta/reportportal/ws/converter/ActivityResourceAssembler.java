@@ -22,15 +22,9 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.database.entity.item.Activity;
-import com.epam.ta.reportportal.util.LazyReference;
-import com.epam.ta.reportportal.ws.controller.ITestItemController;
-import com.epam.ta.reportportal.ws.controller.impl.ActivityController;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityResourceBuilder;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;

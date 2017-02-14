@@ -61,6 +61,8 @@ import org.springframework.context.annotation.Import;
 public class ReportPortalApp {
 
     public static void main(String[] args) {
+        //workaround for https://github.com/spring-projects/spring-boot/issues/8234
+        System.setProperty("spring.profiles.active", System.getProperty("rp.profiles"));
         SpringApplication.run(ReportPortalApp.class, args);
     }
 

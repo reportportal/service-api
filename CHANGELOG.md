@@ -76,3 +76,4 @@
 * reportportal#64 - Please correct limitation: test log item time after parent item's start time
 * EPMRPP-23679 - Unclassified error for long search string by digital filter such as Total, Passed, Faled, etc.
 * EPMRPP-23680 - Unclassified error when searching for launch with special sybmols in its name
+* EPMRPP-21270 - Launches: Sorting for defect statistics works incorrectly

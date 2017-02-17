@@ -47,27 +47,27 @@ public interface ExternalSystemStrategy {
 	/**
 	 * Get ticket by ID
 	 *
-	 * @param id
-	 * @param system
-	 * @return
+	 * @param id     ID of ticket
+	 * @param system ExternalSystem
+	 * @return Found Ticket
 	 */
 	Optional<Ticket> getTicket(String id, ExternalSystem system);
 
 	/**
 	 * Submit ticket into external system
 	 *
-	 * @param ticketRQ
-	 * @param system
-	 * @return
+	 * @param ticketRQ Create ticket DTO
+	 * @param system   External system
+	 * @return Created Ticket
 	 */
 	Ticket submitTicket(PostTicketRQ ticketRQ, ExternalSystem system);
 
 	/**
 	 * Get map of fields for ticket POST into external system
 	 *
-	 * @param issueType
-	 * @param system
-	 * @return
+	 * @param issueType Type of issue
+	 * @param system    External system
+	 * @return List of form fields
 	 */
 	List<PostFormField> getTicketFields(String issueType, ExternalSystem system);
 

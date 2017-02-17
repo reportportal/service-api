@@ -31,7 +31,9 @@ import java.util.List;
 import com.epam.ta.reportportal.core.widget.content.GadgetTypes;
 import com.epam.ta.reportportal.core.widget.content.WidgetDataTypes;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
+import com.epam.ta.reportportal.database.search.CriteriaHolder;
 import com.epam.ta.reportportal.database.search.CriteriaMap;
+import com.epam.ta.reportportal.database.search.FilterCriteria;
 import com.epam.ta.reportportal.database.search.QueryBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 
@@ -64,8 +66,7 @@ public class WidgetUtils {
 			return;
 		}
 		for (String field : fields) {
-			QueryBuilder.ComplexSearchCriteria filterCriteria = QueryBuilder.filterSearchCriteriaPreProcessor(field);
-			expect(criteriaMap.getCriteriaHolderUnchecked(filterCriteria.getGlobalSearchCriteria()).isPresent(), equalTo(true))
+			expect(criteriaMap.getCriteriaHolderUnchecked(field).isPresent(), equalTo(true))
 					.verify(errorType, formattedSupplier("Field '{}' cannot be used for calculating data for widget.", field));
 		}
 	}

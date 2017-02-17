@@ -71,7 +71,7 @@ configurations.all {
 dependencies {
 
     compile 'com.github.reportportal:commons-model:62fc1f3745'
-    compile('com.github.reportportal:commons-dao:7b11b34b3c') {
+    compile('com.github.reportportal:commons-dao:a49a8e8243') {
         exclude group: 'com.github.reportportal', module: 'commons-model'
     }
     compile('com.github.reportportal:commons-rules:7fa95723ba') {
@@ -107,7 +107,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-data-redis'
     compile 'org.springframework.cloud:spring-cloud-starter-oauth2'
 
-    compile 'org.springframework.data:spring-data-mongodb:1.10.0.RELEASE'
+    compile 'org.springframework.data:spring-data-mongodb'
 
     compile 'com.github.mongobee:mongobee:0.12'
 

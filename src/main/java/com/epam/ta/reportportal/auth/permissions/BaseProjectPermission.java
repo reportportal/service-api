@@ -17,15 +17,9 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.auth.permissions;
-
-import javax.inject.Provider;
-import javax.validation.constraints.NotNull;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.Predicates;
@@ -33,13 +27,17 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+
+import javax.inject.Provider;
+import javax.validation.constraints.NotNull;
 
 /**
  * Base logic for project-related permissions. Validates project exists and
  * there is provided in {@link Authentication} user assigned to this project
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 abstract class BaseProjectPermission implements Permission {
 
@@ -71,10 +69,10 @@ abstract class BaseProjectPermission implements Permission {
 
 	/**
 	 * Validates permission
-	 * 
-	 * @param authentication
-	 * @param projectName
-	 * @return
+	 *
+	 * @param authentication Authentication object
+	 * @param project        ReportPortal's Project
+	 * @return TRUE if access allowed
 	 */
 	abstract protected boolean checkAllowed(@NotNull Authentication authentication, @NotNull Project project);
 }

@@ -25,19 +25,18 @@ import com.epam.ta.BaseTest;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 
 import com.epam.ta.reportportal.database.entity.favorite.FavoriteResource;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.model.favorites.AddFavoriteResourceRQ;
 import com.epam.ta.reportportal.ws.model.favorites.FavoriteResourceTypes;
+
+import javax.inject.Provider;
 
 public class FavoriteResourceBuilderTest extends BaseTest {
 
 	@Autowired
-	@Qualifier("favoriteResourceBuilder.reference")
-	private LazyReference<FavoriteResourceBuilder> favoriteResourceBuilderProvider;
+	private Provider<FavoriteResourceBuilder> favoriteResourceBuilderProvider;
 
 	@Autowired
 	private ApplicationContext applicationContext;

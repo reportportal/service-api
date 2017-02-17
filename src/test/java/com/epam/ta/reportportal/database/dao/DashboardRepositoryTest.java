@@ -98,7 +98,7 @@ public class DashboardRepositoryTest extends BaseTest {
 
 	@Test
 	public void testFindDashboardById() {
-		Dashboard dashboard = dashboardRepository.findDashboardById(DASHBOARD_2_ID);
+		Dashboard dashboard = dashboardRepository.findOne(DASHBOARD_2_ID);
 		Assert.assertEquals(DASHBOARD_2_ID, dashboard.getId());
 		Assert.assertNotNull(dashboard.getName());
 		Assert.assertNotNull(dashboard.getAcl().getOwnerUserId());

@@ -36,29 +36,24 @@
  */
 package com.epam.ta.reportportal.core.filter.impl;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.Set;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
-import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.CriteriaHolder;
 import com.epam.ta.reportportal.database.search.CriteriaMap;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
-import com.epam.ta.reportportal.database.search.QueryBuilder;
-import com.epam.ta.reportportal.database.search.QueryBuilder.ComplexSearchCriteria;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.Iterator;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Contains validations for {@link UserFilter}s objects.
@@ -82,7 +77,6 @@ public class UserFilterValidationService {
 	 * @param userName
 	 * @param filterName
 	 * @param projectName
-	 * @throws UserFilterAlreadyExistException
 	 */
 	public void isFilterNameUnique(String userName, String filterName, String projectName) {
 		UserFilter existingFilter = userFilterRepository.findOneByName(userName, filterName, projectName);
@@ -99,34 +93,19 @@ public class UserFilterValidationService {
 	 * @param filterEntities
 	 */
 	public Set<UserFilterEntity> validateUserFilterEntities(Class<?> type, Set<UserFilterEntity> filterEntities) {
-		Set<UserFilterEntity> remastered = new HashSet<>();
 		CriteriaMap<?> ctriteriaMap = criteriaMapFactory.getCriteriaMap(type);
 		synchronized (this) {
 			for (Iterator<UserFilterEntity> it = filterEntities.iterator(); it.hasNext();) {
 				UserFilterEntity userFilterEntity = it.next();
-				ComplexSearchCriteria filterCriteria = QueryBuilder.filterSearchCriteriaPreProcessor(userFilterEntity.getFilteringField());
-				Optional<CriteriaHolder> holderOptional = ctriteriaMap.getCriteriaHolderUnchecked(filterCriteria.getGlobalSearchCriteria());
+
+				Optional<CriteriaHolder> holderOptional = ctriteriaMap.getCriteriaHolderUnchecked(userFilterEntity.getFilteringField());
 
 				BusinessRule.expect(holderOptional, Preconditions.IS_PRESENT).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-						Suppliers.formattedSupplier("Filter parameter {} is not defined", filterCriteria.getGlobalSearchCriteria()));
+						Suppliers.formattedSupplier("Filter parameter {} is not defined", userFilterEntity.getFilteringField()));
 
 				CriteriaHolder updated = null;
 				boolean reload = false;
-				if (holderOptional.get().getQueryCriteria().contains(IssueCounter.DEFECTS_FOR_DB)) {
-					/* Re-master search criteria */
-					String rebuildedSearchCriteria = filterCriteriaRebuilder(userFilterEntity.getFilteringField());
 
-					/* Re-master entity */
-					UserFilterEntity newEntity = new UserFilterEntity(rebuildedSearchCriteria, userFilterEntity.getCondition(),
-							userFilterEntity.getValue(), userFilterEntity.getIsNegative());
-
-					/* Remove 'invalid' entity and paste new one */
-					it.remove();
-					remastered.add(newEntity);
-					reload = true;
-					updated = new CriteriaHolder(holderOptional.get().getFilterCriteria(), rebuildedSearchCriteria, Integer.class,
-							holderOptional.get().isReference());
-				}
 
 				BusinessRule.expect(holderOptional.isPresent(), Predicates.equalTo(Boolean.TRUE)).verify(
 						ErrorType.BAD_SAVE_USER_FILTER_REQUEST,
@@ -149,7 +128,6 @@ public class UserFilterValidationService {
 				}
 			}
 		}
-		filterEntities.addAll(remastered);
 		return filterEntities;
 	}
 
@@ -160,26 +138,5 @@ public class UserFilterValidationService {
 		BusinessRule.expect(criteriaMapFactory.getCriteriaMap(type).getCriteriaHolderUnchecked(sortingColumnName).isPresent(),
 				Predicates.equalTo(Boolean.TRUE)).verify(ErrorType.BAD_SAVE_USER_FILTER_REQUEST,
 						Suppliers.formattedSupplier("Column for sorting with name '{}' is unknown.", sortingColumnName));
-	}
-
-	/**
-	 * If input filter criteria contains defects reference, then it should be validated on
-	 * containing defect sub-type additional extension. If there is no defect sub-type, then TOTAL
-	 * reference will be used.<br>
-	 *
-	 * <b>NOTE:</b> should be used after check on containing <i>statistics.issueCounter</i> criteria
-	 * part.
-	 *
-	 * @param input
-	 *            - input criteria
-	 * @return String - processed criteria
-	 */
-	private static String filterCriteriaRebuilder(String input) {
-		String[] split = input.split("\\$");
-		StringBuilder builder = new StringBuilder(input);
-		/* If this is defect type filter without sub-type */
-		if (split.length <= 3)
-			builder.append("$").append(IssueCounter.GROUP_TOTAL);
-		return builder.toString();
 	}
 }

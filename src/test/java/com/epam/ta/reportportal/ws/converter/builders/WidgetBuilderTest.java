@@ -25,18 +25,17 @@ import com.epam.ta.BaseTest;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 
 import com.epam.ta.reportportal.database.entity.widget.Widget;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+
+import javax.inject.Provider;
 
 public class WidgetBuilderTest extends BaseTest {
 
 	@Autowired
-	@Qualifier("widgetBuilder.reference")
-	private LazyReference<WidgetBuilder> widgetBuilderProvider;
+	private Provider<WidgetBuilder> widgetBuilderProvider;
 
 	@Autowired
 	private ApplicationContext applicationContext;

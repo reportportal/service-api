@@ -46,11 +46,12 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.database.search.CriteriaMap;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.google.common.collect.Lists;
+
+import javax.inject.Provider;
 
 /**
  * Default implementation of {@link ICreateWidgetHandler}
@@ -62,7 +63,7 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 
 	private WidgetRepository widgetRepository;
 
-	private LazyReference<WidgetBuilder> widgetBuilder;
+	private Provider<WidgetBuilder> widgetBuilder;
 
 	private UserFilterRepository filterRepository;
 
@@ -76,8 +77,7 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 	}
 
 	@Autowired
-	@Qualifier("widgetBuilder.reference")
-	public void setWidgetBuilder(LazyReference<WidgetBuilder> widgetBuilder) {
+	public void setWidgetBuilder(Provider<WidgetBuilder> widgetBuilder) {
 		this.widgetBuilder = widgetBuilder;
 	}
 

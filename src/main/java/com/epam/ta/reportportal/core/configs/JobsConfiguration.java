@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.job.SaveBinaryDataJob;
-import com.epam.ta.reportportal.util.LazyReference;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -69,11 +68,6 @@ public class JobsConfiguration {
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public SaveBinaryDataJob saveBinaryDataJob() {
 		return new SaveBinaryDataJob();
-	}
-
-	@Bean(name = "saveBinaryDataJob.reference")
-	public LazyReference<SaveBinaryDataJob> saveBinaryDataJobReference() {
-		return new LazyReference<>("saveBinaryDataJob");
 	}
 
 	@EnableScheduling

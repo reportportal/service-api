@@ -50,12 +50,13 @@ import com.epam.ta.reportportal.database.search.CriteriaMap;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+
+import javax.inject.Provider;
 
 /**
  * @author Dzmitry_Kavalets
@@ -71,14 +72,14 @@ public class CreateWidgetHandlerTest {
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
 
-	private static LazyReference<WidgetBuilder> lazyReference;
+	private static Provider<WidgetBuilder> lazyReference;
 	private static WidgetRepository widgetRepository;
 	private static UserFilterRepository userFilterRepository;
 
 	@SuppressWarnings("unchecked")
 	@BeforeClass
 	public static void beforeClass() {
-		lazyReference = mock(LazyReference.class);
+		lazyReference = mock(Provider.class);
 		when(lazyReference.get()).thenReturn(new WidgetBuilder());
 		widgetRepository = mock(WidgetRepository.class);
 		when(widgetRepository.findByProjectAndUser(DEFAULT_PROJECT, DEFAULT_USER)).thenReturn(new ArrayList<>());

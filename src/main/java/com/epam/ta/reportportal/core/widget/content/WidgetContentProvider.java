@@ -135,8 +135,8 @@ public class WidgetContentProvider {
 			boolean isConverted = false;
 			List<ChartObject> data = entry.getValue();
 			for (String field : chartFields) {
-				QueryBuilder.ComplexSearchCriteria filterCriteria = QueryBuilder.filterSearchCriteriaPreProcessor(field);
-				String queryCriteria = criteriaMap.getCriteriaHolder(filterCriteria.getGlobalSearchCriteria()).getQueryCriteria();
+
+				String queryCriteria = criteriaMap.getCriteriaHolder(field).getQueryCriteria();
 				if (queryCriteria.equals(entry.getKey())) {
 					result.put(criteriaMap.getCriteriaHolder(queryCriteria).getFilterCriteria(), data);
 					isConverted = true;
@@ -178,10 +178,8 @@ public class WidgetContentProvider {
 		if (chartFields == null)
 			return new ArrayList<>();
 		return chartFields.stream().map(it -> {
-			QueryBuilder.ComplexSearchCriteria filterCriteria = QueryBuilder.filterSearchCriteriaPreProcessor(it);
-			// ()
-			return criteriaMap.getCriteriaHolder(filterCriteria.getGlobalSearchCriteria()).getQueryCriteria()
-					+ ((filterCriteria.getExtension() != null) ? "." + filterCriteria.getExtension() : "");
+			return criteriaMap.getCriteriaHolder(it).getQueryCriteria();
+					//+ ((filterCriteria.getExtension() != null) ? "." + filterCriteria.getExtension() : "");
 		}).collect(toList());
 	}
 

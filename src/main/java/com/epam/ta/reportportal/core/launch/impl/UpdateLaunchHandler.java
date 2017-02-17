@@ -59,7 +59,6 @@ import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.entity.statistics.Statistics;
 import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.ws.converter.LaunchResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;

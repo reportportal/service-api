@@ -28,7 +28,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.commons.Predicates;
@@ -37,13 +36,14 @@ import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
 import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.entity.filter.ObjectType;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterEntity;
+
+import javax.inject.Provider;
 
 /**
  * Default implementation of {@link ICreateUserFilterHandler}
@@ -58,8 +58,7 @@ public class CreateUserFilterHandler implements ICreateUserFilterHandler {
 	private UserFilterRepository filterRepository;
 
 	@Autowired
-	@Qualifier("userFilterBuilder.reference")
-	private LazyReference<UserFilterBuilder> userFilterBuilder;
+	private Provider<UserFilterBuilder> userFilterBuilder;
 
 	@Autowired
 	private UserFilterValidationService userFilterService;

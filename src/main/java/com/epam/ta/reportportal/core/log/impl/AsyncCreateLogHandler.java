@@ -32,9 +32,10 @@ import com.epam.ta.reportportal.database.BinaryData;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+
+import javax.inject.Provider;
 
 /**
  * Asynchronous implementation of {@link ICreateLogHandler}. Saves log and
@@ -48,14 +49,13 @@ import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 public class AsyncCreateLogHandler extends CreateLogHandler implements ICreateLogHandler {
 
 	/**
-	 * We are using {@link LazyReference} there because we need
+	 * We are using {@link Provider} there because we need
 	 * {@link SaveBinaryDataJob} with scope prototype. Since current class is in
 	 * singleton scope, we have to find a way to get new instance of job for new
 	 * execution
 	 */
 	@Autowired
-	@Qualifier("saveBinaryDataJob.reference")
-	private LazyReference<SaveBinaryDataJob> saveBinaryDataJob;
+	private Provider<SaveBinaryDataJob> saveBinaryDataJob;
 
 	@Autowired
 	@Qualifier("saveLogsTaskExecutor")

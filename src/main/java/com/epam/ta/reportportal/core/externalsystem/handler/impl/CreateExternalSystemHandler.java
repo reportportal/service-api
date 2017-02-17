@@ -33,7 +33,6 @@ import com.epam.ta.reportportal.database.entity.AuthType;
 import com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType;
 import com.epam.ta.reportportal.events.ExternalSystemCreatedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -43,10 +42,11 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.converter.builders.ExternalSystemBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
+
+import javax.inject.Provider;
 
 /**
  * Handler realization of {@link ICreateExternalSystemHandler} interface
@@ -67,8 +67,7 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 
 
 	@Autowired
-	@Qualifier("externalSystemBuilder.reference")
-	private LazyReference<ExternalSystemBuilder> builder;
+	private Provider<ExternalSystemBuilder> builder;
 
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;

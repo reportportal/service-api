@@ -24,19 +24,18 @@ package com.epam.ta.reportportal.ws.converter.builders;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 
 import com.epam.ta.BaseTest;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
+
+import javax.inject.Provider;
 
 public class UserFilterBuilderTest extends BaseTest {
 
 	@Autowired
-	@Qualifier("userFilterBuilder.reference")
-	private LazyReference<UserFilterBuilder> userFilterBuilderProvider;
+	private Provider<UserFilterBuilder> userFilterBuilderProvider;
 
 	@Autowired
 	private ApplicationContext applicationContext;

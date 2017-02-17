@@ -22,14 +22,24 @@
 package com.epam.ta.reportportal.core.favorites;
 
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
+import com.epam.ta.reportportal.ws.model.favorites.AddFavoriteResourceRQ;
 
 /**
- * Add resources from favorites handler
+ * Add to favorites handler
  * 
  * @author Aliaksei_Makayed
  * 
  */
-public interface IRemoveFromFavoritesHandler {
+public interface IFavoritesHandler {
+	
+	/**
+	 * Add resource to favorites.
+	 * @param addFavoriteResourceRQ
+	 * @param userName
+	 * @return
+	 */
+	DashboardResource add(AddFavoriteResourceRQ addFavoriteResourceRQ, String userName, String projectName);
 
 	/**
 	 * Remove resources from favorites.
@@ -38,4 +48,5 @@ public interface IRemoveFromFavoritesHandler {
 	 * @return
 	 */
 	OperationCompletionRS remove(String resourceType, String resourceId, String userName);
+
 }

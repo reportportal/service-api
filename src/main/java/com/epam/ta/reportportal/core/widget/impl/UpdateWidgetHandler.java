@@ -31,7 +31,6 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -48,11 +47,12 @@ import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.database.search.CriteriaMap;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
 import com.epam.ta.reportportal.events.WidgetUpdatedEvent;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.google.common.collect.Lists;
+
+import javax.inject.Provider;
 
 /**
  * Default implementation of {@link IUpdateWidgetHandler}
@@ -70,8 +70,7 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 	private UserFilterRepository filterRepository;
 
 	@Autowired
-	@Qualifier("widgetBuilder.reference")
-	private LazyReference<WidgetBuilder> widgetBuilder;
+	private Provider<WidgetBuilder> widgetBuilder;
 
 	@Autowired
 	private CriteriaMapFactory criteriaMapFactory;

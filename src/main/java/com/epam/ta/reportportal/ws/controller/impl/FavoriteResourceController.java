@@ -37,8 +37,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.epam.ta.reportportal.core.favorites.IAddToFavoritesHandler;
-import com.epam.ta.reportportal.core.favorites.IRemoveFromFavoritesHandler;
+import com.epam.ta.reportportal.core.favorites.IFavoritesHandler;
 import com.epam.ta.reportportal.ws.controller.IFavoriteResourceController;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
@@ -56,10 +55,8 @@ import com.epam.ta.reportportal.ws.model.favorites.AddFavoriteResourceRQ;
 public class FavoriteResourceController implements IFavoriteResourceController {
 
 	@Autowired
-	private IAddToFavoritesHandler addToFavoritesHandler;
+	private IFavoritesHandler favoritesHandler;
 
-	@Autowired
-	private IRemoveFromFavoritesHandler removeFromFavoritesHandler;
 
 	@Override
 	@RequestMapping(method = RequestMethod.POST)
@@ -68,7 +65,7 @@ public class FavoriteResourceController implements IFavoriteResourceController {
 	@ApiOperation("Add resource to favorites")
 	public DashboardResource addFavoriteResource(@RequestBody @Validated AddFavoriteResourceRQ addFavoriteResourceRQ,
 			Principal principal, @PathVariable String projectName) {
-		return addToFavoritesHandler.add(addFavoriteResourceRQ, principal.getName(), EntityUtils.normalizeProjectName(projectName));
+		return favoritesHandler.add(addFavoriteResourceRQ, principal.getName(), EntityUtils.normalizeProjectName(projectName));
 	}
 
 	@Override
@@ -78,7 +75,7 @@ public class FavoriteResourceController implements IFavoriteResourceController {
 	@ApiOperation("Remove resource from favorites")
 	public OperationCompletionRS removeFromFavorites(Principal principal, @RequestParam(value = "resource_id") String resourceId,
 			@RequestParam(value = "resource_type") String resourceType) {
-		return removeFromFavoritesHandler.remove(resourceType, resourceId, principal.getName());
+		return favoritesHandler.remove(resourceType, resourceId, principal.getName());
 	}
 
 }

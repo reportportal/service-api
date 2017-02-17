@@ -31,12 +31,18 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
+import javax.inject.Provider;
 
+import com.epam.ta.reportportal.commons.Preconditions;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.favorites.IFavoritesHandler;
+import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import com.epam.ta.reportportal.core.favorites.IAddToFavoritesHandler;
 import com.epam.ta.reportportal.database.dao.DashboardRepository;
 import com.epam.ta.reportportal.database.dao.FavoriteResourceRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
@@ -47,7 +53,6 @@ import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.favorite.FavoriteResource;
 import com.epam.ta.reportportal.database.entity.sharing.AclPermissions;
 import com.epam.ta.reportportal.database.entity.sharing.Shareable;
-import com.epam.ta.reportportal.util.LazyReference;
 import com.epam.ta.reportportal.ws.converter.DashboardResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.FavoriteResourceBuilder;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
@@ -55,13 +60,13 @@ import com.epam.ta.reportportal.ws.model.favorites.AddFavoriteResourceRQ;
 import com.epam.ta.reportportal.ws.model.favorites.FavoriteResourceTypes;
 
 /**
- * Default implementation of {@link IAddToFavoritesHandler}
+ * Default implementation of {@link IFavoritesHandler}
  * 
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
  */
 @Service
-public class AddToFavoritesHandler implements IAddToFavoritesHandler {
+public class FavoritesHandler implements IFavoritesHandler {
 
 	@Autowired
 	private FavoriteResourceRepository favoriteResourceRepository;
@@ -79,8 +84,7 @@ public class AddToFavoritesHandler implements IAddToFavoritesHandler {
 	private Map<FavoriteResourceTypes, ReportPortalRepository<? extends Shareable, String>> repositories;
 
 	@Autowired
-	@Qualifier("favoriteResourceBuilder.reference")
-	private LazyReference<FavoriteResourceBuilder> favoriteResourceBuilder;
+	private Provider<FavoriteResourceBuilder> favoriteResourceBuilder;
 
 	@Override
 	public DashboardResource add(AddFavoriteResourceRQ addFavoriteResourceRQ, String userName, String projectName) {
@@ -91,6 +95,17 @@ public class AddToFavoritesHandler implements IAddToFavoritesHandler {
 
 		Dashboard dashboard = dashboardRepository.findOne(addFavoriteResourceRQ.getResourceId());
 		return resourceAssembler.toResource(dashboard);
+	}
+
+	@Override
+	public OperationCompletionRS remove(String resourceType, String resourceId, String userName) {
+		Filter filter = Utils.getUniqueFavoriteFilter(userName, resourceType, resourceId);
+		List<FavoriteResource> resources = favoriteResourceRepository.findByFilter(filter);
+		BusinessRule.expect(resources, Preconditions.NOT_EMPTY_COLLECTION).verify(ErrorType.UNABLE_REMOVE_FROM_FAVORITE,
+				Suppliers.formattedSupplier("Favorite resource with resource id '{}', type '{}' haven't found for user '{}'.", resourceId,
+						resourceType, userName));
+		favoriteResourceRepository.delete(resources.get(0).getId());
+		return new OperationCompletionRS("Resource with ID = '" + resourceId + "' removed from favorites.");
 	}
 
 	/**

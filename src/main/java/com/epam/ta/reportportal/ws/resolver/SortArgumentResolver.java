@@ -17,15 +17,16 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.resolver;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-
+import com.epam.ta.reportportal.commons.Preconditions;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.database.search.CriteriaHolder;
+import com.epam.ta.reportportal.database.search.CriteriaMap;
+import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.domain.Sort;
@@ -35,63 +36,58 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import com.epam.ta.reportportal.commons.Preconditions;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.database.search.CriteriaHolder;
-import com.epam.ta.reportportal.database.search.CriteriaMap;
-import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import java.util.Optional;
+import java.util.stream.StreamSupport;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * Argument resolver for sort argument
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class SortArgumentResolver extends SortHandlerMethodArgumentResolver {
 
-	@Autowired
-	private CriteriaMapFactory criteriaMapFactory;
+    @Autowired
+    private CriteriaMapFactory criteriaMapFactory;
 
-	@Override
-	public Sort resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest,
-			WebDataBinderFactory binderFactory) {
-
-		/*
-		 * Resolve sort argument in default way
-		 */
-		Sort defaultSort = super.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
+    @Override
+    public Sort resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+            NativeWebRequest webRequest,
+            WebDataBinderFactory binderFactory) {
 
 		/*
-		 * Try to find parameter to be sorted in internal-extenal mapping
+         * Resolve sort argument in default way
 		 */
-		if (null != parameter.getParameterAnnotation(SortFor.class) && null != defaultSort) {
+        Sort defaultSort = super.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
 
-			Class<?> domainModelType = parameter.getParameterAnnotation(SortFor.class).value();
-			CriteriaMap<?> map = criteriaMapFactory.getCriteriaMap(domainModelType);
+		/*
+         * Try to find parameter to be sorted in internal-external mapping
+		 */
+        if (null != parameter.getParameterAnnotation(SortFor.class) && null != defaultSort) {
 
-			List<Order> remappedOrders = new ArrayList<>();
+            Class<?> domainModelType = parameter.getParameterAnnotation(SortFor.class).value();
+            CriteriaMap<?> map = criteriaMapFactory.getCriteriaMap(domainModelType);
 
-			/*
+            /*
 			 * Build Sort with search criteria from internal domain model
 			 */
-			Iterator<Order> orderIterator = defaultSort.iterator();
-			while (orderIterator.hasNext()) {
-				Order order = orderIterator.next();
-				Optional<CriteriaHolder> criteriaHolder = map.getCriteriaHolderUnchecked(order.getProperty());
+            return new Sort(StreamSupport.stream(defaultSort.spliterator(), false)
+                    .map(order -> {
+                        Optional<CriteriaHolder> criteriaHolder = map.getCriteriaHolderUnchecked(order.getProperty());
 
-				BusinessRule.expect(criteriaHolder, Preconditions.IS_PRESENT).verify(ErrorType.INCORRECT_SORTING_PARAMETERS,
-						order.getProperty());
-				remappedOrders.add(new Order(order.getDirection(), criteriaHolder.get().getQueryCriteria()));
-			}
-			return new Sort(remappedOrders);
-		} else {
+                        BusinessRule.expect(criteriaHolder, Preconditions.IS_PRESENT)
+                                .verify(ErrorType.INCORRECT_SORTING_PARAMETERS,
+                                        order.getProperty());
+                        return new Order(order.getDirection(), criteriaHolder.get().getQueryCriteria());
+                    }).collect(toList()));
+        } else {
 			/*
 			 * Return default sort in case there are no SortFor annotation
 			 */
-			return defaultSort;
-		}
+            return defaultSort;
+        }
 
-	}
+    }
 
 }

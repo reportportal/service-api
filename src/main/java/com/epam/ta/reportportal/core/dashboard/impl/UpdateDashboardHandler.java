@@ -27,6 +27,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.Optional.ofNullable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -61,17 +62,19 @@ import com.google.common.collect.Lists;
 public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 	public static final int WIDGETS_LIMIT = 20;
 
-	@Autowired
-	private DashboardRepository dashboardRepository;
+	private final DashboardRepository dashboardRepository;
+	private final WidgetRepository widgetRepository;
+	private final SharingService sharingService;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	private WidgetRepository widgetRepository;
-
-	@Autowired
-	private SharingService sharingService;
-
-	@Autowired
-	private ApplicationEventPublisher eventPublisher;
+	public UpdateDashboardHandler(DashboardRepository dashboardRepository, WidgetRepository widgetRepository, SharingService sharingService,
+			ApplicationEventPublisher eventPublisher) {
+		this.dashboardRepository = dashboardRepository;
+		this.widgetRepository = widgetRepository;
+		this.sharingService = sharingService;
+		this.eventPublisher = eventPublisher;
+	}
 
 	@Override
 	public OperationCompletionRS updateDashboard(UpdateDashboardRQ rq, String dashboardId, String userName, String projectName) {
@@ -83,13 +86,14 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 		AclUtils.validateOwner(dashboard.getAcl(), userName, dashboard.getName());
 		expect(dashboard.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
 
-		if (null != rq.getName()) {
+		ofNullable(rq.getName()).ifPresent(it -> {
 			Dashboard isExist = dashboardRepository.findOneByUserProject(userName, projectName, rq.getName());
 			if (isExist != null && !dashboardId.equalsIgnoreCase(isExist.getId()))
 				fail().withError(RESOURCE_ALREADY_EXISTS, rq.getName());
-			dashboard.setName(rq.getName().trim());
-		}
-		dashboard.setDescription(rq.getDescription());
+			dashboard.setName(it.trim());
+		});
+
+		ofNullable(rq.getDescription()).ifPresent(dashboard::setDescription);
 
 		expect(null != rq.getAddWidget() && null != rq.getDeleteWidgetId()
 				&& rq.getDeleteWidgetId().equalsIgnoreCase(rq.getAddWidget().getWidgetId()), equalTo(Boolean.FALSE))
@@ -97,21 +101,16 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 
 		// update widget (or list of widgets if one of them change position on
 		// dashboard)
-		if (null != rq.getWidgets()) {
-			// dashboard.getWidgets()
-			List<WidgetObject> update = new ArrayList<>();
+		ofNullable(rq.getWidgets()).ifPresent(rqWidgets -> {
 			for (WidgetObject widget : dashboard.getWidgets()) {
-				rq.getWidgets().stream().filter(updWidget -> widget.getWidgetId().equalsIgnoreCase(updWidget.getWidgetId()))
+				rqWidgets.stream()
+						.filter(updWidget -> widget.getWidgetId().equalsIgnoreCase(updWidget.getWidgetId()))
 						.forEach(updWidget -> {
-							if (null != updWidget.getWidgetPosition())
-								widget.setWidgetPosition(updWidget.getWidgetPosition());
-							if (null != updWidget.getWidgetSize())
-								widget.setWidgetSize(updWidget.getWidgetSize());
+							ofNullable(updWidget.getWidgetPosition()).ifPresent(widget::setWidgetPosition);
+							ofNullable(updWidget.getWidgetSize()).ifPresent(widget::setWidgetSize);
 						});
-				update.add(widget);
 			}
-			dashboard.setWidgets(update);
-		}
+		});
 
 		// add widget
 		if (null != rq.getAddWidget()) {
@@ -148,30 +147,28 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 		}
 
 		// remove widget
-		if (null != rq.getDeleteWidgetId()) {
-			expect(processWidgets(dashboard.getWidgets(), rq.getDeleteWidgetId(), true), equalTo(true))
-					.verify(WIDGET_NOT_FOUND_IN_DASHBOARD, rq.getDeleteWidgetId(), dashboardId);
-			Widget widget = widgetRepository.findOneLoadACL(rq.getDeleteWidgetId());
+		ofNullable(rq.getDeleteWidgetId()).ifPresent(it -> {
+			expect(processWidgets(dashboard.getWidgets(), it, true), equalTo(true))
+					.verify(WIDGET_NOT_FOUND_IN_DASHBOARD, it, dashboardId);
+			Widget widget = widgetRepository.findOneLoadACL(it);
 			if (null != widget && widget.getAcl().getOwnerUserId().equals(userName)) {
 				try {
-					widgetRepository.delete(rq.getDeleteWidgetId());
+					widgetRepository.delete(it);
 				} catch (Exception e) {
 					throw new ReportPortalException("Error during deleting widget", e);
 				}
 			} else {
 				Iterator<WidgetObject> iterator = dashboard.getWidgets().iterator();
 				while (iterator.hasNext()) {
-					if (iterator.next().getWidgetId().equals(rq.getDeleteWidgetId())) {
+					if (iterator.next().getWidgetId().equals(it)) {
 						iterator.remove();
 						break;
 					}
 				}
 			}
-		}
+		});
 
-		if (null != rq.getShare()) {
-			sharingService.modifySharing(Lists.newArrayList(dashboard), userName, projectName, rq.getShare());
-		}
+		ofNullable(rq.getShare()).ifPresent(it -> sharingService.modifySharing(Lists.newArrayList(dashboard), userName, projectName, it));
 
 		dashboardRepository.save(dashboard);
 

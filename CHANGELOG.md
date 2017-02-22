@@ -78,3 +78,4 @@
 * EPMRPP-23680 - Unclassified error when searching for launch with special sybmols in its name
 * EPMRPP-21270 - Launches: Sorting for defect statistics works incorrectly
 * EPMRPP-23641 - DASHBOARDS: Description disappeared after refresh
+* EPMRPP-23691 - WS: To combine 'from' using sender name and email when the notification is sending

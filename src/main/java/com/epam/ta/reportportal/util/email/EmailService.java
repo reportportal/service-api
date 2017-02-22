@@ -35,6 +35,8 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
 
 import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.HashMap;
@@ -238,15 +240,22 @@ public class EmailService extends JavaMailSenderImpl {
      * If username is email, format will be "from \<email\>"
      */
     private void setFrom(MimeMessageHelper message) throws MessagingException, UnsupportedEncodingException {
-        if (UserUtils.isEmailValid(this.from)) {
-            message.setFrom(this.from);
-        } else if (UserUtils.isEmailValid(getUsername())) {
-            if (!Strings.isNullOrEmpty(this.from)) {
+        if (!Strings.isNullOrEmpty(this.from)) {
+            if (isAddressValid(this.from)) {
+                message.setFrom(this.from);
+            } else if (UserUtils.isEmailValid(getUsername())) {
                 message.setFrom(getUsername(), this.from);
-            } else {
-                message.setFrom(getUsername());
             }
         }
         //otherwise generate automatically
+    }
+
+    private boolean isAddressValid(String from) {
+        try {
+            InternetAddress.parse(from);
+            return true;
+        } catch (AddressException e) {
+            return false;
+        }
     }
 }

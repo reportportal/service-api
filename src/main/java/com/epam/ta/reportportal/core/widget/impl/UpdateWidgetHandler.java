@@ -30,6 +30,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 import java.util.List;
 
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -70,6 +71,9 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 	private UserFilterRepository filterRepository;
 
 	@Autowired
+	private ProjectRepository projectRepository;
+
+	@Autowired
 	private Provider<WidgetBuilder> widgetBuilder;
 
 	@Autowired
@@ -93,7 +97,7 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 		}
 		widget.setDescription(updateRQ.getDescription());
 
-		AclUtils.validateOwner(widget.getAcl(), userName, widget.getName());
+		AclUtils.isAllowedToEdit(widget.getAcl(), userName, projectRepository.findProjectRoles(userName), widget.getName());
 		expect(widget.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
 
 		UserFilter newFilter = null;

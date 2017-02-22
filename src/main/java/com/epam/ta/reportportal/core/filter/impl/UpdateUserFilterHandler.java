@@ -31,10 +31,15 @@ import static java.util.stream.Collectors.toSet;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.entity.ProjectRole;
+import com.epam.ta.reportportal.database.entity.user.UserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -68,6 +73,9 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 	private UserFilterRepository userFilterRepository;
 
 	@Autowired
+	private ProjectRepository projectRepository;
+
+	@Autowired
 	private UserFilterValidationService userFilterService;
 
 	@Autowired
@@ -79,7 +87,7 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 		UserFilter existingFilter = userFilterRepository.findOne(userFilterId);
 
 		expect(existingFilter, notNull()).verify(USER_FILTER_NOT_FOUND, userFilterId, userName);
-		AclUtils.validateOwner(existingFilter.getAcl(), userName, existingFilter.getName());
+		AclUtils.isAllowedToEdit(existingFilter.getAcl(), userName, projectRepository.findProjectRoles(userName), existingFilter.getName());
 		expect(existingFilter.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
 
 		// added synchronization because if user1 in one session checked that
@@ -111,11 +119,14 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 				.filter(userFilter -> !userFilter.getProjectName().equalsIgnoreCase(projectName)).collect(toList());
 		expect(filterFromOtherProjects.size(), equalTo(0)).verify(ACCESS_DENIED);
 
+		final Map<String, ProjectRole> projectRoles = projectRepository.findProjectRoles(userName);
+
 		List<OperationCompletionRS> result = new ArrayList<>(idsToLoad.size());
 		synchronized (this) {
 			List<UserFilter> updatedFilters = new ArrayList<>(idsToLoad.size());
 			for (int i = 0; i < updateFilterRQs.getElements().size(); i++) {
-				AclUtils.validateOwner(userFilters[i].getAcl(), userName, userFilters[i].getName());
+				AclUtils.isAllowedToEdit(userFilters[i].getAcl(), userName,
+						projectRoles, userFilters[i].getName());
 				String name = updateFilterRQs.getElements().get(i).getName();
 				if (null != name && !name.equals(userFilters[i].getName())) {
 					userFilterService.isFilterNameUnique(userName, updateFilterRQs.getElements().get(i).getName(), projectName);

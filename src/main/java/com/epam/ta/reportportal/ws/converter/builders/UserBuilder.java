@@ -24,6 +24,9 @@ package com.epam.ta.reportportal.ws.converter.builders;
 import java.util.Calendar;
 
 import com.epam.ta.reportportal.database.entity.user.UserType;
+import com.google.common.base.Charsets;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -37,11 +40,13 @@ import com.epam.ta.reportportal.ws.model.user.CreateUserRQConfirm;
 @Scope("prototype")
 public class UserBuilder extends Builder<User> {
 
+	private static final HashFunction HASH_FUNCTION = Hashing.md5();
+
 	public UserBuilder addCreateUserRQ(CreateUserRQConfirm request) {
 		if (request != null) {
 			User user = getObject();
 			user.setLogin(EntityUtils.normalizeUsername(request.getLogin()));
-			user.setPassword(UserUtils.generateMD5(request.getPassword()));
+			user.setPassword(HASH_FUNCTION.hashString(request.getPassword(), Charsets.UTF_8).toString());
 			user.setEmail(EntityUtils.normalizeEmail(request.getEmail().trim()));
 			user.setDefaultProject(EntityUtils.normalizeProjectName(request.getDefaultProject()));
 			user.setFullName(request.getFullName());

@@ -47,6 +47,9 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.ws.model.user.*;
+import com.google.common.base.Charsets;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
@@ -73,6 +76,9 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
  */
 @Service
 public class CreateUserHandler implements ICreateUserHandler {
+
+	static final HashFunction HASH_FUNCTION = Hashing.md5();
+
 
 	private UserRepository userRepository;
 	private ProjectRepository projectRepository;
@@ -320,7 +326,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		User byEmail = userRepository.findByEmail(email);
 		expect(byEmail, notNull()).verify(USER_NOT_FOUND);
 		expect(byEmail.getType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR, "Unable to change password for external user");
-		byEmail.setPassword(UserUtils.generateMD5(rq.getPassword()));
+		byEmail.setPassword(HASH_FUNCTION.hashString(rq.getPassword(), Charsets.UTF_8).toString());
 		userRepository.save(byEmail);
 		restorePasswordBidRepository.delete(rq.getUuid());
 		OperationCompletionRS rs = new OperationCompletionRS();

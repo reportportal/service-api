@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -66,14 +67,17 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 	private final WidgetRepository widgetRepository;
 	private final SharingService sharingService;
 	private final ApplicationEventPublisher eventPublisher;
+	private final ProjectRepository projectRepository;
 
 	@Autowired
-	public UpdateDashboardHandler(DashboardRepository dashboardRepository, WidgetRepository widgetRepository, SharingService sharingService,
-			ApplicationEventPublisher eventPublisher) {
+	public UpdateDashboardHandler(DashboardRepository dashboardRepository, WidgetRepository widgetRepository,
+			SharingService sharingService,
+			ApplicationEventPublisher eventPublisher, ProjectRepository projectRepository) {
 		this.dashboardRepository = dashboardRepository;
 		this.widgetRepository = widgetRepository;
 		this.sharingService = sharingService;
 		this.eventPublisher = eventPublisher;
+		this.projectRepository = projectRepository;
 	}
 
 	@Override
@@ -83,7 +87,7 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 		Dashboard dashboard = dashboardRepository.findOne(dashboardId);
 		expect(dashboard, notNull()).verify(DASHBOARD_NOT_FOUND, dashboardId);
 
-		AclUtils.validateOwner(dashboard.getAcl(), userName, dashboard.getName());
+		AclUtils.isAllowedToEdit(dashboard.getAcl(), userName, projectRepository.findProjectRoles(userName), dashboard.getName());
 		expect(dashboard.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
 
 		ofNullable(rq.getName()).ifPresent(it -> {

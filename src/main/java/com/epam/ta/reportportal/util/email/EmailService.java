@@ -34,6 +34,8 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
 
+import javax.mail.MessagingException;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -79,7 +81,8 @@ public class EmailService extends JavaMailSenderImpl {
             MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
             message.setSubject(subject);
             message.setTo(recipients);
-            message.setFrom(getFromField());
+            setFrom(message);
+
             Map<String, Object> email = new HashMap<>();
             email.put("url", url);
             String text = templateEngine.merge("registration-template.vm", email);
@@ -103,7 +106,7 @@ public class EmailService extends JavaMailSenderImpl {
             MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
             message.setSubject(subject);
             message.setTo(recipients);
-            message.setFrom(getFromField());
+            setFrom(message);
 
             Map<String, Object> email = new HashMap<>();
             /* Email fields values */
@@ -190,7 +193,9 @@ public class EmailService extends JavaMailSenderImpl {
             MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
             message.setSubject(subject);
             message.setTo(recipients);
-            message.setFrom(getFromField());
+
+            setFrom(message);
+
             Map<String, Object> email = new HashMap<>();
             email.put("login", login);
             email.put("url", url);
@@ -215,7 +220,8 @@ public class EmailService extends JavaMailSenderImpl {
             MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
             message.setSubject("Welcome to Report Portal");
             message.setTo(req.getEmail());
-            message.setFrom(getFromField());
+            setFrom(message);
+
             Map<String, Object> email = new HashMap<>();
             email.put("url", basicUrl);
             email.put("login", normalizeUsername(req.getLogin()));
@@ -230,23 +236,17 @@ public class EmailService extends JavaMailSenderImpl {
     /**
      * Builds FROM field
      * If username is email, format will be "from \<email\>"
-     *
-     * @return FROM field config
      */
-    private String getFromField() {
-        String from = null;
-
+    private void setFrom(MimeMessageHelper message) throws MessagingException, UnsupportedEncodingException {
         if (UserUtils.isEmailValid(this.from)) {
-            return this.from;
-        }
-
-        if (UserUtils.isEmailValid(getUsername())) {
+            message.setFrom(this.from);
+        } else if (UserUtils.isEmailValid(getUsername())) {
             if (!Strings.isNullOrEmpty(this.from)) {
-                return String.format("%s <%s>", this.from, getUsername());
+                message.setFrom(getUsername(), this.from);
             } else {
-                from = getUsername();
+                message.setFrom(getUsername());
             }
         }
-        return from;
+        //otherwise generate automatically
     }
 }

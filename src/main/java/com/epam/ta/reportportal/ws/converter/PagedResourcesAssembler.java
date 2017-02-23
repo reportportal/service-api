@@ -22,12 +22,10 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import org.springframework.data.domain.Page;
-import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.util.Assert;
 
 /**
- * Extension of Spring's {@link ResourceAssemblerSupport}. Adds possibility to
+ * Replacement of Spring's ResourceAssemblerSupport. Adds possibility to
  * converter {@link Page} resources which is basically arrays of entities with
  * pageable information like current page, max pages, total items, etc
  *
@@ -38,7 +36,7 @@ import org.springframework.util.Assert;
 public abstract class PagedResourcesAssembler<T, R> extends ResourceAssembler<T, R> {
 
     /**
-     * Creates {@link PagedResources} from {@link Page} DB query result
+     * Creates {@link com.epam.ta.reportportal.ws.model.Page} from {@link Page} DB query result
      *
      * @param content
      * @return

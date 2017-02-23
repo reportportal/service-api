@@ -27,7 +27,6 @@ import com.epam.ta.reportportal.ws.converter.builders.TestItemResourceBuilder;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.hateoas.PagedResources;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -54,8 +53,8 @@ public class TestItemResourceAssembler extends ProjectRelatedResourceAssembler<T
      * toPagedResources(org.springframework.data.domain.Page, java.lang.String)
      */
     @Override
-    public PagedResources<TestItemResource> toPagedResources(Page<TestItem> content, String project) {
-        PagedResources<TestItemResource> resources = super.toPagedResources(content, project);
+    public com.epam.ta.reportportal.ws.model.Page<TestItemResource> toPagedResources(Page<TestItem> content, String project) {
+        com.epam.ta.reportportal.ws.model.Page<TestItemResource> resources = super.toPagedResources(content, project);
         // load path elements names for all page
         Map<String, String> allPathsNames = getPagePathNames(content);
         // add names to resources
@@ -104,7 +103,7 @@ public class TestItemResourceAssembler extends ProjectRelatedResourceAssembler<T
      * @param resources
      * @param allPathsNames
      */
-    private void setPathElementsNames(PagedResources<TestItemResource> resources, Map<String, String> allPathsNames) {
+    private void setPathElementsNames(com.epam.ta.reportportal.ws.model.Page<TestItemResource> resources, Map<String, String> allPathsNames) {
         for (TestItemResource testItemResource : resources) {
             Set<String> pathIds = testItemResource.getPathNames().keySet();
             for (String pathId : pathIds) {

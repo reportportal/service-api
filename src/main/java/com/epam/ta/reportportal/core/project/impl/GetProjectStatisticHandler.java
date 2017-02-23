@@ -48,7 +48,6 @@ import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.hateoas.PagedResources;
 import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.core.project.IGetProjectInfoHandler;

@@ -25,6 +25,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.core.user.impl.CreateUserHandler.HASH_FUNCTION;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.database.entity.user.UserType.INTERNAL;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -37,6 +38,9 @@ import java.util.Optional;
 
 import javax.imageio.ImageIO;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
@@ -120,9 +124,9 @@ public class EditUserHandler implements IEditUserHandler {
 		User user = userRepository.findOne(userName);
 		expect(user.getType(), equalTo(INTERNAL)).verify(FORBIDDEN_OPERATION, "Impossible to change password for external users.");
 
-		expect(user.getPassword(), equalTo(UserUtils.generateMD5(changePasswordRQ.getOldPassword()))).verify(FORBIDDEN_OPERATION,
+		expect(user.getPassword(), equalTo(HASH_FUNCTION.hashString(changePasswordRQ.getOldPassword(), Charsets.UTF_8).toString())).verify(FORBIDDEN_OPERATION,
 				"Old password not match with stored.");
-		user.setPassword(UserUtils.generateMD5(changePasswordRQ.getNewPassword()));
+		user.setPassword(HASH_FUNCTION.hashString(changePasswordRQ.getNewPassword(), Charsets.UTF_8).toString());
 		userRepository.save(user);
 		return new OperationCompletionRS("Password has been changed successfully");
 	}

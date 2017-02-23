@@ -75,7 +75,7 @@ public class MailServiceFactory {
 				// if project config is present, check whether sending emails is enabled and replace server properties with project properties
 				return projectConf.filter(ProjectEmailConfig::getEmailEnabled).flatMap(pc -> {
 					//update of present on project level
-					Optional.ofNullable(pc.getFrom()).ifPresent(service::setAddressFrom);
+					Optional.ofNullable(pc.getFrom()).ifPresent(service::setFrom);
 					return Optional.of(service);
 				});
 
@@ -111,7 +111,7 @@ public class MailServiceFactory {
 			service.setHost(serverConf.getHost());
 			service.setPort(serverConf.getPort());
 			service.setProtocol(serverConf.getProtocol());
-			service.setAddressFrom(serverConf.getFrom());
+			service.setFrom(serverConf.getFrom());
 			if (authRequired) {
 				service.setUsername(serverConf.getUsername());
 				service.setPassword(encryptor.decrypt(serverConf.getPassword()));

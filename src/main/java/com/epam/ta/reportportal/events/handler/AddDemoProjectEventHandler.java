@@ -26,11 +26,11 @@ import com.epam.ta.reportportal.database.BinaryData;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
-import com.epam.ta.reportportal.database.entity.ServerSettings;
+import com.epam.ta.reportportal.database.entity.settings.ServerEmailDetails;
+import com.epam.ta.reportportal.database.entity.settings.ServerSettings;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.entity.user.UserType;
-import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
 import com.google.common.base.Suppliers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,7 +137,8 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		ServerSettings settings = new ServerSettings();
 		settings.setId(DEFAULT_PROFILE_ID);
 		settings.setActive(true);
-		settings.setServerEmailConfig(new ServerEmailConfig(host, port, protocol, isEnable, false, false, username, password, "rp@epam.com", isDebug));
+		settings.setServerEmailDetails(new ServerEmailDetails(host, port, protocol, isEnable, false,
+                false, username, password, "rp@epam.com", isDebug));
 		return settings;
 	});
 

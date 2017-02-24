@@ -21,8 +21,8 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.epam.ta.reportportal.database.entity.ServerSettings;
-import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
+import com.epam.ta.reportportal.database.entity.settings.ServerSettings;
+import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -40,20 +40,20 @@ public class ServerSettingsResourceBuilder extends Builder<ServerSettingsResourc
 		ServerSettingsResource resource = getObject();
 		resource.setProfile(doc.getId());
 		resource.setActive(doc.getActive());
-		if (null != doc.getServerEmailConfig()) {
-			ServerEmailConfig output = new ServerEmailConfig();
-			output.setHost(doc.getServerEmailConfig().getHost());
-			output.setPort(doc.getServerEmailConfig().getPort());
-			output.setProtocol(doc.getServerEmailConfig().getProtocol());
-			output.setAuthEnabled(doc.getServerEmailConfig().getAuthEnabled());
-			output.setSslEnabled(doc.getServerEmailConfig().isSslEnabled());
-			output.setStarTlsEnabled(doc.getServerEmailConfig().isStarTlsEnabled());
-			output.setFrom(doc.getServerEmailConfig().getFrom());
-			if (doc.getServerEmailConfig().getAuthEnabled()) {
-				output.setUsername(doc.getServerEmailConfig().getUsername());
+		if (null != doc.getServerEmailDetails()) {
+			ServerEmailResource output = new ServerEmailResource();
+			output.setHost(doc.getServerEmailDetails().getHost());
+			output.setPort(doc.getServerEmailDetails().getPort());
+			output.setProtocol(doc.getServerEmailDetails().getProtocol());
+			output.setAuthEnabled(doc.getServerEmailDetails().getAuthEnabled());
+			output.setSslEnabled(doc.getServerEmailDetails().isSslEnabled());
+			output.setStarTlsEnabled(doc.getServerEmailDetails().isStarTlsEnabled());
+			output.setFrom(doc.getServerEmailDetails().getFrom());
+			if (doc.getServerEmailDetails().getAuthEnabled()) {
+				output.setUsername(doc.getServerEmailDetails().getUsername());
 			/* Password field not provided in response */
 			}
-			resource.setServerEmailConfig(output);
+			resource.setServerEmailResource(output);
 		}
 
 		return this;

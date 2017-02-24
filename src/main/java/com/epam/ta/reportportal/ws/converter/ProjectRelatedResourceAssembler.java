@@ -22,8 +22,6 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import org.springframework.data.domain.Page;
-import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.PagedResources.PageMetadata;
 import org.springframework.util.Assert;
 
 import java.util.stream.Collectors;
@@ -43,17 +41,17 @@ public abstract class ProjectRelatedResourceAssembler<T, R> extends PagedResourc
 
 
     /**
-     * Creates {@link PagedResources} from {@link Page} DB query result
+     * Creates {@link com.epam.ta.reportportal.ws.model.Page} from {@link Page} DB query result
      *
      * @param content
      * @return
      */
-    public PagedResources<R> toPagedResources(Page<T> content, final String project) {
+    public com.epam.ta.reportportal.ws.model.Page<R> toPagedResources(Page<T> content, final String project) {
         Assert.notNull(content);
 
-        return new PagedResources<>(content.getContent().stream()
+        return new com.epam.ta.reportportal.ws.model.Page<R>(content.getContent().stream()
                     .map(c -> toResource(c, project)).collect(Collectors.toList()),
-                new PageMetadata(content.getSize(),
+                new com.epam.ta.reportportal.ws.model.Page.PageMetadata(content.getSize(),
                         content.getNumber() + 1, content.getTotalElements(), content.getTotalPages()));
     }
 

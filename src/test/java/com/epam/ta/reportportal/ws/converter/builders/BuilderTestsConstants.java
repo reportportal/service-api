@@ -23,7 +23,6 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import java.util.Date;
 
-import org.springframework.hateoas.Link;
 
 import com.epam.ta.reportportal.database.entity.BinaryContent;
 
@@ -49,9 +48,7 @@ public final class BuilderTestsConstants {
 
 	public static final String NAME = "Name";
 	public static final String PASSWORD = "testvalue";
-	public static final String LINK = "Link";
 
-	public static final Link LINK_OBJECT = new Link("test/test");
 
 	public static final String NAME_CRITERIA = "name";
 	public static final String LAUNCH = "Launch";

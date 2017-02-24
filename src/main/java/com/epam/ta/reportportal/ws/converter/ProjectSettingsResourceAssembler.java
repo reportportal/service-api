@@ -24,12 +24,9 @@ package com.epam.ta.reportportal.ws.converter;
 import javax.inject.Provider;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.ws.controller.impl.ProjectSettingsController;
 import com.epam.ta.reportportal.ws.converter.builders.ProjectSettingsResourceBuilder;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
 

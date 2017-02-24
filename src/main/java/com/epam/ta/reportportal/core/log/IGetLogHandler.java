@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.PagedResources;
 
 /**
  * GET operation for {@link Log} entity

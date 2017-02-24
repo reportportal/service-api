@@ -28,8 +28,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import org.springframework.hateoas.Link;
-
 import com.epam.ta.reportportal.database.entity.*;
 import com.epam.ta.reportportal.database.entity.Dashboard.WidgetObject;
 import com.epam.ta.reportportal.database.entity.filter.SelectionOptions;

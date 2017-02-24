@@ -31,11 +31,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.epam.ta.reportportal.ws.model.Page;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.PagedResources;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -157,8 +156,8 @@ public class ProjectControllerTest extends BaseMvcTest {
 				.perform(get("/project/list?page.page=1&page.size=51&page.sort=name,DESC&filter.eq.configuration$entryType=INTERNAL")
 						.principal(authentication()))
 				.andExpect(status().is(200)).andReturn();
-		PagedResources<ProjectInfoResource> entries = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
-				new TypeReference<PagedResources<ProjectInfoResource>>() {
+		Page<ProjectInfoResource> entries = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
+				new TypeReference<Page<ProjectInfoResource>>() {
 				});
 		final Collection<ProjectInfoResource> content = entries.getContent();
 		assertThat(content).hasSize(2);
@@ -205,8 +204,8 @@ public class ProjectControllerTest extends BaseMvcTest {
 	public void getUsersFilterByEmailTest() throws Exception {
 		MvcResult mvcResult = mvcMock.perform(get("/project/project1/users?filter.cnt.email=user").principal(authentication()))
 				.andExpect(status().is(200)).andReturn();
-		PagedResources<UserResource> userResources = new Gson().fromJson(mvcResult.getResponse().getContentAsString(),
-				new TypeToken<PagedResources<UserResource>>() {
+		Page<UserResource> userResources = new Gson().fromJson(mvcResult.getResponse().getContentAsString(),
+				new TypeToken<Page<UserResource>>() {
 				}.getType());
 		Map<String, UserResource> userResourceMap = userResources.getContent().stream()
 				.collect(Collectors.toMap(UserResource::getUserId, it -> it));

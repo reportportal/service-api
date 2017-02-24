@@ -21,13 +21,6 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import static com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants.*;
-
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.*;
-
 import com.epam.ta.reportportal.database.entity.*;
 import com.epam.ta.reportportal.database.entity.Dashboard.WidgetObject;
 import com.epam.ta.reportportal.database.entity.filter.SelectionOptions;
@@ -56,6 +49,13 @@ import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+
+import static com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants.*;
 
 public class Utils {
 

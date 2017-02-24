@@ -2910,11 +2910,11 @@
 		<property name="email" value="test1@test.test"/>
 	</bean>
 
-	<bean id="serverSettings1" class="com.epam.ta.reportportal.database.entity.ServerSettings">
+	<bean id="serverSettings1" class="com.epam.ta.reportportal.database.entity.settings.ServerSettings">
 		<property name="id" value="default"/>
 		<property name="active" value="true"/>
-		<property name="serverEmailConfig">
-			<bean class="com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig">
+		<property name="serverEmailDetails">
+			<bean class="com.epam.ta.reportportal.database.entity.settings.ServerEmailDetails">
 				<property name="host" value="localhost"/>
 				<property name="port" value="10025"/>
 				<property name="protocol" value="smtp"/>

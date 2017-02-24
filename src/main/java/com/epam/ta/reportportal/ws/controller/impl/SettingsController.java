@@ -82,7 +82,7 @@ public class SettingsController implements ISettingsController {
 	}
 
 
-    @RequestMapping(value = "/{profileId}/analytics", method = RequestMethod.PUT)
+    @RequestMapping(value = "/{profileId}/analytics", method = {RequestMethod.PUT, RequestMethod.POST})
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @ApiOperation(value = "Enables server Google Analytics for specified profile")

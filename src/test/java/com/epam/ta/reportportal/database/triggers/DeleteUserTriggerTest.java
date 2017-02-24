@@ -21,10 +21,15 @@
  
 package com.epam.ta.reportportal.database.triggers;
 
-import java.io.IOException;
-
 import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.database.BinaryData;
+import com.epam.ta.reportportal.database.DataStorage;
+import com.epam.ta.reportportal.database.dao.*;
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserType;
+import com.epam.ta.reportportal.database.fixture.SpringFixture;
+import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -32,17 +37,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import com.epam.ta.reportportal.database.BinaryData;
-import com.epam.ta.reportportal.database.DataStorage;
-import com.epam.ta.reportportal.database.dao.DashboardRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.UserFilterRepository;
-import com.epam.ta.reportportal.database.dao.UserRepository;
-import com.epam.ta.reportportal.database.dao.WidgetRepository;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.database.fixture.SpringFixture;
-import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
+import java.io.IOException;
 
 @SpringFixture("deleteUserTriggerTests")
 public class DeleteUserTriggerTest extends BaseTest {

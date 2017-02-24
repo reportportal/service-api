@@ -167,6 +167,10 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
     public GoogleAnalyticsResource getAnalyticsSettings(String profileId) {
         ServerSettings settings = findServerSettings(profileId);
         GoogleAnalyticsResource analytics = new GoogleAnalyticsResource();
+
+        BusinessRule.expect(settings.getGoogleAnalyticsDetails(),
+                Predicates.notNull()).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, profileId);
+
         analytics.setId(settings.getGoogleAnalyticsDetails().getId());
         analytics.setEnabled(settings.getGoogleAnalyticsDetails().getEnabled());
         return analytics;

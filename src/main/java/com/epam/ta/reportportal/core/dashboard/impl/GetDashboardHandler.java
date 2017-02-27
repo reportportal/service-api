@@ -21,38 +21,27 @@
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.epam.ta.reportportal.commons.Predicates;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.core.acl.AclUtils;
+import com.epam.ta.reportportal.core.dashboard.IGetDashboardHandler;
+import com.epam.ta.reportportal.database.dao.DashboardRepository;
+import com.epam.ta.reportportal.database.entity.Dashboard;
+import com.epam.ta.reportportal.database.entity.sharing.Shareable;
+import com.epam.ta.reportportal.ws.converter.DashboardResourceAssembler;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.SharedEntity;
+import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 
-import com.epam.ta.reportportal.commons.Preconditions;
-import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.core.acl.AclUtils;
-import com.epam.ta.reportportal.core.dashboard.IGetDashboardHandler;
-import com.epam.ta.reportportal.database.dao.DashboardRepository;
-import com.epam.ta.reportportal.database.dao.FavoriteResourceRepository;
-import com.epam.ta.reportportal.database.entity.Dashboard;
-import com.epam.ta.reportportal.database.entity.favorite.FavoriteResource;
-import com.epam.ta.reportportal.database.entity.sharing.Shareable;
-import com.epam.ta.reportportal.database.search.Condition;
-import com.epam.ta.reportportal.database.search.Filter;
-import com.epam.ta.reportportal.database.search.FilterCondition;
-import com.epam.ta.reportportal.ws.converter.DashboardResourceAssembler;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.SharedEntity;
-import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
-import com.epam.ta.reportportal.ws.model.favorites.FavoriteResourceTypes;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Default implementation of {@link IGetDashboardHandler}
@@ -63,19 +52,17 @@ import com.google.common.collect.Sets;
 @Service
 public class GetDashboardHandler implements IGetDashboardHandler {
 
-	@Autowired
-	private DashboardRepository dashboardRepository;
+	private final DashboardRepository dashboardRepository;
 
-	@Autowired
-	private DashboardResourceAssembler resourceAssembler;
-
-	@Autowired
-	private FavoriteResourceRepository favoriteResourceRepository;
+	private final DashboardResourceAssembler resourceAssembler;
 
 	private final Sort creationDateSort;
 
-	public GetDashboardHandler() {
+	@Autowired
+	public GetDashboardHandler(DashboardRepository dashboardRepository, DashboardResourceAssembler resourceAssembler) {
 		creationDateSort = new Sort(new Order(Direction.ASC, Dashboard.CREATION_DATE));
+		this.dashboardRepository = dashboardRepository;
+		this.resourceAssembler = resourceAssembler;
 	}
 
 	@Override
@@ -89,18 +76,8 @@ public class GetDashboardHandler implements IGetDashboardHandler {
 
 	@Override
 	public Iterable<DashboardResource> getAllDashboards(String userName, String projectName) {
-		// Get list of registered favorites resources for specified user
-		List<FavoriteResource> favoriteResources = favoriteResourceRepository
-				.findByFilter(getFavoriteDashboardsFilter(userName, projectName));
-		List<String> favoriteDashboardsIds = favoriteResources.stream().map(FavoriteResource::getResourceId).collect(Collectors.toList());
-
-		// Get list of REAL existing dashboards by Ids
-		Iterable<Dashboard> favoriteDashboards = dashboardRepository.findAll(favoriteDashboardsIds);
-
 		// Get list of owned dashboards
 		List<Dashboard> dashboards = dashboardRepository.findAll(userName, creationDateSort, projectName);
-		dashboards.addAll(Lists.newArrayList(favoriteDashboards));
-		addRemovedDashboards(favoriteDashboardsIds, dashboards);
 		return resourceAssembler.toResources(dashboards);
 	}
 
@@ -112,29 +89,12 @@ public class GetDashboardHandler implements IGetDashboardHandler {
 	}
 
 	/**
-	 * Add empty dashboard objects to dashboards list - if dashboard have
-	 * already removed but still present in favorite resources for user it
-	 * should be added to result list.
-	 */
-	private void addRemovedDashboards(List<String> ids, List<Dashboard> dashboards) {
-		if (Preconditions.NOT_EMPTY_COLLECTION.test(ids) && Preconditions.NOT_EMPTY_COLLECTION.test(dashboards)) {
-			Set<String> dashHashSet = dashboards.stream().map(Dashboard::getId).collect(Collectors.toSet());
-			List<Dashboard> additionalDashboards = ids.stream().filter(id -> !dashHashSet.contains(id)).map(id -> {
-				final Dashboard dashboard = new Dashboard();
-				dashboard.setId(id);
-				return dashboard;
-			}).collect(Collectors.toList());
-			dashboards.addAll(additionalDashboards);
-		}
-	}
-
-	/**
 	 * Transform {@link List} of {@link Dashboard}s to {@link java.util.Map} where:<br>
 	 * <li>key - dashboard id,
 	 * <li>value - shared entity
 	 *
-	 * @param dashboards
-	 * @return
+	 * @param dashboards Dashboards list
+	 * @return Transformed map
 	 */
 	private Map<String, SharedEntity> toMap(List<Dashboard> dashboards) {
 		Map<String, SharedEntity> result = new LinkedHashMap<>();
@@ -150,11 +110,4 @@ public class GetDashboardHandler implements IGetDashboardHandler {
 		return result;
 	}
 
-	private Filter getFavoriteDashboardsFilter(String userName, String projectName) {
-		FilterCondition resourceTypeCondition = new FilterCondition(Condition.EQUALS, false, FavoriteResourceTypes.DASHBOARD.name(),
-				FavoriteResource.TYPE_CRITERIA);
-		FilterCondition userNameCondition = new FilterCondition(Condition.EQUALS, false, userName, FavoriteResource.USERNAME_CRITERIA);
-		FilterCondition projectCondition = new FilterCondition(Condition.EQUALS, false, projectName, FavoriteResource.PROJECT_CRITERIA);
-		return new Filter(FavoriteResource.class, Sets.newHashSet(resourceTypeCondition, userNameCondition, projectCondition));
-	}
 }

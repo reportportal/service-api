@@ -80,3 +80,4 @@
 * EPMRPP-23641 - DASHBOARDS: Description disappeared after refresh
 * EPMRPP-23691 - WS: To combine 'from' using sender name and email when the notification is sending
 * EPMRPP-20425 - Allow to delete Not own dashboards/widgets/filters by PM
+* EPMRPP-23076 - Script for deleting favorite dashboards with new implementation

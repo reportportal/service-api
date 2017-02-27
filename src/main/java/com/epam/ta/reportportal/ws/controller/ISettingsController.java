@@ -22,10 +22,12 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 
 import java.security.Principal;
+import java.util.List;
 
 /**
  * Controller interface for specific ADMIN ONLY features like server
@@ -56,4 +58,7 @@ public interface ISettingsController {
 	 */
 	OperationCompletionRS saveEmailSettings(String profileId, ServerEmailResource request, Principal principal);
 
+    OperationCompletionRS saveAnalyticsSettings(String profileId, AnalyticsResource request);
+
+    List<AnalyticsResource> getAnalyticsSettings(String profileId);
 }

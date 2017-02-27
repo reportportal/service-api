@@ -22,9 +22,11 @@
 package com.epam.ta.reportportal.core.admin;
 
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.settings.GoogleAnalyticsResource;
+import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
+
+import java.util.List;
 
 /**
  * Server settings administration interface
@@ -58,7 +60,7 @@ public interface ServerAdminHandler {
      */
     OperationCompletionRS deleteEmailSettings(String profileId);
 
-    OperationCompletionRS saveAnalyticsSettings(String profileId, GoogleAnalyticsResource request);
+    OperationCompletionRS saveAnalyticsSettings(String profileId, AnalyticsResource request);
 
-    GoogleAnalyticsResource getAnalyticsSettings(String profileId);
+    List<AnalyticsResource> getAnalyticsSettings(String profileId);
 }

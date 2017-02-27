@@ -24,14 +24,14 @@ package com.epam.ta.reportportal.core.admin;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
-import com.epam.ta.reportportal.database.entity.settings.GoogleAnalyticsDetails;
+import com.epam.ta.reportportal.database.entity.settings.AnalyticsDetails;
 import com.epam.ta.reportportal.database.entity.settings.ServerEmailDetails;
 import com.epam.ta.reportportal.database.entity.settings.ServerSettings;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.ServerSettingsResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.settings.GoogleAnalyticsResource;
+import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import com.google.common.base.Strings;
@@ -46,6 +46,9 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
@@ -153,26 +156,36 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
     }
 
     @Override
-    public OperationCompletionRS saveAnalyticsSettings(String profileId, GoogleAnalyticsResource request) {
-        GoogleAnalyticsDetails analyticsConfig = new GoogleAnalyticsDetails();
+    public OperationCompletionRS saveAnalyticsSettings(String profileId, AnalyticsResource request) {
+        AnalyticsDetails analyticsDetails = new AnalyticsDetails();
         ServerSettings settings = findServerSettings(profileId);
-        ofNullable(Strings.emptyToNull(request.getId())).ifPresent(analyticsConfig::setId);
-        analyticsConfig.setEnabled(ofNullable(request.getEnabled()).orElse(false));
-        settings.setGoogleAnalyticsDetails(analyticsConfig);
+        List<AnalyticsDetails> serverAnalyticsDetails = Optional.ofNullable(settings.getAnalyticsDetails())
+                .orElse(new ArrayList<>());
+
+        ofNullable(Strings.emptyToNull(request.getId())).ifPresent(analyticsDetails::setId);
+        analyticsDetails.setEnabled(ofNullable(request.getEnabled()).orElse(false));
+        analyticsDetails.setType(request.getType());
+        serverAnalyticsDetails.add(analyticsDetails);
+        settings.setAnalyticsDetails(serverAnalyticsDetails);
         repository.partialUpdate(settings);
         return new OperationCompletionRS("Server Settings with profile '" + profileId + "' is successfully updated.");
     }
 
     @Override
-    public GoogleAnalyticsResource getAnalyticsSettings(String profileId) {
+    public List<AnalyticsResource> getAnalyticsSettings(String profileId) {
         ServerSettings settings = findServerSettings(profileId);
-        GoogleAnalyticsResource analytics = new GoogleAnalyticsResource();
+        List<AnalyticsResource> analytics = new ArrayList<>();
 
-        BusinessRule.expect(settings.getGoogleAnalyticsDetails(),
+        BusinessRule.expect(settings.getAnalyticsDetails(),
                 Predicates.notNull()).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, profileId);
 
-        analytics.setId(settings.getGoogleAnalyticsDetails().getId());
-        analytics.setEnabled(settings.getGoogleAnalyticsDetails().getEnabled());
+        for (AnalyticsDetails a: settings.getAnalyticsDetails()){
+            AnalyticsResource resource = new AnalyticsResource();
+            resource.setId(a.getId());
+            resource.setType(a.getType());
+            resource.setEnabled(a.getEnabled());
+        }
+
         return analytics;
     }
 

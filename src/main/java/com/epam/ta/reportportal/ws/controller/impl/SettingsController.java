@@ -24,7 +24,7 @@ package com.epam.ta.reportportal.ws.controller.impl;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandler;
 import com.epam.ta.reportportal.ws.controller.ISettingsController;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.settings.GoogleAnalyticsResource;
+import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import io.swagger.annotations.ApiOperation;
@@ -36,6 +36,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.List;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -86,7 +87,7 @@ public class SettingsController implements ISettingsController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @ApiOperation(value = "Enables server Google Analytics for specified profile")
-    public OperationCompletionRS saveAnalyticsSettings(@PathVariable String profileId, @RequestBody @Validated GoogleAnalyticsResource request){
+    public OperationCompletionRS saveAnalyticsSettings(@PathVariable String profileId, @RequestBody @Validated AnalyticsResource request){
 	    return serverHandler.saveAnalyticsSettings(normalizeId(profileId), request);
     }
 
@@ -94,7 +95,7 @@ public class SettingsController implements ISettingsController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @ApiOperation(value = "Get server Google Analytics for specified profile")
-    public GoogleAnalyticsResource getAnalyticsSettings(@PathVariable String profileId){
+    public List<AnalyticsResource> getAnalyticsSettings(@PathVariable String profileId){
         return serverHandler.getAnalyticsSettings(normalizeId(profileId));
     }
 }

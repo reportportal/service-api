@@ -26,7 +26,7 @@ import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * Server settings administration interface
@@ -62,5 +62,5 @@ public interface ServerAdminHandler {
 
     OperationCompletionRS saveAnalyticsSettings(String profileId, AnalyticsResource request);
 
-    List<AnalyticsResource> getAnalyticsSettings(String profileId);
+    Map<String, AnalyticsResource> getAnalyticsSettings(String profileId);
 }

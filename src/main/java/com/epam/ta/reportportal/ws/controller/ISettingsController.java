@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 
 import java.security.Principal;
-import java.util.List;
+import java.util.Map;
 
 /**
  * Controller interface for specific ADMIN ONLY features like server
@@ -60,5 +60,5 @@ public interface ISettingsController {
 
     OperationCompletionRS saveAnalyticsSettings(String profileId, AnalyticsResource request);
 
-    List<AnalyticsResource> getAnalyticsSettings(String profileId);
+    Map<String, AnalyticsResource> getAnalyticsSettings(String profileId);
 }

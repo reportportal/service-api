@@ -21,15 +21,6 @@
 
 package com.epam.ta.reportportal.core.filter.impl;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.acl.AclUtils;
@@ -42,6 +33,14 @@ import com.epam.ta.reportportal.ws.converter.UserFilterResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Default implementation of {@link IGetUserFilterHandler}

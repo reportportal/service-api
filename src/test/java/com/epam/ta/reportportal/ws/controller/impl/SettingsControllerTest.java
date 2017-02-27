@@ -21,27 +21,24 @@
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.dumbster.smtp.ServerOptions;
 import com.dumbster.smtp.SmtpServer;
 import com.dumbster.smtp.SmtpServerFactory;
+import com.epam.ta.reportportal.auth.AuthConstants;
+import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 
-import com.epam.ta.reportportal.auth.AuthConstants;
-import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.settings.UpdateEmailSettingsRQ;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Administration controller test
@@ -76,9 +73,9 @@ public class SettingsControllerTest extends BaseMvcTest {
 
 	@Test
 	public void updateServerSettingsNegative() throws Exception {
-		UpdateEmailSettingsRQ rq = new UpdateEmailSettingsRQ();
+		ServerEmailResource rq = new ServerEmailResource();
 		rq.setHost("fake.host.com");
-		rq.setPort("25");
+		rq.setPort(25);
 		rq.setProtocol("smtp");
 		this.mvcMock.perform(put("/settings/default/email").principal(authentication()).contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
 				.andExpect(status().is(400));
@@ -86,9 +83,9 @@ public class SettingsControllerTest extends BaseMvcTest {
 
 	@Test
 	public void updateServerSettings() throws Exception {
-		UpdateEmailSettingsRQ rq = new UpdateEmailSettingsRQ();
+		ServerEmailResource rq = new ServerEmailResource();
 		rq.setHost("localhost");
-		rq.setPort("10025");
+		rq.setPort(10025);
 		rq.setProtocol("smtp");
 		rq.setAuthEnabled(true);
 		rq.setUsername("user");

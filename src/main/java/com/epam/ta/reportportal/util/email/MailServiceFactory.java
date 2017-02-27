@@ -22,9 +22,9 @@ package com.epam.ta.reportportal.util.email;
 
 import com.epam.reportportal.commons.template.TemplateEngine;
 import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
+import com.epam.ta.reportportal.database.entity.settings.ServerEmailDetails;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
-import com.epam.ta.reportportal.ws.model.settings.ServerEmailConfig;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +66,7 @@ public class MailServiceFactory {
 	 * @param serverConfig  Server-level configuration
 	 * @return Built email service
 	 */
-	public Optional<EmailService> getEmailService(ProjectEmailConfig projectConfig, ServerEmailConfig serverConfig) {
+	public Optional<EmailService> getEmailService(ProjectEmailConfig projectConfig, ServerEmailDetails serverConfig) {
 
 		return getEmailService(serverConfig).flatMap(service -> {
 			// if there is server email config, let's check project config
@@ -91,7 +91,7 @@ public class MailServiceFactory {
 	 * @param serverConfig Server-level configuration
 	 * @return Built email service
 	 */
-	public Optional<EmailService> getEmailService(ServerEmailConfig serverConfig) {
+	public Optional<EmailService> getEmailService(ServerEmailDetails serverConfig) {
 		return ofNullable(serverConfig).map(serverConf -> {
 			boolean authRequired = (null != serverConf.getAuthEnabled() && serverConf.getAuthEnabled());
 
@@ -127,7 +127,7 @@ public class MailServiceFactory {
 	 */
 	public Optional<EmailService> getDefaultEmailService() {
 		return ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE))
-				.flatMap(serverSettings -> getEmailService(serverSettings.getServerEmailConfig()));
+				.flatMap(serverSettings -> getEmailService(serverSettings.getServerEmailDetails()));
 
 	}
 
@@ -138,7 +138,7 @@ public class MailServiceFactory {
 	 */
 	public Optional<EmailService> getDefaultEmailService(ProjectEmailConfig projectEmailConfig) {
 		return ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE))
-				.flatMap(serverSettings -> getEmailService(projectEmailConfig, serverSettings.getServerEmailConfig()));
+				.flatMap(serverSettings -> getEmailService(projectEmailConfig, serverSettings.getServerEmailDetails()));
 	}
 
 	/**
@@ -148,7 +148,7 @@ public class MailServiceFactory {
 	 */
 	public EmailService getDefaultEmailService(ProjectEmailConfig projectEmailConfig, boolean checkConnection) {
 		EmailService emailService = ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE))
-				.flatMap(serverSettings -> getEmailService(projectEmailConfig, serverSettings.getServerEmailConfig()))
+				.flatMap(serverSettings -> getEmailService(projectEmailConfig, serverSettings.getServerEmailDetails()))
 				.orElseThrow(() -> emailConfigurationFail(null));
 
 		if (checkConnection) {
@@ -164,7 +164,7 @@ public class MailServiceFactory {
 	 */
 	public EmailService getDefaultEmailService(boolean checkConnection) {
 		EmailService emailService = ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE))
-				.flatMap(serverSettings -> getEmailService(serverSettings.getServerEmailConfig()))
+				.flatMap(serverSettings -> getEmailService(serverSettings.getServerEmailDetails()))
 				.orElseThrow(() -> emailConfigurationFail(null));
 
 		if (checkConnection) {

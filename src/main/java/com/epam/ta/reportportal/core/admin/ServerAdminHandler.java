@@ -22,8 +22,11 @@
 package com.epam.ta.reportportal.core.admin;
 
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
+import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
-import com.epam.ta.reportportal.ws.model.settings.UpdateEmailSettingsRQ;
+
+import java.util.Map;
 
 /**
  * Server settings administration interface
@@ -47,7 +50,7 @@ public interface ServerAdminHandler {
      * @param request   Update data
      * @return Operation results
      */
-    OperationCompletionRS saveEmailSettings(String profileId, UpdateEmailSettingsRQ request);
+    OperationCompletionRS saveEmailSettings(String profileId, ServerEmailResource request);
 
     /**
      * Deletes email settings for specified profile
@@ -57,4 +60,7 @@ public interface ServerAdminHandler {
      */
     OperationCompletionRS deleteEmailSettings(String profileId);
 
+    OperationCompletionRS saveAnalyticsSettings(String profileId, AnalyticsResource request);
+
+    Map<String, AnalyticsResource> getAnalyticsSettings(String profileId);
 }

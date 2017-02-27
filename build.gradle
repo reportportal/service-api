@@ -70,8 +70,8 @@ configurations.all {
 
 dependencies {
 
-    compile 'com.github.reportportal:commons-model:1479c4d4c7'
-    compile('com.github.reportportal:commons-dao:b5e3eb6d84') {
+    compile 'com.github.reportportal:commons-model:4867d49'
+    compile('com.github.reportportal:commons-dao:853de01') {
         exclude group: 'com.github.reportportal', module: 'commons-model'
     }
     compile('com.github.reportportal:commons-rules:7fa95723ba') {

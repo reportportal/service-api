@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.ws.converter;
 
-import com.epam.ta.reportportal.database.entity.ServerSettings;
+import com.epam.ta.reportportal.database.entity.settings.ServerSettings;
 import com.epam.ta.reportportal.ws.converter.builders.ServerSettingsResourceBuilder;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import org.springframework.beans.factory.annotation.Autowired;

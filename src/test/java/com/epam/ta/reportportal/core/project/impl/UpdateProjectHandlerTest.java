@@ -18,7 +18,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.context.ApplicationEventPublisher;
 
-import com.epam.ta.reportportal.database.dao.FavoriteResourceRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
@@ -46,7 +45,7 @@ public class UpdateProjectHandlerTest {
 		project.setConfiguration(configuration);
 		when(projectRepository.findOne(this.project)).thenReturn(project);
 		updateProjectHandler = new UpdateProjectHandler(projectRepository, mock(UserRepository.class),
-				mock(FavoriteResourceRepository.class), mock(UserPreferenceRepository.class), mock(ApplicationEventPublisher.class));
+				mock(UserPreferenceRepository.class), mock(ApplicationEventPublisher.class));
 	}
 
 	@Test

@@ -21,25 +21,20 @@
 
 package com.epam.ta.reportportal.core.user;
 
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
-
-import java.util.List;
-
+import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.fixture.SpringFixture;
+import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.epam.ta.BaseTest;
-import com.epam.ta.reportportal.database.dao.FavoriteResourceRepository;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.favorite.FavoriteResource;
-import com.epam.ta.reportportal.database.fixture.SpringFixture;
-import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 
 /**
  * Delete user related tests
@@ -62,8 +57,6 @@ public class DeleteUserTest extends BaseTest {
 	@Autowired
 	private LaunchRepository launchRepository;
 
-	@Autowired
-	private FavoriteResourceRepository favoriteResourceRepository;
 
 	@Test
 	public void positiveDeleteUserTest() {
@@ -72,8 +65,6 @@ public class DeleteUserTest extends BaseTest {
 		deleteUserHandler.deleteUser(delUserId, adminUserId);
 		Launch debugMode = launchRepository.findOne("51824cc1323de743b3e5aa2c");
 		Launch defaultMode = launchRepository.findOne("51824cc1323de743b3e5aa5c");
-		List<FavoriteResource> favoriteResourceByUser = favoriteResourceRepository.findFavoriteResourcesByUser(delUserId);
-		Assert.assertTrue(favoriteResourceByUser.isEmpty());
 		Assert.assertNotNull(debugMode);
 		Assert.assertNotNull(defaultMode);
 		Assert.assertNotNull(defaultMode.getUserRef());

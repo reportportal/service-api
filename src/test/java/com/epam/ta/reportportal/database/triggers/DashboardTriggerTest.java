@@ -23,7 +23,6 @@ package com.epam.ta.reportportal.database.triggers;
 
 import com.epam.ta.BaseTest;
 import com.epam.ta.reportportal.database.dao.DashboardRepository;
-import com.epam.ta.reportportal.database.dao.FavoriteResourceRepository;
 import com.epam.ta.reportportal.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.Dashboard.WidgetObject;
@@ -56,32 +55,26 @@ public class DashboardTriggerTest extends BaseTest {
 	@Autowired
 	private DashboardRepository dashboardRepository;
 
-	@Autowired
-	private FavoriteResourceRepository favoriteResourceRepository;
 	
 	@Test
 	public void testDeleteAsObject() {
 		Dashboard dashboard = dashboardRepository.findOne(DASHBOARD_1_ID);
 		WidgetObject widget = dashboard.getWidgets().iterator().next();
-		Assert.assertNotNull(favoriteResourceRepository.findOne("510e1f381812722383339f35"));
+
 		Assert.assertNotNull(widgetRepository.findOne(widget.getWidgetId()));
 		dashboardRepository.delete(dashboard);
 		Assert.assertNull(dashboardRepository.findOne(dashboard.getId()));
 		Assert.assertNull(widgetRepository.findOne(widget.getWidgetId()));
 		Assert.assertNotNull(widgetRepository.findOne("520e1f3815337ca383339f38"));
 		Assert.assertNull(widgetRepository.findOne(widget.getWidgetId()));
-		Assert.assertNull(favoriteResourceRepository.findOne("510e1f381812722383339f35"));
 	}
 
 	@Test
 	public void testDeleteById() {
-		Dashboard dashboard = dashboardRepository.findAll().get(0);
 		Assert.assertNotNull(widgetRepository.findOne(WIDGET_2_ID));
-		Assert.assertNotNull(favoriteResourceRepository.findOne("510e1f381812722383339f36"));
 		dashboardRepository.delete(DASHBOARD_2_ID);
 		Assert.assertNull(dashboardRepository.findOne(DASHBOARD_2_ID));
 		Assert.assertNull(widgetRepository.findOne(WIDGET_2_ID));
-		Assert.assertNull(favoriteResourceRepository.findOne("510e1f381812722383339f36"));
 	}
 
 	@Test
@@ -98,12 +91,7 @@ public class DashboardTriggerTest extends BaseTest {
 		Assert.assertNotNull(widgetRepository.findOne(firstWidget.getWidgetId()));
 		Assert.assertNotNull(widgetRepository.findOne(secondWidget.getWidgetId()));
 
-		Assert.assertNotNull(favoriteResourceRepository.findOne("510e1f381812722383339f37"));
-		Assert.assertNotNull(favoriteResourceRepository.findOne("510e1f381812722383329f38"));
 		dashboardRepository.delete(dashboards);
-		
-		Assert.assertNull(favoriteResourceRepository.findOne("510e1f381812722383339f37"));
-		Assert.assertNull(favoriteResourceRepository.findOne("510e1f381812722383329f38"));
 
 		Assert.assertNull(dashboardRepository.findOne(DASHBOARD_3_ID));
 		Assert.assertNull(dashboardRepository.findOne(DASHBOARD_4_ID));

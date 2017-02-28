@@ -122,7 +122,6 @@
 		<ref bean="failedTestItem" />
 		<ref bean="log6" />
 		<ref bean="launch5" />
-		<ref bean="favoriteResource7" />
 		<ref bean="serverSettings1" />
 		<ref bean="failedChildTestItem" />
 	</util:list>
@@ -1259,67 +1258,8 @@
 		<ref bean="dashboard4" />
 		<ref bean="userFilter2"/>
 		<ref bean="dashboard8"/>
-		<ref bean="favoriteResource1"/>
-		<ref bean="favoriteResource2"/>
-		<ref bean="favoriteResource3"/>
-		<ref bean="favoriteResource4"/>
 	</util:list>
 
-	<bean id="favoriteResource1" class="com.epam.ta.reportportal.database.entity.favorite.FavoriteResource">
-		<property name="id" value="510e1f381812722383339f35" />
-		<property name="projectName" value="default_project" />
-		<property name="resourceId" value="520e1f3818127ca383339f34" />
-		<property name="resourceType" value="DASHBOARD"/>
-		<property name="userName" value="user2"/>
-	</bean>
-
-	<bean id="favoriteResource2" class="com.epam.ta.reportportal.database.entity.favorite.FavoriteResource">
-		<property name="id" value="510e1f381812722383339f36" />
-		<property name="projectName" value="default_project" />
-		<property name="resourceId" value="520e1f3818127ca383339f35" />
-		<property name="resourceType" value="DASHBOARD"/>
-		<property name="userName" value="user2"/>
-	</bean>
-
-	<bean id="favoriteResource3" class="com.epam.ta.reportportal.database.entity.favorite.FavoriteResource">
-		<property name="id" value="510e1f381812722383339f37" />
-		<property name="projectName" value="default_project" />
-		<property name="resourceId" value="520e1f3818127ca383339f36" />
-		<property name="resourceType" value="DASHBOARD"/>
-		<property name="userName" value="user2"/>
-	</bean>
-
-	<bean id="favoriteResource4" class="com.epam.ta.reportportal.database.entity.favorite.FavoriteResource">
-		<property name="id" value="510e1f381812722383329f38" />
-		<property name="projectName" value="default_project" />
-		<property name="resourceId" value="520e1f3818127ca383339f37" />
-		<property name="resourceType" value="DASHBOARD"/>
-		<property name="userName" value="user2"/>
-	</bean>
-
-	<bean id="favoriteResource5" class="com.epam.ta.reportportal.database.entity.favorite.FavoriteResource">
-		<property name="id" value="510e1f381812722383329f38"/>
-		<property name="projectName" value="default_project"/>
-		<property name="resourceId" value="520e1f3818127ca383339f37"/>
-		<property name="resourceType" value="DASHBOARD"/>
-		<property name="userName" value="user1"/>
-	</bean>
-
-	<bean id="favoriteResource6" class="com.epam.ta.reportportal.database.entity.favorite.FavoriteResource">
-		<property name="id" value="510e1f381812722383339f37"/>
-		<property name="projectName" value="default_project"/>
-		<property name="resourceId" value="520e1f3818127ca383339f36"/>
-		<property name="resourceType" value="DASHBOARD"/>
-		<property name="userName" value="user1"/>
-	</bean>
-
-	<bean id="favoriteResource7" class="com.epam.ta.reportportal.database.entity.favorite.FavoriteResource">
-		<property name="id" value="510e1f381812722383339f47"/>
-		<property name="projectName" value="project1"/>
-		<property name="resourceId" value="520e1f3818127ca383339f44"/>
-		<property name="resourceType" value="DASHBOARD"/>
-		<property name="userName" value="user1"/>
-	</bean>
 
 	<bean id="widget1" class="com.epam.ta.reportportal.database.entity.widget.Widget">
 		<property name="id" value="520e1f3818127ca383339f31" />
@@ -2892,9 +2832,6 @@
 		<ref bean="user1"/>
 		<ref bean="launchInDebugMode"/>
 		<ref bean="launchInDefaultMode"/>
-		<ref bean="favoriteResource4"/>
-		<ref bean="favoriteResource5"/>
-		<ref bean="favoriteResource6"/>
 		<ref bean="project1"/>
 	</util:list>
 

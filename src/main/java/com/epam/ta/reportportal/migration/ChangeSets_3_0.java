@@ -41,4 +41,9 @@ public class ChangeSets_3_0 {
 	public void useStepBasedCalcStrategy(MongoTemplate mongoTemplate) throws IOException {
 		mongoTemplate.getDb().doEval(asCharSource(getResource("migration/v3_0_0.js"), Charsets.UTF_8).read());
 	}
+
+    @ChangeSet(order = "3.0.0-2", id = "v3.0.0-use classes with new names in server settings", author = "pbortnik")
+    public void useUpdatedClassesForSettings(MongoTemplate mongoTemplate) throws IOException {
+        mongoTemplate.getDb().doEval(asCharSource(getResource("migration/v3_0_0_2.js"), Charsets.UTF_8).read());
+    }
 }

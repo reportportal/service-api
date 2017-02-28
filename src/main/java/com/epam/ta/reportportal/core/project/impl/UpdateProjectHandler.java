@@ -52,7 +52,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.core.project.IUpdateProjectHandler;
-import com.epam.ta.reportportal.database.dao.FavoriteResourceRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
@@ -89,17 +88,15 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 
 	private final ProjectRepository projectRepository;
 	private final UserRepository userRepository;
-	private final FavoriteResourceRepository favoriteResourceRepository;
 	private final UserPreferenceRepository preferenceRepository;
 	private final ApplicationEventPublisher publisher;
 
 	@Autowired
 	public UpdateProjectHandler(ProjectRepository projectRepository, UserRepository userRepository,
-			FavoriteResourceRepository favoriteResourceRepository, UserPreferenceRepository userPreferenceRepository,
+			UserPreferenceRepository userPreferenceRepository,
 			ApplicationEventPublisher applicationEventPublisher) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
-		this.favoriteResourceRepository = favoriteResourceRepository;
 		this.preferenceRepository = userPreferenceRepository;
 		this.publisher = applicationEventPublisher;
 	}
@@ -318,7 +315,6 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			projectRepository.save(project);
 			for (String user : unassignUsersRQ.getUsernames()) {
 				String normalized = user.toLowerCase();
-				favoriteResourceRepository.removeFavoriteResources(normalized, projectName);
 				preferenceRepository.deleteByUsernameAndProject(normalized, projectName);
 			}
 		} catch (Exception e) {

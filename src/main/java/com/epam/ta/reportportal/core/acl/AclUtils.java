@@ -77,7 +77,7 @@ public class AclUtils {
     public static void isAllowedToEdit(Acl acl, String userModifier, Map<String, ProjectRole> userProjects,
             String resourceName) {
         BusinessRule.expect(acl,
-                or(Preconditions.isOwner(userModifier), hasProjectRole(userProjects, ProjectRole.PROJECT_MANAGER)))
+                Preconditions.isOwner(userModifier).or(hasProjectRole(userProjects, ProjectRole.PROJECT_MANAGER)))
                 .verify(ErrorType.UNABLE_MODIFY_SHARABLE_RESOURCE,
                         Suppliers.formattedSupplier("User {} isn't owner of {} resource.", userModifier, resourceName));
 

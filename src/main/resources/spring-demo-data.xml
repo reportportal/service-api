@@ -2922,6 +2922,17 @@
 				<property name="debug" value="false"/>
 			</bean>
 		</property>
+
+        <property name="analyticsDetails">
+            <map>
+                <entry key="google">
+                    <bean class="com.epam.ta.reportportal.database.entity.settings.AnalyticsDetails">
+                        <property name="id" value="123456789"/>
+                        <property name="enabled" value="true"/>
+                    </bean>
+                </entry>
+            </map>
+        </property>
 	</bean>
 
 	<bean id="triggerLaunch" class="com.epam.ta.reportportal.database.entity.Launch">

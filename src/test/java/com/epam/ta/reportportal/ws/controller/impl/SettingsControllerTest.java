@@ -26,6 +26,7 @@ import com.dumbster.smtp.SmtpServer;
 import com.dumbster.smtp.SmtpServerFactory;
 import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.AfterClass;
@@ -102,6 +103,33 @@ public class SettingsControllerTest extends BaseMvcTest {
 				.andExpect(status().is(200));
 	}
 
+	@Test
+    public void saveAnalyticsSettingsNegative() throws Exception{
+	    AnalyticsResource resource = new AnalyticsResource();
+	    resource.setId("");
+	    resource.setEnabled(true);
+	    resource.setType("");
+        this.mvcMock.perform(put("/settings/default/analytics")
+                .principal(authentication()).contentType(APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(resource))).andExpect(status().is(400));
+    }
+
+	@Test
+    public void saveAnalyticsSettings() throws Exception{
+        AnalyticsResource resource = new AnalyticsResource();
+        resource.setId("123456789");
+        resource.setEnabled(true);
+        resource.setType("google");
+        this.mvcMock.perform(put("/settings/default/analytics")
+                .principal(authentication()).contentType(APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(resource))).andExpect(status().is(200));
+    }
+
+    @Test
+    public void getAnalyticsSettings() throws Exception{
+        this.mvcMock.perform(get("/settings/default/analytics").principal(authentication()))
+                .andExpect(status().is(200));
+    }
 
 	@Override
 	protected Authentication authentication() {

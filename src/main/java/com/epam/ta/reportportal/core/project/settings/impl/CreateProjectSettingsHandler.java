@@ -129,7 +129,8 @@ public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandl
 			widgetRepository.findByProject(projectName).stream()
 					.filter(it -> it.getContentOptions().getType().equals(PIE_CHART.getType())
 							|| it.getContentOptions().getType().equals(LAUNCHES_TABLE.getType()))
-                    .filter(it -> it.getContentOptions().getContentFields().contains(subType.getTypeRef()))
+                    .filter(it -> it.getContentOptions().getContentFields()
+                            .stream().anyMatch(s -> s.contains(subType.getTypeRef().toLowerCase())))
 					.forEach(it -> widgetRepository.addContentField(it.getId(),
 							"statistics$defects$" + subType.getTypeRef().toLowerCase() + "$" + subType.getLocator()));
 		} catch (Exception e) {

@@ -140,6 +140,6 @@ public class GetUserHandler implements IGetUserHandler {
 
 	@Override
 	public Iterable<UserResource> searchUsers(String term, Pageable pageable) {
-		return userResourceAssembler.toPagedResources(userRepository.findByLoginNameOrEmail(term, pageable));
+		return userResourceAssembler.toPagedResources(userRepository.searchForUser(term, pageable));
 	}
 }

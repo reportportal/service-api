@@ -84,3 +84,4 @@
 * EPMRPP-23741 - Update the info from RP notification center in invitation email
 * EPMRPP-23744 - Error handling: When the invitation is sent to email address that already available in DB, ws returns incorrect error message
 * EPMRPP-23468 - User with project role=PM/LEAD unable to invite user
+* EPMRPP-23720 - WS should send only content fields that were selected by user

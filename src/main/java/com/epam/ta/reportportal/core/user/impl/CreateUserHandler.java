@@ -191,6 +191,9 @@ public class CreateUserHandler implements ICreateUserHandler {
 		String email = EntityUtils.normalizeEmail(request.getEmail());
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 
+		User email_user = userRepository.findByEmail(request.getEmail());
+		expect(email_user, isNull()).verify(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("email='{}'", request.getEmail()));
+
 		Project defaultProject = projectRepository.findOne(EntityUtils.normalizeProjectName(request.getDefaultProject()));
 
 		expect(defaultProject, notNull()).verify(PROJECT_NOT_FOUND, request.getDefaultProject());
@@ -256,7 +259,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		String email = request.getEmail();
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 
-		User email_user = userRepository.findOne(request.getEmail());
+		User email_user = userRepository.findByEmail(request.getEmail());
 		expect(email_user, isNull()).verify(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("email='{}'", request.getEmail()));
 
 		user = userBuilder.get().addCreateUserRQ(request).addUserRole(UserRole.USER).build();

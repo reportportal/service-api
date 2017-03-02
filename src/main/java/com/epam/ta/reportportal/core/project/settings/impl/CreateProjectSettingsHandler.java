@@ -36,24 +36,6 @@
  */
 package com.epam.ta.reportportal.core.project.settings.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.LAUNCHES_TABLE;
-import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.PIE_CHART;
-import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.*;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
-
-import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.project.settings.ICreateProjectSettingsHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.WidgetRepository;
@@ -67,6 +49,23 @@ import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
+import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.LAUNCHES_TABLE;
+import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.PIE_CHART;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 
 /**
  * Basic realization of
@@ -130,6 +129,7 @@ public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandl
 			widgetRepository.findByProject(projectName).stream()
 					.filter(it -> it.getContentOptions().getType().equals(PIE_CHART.getType())
 							|| it.getContentOptions().getType().equals(LAUNCHES_TABLE.getType()))
+                    .filter(it -> it.getContentOptions().getContentFields().contains(subType.getTypeRef()))
 					.forEach(it -> widgetRepository.addContentField(it.getId(),
 							"statistics$defects$" + subType.getTypeRef().toLowerCase() + "$" + subType.getLocator()));
 		} catch (Exception e) {

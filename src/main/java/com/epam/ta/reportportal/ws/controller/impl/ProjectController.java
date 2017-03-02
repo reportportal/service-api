@@ -78,29 +78,28 @@ import springfox.documentation.annotations.ApiIgnore;
 @Api
 public class ProjectController implements IProjectController {
 
-	@Autowired
-	private ICreateProjectHandler createProjectHandler;
+	private final ICreateProjectHandler createProjectHandler;
+	private final IUpdateProjectHandler updateProjectHandler;
+	private final IDeleteProjectHandler deleteProjectHandler;
+	private final IGetProjectHandler getProjectHandler;
+	private final IGetPreferenceHandler getPreferenceHandler;
+	private final IUpdatePreferenceHandler updatePreferenceHandler;
+	private final IGetProjectInfoHandler getProjectInfoHandler;
+	private final IGetUserHandler userHandler;
 
 	@Autowired
-	private IUpdateProjectHandler updateProjectHandler;
-
-	@Autowired
-	private IDeleteProjectHandler deleteProjectHandler;
-
-	@Autowired
-	private IGetProjectHandler getProjectHandler;
-
-	@Autowired
-	private IGetPreferenceHandler getPreferenceHandler;
-
-	@Autowired
-	private IUpdatePreferenceHandler updatePreferenceHandler;
-
-	@Autowired
-	private IGetProjectInfoHandler getProjectInfoHandler;
-
-	@Autowired
-	private IGetUserHandler userHandler;
+	public ProjectController(ICreateProjectHandler createProjectHandler, IUpdateProjectHandler updateProjectHandler,
+			IDeleteProjectHandler deleteProjectHandler, IGetProjectHandler getProjectHandler, IGetPreferenceHandler getPreferenceHandler,
+			IUpdatePreferenceHandler updatePreferenceHandler, IGetProjectInfoHandler getProjectInfoHandler, IGetUserHandler userHandler) {
+		this.createProjectHandler = createProjectHandler;
+		this.updateProjectHandler = updateProjectHandler;
+		this.deleteProjectHandler = deleteProjectHandler;
+		this.getProjectHandler = getProjectHandler;
+		this.getPreferenceHandler = getPreferenceHandler;
+		this.updatePreferenceHandler = updatePreferenceHandler;
+		this.getProjectInfoHandler = getProjectInfoHandler;
+		this.userHandler = userHandler;
+	}
 
 	@Override
 	@PreAuthorize(ADMIN_ONLY)
@@ -208,7 +207,16 @@ public class ProjectController implements IProjectController {
 	public List<String> getProjectUsers(@PathVariable String projectName,
 			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + Project.USERS) String value,
 			Principal principal) {
-		return getProjectHandler.getUsernames(EntityUtils.normalizeProjectName(projectName), EntityUtils.normalizeUsername(value));
+		return getProjectHandler.getUserNames(EntityUtils.normalizeProjectName(projectName), EntityUtils.normalizeUsername(value));
+	}
+
+	@RequestMapping(value = "/{projectName}/usernames/search/{term:.+}", method = GET)
+	@ResponseStatus(OK)
+	@ResponseBody
+	@ApiIgnore
+	@PreAuthorize(PROJECT_LEAD)
+	public Iterable<String> searchForUser(@SuppressWarnings("unused") @PathVariable String projectName, @PathVariable String term, Pageable pageable) {
+		return getProjectHandler.getUserNames(term, pageable);
 	}
 
 	@Override

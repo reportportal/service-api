@@ -72,9 +72,7 @@ dependencies {
 
     compile 'com.github.reportportal:commons-model:11e343e81d'
     compile('com.github.reportportal:commons-dao:54f06ba440')
-    compile('com.github.reportportal:commons-rules:7fa95723ba') {
-        exclude group: 'com.github.reportportal', module: 'commons-dao'
-    }
+    compile('com.github.reportportal:commons-rules:56fe3ab074')
 
     compile 'com.epam.reportportal:commons:2.6.1'
 

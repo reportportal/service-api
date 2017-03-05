@@ -81,3 +81,7 @@
 * EPMRPP-23691 - WS: To combine 'from' using sender name and email when the notification is sending
 * EPMRPP-20425 - Allow to delete Not own dashboards/widgets/filters by PM
 * EPMRPP-23076 - Script for deleting favorite dashboards with new implementation
+* EPMRPP-23741 - Update the info from RP notification center in invitation email
+* EPMRPP-23744 - Error handling: When the invitation is sent to email address that already available in DB, ws returns incorrect error message
+* EPMRPP-23468 - User with project role=PM/LEAD unable to invite user
+* EPMRPP-23692 - Demo data: fix line-breakes in Logs

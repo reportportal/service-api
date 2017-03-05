@@ -74,8 +74,7 @@ public class AclUtils {
     }
 
     // TODO consider move this validation to permission validation layer
-    public static void isAllowedToEdit(Acl acl, String userModifier, Map<String, ProjectRole> userProjects,
-            String resourceName) {
+    public static void isAllowedToEdit(Acl acl, String userModifier, Map<String, ProjectRole> userProjects, String resourceName) {
         BusinessRule.expect(acl,
                 Preconditions.isOwner(userModifier).or(hasProjectRole(userProjects, ProjectRole.PROJECT_MANAGER)))
                 .verify(ErrorType.UNABLE_MODIFY_SHARABLE_RESOURCE,

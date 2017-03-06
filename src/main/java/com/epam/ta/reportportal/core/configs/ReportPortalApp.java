@@ -46,8 +46,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 
-import java.util.Optional;
-
 /**
  * Application Entry Point
  *
@@ -56,15 +54,14 @@ import java.util.Optional;
 @SpringBootApplication(exclude = {
         MongoDataAutoConfiguration.class,
         HypermediaAutoConfiguration.class,
-        /* configured explicitly for Apache Commons Multipart Resolver */  MultipartAutoConfiguration.class})
-@Import({ SecurityConfiguration.class, JobsConfiguration.class, MvcConfig.class, MongodbConfiguration.class, SecurityConfiguration.SecurityServerConfiguration.class })
+        /* configured explicitly for Apache Commons Multipart Resolver */  MultipartAutoConfiguration.class })
+@Import({ SecurityConfiguration.class, JobsConfiguration.class, MvcConfig.class, MongodbConfiguration.class,
+        SecurityConfiguration.SecurityServerConfiguration.class })
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 @ComponentScan("com.epam.ta.reportportal")
 public class ReportPortalApp {
 
     public static void main(String[] args) {
-        //workaround for https://github.com/spring-projects/spring-boot/issues/8234
-        Optional.ofNullable(System.getenv("rp.profiles")).ifPresent(p -> System.setProperty("spring.profiles.active",p));
         SpringApplication.run(ReportPortalApp.class, args);
     }
 

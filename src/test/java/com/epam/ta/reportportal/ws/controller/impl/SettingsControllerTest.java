@@ -106,7 +106,6 @@ public class SettingsControllerTest extends BaseMvcTest {
 	@Test
     public void saveAnalyticsSettingsNegative() throws Exception{
 	    AnalyticsResource resource = new AnalyticsResource();
-	    resource.setId("");
 	    resource.setEnabled(true);
 	    resource.setType("");
         this.mvcMock.perform(put("/settings/default/analytics")
@@ -117,7 +116,6 @@ public class SettingsControllerTest extends BaseMvcTest {
 	@Test
     public void saveAnalyticsSettings() throws Exception{
         AnalyticsResource resource = new AnalyticsResource();
-        resource.setId("123456789");
         resource.setEnabled(true);
         resource.setType("google");
         this.mvcMock.perform(put("/settings/default/analytics")

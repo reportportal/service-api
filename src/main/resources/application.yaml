@@ -4,9 +4,6 @@ rp:
     maxFileSize: 32MB
 
 spring:
-  profiles:
-    ## Default one is still Eureka
-    active: ${rp.profiles:eureka}
   cloud:
     consul:
       host: localhost

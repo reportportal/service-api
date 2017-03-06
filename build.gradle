@@ -8,7 +8,7 @@ buildscript {
     }
     dependencies {
         classpath "io.spring.gradle:dependency-management-plugin:1.0.0.RELEASE"
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.1.RELEASE")
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE")
         classpath 'com.bmuschko:gradle-docker-plugin:3.0.4'
     }
 }
@@ -56,7 +56,7 @@ repositories {
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Camden.SR5"
-        mavenBom "org.springframework.boot:spring-boot-dependencies:1.5.1.RELEASE"
+        mavenBom "org.springframework.boot:spring-boot-dependencies:1.5.2.RELEASE"
     }
 }
 
@@ -70,12 +70,9 @@ configurations.all {
 
 dependencies {
 
-    compile 'com.github.reportportal:commons-model:a441d42'
-    compile('com.github.reportportal:commons-dao:f93e157')
-
-    compile('com.github.reportportal:commons-rules:7fa95723ba') {
-        exclude group: 'com.github.reportportal', module: 'commons-dao'
-    }
+    compile 'com.github.reportportal:commons-model:872821f'
+    compile('com.github.reportportal:commons-dao:7bb0b98')
+    compile('com.github.reportportal:commons-rules:56fe3ab074')
 
     compile 'com.epam.reportportal:commons:2.6.1'
 

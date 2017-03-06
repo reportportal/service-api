@@ -34,7 +34,6 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
-import com.google.common.base.Strings;
 import com.mongodb.WriteResult;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
@@ -46,7 +45,9 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
@@ -160,12 +161,11 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
         ServerSettings settings = findServerSettings(profileId);
         Map<String, AnalyticsDetails> serverAnalyticsDetails = Optional.ofNullable(settings.getAnalyticsDetails())
                 .orElse(new HashMap<>());
-        if (serverAnalyticsDetails.containsKey(analyticsType)){
+        if (serverAnalyticsDetails.containsKey(analyticsType)) {
             analyticsDetails = serverAnalyticsDetails.get(analyticsType);
-        }else {
+        } else {
             analyticsDetails = new AnalyticsDetails();
         }
-        ofNullable(Strings.emptyToNull(request.getId())).ifPresent(analyticsDetails::setId);
         analyticsDetails.setEnabled(ofNullable(request.getEnabled()).orElse(false));
         serverAnalyticsDetails.put(analyticsType, analyticsDetails);
         settings.setAnalyticsDetails(serverAnalyticsDetails);
@@ -174,20 +174,18 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
     }
 
     @Override
-    public  Map<String, AnalyticsResource> getAnalyticsSettings(String profileId) {
+    public Map<String, AnalyticsResource> getAnalyticsSettings(String profileId) {
         ServerSettings settings = findServerSettings(profileId);
         Map<String, AnalyticsResource> analytics = new HashMap<>();
+        //error type?
         BusinessRule.expect(settings.getAnalyticsDetails(),
                 Predicates.notNull()).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, profileId);
         settings.getAnalyticsDetails().entrySet().forEach(pair -> analytics.put(pair.getKey(),
-                new AnalyticsResource(){
+                new AnalyticsResource() {
                     {
-                        setId(pair.getValue().getId());
                         setEnabled(pair.getValue().getEnabled());
                     }
                 }));
-
-
         return analytics;
     }
 

@@ -21,11 +21,11 @@
 package com.epam.ta.reportportal.info;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.info.Info;
-import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -37,10 +37,11 @@ import java.util.stream.Collectors;
  */
 
 @Component
-public class ExtensionsInfoContributor implements InfoContributor {
+public class ExtensionsInfoContributor implements ExtensionContributor {
 
     private static final String EXTENSION_KEY = "extension";
 
+    @Autowired
     private final DiscoveryClient discoveryClient;
 
     @SuppressWarnings("SpringJavaAutowiringInspection")
@@ -50,10 +51,12 @@ public class ExtensionsInfoContributor implements InfoContributor {
     }
 
     @Override
-    public void contribute(Info.Builder builder) {
+    public Map<String, ?> contribute() {
+        Map<String, Set<String>> bts = new HashMap<>();
         Set<String> collect = discoveryClient.getServices().stream().flatMap(service -> discoveryClient.getInstances(service).stream())
                 .filter(instance -> instance.getMetadata().containsKey(EXTENSION_KEY))
                 .map(instance -> instance.getMetadata().get(EXTENSION_KEY)).collect(Collectors.toCollection(TreeSet::new));
-        builder.withDetail("extensions", collect);
+        bts.put("bts", collect);
+        return bts;
     }
 }

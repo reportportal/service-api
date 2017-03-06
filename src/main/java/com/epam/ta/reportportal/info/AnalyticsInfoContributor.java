@@ -23,10 +23,9 @@ package com.epam.ta.reportportal.info;
 import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.database.entity.settings.AnalyticsDetails;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.info.Info;
-import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -37,7 +36,7 @@ import java.util.Optional;
  */
 
 @Component
-public class AnalyticsInfoContributor implements InfoContributor {
+public class AnalyticsInfoContributor implements ExtensionContributor {
 
     private final ServerSettingsRepository settingsRepository;
 
@@ -48,9 +47,11 @@ public class AnalyticsInfoContributor implements InfoContributor {
     }
 
     @Override
-    public void contribute(Info.Builder builder) {
+    public Map<String, ?> contribute() {
         Optional<Map<String, AnalyticsDetails>> analytics = Optional.ofNullable(settingsRepository.findOne("default"))
                 .flatMap(settings -> Optional.ofNullable(settings.getAnalyticsDetails()));
-        analytics.ifPresent(it -> builder.withDetail("analytics", it));
+        Map<String, Map<String, AnalyticsDetails>> analyticsMap = new HashMap<>();
+        analyticsMap.put("analytics", analytics.get());
+        return analyticsMap;
     }
 }

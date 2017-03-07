@@ -47,11 +47,11 @@ public class AnalyticsInfoContributor implements ExtensionContributor {
     }
 
     @Override
-    public Map<String, ?> contribute() {
+    public Map<String, Object> contribute() {
         Optional<Map<String, AnalyticsDetails>> analytics = Optional.ofNullable(settingsRepository.findOne("default"))
                 .flatMap(settings -> Optional.ofNullable(settings.getAnalyticsDetails()));
-        Map<String, Map<String, AnalyticsDetails>> analyticsMap = new HashMap<>();
-        analyticsMap.put("analytics", analytics.get());
-        return analyticsMap;
+        Map<String, Object> result = new HashMap<>();
+        analytics.ifPresent(it -> result.put("analytics", it));
+        return result;
     }
 }

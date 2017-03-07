@@ -20,14 +20,12 @@
  */
 package com.epam.ta.reportportal.info;
 
+import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -51,12 +49,10 @@ public class ExtensionsInfoContributor implements ExtensionContributor {
     }
 
     @Override
-    public Map<String, ?> contribute() {
-        Map<String, Set<String>> bts = new HashMap<>();
+    public Map<String, Object> contribute() {
         Set<String> collect = discoveryClient.getServices().stream().flatMap(service -> discoveryClient.getInstances(service).stream())
                 .filter(instance -> instance.getMetadata().containsKey(EXTENSION_KEY))
                 .map(instance -> instance.getMetadata().get(EXTENSION_KEY)).collect(Collectors.toCollection(TreeSet::new));
-        bts.put("bts", collect);
-        return bts;
+        return ImmutableMap.<String, Object>builder().put("bts", collect).build();
     }
 }

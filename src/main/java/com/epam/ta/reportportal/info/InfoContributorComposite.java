@@ -5,9 +5,9 @@ import org.springframework.boot.actuate.info.Info;
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class InfoContributorComposite implements InfoContributor {
@@ -21,11 +21,8 @@ public class InfoContributorComposite implements InfoContributor {
 
     @Override
     public void contribute(Info.Builder builder) {
-        Map<String, Object> result = new HashMap<>();
-        for (ExtensionContributor e: infoContributors){
-            Map<String, ?> contribute = e.contribute();
-            result.putAll(contribute);
-        }
-        builder.withDetail("extensions", result);
+        builder.withDetail("extensions", infoContributors.stream()
+                        .map(ExtensionContributor::contribute).flatMap(map -> map.entrySet().stream())
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 }

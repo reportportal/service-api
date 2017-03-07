@@ -70,8 +70,8 @@ configurations.all {
 
 dependencies {
 
-    compile 'com.github.reportportal:commons-model:c26a592522'
-    compile('com.github.reportportal:commons-dao:8e09c379fe')
+    compile 'com.github.reportportal:commons-model:c26a592'
+    compile('com.github.reportportal:commons-dao:6026852')
     compile('com.github.reportportal:commons-rules:56fe3ab074')
 
     compile 'com.epam.reportportal:commons:2.6.1'

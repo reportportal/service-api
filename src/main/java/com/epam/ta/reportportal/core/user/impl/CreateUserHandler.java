@@ -64,6 +64,7 @@ import static com.epam.reportportal.commons.Safe.safe;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.CUSTOMER;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.forName;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -122,10 +123,10 @@ public class CreateUserHandler implements ICreateUserHandler {
 		String newUsername = EntityUtils.normalizeUsername(request.getLogin());
 
 		expect(userRepository.exists(newUsername), equalTo(false))
-				.verify(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("login='{}'", newUsername));
+				.verify(USER_ALREADY_EXISTS, formattedSupplier("login='{}'", newUsername));
 
 		expect(newUsername, Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
-				Suppliers.formattedSupplier("Username '{}' consists only of special characters", newUsername));
+				formattedSupplier("Username '{}' consists only of special characters", newUsername));
 
 		String projectName = EntityUtils.normalizeProjectName(request.getDefaultProject());
 		Project defaultProject = projectRepository.findOne(projectName);
@@ -168,7 +169,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 			safe(() -> emailServiceFactory.getDefaultEmailService(true)
 					.sendConfirmationEmail(request, basicUrl), e -> response.setWarning(e.getMessage()));
 		} catch (DuplicateKeyException e) {
-			fail().withError(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("email='{}'", request.getEmail()));
+			fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
 		}
@@ -191,7 +192,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 
 		User email_user = userRepository.findByEmail(request.getEmail());
-		expect(email_user, isNull()).verify(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("email='{}'", request.getEmail()));
+		expect(email_user, isNull()).verify(USER_ALREADY_EXISTS, formattedSupplier("email={}", request.getEmail()));
 
 		Project defaultProject = projectRepository.findOne(EntityUtils.normalizeProjectName(request.getDefaultProject()));
 
@@ -224,7 +225,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 			emailService.sendConfirmationEmail("User registration confirmation", new String[] { bid.getEmail() }, emailLink.toString());
 		} catch (Exception e) {
 			fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
-					Suppliers.formattedSupplier("Unable to send email for bid '{}'." + e.getMessage(), bid.getId()));
+					formattedSupplier("Unable to send email for bid '{}'." + e.getMessage(), bid.getId()));
 		}
 
 		CreateUserBidRS response = new CreateUserBidRS();
@@ -243,10 +244,10 @@ public class CreateUserHandler implements ICreateUserHandler {
 		expect(bid, notNull()).verify(INCORRECT_REQUEST, "Impossible to register user. UUID expired or already registered.");
 
 		User user = userRepository.findOne(request.getLogin());
-		expect(user, isNull()).verify(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("login='{}'", request.getLogin()));
+		expect(user, isNull()).verify(USER_ALREADY_EXISTS, formattedSupplier("login='{}'", request.getLogin()));
 
 		expect(request.getLogin(), Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
-				Suppliers.formattedSupplier("Username '{}' consists only of special characters", request.getLogin()));
+				formattedSupplier("Username '{}' consists only of special characters", request.getLogin()));
 
 		// synchronized (this)
 		Project defaultProject = projectRepository.findOne(bid.getDefaultProject());
@@ -259,7 +260,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 
 		User email_user = userRepository.findByEmail(request.getEmail());
-		expect(email_user, isNull()).verify(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("email='{}'", request.getEmail()));
+		expect(email_user, isNull()).verify(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
 
 		user = userBuilder.get().addCreateUserRQ(request).addUserRole(UserRole.USER).build();
 		Optional<ProjectRole> projectRole = forName(bid.getRole());
@@ -287,7 +288,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 			userCreationBidRepository.delete(uuid);
 		} catch (DuplicateKeyException e) {
-			fail().withError(USER_ALREADY_EXISTS, Suppliers.formattedSupplier("email='{}'", request.getEmail()));
+			fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while User creating.", exp);
 		}
@@ -314,7 +315,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 					.sendRestorePasswordEmail("Password recovery", new String[] { rq.getEmail() }, baseUrl + "#login?reset=" + bid.getId(),
 							user.getLogin());
 		} catch (Exception e) {
-			fail().withError(FORBIDDEN_OPERATION, Suppliers.formattedSupplier("Unable to send email for bid '{}'.", bid.getId()));
+			fail().withError(FORBIDDEN_OPERATION, formattedSupplier("Unable to send email for bid '{}'.", bid.getId()));
 		}
 		return new OperationCompletionRS("Email has been sent");
 	}

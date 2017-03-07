@@ -25,6 +25,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
+import com.epam.ta.reportportal.ws.model.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.epam.ta.reportportal.database.entity.Project;
@@ -39,6 +40,7 @@ import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import org.springframework.web.bind.annotation.PathVariable;
 
 /**
  * @author Hanna_Sukhadolava
@@ -148,13 +150,23 @@ public interface IProjectController {
 	List<String> getProjectUsers(String projectName, String value, Principal principal);
 
 	/**
-	 * Get user preference
-	 * 
-	 * @param projectName
-	 * @param userName
-	 * @param principal
-	 * @return
+	 * Searches for user across all db
+	 * @param projectName Project Name
+	 * @param term Search Term
+	 * @param pageable Page request
+	 * @return Page of users
 	 */
+	Page<String> searchForUser(String projectName, String term, Pageable pageable);
+
+
+		/**
+		 * Get user preference
+		 *
+		 * @param projectName
+		 * @param userName
+		 * @param principal
+		 * @return
+		 */
 	PreferenceResource getUserPreference(String projectName, String userName, Principal principal);
 
 	/**

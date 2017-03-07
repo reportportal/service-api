@@ -66,7 +66,7 @@ public interface IGetProjectHandler {
 	 * @param value login OR full name of user
 	 * @return List of found user logins
 	 */
-	Page<String> getUserNames(String value, Pageable pageable);
+	com.epam.ta.reportportal.ws.model.Page<String> getUserNames(String value, Pageable pageable);
 
 	/**
 	 * Verify if any project exists in MongoDB 'project' collection

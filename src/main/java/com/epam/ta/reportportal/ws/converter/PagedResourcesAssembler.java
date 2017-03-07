@@ -24,6 +24,8 @@ package com.epam.ta.reportportal.ws.converter;
 import org.springframework.data.domain.Page;
 import org.springframework.util.Assert;
 
+import java.util.function.Function;
+
 /**
  * Replacement of Spring's ResourceAssemblerSupport. Adds possibility to
  * converter {@link Page} resources which is basically arrays of entities with
@@ -35,18 +37,30 @@ import org.springframework.util.Assert;
  */
 public abstract class PagedResourcesAssembler<T, R> extends ResourceAssembler<T, R> {
 
-    /**
-     * Creates {@link com.epam.ta.reportportal.ws.model.Page} from {@link Page} DB query result
-     *
-     * @param content
-     * @return
-     */
-    public com.epam.ta.reportportal.ws.model.Page<R> toPagedResources(Page<T> content) {
-        Assert.notNull(content);
+	public static <T> Function<Page<T>, com.epam.ta.reportportal.ws.model.Page<T>> pageConverter() {
+		return page -> new com.epam.ta.reportportal.ws.model.Page<>(page.getContent(),
+				new com.epam.ta.reportportal.ws.model.Page.PageMetadata(page.getSize(), page.getNumber() + 1, page.getTotalElements(),
+						page.getTotalPages()));
+	}
 
-        return new com.epam.ta.reportportal.ws.model.Page<>(toResources(content),
-                new com.epam.ta.reportportal.ws.model.Page.PageMetadata(content.getSize(),
-                        content.getNumber() + 1, content.getTotalElements(), content.getTotalPages()));
-    }
+	public static <T, R> Function<Page<T>, com.epam.ta.reportportal.ws.model.Page<R>> pageConverter(Function<T, R> modelConverter) {
+		return page -> PagedResourcesAssembler.<R>pageConverter().apply(page.map(modelConverter::apply));
+	}
+
+	/**
+	 * Creates {@link com.epam.ta.reportportal.ws.model.Page} from {@link Page} DB query result
+	 *
+	 * @param content Page to be processed
+	 * @return Transformed Page
+	 * @deprecated in favor of using converters based on JDK8 Functions
+	 */
+	@Deprecated
+	public com.epam.ta.reportportal.ws.model.Page<R> toPagedResources(Page<T> content) {
+		Assert.notNull(content);
+
+		return new com.epam.ta.reportportal.ws.model.Page<>(toResources(content),
+				new com.epam.ta.reportportal.ws.model.Page.PageMetadata(content.getSize(), content.getNumber() + 1,
+						content.getTotalElements(), content.getTotalPages()));
+	}
 
 }

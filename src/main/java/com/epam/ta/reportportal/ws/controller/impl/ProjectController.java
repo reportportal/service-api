@@ -31,6 +31,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
+import com.epam.ta.reportportal.ws.model.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -215,7 +216,7 @@ public class ProjectController implements IProjectController {
 	@ResponseBody
 	@ApiIgnore
 	@PreAuthorize(PROJECT_LEAD)
-	public Iterable<String> searchForUser(@SuppressWarnings("unused") @PathVariable String projectName, @PathVariable String term, Pageable pageable) {
+	public Page<String> searchForUser(@SuppressWarnings("unused") @PathVariable String projectName, @PathVariable String term, Pageable pageable) {
 		return getProjectHandler.getUserNames(term, pageable);
 	}
 

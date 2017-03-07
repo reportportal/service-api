@@ -21,18 +21,12 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import java.security.Principal;
-import java.util.List;
-import java.util.Map;
-
-import com.epam.ta.reportportal.ws.model.Page;
-import org.springframework.data.domain.Pageable;
-
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
 import com.epam.ta.reportportal.ws.model.preference.UpdatePreferenceRQ;
 import com.epam.ta.reportportal.ws.model.project.*;
@@ -40,7 +34,11 @@ import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.data.domain.Pageable;
+
+import java.security.Principal;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hanna_Sukhadolava

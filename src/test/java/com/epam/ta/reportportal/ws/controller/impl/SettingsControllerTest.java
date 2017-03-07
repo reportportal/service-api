@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
@@ -43,78 +43,77 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Administration controller test
- * 
- * @author Dzmitry_Kavalets
  *
+ * @author Dzmitry_Kavalets
  */
 public class SettingsControllerTest extends BaseMvcTest {
 
-	private static SmtpServer SMTP;
+    private static SmtpServer SMTP;
 
 
-	@Autowired
-	private ObjectMapper objectMapper;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-	@BeforeClass
-	public static void startSmtpServer() throws IOException {
-		ServerOptions so = new ServerOptions();
-		so.port = 10025;
-		SMTP = SmtpServerFactory.startServer(so);
-	}
+    @BeforeClass
+    public static void startSmtpServer() throws IOException {
+        ServerOptions so = new ServerOptions();
+        so.port = 10025;
+        SMTP = SmtpServerFactory.startServer(so);
+    }
 
-	@AfterClass
-	public static void shutdownSmtpServer() {
-		SMTP.stop();
-	}
+    @AfterClass
+    public static void shutdownSmtpServer() {
+        SMTP.stop();
+    }
 
-	@Test
-	public void getServerSettings() throws Exception {
-		this.mvcMock.perform(get("/settings/default").principal(authentication())).andExpect(status().is(200));
-	}
+    @Test
+    public void getServerSettings() throws Exception {
+        this.mvcMock.perform(get("/settings/default").principal(authentication())).andExpect(status().is(200));
+    }
 
-	@Test
-	public void updateServerSettingsNegative() throws Exception {
-		ServerEmailResource rq = new ServerEmailResource();
-		rq.setHost("fake.host.com");
-		rq.setPort(25);
-		rq.setProtocol("smtp");
-		this.mvcMock.perform(put("/settings/default/email").principal(authentication()).contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
-				.andExpect(status().is(400));
-	}
+    @Test
+    public void updateServerSettingsNegative() throws Exception {
+        ServerEmailResource rq = new ServerEmailResource();
+        rq.setHost("fake.host.com");
+        rq.setPort(25);
+        rq.setProtocol("smtp");
+        this.mvcMock.perform(put("/settings/default/email").principal(authentication()).contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
+                .andExpect(status().is(400));
+    }
 
-	@Test
-	public void updateServerSettings() throws Exception {
-		ServerEmailResource rq = new ServerEmailResource();
-		rq.setHost("localhost");
-		rq.setPort(10025);
-		rq.setProtocol("smtp");
-		rq.setAuthEnabled(true);
-		rq.setUsername("user");
-		rq.setPassword("password");
-		this.mvcMock.perform(put("/settings/default/email").principal(authentication()).contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
-				.andExpect(status().is(200));
-	}
+    @Test
+    public void updateServerSettings() throws Exception {
+        ServerEmailResource rq = new ServerEmailResource();
+        rq.setHost("localhost");
+        rq.setPort(10025);
+        rq.setProtocol("smtp");
+        rq.setAuthEnabled(true);
+        rq.setUsername("user");
+        rq.setPassword("password");
+        this.mvcMock.perform(put("/settings/default/email").principal(authentication()).contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
+                .andExpect(status().is(200));
+    }
 
-	@Test
-	public void deleteServerSettings() throws Exception {
-		updateServerSettings();
-		this.mvcMock.perform(
-				delete("/settings/default/email").principal(authentication()).contentType(APPLICATION_JSON))
-				.andExpect(status().is(200));
-	}
+    @Test
+    public void deleteServerSettings() throws Exception {
+        updateServerSettings();
+        this.mvcMock.perform(
+                delete("/settings/default/email").principal(authentication()).contentType(APPLICATION_JSON))
+                .andExpect(status().is(200));
+    }
 
-	@Test
-    public void saveAnalyticsSettingsNegative() throws Exception{
-	    AnalyticsResource resource = new AnalyticsResource();
-	    resource.setEnabled(true);
-	    resource.setType("");
+    @Test
+    public void saveAnalyticsSettingsNegative() throws Exception {
+        AnalyticsResource resource = new AnalyticsResource();
+        resource.setEnabled(true);
+        resource.setType("");
         this.mvcMock.perform(put("/settings/default/analytics")
                 .principal(authentication()).contentType(APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(resource))).andExpect(status().is(400));
     }
 
-	@Test
-    public void saveAnalyticsSettings() throws Exception{
+    @Test
+    public void saveAnalyticsSettings() throws Exception {
         AnalyticsResource resource = new AnalyticsResource();
         resource.setEnabled(true);
         resource.setType("google");
@@ -123,14 +122,8 @@ public class SettingsControllerTest extends BaseMvcTest {
                 .content(objectMapper.writeValueAsBytes(resource))).andExpect(status().is(200));
     }
 
-    @Test
-    public void getAnalyticsSettings() throws Exception{
-        this.mvcMock.perform(get("/settings/default/analytics").principal(authentication()))
-                .andExpect(status().is(200));
+    @Override
+    protected Authentication authentication() {
+        return AuthConstants.ADMINISTRATOR;
     }
-
-	@Override
-	protected Authentication authentication() {
-		return AuthConstants.ADMINISTRATOR;
-	}
 }

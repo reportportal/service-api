@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.admin;
 
@@ -25,8 +25,6 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
-
-import java.util.Map;
 
 /**
  * Server settings administration interface
@@ -60,7 +58,12 @@ public interface ServerAdminHandler {
      */
     OperationCompletionRS deleteEmailSettings(String profileId);
 
+    /**
+     * Updates analytics settings for specified profile
+     *
+     * @param profileId Profile ID
+     * @param request   Analytics settings
+     * @return Operation results
+     */
     OperationCompletionRS saveAnalyticsSettings(String profileId, AnalyticsResource request);
-
-    Map<String, AnalyticsResource> getAnalyticsSettings(String profileId);
 }

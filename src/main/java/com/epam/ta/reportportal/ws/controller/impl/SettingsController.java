@@ -36,7 +36,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -86,16 +85,8 @@ public class SettingsController implements ISettingsController {
     @RequestMapping(value = "/{profileId}/analytics", method = {RequestMethod.PUT, RequestMethod.POST})
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @ApiOperation(value = "Enables server Google Analytics for specified profile")
+    @ApiOperation(value = "Updates analytics settings for specified profile")
     public OperationCompletionRS saveAnalyticsSettings(@PathVariable String profileId, @RequestBody @Validated AnalyticsResource request){
 	    return serverHandler.saveAnalyticsSettings(normalizeId(profileId), request);
-    }
-
-    @RequestMapping(value = "/{profileId}/analytics", method = RequestMethod.GET)
-    @ResponseBody
-    @ResponseStatus(HttpStatus.OK)
-    @ApiOperation(value = "Get server Google Analytics for specified profile")
-    public Map<String, AnalyticsResource> getAnalyticsSettings(@PathVariable String profileId){
-        return serverHandler.getAnalyticsSettings(normalizeId(profileId));
     }
 }

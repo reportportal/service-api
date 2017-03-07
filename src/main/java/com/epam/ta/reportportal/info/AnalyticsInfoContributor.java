@@ -22,10 +22,11 @@ package com.epam.ta.reportportal.info;
 
 import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.database.entity.settings.AnalyticsDetails;
+import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
@@ -37,6 +38,8 @@ import java.util.Optional;
 
 @Component
 public class AnalyticsInfoContributor implements ExtensionContributor {
+
+    private static final String ANALYTICS_KEY = "analytics";
 
     private final ServerSettingsRepository settingsRepository;
 
@@ -50,8 +53,8 @@ public class AnalyticsInfoContributor implements ExtensionContributor {
     public Map<String, Object> contribute() {
         Optional<Map<String, AnalyticsDetails>> analytics = Optional.ofNullable(settingsRepository.findOne("default"))
                 .flatMap(settings -> Optional.ofNullable(settings.getAnalyticsDetails()));
-        Map<String, Object> result = new HashMap<>();
-        analytics.ifPresent(it -> result.put("analytics", it));
-        return result;
+        return analytics.isPresent()
+                ? ImmutableMap.<String, Object>builder().put(ANALYTICS_KEY, analytics.get()).build()
+                : Collections.emptyMap();
     }
 }

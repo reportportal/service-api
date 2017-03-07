@@ -39,6 +39,8 @@ public class ExtensionsInfoContributor implements ExtensionContributor {
 
     private static final String EXTENSION_KEY = "extension";
 
+    private static final String BUGTRACKING_KEY = "bugtracking";
+
     @Autowired
     private final DiscoveryClient discoveryClient;
 
@@ -53,6 +55,6 @@ public class ExtensionsInfoContributor implements ExtensionContributor {
         Set<String> collect = discoveryClient.getServices().stream().flatMap(service -> discoveryClient.getInstances(service).stream())
                 .filter(instance -> instance.getMetadata().containsKey(EXTENSION_KEY))
                 .map(instance -> instance.getMetadata().get(EXTENSION_KEY)).collect(Collectors.toCollection(TreeSet::new));
-        return ImmutableMap.<String, Object>builder().put("bts", collect).build();
+        return ImmutableMap.<String, Object>builder().put(BUGTRACKING_KEY, collect).build();
     }
 }

@@ -50,7 +50,7 @@ public class AnalyticsInfoContributor implements ExtensionContributor {
     }
 
     @Override
-    public Map<String, Object> contribute() {
+    public Map<String, ?> contribute() {
         Optional<Map<String, AnalyticsDetails>> analytics = Optional.ofNullable(settingsRepository.findOne("default"))
                 .flatMap(settings -> Optional.ofNullable(settings.getAnalyticsDetails()));
         return analytics.isPresent()

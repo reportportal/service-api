@@ -41,7 +41,6 @@ public class ExtensionsInfoContributor implements ExtensionContributor {
 
     private static final String BUGTRACKING_KEY = "bugtracking";
 
-    @Autowired
     private final DiscoveryClient discoveryClient;
 
     @SuppressWarnings("SpringJavaAutowiringInspection")
@@ -51,7 +50,7 @@ public class ExtensionsInfoContributor implements ExtensionContributor {
     }
 
     @Override
-    public Map<String, Object> contribute() {
+    public Map<String, ?> contribute() {
         Set<String> collect = discoveryClient.getServices().stream().flatMap(service -> discoveryClient.getInstances(service).stream())
                 .filter(instance -> instance.getMetadata().containsKey(EXTENSION_KEY))
                 .map(instance -> instance.getMetadata().get(EXTENSION_KEY)).collect(Collectors.toCollection(TreeSet::new));

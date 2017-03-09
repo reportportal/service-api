@@ -23,7 +23,6 @@ package com.epam.ta.reportportal.core.user.impl;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.user.ICreateUserHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.RestorePasswordBidRepository;
@@ -45,7 +44,6 @@ import com.epam.ta.reportportal.ws.converter.builders.UserCreationBidBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.ws.model.user.*;
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashFunction;

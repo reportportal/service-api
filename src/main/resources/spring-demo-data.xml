@@ -2864,7 +2864,6 @@
             <map>
                 <entry key="google">
                     <bean class="com.epam.ta.reportportal.database.entity.settings.AnalyticsDetails">
-                        <property name="id" value="123456789"/>
                         <property name="enabled" value="true"/>
                     </bean>
                 </entry>

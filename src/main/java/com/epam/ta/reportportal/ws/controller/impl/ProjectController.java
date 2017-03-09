@@ -21,25 +21,6 @@
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.web.bind.annotation.RequestMethod.*;
-
-import java.security.Principal;
-import java.util.List;
-import java.util.Map;
-
-import com.epam.ta.reportportal.ws.model.Page;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.preference.IGetPreferenceHandler;
 import com.epam.ta.reportportal.core.preference.IUpdatePreferenceHandler;
@@ -53,6 +34,7 @@ import com.epam.ta.reportportal.ws.controller.IProjectController;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ModelViews;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
 import com.epam.ta.reportportal.ws.model.preference.UpdatePreferenceRQ;
 import com.epam.ta.reportportal.ws.model.project.*;
@@ -63,10 +45,26 @@ import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.ResponseView;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
+
+import java.security.Principal;
+import java.util.List;
+import java.util.Map;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 /**
  * Project controller implementation

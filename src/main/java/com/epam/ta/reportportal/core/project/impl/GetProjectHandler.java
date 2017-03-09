@@ -26,6 +26,7 @@ import static java.util.stream.Collectors.joining;
 
 import java.util.List;
 
+import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -101,10 +102,10 @@ public class GetProjectHandler implements IGetProjectHandler {
 	}
 
 	@Override
-	public Page<String> getUserNames(String value, Pageable pageable) {
+	public com.epam.ta.reportportal.ws.model.Page<String> getUserNames(String value, Pageable pageable) {
 		BusinessRule.expect(value.length() > 2, Predicates.equalTo(true)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
 				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value));
-		return userRepository.searchForUserLogin(value, pageable);
+		return PagedResourcesAssembler.<String>pageConverter().apply(userRepository.searchForUserLogin(value, pageable));
 	}
 
 	@Override

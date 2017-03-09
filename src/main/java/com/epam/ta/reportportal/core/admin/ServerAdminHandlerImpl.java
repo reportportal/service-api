@@ -173,22 +173,6 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
         return new OperationCompletionRS("Server Settings with profile '" + profileId + "' is successfully updated.");
     }
 
-    @Override
-    public Map<String, AnalyticsResource> getAnalyticsSettings(String profileId) {
-        ServerSettings settings = findServerSettings(profileId);
-        Map<String, AnalyticsResource> analytics = new HashMap<>();
-        //error type?
-        BusinessRule.expect(settings.getAnalyticsDetails(),
-                Predicates.notNull()).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, profileId);
-        settings.getAnalyticsDetails().entrySet().forEach(pair -> analytics.put(pair.getKey(),
-                new AnalyticsResource() {
-                    {
-                        setEnabled(pair.getValue().getEnabled());
-                    }
-                }));
-        return analytics;
-    }
-
     private ServerSettings findServerSettings(String profileId) {
         ServerSettings settings = repository.findOne(profileId);
         BusinessRule.expect(settings, Predicates.notNull()).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, profileId);

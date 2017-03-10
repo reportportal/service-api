@@ -103,7 +103,7 @@ public class GetProjectHandler implements IGetProjectHandler {
 
 	@Override
 	public com.epam.ta.reportportal.ws.model.Page<String> getUserNames(String value, Pageable pageable) {
-		BusinessRule.expect(value.length() > 2, Predicates.equalTo(true)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
 				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value));
 		return PagedResourcesAssembler.<String>pageConverter().apply(userRepository.searchForUserLogin(value, pageable));
 	}

@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
@@ -154,7 +155,7 @@ public interface IProjectController {
 	 * @param pageable Page request
 	 * @return Page of users
 	 */
-	Page<String> searchForUser(String projectName, String term, Pageable pageable);
+	Page<User> searchForUser(String projectName, String term, Pageable pageable);
 
 
 		/**

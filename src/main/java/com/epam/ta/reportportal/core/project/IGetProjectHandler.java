@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.project;
 
+import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
@@ -66,7 +67,7 @@ public interface IGetProjectHandler {
 	 * @param value login OR full name of user
 	 * @return List of found user logins
 	 */
-	com.epam.ta.reportportal.ws.model.Page<String> getUserNames(String value, Pageable pageable);
+	com.epam.ta.reportportal.ws.model.Page<User> getUserNames(String value, Pageable pageable);
 
 	/**
 	 * Verify if any project exists in MongoDB 'project' collection

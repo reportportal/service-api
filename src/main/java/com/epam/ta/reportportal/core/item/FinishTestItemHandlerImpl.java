@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
@@ -68,200 +69,215 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Service
 class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
-	private ProjectRepository projectRepository;
-	private LaunchRepository launchRepository;
-	private TestItemRepository testItemRepository;
-	private StatisticsFacadeFactory statisticsFacadeFactory;
-	private FailReferenceResourceRepository issuesRepository;
-	private Provider<FailReferenceResourceBuilder> failReferenceResourceBuilder;
-	private ExternalSystemRepository externalSystemRepository;
+    private ProjectRepository projectRepository;
+    private LaunchRepository launchRepository;
+    private TestItemRepository testItemRepository;
+    private StatisticsFacadeFactory statisticsFacadeFactory;
+    private FailReferenceResourceRepository issuesRepository;
+    private Provider<FailReferenceResourceBuilder> failReferenceResourceBuilder;
+    private ExternalSystemRepository externalSystemRepository;
 
-	@Autowired
-	public void setProjectRepository(ProjectRepository projectRepository) {
-		this.projectRepository = projectRepository;
-	}
+    @Autowired
+    public void setProjectRepository(ProjectRepository projectRepository) {
+        this.projectRepository = projectRepository;
+    }
 
-	@Autowired
-	public void setLaunchRepository(LaunchRepository launchRepo) {
-		this.launchRepository = launchRepo;
-	}
+    @Autowired
+    public void setLaunchRepository(LaunchRepository launchRepo) {
+        this.launchRepository = launchRepo;
+    }
 
-	@Autowired
-	public void setTestItemRepository(TestItemRepository testItemRepository) {
-		this.testItemRepository = testItemRepository;
-	}
+    @Autowired
+    public void setTestItemRepository(TestItemRepository testItemRepository) {
+        this.testItemRepository = testItemRepository;
+    }
 
-	@Autowired
-	public void setStatisticsFacadeFactory(StatisticsFacadeFactory statisticsFacadeFactory) {
-		this.statisticsFacadeFactory = statisticsFacadeFactory;
-	}
+    @Autowired
+    public void setStatisticsFacadeFactory(StatisticsFacadeFactory statisticsFacadeFactory) {
+        this.statisticsFacadeFactory = statisticsFacadeFactory;
+    }
 
-	@Autowired
-	public void setFailReferenceResourceRepository(FailReferenceResourceRepository issuesRepository) {
-		this.issuesRepository = issuesRepository;
-	}
+    @Autowired
+    public void setFailReferenceResourceRepository(FailReferenceResourceRepository issuesRepository) {
+        this.issuesRepository = issuesRepository;
+    }
 
-	@Autowired
-	public void setFailReferenceResourceBuilder(Provider<FailReferenceResourceBuilder> failReferenceResourceBuilder) {
-		this.failReferenceResourceBuilder = failReferenceResourceBuilder;
-	}
+    @Autowired
+    public void setFailReferenceResourceBuilder(Provider<FailReferenceResourceBuilder> failReferenceResourceBuilder) {
+        this.failReferenceResourceBuilder = failReferenceResourceBuilder;
+    }
 
-	@Autowired
-	public void setExternalSystemRepository(ExternalSystemRepository externalSystemRepository) {
-		this.externalSystemRepository = externalSystemRepository;
-	}
+    @Autowired
+    public void setExternalSystemRepository(ExternalSystemRepository externalSystemRepository) {
+        this.externalSystemRepository = externalSystemRepository;
+    }
 
-	@Override
-	public OperationCompletionRS finishTestItem(String testItemId, FinishTestItemRQ finishExecutionRQ, String username) {
-		TestItem testItem = verifyTestItem(testItemId, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()));
-		testItem.setEndTime(finishExecutionRQ.getEndTime());
+    @Override
+    public OperationCompletionRS finishTestItem(String testItemId, FinishTestItemRQ finishExecutionRQ, String username) {
+        TestItem testItem = verifyTestItem(testItemId, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()));
+        testItem.setEndTime(finishExecutionRQ.getEndTime());
 
-		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, testItem.getLaunchRef());
-		if (!launch.getUserRef().equalsIgnoreCase(username))
-			fail().withError(FINISH_ITEM_NOT_ALLOWED, "You are not launch owner.");
-		final Project project = projectRepository.findOne(launch.getProjectRef());
-
-		Optional<Status> actualStatus = fromValue(finishExecutionRQ.getStatus());
-		Issue providedIssue = finishExecutionRQ.getIssue();
-		boolean statusProvided = actualStatus.isPresent();
-		boolean hasDescendants = testItemRepository.hasDescendants(testItem.getId());
+        Launch launch = launchRepository.findOne(testItem.getLaunchRef());
+        expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, testItem.getLaunchRef());
+        if (!launch.getUserRef().equalsIgnoreCase(username))
+            fail().withError(FINISH_ITEM_NOT_ALLOWED, "You are not launch owner.");
+        final Project project = projectRepository.findOne(launch.getProjectRef());
+        StatisticsCalculationStrategy strategy = project.getConfiguration().getStatisticsCalculationStrategy();
+        Optional<Status> actualStatus = fromValue(finishExecutionRQ.getStatus());
+        Issue providedIssue = finishExecutionRQ.getIssue();
+        boolean statusProvided = actualStatus.isPresent();
+        boolean hasDescendants = testItemRepository.hasDescendants(testItem.getId());
 
 		/*
-		 * If test item has descendants, it's status is resolved from statistics
+         * If test item has descendants, it's status is resolved from statistics
 		 * When status provided, no meter test item has or not descendants, test
 		 * item status is resolved to provided
 		 */
-		if (!statusProvided && hasDescendants) {
-			testItem.setStatus(StatisticsHelper.getStatusFromStatistics(testItem.getStatistics()));
-		} else {
-			testItem.setStatus(actualStatus.get());
-		}
-
-		/*
+        if (!statusProvided && hasDescendants) {
+            testItem.setStatus(StatisticsHelper.getStatusFromStatistics(testItem.getStatistics()));
+        } else {
+            testItem.setStatus(actualStatus.get());
+        }
+        /*
 		 * Updates ancestors issue statistics, bases on status. Only for test
 		 * items that does not have descendants
 		 */
-		if (!hasDescendants) {
-			testItem = awareTestItemIssueTypeFromStatus(testItem, providedIssue, project, username);
-		}
-		try {
-			testItemRepository.save(testItem);
-			StatisticsFacade statisticsFacade = statisticsFacadeFactory
-					.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
-			testItem = statisticsFacade
-					.updateExecutionStatistics(testItem);
-			if (null != testItem.getIssue()) {
-				statisticsFacade
-						.updateIssueStatistics(testItem);
-			}
-		} catch (Exception e) {
-			throw new ReportPortalException("Error during updating TestItem " + e.getMessage(), e);
-		}
+        if (!hasDescendants) {
+            testItem = awareTestItemIssueTypeFromStatus(testItem, providedIssue, project, username);
+        }
+        /*
+         * Exposes issue type for whole test. Only for BDD strategy and items
+         * that has descendants.
+         */
+        if (hasDescendants && strategy.equals(StatisticsCalculationStrategy.TEST_BASED)) {
+            testItem = exposeTestLevelIssue(testItem);
+        }
+        try {
+            testItemRepository.save(testItem);
+            StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(strategy);
+            testItem = statisticsFacade
+                    .updateExecutionStatistics(testItem);
+            if (null != testItem.getIssue()) {
+                statisticsFacade
+                        .updateIssueStatistics(testItem);
+            }
+        } catch (Exception e) {
+            throw new ReportPortalException("Error during updating TestItem " + e.getMessage(), e);
+        }
 
-		return new OperationCompletionRS("TestItem with ID = '" + testItemId + "' successfully finished.");
-	}
+        return new OperationCompletionRS("TestItem with ID = '" + testItemId + "' successfully finished.");
+    }
 
-	/**
-	 * Validation procedure for specified test item
-	 *
-	 * @param testItemId        ID of test item
-	 * @param finishExecutionRQ Request data
-	 * @param actualStatus      Actual status of item
-	 * @return TestItem updated item
-	 */
-	private TestItem verifyTestItem(final String testItemId, FinishTestItemRQ finishExecutionRQ, Optional<Status> actualStatus) {
-		TestItem testItem = testItemRepository.findOne(testItemId);
-		try {
-			expect(testItem, notNull()).verify(TEST_ITEM_NOT_FOUND, testItemId);
-			expect(testItem, not(Preconditions.TEST_ITEM_FINISHED)).verify(REPORTING_ITEM_ALREADY_FINISHED, testItem.getId());
+    /**
+     * Validation procedure for specified test item
+     *
+     * @param testItemId        ID of test item
+     * @param finishExecutionRQ Request data
+     * @param actualStatus      Actual status of item
+     * @return TestItem updated item
+     */
+    private TestItem verifyTestItem(final String testItemId, FinishTestItemRQ finishExecutionRQ, Optional<Status> actualStatus) {
+        TestItem testItem = testItemRepository.findOne(testItemId);
+        try {
+            expect(testItem, notNull()).verify(TEST_ITEM_NOT_FOUND, testItemId);
+            expect(testItem, not(Preconditions.TEST_ITEM_FINISHED)).verify(REPORTING_ITEM_ALREADY_FINISHED, testItem.getId());
 
-			boolean statusProvided = actualStatus.isPresent();
+            boolean statusProvided = actualStatus.isPresent();
 
-			List<TestItem> descendants = testItemRepository.findDescendants(testItem.getId());
-			boolean hasDescendants = !descendants.isEmpty();
+            List<TestItem> descendants = testItemRepository.findDescendants(testItem.getId());
+            boolean hasDescendants = !descendants.isEmpty();
 
-			expect(!statusProvided && !hasDescendants, equalTo(Boolean.FALSE), formattedSupplier(
-					"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
-					testItemId)).verify();
+            expect(!statusProvided && !hasDescendants, equalTo(Boolean.FALSE), formattedSupplier(
+                    "There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
+                    testItemId)).verify();
 
-			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED,
-					formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'", testItemId,
-							IN_PROGRESS.name(), descendants));
+            expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED,
+                    formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'", testItemId,
+                            IN_PROGRESS.name(), descendants));
 
-			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime()))
-					.verify(FINISH_TIME_EARLIER_THAN_START_TIME, finishExecutionRQ.getEndTime(), testItem.getStartTime(), testItemId);
+            expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime()))
+                    .verify(FINISH_TIME_EARLIER_THAN_START_TIME, finishExecutionRQ.getEndTime(), testItem.getStartTime(), testItemId);
 
 			/*
 			 * If there is issue provided we have to be sure issue type is
 			 * correct
 			 */
-		} catch (BusinessRuleViolationException e) {
-			fail().withError(AMBIGUOUS_TEST_ITEM_STATUS, e.getMessage());
-		}
-		return testItem;
-	}
+        } catch (BusinessRuleViolationException e) {
+            fail().withError(AMBIGUOUS_TEST_ITEM_STATUS, e.getMessage());
+        }
+        return testItem;
+    }
 
-	void verifyIssue(String testItemId, Issue issue, Project.Configuration projectSettings) {
-		if (issue != null && !NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(issue.getIssueType())) {
-			expect(projectSettings.getByLocator(issue.getIssueType()), notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS,
-					formattedSupplier("Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types are: {}",
-							issue.getIssueType(), testItemId, validValues()));
-		}
-	}
+    void verifyIssue(String testItemId, Issue issue, Project.Configuration projectSettings) {
+        if (issue != null && !NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(issue.getIssueType())) {
+            expect(projectSettings.getByLocator(issue.getIssueType()), notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS,
+                    formattedSupplier("Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types are: {}",
+                            issue.getIssueType(), testItemId, validValues()));
+        }
+    }
 
-	/**
-	 * Issue type recognition for specified test item from
-	 *
-	 * @param testItem      Test item
-	 * @param providedIssue Issue
-	 * @param project       Project
-	 * @return TestItem
-	 */
-	TestItem awareTestItemIssueTypeFromStatus(final TestItem testItem, final Issue providedIssue, final Project project, String submitter) {
-		if (FAILED.equals(testItem.getStatus()) || SKIPPED.equals(testItem.getStatus())) {
-			if (null != providedIssue) {
-				verifyIssue(testItem.getId(), providedIssue, project.getConfiguration());
-				String issueType = providedIssue.getIssueType();
-				if (!issueType.equalsIgnoreCase(NOT_ISSUE_FLAG.getValue())) {
-					TestItemIssue issue = new TestItemIssue(project.getConfiguration().getByLocator(issueType).getLocator(),
-							providedIssue.getComment());
+    /**
+     * Issue type recognition for specified test item from
+     *
+     * @param testItem      Test item
+     * @param providedIssue Issue
+     * @param project       Project
+     * @return TestItem
+     */
+    TestItem awareTestItemIssueTypeFromStatus(final TestItem testItem, final Issue providedIssue, final Project project, String submitter) {
+        if (FAILED.equals(testItem.getStatus()) || SKIPPED.equals(testItem.getStatus())) {
+            if (null != providedIssue) {
+                verifyIssue(testItem.getId(), providedIssue, project.getConfiguration());
+                String issueType = providedIssue.getIssueType();
+                if (!issueType.equalsIgnoreCase(NOT_ISSUE_FLAG.getValue())) {
+                    TestItemIssue issue = new TestItemIssue(project.getConfiguration().getByLocator(issueType).getLocator(),
+                            providedIssue.getComment());
 
-					//set provided external issues if any present
-					issue.setExternalSystemIssues(Optional.ofNullable(providedIssue.getExternalSystemIssues())
-							.map(issues -> issues.stream()
-									.map(it -> 		{
-										//not sure if it propogates exception correctly
-										expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true))
-												.verify(EXTERNAL_SYSTEM_NOT_FOUND, it.getExternalSystemId());
-										return it;
-									})
-									.map(TestItemUtils.externalIssueDtoConverter(submitter))
-									.collect(Collectors.toSet()))
-							.orElse(null));
+                    //set provided external issues if any present
+                    issue.setExternalSystemIssues(Optional.ofNullable(providedIssue.getExternalSystemIssues())
+                            .map(issues -> issues.stream()
+                                    .map(it -> {
+                                        //not sure if it propogates exception correctly
+                                        expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true))
+                                                .verify(EXTERNAL_SYSTEM_NOT_FOUND, it.getExternalSystemId());
+                                        return it;
+                                    })
+                                    .map(TestItemUtils.externalIssueDtoConverter(submitter))
+                                    .collect(Collectors.toSet()))
+                            .orElse(null));
 
-					testItem.setIssue(issue);
-				}
-			} else {
-				testItem.setIssue(new TestItemIssue());
+                    testItem.setIssue(issue);
+                }
+            } else {
+                testItem.setIssue(new TestItemIssue());
 				/* For AA saving reference initialization */
-				Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-				expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, testItem.getLaunchRef());
-				if (Mode.DEFAULT.equals(launch.getMode()) && project.getConfiguration().getIsAutoAnalyzerEnabled())
-					finalizeFailed(testItem);
-			}
-		}
-		return testItem;
-	}
+                Launch launch = launchRepository.findOne(testItem.getLaunchRef());
+                expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, testItem.getLaunchRef());
+                if (Mode.DEFAULT.equals(launch.getMode()) && project.getConfiguration().getIsAutoAnalyzerEnabled())
+                    finalizeFailed(testItem);
+            }
+        }
+        return testItem;
+    }
 
-	/**
-	 * Add test item reference into specific repository for AA processing after.
-	 *
-	 * @param testItem Item to be finalized
-	 */
-	private void finalizeFailed(final TestItem testItem) {
-		FailReferenceResource resource = failReferenceResourceBuilder.get().addLaunchRef(testItem.getLaunchRef())
-				.addTestItemRef(testItem.getId()).build();
-		issuesRepository.save(resource);
-	}
+    TestItem exposeTestLevelIssue(TestItem testItem) {
+        List<TestItem> allDescendants = testItemRepository.findAllDescendants(testItem.getId());
+        Optional<TestItem> first = allDescendants.stream().filter(i -> i.getIssue() != null).findFirst();
+        first.ifPresent(item -> testItem.setIssue(item.getIssue()));
+        if (testItem.getIssue() != null) {
+            testItem.setStatus(FAILED);
+        }
+        return testItem;
+    }
+
+    /**
+     * Add test item reference into specific repository for AA processing after.
+     *
+     * @param testItem Item to be finalized
+     */
+    private void finalizeFailed(final TestItem testItem) {
+        FailReferenceResource resource = failReferenceResourceBuilder.get().addLaunchRef(testItem.getLaunchRef())
+                .addTestItemRef(testItem.getId()).build();
+        issuesRepository.save(resource);
+    }
 }

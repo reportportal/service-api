@@ -28,9 +28,9 @@ import org.springframework.stereotype.Service;
 /**
  * BDD Optimized statistics calculation strategy
  * Do not calculates stats for step-level
- * @see TestItemType#level
  *
  * @author Andrei Varabyeu
+ * @see TestItemType#level
  */
 @Service
 public class TestBasedStatisticsFacade extends StatisticsFacadeImpl implements StatisticsFacade {
@@ -60,6 +60,36 @@ public class TestBasedStatisticsFacade extends StatisticsFacadeImpl implements S
         TestItemType type = testItem.getType();
         if (type.awareStatistics() && type.sameLevel(TestItemType.TEST)) {
             return super.deleteExecutionStatistics(testItem);
+        } else {
+            return testItem;
+        }
+    }
+
+    @Override
+    public TestItem updateIssueStatistics(TestItem testItem) {
+        TestItemType type = testItem.getType();
+        if (type.awareStatistics() && type.sameLevel(TestItemType.TEST)) {
+            return super.updateIssueStatistics(testItem);
+        } else {
+            return testItem;
+        }
+    }
+
+    @Override
+    public TestItem resetIssueStatistics(TestItem testItem) {
+        TestItemType type = testItem.getType();
+        if (type.awareStatistics() && type.sameLevel(TestItemType.TEST)) {
+            return super.resetIssueStatistics(testItem);
+        } else {
+            return testItem;
+        }
+    }
+
+    @Override
+    public TestItem deleteIssueStatistics(TestItem testItem) {
+        TestItemType type = testItem.getType();
+        if (type.awareStatistics() && type.sameLevel(TestItemType.TEST)) {
+            return super.deleteIssueStatistics(testItem);
         } else {
             return testItem;
         }

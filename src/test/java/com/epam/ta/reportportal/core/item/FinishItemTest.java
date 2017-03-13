@@ -21,28 +21,15 @@
 
 package com.epam.ta.reportportal.core.item;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.epam.ta.reportportal.core.statistics.StepBasedStatisticsFacade;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
+import com.epam.ta.reportportal.core.statistics.StepBasedStatisticsFacade;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
@@ -52,7 +39,19 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
-import org.mockito.Mockito;
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Dzmitry_Kavalets
@@ -104,7 +103,10 @@ public class FinishItemTest {
 
 		final ProjectRepository projectRepository = mock(ProjectRepository.class);
 		final Project project = new Project();
+		final Project.Configuration configuration = new Project.Configuration();
+		configuration.setStatisticsCalculationStrategy(StatisticsCalculationStrategy.STEP_BASED);
 		project.setName(projectId);
+		project.setConfiguration(configuration);
 		when(projectRepository.findOne(projectId)).thenReturn(project);
 
 		Map<TestItemIssueType, List<StatisticSubType>> types = new HashMap<TestItemIssueType, List<StatisticSubType>>() {

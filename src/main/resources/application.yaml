@@ -16,23 +16,16 @@ spring:
         host-info: ${server.contextPath}/admin/info
         ip-address: 10.200.10.1
         prefer-ip-address: true
+        register: false
+      enabled: false
 eureka:
   instance:
     hostname: ${HOSTNAME:localhost}
     status-page-url-path: ${server.contextPath}${management.contextPath}/info
     health-check-url-path: ${server.contextPath}${management.contextPath}/health
-
-
-
-## Consul as service registry
----
-spring:
-  profiles: eureka
-  cloud:
-    consul:
-      enabled: false
-      discovery:
-        register: false
+  client:
+    register-with-eureka: true
+    enabled: true
 
 ## Consul as service registry
 ---

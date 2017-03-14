@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.database.entity.BinaryContent;
@@ -27,36 +27,40 @@ import java.util.Date;
 
 public final class BuilderTestsConstants {
 
-	public static final String EMAIL = "test@test.com";
-	public static final String DESCRIPTION = "Description";
-	public static final Date DATE_START = new Date(3333);
-	public static final Date DATE_END = new Date(4444);
-	public static final String TAG = "TagValue";
-	public static final String ID = "33333";
+    public static final String EMAIL = "test@test.com";
+    public static final String DESCRIPTION = "Description";
+    public static final Date DATE_START = new Date(3333);
+    public static final Date DATE_END = new Date(4444);
+    public static final String TAG = "TagValue";
+    public static final String ID = "33333";
 
-	public static final String LOG_MESSAGE = "test message";
-	public static final Date LOG_TIME = new Date(8888);
-	public static final String BINARY_DATA_ID = "123456";
-	public static final BinaryContent BINARY_CONTENT = new BinaryContent("123456", null, null);
-	public static final String TESTSTEP_ID = "123456";
-	public static final String TESTSUITE_ID = "123456566";
+    public static final String LOG_MESSAGE = "test message";
+    public static final Date LOG_TIME = new Date(8888);
+    public static final String BINARY_DATA_ID = "123456";
+    public static final BinaryContent BINARY_CONTENT = new BinaryContent("123456", null, null);
+    public static final String TESTSTEP_ID = "123456";
+    public static final String TESTSUITE_ID = "123456566";
 
-	public static final String TEST_TYPE = "test";
-	public static final String TEST_ROLE = "Administrator";
-	public static final String ENTRY_TYPE = "INTERNAL";
+    public static final String TEST_TYPE = "test";
+    public static final String TEST_ROLE = "Administrator";
+    public static final String ENTRY_TYPE = "INTERNAL";
 
-	public static final String NAME = "Name";
-	public static final String PASSWORD = "testvalue";
+    public static final String NAME = "Name";
+    public static final String PASSWORD = "testvalue";
 
 
-	public static final String NAME_CRITERIA = "name";
-	public static final String LAUNCH = "Launch";
-	
-	public static final String PROJECT = "default_project"; 
-	public static final String USER = "user2";
-	public static final Long QUANTITY = 1L;
-	
-	private BuilderTestsConstants() {
-		// do not create instance. Just holder for constants
-	}
+    public static final String NAME_CRITERIA = "name";
+    public static final String LAUNCH = "Launch";
+
+    public static final String PROJECT = "default_project";
+    public static final String USER = "user2";
+    public static final Long QUANTITY = 1L;
+
+    public static final String URL = "url";
+    public static final String ACCESS_KEY = "accessKey";
+    public static final String DOMAIN = "domain";
+
+    private BuilderTestsConstants() {
+        // do not create instance. Just holder for constants
+    }
 }

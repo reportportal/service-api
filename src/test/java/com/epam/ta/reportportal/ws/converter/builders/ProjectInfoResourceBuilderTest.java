@@ -32,7 +32,7 @@ import org.springframework.context.ApplicationContext;
 
 import javax.inject.Provider;
 
-public class ProjectInfoResourceBuilderTest extends BaseTest{
+public class ProjectInfoResourceBuilderTest extends BaseTest {
 
     @Autowired
     private Provider<ProjectInfoResourceBuilder> provider;
@@ -41,7 +41,7 @@ public class ProjectInfoResourceBuilderTest extends BaseTest{
     private ApplicationContext applicationContext;
 
     @Test
-    public void testBeanScope(){
+    public void testBeanScope() {
         Assert.assertTrue("Test builder should be prototype bean because it's not stateless",
                 applicationContext.isPrototype(applicationContext.getBeanNamesForType(ProjectInfoResourceBuilder.class)[0]));
     }
@@ -54,17 +54,17 @@ public class ProjectInfoResourceBuilderTest extends BaseTest{
     }
 
     @Test
-    public void testLastRun(){
+    public void testLastRun() {
         ProjectInfoResource actual = provider.get().addProject(getProject())
                 .addLastRun(BuilderTestsConstants.DATE_END).build();
         ProjectInfoResource expected = getInfoResource();
         expected.setLastRun(BuilderTestsConstants.DATE_END);
-        validateProjects(expected,actual);
+        validateProjects(expected, actual);
         Assert.assertEquals(actual.getLastRun(), expected.getLastRun());
     }
 
     @Test
-    public void testLaunchesQuantity(){
+    public void testLaunchesQuantity() {
         ProjectInfoResource actual = provider.get().addProject(getProject())
                 .addLaunchesQuantity(BuilderTestsConstants.QUANTITY).build();
         ProjectInfoResource expected = getInfoResource();
@@ -73,7 +73,7 @@ public class ProjectInfoResourceBuilderTest extends BaseTest{
         Assert.assertEquals(actual.getLaunchesQuantity(), expected.getLaunchesQuantity());
     }
 
-    private ProjectInfoResource getInfoResource(){
+    private ProjectInfoResource getInfoResource() {
         ProjectInfoResource resource = new ProjectInfoResource();
         resource.setUsersQuantity(BuilderTestsConstants.QUANTITY.intValue());
         resource.setProjectId(BuilderTestsConstants.ID);
@@ -82,7 +82,7 @@ public class ProjectInfoResourceBuilderTest extends BaseTest{
         return resource;
     }
 
-    private Project getProject(){
+    private Project getProject() {
         Project project = new Project();
         project.setUsers(ImmutableMap.<String, Project.UserConfig>builder()
                 .put(BuilderTestsConstants.NAME, new Project.UserConfig()).build());
@@ -100,5 +100,4 @@ public class ProjectInfoResourceBuilderTest extends BaseTest{
         Assert.assertEquals(expectedValue.getCreationDate(), actualValue.getCreationDate());
         Assert.assertEquals(expectedValue.getEntryType(), actualValue.getEntryType());
     }
-
 }

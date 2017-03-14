@@ -60,6 +60,9 @@ public final class BuilderTestsConstants {
     public static final String ACCESS_KEY = "accessKey";
     public static final String DOMAIN = "domain";
 
+    public static final String TYPE_REF = "Product bug";
+    public static final String COLOR = "color";
+
     private BuilderTestsConstants() {
         // do not create instance. Just holder for constants
     }

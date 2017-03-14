@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.core.statistics;
 
 import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 
 /**
@@ -116,4 +115,6 @@ public interface StatisticsFacade {
 	 * @param launch
 	 */
 	void recalculateStatistics(Launch launch);
+
+	boolean awareIssueForTest(TestItem testItem, boolean hasDecedents);
 }

@@ -125,6 +125,11 @@ public class StatisticsFacadeImpl implements StatisticsFacade {
 		withIssues.forEach(this::updateIssueStatistics);
 	}
 
+	@Override
+	public boolean awareIssueForTest(TestItem testItem, boolean hasDecedents) {
+		return !hasDecedents;
+	}
+
 	private void recalculateTestItemStatistics(TestItem item) {
 		this.updateExecutionStatistics(item);
 	}

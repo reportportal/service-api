@@ -21,10 +21,9 @@
  
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import java.util.Date;
-
-
 import com.epam.ta.reportportal.database.entity.BinaryContent;
+
+import java.util.Date;
 
 public final class BuilderTestsConstants {
 
@@ -55,6 +54,7 @@ public final class BuilderTestsConstants {
 	
 	public static final String PROJECT = "default_project"; 
 	public static final String USER = "user2";
+	public static final Long QUANTITY = 1L;
 	
 	private BuilderTestsConstants() {
 		// do not create instance. Just holder for constants

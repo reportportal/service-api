@@ -66,7 +66,7 @@ public class TestBasedStatisticsFacade extends StatisticsFacadeImpl implements S
     }
 
     @Override
-    public boolean awareIssueForTest(TestItem testItem, boolean hasDecedents) {
+    public boolean hasIssueStatistics(TestItem testItem, boolean hasDecedents) {
         return testItem.getType().sameLevel(TestItemType.TEST) && hasDecedents;
     }
 }

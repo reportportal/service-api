@@ -145,7 +145,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		 */
 		StatisticsFacade statisticsFacade = statisticsFacadeFactory
 				.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
-		if (statisticsFacade.awareIssueForTest(testItem, hasDescendants)) {
+		if (statisticsFacade.hasIssueStatistics(testItem, hasDescendants)) {
 			testItem = awareTestItemIssueTypeFromStatus(testItem, providedIssue, project, username);
 		}
 		try {
@@ -237,7 +237,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 					issue.setExternalSystemIssues(Optional.ofNullable(providedIssue.getExternalSystemIssues())
 							.map(issues -> issues.stream()
 									.map(it -> 		{
-										//not sure if it propogates exception correctly
+										//not sure if it propagates exception correctly
 										expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true))
 												.verify(EXTERNAL_SYSTEM_NOT_FOUND, it.getExternalSystemId());
 										return it;

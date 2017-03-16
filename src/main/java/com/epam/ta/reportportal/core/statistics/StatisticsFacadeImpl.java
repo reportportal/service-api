@@ -126,7 +126,7 @@ public class StatisticsFacadeImpl implements StatisticsFacade {
 	}
 
 	@Override
-	public boolean awareIssueForTest(TestItem testItem, boolean hasDecedents) {
+	public boolean hasIssueStatistics(TestItem testItem, boolean hasDecedents) {
 		return !hasDecedents;
 	}
 

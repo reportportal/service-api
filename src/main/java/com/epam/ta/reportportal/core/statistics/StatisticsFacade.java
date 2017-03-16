@@ -117,11 +117,11 @@ public interface StatisticsFacade {
 	void recalculateStatistics(Launch launch);
 
 	/**
-	 * Checks if the test item can have issue. Based on
+	 * Checks if the test item could have an issue. Based on
 	 * statistics calculating strategy
 	 * @param testItem
 	 * @param hasDecedents
 	 * @return
 	 */
-	boolean awareIssueForTest(TestItem testItem, boolean hasDecedents);
+	boolean hasIssueStatistics(TestItem testItem, boolean hasDecedents);
 }

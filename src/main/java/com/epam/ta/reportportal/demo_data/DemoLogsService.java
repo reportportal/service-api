@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.database.entity.BinaryContent;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.google.common.io.CharStreams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -35,10 +36,10 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.epam.ta.reportportal.database.entity.LogLevel.*;
@@ -70,8 +71,8 @@ class DemoLogsService {
 	List<Log> generateDemoLogs(String itemId, String status) {
 		try (BufferedReader errorsBufferedReader = new BufferedReader(new InputStreamReader(errorLogsResource.getInputStream(), UTF_8));
 				BufferedReader demoLogsBufferedReader = new BufferedReader(new InputStreamReader(demoLogs.getInputStream(), UTF_8))) {
-			String error = errorsBufferedReader.lines().collect(Collectors.joining("\n"));
-			List<String> logMessages = demoLogsBufferedReader.lines().collect(toList());
+            List<String> errorLogs = Arrays.stream(CharStreams.toString(errorsBufferedReader).split("\n\n")).collect(toList());
+            List<String> logMessages = demoLogsBufferedReader.lines().collect(toList());
 			int t = random.nextInt(30);
 			List<Log> logs = IntStream.range(1, t + 1).mapToObj(it -> {
 				Log log = new Log();
@@ -83,14 +84,16 @@ class DemoLogsService {
 			}).collect(toList());
 			if (FAILED.name().equals(status)) {
 				String file = dataStorage.saveData(new BinaryData(IMAGE_PNG_VALUE, img.contentLength(), img.getInputStream()), "file");
-				Log log = new Log();
-				log.setLevel(ERROR);
-				log.setLogTime(new Date());
-				log.setTestItemRef(itemId);
-				log.setLogMsg(error);
-				final BinaryContent binaryContent = new BinaryContent(file, file, IMAGE_PNG_VALUE);
-				log.setBinaryContent(binaryContent);
-				logs.add(log);
+                logs.addAll(errorLogs.stream().map(msg -> {
+                    Log log = new Log();
+                    log.setLevel(ERROR);
+                    log.setLogTime(new Date());
+                    log.setTestItemRef(itemId);
+                    log.setLogMsg(msg);
+                    final BinaryContent binaryContent = new BinaryContent(file, file, IMAGE_PNG_VALUE);
+                    log.setBinaryContent(binaryContent);
+                    return log;
+                }).collect(toList()));
 			}
 			return logRepository.save(logs);
 		} catch (IOException e) {

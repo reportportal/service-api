@@ -71,7 +71,7 @@ class DemoLogsService {
 	List<Log> generateDemoLogs(String itemId, String status) {
 		try (BufferedReader errorsBufferedReader = new BufferedReader(new InputStreamReader(errorLogsResource.getInputStream(), UTF_8));
 				BufferedReader demoLogsBufferedReader = new BufferedReader(new InputStreamReader(demoLogs.getInputStream(), UTF_8))) {
-            List<String> errorLogs = Arrays.stream(CharStreams.toString(errorsBufferedReader).split("\n\n")).collect(toList());
+            List<String> errorLogs = Arrays.stream(CharStreams.toString(errorsBufferedReader).split("\r\n\r\n")).collect(toList());
             List<String> logMessages = demoLogsBufferedReader.lines().collect(toList());
 			int t = random.nextInt(30);
 			List<Log> logs = IntStream.range(1, t + 1).mapToObj(it -> {

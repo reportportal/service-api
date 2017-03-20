@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.FailReferenceResourceBuilder;
@@ -142,13 +143,13 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		 * Updates ancestors issue statistics, bases on status. Only for test
 		 * items that does not have descendants
 		 */
-		if (!hasDescendants) {
+		StatisticsFacade statisticsFacade = statisticsFacadeFactory
+				.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
+		if (statisticsFacade.awareIssueForTest(testItem, hasDescendants)) {
 			testItem = awareTestItemIssueTypeFromStatus(testItem, providedIssue, project, username);
 		}
 		try {
 			testItemRepository.save(testItem);
-			StatisticsFacade statisticsFacade = statisticsFacadeFactory
-					.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
 			testItem = statisticsFacade
 					.updateExecutionStatistics(testItem);
 			if (null != testItem.getIssue()) {
@@ -219,6 +220,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @return TestItem
 	 */
 	TestItem awareTestItemIssueTypeFromStatus(final TestItem testItem, final Issue providedIssue, final Project project, String submitter) {
+		if (testItem.getType().sameLevel(TestItemType.TEST)
+				&& testItemRepository.findAllDescendants(testItem.getId()).stream()
+				.anyMatch(item -> item.getStatus().equals(FAILED) || item.getStatus().equals(SKIPPED))) {
+			testItem.setStatus(FAILED);
+		}
 		if (FAILED.equals(testItem.getStatus()) || SKIPPED.equals(testItem.getStatus())) {
 			if (null != providedIssue) {
 				verifyIssue(testItem.getId(), providedIssue, project.getConfiguration());

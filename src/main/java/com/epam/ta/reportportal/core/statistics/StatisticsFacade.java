@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.core.statistics;
 
 import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 
 /**
@@ -116,4 +115,13 @@ public interface StatisticsFacade {
 	 * @param launch
 	 */
 	void recalculateStatistics(Launch launch);
+
+	/**
+	 * Checks if the test item can have issue. Based on
+	 * statistics calculating strategy
+	 * @param testItem
+	 * @param hasDecedents
+	 * @return
+	 */
+	boolean awareIssueForTest(TestItem testItem, boolean hasDecedents);
 }

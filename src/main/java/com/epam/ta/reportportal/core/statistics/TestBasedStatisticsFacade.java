@@ -64,4 +64,9 @@ public class TestBasedStatisticsFacade extends StatisticsFacadeImpl implements S
             return testItem;
         }
     }
+
+    @Override
+    public boolean awareIssueForTest(TestItem testItem, boolean hasDecedents) {
+        return testItem.getType().sameLevel(TestItemType.TEST) && hasDecedents;
+    }
 }

@@ -8,6 +8,6 @@ info:
 spring:
   profiles:
     ## Profiles list
-    active: ${rp.profiles:}
+    active: ${rp.profiles:default}
   application:
     name: api

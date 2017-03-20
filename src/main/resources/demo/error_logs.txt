@@ -1,4 +1,5 @@
 Element should be hidden {div[data-id='57c804a19194be0001e04616'] span.autoanalyze} Element: '<span class="label label-danger autoanalyze">Analysis</span>' Screenshot: file:/volumeC/jenkins/workspace/Tests for Report Portal UI/tests/ui-tests/build/reports/tests/1472726218555.4.png Timeout: 30 s.
+
 com.codeborne.selenide.ex.ElementShould: Element should be hidden {div[data-id='57c804a19194be0001e04616'] span.autoanalyze}
 Element: '<span class=\"label label-danger autoanalyze\">Analysis</span>'
  com.codeborne.selenide.impl.WebElementSource.checkCondition(WebElementSource.java:66)

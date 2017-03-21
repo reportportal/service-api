@@ -43,7 +43,7 @@ public class StepBasedStatisticsFacade extends StatisticsFacadeImpl implements S
 
 	@Override
 	public TestItem resetExecutionStatistics(TestItem testItem) {
-		if (!testItem.hasChilds() && testItem.getType().awareStatistics()) {
+		if (testItem.getType().awareStatistics()) {
 			return super.resetExecutionStatistics(testItem);
 		} else {
 			return testItem;
@@ -52,7 +52,7 @@ public class StepBasedStatisticsFacade extends StatisticsFacadeImpl implements S
 
 	@Override
 	public TestItem deleteExecutionStatistics(TestItem testItem) {
-		if (!testItem.hasChilds() && testItem.getType().awareStatistics()) {
+		if (testItem.getType().awareStatistics()) {
 			return super.deleteExecutionStatistics(testItem);
 		} else {
 			return testItem;

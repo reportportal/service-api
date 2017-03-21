@@ -85,3 +85,4 @@
 * EPMRPP-23744 - Error handling: When the invitation is sent to email address that already available in DB, ws returns incorrect error message
 * EPMRPP-23468 - User with project role=PM/LEAD unable to invite user
 * EPMRPP-23692 - Demo data: fix line-breakes in Logs
+* EPMRPP-24570 - Status statistics is not updated in case user deletes items from SUITE/TEST levels

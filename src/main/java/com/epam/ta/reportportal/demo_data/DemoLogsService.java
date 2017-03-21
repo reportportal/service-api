@@ -20,25 +20,6 @@
  */
 package com.epam.ta.reportportal.demo_data;
 
-import static com.epam.ta.reportportal.database.entity.LogLevel.*;
-import static com.epam.ta.reportportal.database.entity.Status.FAILED;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.stream.Collectors.toList;
-import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.IntStream;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.BinaryData;
 import com.epam.ta.reportportal.database.DataStorage;
 import com.epam.ta.reportportal.database.dao.LogRepository;
@@ -46,6 +27,26 @@ import com.epam.ta.reportportal.database.entity.BinaryContent;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.google.common.io.CharStreams;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
+import java.util.stream.IntStream;
+
+import static com.epam.ta.reportportal.database.entity.LogLevel.*;
+import static com.epam.ta.reportportal.database.entity.Status.FAILED;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.stream.Collectors.toList;
+import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
 
 @Service
 class DemoLogsService {
@@ -70,8 +71,8 @@ class DemoLogsService {
 	List<Log> generateDemoLogs(String itemId, String status) {
 		try (BufferedReader errorsBufferedReader = new BufferedReader(new InputStreamReader(errorLogsResource.getInputStream(), UTF_8));
 				BufferedReader demoLogsBufferedReader = new BufferedReader(new InputStreamReader(demoLogs.getInputStream(), UTF_8))) {
-			List<String> errorLogs = errorsBufferedReader.lines().collect(toList());
-			List<String> logMessages = demoLogsBufferedReader.lines().collect(toList());
+            List<String> errorLogs = Arrays.stream(CharStreams.toString(errorsBufferedReader).split("\r\n\r\n")).collect(toList());
+            List<String> logMessages = demoLogsBufferedReader.lines().collect(toList());
 			int t = random.nextInt(30);
 			List<Log> logs = IntStream.range(1, t + 1).mapToObj(it -> {
 				Log log = new Log();
@@ -83,16 +84,16 @@ class DemoLogsService {
 			}).collect(toList());
 			if (FAILED.name().equals(status)) {
 				String file = dataStorage.saveData(new BinaryData(IMAGE_PNG_VALUE, img.contentLength(), img.getInputStream()), "file");
-				logs.addAll(errorLogs.stream().map(msg -> {
-					Log log = new Log();
-					log.setLevel(ERROR);
-					log.setLogTime(new Date());
-					log.setTestItemRef(itemId);
-					log.setLogMsg(msg);
-					final BinaryContent binaryContent = new BinaryContent(file, file, IMAGE_PNG_VALUE);
-					log.setBinaryContent(binaryContent);
-					return log;
-				}).collect(toList()));
+                logs.addAll(errorLogs.stream().map(msg -> {
+                    Log log = new Log();
+                    log.setLevel(ERROR);
+                    log.setLogTime(new Date());
+                    log.setTestItemRef(itemId);
+                    log.setLogMsg(msg);
+                    final BinaryContent binaryContent = new BinaryContent(file, file, IMAGE_PNG_VALUE);
+                    log.setBinaryContent(binaryContent);
+                    return log;
+                }).collect(toList()));
 			}
 			return logRepository.save(logs);
 		} catch (IOException e) {

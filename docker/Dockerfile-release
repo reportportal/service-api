@@ -8,8 +8,7 @@ ENV APP_FILE @name@-@version@
 ENV APP_DOWNLOAD_URL https://dl.bintray.com/epam/reportportal/com/epam/reportportal/@name@/@version@/$APP_FILE.jar
 ENV JAVA_OPTS="-Xmx1g"
 
-RUN apk --no-cache add ttf-droid && /
-    apk add --update openssl
+RUN apk --no-cache add ttf-droid && apk add --update openssl
 
 VOLUME /tmp
 RUN wget -O /app.jar $APP_DOWNLOAD_URL

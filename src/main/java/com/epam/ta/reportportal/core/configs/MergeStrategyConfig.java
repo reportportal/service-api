@@ -38,8 +38,8 @@ public class MergeStrategyConfig {
     @Bean
     public Map<MergeStrategyType, MergeStrategy> mapping() {
         Map<MergeStrategyType, MergeStrategy> mapping = new HashMap<>();
-        mapping.put(MergeStrategyType.TEST, new SuiteMergeStrategy(testItemRepository));
-        mapping.put(MergeStrategyType.SUITE, new TestMergeStrategy(testItemRepository));
+        mapping.put(MergeStrategyType.TEST, new TestMergeStrategy(testItemRepository));
+        mapping.put(MergeStrategyType.SUITE, new SuiteMergeStrategy(testItemRepository));
         return mapping;
     }
 

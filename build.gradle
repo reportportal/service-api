@@ -73,7 +73,7 @@ configurations.all {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:3.0.0-BETA-1'
+        compile 'com.epam.reportportal:commons-dao:3.0.0-BETA-2'
         compile 'com.epam.reportportal:commons-rules:3.0.0-BETA-1'
         compile 'com.epam.reportportal:commons-model:3.0.0-BETA-1'
         compile 'com.epam.reportportal:commons:3.0.0-BETA-2'

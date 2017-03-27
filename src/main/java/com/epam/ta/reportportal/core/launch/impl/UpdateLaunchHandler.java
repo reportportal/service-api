@@ -26,6 +26,8 @@ import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.merge.MergeTestItemHandler;
 import com.epam.ta.reportportal.core.launch.IUpdateLaunchHandler;
+import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
+import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
@@ -85,7 +87,10 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	private TestItemRepository testItemRepository;
 
 	@Autowired
-    private MergeTestItemHandler handler;
+    private MergeTestItemHandler mergeTestItemHandler;
+
+    @Autowired
+    private StatisticsFacadeFactory statisticsFacadeFactory;
 
 	private ProjectRepository projectRepository;
 	private LaunchRepository launchRepository;
@@ -160,6 +165,13 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	    validateMergingLaunches(launchesList, user, project);
 
 	    mergeSameSuits(projectName, launchTarget, launchesList, userName);
+        updateChildrenOfLaunch(launchTargetId, mergeLaunchesRQ.getLaunches(), mergeLaunchesRQ.isExtendSuitesDescription());
+
+        StatisticsFacade statisticsFacade = statisticsFacadeFactory.
+                getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
+        statisticsFacade.recalculateStatistics(launchTarget);
+
+        launchRepository.delete(mergeLaunchesRQ.getLaunches());
 
         return launchResourceAssembler.toResource(launchTarget);
 	}
@@ -169,7 +181,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
         List<TestItem> suitsTarget = testItems.stream().filter(item
                 -> item.getType().sameLevel(TestItemType.SUITE))
                 .collect(toList());
-        for (TestItem suit: suitsTarget){
+        for (TestItem suit : suitsTarget) {
             List<String> sameNamedSuitsIds = new ArrayList<>();
             launchesList.forEach(launch -> {
                 List<TestItem> items = testItemRepository.findByLaunch(launch);
@@ -180,8 +192,10 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
             });
             MergeTestItemRQ mergeTestItemRQ = new MergeTestItemRQ();
             mergeTestItemRQ.setItems(sameNamedSuitsIds);
+
+            //TODO strategy, do we want to send in the rq
             mergeTestItemRQ.setMergeStrategyType("TEST");
-            handler.mergeTestItem(projectName, suit.getId(), mergeTestItemRQ, userName);
+            mergeTestItemHandler.mergeTestItem(projectName, suit.getId(), mergeTestItemRQ, userName);
         }
     }
 

@@ -24,12 +24,14 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.item.merge.MergeTestItemHandler;
 import com.epam.ta.reportportal.core.launch.IUpdateLaunchHandler;
 import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.launch.AutoAnalyzeStrategy;
 import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
@@ -42,6 +44,7 @@ import com.epam.ta.reportportal.ws.converter.LaunchResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
 import com.epam.ta.reportportal.ws.model.launch.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -52,6 +55,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -79,6 +83,9 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 
 	@Autowired
 	private TestItemRepository testItemRepository;
+
+	@Autowired
+    private MergeTestItemHandler handler;
 
 	private ProjectRepository projectRepository;
 	private LaunchRepository launchRepository;
@@ -141,10 +148,44 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 
 	@Override
 	public LaunchResource deepMergeLaunches(String projectName, String launchTargetId, String userName, MergeLaunchesRQ mergeLaunchesRQ) {
-        return launchResourceAssembler.toResource(null);
+	    User user = userRepository.findOne(userName);
+	    Project project = projectRepository.findOne(projectName);
+	    expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
+
+        Launch launchTarget = launchRepository.findOne(launchTargetId);
+        expect(launchTarget, notNull()).verify(LAUNCH_NOT_FOUND, launchTargetId);
+
+	    Set<String> launchesIds = mergeLaunchesRQ.getLaunches();
+	    List<Launch> launchesList = launchRepository.find(launchesIds);
+	    validateMergingLaunches(launchesList, user, project);
+
+	    mergeSameSuits(projectName, launchTarget, launchesList, userName);
+
+        return launchResourceAssembler.toResource(launchTarget);
 	}
 
-	@Override
+    private void mergeSameSuits(String projectName, Launch launchTarget, List<Launch> launchesList, String userName) {
+        List<TestItem> testItems = testItemRepository.findByLaunch(launchTarget);
+        List<TestItem> suitsTarget = testItems.stream().filter(item
+                -> item.getType().sameLevel(TestItemType.SUITE))
+                .collect(toList());
+        for (TestItem suit: suitsTarget){
+            List<String> sameNamedSuitsIds = new ArrayList<>();
+            launchesList.forEach(launch -> {
+                List<TestItem> items = testItemRepository.findByLaunch(launch);
+                sameNamedSuitsIds.addAll(items.stream().filter(item -> item.getType().sameLevel(TestItemType.SUITE))
+                        .filter(item -> item.getName().equals(suit.getName()))
+                        .map(TestItem::getId)
+                        .collect(toList()));
+            });
+            MergeTestItemRQ mergeTestItemRQ = new MergeTestItemRQ();
+            mergeTestItemRQ.setItems(sameNamedSuitsIds);
+            mergeTestItemRQ.setMergeStrategyType("TEST");
+            handler.mergeTestItem(projectName, suit.getId(), mergeTestItemRQ, userName);
+        }
+    }
+
+    @Override
 	public LaunchResource mergeLaunches(String projectName, String userName, MergeLaunchesRQ mergeLaunchesRQ) {
 		User user = userRepository.findOne(userName);
 		Project project = projectRepository.findOne(projectName);
@@ -305,7 +346,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 			Launch launch = launchRepository.findOne(id);
 			return testItemRepository.findByLaunch(launch).stream().map(item -> {
 				item.setLaunchRef(launchId);
-				if (item.getPath().size() == 0) {
+				if (item.getType().sameLevel(TestItemType.SUITE)) {
 					// Add launch reference description for top level items
 					Supplier<String> newDescription = Suppliers
 							.formattedSupplier(((null != item.getItemDescription()) ? item.getItemDescription() : "")
@@ -316,7 +357,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 			}).collect(toList());
 		}).flatMap(List::stream).collect(toList());
 		testItemRepository.save(testItems);
-		return testItems.stream().filter(item -> item.getPath().size() == 0).collect(toList());
+		return testItems.stream().filter(item -> item.getType().sameLevel(TestItemType.SUITE)).collect(toList());
 	}
 
 	/**

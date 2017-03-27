@@ -66,6 +66,20 @@ public interface IUpdateLaunchHandler {
 	LaunchResource mergeLaunches(String projectName, String userName, MergeLaunchesRQ mergeLaunchesRQ);
 
 	/**
+	 * Deep merge specified launches into selected one.
+	 * @param projectName
+	 * 			  Related project name value
+	 * @param launchTargetId
+	 * 			  Launch target id
+	 * @param userName
+	 * 			  Recipient user name
+	 * @param mergeLaunchesRQ
+	 * 			  Request data
+	 * @return LaunchResource - Response Data
+	 */
+	LaunchResource deepMergeLaunches(String projectName, String launchTargetId, String userName, MergeLaunchesRQ mergeLaunchesRQ);
+
+	/**
 	 * Start launch analyzer on demand
 	 *
 	 * @param projectName

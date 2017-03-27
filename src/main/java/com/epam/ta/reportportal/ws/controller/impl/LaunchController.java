@@ -36,29 +36,6 @@
  */
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MEMBER;
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeProjectName;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.web.bind.annotation.RequestMethod.*;
-
-import java.io.IOException;
-import java.security.Principal;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
 import com.epam.ta.reportportal.core.jasper.IGetJasperReportHandler;
 import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.core.launch.*;
@@ -79,11 +56,31 @@ import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.net.HttpHeaders;
-
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import net.sf.jasperreports.engine.JasperPrint;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MEMBER;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeProjectName;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 /**
  * Controller implementation for
@@ -276,6 +273,19 @@ public class LaunchController implements ILaunchController {
 			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
 			Principal principal) {
 		return updateLaunchHandler.mergeLaunches(normalizeProjectName(projectName), principal.getName(), mergeLaunchesRQ);
+	}
+
+	@Override
+	@PostMapping("/{launchId}/merge")
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Deep merge specified launches into selected one.")
+	public LaunchResource deepMergeLaunches(
+			@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,
+			@PathVariable String launchId,
+			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
+			Principal principal) {
+		return updateLaunchHandler.deepMergeLaunches(normalizeProjectName(projectName), launchId, principal.getName(), mergeLaunchesRQ);
 	}
 
 	@Override

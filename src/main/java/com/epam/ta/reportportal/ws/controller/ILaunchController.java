@@ -36,17 +36,6 @@
  */
 package com.epam.ta.reportportal.ws.controller;
 
-import java.io.IOException;
-import java.security.Principal;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.data.domain.Pageable;
-
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
@@ -58,6 +47,15 @@ import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import org.springframework.data.domain.Pageable;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Report Portal WS Interface. Launch controller
@@ -207,6 +205,8 @@ public interface ILaunchController {
 	 * @return
 	 */
 	LaunchResource mergeLaunches(String projectName, MergeLaunchesRQ mergeLaunchesRQ, Principal principal);
+
+	LaunchResource deepMergeLaunches(String projectName, String launchId, MergeLaunchesRQ mergeLaunchesRQ, Principal principal);
 
 	/**
 	 * Start auto-analyzer for specified launch

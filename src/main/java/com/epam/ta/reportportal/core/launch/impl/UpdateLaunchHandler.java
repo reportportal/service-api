@@ -21,28 +21,6 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.*;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.core.statistics.StatisticsHelper.getStatusFromStatistics;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.*;
-import static com.epam.ta.reportportal.database.entity.Status.IN_PROGRESS;
-import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
-import static java.util.stream.Collectors.toList;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Supplier;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -67,8 +45,28 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
+
+import static com.epam.ta.reportportal.commons.Predicates.*;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.core.statistics.StatisticsHelper.getStatusFromStatistics;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.*;
+import static com.epam.ta.reportportal.database.entity.Status.IN_PROGRESS;
+import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Default implementation of {@link IUpdateLaunchHandler}
@@ -139,6 +137,11 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 			launchRepository.save(launch);
 		}
 		return new OperationCompletionRS("Launch with ID = '" + launch.getId() + "' successfully updated.");
+	}
+
+	@Override
+	public LaunchResource deepMergeLaunches(String projectName, String launchTargetId, String userName, MergeLaunchesRQ mergeLaunchesRQ) {
+        return launchResourceAssembler.toResource(null);
 	}
 
 	@Override
@@ -246,7 +249,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		 */
 		boolean isUserValidate = !(user.getRole().equals(ADMINISTRATOR)
 				|| project.getUsers().get(user.getId()).getProjectRole().getRoleLevel() >= LEAD.getRoleLevel());
-		launches.stream().forEach(launch -> {
+		launches.forEach(launch -> {
 			expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launch);
 
 			expect(analyzerService.isPossible(launch.getId()), equalTo(true)).verify(FORBIDDEN_OPERATION,

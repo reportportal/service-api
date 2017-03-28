@@ -61,7 +61,6 @@ import com.google.common.collect.Lists;
  */
 @Service
 public class UpdateDashboardHandler implements IUpdateDashboardHandler {
-	public static final int WIDGETS_LIMIT = 20;
 
 	private final DashboardRepository dashboardRepository;
 	private final WidgetRepository widgetRepository;
@@ -188,9 +187,6 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 
 		expect(widgetFromDB.getProjectName(), equalTo(projectName)).verify(ErrorType.FORBIDDEN_OPERATION,
 				"Impossible to add widget from another project");
-
-		expect(allWidgets.size() == WIDGETS_LIMIT, equalTo(false)).verify(DASHBOARD_UPDATE_ERROR,
-				formattedSupplier("Unable to add more than '{}' widgets to dashboard.", WIDGETS_LIMIT));
 
 		expect(processWidgets(allWidgets, widgetId, false), equalTo(false)).verify(DASHBOARD_UPDATE_ERROR,
 				formattedSupplier("Widget with ID '{}' already added to the current dashboard.", widgetId));

@@ -164,7 +164,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	    List<Launch> launchesList = launchRepository.find(launchesIds);
 	    validateMergingLaunches(launchesList, user, project);
 
-	    mergeSameSuits(projectName, launchTarget, mergeLaunchesRQ.getLaunches(), userName);
+	    mergeSameSuits(projectName, launchTarget, new ArrayList<>(mergeLaunchesRQ.getLaunches()), userName);
         updateChildrenOfLaunch(launchTargetId, mergeLaunchesRQ.getLaunches(), mergeLaunchesRQ.isExtendSuitesDescription());
 
         launchTarget.setDescription(mergeLaunchesRQ.getDescription());
@@ -179,20 +179,20 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
         return launchResourceAssembler.toResource(launchTarget);
 	}
 
-    private void mergeSameSuits(String projectName, Launch launchTarget, Set<String> launchesList, String userName) {
-        List<TestItem> suitsTarget = testItemRepository.findItemsWithType(launchTarget.getId(), TestItemType.SUITE);
-        for (TestItem suit : suitsTarget) {
-            List<String> sameNamedSuitsIds = new ArrayList<>();
-            sameNamedSuitsIds.addAll(testItemRepository.
-                    findIdsWithNameByLaunchesRef(suit.getName(), launchesList.stream().collect(toList())));
+    private void mergeSameSuits(String projectName, Launch launchTarget, List<String> launchesList, String userName) {
+        testItemRepository.findItemsWithType(launchTarget.getId(), TestItemType.SUITE).forEach(suit ->
+                {
+                    List<String> sameNamedSuitsIds = testItemRepository
+                            .findIdsWithNameByLaunchesRef(suit.getName(), new ArrayList<>(launchesList))
+                            .stream().collect(toList());
 
-            MergeTestItemRQ mergeTestItemRQ = new MergeTestItemRQ();
-            mergeTestItemRQ.setItems(sameNamedSuitsIds);
-
-            //TODO strategy, do we want to send in the rq
-            mergeTestItemRQ.setMergeStrategyType("TEST");
-            mergeTestItemHandler.mergeTestItem(projectName, suit.getId(), mergeTestItemRQ, userName);
-        }
+                    MergeTestItemRQ mergeTestItemRQ = new MergeTestItemRQ();
+                    mergeTestItemRQ.setItems(sameNamedSuitsIds);
+                    //TODO strategy, do we want to send in the rq
+                    mergeTestItemRQ.setMergeStrategyType("TEST");
+                    mergeTestItemHandler.mergeTestItem(projectName, suit.getId(), mergeTestItemRQ, userName);
+                }
+        );
     }
 
     @Override

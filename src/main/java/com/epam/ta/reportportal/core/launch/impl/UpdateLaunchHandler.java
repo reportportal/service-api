@@ -164,8 +164,11 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	    List<Launch> launchesList = launchRepository.find(launchesIds);
 	    validateMergingLaunches(launchesList, user, project);
 
-	    mergeSameSuits(projectName, launchTarget, launchesList, userName);
+	    mergeSameSuits(projectName, launchTarget, mergeLaunchesRQ.getLaunches(), userName);
         updateChildrenOfLaunch(launchTargetId, mergeLaunchesRQ.getLaunches(), mergeLaunchesRQ.isExtendSuitesDescription());
+
+        launchTarget.setDescription(mergeLaunchesRQ.getDescription());
+        launchTarget.setTags(mergeLaunchesRQ.getTags());
 
         StatisticsFacade statisticsFacade = statisticsFacadeFactory.
                 getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
@@ -176,20 +179,13 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
         return launchResourceAssembler.toResource(launchTarget);
 	}
 
-    private void mergeSameSuits(String projectName, Launch launchTarget, List<Launch> launchesList, String userName) {
-        List<TestItem> testItems = testItemRepository.findByLaunch(launchTarget);
-        List<TestItem> suitsTarget = testItems.stream().filter(item
-                -> item.getType().sameLevel(TestItemType.SUITE))
-                .collect(toList());
+    private void mergeSameSuits(String projectName, Launch launchTarget, Set<String> launchesList, String userName) {
+        List<TestItem> suitsTarget = testItemRepository.findItemsWithType(launchTarget.getId(), TestItemType.SUITE);
         for (TestItem suit : suitsTarget) {
             List<String> sameNamedSuitsIds = new ArrayList<>();
-            launchesList.forEach(launch -> {
-                List<TestItem> items = testItemRepository.findByLaunch(launch);
-                sameNamedSuitsIds.addAll(items.stream().filter(item -> item.getType().sameLevel(TestItemType.SUITE))
-                        .filter(item -> item.getName().equals(suit.getName()))
-                        .map(TestItem::getId)
-                        .collect(toList()));
-            });
+            sameNamedSuitsIds.addAll(testItemRepository.
+                    findIdsWithNameByLaunchesRef(suit.getName(), launchesList.stream().collect(toList())));
+
             MergeTestItemRQ mergeTestItemRQ = new MergeTestItemRQ();
             mergeTestItemRQ.setItems(sameNamedSuitsIds);
 

@@ -42,10 +42,7 @@ import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
+import com.epam.ta.reportportal.ws.model.launch.*;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.springframework.data.domain.Pageable;
 
@@ -206,7 +203,7 @@ public interface ILaunchController {
 	 */
 	LaunchResource mergeLaunches(String projectName, MergeLaunchesRQ mergeLaunchesRQ, Principal principal);
 
-	LaunchResource deepMergeLaunches(String projectName, String launchId, MergeLaunchesRQ mergeLaunchesRQ, Principal principal);
+	LaunchResource deepMergeLaunches(String projectName, String launchId, DeepMergeLaunchesRQ mergeLaunchesRQ, Principal principal);
 
 	/**
 	 * Start auto-analyzer for specified launch

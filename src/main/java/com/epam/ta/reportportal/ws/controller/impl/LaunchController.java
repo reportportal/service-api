@@ -47,10 +47,7 @@ import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
+import com.epam.ta.reportportal.ws.model.launch.*;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
@@ -116,6 +113,9 @@ public class LaunchController implements ILaunchController {
 
 	@Autowired
 	private IGetJasperReportHandler getJasperHandler;
+
+	@Autowired
+	private IMergeLaunchHandler mergeLaunchesHandler;
 
 	@Override
 	@PostMapping
@@ -272,7 +272,7 @@ public class LaunchController implements ILaunchController {
 			@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,
 			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
 			Principal principal) {
-		return updateLaunchHandler.mergeLaunches(normalizeProjectName(projectName), principal.getName(), mergeLaunchesRQ);
+		return mergeLaunchesHandler.mergeLaunches(normalizeProjectName(projectName), principal.getName(), mergeLaunchesRQ);
 	}
 
 	@Override
@@ -283,9 +283,9 @@ public class LaunchController implements ILaunchController {
 	public LaunchResource deepMergeLaunches(
 			@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,
 			@PathVariable String launchId,
-			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
+			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated DeepMergeLaunchesRQ mergeLaunchesRQ,
 			Principal principal) {
-		return updateLaunchHandler.deepMergeLaunches(normalizeProjectName(projectName), launchId, principal.getName(), mergeLaunchesRQ);
+		return mergeLaunchesHandler.deepMergeLaunches(normalizeProjectName(projectName), launchId, principal.getName(), mergeLaunchesRQ);
 	}
 
 	@Override

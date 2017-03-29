@@ -24,30 +24,23 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.item.merge.MergeTestItemHandler;
 import com.epam.ta.reportportal.core.launch.IUpdateLaunchHandler;
-import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
-import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
-import com.epam.ta.reportportal.database.dao.*;
+import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.launch.AutoAnalyzeStrategy;
-import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
-import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
-import com.epam.ta.reportportal.database.entity.statistics.Statistics;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
-import com.epam.ta.reportportal.ws.converter.LaunchResourceAssembler;
-import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
-import com.epam.ta.reportportal.ws.model.launch.*;
+import com.epam.ta.reportportal.ws.model.launch.Mode;
+import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,17 +49,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Provider;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
-import java.util.function.Supplier;
 
-import static com.epam.ta.reportportal.commons.Predicates.*;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.core.statistics.StatisticsHelper.getStatusFromStatistics;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.*;
 import static com.epam.ta.reportportal.database.entity.Status.IN_PROGRESS;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
@@ -86,24 +74,11 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	@Autowired
 	private TestItemRepository testItemRepository;
 
-	@Autowired
-    private MergeTestItemHandler mergeTestItemHandler;
+    private ProjectRepository projectRepository;
 
-    @Autowired
-    private StatisticsFacadeFactory statisticsFacadeFactory;
+    private LaunchRepository launchRepository;
 
-	private ProjectRepository projectRepository;
-	private LaunchRepository launchRepository;
-	private UserRepository userRepository;
-
-	@Autowired
-	private Provider<LaunchBuilder> launchBuilder;
-
-	@Autowired
-	private LaunchMetaInfoRepository launchCounter;
-
-	@Autowired
-	private LaunchResourceAssembler launchResourceAssembler;
+    private UserRepository userRepository;
 
 	@Autowired
 	private IIssuesAnalyzer analyzerService;
@@ -149,86 +124,6 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 			launchRepository.save(launch);
 		}
 		return new OperationCompletionRS("Launch with ID = '" + launch.getId() + "' successfully updated.");
-	}
-
-	@Override
-	public LaunchResource deepMergeLaunches(String projectName, String launchTargetId, String userName, MergeLaunchesRQ mergeLaunchesRQ) {
-	    User user = userRepository.findOne(userName);
-	    Project project = projectRepository.findOne(projectName);
-	    expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
-
-        Launch launchTarget = launchRepository.findOne(launchTargetId);
-        expect(launchTarget, notNull()).verify(LAUNCH_NOT_FOUND, launchTargetId);
-
-	    Set<String> launchesIds = mergeLaunchesRQ.getLaunches();
-	    List<Launch> launchesList = launchRepository.find(launchesIds);
-	    validateMergingLaunches(launchesList, user, project);
-
-	    mergeSameSuits(projectName, launchTarget, new ArrayList<>(mergeLaunchesRQ.getLaunches()), userName);
-        updateChildrenOfLaunch(launchTargetId, mergeLaunchesRQ.getLaunches(), mergeLaunchesRQ.isExtendSuitesDescription());
-
-        launchTarget.setDescription(mergeLaunchesRQ.getDescription());
-        launchTarget.setTags(mergeLaunchesRQ.getTags());
-
-        StatisticsFacade statisticsFacade = statisticsFacadeFactory.
-                getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
-        statisticsFacade.recalculateStatistics(launchTarget);
-
-        launchRepository.delete(mergeLaunchesRQ.getLaunches());
-
-        return launchResourceAssembler.toResource(launchTarget);
-	}
-
-    private void mergeSameSuits(String projectName, Launch launchTarget, List<String> launchesList, String userName) {
-        testItemRepository.findItemsWithType(launchTarget.getId(), TestItemType.SUITE).forEach(suit ->
-                {
-                    List<String> sameNamedSuitsIds = testItemRepository
-                            .findIdsWithNameByLaunchesRef(suit.getName(), new ArrayList<>(launchesList))
-                            .stream().collect(toList());
-
-                    MergeTestItemRQ mergeTestItemRQ = new MergeTestItemRQ();
-                    mergeTestItemRQ.setItems(sameNamedSuitsIds);
-                    //TODO strategy, do we want to send in the rq
-                    mergeTestItemRQ.setMergeStrategyType("TEST");
-                    mergeTestItemHandler.mergeTestItem(projectName, suit.getId(), mergeTestItemRQ, userName);
-                }
-        );
-    }
-
-    @Override
-	public LaunchResource mergeLaunches(String projectName, String userName, MergeLaunchesRQ mergeLaunchesRQ) {
-		User user = userRepository.findOne(userName);
-		Project project = projectRepository.findOne(projectName);
-		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
-
-		Set<String> launchesIds = mergeLaunchesRQ.getLaunches();
-		List<Launch> launchesList = launchRepository.find(launchesIds);
-
-		validateMergingLaunches(launchesList, user, project);
-
-		StartLaunchRQ startRQ = new StartLaunchRQ();
-		startRQ.setMode(mergeLaunchesRQ.getMode());
-		startRQ.setDescription(mergeLaunchesRQ.getDescription());
-		startRQ.setName(mergeLaunchesRQ.getName());
-		startRQ.setTags(mergeLaunchesRQ.getTags());
-
-		launchesList.sort(Comparator.comparing(Launch::getStartTime));
-		startRQ.setStartTime(launchesList.get(0).getStartTime());
-		Launch launch = launchBuilder.get().addStartRQ(startRQ).addProject(projectName).addStatus(IN_PROGRESS).addUser(userName).build();
-		launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
-		launchRepository.save(launch);
-
-		launch = launchRepository.findOne(launch.getId());
-		launch.setEndTime(launchesList.get(launchesList.size() - 1).getEndTime());
-		List<TestItem> statisticsBase = updateChildrenOfLaunch(launch.getId(), mergeLaunchesRQ.getLaunches(),
-				mergeLaunchesRQ.isExtendSuitesDescription());
-		launch.setStatistics(getLaunchStatisticFromItems(statisticsBase));
-		launch.setStatus(getStatusFromStatistics(launch.getStatistics()));
-		launchRepository.save(launch);
-
-		launchRepository.delete(launchesIds);
-
-		return launchResourceAssembler.toResource(launch);
 	}
 
 	@Override
@@ -286,39 +181,6 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 				.collect(toList());
 	}
 
-	/**
-	 * Validations for merge launches request parameters and data
-	 *
-	 * @param launches
-	 */
-	private void validateMergingLaunches(List<Launch> launches, User user, Project project) {
-		expect(launches.size(), not(equalTo(0))).verify(BAD_REQUEST_ERROR, launches);
-
-		/*
-		 * ADMINISTRATOR and LEAD+ users have permission to merge not-only-own
-		 * launches
-		 */
-		boolean isUserValidate = !(user.getRole().equals(ADMINISTRATOR)
-				|| project.getUsers().get(user.getId()).getProjectRole().getRoleLevel() >= LEAD.getRoleLevel());
-		launches.forEach(launch -> {
-			expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launch);
-
-			expect(analyzerService.isPossible(launch.getId()), equalTo(true)).verify(FORBIDDEN_OPERATION,
-					"Impossible to merge launch which under AA processing");
-
-			expect(launch.getStatus(), not(Preconditions.statusIn(IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
-					Suppliers.formattedSupplier("Cannot merge launch '{}' with status '{}'", launch.getId(), launch.getStatus()));
-
-			expect(launch.getProjectRef(), equalTo(project.getId())).verify(FORBIDDEN_OPERATION,
-					"Impossible to merge launches from different projects.");
-
-			if (isUserValidate) {
-				expect(launch.getUserRef(), equalTo(user.getId())).verify(ACCESS_DENIED,
-						"You are not an owner of launches or have less than LEAD project role.");
-			}
-		});
-	}
-
 	private void validate(Launch launch, String userName, String projectName, Mode mode) {
 		// BusinessRule.expect(launch.getUserRef(),
 		// Predicates.notNull()).verify(ErrorType.ACCESS_DENIED);
@@ -346,49 +208,4 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		}
 	}
 
-	/**
-	 * Update test-items of specified launches with new LaunchID
-	 *
-	 * @param launchId
-	 */
-	private List<TestItem> updateChildrenOfLaunch(String launchId, Set<String> launches, boolean extendDescription) {
-		List<TestItem> testItems = launches.stream().map(id -> {
-			Launch launch = launchRepository.findOne(id);
-			return testItemRepository.findByLaunch(launch).stream().map(item -> {
-				item.setLaunchRef(launchId);
-				if (item.getType().sameLevel(TestItemType.SUITE)) {
-					// Add launch reference description for top level items
-					Supplier<String> newDescription = Suppliers
-							.formattedSupplier(((null != item.getItemDescription()) ? item.getItemDescription() : "")
-									+ (extendDescription ? "\r\n@launch '{} #{}'" : ""), launch.getName(), launch.getNumber());
-					item.setItemDescription(newDescription.get());
-				}
-				return item;
-			}).collect(toList());
-		}).flatMap(List::stream).collect(toList());
-		testItemRepository.save(testItems);
-		return testItems.stream().filter(item -> item.getType().sameLevel(TestItemType.SUITE)).collect(toList());
-	}
-
-	/**
-	 * Calculation of statistic based on set of test items
-	 *
-	 * @param input
-	 * @return Statistics object
-	 */
-	private Statistics getLaunchStatisticFromItems(List<TestItem> input) {
-		ExecutionCounter execution = new ExecutionCounter();
-		IssueCounter issues = new IssueCounter();
-		for (TestItem item : input) {
-			// common execution statistics calculation
-			execution.setTotal(item.getStatistics().getExecutionCounter().getTotal() + execution.getTotal());
-			execution.setPassed(item.getStatistics().getExecutionCounter().getPassed() + execution.getPassed());
-			execution.setFailed(item.getStatistics().getExecutionCounter().getFailed() + execution.getFailed());
-			execution.setSkipped(item.getStatistics().getExecutionCounter().getSkipped() + execution.getSkipped());
-
-			// common issues statistics calculation
-			issues = ProjectUtils.sumIssueStatistics(issues, item.getStatistics().getIssueCounter());
-		}
-		return new Statistics(execution, issues);
-	}
 }

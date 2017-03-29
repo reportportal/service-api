@@ -23,8 +23,6 @@ package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 
 import java.util.List;
@@ -51,33 +49,6 @@ public interface IUpdateLaunchHandler {
 	 * @return OperationCompletionRS - Response Data
 	 */
 	OperationCompletionRS updateLaunch(String launchId, String projectName, String userName, UpdateLaunchRQ rq);
-
-	/**
-	 * Merge specified launches in common one
-	 *
-	 * @param projectName
-	 *            Related project name value
-	 * @param userName
-	 *            Recipient user name
-	 * @param mergeLaunchesRQ
-	 *            Request data
-	 * @return LaunchResource - Response Data
-	 */
-	LaunchResource mergeLaunches(String projectName, String userName, MergeLaunchesRQ mergeLaunchesRQ);
-
-	/**
-	 * Deep merge specified launches into selected one.
-	 * @param projectName
-	 * 			  Related project name value
-	 * @param launchTargetId
-	 * 			  Launch target id
-	 * @param userName
-	 * 			  Recipient user name
-	 * @param mergeLaunchesRQ
-	 * 			  Request data
-	 * @return LaunchResource - Response Data
-	 */
-	LaunchResource deepMergeLaunches(String projectName, String launchTargetId, String userName, MergeLaunchesRQ mergeLaunchesRQ);
 
 	/**
 	 * Start launch analyzer on demand

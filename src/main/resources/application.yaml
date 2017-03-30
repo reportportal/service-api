@@ -10,12 +10,11 @@ spring:
       port: 8500
       discovery:
         tags:
-          - urlprefix-${server.contextPath}
-          - traefik.frontend.rule=PathPrefixStrip:/api
+          - urlprefix-${server.contextPath:/}
+          - traefik.frontend.rule=PathPrefixStrip:${server.contextPath:/}
+          - statusPageUrlPath=${server.contextPath}${management.contextPath}/info
+          - healthCheckUrlPath=${server.contextPath}${management.contextPath}/info
         healthCheckPath: ${server.contextPath}/admin/health
-        host-info: ${server.contextPath}/admin/info
-        ip-address: 10.200.10.1
-        prefer-ip-address: true
         register: false
       enabled: false
 eureka:

@@ -89,11 +89,15 @@ public class MergeTestItemHandlerImpl implements MergeTestItemHandler {
             validateTestItemInProject(itemToMerge, project);
             itemsToMerge.add(itemToMerge);
         }
+
         MergeStrategyType mergeStrategyType = MergeStrategyType.fromValue(rq.getMergeStrategyType());
         expect(mergeStrategyType, Predicates.notNull()).verify(ErrorType.UNSUPPORTED_MERGE_STRATEGY_TYPE, rq.getMergeStrategyType());
 
         MergeStrategy mergeStrategy = mergeStrategyFactory.getStrategy(mergeStrategyType);
         mergeStrategy.mergeTestItems(testItemTarget, itemsToMerge);
+
+        updateDescriptionAndTags(testItemTarget, itemsToMerge);
+        testItemRepository.save(testItemTarget);
 
         StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
 
@@ -101,10 +105,17 @@ public class MergeTestItemHandlerImpl implements MergeTestItemHandler {
             Launch launch = launchRepository.findOne(launchID);
             statisticsFacade.recalculateStatistics(launch);
         }
-
         statisticsFacade.recalculateStatistics(launchTarget);
 
+
         return new OperationCompletionRS("TestItem with ID = '" + item + "' successfully merged.");
+    }
+
+    private void updateDescriptionAndTags(TestItem target, List<TestItem> items) {
+        items.stream().map(TestItem::getTags).reduce((tags, got) -> {
+            tags.addAll(got);
+            return tags;
+        }).ifPresent(it -> target.getTags().addAll(it));
     }
 
     private void validateLaunchInProject(Launch launch, Project project) {

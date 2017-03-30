@@ -25,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -129,9 +128,8 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
     private void mergeSameSuits(String projectName, Launch launchTarget, Set<String> launchesList, String userName, String strategy) {
         testItemRepository.findItemsWithType(launchTarget.getId(), TestItemType.SUITE).forEach(suit ->
                 {
-                    //TODO change to set in dao
                     List<String> sameNamedSuitsIds = testItemRepository
-                            .findIdsWithNameByLaunchesRef(suit.getName(), new ArrayList<>(launchesList))
+                            .findIdsWithNameByLaunchesRef(suit.getName(), launchesList)
                             .stream().collect(toList());
 
                     MergeTestItemRQ mergeTestItemRQ = new MergeTestItemRQ();

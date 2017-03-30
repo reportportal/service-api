@@ -280,7 +280,7 @@ public class LaunchController implements ILaunchController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Deep merge specified launches into selected one.")
-	public LaunchResource deepMergeLaunches(
+	public OperationCompletionRS deepMergeLaunches(
 			@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,
 			@PathVariable String launchId,
 			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated DeepMergeLaunchesRQ mergeLaunchesRQ,

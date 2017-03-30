@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
@@ -112,6 +113,13 @@ public class MergeTestItemHandlerImpl implements MergeTestItemHandler {
         }).ifPresent(it
                 -> Optional.ofNullable(target.getTags()).orElse(new HashSet<>())
                 .addAll(it.orElse(Collections.emptySet())));
+
+        StringBuilder result = new StringBuilder(target.getItemDescription());
+        String collect = items.stream().map(TestItem::getItemDescription).filter(description
+                -> !description.equals(target.getItemDescription())).collect(Collectors.joining("\n"));
+        if (!collect.isEmpty()) {
+            target.setItemDescription(result.append("\n").append(collect).toString());
+        }
 
         items.add(target);
         items.sort(Comparator.comparing(TestItem::getStartTime));

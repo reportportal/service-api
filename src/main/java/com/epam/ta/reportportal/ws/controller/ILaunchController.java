@@ -203,7 +203,16 @@ public interface ILaunchController {
 	 */
 	LaunchResource mergeLaunches(String projectName, MergeLaunchesRQ mergeLaunchesRQ, Principal principal);
 
-	LaunchResource deepMergeLaunches(String projectName, String launchId, DeepMergeLaunchesRQ mergeLaunchesRQ, Principal principal);
+	/**
+	 * Deep merge specified launches in one. It means
+	 * that items on suit level will be merged as well.
+	 * @param projectName
+	 * @param launchId id of launch to be merged
+	 * @param mergeLaunchesRQ request data
+	 * @param principal
+	 * @return
+	 */
+	OperationCompletionRS deepMergeLaunches(String projectName, String launchId, DeepMergeLaunchesRQ mergeLaunchesRQ, Principal principal);
 
 	/**
 	 * Start auto-analyzer for specified launch

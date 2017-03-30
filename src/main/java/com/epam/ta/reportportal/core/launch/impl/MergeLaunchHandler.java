@@ -16,6 +16,7 @@ import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.ws.converter.LaunchResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
 import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
@@ -84,11 +85,9 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
     }
 
     @Override
-    public LaunchResource deepMergeLaunches(String projectName, String launchTargetId, String userName, DeepMergeLaunchesRQ mergeLaunchesRQ) {
-
+    public OperationCompletionRS deepMergeLaunches(String projectName, String launchTargetId, String userName, DeepMergeLaunchesRQ mergeLaunchesRQ) {
         expect(mergeLaunchesRQ.getLaunches().contains(launchTargetId), equalTo(false))
-                .verify(FORBIDDEN_OPERATION, "Impossible to merge launch the same launch");
-
+                .verify(FORBIDDEN_OPERATION, "Impossible to merge launch with the same launch");
         User user = userRepository.findOne(userName);
         Project project = projectRepository.findOne(projectName);
         expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
@@ -101,7 +100,6 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         validateMergingLaunches(launchesList, user, project);
 
         mergeSameSuits(projectName, launchTarget, launchesIds, userName, mergeLaunchesRQ.getMergeStrategyType());
-
         updateChildrenOfLaunch(launchTargetId, launchesIds, mergeLaunchesRQ.isExtendSuitesDescription());
 
         StatisticsFacade statisticsFacade = statisticsFacadeFactory.
@@ -109,20 +107,22 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         statisticsFacade.recalculateStatistics(launchTarget);
 
         launchTarget = launchRepository.findOne(launchTarget.getId());
+        updateTargetLaunchInfo(launchTarget, launchesList, mergeLaunchesRQ);
 
+        launchRepository.delete(mergeLaunchesRQ.getLaunches());
+
+        return new OperationCompletionRS("Launch with ID = '" + launchTargetId + "' is successfully deeply merged.");
+    }
+
+    private void updateTargetLaunchInfo(Launch launchTarget, List<Launch> launchesList, DeepMergeLaunchesRQ mergeLaunchesRQ) {
         launchesList.add(launchTarget);
         launchesList.sort(Comparator.comparing(Launch::getStartTime));
-
         launchTarget.setDescription(mergeLaunchesRQ.getDescription());
         launchTarget.setTags(mergeLaunchesRQ.getTags());
         launchTarget.setStartTime(launchesList.get(0).getStartTime());
-        launchTarget.setEndTime(launchesList.get(launchesList.size()-1).getEndTime());
+        launchTarget.setEndTime(launchesList.get(launchesList.size() - 1).getEndTime());
         launchTarget.setStatus(StatisticsHelper.getStatusFromStatistics(launchTarget.getStatistics()));
-
         launchRepository.save(launchTarget);
-        launchRepository.delete(mergeLaunchesRQ.getLaunches());
-
-        return launchResourceAssembler.toResource(launchTarget);
     }
 
     private void mergeSameSuits(String projectName, Launch launchTarget, Set<String> launchesList, String userName, String strategy) {
@@ -191,7 +191,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         expect(launches.size(), not(equalTo(0))).verify(BAD_REQUEST_ERROR, launches);
 
 		/*
-		 * ADMINISTRATOR and LEAD+ users have permission to merge not-only-own
+         * ADMINISTRATOR and LEAD+ users have permission to merge not-only-own
 		 * launches
 		 */
         boolean isUserValidate = !(user.getRole().equals(ADMINISTRATOR)

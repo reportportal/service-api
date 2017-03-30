@@ -41,10 +41,7 @@ import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
@@ -92,30 +89,35 @@ public class MergeTestItemHandlerImpl implements MergeTestItemHandler {
 
         MergeStrategyType mergeStrategyType = MergeStrategyType.fromValue(rq.getMergeStrategyType());
         expect(mergeStrategyType, Predicates.notNull()).verify(ErrorType.UNSUPPORTED_MERGE_STRATEGY_TYPE, rq.getMergeStrategyType());
-
         MergeStrategy mergeStrategy = mergeStrategyFactory.getStrategy(mergeStrategyType);
         mergeStrategy.mergeTestItems(testItemTarget, itemsToMerge);
 
-        updateDescriptionAndTags(testItemTarget, itemsToMerge);
-        testItemRepository.save(testItemTarget);
+        updateTargetItemInfo(testItemTarget, itemsToMerge);
 
-        StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
-
+        StatisticsFacade statisticsFacade = statisticsFacadeFactory
+                .getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
         for (String launchID : sourceLaunches) {
             Launch launch = launchRepository.findOne(launchID);
             statisticsFacade.recalculateStatistics(launch);
         }
         statisticsFacade.recalculateStatistics(launchTarget);
 
-
         return new OperationCompletionRS("TestItem with ID = '" + item + "' successfully merged.");
     }
 
-    private void updateDescriptionAndTags(TestItem target, List<TestItem> items) {
-        items.stream().map(TestItem::getTags).reduce((tags, got) -> {
-            tags.addAll(got);
-            return tags;
-        }).ifPresent(it -> target.getTags().addAll(it));
+    private void updateTargetItemInfo(TestItem target, List<TestItem> items) {
+        items.stream().map(it -> Optional.ofNullable(it.getTags())).reduce((reduced, actual) -> {
+            reduced.orElse(new HashSet<>()).addAll(actual.get());
+            return reduced;
+        }).ifPresent(it
+                -> Optional.ofNullable(target.getTags()).orElse(new HashSet<>())
+                .addAll(it.orElse(Collections.emptySet())));
+
+        items.add(target);
+        items.sort(Comparator.comparing(TestItem::getStartTime));
+        target.setStartTime(items.get(0).getStartTime());
+        target.setEndTime(items.get(items.size()-1).getEndTime());
+        testItemRepository.save(target);
     }
 
     private void validateLaunchInProject(Launch launch, Project project) {

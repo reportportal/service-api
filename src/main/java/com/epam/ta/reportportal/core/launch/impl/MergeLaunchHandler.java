@@ -60,6 +60,11 @@ import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRAT
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.toList;
 
+/**
+ * @author Aliaksei_Makayed
+ * @author Andrei_Ramanchuk
+ * @author Pavel_Bortnik
+ */
 @Service
 public class MergeLaunchHandler implements IMergeLaunchHandler {
 
@@ -120,7 +125,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         List<Launch> launchesList = launchRepository.find(launchesIds);
         validateMergingLaunches(launchesList, user, project);
 
-        mergeSameSuits(projectName, launchTarget, launchesIds, userName, mergeLaunchesRQ.getMergeStrategyType());
+        mergeSameSuites(projectName, launchTarget, launchesIds, userName, mergeLaunchesRQ.getMergeStrategyType());
         updateChildrenOfLaunch(launchTargetId, launchesIds, mergeLaunchesRQ.isExtendSuitesDescription());
 
         StatisticsFacade statisticsFacade = statisticsFacadeFactory.
@@ -146,7 +151,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         launchRepository.save(launchTarget);
     }
 
-    private void mergeSameSuits(String projectName, Launch launchTarget, Set<String> launchesList, String userName, String strategy) {
+    private void mergeSameSuites(String projectName, Launch launchTarget, Set<String> launchesList, String userName, String strategy) {
         testItemRepository.findItemsWithType(launchTarget.getId(), TestItemType.SUITE).forEach(suit ->
                 {
                     List<String> sameNamedSuitsIds = testItemRepository
@@ -242,7 +247,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
      * @param launchId
      */
     private List<TestItem> updateChildrenOfLaunch(String launchId, Set<String> launches, boolean extendDescription) {
-        List<TestItem> testItems = launches.stream().map(id -> {
+        List<TestItem> testItems = launches.stream().flatMap(id -> {
             Launch launch = launchRepository.findOne(id);
             return testItemRepository.findByLaunch(launch).stream().map(item -> {
                 item.setLaunchRef(launchId);
@@ -254,8 +259,8 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
                     item.setItemDescription(newDescription.get());
                 }
                 return item;
-            }).collect(toList());
-        }).flatMap(List::stream).collect(toList());
+            });
+        }).collect(toList());
         testItemRepository.save(testItems);
         return testItems.stream().filter(item -> item.getType().sameLevel(TestItemType.SUITE)).collect(toList());
     }

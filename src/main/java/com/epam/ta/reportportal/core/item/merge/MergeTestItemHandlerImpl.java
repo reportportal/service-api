@@ -49,6 +49,7 @@ import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
+
 @Service
 public class MergeTestItemHandlerImpl implements MergeTestItemHandler {
 
@@ -106,6 +107,12 @@ public class MergeTestItemHandlerImpl implements MergeTestItemHandler {
         return new OperationCompletionRS("TestItem with ID = '" + item + "' successfully merged.");
     }
 
+    /**
+     * Collects tags and descriptions from items and add them to target. Same tags
+     * and descriptions are added only once. Updates start and end times of target.
+     * @param target item to be merged
+     * @param items items to merge
+     */
     private void updateTargetItemInfo(TestItem target, List<TestItem> items) {
         items.stream().map(it -> Optional.ofNullable(it.getTags())).reduce((reduced, actual) -> {
             reduced.orElse(new HashSet<>()).addAll(actual.get());

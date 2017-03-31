@@ -73,14 +73,14 @@ configurations.all {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:3.0.0-BETA-5'
-        compile 'com.epam.reportportal:commons-rules:3.0.0-BETA-1'
-        compile 'com.epam.reportportal:commons-model:3.0.0-BETA-1'
+        compile 'com.epam.reportportal:commons-dao:3.0.0-BETA-6'
+        compile 'com.epam.reportportal:commons-rules:3.0.0-BETA-2'
+        compile 'com.epam.reportportal:commons-model:3.0.0-BETA-2'
         compile 'com.epam.reportportal:commons:3.0.0-BETA-2'
     } else {
-        compile 'com.github.reportportal:commons-model:872821f'
-        compile('com.github.reportportal:commons-dao:42208c3771')
-        compile('com.github.reportportal:commons-rules:56fe3ab074')
+        compile 'com.github.reportportal:commons-model:3.0.0-BETA-2'
+        compile('com.github.reportportal:commons-dao:3.0.0-BETA-6')
+        compile('com.github.reportportal:commons-rules:3.0.0-BETA-2')
         compile 'com.epam.reportportal:commons:2.6.1'
     }
 

@@ -88,3 +88,4 @@
 * EPMRPP-24570 - Status statistics is not updated in case user deletes items from SUITE/TEST levels
 * EPMRPP-24914 - Item with investigated defect type only is not included in scope of analysis
 * reportportal#31/EPMRPP-25006 - Widget limits clear up
+* reportportal#92 - Fixed negative value int the "TI" counter for merged launch

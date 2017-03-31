@@ -2,6 +2,8 @@ rp:
   upload:
     maxUploadSize: 128MB
     maxFileSize: 32MB
+  analytics:
+    enableByDefault: true
 
 spring:
   cloud:

@@ -279,7 +279,6 @@ public class LaunchController implements ILaunchController {
 	@PostMapping("/{launchId}/merge")
 	@ResponseBody
 	@ResponseStatus(OK)
-	@ApiOperation("Deep merge specified launches into selected one.")
 	@ApiIgnore
 	public OperationCompletionRS deepMergeLaunches(
 			@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,

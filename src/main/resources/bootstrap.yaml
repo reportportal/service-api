@@ -4,6 +4,7 @@ info:
     description: ReportPortal API Service
     version: '@version@'
     branch: '@branch@'
+    repos: '@repos@'
 
 spring:
   profiles:

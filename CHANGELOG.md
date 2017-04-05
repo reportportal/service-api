@@ -89,3 +89,4 @@
 * EPMRPP-24914 - Item with investigated defect type only is not included in scope of analysis
 * reportportal#31/EPMRPP-25006 - Widget limits clear up
 * reportportal#92 - Fixed negative value int the "TI" counter for merged launch
+* EPMRPP-25255 - Personal projects have TEST_BASES calculation strategy (BDD) instead of STEP_BASED (regular)

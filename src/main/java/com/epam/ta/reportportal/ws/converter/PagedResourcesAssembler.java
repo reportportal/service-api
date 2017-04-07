@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.ws.converter;
 
+import com.google.common.base.Preconditions;
 import org.springframework.data.domain.Page;
 import org.springframework.util.Assert;
 
@@ -56,7 +57,7 @@ public abstract class PagedResourcesAssembler<T, R> extends ResourceAssembler<T,
 	 */
 	@Deprecated
 	public com.epam.ta.reportportal.ws.model.Page<R> toPagedResources(Page<T> content) {
-		Assert.notNull(content);
+		Preconditions.checkNotNull(content, "Content should be null");
 
 		return new com.epam.ta.reportportal.ws.model.Page<>(toResources(content),
 				new com.epam.ta.reportportal.ws.model.Page.PageMetadata(content.getSize(), content.getNumber() + 1,

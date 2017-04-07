@@ -127,72 +127,73 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 
 	@Override
 	public void analyze(String launchId, List<TestItem> resources, List<TestItem> scope) {
-		for (TestItem current : resources) {
-			List<Double> curRate = Lists.newArrayList();
-			TestItemIssue issue = null;
-			boolean isInvestigated = false;
-			List<Log> curItemErr = logRepository.findTestItemErrorLogs(current.getId());
+		try {
+			for (TestItem current : resources) {
+				List<Double> curRate = Lists.newArrayList();
+				TestItemIssue issue = null;
+				boolean isInvestigated = false;
+				List<Log> curItemErr = logRepository.findTestItemErrorLogs(current.getId());
 
-			Launch launch = launchRepository.findOne(current.getLaunchRef());
-			Project project = projectRepository.findOne(launch.getProjectRef());
+				Launch launch = launchRepository.findOne(current.getLaunchRef());
+				Project project = projectRepository.findOne(launch.getProjectRef());
 
-			for (TestItem item : scope) {
+				for (TestItem item : scope) {
 				/*
 				 * Avoid comparison with itself as investigated item during
 				 * in_progress launch. Cause manually investigated item will be
 				 * included in history of current one.
 				 */
-				if (item.getId().equalsIgnoreCase(current.getId()))
-					continue;
+					if (item.getId().equalsIgnoreCase(current.getId()))
+						continue;
 
-				List<Log> errors = logRepository.findTestItemErrorLogs(item.getId());
-				if (errors.size() == curItemErr.size()) {
-					for (int i = 0; i < curItemErr.size(); i++) {
-						String curMsg = curItemErr.get(i).getLogMsg().replaceAll("\\d+", "").replaceAll("\\s(at)\\s", "");
-						String scopeMsg = errors.get(i).getLogMsg().replaceAll("\\d+", "").replaceAll("\\s(at)\\s", "");
+					List<Log> errors = logRepository.findTestItemErrorLogs(item.getId());
+					if (errors.size() == curItemErr.size()) {
+						for (int i = 0; i < curItemErr.size(); i++) {
+							String curMsg = curItemErr.get(i).getLogMsg().replaceAll("\\d+", "").replaceAll("\\s(at)\\s", "");
+							String scopeMsg = errors.get(i).getLogMsg().replaceAll("\\d+", "").replaceAll("\\s(at)\\s", "");
 						/*
 						 * Get Levenshtein distance for two comparing log
 						 * strings
 						 */
-						int maxString = Math.max(curMsg.length(), scopeMsg.length());
-						int diff = StringUtils.getLevenshteinDistance(curMsg, scopeMsg);
+							int maxString = Math.max(curMsg.length(), scopeMsg.length());
+							int diff = StringUtils.getLevenshteinDistance(curMsg, scopeMsg);
 						/*
 						 * Store percentage of equality
 						 */
-						curRate.add(((double) (maxString - diff)) / maxString * 100);
+							curRate.add(((double) (maxString - diff)) / maxString * 100);
+						}
+					}
+					if (!curRate.isEmpty() && (this.mathMiddle(curRate) >= acceptRate)) {
+						isInvestigated = true;
+						issue = item.getIssue();
+					/* Stop looping cause acceptable item found already. */
+						break;
+					} else
+						curRate.clear();
+				}
+
+				if (isInvestigated) {
+					TestItemIssue currentIssue = current.getIssue();
+				/* If item was investigated till Launch finished. */
+					if ((null != currentIssue.getExternalSystemIssues()) || (!currentIssue.getIssueType().equalsIgnoreCase(TestItemIssueType.TO_INVESTIGATE.getLocator()))
+							|| (null != currentIssue.getIssueDescription())) {
+						currentIssue.setIssueDescription(this.suggest(currentIssue.getIssueDescription(), issue, project.getConfiguration()));
+						current.setIssue(currentIssue);
+						testItemRepository.save(current);
+					/* If system investigate item from scratch */
+					} else {
+						issue.setIssueDescription(this.mark(issue.getIssueDescription()));
+						current = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
+								.resetIssueStatistics(current);
+						current.setIssue(issue);
+						testItemRepository.save(current);
+						statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy()).updateIssueStatistics(current);
 					}
 				}
-				if (!curRate.isEmpty() && (this.mathMiddle(curRate) >= acceptRate)) {
-					isInvestigated = true;
-					issue = item.getIssue();
-					/* Stop looping cause acceptable item found already. */
-					break;
-				} else
-					curRate.clear();
 			}
-
-			if (isInvestigated) {
-				TestItemIssue currentIssue = current.getIssue();
-				/* If item was investigated till Launch finished. */
-				if ((null != currentIssue.getExternalSystemIssues())
-						|| (!currentIssue.getIssueType().equalsIgnoreCase(TestItemIssueType.TO_INVESTIGATE.getLocator()))
-						|| (null != currentIssue.getIssueDescription())) {
-					currentIssue.setIssueDescription(this.suggest(currentIssue.getIssueDescription(), issue, project.getConfiguration()));
-					current.setIssue(currentIssue);
-					testItemRepository.save(current);
-					/* If system investigate item from scratch */
-				} else {
-					issue.setIssueDescription(this.mark(issue.getIssueDescription()));
-					current = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
-							.resetIssueStatistics(current);
-					current.setIssue(issue);
-					testItemRepository.save(current);
-					statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
-							.updateIssueStatistics(current);
-				}
-			}
+		} finally {
+			analyzeFinished(launchId);
 		}
-		analyzeFinished(launchId);
 	}
 
 	@Override

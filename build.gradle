@@ -58,7 +58,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Camden.SR5"
+        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Camden.SR6"
         mavenBom "org.springframework.boot:spring-boot-dependencies:1.5.2.RELEASE"
     }
 }
@@ -73,14 +73,14 @@ configurations.all {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:3.0.0-BETA-1'
-        compile 'com.epam.reportportal:commons-rules:3.0.0-BETA-1'
-        compile 'com.epam.reportportal:commons-model:3.0.0-BETA-1'
+        compile 'com.epam.reportportal:commons-dao:3.0.0-BETA-8'
+        compile 'com.epam.reportportal:commons-rules:3.0.0-BETA-2'
+        compile 'com.epam.reportportal:commons-model:3.0.0-BETA-2'
         compile 'com.epam.reportportal:commons:3.0.0-BETA-2'
     } else {
-        compile 'com.github.reportportal:commons-model:872821f'
-        compile('com.github.reportportal:commons-dao:517847ad07')
-        compile('com.github.reportportal:commons-rules:56fe3ab074')
+        compile 'com.github.reportportal:commons-model:3.0.0-BETA-2'
+        compile('com.github.reportportal:commons-dao:3.0.0-BETA-7')
+        compile('com.github.reportportal:commons-rules:3.0.0-BETA-2')
         compile 'com.epam.reportportal:commons:2.6.1'
     }
 
@@ -101,10 +101,10 @@ dependencies {
 
     compile 'org.springframework.cloud:spring-cloud-starter-eureka'
     compile 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
-
     compile 'org.springframework.cloud:spring-cloud-starter-security'
 
 
+    compile 'org.springframework.boot:spring-boot-starter-aop'
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.boot:spring-boot-starter-actuator'
     compile 'org.springframework.boot:spring-boot-starter-data-redis'

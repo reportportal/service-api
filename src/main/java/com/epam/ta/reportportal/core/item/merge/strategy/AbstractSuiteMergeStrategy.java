@@ -53,8 +53,8 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
 
             setLaunchRefForChilds(childItem, itemTarget.getLaunchRef());
             testItemRepository.save(childItem);
-            testItemRepository.delete(itemSource);
         }
+        testItemRepository.delete(itemSource);
         return itemTarget;
     }
 

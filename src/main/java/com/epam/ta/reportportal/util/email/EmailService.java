@@ -54,7 +54,7 @@ import static com.epam.ta.reportportal.commons.EntityUtils.normalizeUsername;
 public class EmailService extends JavaMailSenderImpl {
 
     private static final String FINISH_LAUNCH_EMAIL_SUBJECT = " Report Portal Notification: launch '%s' #%s finished";
-    private static final String LOGO = "templates/email/rp_logo.png";
+    private static final String LOGO = "templates/email/rp_io_logo.png";
     private TemplateEngine templateEngine;
 
     /*
@@ -87,7 +87,7 @@ public class EmailService extends JavaMailSenderImpl {
 
             Map<String, Object> email = new HashMap<>();
             email.put("url", url);
-            String text = templateEngine.merge("registration-template.vm", email);
+            String text = templateEngine.merge("registration-template.ftl", email);
             message.setText(text, true);
             message.addInline("logoimg", new UrlResource(logoImg));
         };
@@ -174,7 +174,7 @@ public class EmailService extends JavaMailSenderImpl {
                 email.put("tiInfo", ti);
             }
 
-            String text = templateEngine.merge("finish-launch-template.vm", email);
+            String text = templateEngine.merge("finish-launch-template.ftl", email);
             message.setText(text, true);
             message.addInline("logoimg", new UrlResource(getClass().getClassLoader().getResource(LOGO)));
         };
@@ -201,7 +201,7 @@ public class EmailService extends JavaMailSenderImpl {
             Map<String, Object> email = new HashMap<>();
             email.put("login", login);
             email.put("url", url);
-            String text = templateEngine.merge("restore-password-template.vm", email);
+            String text = templateEngine.merge("restore-password-template.ftl", email);
             message.setText(text, true);
             message.addInline("logoimg", new UrlResource(logoImg));
         };
@@ -228,7 +228,7 @@ public class EmailService extends JavaMailSenderImpl {
             email.put("url", basicUrl);
             email.put("login", normalizeUsername(req.getLogin()));
             email.put("password", req.getPassword());
-            String text = templateEngine.merge("create-user-template.vm", email);
+            String text = templateEngine.merge("create-user-template.ftl", email);
             message.setText(text, true);
             message.addInline("logoimg", new UrlResource(logoImg));
         };

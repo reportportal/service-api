@@ -81,7 +81,7 @@ dependencies {
         compile 'com.github.reportportal:commons-model:3.0.0-BETA-2'
         compile('com.github.reportportal:commons-dao:3.0.0-BETA-7')
         compile('com.github.reportportal:commons-rules:3.0.0-BETA-2')
-        compile 'com.epam.reportportal:commons:2.6.1'
+        compile 'com.github.reportportal:commons:develop-SNAPSHOT'
     }
 
     compile 'org.jasypt:jasypt:1.9.2'
@@ -94,7 +94,6 @@ dependencies {
     compile "ch.qos.logback:logback-classic:${logback}"
     compile 'net.coobird:thumbnailator:0.4.8'
     compile 'com.sun.mail:javax.mail:1.5.6'
-    compile 'org.apache.velocity:velocity:1.7'
 
 //    compile 'org.springframework.cloud:spring-cloud-config-client'
     compile 'org.springframework.retry:spring-retry'
@@ -106,6 +105,7 @@ dependencies {
 
     compile 'org.springframework.boot:spring-boot-starter-aop'
     compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework.boot:spring-boot-starter-freemarker'
     compile 'org.springframework.boot:spring-boot-starter-actuator'
     compile 'org.springframework.boot:spring-boot-starter-data-redis'
     compile 'org.springframework.cloud:spring-cloud-starter-oauth2'

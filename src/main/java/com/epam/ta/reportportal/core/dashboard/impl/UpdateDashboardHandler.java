@@ -21,27 +21,11 @@
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.Optional.ofNullable;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.acl.AclUtils;
 import com.epam.ta.reportportal.core.acl.SharingService;
 import com.epam.ta.reportportal.core.dashboard.IUpdateDashboardHandler;
 import com.epam.ta.reportportal.database.dao.DashboardRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.Dashboard.WidgetObject;
@@ -52,10 +36,25 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 import com.google.common.collect.Lists;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.Optional.ofNullable;
 
 /**
  * Default implementation of {@link IUpdateDashboardHandler}
- * 
+ *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
  */
@@ -69,8 +68,7 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 	private final ProjectRepository projectRepository;
 
 	@Autowired
-	public UpdateDashboardHandler(DashboardRepository dashboardRepository, WidgetRepository widgetRepository,
-			SharingService sharingService,
+	public UpdateDashboardHandler(DashboardRepository dashboardRepository, WidgetRepository widgetRepository, SharingService sharingService,
 			ApplicationEventPublisher eventPublisher, ProjectRepository projectRepository) {
 		this.dashboardRepository = dashboardRepository;
 		this.widgetRepository = widgetRepository;
@@ -98,9 +96,9 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 
 		ofNullable(rq.getDescription()).ifPresent(dashboard::setDescription);
 
-		expect(null != rq.getAddWidget() && null != rq.getDeleteWidgetId()
-				&& rq.getDeleteWidgetId().equalsIgnoreCase(rq.getAddWidget().getWidgetId()), equalTo(Boolean.FALSE))
-						.verify(DASHBOARD_UPDATE_ERROR, "Unable delete and add the same widget simultaneously.");
+		expect(null != rq.getAddWidget() && null != rq.getDeleteWidgetId() && rq.getDeleteWidgetId()
+				.equalsIgnoreCase(rq.getAddWidget().getWidgetId()), equalTo(Boolean.FALSE))
+				.verify(DASHBOARD_UPDATE_ERROR, "Unable delete and add the same widget simultaneously.");
 
 		// update widget (or list of widgets if one of them change position on
 		// dashboard)
@@ -151,22 +149,16 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 
 		// remove widget
 		ofNullable(rq.getDeleteWidgetId()).ifPresent(it -> {
-			expect(processWidgets(dashboard.getWidgets(), it, true), equalTo(true))
-					.verify(WIDGET_NOT_FOUND_IN_DASHBOARD, it, dashboardId);
+			expect(dashboard.getWidgets(), hasWidget(it)).verify(WIDGET_NOT_FOUND_IN_DASHBOARD, it, dashboardId);
+
+			//remove from dashboard
+			dashboard.getWidgets().removeIf(w -> w.getWidgetId().equals(it));
 			Widget widget = widgetRepository.findOneLoadACL(it);
 			if (null != widget && widget.getAcl().getOwnerUserId().equals(userName)) {
 				try {
 					widgetRepository.delete(it);
 				} catch (Exception e) {
 					throw new ReportPortalException("Error during deleting widget", e);
-				}
-			} else {
-				Iterator<WidgetObject> iterator = dashboard.getWidgets().iterator();
-				while (iterator.hasNext()) {
-					if (iterator.next().getWidgetId().equals(it)) {
-						iterator.remove();
-						break;
-					}
 				}
 			}
 		});
@@ -185,11 +177,11 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 
 		expect(widgetFromDB, notNull()).verify(WIDGET_NOT_FOUND, widgetId);
 
-		expect(widgetFromDB.getProjectName(), equalTo(projectName)).verify(ErrorType.FORBIDDEN_OPERATION,
-				"Impossible to add widget from another project");
+		expect(widgetFromDB.getProjectName(), equalTo(projectName))
+				.verify(ErrorType.FORBIDDEN_OPERATION, "Impossible to add widget from another project");
 
-		expect(processWidgets(allWidgets, widgetId, false), equalTo(false)).verify(DASHBOARD_UPDATE_ERROR,
-				formattedSupplier("Widget with ID '{}' already added to the current dashboard.", widgetId));
+		expect(allWidgets, hasWidget(widgetId).negate())
+				.verify(DASHBOARD_UPDATE_ERROR, formattedSupplier("Widget with ID '{}' already added to the current dashboard.", widgetId));
 
 		AclUtils.isPossibleToRead(widgetFromDB.getAcl(), userName, projectName);
 	}
@@ -197,25 +189,11 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 	/**
 	 * Iterate over Widget's Set find widget with specified id and remove it if
 	 * required
-	 * 
-	 * @param widgets
-	 * @param searchingId
-	 * @param isRemove
+	 *
+	 * @param id ID of widget
 	 * @return isFound
 	 */
-	private boolean processWidgets(List<WidgetObject> widgets, String searchingId, boolean isRemove) {
-		Iterator<WidgetObject> iterator = widgets.iterator();
-		boolean isFound = false;
-		while (iterator.hasNext()) {
-			WidgetObject widget = iterator.next();
-			if (widget.getWidgetId().equalsIgnoreCase(searchingId)) {
-				if (isRemove) {
-					iterator.remove();
-				}
-				isFound = true;
-				break;
-			}
-		}
-		return isFound;
+	private Predicate<List<WidgetObject>> hasWidget(String id) {
+		return (widgets -> widgets.stream().anyMatch(w -> w.getWidgetId().equals(id)));
 	}
 }

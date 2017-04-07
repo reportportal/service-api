@@ -38,7 +38,7 @@
 		<property name="protocol" value="${rp.email.protocol}" />
 		<property name="username" value="${rp.email.account}" />
 		<property name="password" value="${rp.email.password}" />
-		<property name="addressFrom" value="${rp.email.from}" />
+		<property name="from" value="${rp.email.from}" />
 		<property name="javaMailProperties">
 			<props>
 				<prop key="mail.transport.protocol">smtp</prop>
@@ -51,9 +51,5 @@
 
 	</bean>
 
-	<bean id="templateVelocityEngine" class="com.epam.ta.reportportal.util.template.VelocityTemplateEngine"
-		  c:velocityEngine-ref="velocityEngine"/>
-	<bean id="velocityEngine" class="org.springframework.ui.velocity.VelocityEngineFactoryBean" 
-	p:resourceLoaderPath="classpath:/templates/email" 
-	p:preferFileSystemAccess="false"/>
+
 </beans>

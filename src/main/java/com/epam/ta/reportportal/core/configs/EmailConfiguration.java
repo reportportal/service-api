@@ -51,7 +51,7 @@ public class EmailConfiguration {
 
 
 	@Bean
-	public TemplateEngine getVelocityTemplateEngine() {
+	public TemplateEngine getTemplateEngine() {
 
 		Version version = new Version(2, 3, 25);
 		freemarker.template.Configuration cfg = new freemarker.template.Configuration(version);

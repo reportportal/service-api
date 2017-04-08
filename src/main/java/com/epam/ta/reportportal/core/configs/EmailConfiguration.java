@@ -56,7 +56,7 @@ public class EmailConfiguration {
 		Version version = new Version(2, 3, 25);
 		freemarker.template.Configuration cfg = new freemarker.template.Configuration(version);
 
-		cfg.setClassForTemplateLoading(EmailConfiguration.class, "/templates");
+		cfg.setClassForTemplateLoading(EmailConfiguration.class, "/templates/email");
 
 		cfg.setIncompatibleImprovements(version);
 		cfg.setDefaultEncoding(Charsets.UTF_8.toString());

@@ -44,6 +44,10 @@ import java.util.Optional;
 import java.util.stream.StreamSupport;
 
 import com.epam.ta.reportportal.commons.Preconditions;
+import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCaseDto;
+import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfigDto;
+import com.epam.ta.reportportal.ws.converter.builders.EmailConfigDtoBuilder;
+import com.epam.ta.reportportal.ws.converter.builders.EmailConfigResourceBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
@@ -78,6 +82,8 @@ import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
 
+import javax.inject.Provider;
+
 /**
  * Update project handler
  *
@@ -90,15 +96,17 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 	private final UserRepository userRepository;
 	private final UserPreferenceRepository preferenceRepository;
 	private final ApplicationEventPublisher publisher;
+	private final Provider<EmailConfigDtoBuilder> configDtoBuilder;
 
 	@Autowired
 	public UpdateProjectHandler(ProjectRepository projectRepository, UserRepository userRepository,
 			UserPreferenceRepository userPreferenceRepository,
-			ApplicationEventPublisher applicationEventPublisher) {
+			ApplicationEventPublisher applicationEventPublisher, Provider<EmailConfigDtoBuilder> configDtoBuilder) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.preferenceRepository = userPreferenceRepository;
 		this.publisher = applicationEventPublisher;
+		this.configDtoBuilder = configDtoBuilder;
 	}
 
 	@Override
@@ -200,14 +208,14 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
 		if (null != updateProjectEmailRQ.getConfiguration()) {
-			ProjectEmailConfig config = updateProjectEmailRQ.getConfiguration();
+			ProjectEmailConfigDto config = configDtoBuilder.get()
+					.addProjectEmailConfigRes(updateProjectEmailRQ.getConfiguration()).build();
 			if (null != config.getFrom()) {
 				expect(isEmailValid(config.getFrom()), equalTo(true)).verify(BAD_REQUEST_ERROR,
 						formattedSupplier("Provided FROM value '{}' is invalid", config.getFrom()));
 				project.getConfiguration().getEmailConfig().setFrom(config.getFrom());
 			}
-
-			List<EmailSenderCase> cases = config.getEmailCases();
+			List<EmailSenderCaseDto> cases = config.getEmailSenderCaseDtos();
 			if (BooleanUtils.isNotFalse(config.getEmailEnabled())) {
 				expect(cases, Preconditions.NOT_EMPTY_COLLECTION)
 						.verify(BAD_REQUEST_ERROR, "At least one rule should be present.");
@@ -238,11 +246,11 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 				});
 
 				/* If project email settings */
-				List<EmailSenderCase> withoutDuplicateCases = cases.stream().distinct().collect(toList());
+				List<EmailSenderCaseDto> withoutDuplicateCases = cases.stream().distinct().collect(toList());
 				if (cases.size() != withoutDuplicateCases.size())
 					fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
 
-				project.getConfiguration().getEmailConfig().setEmailCases(cases);
+				project.getConfiguration().getEmailConfig().setEmailSenderCaseDtos(cases);
 			}
 
 			/* If enable parameter is FALSE, previous settings be dropped */

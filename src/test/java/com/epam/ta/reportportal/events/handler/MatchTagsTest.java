@@ -26,6 +26,7 @@ import static java.util.Collections.*;
 
 import java.util.HashSet;
 
+import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCaseDto;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -36,19 +37,19 @@ public class MatchTagsTest {
 
 	@Test
 	public void nullTagsInRule() {
-		boolean matched = isTagsMatched(null, new EmailSenderCase(null, "ALWAYS", null, null));
+		boolean matched = isTagsMatched(null, new EmailSenderCaseDto(null, "ALWAYS", null, null));
 		Assert.assertTrue(matched);
 	}
 
 	@Test
 	public void emptyTagsInRule() {
-		boolean matched = isTagsMatched(null, new EmailSenderCase(null, "ALWAYS", null, emptyList()));
+		boolean matched = isTagsMatched(null, new EmailSenderCaseDto(null, "ALWAYS", null, emptyList()));
 		Assert.assertTrue(matched);
 	}
 
 	@Test
 	public void launchNullTags() {
-		boolean matched = isTagsMatched(new Launch(), new EmailSenderCase(null, "ALWAYS", null, singletonList("tag")));
+		boolean matched = isTagsMatched(new Launch(), new EmailSenderCaseDto(null, "ALWAYS", null, singletonList("tag")));
 		Assert.assertFalse(matched);
 	}
 
@@ -56,7 +57,7 @@ public class MatchTagsTest {
 	public void equalTags() {
 		Launch launch = new Launch();
 		launch.setTags(singleton("tag"));
-		boolean matched = isTagsMatched(launch, new EmailSenderCase(null, "ALWAYS", null, singletonList("tag")));
+		boolean matched = isTagsMatched(launch, new EmailSenderCaseDto(null, "ALWAYS", null, singletonList("tag")));
 		Assert.assertTrue(matched);
 	}
 
@@ -64,7 +65,7 @@ public class MatchTagsTest {
 	public void launchTagsSmallerSubsetOfSendCaseTags() {
 		Launch launch = new Launch();
 		launch.setTags(new HashSet<>(asList("tag1", "tag2")));
-		boolean isTagsMatched = isTagsMatched(launch, new EmailSenderCase(null, "ALWAYS", null, asList("tag1", "tag2", "tag3")));
+		boolean isTagsMatched = isTagsMatched(launch, new EmailSenderCaseDto(null, "ALWAYS", null, asList("tag1", "tag2", "tag3")));
 		Assert.assertFalse(isTagsMatched);
 	}
 }

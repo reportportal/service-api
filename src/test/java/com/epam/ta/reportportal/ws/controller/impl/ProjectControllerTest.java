@@ -31,6 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCaseDto;
+import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfigDto;
 import com.epam.ta.reportportal.ws.model.Page;
 import org.junit.Assert;
 import org.junit.Test;
@@ -191,10 +193,10 @@ public class ProjectControllerTest extends BaseMvcTest {
 		this.mvcMock.perform(put("/project/project1/emailconfig").principal(authentication()).contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
 		final Project project = projectRepository.findOne("project1");
-		final ProjectEmailConfig emailConfig = project.getConfiguration().getEmailConfig();
+		final ProjectEmailConfigDto emailConfig = project.getConfiguration().getEmailConfig();
 		assertThat(emailConfig).isNotNull();
-		assertThat(emailConfig.getEmailCases()).hasSize(1);
-		final EmailSenderCase senderCase = emailConfig.getEmailCases().get(0);
+		assertThat(emailConfig.getEmailSenderCaseDtos()).hasSize(1);
+		final EmailSenderCaseDto senderCase = emailConfig.getEmailSenderCaseDtos().get(0);
 		assertThat(senderCase.getLaunchNames()).hasSize(1).contains("launchName");
 		assertThat(senderCase.getTags()).hasSize(1).contains("tags");
 

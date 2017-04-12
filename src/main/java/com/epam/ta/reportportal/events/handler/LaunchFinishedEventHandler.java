@@ -31,14 +31,14 @@ import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCaseDto;
+import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfigDto;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.events.LaunchFinishedEvent;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
-import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
@@ -197,7 +197,7 @@ public class LaunchFinishedEventHandler {
 	 * @param oneCase Mail case
 	 * @return TRUE if launch name matched
 	 */
-	static boolean isLaunchNameMatched(Launch launch, EmailSenderCase oneCase) {
+	static boolean isLaunchNameMatched(Launch launch, EmailSenderCaseDto oneCase) {
 		List<String> configuredNames = oneCase.getLaunchNames();
 		return (null == configuredNames) || (configuredNames.isEmpty()) || configuredNames.contains(launch.getName());
 	}
@@ -211,7 +211,7 @@ public class LaunchFinishedEventHandler {
 	 * @return TRUE if tags matched
 	 */
 	@VisibleForTesting
-	static boolean isTagsMatched(Launch launch, EmailSenderCase oneCase) {
+	static boolean isTagsMatched(Launch launch, EmailSenderCaseDto oneCase) {
 		return !(null != oneCase.getTags() && !oneCase.getTags().isEmpty()) || null != launch.getTags() && launch.getTags()
 				.containsAll(oneCase.getTags());
 	}
@@ -224,8 +224,8 @@ public class LaunchFinishedEventHandler {
 	 * @param emailService Mail Service
 	 */
 	void sendEmailRightNow(Launch launch, Project project, EmailService emailService) {
-		ProjectEmailConfig projectConfig = project.getConfiguration().getEmailConfig();
-		for (EmailSenderCase one : projectConfig.getEmailCases()) {
+		ProjectEmailConfigDto projectConfig = project.getConfiguration().getEmailConfig();
+		for (EmailSenderCaseDto one : projectConfig.getEmailSenderCaseDtos()) {
 			Optional<SendCase> option = SendCase.findByName(one.getSendCase());
 			boolean successRate = isSuccessRateEnough(launch, option.get());
 			boolean matchedNames = isLaunchNameMatched(launch, one);

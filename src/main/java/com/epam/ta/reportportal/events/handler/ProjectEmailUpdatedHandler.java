@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.events.EmailConfigUpdatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.converter.builders.EmailConfigResourceBuilder;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -49,11 +50,14 @@ public class ProjectEmailUpdatedHandler {
 
 	private final ActivityRepository activityRepository;
 	private final Provider<ActivityBuilder> activityBuilder;
+	private final Provider<EmailConfigResourceBuilder> emailConfigBuilder;
 
 	@Autowired
-	public ProjectEmailUpdatedHandler(ActivityRepository activityRepository, Provider<ActivityBuilder> activityBuilder) {
+	public ProjectEmailUpdatedHandler(ActivityRepository activityRepository, Provider<ActivityBuilder> activityBuilder,
+									  Provider<EmailConfigResourceBuilder> emailConfigBuilder) {
 		this.activityRepository = activityRepository;
 		this.activityBuilder = activityBuilder;
+		this.emailConfigBuilder = emailConfigBuilder;
 	}
 
 	@EventListener
@@ -84,8 +88,12 @@ public class ProjectEmailUpdatedHandler {
 		/*
 		 * Request contains EmailCases block and its not equal for stored project one
 		 */
+		ProjectEmailConfig builtProjectEmailConfig
+				= emailConfigBuilder.get().addProjectEmailConfig(project.getConfiguration().getEmailConfig()).build();
+
 		boolean isEmailCasesChanged = null != configuration.getEmailCases() && !configuration.getEmailCases()
-				.equals(project.getConfiguration().getEmailConfig().getEmailCases());
+				.equals(builtProjectEmailConfig.getEmailCases());
+
 		if (isEmailOptionChanged) {
 			Activity.FieldValues fieldValues = Activity.FieldValues.newOne()
 					.withOldValue(String.valueOf(project.getConfiguration().getEmailConfig().getEmailEnabled()))

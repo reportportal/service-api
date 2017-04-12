@@ -27,6 +27,8 @@ import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Status;
+import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCaseDto;
+import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfigDto;
 import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.entity.statistics.Statistics;
@@ -189,7 +191,7 @@ public class LaunchFinishedEventHandlerTest {
 
 	@Test
 	public void caseContainsLaunchName() {
-		EmailSenderCase emailSenderCase = new EmailSenderCase();
+		EmailSenderCaseDto emailSenderCase = new EmailSenderCaseDto();
 		emailSenderCase.setLaunchNames(Collections.singletonList("launch"));
 		Launch launch = new Launch();
 		launch.setName("launch");
@@ -198,12 +200,12 @@ public class LaunchFinishedEventHandlerTest {
 
 	@Test
 	public void caseNullLaunchName() {
-		assertThat(isLaunchNameMatched(null, new EmailSenderCase())).isTrue();
+		assertThat(isLaunchNameMatched(null, new EmailSenderCaseDto())).isTrue();
 	}
 
 	@Test
 	public void caseEmptyLaunchesNames() {
-		final EmailSenderCase oneCase = new EmailSenderCase();
+		final EmailSenderCaseDto oneCase = new EmailSenderCaseDto();
 		oneCase.setLaunchNames(emptyList());
 		assertThat(isLaunchNameMatched(null, oneCase)).isTrue();
 	}
@@ -212,7 +214,7 @@ public class LaunchFinishedEventHandlerTest {
 	public void caseDifferentLaunchesNames() {
 		final Launch launch = new Launch();
 		launch.setName("launch1");
-		final EmailSenderCase oneCase = new EmailSenderCase();
+		final EmailSenderCaseDto oneCase = new EmailSenderCaseDto();
 		oneCase.setLaunchNames(singletonList("launch2"));
 		assertThat(isLaunchNameMatched(launch, oneCase)).isFalse();
 	}
@@ -224,12 +226,12 @@ public class LaunchFinishedEventHandlerTest {
 		launch.setName(launchName);
 		final Project project = new Project();
 		final Project.Configuration configuration = new Project.Configuration();
-		final ProjectEmailConfig emailConfig = new ProjectEmailConfig();
-		final EmailSenderCase emailSenderCase = new EmailSenderCase();
-		emailSenderCase.setSendCase("ALWAYS");
-		emailSenderCase.setLaunchNames(singletonList(launchName));
-		emailSenderCase.setRecipients(singletonList("user@fake.com"));
-		emailConfig.setEmailCases(singletonList(emailSenderCase));
+		final ProjectEmailConfigDto emailConfig = new ProjectEmailConfigDto();
+		final EmailSenderCaseDto emailSenderCaseDtos = new EmailSenderCaseDto();
+		emailSenderCaseDtos.setSendCase("ALWAYS");
+		emailSenderCaseDtos.setLaunchNames(singletonList(launchName));
+		emailSenderCaseDtos.setRecipients(singletonList("user@fake.com"));
+		emailConfig.setEmailSenderCaseDtos(singletonList(emailSenderCaseDtos));
 		configuration.setEmailConfig(emailConfig);
 		project.setConfiguration(configuration);
 		launchFinishedEventHandler.sendEmailRightNow(launch, project, emailService);

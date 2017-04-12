@@ -12,10 +12,15 @@ import static org.mockito.Mockito.when;
 
 import java.util.stream.IntStream;
 
+import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfigDto;
+import com.epam.ta.reportportal.ws.converter.builders.EmailConfigDtoBuilder;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
@@ -27,7 +32,9 @@ import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
 
-public class UpdateProjectHandlerTest {
+import javax.inject.Provider;
+
+public class UpdateProjectHandlerTest extends BaseTest {
 
 	@Rule
 	public ExpectedException expected = none();
@@ -35,17 +42,20 @@ public class UpdateProjectHandlerTest {
 	private final String user = "user";
 	private UpdateProjectHandler updateProjectHandler;
 
+	@Autowired
+	private Provider<EmailConfigDtoBuilder> emailConfigDtoBuilder;
+
 	@Before
 	public void before() {
 		final ProjectRepository projectRepository = mock(ProjectRepository.class);
 		final Project project = new Project();
 		project.setName(this.project);
 		final Project.Configuration configuration = new Project.Configuration();
-		configuration.setEmailConfig(new ProjectEmailConfig());
+		configuration.setEmailConfig(new ProjectEmailConfigDto());
 		project.setConfiguration(configuration);
 		when(projectRepository.findOne(this.project)).thenReturn(project);
 		updateProjectHandler = new UpdateProjectHandler(projectRepository, mock(UserRepository.class),
-				mock(UserPreferenceRepository.class), mock(ApplicationEventPublisher.class));
+				mock(UserPreferenceRepository.class), mock(ApplicationEventPublisher.class), emailConfigDtoBuilder);
 	}
 
 	@Test
@@ -121,9 +131,10 @@ public class UpdateProjectHandlerTest {
 		projectEmailConfig.setEmailCases(singletonList(emailSenderCase));
 		projectEmailConfig.setFrom("user1@fake.com");
 		updateProjectEmailRQ.setConfiguration(projectEmailConfig);
+		ProjectEmailConfigDto dto = emailConfigDtoBuilder.get().addProjectEmailConfigRes(projectEmailConfig).build();
 		expected.expect(ReportPortalException.class);
 		expected.expectMessage("Error in handled Request. Please, check specified parameters: 'Empty recipients list for email case '"
-				+ emailSenderCase + "' '");
+				+ dto.getEmailSenderCaseDtos().get(0) + "' '");
 		updateProjectHandler.updateProjectEmailConfig(project, user, updateProjectEmailRQ);
 	}
 

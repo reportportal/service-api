@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +47,9 @@ import com.google.common.collect.Lists;
 @Service
 @Scope("prototype")
 public class ProjectResourceBuilder extends Builder<ProjectResource> {
+
+	@Autowired
+	private EmailConfigResourceBuilder emailConfigResourceBuilder;
 
 	public ProjectResourceBuilder addProject(Project prj, Iterable<ExternalSystem> systems) {
 		ProjectResource resource = getObject();
@@ -85,7 +89,8 @@ public class ProjectResourceBuilder extends Builder<ProjectResource> {
 				configuration.setStatisticCalculationStrategy(prj.getConfiguration().getStatisticsCalculationStrategy().name());
 
 			// =============== EMAIL settings ===================
-			configuration.setEmailConfig(prj.getConfiguration().getEmailConfig());
+			configuration.setEmailConfig(emailConfigResourceBuilder
+					.addProjectEmailConfig(prj.getConfiguration().getEmailConfig()).build());
 			// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 			// ============= External sub-types =================
@@ -93,7 +98,7 @@ public class ProjectResourceBuilder extends Builder<ProjectResource> {
 				Map<String, List<IssueSubTypeResource>> result = new HashMap<>();
 				prj.getConfiguration().getSubTypes().forEach((k, v) -> {
 					List<IssueSubTypeResource> subTypeResources = Lists.newArrayList();
-					v.stream().forEach(subType -> subTypeResources.add(new IssueSubTypeResource(subType.getLocator(), subType.getTypeRef(), subType.getLongName(),
+					v.forEach(subType -> subTypeResources.add(new IssueSubTypeResource(subType.getLocator(), subType.getTypeRef(), subType.getLongName(),
                             subType.getShortName(), subType.getHexColor())));
 					result.put(k.getValue(), subTypeResources);
 				});

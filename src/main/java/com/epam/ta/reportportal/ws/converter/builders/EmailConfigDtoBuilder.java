@@ -22,15 +22,16 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCaseDto;
 import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfigDto;
-import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
+
+/**
+ * @author Pavel_Bortnik
+ */
 
 @Service
 @Scope("prototype")
@@ -39,18 +40,17 @@ public class EmailConfigDtoBuilder extends Builder<ProjectEmailConfigDto> {
     public EmailConfigDtoBuilder addProjectEmailConfigRes(ProjectEmailConfig projectEmailConfig) {
         ProjectEmailConfigDto config = getObject();
 
-        if (null != projectEmailConfig.getEmailCases()) {
-            List<EmailSenderCaseDto> emailSenderCases = projectEmailConfig.getEmailCases()
-                    .stream().map(emailSenderCase -> {
-                        EmailSenderCaseDto senderCase = new EmailSenderCaseDto();
-                        senderCase.setLaunchNames(emailSenderCase.getLaunchNames());
-                        senderCase.setRecipients(emailSenderCase.getRecipients());
-                        senderCase.setSendCase(emailSenderCase.getSendCase());
-                        senderCase.setTags(emailSenderCase.getTags());
-                        return senderCase;
-                    }).collect(Collectors.toList());
-            config.setEmailSenderCaseDtos(emailSenderCases);
-        }
+        List<EmailSenderCaseDto> emailSenderCases = projectEmailConfig.getEmailCases()
+                .stream().map(emailSenderCase -> {
+                    EmailSenderCaseDto senderCase = new EmailSenderCaseDto();
+                    senderCase.setLaunchNames(emailSenderCase.getLaunchNames());
+                    senderCase.setRecipients(emailSenderCase.getRecipients());
+                    senderCase.setSendCase(emailSenderCase.getSendCase());
+                    senderCase.setTags(emailSenderCase.getTags());
+                    return senderCase;
+                }).collect(Collectors.toList());
+        config.setEmailSenderCaseDtos(emailSenderCases);
+
         config.setEmailEnabled(projectEmailConfig.getEmailEnabled());
         config.setFrom(projectEmailConfig.getFrom());
         return this;

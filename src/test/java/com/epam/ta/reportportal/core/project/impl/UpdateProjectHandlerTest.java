@@ -131,10 +131,9 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		projectEmailConfig.setEmailCases(singletonList(emailSenderCase));
 		projectEmailConfig.setFrom("user1@fake.com");
 		updateProjectEmailRQ.setConfiguration(projectEmailConfig);
-		ProjectEmailConfigDto dto = emailConfigDtoBuilder.get().addProjectEmailConfigRes(projectEmailConfig).build();
 		expected.expect(ReportPortalException.class);
 		expected.expectMessage("Error in handled Request. Please, check specified parameters: 'Empty recipients list for email case '"
-				+ dto.getEmailSenderCaseDtos().get(0) + "' '");
+				+ emailSenderCase + "' '");
 		updateProjectHandler.updateProjectEmailConfig(project, user, updateProjectEmailRQ);
 	}
 

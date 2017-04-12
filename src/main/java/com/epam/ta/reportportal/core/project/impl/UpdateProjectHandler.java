@@ -208,14 +208,13 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
 		if (null != updateProjectEmailRQ.getConfiguration()) {
-			ProjectEmailConfigDto config = configDtoBuilder.get()
-					.addProjectEmailConfigRes(updateProjectEmailRQ.getConfiguration()).build();
+			ProjectEmailConfig config = updateProjectEmailRQ.getConfiguration();
 			if (null != config.getFrom()) {
 				expect(isEmailValid(config.getFrom()), equalTo(true)).verify(BAD_REQUEST_ERROR,
 						formattedSupplier("Provided FROM value '{}' is invalid", config.getFrom()));
 				project.getConfiguration().getEmailConfig().setFrom(config.getFrom());
 			}
-			List<EmailSenderCaseDto> cases = config.getEmailSenderCaseDtos();
+			List<EmailSenderCase> cases = config.getEmailCases();
 			if (BooleanUtils.isNotFalse(config.getEmailEnabled())) {
 				expect(cases, Preconditions.NOT_EMPTY_COLLECTION)
 						.verify(BAD_REQUEST_ERROR, "At least one rule should be present.");
@@ -246,11 +245,12 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 				});
 
 				/* If project email settings */
-				List<EmailSenderCaseDto> withoutDuplicateCases = cases.stream().distinct().collect(toList());
+				List<EmailSenderCase> withoutDuplicateCases = cases.stream().distinct().collect(toList());
 				if (cases.size() != withoutDuplicateCases.size())
 					fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
-
-				project.getConfiguration().getEmailConfig().setEmailSenderCaseDtos(cases);
+				config.setEmailCases(cases);
+				ProjectEmailConfigDto build = configDtoBuilder.get().addProjectEmailConfigRes(config).build();
+				project.getConfiguration().getEmailConfig().setEmailSenderCaseDtos(build.getEmailSenderCaseDtos());
 			}
 
 			/* If enable parameter is FALSE, previous settings be dropped */

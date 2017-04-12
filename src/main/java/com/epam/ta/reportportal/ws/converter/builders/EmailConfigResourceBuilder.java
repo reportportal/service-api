@@ -29,24 +29,28 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @author Pavel_Bortnik
+ */
+
 @Service
 @Scope("prototype")
 public class EmailConfigResourceBuilder extends Builder<ProjectEmailConfig> {
 
     public EmailConfigResourceBuilder addProjectEmailConfig(ProjectEmailConfigDto projectEmailConfigDto) {
         ProjectEmailConfig config = getObject();
-        if (null != projectEmailConfigDto.getEmailSenderCaseDtos()) {
-            List<EmailSenderCase> emailSenderCases = projectEmailConfigDto.getEmailSenderCaseDtos()
-                    .stream().map(emailSenderCaseDto -> {
-                        EmailSenderCase senderCase = new EmailSenderCase();
-                        senderCase.setLaunchNames(emailSenderCaseDto.getLaunchNames());
-                        senderCase.setRecipients(emailSenderCaseDto.getRecipients());
-                        senderCase.setSendCase(emailSenderCaseDto.getSendCase());
-                        senderCase.setTags(emailSenderCaseDto.getTags());
-                        return senderCase;
-                    }).collect(Collectors.toList());
-            config.setEmailCases(emailSenderCases);
-        }
+
+        List<EmailSenderCase> emailSenderCases = projectEmailConfigDto.getEmailSenderCaseDtos()
+                .stream().map(emailSenderCaseDto -> {
+                    EmailSenderCase senderCase = new EmailSenderCase();
+                    senderCase.setLaunchNames(emailSenderCaseDto.getLaunchNames());
+                    senderCase.setRecipients(emailSenderCaseDto.getRecipients());
+                    senderCase.setSendCase(emailSenderCaseDto.getSendCase());
+                    senderCase.setTags(emailSenderCaseDto.getTags());
+                    return senderCase;
+                }).collect(Collectors.toList());
+        config.setEmailCases(emailSenderCases);
+
         config.setEmailEnabled(projectEmailConfigDto.getEmailEnabled());
         config.setFrom(projectEmailConfigDto.getFrom());
         return this;

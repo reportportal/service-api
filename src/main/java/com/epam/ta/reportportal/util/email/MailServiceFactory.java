@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.database.entity.settings.ServerEmailDetails;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,10 +99,9 @@ public class MailServiceFactory {
 			Properties javaMailProperties = new Properties();
 			javaMailProperties.put("mail.smtp.connectiontimeout", DEFAULT_CONNECTION_TIMEOUT);
 			javaMailProperties.put("mail.smtp.auth", authRequired);
-			javaMailProperties.put("mail.smtp.starttls.enable", authRequired && serverConf.isStarTlsEnabled());
-			javaMailProperties.put("mail.debug", serverConf.isDebug());
+			javaMailProperties.put("mail.smtp.starttls.enable", authRequired && BooleanUtils.toBoolean(serverConf.getStarTlsEnabled()));
 
-			if (serverConf.isSslEnabled()) {
+			if (BooleanUtils.toBoolean(serverConf.getSslEnabled())) {
 				javaMailProperties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
 				javaMailProperties.put("mail.smtp.socketFactory.fallback", "false");
 			}

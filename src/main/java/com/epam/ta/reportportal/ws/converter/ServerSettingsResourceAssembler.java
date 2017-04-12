@@ -22,12 +22,10 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.database.entity.settings.ServerSettings;
-import com.epam.ta.reportportal.ws.converter.builders.ServerSettingsResourceBuilder;
+import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Provider;
 
 /**
  * REST Maturity Lvl3 rel object creation for response
@@ -37,13 +35,26 @@ import javax.inject.Provider;
 @Service
 public class ServerSettingsResourceAssembler extends ResourceAssembler<ServerSettings, ServerSettingsResource> {
 
-    @Autowired
-    private Provider<ServerSettingsResourceBuilder> builder;
-
     @Override
-    public ServerSettingsResource toResource(ServerSettings settings) {
-        ServerSettingsResourceBuilder resourceBuilder = builder.get();
-        resourceBuilder.addServerSettings(settings);
-        return resourceBuilder.build();
+    public ServerSettingsResource toResource(ServerSettings serverSettings) {
+        ServerSettingsResource resource = new ServerSettingsResource();
+        resource.setProfile(serverSettings.getId());
+        resource.setActive(serverSettings.getActive());
+        if (null != serverSettings.getServerEmailDetails()) {
+            ServerEmailResource output = new ServerEmailResource();
+            output.setHost(serverSettings.getServerEmailDetails().getHost());
+            output.setPort(serverSettings.getServerEmailDetails().getPort());
+            output.setProtocol(serverSettings.getServerEmailDetails().getProtocol());
+            output.setAuthEnabled(serverSettings.getServerEmailDetails().getAuthEnabled());
+            output.setSslEnabled(serverSettings.getServerEmailDetails().isSslEnabled());
+            output.setStarTlsEnabled(serverSettings.getServerEmailDetails().isStarTlsEnabled());
+            output.setFrom(serverSettings.getServerEmailDetails().getFrom());
+            if (serverSettings.getServerEmailDetails().getAuthEnabled()) {
+                output.setUsername(serverSettings.getServerEmailDetails().getUsername());
+				/* Password field not provided in response */
+            }
+            resource.setServerEmailResource(output);
+        }
+        return resource;
     }
 }

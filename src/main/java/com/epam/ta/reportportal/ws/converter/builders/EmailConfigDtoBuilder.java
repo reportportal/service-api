@@ -26,7 +26,10 @@ import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -40,7 +43,8 @@ public class EmailConfigDtoBuilder extends Builder<ProjectEmailConfigDto> {
     public EmailConfigDtoBuilder addProjectEmailConfigRes(ProjectEmailConfig projectEmailConfig) {
         ProjectEmailConfigDto config = getObject();
 
-        List<EmailSenderCaseDto> emailSenderCases = projectEmailConfig.getEmailCases()
+        List<EmailSenderCaseDto> emailSenderCases = Optional.ofNullable(projectEmailConfig.getEmailCases())
+                .orElseGet(Collections::emptyList)
                 .stream().map(emailSenderCase -> {
                     EmailSenderCaseDto senderCase = new EmailSenderCaseDto();
                     senderCase.setLaunchNames(emailSenderCase.getLaunchNames());

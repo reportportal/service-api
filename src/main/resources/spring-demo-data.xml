@@ -2856,7 +2856,6 @@
 				<property name="port" value="10025"/>
 				<property name="protocol" value="smtp"/>
 				<property name="authEnabled" value="false"/>
-				<property name="debug" value="false"/>
 			</bean>
 		</property>
 

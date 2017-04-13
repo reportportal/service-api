@@ -106,15 +106,17 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		Project project = projectRepository.findOne(projectName);
 		Project before = SerializationUtils.clone(project);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
-		if (null != updateProjectRQ.getUserRoles()) {
-			expect(updateProjectRQ.getUserRoles().get(principalName), isNull()).verify(UNABLE_TO_UPDATE_YOURSELF_ROLE, principalName);
-		}
 
-		if (null != updateProjectRQ.getCustomer())
+		if (null != updateProjectRQ.getCustomer()) {
 			project.setCustomer(updateProjectRQ.getCustomer().trim());
+		}
 		project.setAddInfo(updateProjectRQ.getAddInfo());
 
 		User principal = userRepository.findOne(principalName);
+
+		if (null != updateProjectRQ.getUserRoles() && !principal.getRole().equals(UserRole.ADMINISTRATOR)) {
+			expect(updateProjectRQ.getUserRoles().get(principalName), isNull()).verify(UNABLE_TO_UPDATE_YOURSELF_ROLE, principalName);
+		}
 
 		if (null != updateProjectRQ.getUserRoles()) {
 			for (Entry<String, String> user : updateProjectRQ.getUserRoles().entrySet()) {

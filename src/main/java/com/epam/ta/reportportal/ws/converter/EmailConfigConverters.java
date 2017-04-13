@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  *
  * @author Pavel Bortnik
  */
-public class EmailConfigConverters {
+public final class EmailConfigConverters {
 
     private EmailConfigConverters() {
         //static only

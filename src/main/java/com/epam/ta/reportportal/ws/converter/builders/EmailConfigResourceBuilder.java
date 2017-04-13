@@ -20,19 +20,16 @@
  */
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCaseDto;
 import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfigDto;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author Pavel_Bortnik

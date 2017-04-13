@@ -21,23 +21,22 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
+import com.epam.ta.reportportal.ws.converter.EmailConfigConverters;
 import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource.ProjectUser;
 import com.epam.ta.reportportal.ws.model.project.config.IssueSubTypeResource;
 import com.google.common.collect.Lists;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Response {@link ProjectResource} builder for controllers
@@ -47,9 +46,6 @@ import com.google.common.collect.Lists;
 @Service
 @Scope("prototype")
 public class ProjectResourceBuilder extends Builder<ProjectResource> {
-
-	@Autowired
-	private EmailConfigResourceBuilder emailConfigResourceBuilder;
 
 	public ProjectResourceBuilder addProject(Project prj, Iterable<ExternalSystem> systems) {
 		ProjectResource resource = getObject();
@@ -89,8 +85,8 @@ public class ProjectResourceBuilder extends Builder<ProjectResource> {
 				configuration.setStatisticCalculationStrategy(prj.getConfiguration().getStatisticsCalculationStrategy().name());
 
 			// =============== EMAIL settings ===================
-			configuration.setEmailConfig(emailConfigResourceBuilder
-					.addProjectEmailConfig(prj.getConfiguration().getEmailConfig()).build());
+			configuration.setEmailConfig(EmailConfigConverters
+					.TO_RESOURCE.apply(prj.getConfiguration().getEmailConfig()));
 			// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 			// ============= External sub-types =================

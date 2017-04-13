@@ -24,9 +24,9 @@ import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.events.EmailConfigUpdatedEvent;
+import com.epam.ta.reportportal.ws.converter.EmailConfigConverters;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
-import com.epam.ta.reportportal.ws.converter.builders.EmailConfigResourceBuilder;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -50,20 +50,17 @@ public class ProjectEmailUpdatedHandler {
 
 	private final ActivityRepository activityRepository;
 	private final Provider<ActivityBuilder> activityBuilder;
-	private final Provider<EmailConfigResourceBuilder> emailConfigBuilder;
 
 	@Autowired
-	public ProjectEmailUpdatedHandler(ActivityRepository activityRepository, Provider<ActivityBuilder> activityBuilder,
-									  Provider<EmailConfigResourceBuilder> emailConfigBuilder) {
+	public ProjectEmailUpdatedHandler(ActivityRepository activityRepository, Provider<ActivityBuilder> activityBuilder) {
 		this.activityRepository = activityRepository;
 		this.activityBuilder = activityBuilder;
-		this.emailConfigBuilder = emailConfigBuilder;
 	}
 
 	@EventListener
 	public void onProjectEmailUpdate(EmailConfigUpdatedEvent event) {
 		Map<String, Activity.FieldValues> history = new HashMap<>();
-		final ProjectEmailConfig configuration = event.getUpdateProjectEmailRQ().getConfiguration();
+		final ProjectEmailConfigDTO configuration = event.getUpdateProjectEmailRQ().getConfiguration();
 		if (null != configuration) {
 			processEmailConfiguration(history, event.getBefore(), configuration);
 		}
@@ -75,7 +72,7 @@ public class ProjectEmailUpdatedHandler {
 		}
 	}
 
-	private void processEmailConfiguration(Map<String, Activity.FieldValues> history, Project project, ProjectEmailConfig configuration) {
+	private void processEmailConfiguration(Map<String, Activity.FieldValues> history, Project project, ProjectEmailConfigDTO configuration) {
 
 		/* Has EmailEnabled trigger been updated? */
 		boolean isEmailOptionChanged = configuration.getEmailEnabled() != null && !configuration.getEmailEnabled()
@@ -88,8 +85,8 @@ public class ProjectEmailUpdatedHandler {
 		/*
 		 * Request contains EmailCases block and its not equal for stored project one
 		 */
-		ProjectEmailConfig builtProjectEmailConfig
-				= emailConfigBuilder.get().addProjectEmailConfig(project.getConfiguration().getEmailConfig()).build();
+		ProjectEmailConfigDTO builtProjectEmailConfig = EmailConfigConverters
+				.TO_RESOURCE.apply(project.getConfiguration().getEmailConfig());
 
 		boolean isEmailCasesChanged = null != configuration.getEmailCases() && !configuration.getEmailCases()
 				.equals(builtProjectEmailConfig.getEmailCases());

@@ -22,10 +22,9 @@ package com.epam.ta.reportportal.util.email;
 
 import com.epam.reportportal.commons.template.TemplateEngine;
 import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
-import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfigDto;
+import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.database.entity.settings.ServerEmailDetails;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,14 +66,14 @@ public class MailServiceFactory {
 	 * @param serverConfig  Server-level configuration
 	 * @return Built email service
 	 */
-	public Optional<EmailService> getEmailService(ProjectEmailConfigDto projectConfig, ServerEmailDetails serverConfig) {
+	public Optional<EmailService> getEmailService(ProjectEmailConfig projectConfig, ServerEmailDetails serverConfig) {
 
 		return getEmailService(serverConfig).flatMap(service -> {
 			// if there is server email config, let's check project config
-			Optional<ProjectEmailConfigDto> projectConf = ofNullable(projectConfig);
+			Optional<ProjectEmailConfig> projectConf = ofNullable(projectConfig);
 			if (projectConf.isPresent()) {
 				// if project config is present, check whether sending emails is enabled and replace server properties with project properties
-				return projectConf.filter(ProjectEmailConfigDto::getEmailEnabled).flatMap(pc -> {
+				return projectConf.filter(ProjectEmailConfig::getEmailEnabled).flatMap(pc -> {
 					//update of present on project level
 					Optional.ofNullable(pc.getFrom()).ifPresent(service::setFrom);
 					return Optional.of(service);
@@ -137,7 +136,7 @@ public class MailServiceFactory {
 	 *
 	 * @return Built email service
 	 */
-	public Optional<EmailService> getDefaultEmailService(ProjectEmailConfigDto projectEmailConfig) {
+	public Optional<EmailService> getDefaultEmailService(ProjectEmailConfig projectEmailConfig) {
 		return ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE))
 				.flatMap(serverSettings -> getEmailService(projectEmailConfig, serverSettings.getServerEmailDetails()));
 	}
@@ -147,7 +146,7 @@ public class MailServiceFactory {
 	 *
 	 * @return Built email service
 	 */
-	public EmailService getDefaultEmailService(ProjectEmailConfigDto projectEmailConfig, boolean checkConnection) {
+	public EmailService getDefaultEmailService(ProjectEmailConfig projectEmailConfig, boolean checkConnection) {
 		EmailService emailService = ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE))
 				.flatMap(serverSettings -> getEmailService(projectEmailConfig, serverSettings.getServerEmailDetails()))
 				.orElseThrow(() -> emailConfigurationFail(null));

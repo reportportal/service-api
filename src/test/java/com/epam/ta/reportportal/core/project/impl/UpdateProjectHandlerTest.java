@@ -1,5 +1,23 @@
 package com.epam.ta.reportportal.core.project.impl;
 
+import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.dao.UserPreferenceRepository;
+import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
+import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.springframework.context.ApplicationEventPublisher;
+
+import java.util.stream.IntStream;
+
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_LOGIN_LENGTH;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_LOGIN_LENGTH;
 import static java.util.Arrays.asList;
@@ -10,30 +28,6 @@ import static org.junit.rules.ExpectedException.none;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.stream.IntStream;
-
-import com.epam.ta.BaseTest;
-import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfigDto;
-import com.epam.ta.reportportal.ws.converter.builders.EmailConfigDtoBuilder;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.UserPreferenceRepository;
-import com.epam.ta.reportportal.database.dao.UserRepository;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
-import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
-
-import javax.inject.Provider;
-
 public class UpdateProjectHandlerTest extends BaseTest {
 
 	@Rule
@@ -42,20 +36,17 @@ public class UpdateProjectHandlerTest extends BaseTest {
 	private final String user = "user";
 	private UpdateProjectHandler updateProjectHandler;
 
-	@Autowired
-	private Provider<EmailConfigDtoBuilder> emailConfigDtoBuilder;
-
 	@Before
 	public void before() {
 		final ProjectRepository projectRepository = mock(ProjectRepository.class);
 		final Project project = new Project();
 		project.setName(this.project);
 		final Project.Configuration configuration = new Project.Configuration();
-		configuration.setEmailConfig(new ProjectEmailConfigDto());
+		configuration.setEmailConfig(new ProjectEmailConfig());
 		project.setConfiguration(configuration);
 		when(projectRepository.findOne(this.project)).thenReturn(project);
 		updateProjectHandler = new UpdateProjectHandler(projectRepository, mock(UserRepository.class),
-				mock(UserPreferenceRepository.class), mock(ApplicationEventPublisher.class), emailConfigDtoBuilder);
+				mock(UserPreferenceRepository.class), mock(ApplicationEventPublisher.class));
 	}
 
 	@Test
@@ -68,10 +59,10 @@ public class UpdateProjectHandlerTest extends BaseTest {
 	@Test
 	public void invalidFromField() {
 		final UpdateProjectEmailRQ updateProjectEmailRQ = new UpdateProjectEmailRQ();
-		final ProjectEmailConfig projectEmailConfig = new ProjectEmailConfig();
+		final ProjectEmailConfigDTO projectEmailConfigDTO = new ProjectEmailConfigDTO();
 		final String from = "fake@from@.com";
-		projectEmailConfig.setFrom(from);
-		updateProjectEmailRQ.setConfiguration(projectEmailConfig);
+		projectEmailConfigDTO.setFrom(from);
+		updateProjectEmailRQ.setConfiguration(projectEmailConfigDTO);
 		expected.expect(ReportPortalException.class);
 		expected.expectMessage(
 				"Error in handled Request. Please, check specified parameters: 'Provided FROM value '" + from + "' is invalid'");
@@ -81,10 +72,10 @@ public class UpdateProjectHandlerTest extends BaseTest {
 	@Test
 	public void emptyCases() {
 		final UpdateProjectEmailRQ updateProjectEmailRQ = new UpdateProjectEmailRQ();
-		final ProjectEmailConfig projectEmailConfig = new ProjectEmailConfig();
-		projectEmailConfig.setEmailCases(emptyList());
-		projectEmailConfig.setFrom("user1@fake.com");
-		updateProjectEmailRQ.setConfiguration(projectEmailConfig);
+		final ProjectEmailConfigDTO projectEmailConfigDTO = new ProjectEmailConfigDTO();
+		projectEmailConfigDTO.setEmailCases(emptyList());
+		projectEmailConfigDTO.setFrom("user1@fake.com");
+		updateProjectEmailRQ.setConfiguration(projectEmailConfigDTO);
 		expected.expect(ReportPortalException.class);
 		expected.expectMessage("Error in handled Request. Please, check specified parameters: 'At least one rule should be present.'");
 		updateProjectHandler.updateProjectEmailConfig(project, user, updateProjectEmailRQ);
@@ -94,12 +85,12 @@ public class UpdateProjectHandlerTest extends BaseTest {
 	public void invalidSendCase() {
 		final String invalid = "invalid";
 		final UpdateProjectEmailRQ updateProjectEmailRQ = new UpdateProjectEmailRQ();
-		final ProjectEmailConfig projectEmailConfig = new ProjectEmailConfig();
-		final EmailSenderCase emailSenderCase = new EmailSenderCase();
+		final ProjectEmailConfigDTO projectEmailConfigDTO = new ProjectEmailConfigDTO();
+		final EmailSenderCaseDTO emailSenderCase = new EmailSenderCaseDTO();
 		emailSenderCase.setSendCase(invalid);
-		projectEmailConfig.setEmailCases(singletonList(emailSenderCase));
-		projectEmailConfig.setFrom("user1@fake.com");
-		updateProjectEmailRQ.setConfiguration(projectEmailConfig);
+		projectEmailConfigDTO.setEmailCases(singletonList(emailSenderCase));
+		projectEmailConfigDTO.setFrom("user1@fake.com");
+		updateProjectEmailRQ.setConfiguration(projectEmailConfigDTO);
 		expected.expect(ReportPortalException.class);
 		expected.expectMessage("Error in handled Request. Please, check specified parameters: '" + invalid + "'");
 		updateProjectHandler.updateProjectEmailConfig(project, user, updateProjectEmailRQ);
@@ -109,12 +100,12 @@ public class UpdateProjectHandlerTest extends BaseTest {
 	public void nullRecipients() {
 		final String always = "ALWAYS";
 		final UpdateProjectEmailRQ updateProjectEmailRQ = new UpdateProjectEmailRQ();
-		final ProjectEmailConfig projectEmailConfig = new ProjectEmailConfig();
-		final EmailSenderCase emailSenderCase = new EmailSenderCase();
+		final ProjectEmailConfigDTO projectEmailConfigDTO = new ProjectEmailConfigDTO();
+		final EmailSenderCaseDTO emailSenderCase = new EmailSenderCaseDTO();
 		emailSenderCase.setSendCase(always);
-		projectEmailConfig.setEmailCases(singletonList(emailSenderCase));
-		projectEmailConfig.setFrom("user1@fake.com");
-		updateProjectEmailRQ.setConfiguration(projectEmailConfig);
+		projectEmailConfigDTO.setEmailCases(singletonList(emailSenderCase));
+		projectEmailConfigDTO.setFrom("user1@fake.com");
+		updateProjectEmailRQ.setConfiguration(projectEmailConfigDTO);
 		expected.expect(ReportPortalException.class);
 		expected.expectMessage("Error in handled Request. Please, check specified parameters: 'Recipients list should not be null'");
 		updateProjectHandler.updateProjectEmailConfig(project, user, updateProjectEmailRQ);
@@ -124,13 +115,13 @@ public class UpdateProjectHandlerTest extends BaseTest {
 	public void emptyRecipients() {
 		final String always = "ALWAYS";
 		final UpdateProjectEmailRQ updateProjectEmailRQ = new UpdateProjectEmailRQ();
-		final ProjectEmailConfig projectEmailConfig = new ProjectEmailConfig();
-		final EmailSenderCase emailSenderCase = new EmailSenderCase();
+		final ProjectEmailConfigDTO projectEmailConfigDTO = new ProjectEmailConfigDTO();
+		final EmailSenderCaseDTO emailSenderCase = new EmailSenderCaseDTO();
 		emailSenderCase.setSendCase(always);
 		emailSenderCase.setRecipients(emptyList());
-		projectEmailConfig.setEmailCases(singletonList(emailSenderCase));
-		projectEmailConfig.setFrom("user1@fake.com");
-		updateProjectEmailRQ.setConfiguration(projectEmailConfig);
+		projectEmailConfigDTO.setEmailCases(singletonList(emailSenderCase));
+		projectEmailConfigDTO.setFrom("user1@fake.com");
+		updateProjectEmailRQ.setConfiguration(projectEmailConfigDTO);
 		expected.expect(ReportPortalException.class);
 		expected.expectMessage("Error in handled Request. Please, check specified parameters: 'Empty recipients list for email case '"
 				+ emailSenderCase + "' '");
@@ -141,8 +132,8 @@ public class UpdateProjectHandlerTest extends BaseTest {
 	public void recipientsInvalidEmail() {
 		final String always = "ALWAYS";
 		final UpdateProjectEmailRQ updateProjectEmailRQ = new UpdateProjectEmailRQ();
-		final ProjectEmailConfig projectEmailConfig = new ProjectEmailConfig();
-		final EmailSenderCase emailSenderCase = new EmailSenderCase();
+		final ProjectEmailConfigDTO projectEmailConfig = new ProjectEmailConfigDTO();
+		final EmailSenderCaseDTO emailSenderCase = new EmailSenderCaseDTO();
 		emailSenderCase.setSendCase(always);
 		final String email = "email@email@email.com";
 		emailSenderCase.setRecipients(singletonList(email));
@@ -159,14 +150,14 @@ public class UpdateProjectHandlerTest extends BaseTest {
 	public void recipientsNullValue() {
 		final String always = "ALWAYS";
 		final UpdateProjectEmailRQ updateProjectEmailRQ = new UpdateProjectEmailRQ();
-		final ProjectEmailConfig projectEmailConfig = new ProjectEmailConfig();
-		final EmailSenderCase emailSenderCase = new EmailSenderCase();
+		final ProjectEmailConfigDTO projectEmailConfigDTO = new ProjectEmailConfigDTO();
+		final EmailSenderCaseDTO emailSenderCase = new EmailSenderCaseDTO();
 		emailSenderCase.setSendCase(always);
 		final String email = "email@email@email.com";
 		emailSenderCase.setRecipients(asList(null, email));
-		projectEmailConfig.setEmailCases(singletonList(emailSenderCase));
-		projectEmailConfig.setFrom("user1@fake.com");
-		updateProjectEmailRQ.setConfiguration(projectEmailConfig);
+		projectEmailConfigDTO.setEmailCases(singletonList(emailSenderCase));
+		projectEmailConfigDTO.setFrom("user1@fake.com");
+		updateProjectEmailRQ.setConfiguration(projectEmailConfigDTO);
 		expected.expect(ReportPortalException.class);
 		expected.expectMessage(
 				"Error in handled Request. Please, check specified parameters: 'Provided recipient email '" + null + "' is invalid'");
@@ -177,8 +168,8 @@ public class UpdateProjectHandlerTest extends BaseTest {
 	public void emptyLogin() {
 		final String always = "ALWAYS";
 		final UpdateProjectEmailRQ updateProjectEmailRQ = new UpdateProjectEmailRQ();
-		final ProjectEmailConfig projectEmailConfig = new ProjectEmailConfig();
-		final EmailSenderCase emailSenderCase = new EmailSenderCase();
+		final ProjectEmailConfigDTO projectEmailConfig = new ProjectEmailConfigDTO();
+		final EmailSenderCaseDTO emailSenderCase = new EmailSenderCaseDTO();
 		emailSenderCase.setSendCase(always);
 		emailSenderCase.setRecipients(singletonList(""));
 		projectEmailConfig.setEmailCases(singletonList(emailSenderCase));
@@ -194,8 +185,8 @@ public class UpdateProjectHandlerTest extends BaseTest {
 	public void projectWithoutSuchUser() {
 		final String always = "ALWAYS";
 		final UpdateProjectEmailRQ updateProjectEmailRQ = new UpdateProjectEmailRQ();
-		final ProjectEmailConfig projectEmailConfig = new ProjectEmailConfig();
-		final EmailSenderCase emailSenderCase = new EmailSenderCase();
+		final ProjectEmailConfigDTO projectEmailConfig = new ProjectEmailConfigDTO();
+		final EmailSenderCaseDTO emailSenderCase = new EmailSenderCaseDTO();
 		emailSenderCase.setSendCase(always);
 		emailSenderCase.setRecipients(singletonList("user"));
 		projectEmailConfig.setEmailCases(singletonList(emailSenderCase));
@@ -210,8 +201,8 @@ public class UpdateProjectHandlerTest extends BaseTest {
 	public void nullLaunchesNames() {
 		final String always = "ALWAYS";
 		final UpdateProjectEmailRQ updateProjectEmailRQ = new UpdateProjectEmailRQ();
-		final ProjectEmailConfig projectEmailConfig = new ProjectEmailConfig();
-		final EmailSenderCase emailSenderCase = new EmailSenderCase();
+		final ProjectEmailConfigDTO projectEmailConfig = new ProjectEmailConfigDTO();
+		final EmailSenderCaseDTO emailSenderCase = new EmailSenderCaseDTO();
 		emailSenderCase.setSendCase(always);
 		emailSenderCase.setRecipients(singletonList("user@fake.com"));
 		projectEmailConfig.setEmailCases(singletonList(emailSenderCase));
@@ -228,8 +219,8 @@ public class UpdateProjectHandlerTest extends BaseTest {
 	public void launchName257Length() {
 		final String always = "ALWAYS";
 		final UpdateProjectEmailRQ updateProjectEmailRQ = new UpdateProjectEmailRQ();
-		final ProjectEmailConfig projectEmailConfig = new ProjectEmailConfig();
-		final EmailSenderCase emailSenderCase = new EmailSenderCase();
+		final ProjectEmailConfigDTO projectEmailConfig = new ProjectEmailConfigDTO();
+		final EmailSenderCaseDTO emailSenderCase = new EmailSenderCaseDTO();
 		emailSenderCase.setSendCase(always);
 		emailSenderCase.setRecipients(singletonList("user@fake.com"));
 		projectEmailConfig.setEmailCases(singletonList(emailSenderCase));
@@ -247,8 +238,8 @@ public class UpdateProjectHandlerTest extends BaseTest {
 	public void emptyTag() {
 		final String always = "ALWAYS";
 		final UpdateProjectEmailRQ updateProjectEmailRQ = new UpdateProjectEmailRQ();
-		final ProjectEmailConfig projectEmailConfig = new ProjectEmailConfig();
-		final EmailSenderCase emailSenderCase = new EmailSenderCase();
+		final ProjectEmailConfigDTO projectEmailConfig = new ProjectEmailConfigDTO();
+		final EmailSenderCaseDTO emailSenderCase = new EmailSenderCaseDTO();
 		emailSenderCase.setSendCase(always);
 		emailSenderCase.setRecipients(singletonList("user@fake.com"));
 		emailSenderCase.setTags(asList("", "tag"));

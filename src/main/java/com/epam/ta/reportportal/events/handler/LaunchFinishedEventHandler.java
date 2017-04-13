@@ -31,8 +31,8 @@ import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCaseDto;
-import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfigDto;
+import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase;
+import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.events.LaunchFinishedEvent;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
@@ -197,7 +197,7 @@ public class LaunchFinishedEventHandler {
 	 * @param oneCase Mail case
 	 * @return TRUE if launch name matched
 	 */
-	static boolean isLaunchNameMatched(Launch launch, EmailSenderCaseDto oneCase) {
+	static boolean isLaunchNameMatched(Launch launch, EmailSenderCase oneCase) {
 		List<String> configuredNames = oneCase.getLaunchNames();
 		return (null == configuredNames) || (configuredNames.isEmpty()) || configuredNames.contains(launch.getName());
 	}
@@ -211,7 +211,7 @@ public class LaunchFinishedEventHandler {
 	 * @return TRUE if tags matched
 	 */
 	@VisibleForTesting
-	static boolean isTagsMatched(Launch launch, EmailSenderCaseDto oneCase) {
+	static boolean isTagsMatched(Launch launch, EmailSenderCase oneCase) {
 		return !(null != oneCase.getTags() && !oneCase.getTags().isEmpty()) || null != launch.getTags() && launch.getTags()
 				.containsAll(oneCase.getTags());
 	}
@@ -224,8 +224,8 @@ public class LaunchFinishedEventHandler {
 	 * @param emailService Mail Service
 	 */
 	void sendEmailRightNow(Launch launch, Project project, EmailService emailService) {
-		ProjectEmailConfigDto projectConfig = project.getConfiguration().getEmailConfig();
-		for (EmailSenderCaseDto one : projectConfig.getEmailSenderCaseDtos()) {
+		ProjectEmailConfig projectConfig = project.getConfiguration().getEmailConfig();
+		for (EmailSenderCase one : projectConfig.getEmailCases()) {
 			Optional<SendCase> option = SendCase.findByName(one.getSendCase());
 			boolean successRate = isSuccessRateEnough(launch, option.get());
 			boolean matchedNames = isLaunchNameMatched(launch, one);

@@ -78,8 +78,8 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:3.0.0-BETA-2'
         compile 'com.epam.reportportal:commons:3.0.0-BETA-2'
     } else {
-        compile 'com.github.reportportal:commons-model:3.0.0-BETA-2'
-        compile('com.github.reportportal:commons-dao:b4a1bbd')
+        compile 'com.github.reportportal:commons-model:30b0c4d'
+        compile('com.github.reportportal:commons-dao:ea4bea4')
         compile('com.github.reportportal:commons-rules:3.0.0-BETA-2')
         compile 'com.github.reportportal:commons:develop-SNAPSHOT'
     }

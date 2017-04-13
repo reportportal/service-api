@@ -31,7 +31,11 @@ import java.util.function.Function;
  *
  * @author Andrei Varabyeu
  */
-public class OAuthDetailsConverters {
+public final class OAuthDetailsConverters {
+
+	private OAuthDetailsConverters(){
+        //static only
+	}
 
 	public final static Function<OAuthDetailsResource, OAuth2LoginDetails> FROM_RESOURCE = resource -> {
 		OAuth2LoginDetails db = new OAuth2LoginDetails();

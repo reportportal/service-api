@@ -107,7 +107,7 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 					serverEmailConfig.setAuthEnabled(authEnabled);
 					if (authEnabled) {
 						ofNullable(request.getUsername()).ifPresent(serverEmailConfig::setUsername);
-						ofNullable(request.getPassword()).ifPresent(pass -> simpleEncryptor.encrypt(pass));
+						ofNullable(request.getPassword()).ifPresent(pass -> serverEmailConfig.setPassword(simpleEncryptor.encrypt(pass)));
 					} else {
 					/* Auto-drop values on switched-off authentication */
 						serverEmailConfig.setUsername(null);

@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import com.mongodb.WriteResult;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +66,9 @@ import static org.springframework.data.mongodb.core.query.Query.query;
 public class ServerAdminHandlerImpl implements ServerAdminHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerAdminHandlerImpl.class);
+
+	@Autowired
+	private BasicTextEncryptor simpleEncryptor;
 
 	@Autowired
 	private ServerSettingsRepository repository;
@@ -103,7 +107,7 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 					serverEmailConfig.setAuthEnabled(authEnabled);
 					if (authEnabled) {
 						ofNullable(request.getUsername()).ifPresent(serverEmailConfig::setUsername);
-						ofNullable(request.getPassword()).ifPresent(serverEmailConfig::setPassword);
+						ofNullable(request.getPassword()).ifPresent(pass -> simpleEncryptor.encrypt(pass));
 					} else {
 					/* Auto-drop values on switched-off authentication */
 						serverEmailConfig.setUsername(null);

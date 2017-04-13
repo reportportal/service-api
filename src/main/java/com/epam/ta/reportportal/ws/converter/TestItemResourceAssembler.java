@@ -34,10 +34,15 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
-public class TestItemResourceAssembler extends ProjectRelatedResourceAssembler<TestItem, TestItemResource> {
+public class TestItemResourceAssembler extends PagedResourcesAssembler<TestItem, TestItemResource> {
 
     @Autowired
     private TestItemRepository testItemRepository;
@@ -53,8 +58,8 @@ public class TestItemResourceAssembler extends ProjectRelatedResourceAssembler<T
      * toPagedResources(org.springframework.data.domain.Page, java.lang.String)
      */
     @Override
-    public com.epam.ta.reportportal.ws.model.Page<TestItemResource> toPagedResources(Page<TestItem> content, String project) {
-        com.epam.ta.reportportal.ws.model.Page<TestItemResource> resources = super.toPagedResources(content, project);
+    public com.epam.ta.reportportal.ws.model.Page<TestItemResource> toPagedResources(Page<TestItem> content) {
+        com.epam.ta.reportportal.ws.model.Page<TestItemResource> resources = super.toPagedResources(content);
         // load path elements names for all page
         Map<String, String> allPathsNames = getPagePathNames(content);
         // add names to resources
@@ -62,21 +67,19 @@ public class TestItemResourceAssembler extends ProjectRelatedResourceAssembler<T
         return resources;
     }
 
+    //TODO check path names
     @Override
     public TestItemResource toResource(TestItem item) {
-        TestItemResource testItemResource = this.toResource(item, null);
-        testItemResource.setPathNames(getItemName(item.getPath()));
-        return testItemResource;
-    }
-
-    @Override
-    public TestItemResource toResource(TestItem item, String projectName) {
         // initialize map of path names
         Map<String, String> pathNamesInitValue = new LinkedHashMap<>();
         for (String pathElement : item.getPath()) {
             pathNamesInitValue.put(pathElement, null);
         }
-        return new TestItemResourceBuilder().addTestItem(item, null).addPathNames(pathNamesInitValue).build();
+
+        final TestItemResource resource = new TestItemResourceBuilder().addTestItem(item, null)
+                .addPathNames(pathNamesInitValue).build();
+        resource.setPathNames(getItemName(item.getPath()));
+        return resource;
     }
 
     /**
@@ -86,15 +89,9 @@ public class TestItemResourceAssembler extends ProjectRelatedResourceAssembler<T
      * @return
      */
     private Map<String, String> getPagePathNames(Iterable<TestItem> content) {
-        Set<String> allPathsIds = new HashSet<>();
-        // merge path elements ids for all page element
-        for (TestItem testItem : content) {
-            allPathsIds.addAll(testItem.getPath());
-        }
-        // load path names for all page
-        List<String> allIds = new ArrayList<>();
-        allIds.addAll(allPathsIds);
-        return getItemName(allIds);
+        return getItemName(StreamSupport.stream(content.spliterator(), false)
+                .flatMap(it -> it.getPath().stream())
+                .distinct().collect(toList()));
     }
 
     /**
@@ -105,10 +102,9 @@ public class TestItemResourceAssembler extends ProjectRelatedResourceAssembler<T
      */
     private void setPathElementsNames(com.epam.ta.reportportal.ws.model.Page<TestItemResource> resources, Map<String, String> allPathsNames) {
         for (TestItemResource testItemResource : resources) {
-            Set<String> pathIds = testItemResource.getPathNames().keySet();
-            for (String pathId : pathIds) {
+            testItemResource.getPathNames().keySet().forEach(pathId -> {
                 testItemResource.getPathNames().put(pathId, allPathsNames.get(pathId));
-            }
+            });
         }
     }
 

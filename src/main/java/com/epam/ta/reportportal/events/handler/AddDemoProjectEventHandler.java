@@ -143,7 +143,7 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		settings.setId(DEFAULT_PROFILE_ID);
 		settings.setActive(true);
 		settings.setServerEmailDetails(
-				new ServerEmailDetails(host, port, protocol, isEnable, false, false, username, password, "rp@epam.com"));
+				new ServerEmailDetails(true, host, port, protocol, isEnable, false, false, username, password, "rp@epam.com"));
 		settings.setAnalyticsDetails(ImmutableMap.<String, AnalyticsDetails>builder().put("all", new AnalyticsDetails(true)).build());
 		return settings;
 	});

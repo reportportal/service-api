@@ -21,9 +21,11 @@
 
 package com.epam.ta.reportportal.ws.converter;
 
+import com.epam.ta.reportportal.database.entity.settings.ServerEmailDetails;
 import com.epam.ta.reportportal.database.entity.settings.ServerSettings;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Service;
 
 
@@ -40,17 +42,18 @@ public class ServerSettingsResourceAssembler extends ResourceAssembler<ServerSet
         ServerSettingsResource resource = new ServerSettingsResource();
         resource.setProfile(serverSettings.getId());
         resource.setActive(serverSettings.getActive());
-        if (null != serverSettings.getServerEmailDetails()) {
+        ServerEmailDetails serverEmailDetails = serverSettings.getServerEmailDetails();
+        if (null != serverEmailDetails) {
             ServerEmailResource output = new ServerEmailResource();
-            output.setHost(serverSettings.getServerEmailDetails().getHost());
-            output.setPort(serverSettings.getServerEmailDetails().getPort());
-            output.setProtocol(serverSettings.getServerEmailDetails().getProtocol());
-            output.setAuthEnabled(serverSettings.getServerEmailDetails().getAuthEnabled());
-            output.setSslEnabled(serverSettings.getServerEmailDetails().isSslEnabled());
-            output.setStarTlsEnabled(serverSettings.getServerEmailDetails().isStarTlsEnabled());
-            output.setFrom(serverSettings.getServerEmailDetails().getFrom());
-            if (serverSettings.getServerEmailDetails().getAuthEnabled()) {
-                output.setUsername(serverSettings.getServerEmailDetails().getUsername());
+            output.setHost(serverEmailDetails.getHost());
+            output.setPort(serverEmailDetails.getPort());
+            output.setProtocol(serverEmailDetails.getProtocol());
+            output.setAuthEnabled(serverEmailDetails.getAuthEnabled());
+            output.setSslEnabled(BooleanUtils.isTrue(serverEmailDetails.getSslEnabled()) );
+            output.setStarTlsEnabled(BooleanUtils.isTrue(serverEmailDetails.getStarTlsEnabled()));
+            output.setFrom(serverEmailDetails.getFrom());
+            if (serverEmailDetails.getAuthEnabled()) {
+                output.setUsername(serverEmailDetails.getUsername());
 				/* Password field not provided in response */
             }
             resource.setServerEmailResource(output);

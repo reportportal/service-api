@@ -88,12 +88,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	 */
 	@Override
 	public Iterable<TestItemResource> getTestItems(Filter filterable, Pageable pageable) {
-		Page<TestItem> items = testItemRepository.findByFilter(filterable, pageable);
-		String project = null;
-		if (Preconditions.NOT_EMPTY_COLLECTION.test(items.getContent())) {
-			project = launchRepository.findOne(items.getContent().get(0).getLaunchRef()).getProjectRef();
-		}
-		return itemAssembler.toPagedResources(items, project);
+		return itemAssembler.toPagedResources(testItemRepository.findByFilter(filterable, pageable));
 	}
 
 	@Override

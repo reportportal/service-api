@@ -21,36 +21,7 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
-import static com.epam.ta.reportportal.commons.Preconditions.*;
-import static com.epam.ta.reportportal.commons.Predicates.*;
-import static com.epam.ta.reportportal.commons.SendCase.findByName;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy.fromString;
-import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.*;
-import static com.epam.ta.reportportal.database.entity.user.UserUtils.isEmailValid;
-import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static java.util.stream.Collectors.toList;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.stream.StreamSupport;
-
 import com.epam.ta.reportportal.commons.Preconditions;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.SerializationUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.project.IUpdateProjectHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserPreferenceRepository;
@@ -69,14 +40,43 @@ import com.epam.ta.reportportal.database.entity.user.UserType;
 import com.epam.ta.reportportal.events.EmailConfigUpdatedEvent;
 import com.epam.ta.reportportal.events.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.EmailConfigConverters;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
-import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
+import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.SerializationUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.stream.StreamSupport;
+
+import static com.epam.ta.reportportal.commons.Preconditions.*;
+import static com.epam.ta.reportportal.commons.Predicates.*;
+import static com.epam.ta.reportportal.commons.SendCase.findByName;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy.fromString;
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.*;
+import static com.epam.ta.reportportal.database.entity.user.UserUtils.isEmailValid;
+import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Update project handler
@@ -200,14 +200,13 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
 		if (null != updateProjectEmailRQ.getConfiguration()) {
-			ProjectEmailConfig config = updateProjectEmailRQ.getConfiguration();
+			ProjectEmailConfigDTO config = updateProjectEmailRQ.getConfiguration();
 			if (null != config.getFrom()) {
 				expect(isEmailValid(config.getFrom()), equalTo(true)).verify(BAD_REQUEST_ERROR,
 						formattedSupplier("Provided FROM value '{}' is invalid", config.getFrom()));
 				project.getConfiguration().getEmailConfig().setFrom(config.getFrom());
 			}
-
-			List<EmailSenderCase> cases = config.getEmailCases();
+			List<EmailSenderCaseDTO> cases = config.getEmailCases();
 			if (BooleanUtils.isNotFalse(config.getEmailEnabled())) {
 				expect(cases, Preconditions.NOT_EMPTY_COLLECTION)
 						.verify(BAD_REQUEST_ERROR, "At least one rule should be present.");
@@ -238,11 +237,15 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 				});
 
 				/* If project email settings */
-				List<EmailSenderCase> withoutDuplicateCases = cases.stream().distinct().collect(toList());
+				List<EmailSenderCaseDTO> withoutDuplicateCases = cases.stream().distinct().collect(toList());
 				if (cases.size() != withoutDuplicateCases.size())
 					fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
 
-				project.getConfiguration().getEmailConfig().setEmailCases(cases);
+				project.getConfiguration().getEmailConfig().setEmailCases(cases
+						.stream()
+						.map(EmailConfigConverters.FROM_CASE_RESOURCE)
+						.collect(toList())
+				);
 			}
 
 			/* If enable parameter is FALSE, previous settings be dropped */

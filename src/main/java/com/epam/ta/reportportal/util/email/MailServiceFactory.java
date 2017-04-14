@@ -22,9 +22,9 @@ package com.epam.ta.reportportal.util.email;
 
 import com.epam.reportportal.commons.template.TemplateEngine;
 import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
+import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.database.entity.settings.ServerEmailDetails;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -20,17 +20,16 @@
  */
 package com.epam.ta.reportportal.events.handler;
 
-import static com.epam.ta.reportportal.events.handler.LaunchFinishedEventHandler.isTagsMatched;
-import static java.util.Arrays.asList;
-import static java.util.Collections.*;
-
-import java.util.HashSet;
-
+import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
+import java.util.HashSet;
+
+import static com.epam.ta.reportportal.events.handler.LaunchFinishedEventHandler.isTagsMatched;
+import static java.util.Arrays.asList;
+import static java.util.Collections.*;
 
 public class MatchTagsTest {
 

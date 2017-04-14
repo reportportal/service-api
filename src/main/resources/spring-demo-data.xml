@@ -500,12 +500,12 @@
 				<property name="keepScreenshots" value="1 week" />
 				<property name="isAutoAnalyzerEnabled" value="true" />
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="false"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="ALWAYS"/>
 									<property name="recipients">
 										<util:list>
@@ -621,12 +621,12 @@
 				<property name="keepScreenshots" value="1 week" />
 				<property name="isAutoAnalyzerEnabled" value="true" />
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="false"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="ALWAYS"/>
 									<property name="recipients">
 										<util:list>
@@ -677,12 +677,12 @@
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
 				<property name="isAutoAnalyzerEnabled" value="false"/>
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="true"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="ALWAYS"/>
 									<property name="recipients">
 										<util:list>
@@ -706,12 +706,12 @@
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
 				<property name="isAutoAnalyzerEnabled" value="false"/>
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="true"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="FAILED"/>
 									<property name="recipients">
 										<util:list>
@@ -735,12 +735,12 @@
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
 				<property name="isAutoAnalyzerEnabled" value="false"/>
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="true"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="MORE_10"/>
 									<property name="recipients">
 										<util:list>
@@ -764,12 +764,12 @@
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
 				<property name="isAutoAnalyzerEnabled" value="false"/>
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="true"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="MORE_20"/>
 									<property name="recipients">
 										<util:list>
@@ -793,12 +793,12 @@
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
 				<property name="isAutoAnalyzerEnabled" value="false"/>
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="true"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="MORE_50"/>
 									<property name="recipients">
 										<util:list>
@@ -822,12 +822,12 @@
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
 				<property name="isAutoAnalyzerEnabled" value="false"/>
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="true"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="ALWAYS"/>
 									<property name="recipients">
 										<util:list>

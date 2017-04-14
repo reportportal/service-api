@@ -200,15 +200,21 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
 		if (null != updateProjectEmailRQ.getConfiguration()) {
-			ProjectEmailConfig config = updateProjectEmailRQ.getConfiguration();
-			if (null != config.getFrom()) {
-				expect(isEmailValid(config.getFrom()), equalTo(true)).verify(BAD_REQUEST_ERROR,
-						formattedSupplier("Provided FROM value '{}' is invalid", config.getFrom()));
-				project.getConfiguration().getEmailConfig().setFrom(config.getFrom());
-			}
+			ProjectEmailConfig configUpdate = updateProjectEmailRQ.getConfiguration();
 
-			List<EmailSenderCase> cases = config.getEmailCases();
-			if (BooleanUtils.isNotFalse(config.getEmailEnabled())) {
+			boolean emailEnabled = BooleanUtils.isTrue(configUpdate.getEmailEnabled());
+			project.getConfiguration().getEmailConfig().setEmailEnabled(emailEnabled);
+
+			/* Otherwise something wrong with input RQ but we don't care about */
+			if (emailEnabled) {
+				List<EmailSenderCase> cases = configUpdate.getEmailCases();
+
+				Optional.ofNullable(configUpdate.getFrom()).ifPresent(from -> {
+					expect(isEmailValid(configUpdate.getFrom()), equalTo(true)).verify(BAD_REQUEST_ERROR,
+							formattedSupplier("Provided FROM value '{}' is invalid", configUpdate.getFrom()));
+					project.getConfiguration().getEmailConfig().setFrom(configUpdate.getFrom());
+				});
+
 				expect(cases, Preconditions.NOT_EMPTY_COLLECTION)
 						.verify(BAD_REQUEST_ERROR, "At least one rule should be present.");
 				cases.forEach(sendCase -> {
@@ -245,13 +251,6 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 				project.getConfiguration().getEmailConfig().setEmailCases(cases);
 			}
 
-			/* If enable parameter is FALSE, previous settings be dropped */
-			if (!config.getEmailEnabled())
-				setDefaultEmailCofiguration(project);
-			else
-				project.getConfiguration().getEmailConfig().setEmailEnabled(true);
-		} else {
-			/* Something wrong with input RQ but we don't care about */
 		}
 
 		try {

@@ -73,15 +73,15 @@ configurations.all {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:3.0.0-BETA-8'
-        compile 'com.epam.reportportal:commons-rules:3.0.0-BETA-2'
-        compile 'com.epam.reportportal:commons-model:3.0.0-BETA-2'
-        compile 'com.epam.reportportal:commons:3.0.0-BETA-2'
+        compile 'com.epam.reportportal:commons-dao:3.0.0-RC1'
+        compile 'com.epam.reportportal:commons-rules:3.0.0-RC1'
+        compile 'com.epam.reportportal:commons-model:3.0.0-RC1'
+        compile 'com.epam.reportportal:commons:3.0.0-RC1'
     } else {
-        compile 'com.github.reportportal:commons-model:30b0c4d'
-        compile('com.github.reportportal:commons-dao:ea4bea4')
-        compile('com.github.reportportal:commons-rules:3.0.0-BETA-2')
-        compile 'com.github.reportportal:commons:develop-SNAPSHOT'
+        compile 'com.github.reportportal:commons-model:edfb897'
+        compile('com.github.reportportal:commons-dao:48783a4')
+        compile('com.github.reportportal:commons-rules:3.0.0-RC1')
+        compile ('com.github.reportportal:commons:develop-SNAPSHOT')
     }
 
     compile 'org.jasypt:jasypt:1.9.2'

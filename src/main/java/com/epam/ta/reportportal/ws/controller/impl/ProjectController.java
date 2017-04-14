@@ -114,7 +114,7 @@ public class ProjectController implements IProjectController {
 	@RequestMapping(value = "/{projectName}", method = PUT, consumes = { APPLICATION_JSON_VALUE })
 	@ResponseBody
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_LEAD)
+	@PreAuthorize(PROJECT_LEAD_OR_ADMIN)
 	@ApiOperation(value = "Update project", notes = "'Email Configuration' block is ignored at this model, please use PUT /{projectName}/emailconfig resource instead.")
 	public OperationCompletionRS updateProject(@PathVariable String projectName, @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
 			Principal principal) {

@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.database.entity.settings.ServerEmailDetails;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,5 +1,4 @@
-db.serverSettings.serverEmailDetails.update(
-    {
-        $unset: {"serverEmailDetails.debug": ""}
-    }
+db.serverSettings.update(
+    {},
+    {$unset: {"serverEmailDetails.debug": ""}}
 )

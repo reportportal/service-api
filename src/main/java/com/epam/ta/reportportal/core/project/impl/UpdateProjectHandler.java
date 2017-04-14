@@ -44,7 +44,11 @@ import java.util.Optional;
 import java.util.stream.StreamSupport;
 
 import com.epam.ta.reportportal.commons.Preconditions;
+import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase;
+import com.epam.ta.reportportal.ws.converter.EmailConfigConverters;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,8 +78,6 @@ import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
-import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
 
 /**
@@ -200,14 +202,14 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
 		if (null != updateProjectEmailRQ.getConfiguration()) {
-			ProjectEmailConfig configUpdate = updateProjectEmailRQ.getConfiguration();
+			ProjectEmailConfigDTO configUpdate = updateProjectEmailRQ.getConfiguration();
 
 			boolean emailEnabled = BooleanUtils.isTrue(configUpdate.getEmailEnabled());
 			project.getConfiguration().getEmailConfig().setEmailEnabled(emailEnabled);
 
 			/* Otherwise something wrong with input RQ but we don't care about */
 			if (emailEnabled) {
-				List<EmailSenderCase> cases = configUpdate.getEmailCases();
+				List<EmailSenderCaseDTO> cases = configUpdate.getEmailCases();
 
 				Optional.ofNullable(configUpdate.getFrom()).ifPresent(from -> {
 					expect(isEmailValid(configUpdate.getFrom()), equalTo(true)).verify(BAD_REQUEST_ERROR,
@@ -244,11 +246,11 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 				});
 
 				/* If project email settings */
-				List<EmailSenderCase> withoutDuplicateCases = cases.stream().distinct().collect(toList());
+				List<EmailSenderCase> withoutDuplicateCases = cases.stream().distinct().map(EmailConfigConverters.FROM_CASE_RESOURCE).collect(toList());
 				if (cases.size() != withoutDuplicateCases.size())
 					fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
 
-				project.getConfiguration().getEmailConfig().setEmailCases(cases);
+				project.getConfiguration().getEmailConfig().setEmailCases(withoutDuplicateCases);
 			}
 
 		}

@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import java.util.Date;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
@@ -41,8 +42,7 @@ public class LaunchBuilder extends Builder<Launch> {
 		if (request != null) {
 			getObject().setStartTime(request.getStartTime());
 			getObject().setName(request.getName().trim());
-			if (null != request.getDescription())
-				getObject().setDescription(request.getDescription().trim());
+			Optional.ofNullable(request.getDescription()).ifPresent(desc -> getObject().setDescription(desc.trim()));
 			Set<String> tags = request.getTags();
 			if (null != tags) {
 				tags = Sets.newHashSet(EntityUtils.trimStrings(EntityUtils.update(tags)));

@@ -39,7 +39,7 @@ public class ChangeSets_3_1 {
 
 	@ChangeSet(order = "3.1.0-1", id = "v3.1.0-Remove debug from email settings", author = "avarabyeu")
 	public void removeDebugField(MongoTemplate mongoTemplate) throws IOException {
-		mongoTemplate.getDb().doEval(asCharSource(getResource("migration/v3_1_0.js"), Charsets.UTF_8).read());
+		mongoTemplate.getDb().doEval(asCharSource(getResource("migration/v3_1_0_1.js"), Charsets.UTF_8).read());
 	}
 
 }

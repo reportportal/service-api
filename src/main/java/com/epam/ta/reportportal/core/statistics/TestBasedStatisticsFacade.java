@@ -21,9 +21,12 @@
 
 package com.epam.ta.reportportal.core.statistics;
 
+import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * BDD Optimized statistics calculation strategy
@@ -66,7 +69,22 @@ public class TestBasedStatisticsFacade extends StatisticsFacadeImpl implements S
     }
 
     @Override
-    public boolean awareIssueForTest(TestItem testItem, boolean hasDecedents) {
-        return testItem.getType().sameLevel(TestItemType.TEST) && hasDecedents;
+    public TestItem identifyStatus(TestItem testItem) {
+        if (testItem.getType().sameLevel(TestItemType.TEST)) {
+            List<TestItem> allDescendants = testItemRepository.findAllDescendants(testItem.getId());
+            boolean present = allDescendants.stream()
+                    .anyMatch(it -> it.getStatus().equals(Status.FAILED)
+                            || it.getStatus().equals(Status.SKIPPED));
+            if (present) {
+                testItem.setStatus(Status.FAILED);
+            }
+            return testItem;
+        }
+        return super.identifyStatus(testItem);
+    }
+
+    @Override
+    public boolean awareIssue(TestItem testItem) {
+        return testItem.getType().sameLevel(TestItemType.TEST);
     }
 }

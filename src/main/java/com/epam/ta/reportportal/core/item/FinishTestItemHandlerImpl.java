@@ -24,14 +24,12 @@ import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
-import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.FailReferenceResourceBuilder;
@@ -47,9 +45,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
@@ -128,33 +124,29 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		boolean statusProvided = actualStatus.isPresent();
 		boolean hasDescendants = testItemRepository.hasDescendants(testItem.getId());
 
+        StatisticsFacade statisticsFacade = statisticsFacadeFactory
+                .getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
+
 		/*
 		 * If test item has descendants, it's status is resolved from statistics
 		 * When status provided, no meter test item has or not descendants, test
 		 * item status is resolved to provided
 		 */
-		if (!statusProvided && hasDescendants) {
-			testItem.setStatus(StatisticsHelper.getStatusFromStatistics(testItem.getStatistics()));
-		} else {
-			testItem.setStatus(actualStatus.get());
-		}
+        if (!statusProvided && hasDescendants) {
+            testItem = statisticsFacade.identifyStatus(testItem);
+        } else {
+            testItem.setStatus(actualStatus.get());
+        }
 
-		/*
-		 * Updates ancestors issue statistics, bases on status. Only for test
-		 * items that does not have descendants
-		 */
-		StatisticsFacade statisticsFacade = statisticsFacadeFactory
-				.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
-		if (statisticsFacade.awareIssueForTest(testItem, hasDescendants)) {
+		if (statisticsFacade.awareIssue(testItem)) {
 			testItem = awareTestItemIssueTypeFromStatus(testItem, providedIssue, project, username);
 		}
+
 		try {
 			testItemRepository.save(testItem);
-			testItem = statisticsFacade
-					.updateExecutionStatistics(testItem);
+			testItem = statisticsFacade.updateExecutionStatistics(testItem);
 			if (null != testItem.getIssue()) {
-				statisticsFacade
-						.updateIssueStatistics(testItem);
+				statisticsFacade.updateIssueStatistics(testItem);
 			}
 		} catch (Exception e) {
 			throw new ReportPortalException("Error during updating TestItem " + e.getMessage(), e);
@@ -220,11 +212,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @return TestItem
 	 */
 	TestItem awareTestItemIssueTypeFromStatus(final TestItem testItem, final Issue providedIssue, final Project project, String submitter) {
-		if (testItem.getType().sameLevel(TestItemType.TEST)
-				&& testItemRepository.findAllDescendants(testItem.getId()).stream()
-				.anyMatch(item -> item.getStatus().equals(FAILED) || item.getStatus().equals(SKIPPED))) {
-			testItem.setStatus(FAILED);
-		}
 		if (FAILED.equals(testItem.getStatus()) || SKIPPED.equals(testItem.getStatus())) {
 			if (null != providedIssue) {
 				verifyIssue(testItem.getId(), providedIssue, project.getConfiguration());

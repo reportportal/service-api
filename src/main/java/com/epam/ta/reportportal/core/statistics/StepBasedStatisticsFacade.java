@@ -58,9 +58,4 @@ public class StepBasedStatisticsFacade extends StatisticsFacadeImpl implements S
 			return testItem;
 		}
 	}
-
-	@Override
-	public boolean awareIssueForTest(TestItem testItem, boolean hasDecedents) {
-		return !hasDecedents;
-	}
 }

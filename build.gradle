@@ -79,7 +79,7 @@ dependencies {
         compile 'com.epam.reportportal:commons:3.0.0-RC1'
     } else {
         compile 'com.github.reportportal:commons-model:edfb897'
-        compile('com.github.reportportal:commons-dao:48783a4')
+        compile('com.github.reportportal:commons-dao:3542742')
         compile('com.github.reportportal:commons-rules:3.0.0-RC1')
         compile ('com.github.reportportal:commons:develop-SNAPSHOT')
     }

@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import springfox.documentation.PathProvider;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
@@ -38,8 +39,8 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import javax.servlet.ServletContext;
 import java.security.Principal;
 
-import static com.google.common.base.Predicates.or;
 import static com.google.common.base.Predicates.not;
+import static com.google.common.base.Predicates.or;
 import static springfox.documentation.builders.RequestHandlerSelectors.basePackage;
 
 /**
@@ -91,6 +92,10 @@ public class Swagger2Configuration {
 	@Bean
 	public PathProvider rpPathProvider() {
 		return new RelativePathProvider(servletContext);
+	}
+
+	@Bean(name = "multipartResolver") public CommonsMultipartResolver commonsMultipartResolver(){
+		return new CommonsMultipartResolver();
 	}
 
 	@Bean

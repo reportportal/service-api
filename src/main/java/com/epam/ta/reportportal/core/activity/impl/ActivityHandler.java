@@ -43,6 +43,10 @@ import com.epam.ta.reportportal.ws.converter.ActivityResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+
 /**
  * @author Dzmitry_Kavalets
  */
@@ -66,28 +70,27 @@ public class ActivityHandler implements IActivityHandler {
 
 	@Override
 	public List<ActivityResource> getActivitiesHistory(String projectName, Filter filter, Pageable pageable) {
-		Project project = projectRepository.findOne(projectName);
-		BusinessRule.expect(project, Predicates.notNull()).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
+		expect(projectRepository.exists(projectName), equalTo(true)).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
 		return activityRepository.findActivitiesByProjectId(projectName, filter, pageable).stream()
-				.map(activity -> activityResourceAssembler.toResource(activity, projectName)).collect(Collectors.toList());
+				.map(activity -> activityResourceAssembler.toResource(activity)).collect(Collectors.toList());
 	}
 
 	@Override
 	public ActivityResource getActivity(String projectName, String activityId) {
-		BusinessRule.expect(activityId, Predicates.notNull()).verify(ErrorType.ACTIVITY_NOT_FOUND, activityId);
+		expect(activityId, notNull()).verify(ErrorType.ACTIVITY_NOT_FOUND, activityId);
 		Activity activity = activityRepository.findOne(activityId);
-		BusinessRule.expect(activity, Predicates.notNull()).verify(ErrorType.ACTIVITY_NOT_FOUND, activityId);
-		BusinessRule.expect(projectName, Predicates.equalTo(activity.getProjectRef())).verify(ErrorType.TEST_ITEM_NOT_FOUND, activityId);
+		expect(activity, notNull()).verify(ErrorType.ACTIVITY_NOT_FOUND, activityId);
+		expect(projectName, equalTo(activity.getProjectRef())).verify(ErrorType.TEST_ITEM_NOT_FOUND, activityId);
 		return activityResourceAssembler.toResource(activity);
 	}
 
 	@Override
 	public List<ActivityResource> getItemActivities(String projectName, String itemId, Filter filter, Pageable pageable) {
 		TestItem testItem = testItemRepository.findOne(itemId);
-		BusinessRule.expect(testItem, Predicates.notNull()).verify(ErrorType.TEST_ITEM_NOT_FOUND, itemId);
+		expect(testItem, notNull()).verify(ErrorType.TEST_ITEM_NOT_FOUND, itemId);
 		String projectRef = launchRepository.findOne(testItem.getLaunchRef()).getProjectRef();
-		BusinessRule.expect(projectName, Predicates.equalTo(projectRef)).verify(ErrorType.TEST_ITEM_NOT_FOUND, itemId);
+		expect(projectName, equalTo(projectRef)).verify(ErrorType.TEST_ITEM_NOT_FOUND, itemId);
 		return activityRepository.findActivitiesByTestItemId(itemId, filter, pageable).stream()
-				.map(activity -> activityResourceAssembler.toResource(activity, projectName)).collect(Collectors.toList());
+				.map(activity -> activityResourceAssembler.toResource(activity)).collect(Collectors.toList());
 	}
 }

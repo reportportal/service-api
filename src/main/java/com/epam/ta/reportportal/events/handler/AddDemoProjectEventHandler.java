@@ -26,12 +26,14 @@ import com.epam.ta.reportportal.database.BinaryData;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.entity.settings.AnalyticsDetails;
 import com.epam.ta.reportportal.database.entity.settings.ServerEmailDetails;
 import com.epam.ta.reportportal.database.entity.settings.ServerSettings;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.entity.user.UserType;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +52,7 @@ import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.pe
 
 /**
  * Initial deploy data
- * 
+ *
  * @author Andrei_Varabyeu
  * @author Andrei_Ramanchuk
  */
@@ -83,6 +85,9 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 
 	@Value("${rp.email.debug:false}")
 	private boolean isDebug;
+
+	@Value("${rp.analytics.enableByDefault:true}")
+	private boolean enableByDefault;
 
 	/**
 	 * Photo avatar for non-existing users
@@ -137,8 +142,9 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		ServerSettings settings = new ServerSettings();
 		settings.setId(DEFAULT_PROFILE_ID);
 		settings.setActive(true);
-		settings.setServerEmailDetails(new ServerEmailDetails(host, port, protocol, isEnable, false,
-                false, username, password, "rp@epam.com", isDebug));
+		settings.setServerEmailDetails(
+				new ServerEmailDetails(true, host, port, protocol, isEnable, false, false, username, password, "rp@epam.com"));
+		settings.setAnalyticsDetails(ImmutableMap.<String, AnalyticsDetails>builder().put("all", new AnalyticsDetails(true)).build());
 		return settings;
 	});
 
@@ -182,9 +188,18 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 			}
 
 			/* Create server settings repository with default profile */
-			if (null == serverSettingsRepository.findOne(DEFAULT_PROFILE.get().getId())) {
-				serverSettingsRepository.save(DEFAULT_PROFILE.get());
+			ServerSettings serverSettings = serverSettingsRepository.findOne(DEFAULT_PROFILE.get().getId());
+			if (null == serverSettings) {
+				serverSettings = DEFAULT_PROFILE.get();
+				serverSettingsRepository.save(serverSettings);
 			}
+			if (null == serverSettings.getAnalyticsDetails()) {
+				serverSettings.setAnalyticsDetails(
+						ImmutableMap.<String, AnalyticsDetails>builder().put("all", new AnalyticsDetails(enableByDefault)).build());
+				serverSettingsRepository.save(serverSettings);
+			}
+
+
 		}
 	}
 

@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://www.springframework.org/schema/beans"
-	xmlns:util="http://www.springframework.org/schema/util"
-	default-lazy-init="true"
-	xmlns:p="http://www.springframework.org/schema/p"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-	http://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   default-lazy-init="true"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util
-	http://www.springframework.org/schema/util/spring-util-4.0.xsd
-		http://www.springframework.org/schema/context
-	http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+		http://www.springframework.org/schema/util/spring-util-4.0.xsd">
 
 	<bean id="dateEditor" class="org.springframework.beans.propertyeditors.CustomDateEditor">
 		<constructor-arg>
@@ -504,12 +500,12 @@
 				<property name="keepScreenshots" value="1 week" />
 				<property name="isAutoAnalyzerEnabled" value="true" />
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="false"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="ALWAYS"/>
 									<property name="recipients">
 										<util:list>
@@ -625,12 +621,12 @@
 				<property name="keepScreenshots" value="1 week" />
 				<property name="isAutoAnalyzerEnabled" value="true" />
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="false"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="ALWAYS"/>
 									<property name="recipients">
 										<util:list>
@@ -681,12 +677,12 @@
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
 				<property name="isAutoAnalyzerEnabled" value="false"/>
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="true"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="ALWAYS"/>
 									<property name="recipients">
 										<util:list>
@@ -710,12 +706,12 @@
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
 				<property name="isAutoAnalyzerEnabled" value="false"/>
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="true"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="FAILED"/>
 									<property name="recipients">
 										<util:list>
@@ -739,12 +735,12 @@
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
 				<property name="isAutoAnalyzerEnabled" value="false"/>
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="true"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="MORE_10"/>
 									<property name="recipients">
 										<util:list>
@@ -768,12 +764,12 @@
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
 				<property name="isAutoAnalyzerEnabled" value="false"/>
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="true"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="MORE_20"/>
 									<property name="recipients">
 										<util:list>
@@ -797,12 +793,12 @@
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
 				<property name="isAutoAnalyzerEnabled" value="false"/>
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="true"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="MORE_50"/>
 									<property name="recipients">
 										<util:list>
@@ -826,12 +822,12 @@
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
 				<property name="isAutoAnalyzerEnabled" value="false"/>
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="true"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="ALWAYS"/>
 									<property name="recipients">
 										<util:list>
@@ -2856,7 +2852,6 @@
 				<property name="port" value="10025"/>
 				<property name="protocol" value="smtp"/>
 				<property name="authEnabled" value="false"/>
-				<property name="debug" value="false"/>
 			</bean>
 		</property>
 

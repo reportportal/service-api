@@ -117,8 +117,8 @@ public class StatisticsFacadeImpl implements StatisticsFacade {
 	@Override
 	public void recalculateStatistics(Launch launch) {
 		deleteLaunchStatistics(launch);
-		testItemRepository.findByHasChildStatus(false,
-				launch.getId()).forEach(this::recalculateTestItemStatistics);
+		testItemRepository.findByLaunch(launch)
+				.forEach(this::recalculateTestItemStatistics);
 
 		List<TestItem> withIssues = testItemRepository.findTestItemWithIssues(launch.getId());
 		withIssues.forEach(this::updateIssueStatistics);

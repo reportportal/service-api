@@ -138,7 +138,7 @@ public class ProjectController implements IProjectController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@PreAuthorize(ADMIN_ONLY)
-	@ApiOperation("Delete project")
+	@ApiOperation(value = "Delete project", notes = "Could be deleted only by users with administrator role")
 	public OperationCompletionRS deleteProject(@PathVariable String projectName, Principal principal) {
 		return deleteProjectHandler.deleteProject(EntityUtils.normalizeProjectName(projectName));
 	}
@@ -158,7 +158,7 @@ public class ProjectController implements IProjectController {
 	@RequestMapping(value = "/{projectName}", method = GET)
 	@ResponseBody
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
-	@ApiOperation("Load project")
+	@ApiOperation(value = "Get information about project", notes = "Only for users that are assigned to the project")
 	public ProjectResource getProject(@PathVariable String projectName, Principal principal) {
 		return getProjectHandler.getProject(EntityUtils.normalizeProjectName(projectName));
 	}
@@ -191,7 +191,7 @@ public class ProjectController implements IProjectController {
 	@ResponseStatus(OK)
 	@ResponseView(ModelViews.DefaultView.class)
 	@PreAuthorize(PROJECT_LEAD)
-	@ApiOperation("Load users which can be assigned to specified project")
+	@ApiOperation(value = "Load users which can be assigned to specified project", notes = "Only for users with project lead permissions")
 	public Iterable<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
 			@PathVariable String projectName, Principal principal) {
 		return userHandler.getUsers(filter, pageable, EntityUtils.normalizeProjectName(projectName));
@@ -202,7 +202,7 @@ public class ProjectController implements IProjectController {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	@PreAuthorize(PROJECT_MEMBER)
-	@ApiOperation("Load project users by filter")
+	@ApiOperation(value = "Load project users by filter", notes = "Only for users that are members of the project")
 	public List<String> getProjectUsers(@PathVariable String projectName,
 			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + Project.USERS) String value,
 			Principal principal) {
@@ -236,7 +236,7 @@ public class ProjectController implements IProjectController {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	@PreAuthorize(ALLOWED_TO_EDIT_USER)
-	@ApiOperation("Load user preferences")
+	@ApiOperation(value = "Load user preferences", notes = "Only for users that allowed to edit other users")
 	public PreferenceResource getUserPreference(@PathVariable String projectName, @PathVariable String login, Principal principal) {
 		return getPreferenceHandler.getPreference(EntityUtils.normalizeProjectName(projectName), EntityUtils.normalizeUsername(login));
 	}

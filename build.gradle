@@ -78,8 +78,8 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:3.0.0-RC1'
         compile 'com.epam.reportportal:commons:3.0.0-RC1'
     } else {
-        compile 'com.github.reportportal:commons-model:edfb897'
-        compile('com.github.reportportal:commons-dao:3542742')
+        compile 'com.github.reportportal:commons-model:2d1e3e8'
+        compile('com.github.reportportal:commons-dao:dbb4c88')
         compile('com.github.reportportal:commons-rules:3.0.0-RC1')
         compile ('com.github.reportportal:commons:develop-SNAPSHOT')
     }
@@ -123,8 +123,8 @@ dependencies {
     compile 'javax.inject:javax.inject:1'
     compile 'com.google.code.findbugs:annotations:3.0.1'
 
-    compile 'io.springfox:springfox-swagger2:2.3.0'
-    compile 'io.springfox:springfox-swagger-ui:2.3.0'
+    compile 'io.springfox:springfox-swagger2:2.6.1'
+    compile 'io.springfox:springfox-swagger-ui:2.6.1'
 
     compile 'com.google.guava:guava:21.0'
 

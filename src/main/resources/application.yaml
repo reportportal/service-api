@@ -42,3 +42,9 @@ eureka:
     register-with-eureka: false
     enabled: false
 ---
+
+springfox:
+  documentation:
+    swagger:
+      v2:
+        path: /api-docs

@@ -21,31 +21,6 @@
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.web.bind.annotation.RequestMethod.*;
-
-import java.net.URI;
-import java.security.Principal;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-
-import com.epam.ta.reportportal.ws.resolver.ActiveRole;
-import com.epam.ta.reportportal.ws.resolver.FilterFor;
-import com.epam.ta.reportportal.ws.resolver.ResponseView;
-import com.epam.ta.reportportal.ws.resolver.SortFor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.server.ServletServerHttpRequest;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.UriComponentsBuilder;
-
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.user.ICreateUserHandler;
 import com.epam.ta.reportportal.core.user.IDeleteUserHandler;
@@ -59,9 +34,31 @@ import com.epam.ta.reportportal.ws.model.ModelViews;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.*;
-
+import com.epam.ta.reportportal.ws.resolver.ActiveRole;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
+import com.epam.ta.reportportal.ws.resolver.ResponseView;
+import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 import springfox.documentation.annotations.ApiIgnore;
+
+import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
+import java.security.Principal;
+import java.util.Map;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 /**
  * Controller implementation for operations with users
@@ -91,7 +88,7 @@ public class UserController implements IUserController {
 	@ResponseBody
 	@ResponseStatus(CREATED)
 	@PreAuthorize(ADMIN_ONLY)
-	@ApiOperation("Create specified user")
+	@ApiOperation(value = "Create specified user", notes = "Allowable only for users with administrator role")
 	public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq, Principal principal, HttpServletRequest request) {
 		String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request)).replacePath(null).replaceQuery(null).build().toUriString();
 		return createUserMessageHandler.createUserByAdmin(rq, principal.getName(), basicURL);
@@ -134,7 +131,7 @@ public class UserController implements IUserController {
 	@RequestMapping(value = "/{login}", method = DELETE)
 	@ResponseBody
 	@PreAuthorize(ADMIN_ONLY)
-	@ApiOperation("Delete specified user")
+	@ApiOperation(value = "Delete specified user", notes = "Allowable only for users with administrator role")
 	public OperationCompletionRS deleteUser(@PathVariable String login, Principal principal) {
 		return deleteUserMessageHandler.deleteUser(EntityUtils.normalizeUsername(login), principal.getName());
 	}
@@ -143,7 +140,7 @@ public class UserController implements IUserController {
 	@RequestMapping(value = "/{login}", method = PUT)
 	@ResponseBody
 	@PreAuthorize(ALLOWED_TO_EDIT_USER)
-	@ApiOperation("Edit specified user")
+	@ApiOperation(value = "Edit specified user", notes = "Only for administrators and profile's owner")
 	public OperationCompletionRS editUser(@PathVariable String login, @RequestBody @Validated EditUserRQ editUserRQ,
 			@ActiveRole UserRole role, Principal principal) {
 		return editUserMessageHandler.editUser(EntityUtils.normalizeUsername(login), editUserRQ, role);
@@ -154,7 +151,7 @@ public class UserController implements IUserController {
 	@ResponseBody
 	@ResponseView(ModelViews.FullUserView.class)
 	@PreAuthorize(ALLOWED_TO_EDIT_USER)
-	@ApiOperation("Return information about specified user")
+	@ApiOperation(value = "Return information about specified user", notes = "Only for administrators and profile's owner")
 	public UserResource getUser(@PathVariable String login, Principal principal) {
 		return getUserHandler.getUser(EntityUtils.normalizeUsername(login), principal);
 	}
@@ -173,7 +170,7 @@ public class UserController implements IUserController {
 	@ResponseBody
 	@ResponseView(ModelViews.FullUserView.class)
 	@PreAuthorize(ADMIN_ONLY)
-	@ApiOperation("Return information about all users")
+	@ApiOperation(value = "Return information about all users", notes = "Allowable only for users with administrator role")
 	public Iterable<UserResource> getUsers(@FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
 			Principal principal) {
 		return getUserHandler.getAllUsers(filter, pageable);

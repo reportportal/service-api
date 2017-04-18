@@ -168,10 +168,10 @@ public class TestItemController implements ITestItemController {
     @ResponseBody
     @ApiOperation("Load history of test items")
     public List<TestItemHistoryElement> getItemsHistory(@PathVariable String projectName,
-                                                        @RequestParam(value = "history_depth", required = false, defaultValue = DEFAULT_HISTORY_DEPTH) int historyDepth,
-                                                        @RequestParam(value = "ids") String[] ids,
-                                                        @RequestParam(value = "is_full", required = false, defaultValue = DEFAULT_HISTORY_FULL) boolean showBrokenLaunches,
-                                                        Principal principal) {
+            @RequestParam(value = "history_depth", required = false, defaultValue = DEFAULT_HISTORY_DEPTH) int historyDepth,
+            @RequestParam(value = "ids") String[] ids,
+            @RequestParam(value = "is_full", required = false, defaultValue = DEFAULT_HISTORY_FULL) boolean showBrokenLaunches,
+            Principal principal) {
         return testItemsHistoryHandler.getItemsHistory(normalizeProjectName(projectName), ids, historyDepth, showBrokenLaunches);
     }
 

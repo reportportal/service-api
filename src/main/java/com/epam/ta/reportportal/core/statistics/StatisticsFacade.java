@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.core.statistics;
 
 import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 
 /**
@@ -116,4 +115,20 @@ public interface StatisticsFacade {
 	 * @param launch
 	 */
 	void recalculateStatistics(Launch launch);
+
+	/**
+	 * Set status for testItem based on strategy and returns
+	 * object with exposed value.
+	 * @param testItem to be identified
+	 * @return TestItem object with provided status
+	 */
+	TestItem identifyStatus(TestItem testItem);
+
+	/**
+	 * Checks if the test item can have issue. Based on
+	 * statistics calculating strategy
+	 * @param testItem
+	 * @return
+	 */
+	boolean awareIssue(TestItem testItem);
 }

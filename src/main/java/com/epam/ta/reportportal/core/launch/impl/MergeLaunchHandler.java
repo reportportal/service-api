@@ -67,7 +67,6 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class MergeLaunchHandler implements IMergeLaunchHandler {
 
-    @Autowired
     private TestItemRepository testItemRepository;
 
     private ProjectRepository projectRepository;
@@ -107,6 +106,11 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
     @Autowired
     public void setUserRepository(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    @Autowired
+    public void setTestItemRepository(TestItemRepository testItemRepository) {
+        this.testItemRepository = testItemRepository;
     }
 
     @Override

@@ -3013,6 +3013,8 @@
         <property name="name" value="suiteItem2" />
         <property name="itemDescription" value="suite for history validation" />
         <property name="launchRef" value="51824cc1553de743b3e5cc2c" />
+		<property name="startTime" value="05/02/2013 14:33 +0300" />
+		<property name="endTime" value="05/02/2013 14:43 +0300" />
         <property name="status" value="PASSED"/>
         <property name="hasChilds" value="true"/>
         <property name="type"

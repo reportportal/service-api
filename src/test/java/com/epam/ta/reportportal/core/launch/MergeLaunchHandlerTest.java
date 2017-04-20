@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.core.item.merge.MergeTestItemHandler;
 import com.epam.ta.reportportal.core.launch.impl.MergeLaunchHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -34,6 +35,7 @@ import com.epam.ta.reportportal.database.entity.statistics.Statistics;
 import com.epam.ta.reportportal.database.fixture.SpringFixture;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
 import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
@@ -66,14 +68,19 @@ public class MergeLaunchHandlerTest extends BaseTest {
     private static final String PROJECT1 = "project1";
     private static final String MERGE_LAUNCH_1 = "51824cc1553de743b3e5bb2c";
     private static final String MERGE_LAUNCH_2 = "51824cc1553de743b3e5cc2c";
+    private static final String MERGE_SUITE_1 = "44524cc1553de743b3e5bb30";
+    private static final String MERGE_SUITE_2 = "44524cc1553de743b3a5bb30";
+    private static final String SAME_SUITE = "14524cc1553de743abc5bb30";
     private static final String IN_PROGRESS_ID = "51824cc1553de743b3e5aa2c";
     private static final String DIFF_PROJECT_LAUNCH_ID = "88624678053de743b3e5aa9e";
-    private static final String MERGED_ITEM = "44524cc1553de743b3e5bb30";
     private static final String NOT_OWNER = "customer";
     private static final String LAUNCH_NAME = "Merged";
 
     @Autowired
     private MergeLaunchHandler mergeLaunchHandler;
+
+    @Autowired
+    private MergeTestItemHandler mergeTestItemHandler;
 
     @Autowired
     private LaunchRepository launchRepository;
@@ -162,7 +169,7 @@ public class MergeLaunchHandlerTest extends BaseTest {
         List<TestItem> items = testItemRepository.findByLaunch(launch);
         Assert.assertEquals(items.size(), 8);
         items.forEach(it -> Assert.assertEquals(it.getLaunchRef(), MERGE_LAUNCH_1));
-        TestItem testItem = testItemRepository.findOne(MERGED_ITEM);
+        TestItem testItem = testItemRepository.findOne(MERGE_SUITE_1);
         Assert.assertTrue(testItem.getTags().containsAll(ImmutableList.<String>builder()
                 .add("ios").add("andr").build()));
         Assert.assertTrue(testItem.getItemDescription().endsWith("2"));
@@ -174,6 +181,17 @@ public class MergeLaunchHandlerTest extends BaseTest {
         Date end = df.parse(endDate);
         Assert.assertEquals(testItem.getStartTime(), start);
         Assert.assertEquals(testItem.getEndTime(), end);
+    }
+
+    @Test
+    public void mergeSuits(){
+        MergeTestItemRQ mergeTestItemRQ = new MergeTestItemRQ();
+        mergeTestItemRQ.setMergeStrategyType("SUITE");
+        mergeTestItemRQ.setItems(ImmutableList.<String>builder().add(MERGE_SUITE_2).add(SAME_SUITE).build());
+        mergeTestItemHandler.mergeTestItem(PROJECT1, MERGE_SUITE_1, mergeTestItemRQ, USER1);
+        TestItem item = testItemRepository.findOne(MERGE_SUITE_1);
+        Assert.assertTrue(item.getTags().containsAll(ImmutableList.<String>builder().add("ios").add("andr").build()));
+        Assert.assertEquals(testItemRepository.findAllDescendants(item.getId()).size(), 3);
     }
 
     private MergeLaunchesRQ getMergeRequest(List<String> launches) {

@@ -129,7 +129,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         validateMergingLaunches(launchesList, user, project);
 
         mergeSameSuites(projectName, launchTarget, launchesIds, userName, mergeLaunchesRQ.getMergeStrategyType());
-        updateChildrenOfLaunch(launchTargetId, launchesIds, mergeLaunchesRQ.isExtendSuitesDescription());
+        updateChildrenOfLaunch(launchTargetId, launchesIds, false);
 
         StatisticsFacade statisticsFacade = statisticsFacadeFactory.
                 getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());

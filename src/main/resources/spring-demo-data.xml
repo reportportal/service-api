@@ -2905,6 +2905,9 @@
         <ref bean="mergeSuite2"/>
         <ref bean="mergeTest2"/>
         <ref bean="mergeStep2"/>
+		<ref bean="sameSuite"/>
+		<ref bean="sameTest"/>
+		<ref bean="sameStep"/>
         <ref bean="launch1"/>
 		<ref bean="triggerLaunch"/>
 	</util:list>
@@ -2922,7 +2925,7 @@
 
 	<bean id="mergeLaunch1" class="com.epam.ta.reportportal.database.entity.Launch">
 		<property name="id" value="51824cc1553de743b3e5bb2c" />
-		<property name="name" value="Demo launch_launch1" />
+		<property name="name" value="Merged" />
 		<property name="description" value="Demo launch description_GJYJr" />
 		<property name="startTime" value="05/02/2013 14:23 +0300" />
 		<property name="endTime" value="05/02/2013 14:53 +0300" />
@@ -2936,18 +2939,25 @@
 
     <bean id="mergeSuite1" class="com.epam.ta.reportportal.database.entity.item.TestItem">
 		<property name="id" value="44524cc1553de743b3e5bb30" />
-		<property name="name" value="suiteItem" />
+		<property name="name" value="suiteItem1" />
 		<property name="itemDescription" value="suite for history validation" />
+		<property name="tags">
+			<util:list>
+				<value>ios</value>
+			</util:list>
+		</property>
         <property name="status" value="FAILED"/>
 		<property name="launchRef" value="51824cc1553de743b3e5bb2c" />
         <property name="hasChilds" value="true"/>
+		<property name="startTime" value="05/02/2013 14:13 +0300"/>
+		<property name="endTime" value="05/02/2013 14:23 +0300"/>
 		<property name="type"
 				  value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).SUITE}"
 		/>
 	</bean>
     <bean id="mergeTest1" class="com.epam.ta.reportportal.database.entity.item.TestItem">
 		<property name="id" value="44524cc15123de743b3e5bb30" />
-		<property name="name" value="testItem" />
+		<property name="name" value="testItem1" />
 		<property name="itemDescription" value="test for history validation 1" />
         <property name="status" value="FAILED"/>
 		<property name="launchRef" value="51824cc1553de743b3e5bb2c" />
@@ -2964,7 +2974,7 @@
 	</bean>
     <bean id="mergeStep1" class="com.epam.ta.reportportal.database.entity.item.TestItem">
 		<property name="id" value="44524cc11123de743b3e5bb30" />
-		<property name="name" value="stepItem" />
+		<property name="name" value="stepItem1" />
 		<property name="status" value="FAILED"/>
 		<property name="itemDescription" value="step for history validation 1" />
 		<property name="launchRef" value="51824cc1553de743b3e5bb2c" />
@@ -2986,7 +2996,7 @@
 
     <bean id="mergeLaunch2" class="com.epam.ta.reportportal.database.entity.Launch">
         <property name="id" value="51824cc1553de743b3e5cc2c" />
-        <property name="name" value="Demo launch_launch1" />
+        <property name="name" value="Demo launch_launch2" />
         <property name="description" value="Demo launch description_GJYJr" />
         <property name="startTime" value="05/02/2013 14:33 +0300" />
         <property name="endTime" value="05/02/2013 14:43 +0300" />
@@ -2997,9 +3007,10 @@
         <property name="mode" value="DEFAULT"/>
     </bean>
 
-    <bean id="mergeSuite2" class="com.epam.ta.reportportal.database.entity.item.TestItem">
+
+	<bean id="mergeSuite2" class="com.epam.ta.reportportal.database.entity.item.TestItem">
         <property name="id" value="44524cc1553de743b3a5bb30" />
-        <property name="name" value="suiteItem" />
+        <property name="name" value="suiteItem2" />
         <property name="itemDescription" value="suite for history validation" />
         <property name="launchRef" value="51824cc1553de743b3e5cc2c" />
         <property name="status" value="PASSED"/>
@@ -3008,9 +3019,9 @@
                   value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).SUITE}"
         />
     </bean>
-    <bean id="mergeTest2" class="com.epam.ta.reportportal.database.entity.item.TestItem">
+	<bean id="mergeTest2" class="com.epam.ta.reportportal.database.entity.item.TestItem">
         <property name="id" value="44524cc15123cc743b3e5bb30" />
-        <property name="name" value="testItem" />
+        <property name="name" value="testItem2" />
         <property name="itemDescription" value="test for history validation 1" />
         <property name="launchRef" value="51824cc1553de743b3e5cc2c" />
         <property name="status" value="PASSED"/>
@@ -3025,9 +3036,9 @@
             </util:list>
         </property>
     </bean>
-    <bean id="mergeStep2" class="com.epam.ta.reportportal.database.entity.item.TestItem">
+	<bean id="mergeStep2" class="com.epam.ta.reportportal.database.entity.item.TestItem">
         <property name="id" value="44524cc11123we743b3e5bb30" />
-        <property name="name" value="stepItem" />
+        <property name="name" value="stepItem2" />
         <property name="status" value="PASSED"/>
         <property name="itemDescription" value="step for history validation 2" />
         <property name="launchRef" value="51824cc1553de743b3e5cc2c" />
@@ -3042,5 +3053,59 @@
             </util:list>
         </property>
     </bean>
+
+	<bean id="sameSuite" class="com.epam.ta.reportportal.database.entity.item.TestItem">
+		<property name="id" value="14524cc1553de743abc5bb30" />
+		<property name="name" value="suiteItem1" />
+		<property name="itemDescription" value="suite for history validation2" />
+		<property name="tags">
+			<util:list>
+				<value>andr</value>
+			</util:list>
+		</property>
+		<property name="status" value="PASSED"/>
+		<property name="launchRef" value="51824cc1553de743b3e5cc2c" />
+		<property name="hasChilds" value="true"/>
+		<property name="startTime" value="05/02/2013 14:33 +0300"/>
+		<property name="endTime" value="05/02/2013 14:43 +0300"/>
+		<property name="type"
+				  value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).SUITE}"
+		/>
+	</bean>
+
+	<bean id="sameTest" class="com.epam.ta.reportportal.database.entity.item.TestItem">
+		<property name="id" value="24524cc15123ec743b3e5bb30" />
+		<property name="name" value="sameTest" />
+		<property name="itemDescription" value="test for history validation 1" />
+		<property name="launchRef" value="51824cc1553de743b3e5cc2c" />
+		<property name="status" value="PASSED"/>
+		<property name="type"
+				  value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).TEST}"
+		/>
+		<property name="parent" value="14524cc1553de743abc5bb30" />
+		<property name="hasChilds" value="true"/>
+		<property name="path">
+			<util:list>
+				<value>14524cc1553de743abc5bb30</value>
+			</util:list>
+		</property>
+	</bean>
+	<bean id="sameStep" class="com.epam.ta.reportportal.database.entity.item.TestItem">
+		<property name="id" value="34524cc11123we743b3e5bb30" />
+		<property name="name" value="sameStep" />
+		<property name="status" value="PASSED"/>
+		<property name="itemDescription" value="step for history validation 2" />
+		<property name="launchRef" value="51824cc1553de743b3e5cc2c" />
+		<property name="type"
+				  value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).STEP}" />
+		<property name="parent" value="24524cc15123ec743b3e5bb30" />
+		<property name="hasChilds" value="false"/>
+		<property name="path">
+			<util:list>
+				<value>14524cc1553de743abc5bb30</value>
+				<value>24524cc15123ec743b3e5bb30</value>
+			</util:list>
+		</property>
+	</bean>
 
 </beans>

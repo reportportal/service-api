@@ -124,10 +124,6 @@ public class StatisticsFacadeImpl implements StatisticsFacade {
 		withIssues.forEach(this::updateIssueStatistics);
 	}
 
-	public boolean awareIssue(TestItem testItem) {
-		return true;
-	}
-
 	private void recalculateTestItemStatistics(TestItem item) {
 		this.updateExecutionStatistics(item);
 	}
@@ -146,8 +142,12 @@ public class StatisticsFacadeImpl implements StatisticsFacade {
 	}
 
 	@Override
+	public boolean awareIssue(TestItem testItem) {
+		return true;
+	}
+
+	@Override
 	public TestItem identifyStatus(TestItem testItem) {
-		testItem.setStatus(StatisticsHelper.getStatusFromStatistics(testItem.getStatistics()));
 		return testItem;
 	}
 }

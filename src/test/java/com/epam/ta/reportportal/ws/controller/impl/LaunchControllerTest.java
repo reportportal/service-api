@@ -21,29 +21,6 @@
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static com.epam.ta.reportportal.auth.AuthConstants.ADMINISTRATOR;
-import static com.epam.ta.reportportal.auth.AuthConstants.USER_PROJECT;
-import static com.epam.ta.reportportal.events.handler.LaunchActivityHandler.START;
-import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
-import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
-import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.*;
-import static org.junit.Assert.*;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
-
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
@@ -58,6 +35,28 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
+
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
+import static com.epam.ta.reportportal.auth.AuthConstants.ADMINISTRATOR;
+import static com.epam.ta.reportportal.auth.AuthConstants.USER_PROJECT;
+import static com.epam.ta.reportportal.events.handler.LaunchActivityHandler.START;
+import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
+import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.*;
+import static org.junit.Assert.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Base MVC test for Launch Controller
@@ -142,6 +141,7 @@ public class LaunchControllerTest extends BaseMvcTest {
 		rq.setLaunches(set);
 		rq.setName("Merged");
 		rq.setStartTime(new Date());
+		rq.setEndTime(new Date());
 		this.mvcMock.perform(post(PROJECT_BASE_URL + "/launch/merge").contentType(APPLICATION_JSON).principal(authentication())
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
 	}

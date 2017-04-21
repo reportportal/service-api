@@ -89,7 +89,14 @@ public class EmailService extends JavaMailSenderImpl {
             email.put("url", url);
             String text = templateEngine.merge("registration-template.ftl", email);
             message.setText(text, true);
-            message.addInline("logoimg", new UrlResource(logoImg));
+
+            message.addInline("rp_io_logo.png", new UrlResource("rp_io_logo.png"));
+            message.addInline("create-user.png", new UrlResource("create-user.png"));
+
+            message.addInline("ic-github.png", new UrlResource("ic-github.png"));
+            message.addInline("ic-fb.png", new UrlResource("ic-fb.png"));
+            message.addInline("ic-twitter.png", new UrlResource("ic-twitter.png"));
+            message.addInline("ic-vk.png", new UrlResource("ic-vk.png"));
         };
         this.send(preparator);
     }

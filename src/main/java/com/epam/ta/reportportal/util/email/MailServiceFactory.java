@@ -93,7 +93,10 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	public Optional<EmailService> getEmailService(ServerEmailDetails serverConfig) {
-		return ofNullable(serverConfig).map(serverConf -> {
+		return ofNullable(serverConfig).flatMap(serverConf -> {
+			if (BooleanUtils.isFalse(serverConf.getEnabled())){
+				return Optional.empty();
+			}
 			boolean authRequired = (null != serverConf.getAuthEnabled() && serverConf.getAuthEnabled());
 
 			Properties javaMailProperties = new Properties();
@@ -116,7 +119,7 @@ public class MailServiceFactory {
 				service.setUsername(serverConf.getUsername());
 				service.setPassword(encryptor.decrypt(serverConf.getPassword()));
 			}
-			return service;
+			return Optional.of(service);
 		});
 	}
 

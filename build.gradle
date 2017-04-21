@@ -73,10 +73,10 @@ configurations.all {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:3.0.0-RC1'
-        compile 'com.epam.reportportal:commons-rules:3.0.0-RC1'
-        compile 'com.epam.reportportal:commons-model:3.0.0-RC1'
-        compile 'com.epam.reportportal:commons:3.0.0-RC1'
+        compile 'com.epam.reportportal:commons-dao:3.0.0'
+        compile 'com.epam.reportportal:commons-rules:3.0.0'
+        compile 'com.epam.reportportal:commons-model:3.0.0'
+        compile 'com.epam.reportportal:commons:3.0.0'
     } else {
         compile 'com.github.reportportal:commons-model:b21b359'
         compile('com.github.reportportal:commons-dao:dbb4c88')
@@ -123,8 +123,8 @@ dependencies {
     compile 'javax.inject:javax.inject:1'
     compile 'com.google.code.findbugs:annotations:3.0.1'
 
-    compile 'io.springfox:springfox-swagger2:2.6.1'
-    compile 'io.springfox:springfox-swagger-ui:2.6.1'
+    compile 'io.springfox:springfox-swagger2:2.3.0'
+    compile 'io.springfox:springfox-swagger-ui:2.3.0'
 
     compile 'com.google.guava:guava:21.0'
 

@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.database.entity.user.UserUtils;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 import com.google.common.base.Strings;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -39,13 +38,12 @@ import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeUsername;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 
 /**
  * Email Sending Service based on {@link JavaMailSender}
@@ -56,14 +54,7 @@ public class EmailService extends JavaMailSenderImpl {
 
 	private static final String FINISH_LAUNCH_EMAIL_SUBJECT = " Report Portal Notification: launch '%s' #%s finished";
 	private static final String EMAIL_TEMPLATE_PREFIX = "templates/email/";
-	private static final String LOGO = "templates/email/rp_io_logo.png";
 	private TemplateEngine templateEngine;
-
-	/*
-	 * Static email FROM field for server level notifications. Put in ext.
-	 * config?
-	 */
-	private static final String RP_EMAIL = "ReportPortal@service.com";
 
 	/* Default value for FROM project notifications field */
 	private String from;
@@ -79,9 +70,8 @@ public class EmailService extends JavaMailSenderImpl {
 	 * @param recipients Letter's recipients
 	 * @param url        ReportPortal URL
 	 */
-	public void sendConfirmationEmail(final String subject, final String[] recipients, final String url) {
+	public void sendCreateUserConfirmationEmail(final String subject, final String[] recipients, final String url) {
 		MimeMessagePreparator preparator = mimeMessage -> {
-			URL logoImg = this.getClass().getClassLoader().getResource(LOGO);
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
 			message.setSubject(subject);
 			message.setTo(recipients);
@@ -92,13 +82,9 @@ public class EmailService extends JavaMailSenderImpl {
 			String text = templateEngine.merge("registration-template.ftl", email);
 			message.setText(text, true);
 
-			message.addInline("rp_io_logo.png", emailTemplateResource("rp_io_logo.png"));
 			message.addInline("create-user.png", emailTemplateResource("create-user.png"));
 
-			message.addInline("ic-github.png", emailTemplateResource("ic-github.png"));
-			message.addInline("ic-fb.png", emailTemplateResource("ic-fb.png"));
-			message.addInline("ic-twitter.png", emailTemplateResource("ic-twitter.png"));
-			message.addInline("ic-vk.png", emailTemplateResource("ic-vk.png"));
+			attachSocialImages(message);
 		};
 		this.send(preparator);
 	}
@@ -183,7 +169,8 @@ public class EmailService extends JavaMailSenderImpl {
 
 			String text = templateEngine.merge("finish-launch-template.ftl", email);
 			message.setText(text, true);
-			message.addInline("logoimg", new UrlResource(getClass().getClassLoader().getResource(LOGO)));
+
+			attachSocialImages(message);
 		};
 		this.send(preparator);
 	}
@@ -191,13 +178,13 @@ public class EmailService extends JavaMailSenderImpl {
 	/**
 	 * Restore password email
 	 *
-	 * @param subject
-	 * @param recipients
-	 * @param url
+	 * @param subject    Letter's subject
+	 * @param recipients Letter's recipients
+	 * @param url        ReportPortal URL
+	 * @param login      User's login
 	 */
 	public void sendRestorePasswordEmail(final String subject, final String[] recipients, final String url, final String login) {
 		MimeMessagePreparator preparator = mimeMessage -> {
-			URL logoImg = this.getClass().getClassLoader().getResource(LOGO);
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
 			message.setSubject(subject);
 			message.setTo(recipients);
@@ -209,7 +196,9 @@ public class EmailService extends JavaMailSenderImpl {
 			email.put("url", url);
 			String text = templateEngine.merge("restore-password-template.ftl", email);
 			message.setText(text, true);
-			message.addInline("logoimg", new UrlResource(logoImg));
+
+			message.addInline("restore-password.png", emailTemplateResource("restore-password.png"));
+			attachSocialImages(message);
 		};
 		this.send(preparator);
 	}
@@ -222,9 +211,8 @@ public class EmailService extends JavaMailSenderImpl {
 		this.from = from;
 	}
 
-	public void sendConfirmationEmail(CreateUserRQFull req, String basicUrl) {
+	public void sendCreateUserConfirmationEmail(CreateUserRQFull req, String basicUrl) {
 		MimeMessagePreparator preparator = mimeMessage -> {
-			URL logoImg = this.getClass().getClassLoader().getResource(LOGO);
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
 			message.setSubject("Welcome to Report Portal");
 			message.setTo(req.getEmail());
@@ -232,11 +220,13 @@ public class EmailService extends JavaMailSenderImpl {
 
 			Map<String, Object> email = new HashMap<>();
 			email.put("url", basicUrl);
-			email.put("login", normalizeUsername(req.getLogin()));
+			email.put("login", normalizeId(req.getLogin()));
 			email.put("password", req.getPassword());
 			String text = templateEngine.merge("create-user-template.ftl", email);
 			message.setText(text, true);
-			message.addInline("logoimg", new UrlResource(logoImg));
+
+			message.addInline("create-user.png", emailTemplateResource("create-user.png"));
+			attachSocialImages(message);
 		};
 		this.send(preparator);
 	}
@@ -263,6 +253,15 @@ public class EmailService extends JavaMailSenderImpl {
 		} catch (AddressException e) {
 			return false;
 		}
+	}
+
+	private void attachSocialImages(MimeMessageHelper message) throws MessagingException {
+		message.addInline("rp_io_logo.png", emailTemplateResource("rp_io_logo.png"));
+		message.addInline("ic-github.png", emailTemplateResource("ic-github.png"));
+		message.addInline("ic-fb.png", emailTemplateResource("ic-fb.png"));
+		message.addInline("ic-twitter.png", emailTemplateResource("ic-twitter.png"));
+		message.addInline("ic-youtube.png", emailTemplateResource("ic-youtube.png"));
+		message.addInline("ic-vk.png", emailTemplateResource("ic-vk.png"));
 	}
 
 	private ClassPathResource emailTemplateResource(String resource) {

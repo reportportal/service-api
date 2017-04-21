@@ -166,7 +166,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 			}
 
 			safe(() -> emailServiceFactory.getDefaultEmailService(true)
-					.sendConfirmationEmail(request, basicUrl), e -> response.setWarning(e.getMessage()));
+					.sendCreateUserConfirmationEmail(request, basicUrl), e -> response.setWarning(e.getMessage()));
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {
@@ -221,7 +221,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		try {
 			emailLink.append("/ui/#registration?uuid=");
 			emailLink.append(bid.getId());
-			emailService.sendConfirmationEmail("User registration confirmation", new String[] { bid.getEmail() }, emailLink.toString());
+			emailService.sendCreateUserConfirmationEmail("User registration confirmation", new String[] { bid.getEmail() }, emailLink.toString());
 		} catch (Exception e) {
 			fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
 					formattedSupplier("Unable to send email for bid '{}'." + e.getMessage(), bid.getId()));

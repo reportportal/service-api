@@ -70,6 +70,7 @@ public class TestBasedStatisticsFacade extends StatisticsFacadeImpl implements S
     public TestItem identifyStatus(TestItem testItem) {
         if (testItem.getType().sameLevel(TestItemType.TEST)) {
             if (testItemRepository.hasChildrenWithStatuses(testItem.getId(), Status.FAILED, Status.SKIPPED)) {
+                testItem.setStatus(Status.FAILED);
                 return testItem;
             }
         }

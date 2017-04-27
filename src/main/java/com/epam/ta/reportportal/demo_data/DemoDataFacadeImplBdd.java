@@ -50,7 +50,8 @@ public class DemoDataFacadeImplBdd extends DemoDataCommon implements DemoDataFac
     }
 
     private List<String> generateStories(Map<String, Map<String, List<String>>> storiesStructure, int i, String launchId){
-        return storiesStructure.entrySet().stream().limit(i + 1).map(story ->{
+        String customStory = generateCustomStory(launchId);
+        List<String> list = storiesStructure.entrySet().stream().limit(i + 1).map(story ->{
             TestItem storyItem = startRootItem(story.getKey(), launchId, STORY);
             story.getValue().entrySet().forEach(scenario -> {
                 TestItem scenarioItem = startTestItem(storyItem, launchId, scenario.getKey(), SCENARIO);
@@ -76,5 +77,25 @@ public class DemoDataFacadeImplBdd extends DemoDataCommon implements DemoDataFac
             finishRootItem(storyItem.getId());
             return storyItem.getId();
         }).collect(toList());
+        list.add(customStory);
+        return list;
+    }
+
+    String generateCustomStory(String launchId){
+        TestItem outerStory = startRootItem("Custom story", launchId, STORY);
+        TestItem innerStory = startTestItem(outerStory,launchId,"Inner Story", STORY);
+        TestItem innerScenario = startTestItem(innerStory, launchId, "Inner Scenario", SCENARIO);
+        TestItem innerStep = startTestItem(innerScenario, launchId, "Inner Step", STEP);
+        TestItem outerScenario = startTestItem(outerStory, launchId, "Simple Scenario", SCENARIO);
+        TestItem outerStep = startTestItem(outerScenario, launchId, "Simple Step", STEP);
+        logDemoDataService.generateDemoLogs(innerStep.getId(), FAILED.name());
+        logDemoDataService.generateDemoLogs(outerStep.getId(), PASSED.name());
+        finishTestItem(outerStep.getId(), PASSED.name(), strategy);
+        finishTestItem(outerScenario.getId(), PASSED.name(), strategy);
+        finishTestItem(innerStep.getId(), PASSED.name(), strategy);
+        finishTestItem(innerScenario.getId(), FAILED.name(), strategy);
+        finishTestItem(innerStory.getId(), PASSED.name(), strategy);
+        finishRootItem(outerStory.getId());
+        return outerStory.getId();
     }
 }

@@ -20,43 +20,41 @@
  */
 package com.epam.ta.reportportal.demo_data;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.epam.ta.reportportal.database.entity.Dashboard;
+import java.util.Collections;
+import java.util.List;
 
 @Service
 class DemoDataService {
 
-	private final DemoLaunchesService demoLaunchesService;
 	private final DemoDashboardsService demoDashboardsService;
+	private final DemoDataFacadeFactory demoDataFacadeFactory;
 	private final ProjectRepository projectRepository;
 
 	@Autowired
-	DemoDataService(DemoLaunchesService demoLaunchesService, DemoDashboardsService demoDashboardsService, ProjectRepository projectRepository) {
-		this.demoLaunchesService = demoLaunchesService;
+	DemoDataService(DemoDashboardsService demoDashboardsService,
+					ProjectRepository projectRepository, DemoDataFacadeFactory demoDataFacadeFactory) {
 		this.demoDashboardsService = demoDashboardsService;
 		this.projectRepository = projectRepository;
+		this.demoDataFacadeFactory = demoDataFacadeFactory;
 	}
 
-	DemoDataRs generate(DemoDataRq rq, String projectName, String user) {
+	DemoDataRs generate(DemoDataRq rq, String projectName, String user){
 		DemoDataRs demoDataRs = new DemoDataRs();
 		Project project = projectRepository.findOne(projectName);
-		StatisticsCalculationStrategy statsStrategy =
-				Optional.ofNullable(project.getConfiguration().getStatisticsCalculationStrategy())
-						.orElse(StatisticsCalculationStrategy.STEP_BASED);
 		BusinessRule.expect(project, Predicates.notNull()).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
-		final List<String> launches = demoLaunchesService.generateDemoLaunches(rq, user, projectName, statsStrategy);
+		StatisticsCalculationStrategy statsStrategy = project.getConfiguration().getStatisticsCalculationStrategy();
+		DemoDataFacade demoData = demoDataFacadeFactory.getDemoDataFacade(statsStrategy);
+		final List<String> launches = demoData.generateDemoLaunches(rq, user, projectName);
 		demoDataRs.setLaunches(launches);
 		if (rq.isCreateDashboard()) {
 			Dashboard demoDashboard = demoDashboardsService.generate(rq, user, projectName);

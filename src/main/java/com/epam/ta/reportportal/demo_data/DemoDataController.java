@@ -20,17 +20,16 @@
  */
 package com.epam.ta.reportportal.demo_data;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_LEAD;
-
-import java.security.Principal;
-
+import io.swagger.annotations.ApiOperation;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import springfox.documentation.annotations.ApiIgnore;
+import java.security.Principal;
 
-@ApiIgnore
+import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_LEAD;
+
+
 @RestController
 @RequestMapping("/demo/{projectName}")
 class DemoDataController {
@@ -43,6 +42,7 @@ class DemoDataController {
 
 	@PostMapping
 	@PreAuthorize(PROJECT_LEAD)
+	@ApiOperation(value = "generate")
 	DemoDataRs generate(@PathVariable String projectName, @Validated @RequestBody DemoDataRq demoDataRq, Principal principal) {
 		return demoDataService.generate(demoDataRq, projectName, principal.getName());
 	}

@@ -64,9 +64,9 @@
                         <#macro sybtypes info>
                             <#list info as one>
                                 <#if rowCounter % 2 == 0>
-                                <tr bgcolor="#ffffff" style="background-color:#ffffff;">
+                                    <tr bgcolor="#ffffff" style="background-color:#ffffff;">
                                 <#else>
-                                <tr bgcolor="#f9f9f9" style="background-color:#f9f9f9;">
+                                    <tr bgcolor="#f9f9f9" style="background-color:#f9f9f9;">
                                 </#if>
                                 <td height="25"
                                     style="font-size: 14px; color: #464547; padding-left: 38px; border-width: 0px;">${one.key.getLongName()}</td>
@@ -86,7 +86,7 @@
                             </#if>
                             <td height="40" style="font-size: 14px; color: #464547; padding-left: 20px; border-width: 0px;"><b>$name</b>
                             </td>
-                            <td style="font-size: 14px; color: #464547; border-width: 0px;"><b>$counter</b></td>
+                            <td style="font-size: 14px; color: #464547; border-width: 0px;"><b>${counter}</b></td>
                         </tr>
                             <#assign rowCounter++>
 
@@ -144,35 +144,35 @@
                             </tr>
                             <!-- PRODUCT BUG bugs section -->
                             <#assign name="Product Bugs">
-                            <@maintype name="$name" counter="${productBugTotal}" />
+                            <@maintype name="${name}" counter="${productBugTotal}" />
                             <#if $pbInfo??>
                                 <@sybtypes info="$pbInfo.entrySet()"/>
                             </#if>
 
                             <!-- AUTOMATION BUG bugs section -->
                             <#assign name="Automation Bugs">
-                            <@maintype name="$name" counter="${automationBugTotal}" />
+                            <@maintype name="${name}" counter="${automationBugTotal}" />
                             <#if $abInfo??>
                                 <@sybtypes info="$abInfo.entrySet()"/>
                             </#if>
 
                             <!-- SYSTEM ISSUE bugs section -->
                             <#assign name="System Issues">
-                            <@maintype name="$name" counter="${systemIssueTotal}" />
+                            <@maintype name="${name}" counter="${systemIssueTotal}" />
                             <#if $siInfo??>
                                 <@sybtypes info="$siInfo.entrySet()"/>
                             </#if>
 
                             <!-- NO DEFECT bugs section -->
                             <#assign name="No Defects">
-                            <@maintype name="$name" counter="${noDefectTotal}" />
+                            <@maintype name="${name}" counter="${noDefectTotal}" />
                             <#if $ndInfo??>
                                 <@sybtypes info="$ndInfo.entrySet()"/>
                             </#if>
 
                             <!-- TO INVESTIGATE bugs section -->
                             <#assign name="To Investigate">
-                            <@maintype name="$name" counter="${toInvestigateTotal}" />
+                            <@maintype name="${name}" counter="${toInvestigateTotal}" />
                             </tbody>
                         </table>
                     </td>

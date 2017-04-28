@@ -148,6 +148,7 @@ public class StatisticsFacadeImpl implements StatisticsFacade {
 
 	@Override
 	public TestItem identifyStatus(TestItem testItem) {
+		testItem.setStatus(StatisticsHelper.getStatusFromStatistics(testItem.getStatistics()));
 		return testItem;
 	}
 }

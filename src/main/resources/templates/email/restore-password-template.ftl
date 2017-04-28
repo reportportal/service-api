@@ -69,19 +69,17 @@
                     <td align="left" height="170">
                         <h2 style="font-size: 20px; color: #777777;" align="center">Forgot your password to Report Portal?</h2>
                         <p style="font-size: 14px; color: #777777;">Click the link below to choose a new one.</p>
-                        <p align="center">
-                            <a href="${url}" style="text-decoration: none; color: #ffffff;">
-                                <table border="0" cellspacing="8" cellpadding="6" align="center">
-                                    <tbody>
-                                    <tr>
-                                        <td width="122" height="35" align="center" bgcolor="#a3c644">
-                                            <span style="font-size: 14px; color: #ffffff;">Reset Password</span>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </a>
-                        </p>
+                        <table border="0" cellspacing="8" cellpadding="0" align="center">
+                            <tbody>
+                                <tr>
+                                    <td width="150" height="35" align="center" bgcolor="#a3c644">
+                                        <a href="${url}" style="font-size: 14px; text-decoration: none; color: #ffffff; display: inline-block; padding: 15px; width: 120px;">
+                                            Reset Password
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                         <p style="font-size: 14px; color: #777777;">P.S. If you didn’t request this email, you may safety ignore it.</p>
                     </td>
                 </tr>

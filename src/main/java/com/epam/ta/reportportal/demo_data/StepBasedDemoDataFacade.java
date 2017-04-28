@@ -1,3 +1,23 @@
+/*
+ * Copyright 2016 EPAM Systems
+ *
+ *
+ * This file is part of EPAM Report Portal.
+ * https://github.com/reportportal/service-api
+ *
+ * Report Portal is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Report Portal is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package com.epam.ta.reportportal.demo_data;
 
 import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
@@ -17,9 +37,7 @@ import static com.epam.ta.reportportal.database.entity.item.TestItemType.*;
 import static java.util.stream.Collectors.toList;
 
 @Service
-public class DemoDataFacadeImpl extends DemoDataCommon implements DemoDataFacade {
-
-    private static final String NAME = "Demo Api Tests";
+public class StepBasedDemoDataFacade extends DemoDataCommon implements DemoDataFacade {
 
     private static final StatisticsCalculationStrategy strategy = StatisticsCalculationStrategy.STEP_BASED;
 
@@ -49,7 +67,7 @@ public class DemoDataFacadeImpl extends DemoDataCommon implements DemoDataFacade
     }
 
     private List<String> generateSuites(Map<String, Map<String, List<String>>> suitesStructure, int i, String launchId, StatisticsCalculationStrategy statsStrategy) {
-        return suitesStructure.entrySet().stream().limit(i + 1).map(suites -> {
+        return suitesStructure.entrySet().parallelStream().limit(i + 1).map(suites -> {
             TestItem suiteItem = startRootItem(suites.getKey(), launchId, SUITE);
             suites.getValue().entrySet().forEach(tests -> {
                 TestItem testItem = startTestItem(suiteItem, launchId, tests.getKey(), TEST);

@@ -48,7 +48,7 @@ class DemoDataService {
 		this.demoDataFacadeFactory = demoDataFacadeFactory;
 	}
 
-	DemoDataRs generate(DemoDataRq rq, String projectName, String user){
+	DemoDataRs generate(DemoDataRq rq, String projectName, String user) {
 		DemoDataRs demoDataRs = new DemoDataRs();
 		Project project = projectRepository.findOne(projectName);
 		BusinessRule.expect(project, Predicates.notNull()).verify(ErrorType.PROJECT_NOT_FOUND, projectName);

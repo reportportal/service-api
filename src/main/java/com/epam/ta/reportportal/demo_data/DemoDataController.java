@@ -34,16 +34,16 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_LEAD
 @RequestMapping("/demo/{projectName}")
 class DemoDataController {
 
-	private DemoDataService demoDataService;
+    private DemoDataService demoDataService;
 
-	DemoDataController(DemoDataService demoDataService) {
-		this.demoDataService = demoDataService;
-	}
+    DemoDataController(DemoDataService demoDataService) {
+        this.demoDataService = demoDataService;
+    }
 
-	@PostMapping
-	@PreAuthorize(PROJECT_LEAD)
-	@ApiOperation(value = "generate")
-	DemoDataRs generate(@PathVariable String projectName, @Validated @RequestBody DemoDataRq demoDataRq, Principal principal) {
-		return demoDataService.generate(demoDataRq, projectName, principal.getName());
-	}
+    @PostMapping
+    @PreAuthorize(PROJECT_LEAD)
+    @ApiOperation(value = "generate")
+    DemoDataRs generate(@PathVariable String projectName, @Validated @RequestBody DemoDataRq demoDataRq, Principal principal) {
+        return demoDataService.generate(demoDataRq, projectName, principal.getName());
+    }
 }

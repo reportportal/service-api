@@ -16,13 +16,13 @@ public class DemoDataFacadeFactoryImpl implements DemoDataFacadeFactory, Applica
 
     private static final Map<StatisticsCalculationStrategy, Class<? extends DemoDataFacade>> MAPPING =
             ImmutableMap.<StatisticsCalculationStrategy, Class<? extends DemoDataFacade>>builder()
-                    .put(StatisticsCalculationStrategy.STEP_BASED, DemoDataFacadeImpl.class)
-                    .put(StatisticsCalculationStrategy.TEST_BASED, DemoDataFacadeImplBdd.class)
+                    .put(StatisticsCalculationStrategy.STEP_BASED, StepBasedDemoDataFacade.class)
+                    .put(StatisticsCalculationStrategy.TEST_BASED, TestBasedDemoDataFacade.class)
                     .build();
 
     @Override
     public DemoDataFacade getDemoDataFacade(StatisticsCalculationStrategy strategy) {
-        return applicationContext.getBean(MAPPING.getOrDefault(strategy, DemoDataFacadeImpl.class));
+        return applicationContext.getBean(MAPPING.getOrDefault(strategy, StepBasedDemoDataFacade.class));
     }
 
     @Override

@@ -74,6 +74,26 @@ public class DemoDataControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	public void generateTestBasedDemoData() throws Exception {
+		DemoDataRq rq = new DemoDataRq();
+		rq.setPostfix("postfix");
+		rq.setCreateDashboard(true);
+		rq.setLaunchesQuantity(1);
+		mvcMock.perform(post("/demo/project2").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+				.principal(authentication())).andExpect(status().is(200));
+		List<Launch> byName = launchRepository.findByName(DemoDataCommon.NAME + "_" + rq.getPostfix());
+		assertFalse(byName.isEmpty());
+		assertEquals(rq.getLaunchesQuantity(), byName.size());
+		Dashboard dashboard = dashboardRepository.findOneByUserProject(AuthConstants.TEST_USER, "project2",
+				DemoDashboardsService.D_NAME + "#" + rq.getPostfix());
+		assertNotNull(dashboard);
+		assertEquals(9, dashboardRepository.findOne(dashboard.getId()).getWidgets().size());
+		final UserFilter filter = userFilterRepository.findOneByName(AuthConstants.TEST_USER,
+				DemoDashboardsService.F_NAME + "#" + rq.getPostfix(), "project2");
+		assertNotNull(filter);
+	}
+
+	@Test
 	public void filterNameAlreadyExists() throws Exception {
 		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
 		createDashboardRQ.setName("DEMO DASHBOARD#postfix");

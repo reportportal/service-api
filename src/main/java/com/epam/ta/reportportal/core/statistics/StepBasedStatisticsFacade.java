@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.core.statistics;
 
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import org.springframework.stereotype.Service;
 
 /**
@@ -62,6 +61,6 @@ public class StepBasedStatisticsFacade extends StatisticsFacadeImpl implements S
 
     @Override
     public boolean awareIssue(TestItem testItem) {
-        return testItem.getType().sameLevel(TestItemType.STEP);
-    }
+		return !testItem.hasChilds();
+	}
 }

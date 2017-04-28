@@ -45,7 +45,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import springfox.documentation.annotations.ApiIgnore;
 
 import java.security.Principal;
 import java.util.List;
@@ -127,7 +126,6 @@ public class TestItemController implements ITestItemController {
     @GetMapping
     @ResponseBody
     @ResponseStatus(OK)
-    @ApiIgnore
     @ApiOperation("Find test items by specified filter")
     public Iterable<TestItemResource> getTestItems(@PathVariable String projectName, @FilterFor(TestItem.class) Filter filter,
                                                    @SortFor(TestItem.class) Pageable pageable, Principal principal) {
@@ -147,6 +145,7 @@ public class TestItemController implements ITestItemController {
     @ResponseBody
     @ResponseStatus(OK)
     @DeleteMapping
+    @ApiOperation("Delete test items by specified ids")
     public List<OperationCompletionRS> deleteTestItems(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
                                                        Principal principal) {
         return deleteTestItemHandler.deleteTestItem(ids, normalizeProjectName(projectName), principal.getName());
@@ -213,6 +212,7 @@ public class TestItemController implements ITestItemController {
     @ResponseBody
     @ResponseStatus(OK)
     @PreAuthorize(ASSIGNED_TO_PROJECT)
+    @ApiOperation("Get test items by specified ids")
     public List<TestItemResource> getTestItems(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
                                                Principal principal) {
         return getTestItemHandler.getTestItems(ids);

@@ -45,7 +45,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import springfox.documentation.annotations.ApiIgnore;
 
 import java.security.Principal;
 import java.util.List;
@@ -127,7 +126,6 @@ public class TestItemController implements ITestItemController {
     @GetMapping
     @ResponseBody
     @ResponseStatus(OK)
-    @ApiIgnore
     @ApiOperation("Find test items by specified filter")
     public Iterable<TestItemResource> getTestItems(@PathVariable String projectName, @FilterFor(TestItem.class) Filter filter,
                                                    @SortFor(TestItem.class) Pageable pageable, Principal principal) {

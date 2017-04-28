@@ -53,7 +53,7 @@ public class StepBasedDemoDataFacade extends DemoDataCommon implements DemoDataF
         } catch (IOException e) {
             throw new ReportPortalException("Unable to load suites description. " + e.getMessage(), e);
         }
-        return generateLaunches(demoDataRq, suites, user, projectName, StatisticsCalculationStrategy.STEP_BASED);
+        return generateLaunches(demoDataRq, suites, user, projectName, strategy);
     }
 
     private List<String> generateLaunches(DemoDataRq rq, Map<String, Map<String, List<String>>> suitesStructure, String user,

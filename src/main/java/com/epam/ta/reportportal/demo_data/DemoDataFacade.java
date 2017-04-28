@@ -22,6 +22,9 @@ package com.epam.ta.reportportal.demo_data;
 
 import java.util.List;
 
+/**
+ * @author Pavel Bortnik
+ */
 public interface DemoDataFacade {
     /**
      * Generates demo launches based on project statistics

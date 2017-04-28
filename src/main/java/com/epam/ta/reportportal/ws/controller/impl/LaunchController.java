@@ -153,6 +153,7 @@ public class LaunchController implements ILaunchController {
 	@PutMapping("/stop")
 	@ResponseBody
 	@ResponseStatus(OK)
+	@ApiOperation("Force finish launch")
 	public List<OperationCompletionRS> bulkForceFinish(@PathVariable String projectName,
 			@RequestBody @Validated BulkRQ<FinishExecutionRQ> rq, Principal principal) {
 		return finishLaunchMessageHandler.stopLaunch(rq, normalizeProjectName(projectName), principal.getName());
@@ -334,6 +335,7 @@ public class LaunchController implements ILaunchController {
 	@DeleteMapping
 	@ResponseBody
 	@ResponseStatus(OK)
+	@ApiOperation("Delete specified launches by ids")
 	public List<OperationCompletionRS> deleteLaunches(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
 			Principal principal) {
 		return deleteLaunchMessageHandler.deleteLaunches(ids, projectName, principal.getName());

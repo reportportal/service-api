@@ -146,28 +146,28 @@
                             <#assign name="Product Bugs">
                             <@maintype name="${name}" counter="${productBugTotal}" />
                             <#if $pbInfo??>
-                                <@sybtypes info="$pbInfo.entrySet()"/>
+                                <@sybtypes info="${pbInfo.entrySet()}"/>
                             </#if>
 
                             <!-- AUTOMATION BUG bugs section -->
                             <#assign name="Automation Bugs">
                             <@maintype name="${name}" counter="${automationBugTotal}" />
                             <#if $abInfo??>
-                                <@sybtypes info="$abInfo.entrySet()"/>
+                                <@sybtypes info="${abInfo.entrySet()}"/>
                             </#if>
 
                             <!-- SYSTEM ISSUE bugs section -->
                             <#assign name="System Issues">
                             <@maintype name="${name}" counter="${systemIssueTotal}" />
                             <#if $siInfo??>
-                                <@sybtypes info="$siInfo.entrySet()"/>
+                                <@sybtypes info="${siInfo.entrySet()}"/>
                             </#if>
 
                             <!-- NO DEFECT bugs section -->
                             <#assign name="No Defects">
                             <@maintype name="${name}" counter="${noDefectTotal}" />
                             <#if $ndInfo??>
-                                <@sybtypes info="$ndInfo.entrySet()"/>
+                                <@sybtypes info="${ndInfo.entrySet()}"/>
                             </#if>
 
                             <!-- TO INVESTIGATE bugs section -->

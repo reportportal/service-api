@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.database.entity.user.UserUtils;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -105,74 +106,79 @@ public class EmailService extends JavaMailSenderImpl {
 			message.setTo(recipients);
 			setFrom(message);
 
-			Map<String, Object> email = new HashMap<>();
-			/* Email fields values */
-			email.put("name", launch.getName());
-			email.put("number", String.valueOf(launch.getNumber()));
-			email.put("description", launch.getDescription());
-			email.put("url", url);
-
-			/* Launch execution statistics */
-			email.put("total", launch.getStatistics().getExecutionCounter().getTotal().toString());
-			email.put("passed", launch.getStatistics().getExecutionCounter().getPassed().toString());
-			email.put("failed", launch.getStatistics().getExecutionCounter().getFailed().toString());
-			email.put("skipped", launch.getStatistics().getExecutionCounter().getSkipped().toString());
-
-			/* Launch issue statistics global counters */
-			email.put("productBugTotal", launch.getStatistics().getIssueCounter().getProductBugTotal().toString());
-			email.put("automationBugTotal", launch.getStatistics().getIssueCounter().getAutomationBugTotal().toString());
-			email.put("systemIssueTotal", launch.getStatistics().getIssueCounter().getSystemIssueTotal().toString());
-			email.put("noDefectTotal", launch.getStatistics().getIssueCounter().getNoDefectTotal().toString());
-			email.put("toInvestigateTotal", launch.getStatistics().getIssueCounter().getToInvestigateTotal().toString());
-
-			/* Launch issue statistics custom sub-types */
-			if (launch.getStatistics().getIssueCounter().getProductBug().entrySet().size() > 1) {
-				Map<StatisticSubType, String> pb = new LinkedHashMap<>();
-				launch.getStatistics().getIssueCounter().getProductBug().forEach((k, v) -> {
-					if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
-						pb.put(settings.getByLocator(k), v.toString());
-				});
-				email.put("pbInfo", pb);
-			}
-			if (launch.getStatistics().getIssueCounter().getAutomationBug().entrySet().size() > 1) {
-				Map<StatisticSubType, String> ab = new LinkedHashMap<>();
-				launch.getStatistics().getIssueCounter().getAutomationBug().forEach((k, v) -> {
-					if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
-						ab.put(settings.getByLocator(k), v.toString());
-				});
-				email.put("abInfo", ab);
-			}
-			if (launch.getStatistics().getIssueCounter().getSystemIssue().entrySet().size() > 1) {
-				Map<StatisticSubType, String> si = new LinkedHashMap<>();
-				launch.getStatistics().getIssueCounter().getSystemIssue().forEach((k, v) -> {
-					if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
-						si.put(settings.getByLocator(k), v.toString());
-				});
-				email.put("siInfo", si);
-			}
-			if (launch.getStatistics().getIssueCounter().getNoDefect().entrySet().size() > 1) {
-				Map<StatisticSubType, String> nd = new LinkedHashMap<>();
-				launch.getStatistics().getIssueCounter().getNoDefect().forEach((k, v) -> {
-					if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
-						nd.put(settings.getByLocator(k), v.toString());
-				});
-				email.put("ndInfo", nd);
-			}
-			if (launch.getStatistics().getIssueCounter().getToInvestigate().entrySet().size() > 1) {
-				Map<StatisticSubType, String> ti = new LinkedHashMap<>();
-				launch.getStatistics().getIssueCounter().getToInvestigate().forEach((k, v) -> {
-					if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
-						ti.put(settings.getByLocator(k), v.toString());
-				});
-				email.put("tiInfo", ti);
-			}
-
-			String text = templateEngine.merge("finish-launch-template.ftl", email);
+			String text = mergeFinishLaunchText(url, launch, settings);
 			message.setText(text, true);
 
 			attachSocialImages(message);
 		};
 		this.send(preparator);
+	}
+
+	@VisibleForTesting
+	String mergeFinishLaunchText(String url, Launch launch, Project.Configuration settings) {
+		Map<String, Object> email = new HashMap<>();
+			/* Email fields values */
+		email.put("name", launch.getName());
+		email.put("number", String.valueOf(launch.getNumber()));
+		email.put("description", launch.getDescription());
+		email.put("url", url);
+
+			/* Launch execution statistics */
+		email.put("total", launch.getStatistics().getExecutionCounter().getTotal().toString());
+		email.put("passed", launch.getStatistics().getExecutionCounter().getPassed().toString());
+		email.put("failed", launch.getStatistics().getExecutionCounter().getFailed().toString());
+		email.put("skipped", launch.getStatistics().getExecutionCounter().getSkipped().toString());
+
+			/* Launch issue statistics global counters */
+		email.put("productBugTotal", launch.getStatistics().getIssueCounter().getProductBugTotal().toString());
+		email.put("automationBugTotal", launch.getStatistics().getIssueCounter().getAutomationBugTotal().toString());
+		email.put("systemIssueTotal", launch.getStatistics().getIssueCounter().getSystemIssueTotal().toString());
+		email.put("noDefectTotal", launch.getStatistics().getIssueCounter().getNoDefectTotal().toString());
+		email.put("toInvestigateTotal", launch.getStatistics().getIssueCounter().getToInvestigateTotal().toString());
+
+			/* Launch issue statistics custom sub-types */
+		if (launch.getStatistics().getIssueCounter().getProductBug().entrySet().size() > 1) {
+			Map<StatisticSubType, String> pb = new LinkedHashMap<>();
+			launch.getStatistics().getIssueCounter().getProductBug().forEach((k, v) -> {
+				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
+					pb.put(settings.getByLocator(k), v.toString());
+			});
+			email.put("pbInfo", pb);
+		}
+		if (launch.getStatistics().getIssueCounter().getAutomationBug().entrySet().size() > 1) {
+			Map<StatisticSubType, String> ab = new LinkedHashMap<>();
+			launch.getStatistics().getIssueCounter().getAutomationBug().forEach((k, v) -> {
+				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
+					ab.put(settings.getByLocator(k), v.toString());
+			});
+			email.put("abInfo", ab);
+		}
+		if (launch.getStatistics().getIssueCounter().getSystemIssue().entrySet().size() > 1) {
+			Map<StatisticSubType, String> si = new LinkedHashMap<>();
+			launch.getStatistics().getIssueCounter().getSystemIssue().forEach((k, v) -> {
+				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
+					si.put(settings.getByLocator(k), v.toString());
+			});
+			email.put("siInfo", si);
+		}
+		if (launch.getStatistics().getIssueCounter().getNoDefect().entrySet().size() > 1) {
+			Map<StatisticSubType, String> nd = new LinkedHashMap<>();
+			launch.getStatistics().getIssueCounter().getNoDefect().forEach((k, v) -> {
+				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
+					nd.put(settings.getByLocator(k), v.toString());
+			});
+			email.put("ndInfo", nd);
+		}
+		if (launch.getStatistics().getIssueCounter().getToInvestigate().entrySet().size() > 1) {
+			Map<StatisticSubType, String> ti = new LinkedHashMap<>();
+			launch.getStatistics().getIssueCounter().getToInvestigate().forEach((k, v) -> {
+				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
+					ti.put(settings.getByLocator(k), v.toString());
+			});
+			email.put("tiInfo", ti);
+		}
+
+		return templateEngine.merge("finish-launch-template.ftl", email);
 	}
 
 	/**

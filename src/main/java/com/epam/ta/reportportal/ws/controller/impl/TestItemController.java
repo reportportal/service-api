@@ -145,6 +145,7 @@ public class TestItemController implements ITestItemController {
     @ResponseBody
     @ResponseStatus(OK)
     @DeleteMapping
+    @ApiOperation("Delete test items by specified ids")
     public List<OperationCompletionRS> deleteTestItems(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
                                                        Principal principal) {
         return deleteTestItemHandler.deleteTestItem(ids, normalizeProjectName(projectName), principal.getName());
@@ -211,6 +212,7 @@ public class TestItemController implements ITestItemController {
     @ResponseBody
     @ResponseStatus(OK)
     @PreAuthorize(ASSIGNED_TO_PROJECT)
+    @ApiOperation("Get test items by specified ids")
     public List<TestItemResource> getTestItems(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
                                                Principal principal) {
         return getTestItemHandler.getTestItems(ids);

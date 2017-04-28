@@ -81,6 +81,12 @@ public class TestBasedDemoDataFacade extends DemoDataCommon implements DemoDataF
         List<String> stories = storiesStructure.entrySet().parallelStream().limit(i + 1).map(story -> {
             TestItem storyItem = startRootItem(story.getKey(), launchId, STORY);
             story.getValue().entrySet().forEach(scenario -> {
+                boolean isGenerateBeforeScenario = random.nextBoolean();
+                boolean isGenerateAfterScenario = random.nextBoolean();
+                if (isGenerateBeforeScenario) {
+                    finishTestItem(
+                            startTestItem(storyItem, launchId, "beforeScenario", SCENARIO).getId(), status(), strategy);
+                }
                 TestItem scenarioItem = startTestItem(storyItem, launchId, scenario.getKey(), SCENARIO);
                 boolean isFailed = false;
                 for (String step : scenario.getValue()) {
@@ -101,6 +107,10 @@ public class TestBasedDemoDataFacade extends DemoDataCommon implements DemoDataF
                     finishTestItem(scenarioItem.getId(), FAILED.name(), strategy);
                 } else {
                     finishTestItem(scenarioItem.getId(), PASSED.name(), strategy);
+                }
+                if (isGenerateAfterScenario) {
+                    finishTestItem(
+                            startTestItem(storyItem, launchId, "afterScenario", SCENARIO).getId(), status(), strategy);
                 }
             });
             finishRootItem(storyItem.getId());

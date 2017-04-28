@@ -72,19 +72,17 @@
                         <p style="font-size: 14px; line-height: 1.7; color: #777777">Please, use the following information to login:<br>
                             Login: <b>${login}</b><br>
                             Password: <b>${password}</b></p>
-                        <p align="center">
-                            <a href="${url}" style="text-decoration: none; color: #ffffff;">
-                                <table border="0" cellspacing="8" cellpadding="6" align="center">
-                                    <tbody>
-                                    <tr>
-                                        <td width="122" height="35" align="center" bgcolor="#a3c644">
-                                            <span style="font-size: 14px; color: #ffffff;">Login</span>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </a>
-                        </p>
+                        <table border="0" cellspacing="8" cellpadding="0" align="center">
+                            <tbody>
+                                <tr>
+                                    <td width="130" height="35" align="center" bgcolor="#a3c644">
+                                        <a href="${url}" style="font-size: 14px; text-decoration: none; color: #ffffff; display: inline-block; padding: 15px; width: 100px;">
+                                            Login
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                         <p style="font-size: 14px; color: #777777;">New to Report Portal? Check out all the details in the <a href="http://reportportal.io/#documentation/User-Guide" target="_blank">User Guide</a>.</p>
                         <br>
                         <p style="font-size: 14px; line-height: 1.7; color: #777777;">Thanks,<br>

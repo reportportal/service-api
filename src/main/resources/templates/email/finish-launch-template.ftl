@@ -60,32 +60,37 @@
                 <tr>
                     <td align="left" height="170">
                         <table class="content" width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
-                            #set( $rowCounter = 1 )
-                            #macro( subtypes $info )
-                            #foreach( $one in $info )
-                            #if( $rowCounter % 2 == 0 )
-                            <tr bgcolor="#ffffff" style="background-color:#ffffff;">
-                                #else
-                            <tr bgcolor="#f9f9f9" style="background-color:#f9f9f9;">
-                                #end
-                                <td height="25" style="font-size: 14px; color: #464547; padding-left: 38px; border-width: 0px;">${one.key.getLongName()}</td>
+                        <#assign rowCounter = 1>
+                        <#macro sybtypes info>
+                            <#list info as one>
+                                <#if rowCounter % 2 == 0>
+                                    <tr bgcolor="#ffffff" style="background-color:#ffffff;">
+                                <#else>
+                                    <tr bgcolor="#f9f9f9" style="background-color:#f9f9f9;">
+                                </#if>
+                                <td height="25"
+                                    style="font-size: 14px; color: #464547; padding-left: 38px; border-width: 0px;">${one.key.getLongName()}</td>
                                 <td width="40" style="font-size: 14px; color: #464547; border-width: 0px;">${one.value}</td>
                             </tr>
-                            #set( $rowCounter = $rowCounter + 1 )
-                            #end
-                            #end
+                                <#assign rowCounter++>
 
-                            #macro( maintype $name $counter )
-                            #if( $rowCounter % 2 == 0 )
+
+                            </#list>
+                        </#macro>
+
+                        <#macro maintype name counter>
+                            <#if rowCounter % 2 == 0>
                             <tr bg="#ffffff" style="background-color:#ffffff;">
-                                #else
+                            <#else>
                             <tr bgcolor="#f9f9f9" style="background-color:#f9f9f9;">
-                                #end
-                                <td height="40" style="font-size: 14px; color: #464547; padding-left: 20px; border-width: 0px;"><b>$name</b></td>
-                                <td style="font-size: 14px; color: #464547; border-width: 0px;"><b>$counter</b></td>
-                            </tr>
-                            #set( $rowCounter = $rowCounter + 1 )
-                            #end
+                            </#if>
+                            <td height="40" style="font-size: 14px; color: #464547; padding-left: 20px; border-width: 0px;"><b>$name</b>
+                            </td>
+                            <td style="font-size: 14px; color: #464547; border-width: 0px;"><b>${counter}</b></td>
+                        </tr>
+                            <#assign rowCounter++>
+
+                        </#macro>
                         </table>
                         <!-- Launch name and link to Report Portal instance -->
                         <h2 style="font-size: 20px; color: #777777;" align="center">Launch "${name}" #${number} has been
@@ -93,19 +98,23 @@
                         <p style="font-size: 14px; color: #777777;">To view it on Report Portal just visit this <a
                                 href="${url}" target="_blank">link</a>.</p>
                         <!-- Launch name, link and description (if exists) -->
-                        #if( $description )
-                        <p style="font-size: 14px; color: #777777;">Description of launch:<br>
-                            ${description}</p>
-                        #end
+                    <#if description??>
+                        <p style="font-size: 14px; color: #777777;">Description of launch:<br>${description}</p>
+                    </#if>
 
-                        <table width="300" border="1" cellspacing="0" cellpadding="6" style="border-width: 1px; border-style: solid; border-color: #e9e9e9; border-collapse: collapse;">
+                        <table width="300" border="1" cellspacing="0" cellpadding="6"
+                               style="border-width: 1px; border-style: solid; border-color: #e9e9e9; border-collapse: collapse;">
                             <tbody>
                             <tr bgcolor="#f5f5f5" style="background: #f5f5f5;">
-                                <td height="40" style="font-size: 12px; color: #777777; border-width:1px; border-style: solid; border-color: #e9e9e9; border-right: none; padding-left: 20px;"><b>LAUNCH STATISTICS</b></td>
-                                <td width="40" style="font-size: 12px; color: #777777; border-width:1px; border-style: solid; border-color: #e9e9e9; border-left: none;"></td>
+                                <td height="40"
+                                    style="font-size: 12px; color: #777777; border-width:1px; border-style: solid; border-color: #e9e9e9; border-right: none; padding-left: 20px;">
+                                    <b>LAUNCH STATISTICS</b></td>
+                                <td width="40"
+                                    style="font-size: 12px; color: #777777; border-width:1px; border-style: solid; border-color: #e9e9e9; border-left: none;"></td>
                             </tr>
                             <tr bgcolor="#ffffff" style="background: #ffffff;">
-                                <td height="40" style="font-size: 14px; color: #464547; padding-left: 20px; border-width: 0px;"><b>TOTAL</b></td>
+                                <td height="40" style="font-size: 14px; color: #464547; padding-left: 20px; border-width: 0px;"><b>TOTAL</b>
+                                </td>
                                 <td width="40" style="font-size: 14px; color: #464547; border-width: 0px;"><b>${total}</b></td>
                             </tr>
                             <tr bgcolor="#f9f9f9" style="background: #f9f9f9;">
@@ -123,43 +132,47 @@
                             </tbody>
                         </table>
                         <br>
-                        <table width="100%" border="1" cellspacing="0" cellpadding="6" style="border-width: 1px; border-style: solid; border-color: #e9e9e9; border-collapse: collapse;">
+                        <table width="100%" border="1" cellspacing="0" cellpadding="6"
+                               style="border-width: 1px; border-style: solid; border-color: #e9e9e9; border-collapse: collapse;">
                             <tbody>
                             <tr bgcolor="#f5f5f5" style="background: #f5f5f5;">
-                                <td height="40" style="font-size: 12px; color: #777777; border-width:1px; border-style: solid; border-color: #e9e9e9; border-right: none; padding-left: 20px;"><b>LAUNCH DEFECTS</b></td>
-                                <td width="40" style="font-size: 12px; color: #777777; border-width:1px; border-style: solid; border-color: #e9e9e9; border-left: none;"></td>
+                                <td height="40"
+                                    style="font-size: 12px; color: #777777; border-width:1px; border-style: solid; border-color: #e9e9e9; border-right: none; padding-left: 20px;">
+                                    <b>LAUNCH DEFECTS</b></td>
+                                <td width="40"
+                                    style="font-size: 12px; color: #777777; border-width:1px; border-style: solid; border-color: #e9e9e9; border-left: none;"></td>
                             </tr>
                             <!-- PRODUCT BUG bugs section -->
-                            #set( $name = "Product Bugs" )
-                            #maintype( $name ${productBugTotal} )
-                            #if( $pbInfo )
-                            #subtypes( $pbInfo.entrySet() )
-                            #end
+                            <#assign name="Product Bugs">
+                            <@maintype name="${name}" counter="${productBugTotal}" />
+                            <#if $pbInfo??>
+                                <@sybtypes info="${pbInfo.entrySet()}"/>
+                            </#if>
 
                             <!-- AUTOMATION BUG bugs section -->
-                            #set( $name = "Automation Bugs" )
-                            #maintype( $name ${automationBugTotal} )
-                            #if( $abInfo )
-                            #subtypes( $abInfo.entrySet() )
-                            #end
+                            <#assign name="Automation Bugs">
+                            <@maintype name="${name}" counter="${automationBugTotal}" />
+                            <#if $abInfo??>
+                                <@sybtypes info="${abInfo.entrySet()}"/>
+                            </#if>
 
                             <!-- SYSTEM ISSUE bugs section -->
-                            #set( $name = "System Issues" )
-                            #maintype( $name ${systemIssueTotal} )
-                            #if( $siInfo )
-                            #subtypes( $siInfo.entrySet() )
-                            #end
+                            <#assign name="System Issues">
+                            <@maintype name="${name}" counter="${systemIssueTotal}" />
+                            <#if $siInfo??>
+                                <@sybtypes info="${siInfo.entrySet()}"/>
+                            </#if>
 
                             <!-- NO DEFECT bugs section -->
-                            #set( $name = "No Defects" )
-                            #maintype( $name ${noDefectTotal} )
-                            #if( $ndInfo )
-                            #subtypes( $ndInfo.entrySet() )
-                            #end
+                            <#assign name="No Defects">
+                            <@maintype name="${name}" counter="${noDefectTotal}" />
+                            <#if $ndInfo??>
+                                <@sybtypes info="${ndInfo.entrySet()}"/>
+                            </#if>
 
                             <!-- TO INVESTIGATE bugs section -->
-                            #set( $name = "To Investigate" )
-                            #maintype( $name ${toInvestigateTotal} )
+                            <#assign name="To Investigate">
+                            <@maintype name="${name}" counter="${toInvestigateTotal}" />
                             </tbody>
                         </table>
                     </td>

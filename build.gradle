@@ -141,6 +141,8 @@ dependencies {
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     testCompile 'com.bitmechanic:dumbster:1.9.0.2'
 
+    testCompile 'org.jsoup:jsoup:1.10.2'
+
 }
 
 

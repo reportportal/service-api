@@ -27,9 +27,13 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.entity.statistics.Statistics;
+import com.google.common.collect.ImmutableMap;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Properties;
 import java.util.UUID;
@@ -42,7 +46,7 @@ import static org.hamcrest.CoreMatchers.*;
 public class EmailServiceTest {
 
 	@Test
-	public void mergeFinishLaunchText() {
+	public void mergeFinishLaunchText() throws IOException {
 		EmailService emailService = new EmailService(new Properties());
 		emailService.setTemplateEngine(new EmailConfiguration().getTemplateEngine());
 
@@ -52,14 +56,58 @@ public class EmailServiceTest {
 		launch.setName("hello world");
 		launch.setNumber(1L);
 
+		//@formatter:off
+		Statistics statistics = new Statistics(new ExecutionCounter(10, 5, 4, 1),
+				new IssueCounter(
+						ImmutableMap.<String, Integer>builder()
+								.put(IssueCounter.GROUP_TOTAL, 3)
+								.put("PB1", 3)
+								.build(),
+						ImmutableMap.<String, Integer>builder()
+								.put("AB1", 5)
+								.put(IssueCounter.GROUP_TOTAL, 5)
+								.build(),
+						ImmutableMap.<String, Integer>builder()
+								.put("SI1", 6)
+								.put(IssueCounter.GROUP_TOTAL, 6)
+								.build(),
+						ImmutableMap.<String, Integer>builder()
+								.put(IssueCounter.GROUP_TOTAL, 7)
+								.put("TI1", 3)
+								.build(),
+						ImmutableMap.<String, Integer>builder()
+								.put(IssueCounter.GROUP_TOTAL, 3)
+								.put("NI1", 3)
+								.build()));
+		//@formatter:on
 
-		Statistics statistics = new Statistics(new ExecutionCounter(10, 5, 4, 1), new IssueCounter());
 		launch.setStatistics(statistics);
 
 		Project.Configuration settings = new Project.Configuration();
 
 		String text = emailService.mergeFinishLaunchText("http://google.com", launch, settings);
 		Assert.assertThat(text, is(not(nullValue())));
+
+		Document doc = Jsoup.parse(text);
+
+		Assert.assertThat("Incorrect 'TOTAL' count", getBugCount(doc, "TOTAL"), is(10));
+		Assert.assertThat("Incorrect 'Passed' count", getStatisticsCount(doc, "Passed"), is(5));
+		Assert.assertThat("Incorrect 'Failed' count", getStatisticsCount(doc, "Failed"), is(4));
+		Assert.assertThat("Incorrect 'Skipped' count", getStatisticsCount(doc, "Skipped"), is(1));
+
+		Assert.assertThat("Incorrect auth bug count", getBugCount(doc, "Automation Bugs"), is(5));
+		Assert.assertThat("Incorrect prod bug count", getBugCount(doc, "Product Bugs"), is(3));
+		Assert.assertThat("Incorrect system bug count", getBugCount(doc, "System Issues"), is(6));
+		Assert.assertThat("Incorrect 'to investigate' count", getBugCount(doc, "To Investigate"), is(7));
+		Assert.assertThat("Incorrect 'no defect' count", getBugCount(doc, "No Defects"), is(3));
+	}
+
+	private int getBugCount(Document doc, String group) {
+		return Integer.parseInt(doc.select(String.format("b:contains(%s)", group)).parents().get(0).nextElementSibling().text());
+	}
+
+	private int getStatisticsCount(Document doc, String group) {
+		return Integer.parseInt(doc.select(String.format("td:contains(%s)", group)).last().nextElementSibling().text());
 	}
 
 }

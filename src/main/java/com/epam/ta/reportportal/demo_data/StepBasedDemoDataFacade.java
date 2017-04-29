@@ -67,7 +67,7 @@ public class StepBasedDemoDataFacade extends DemoDataCommon implements DemoDataF
     }
 
     private List<String> generateSuites(Map<String, Map<String, List<String>>> suitesStructure, int i, String launchId, StatisticsCalculationStrategy statsStrategy) {
-        return suitesStructure.entrySet().parallelStream().limit(i + 1).map(suites -> {
+        return suitesStructure.entrySet().stream().limit(i + 1).map(suites -> {
             TestItem suiteItem = startRootItem(suites.getKey(), launchId, SUITE);
             suites.getValue().entrySet().forEach(tests -> {
                 TestItem testItem = startTestItem(suiteItem, launchId, tests.getKey(), TEST);

@@ -78,12 +78,10 @@ public class TestBasedDemoDataFacade extends DemoDataCommon implements DemoDataF
     }
 
     private List<String> generateStories(Map<String, Map<String, List<String>>> storiesStructure, int i, String launchId) {
-        List<String> stories = storiesStructure.entrySet().parallelStream().limit(i + 1).map(story -> {
+        List<String> stories = storiesStructure.entrySet().stream().limit(i + 1).map(story -> {
             TestItem storyItem = startRootItem(story.getKey(), launchId, STORY);
             story.getValue().entrySet().forEach(scenario -> {
-                boolean isGenerateBeforeScenario = random.nextBoolean();
-                boolean isGenerateAfterScenario = random.nextBoolean();
-                if (isGenerateBeforeScenario) {
+                if (random.nextBoolean()) {
                     finishTestItem(
                             startTestItem(storyItem, launchId, "beforeScenario", SCENARIO).getId(), status(), strategy);
                 }
@@ -108,7 +106,7 @@ public class TestBasedDemoDataFacade extends DemoDataCommon implements DemoDataF
                 } else {
                     finishTestItem(scenarioItem.getId(), PASSED.name(), strategy);
                 }
-                if (isGenerateAfterScenario) {
+                if (random.nextBoolean()) {
                     finishTestItem(
                             startTestItem(storyItem, launchId, "afterScenario", SCENARIO).getId(), status(), strategy);
                 }

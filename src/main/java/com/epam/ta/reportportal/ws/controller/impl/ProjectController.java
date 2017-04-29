@@ -214,7 +214,7 @@ public class ProjectController implements IProjectController {
 	@ResponseBody
 	@ApiIgnore
 	@PreAuthorize(PROJECT_LEAD)
-	public Page<User> searchForUser(@SuppressWarnings("unused") @PathVariable String projectName, @PathVariable String term, Pageable pageable) {
+	public Page<UserResource> searchForUser(@SuppressWarnings("unused") @PathVariable String projectName, @PathVariable String term, Pageable pageable) {
 		return getProjectHandler.getUserNames(term, pageable);
 	}
 

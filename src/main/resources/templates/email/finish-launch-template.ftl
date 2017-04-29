@@ -84,7 +84,7 @@
                             <#else>
                             <tr bgcolor="#f9f9f9" style="background-color:#f9f9f9;">
                             </#if>
-                            <td height="40" style="font-size: 14px; color: #464547; padding-left: 20px; border-width: 0px;"><b>$name</b>
+                            <td height="40" style="font-size: 14px; color: #464547; padding-left: 20px; border-width: 0px;"><b>${name}</b>
                             </td>
                             <td style="font-size: 14px; color: #464547; border-width: 0px;"><b>${counter}</b></td>
                         </tr>

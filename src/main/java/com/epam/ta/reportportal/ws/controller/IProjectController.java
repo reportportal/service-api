@@ -155,7 +155,7 @@ public interface IProjectController {
 	 * @param pageable Page request
 	 * @return Page of users
 	 */
-	Page<User> searchForUser(String projectName, String term, Pageable pageable);
+	Page<UserResource> searchForUser(String projectName, String term, Pageable pageable);
 
 
 		/**

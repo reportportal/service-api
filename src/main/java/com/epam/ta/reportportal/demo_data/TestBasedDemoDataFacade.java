@@ -38,7 +38,7 @@ import static com.epam.ta.reportportal.database.entity.item.TestItemType.*;
 import static java.util.stream.Collectors.toList;
 
 @Service
-public class TestBasedDemoDataFacade extends DemoDataCommon implements DemoDataFacade {
+public class TestBasedDemoDataFacade extends DemoDataCommonService implements DemoDataFacade {
 
     private static final StatisticsCalculationStrategy strategy = StatisticsCalculationStrategy.TEST_BASED;
 
@@ -64,13 +64,13 @@ public class TestBasedDemoDataFacade extends DemoDataCommon implements DemoDataF
 
             boolean hasBeforeAfterStories = random.nextBoolean();
             if (hasBeforeAfterStories) {
-                TestItem beforeStories = startRootItem("BeforeStories", launchId, STORY);
-                finishRootItem(beforeStories.getId());
+                finishRootItem(
+                        startRootItem("BeforeStories", launchId, STORY).getId());
             }
             generateStories(storiesStructure, i, launchId);
             if (hasBeforeAfterStories) {
-                TestItem afterStories = startRootItem("AfterStories", launchId, STORY);
-                finishRootItem(afterStories.getId());
+                finishRootItem(
+                        startRootItem("AfterStories", launchId, STORY).getId());
             }
             finishLaunch(launchId);
             return launchId;
@@ -101,11 +101,7 @@ public class TestBasedDemoDataFacade extends DemoDataCommon implements DemoDataF
                     logDemoDataService.generateDemoLogs(stepItem.getId(), status);
                     finishTestItem(stepItem.getId(), status, strategy);
                 }
-                if (isFailed) {
-                    finishTestItem(scenarioItem.getId(), FAILED.name(), strategy);
-                } else {
-                    finishTestItem(scenarioItem.getId(), PASSED.name(), strategy);
-                }
+                finishTestItem(scenarioItem.getId(), isFailed ? FAILED.name() : PASSED.name(), strategy);
                 if (random.nextBoolean()) {
                     finishTestItem(
                             startTestItem(storyItem, launchId, "afterScenario", SCENARIO).getId(), status(), strategy);

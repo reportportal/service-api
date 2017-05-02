@@ -37,7 +37,7 @@ import static com.epam.ta.reportportal.database.entity.item.TestItemType.*;
 import static java.util.stream.Collectors.toList;
 
 @Service
-public class StepBasedDemoDataFacade extends DemoDataCommon implements DemoDataFacade {
+public class StepBasedDemoDataFacade extends DemoDataCommonService implements DemoDataFacade {
 
     private static final StatisticsCalculationStrategy strategy = StatisticsCalculationStrategy.STEP_BASED;
 
@@ -66,7 +66,8 @@ public class StepBasedDemoDataFacade extends DemoDataCommon implements DemoDataF
         }).collect(toList());
     }
 
-    private List<String> generateSuites(Map<String, Map<String, List<String>>> suitesStructure, int i, String launchId, StatisticsCalculationStrategy statsStrategy) {
+    private List<String> generateSuites(Map<String, Map<String, List<String>>> suitesStructure,
+                                        int i, String launchId, StatisticsCalculationStrategy statsStrategy) {
         return suitesStructure.entrySet().stream().limit(i + 1).map(suites -> {
             TestItem suiteItem = startRootItem(suites.getKey(), launchId, SUITE);
             suites.getValue().entrySet().forEach(tests -> {
@@ -74,7 +75,7 @@ public class StepBasedDemoDataFacade extends DemoDataCommon implements DemoDataF
                 String beforeClassStatus = "";
                 if (random.nextBoolean()) {
                     TestItem beforeClass = startTestItem(testItem, launchId, "beforeClass", BEFORE_CLASS);
-                    beforeClassStatus = beforeClassStatus();
+                    beforeClassStatus = status();
                     finishTestItem(beforeClass.getId(), beforeClassStatus, statsStrategy);
                 }
                 boolean isGenerateBeforeMethod = random.nextBoolean();

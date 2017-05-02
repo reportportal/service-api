@@ -32,10 +32,13 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Range;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Random;
 
 import static com.epam.ta.reportportal.core.statistics.StatisticsHelper.getStatusFromStatistics;
 import static com.epam.ta.reportportal.database.entity.Status.*;
@@ -44,7 +47,7 @@ import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
 import static java.util.Arrays.asList;
 
 @Service
-public class DemoDataCommon {
+public class DemoDataCommonService {
 
     static final String NAME = "Demo Api Tests";
 
@@ -67,6 +70,8 @@ public class DemoDataCommon {
 
     @Autowired
     protected StatisticsFacadeFactory statisticsFacadeFactory;
+
+    private static final Range<Integer> PROBABILITY_RANGE = Range.openClosed(0, 100);
 
     String startLaunch(String name, int i, String project, String user) {
         Launch launch = new Launch();
@@ -135,29 +140,15 @@ public class DemoDataCommon {
             statisticsFacade.updateIssueStatistics(testItem);
         }
     }
-
-    String status() {
-        // magic numbers to generate a distribution of steps statuses
-        int value = random.nextInt(71);
-        if (value <= 5) {
+    
+    String status(){
+        int STATUS_PROBABILITY = 15;
+        if (checkProbability(STATUS_PROBABILITY)){
             return SKIPPED.name();
-        } else if (value <= 48) {
-            return PASSED.name();
-        } else {
+        }else if (checkProbability(2 * STATUS_PROBABILITY)){
             return FAILED.name();
         }
-    }
-
-    String beforeClassStatus() {
-        // magic numbers to generate a distribution of before/after statuses
-        int value = random.nextInt(71);
-        if (value <= 3) {
-            return SKIPPED.name();
-        } else if (value <= 62) {
-            return PASSED.name();
-        } else {
-            return FAILED.name();
-        }
+        return PASSED.name();
     }
 
     boolean hasChildren(TestItemType testItemType) {
@@ -166,15 +157,20 @@ public class DemoDataCommon {
     }
 
     String issueType() {
-        final int value = random.nextInt(100);
-        if (value < 25) {
+        int ISSUE_PROBABILITY = 25;
+        if (checkProbability(ISSUE_PROBABILITY)) {
             return "PB001";
-        } else if (value < 50) {
+        } else if (checkProbability(ISSUE_PROBABILITY)) {
             return "AB001";
-        } else if (value < 75) {
+        } else if (checkProbability(ISSUE_PROBABILITY)) {
             return "SI001";
         } else {
             return "TI001";
         }
+    }
+
+    private boolean checkProbability(int probability){
+        return Range.openClosed(PROBABILITY_RANGE.lowerEndpoint(), probability)
+                .contains(random.nextInt(PROBABILITY_RANGE.upperEndpoint()));
     }
 }

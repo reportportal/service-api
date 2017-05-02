@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  *
  *
  * This file is part of EPAM Report Portal.
@@ -20,32 +20,21 @@
  */
 package com.epam.ta.reportportal.demo_data;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
 
-import java.util.List;
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-class DemoDataRs {
-
-	@JsonProperty
-	private List<String> dashboards;
-	@JsonProperty
-	private List<String> launches;
-
-	List<String> getDashboards() {
-		return dashboards;
-	}
-
-	void setDashboards(List<String> dashboards) {
-		this.dashboards = dashboards;
-	}
-
-	List<String> getLaunches() {
-		return launches;
-	}
-
-	void setLaunches(List<String> launches) {
-		this.launches = launches;
-	}
+/**
+ * Factory for demo data facades. <br>
+ * Since we have several statistics calculation implementations, we have to
+ * decide in runtime which demo data should be generated
+ *
+ * @author Pavel Bortnik
+ */
+public interface DemoDataFacadeFactory {
+    /**
+     * Returns demo data facade for specified strategy
+     *
+     * @param strategy
+     * @return
+     */
+    DemoDataFacade getDemoDataFacade(StatisticsCalculationStrategy strategy);
 }

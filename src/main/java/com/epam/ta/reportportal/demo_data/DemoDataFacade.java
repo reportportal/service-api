@@ -20,32 +20,19 @@
  */
 package com.epam.ta.reportportal.demo_data;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-class DemoDataRs {
-
-	@JsonProperty
-	private List<String> dashboards;
-	@JsonProperty
-	private List<String> launches;
-
-	List<String> getDashboards() {
-		return dashboards;
-	}
-
-	void setDashboards(List<String> dashboards) {
-		this.dashboards = dashboards;
-	}
-
-	List<String> getLaunches() {
-		return launches;
-	}
-
-	void setLaunches(List<String> launches) {
-		this.launches = launches;
-	}
+/**
+ * @author Pavel Bortnik
+ */
+public interface DemoDataFacade {
+    /**
+     * Generates demo launches based on project statistics
+     * calculation strategy.
+     * @param demoDataRq
+     * @param user
+     * @param projectName
+     * @return
+     */
+    List<String> generateDemoLaunches(DemoDataRq demoDataRq, String user, String projectName);
 }

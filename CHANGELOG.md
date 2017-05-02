@@ -97,4 +97,5 @@
 
 ### Bugfixes
 
-* EPMRPP-25346 - WS: No email notification letter on launch finished is recieved 
+* EPMRPP-25346 - WS: No email notification letter on launch finished is received
+* EPMRPP-24913 - Demo Data Postfix should be unique

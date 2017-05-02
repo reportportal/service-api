@@ -123,8 +123,8 @@ dependencies {
     compile 'javax.inject:javax.inject:1'
     compile 'com.google.code.findbugs:annotations:3.0.1'
 
-    compile 'io.springfox:springfox-swagger2:2.3.0'
-    compile 'io.springfox:springfox-swagger-ui:2.3.0'
+    compile 'io.springfox:springfox-swagger2:2.6.1'
+    compile 'io.springfox:springfox-swagger-ui:2.6.1'
 
     compile 'com.google.guava:guava:21.0'
 

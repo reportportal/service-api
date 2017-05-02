@@ -21,17 +21,16 @@
 
 package com.epam.ta.reportportal.core.statistics;
 
-import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
-import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
+import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -45,7 +44,7 @@ import java.util.List;
 public class StatisticsFacadeImpl implements StatisticsFacade {
 
 	@Autowired
-	private TestItemRepository testItemRepository;
+	protected TestItemRepository testItemRepository;
 
 	@Autowired
 	private LaunchRepository launchRepository;
@@ -140,5 +139,16 @@ public class StatisticsFacadeImpl implements StatisticsFacade {
 		item.getStatistics().setExecutionCounter(new ExecutionCounter(0, 0, 0, 0));
 		item.getStatistics().setIssueCounter(new IssueCounter());
 		testItemRepository.save(item);
+	}
+
+	@Override
+	public boolean awareIssue(TestItem testItem) {
+		return true;
+	}
+
+	@Override
+	public TestItem identifyStatus(TestItem testItem) {
+		testItem.setStatus(StatisticsHelper.getStatusFromStatistics(testItem.getStatistics()));
+		return testItem;
 	}
 }

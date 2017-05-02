@@ -114,16 +114,16 @@ public class MergeTestItemHandlerImpl implements MergeTestItemHandler {
      * @param items items to merge
      */
     private void updateTargetItemInfo(TestItem target, List<TestItem> items) {
-        items.stream().map(it -> Optional.ofNullable(it.getTags())).reduce((reduced, actual) -> {
-            reduced.orElse(new HashSet<>()).addAll(actual.get());
-            return reduced;
-        }).ifPresent(it
-                -> Optional.ofNullable(target.getTags()).orElse(new HashSet<>())
-                .addAll(it.orElse(Collections.emptySet())));
+        Set<String> tags = Optional.ofNullable(target.getTags()).orElse(Collections.emptySet());
+        items.forEach(item -> tags.addAll(Optional.ofNullable(item.getTags())
+                .orElse(Collections.emptySet())));
+        target.setTags(tags);
 
-        StringBuilder result = new StringBuilder(target.getItemDescription());
-        String collect = items.stream().map(TestItem::getItemDescription).filter(description
-                -> !description.equals(target.getItemDescription())).collect(Collectors.joining("\n"));
+        StringBuilder result = new StringBuilder(Optional.ofNullable(target.getItemDescription()).orElse(""));
+        String collect = items.stream().map(item -> Optional.ofNullable(item.getItemDescription()).orElse(""))
+                .filter(description -> !description.equals(target.getItemDescription()))
+                .collect(Collectors.joining("\n"));
+
         if (!collect.isEmpty()) {
             target.setItemDescription(result.append("\n").append(collect).toString());
         }

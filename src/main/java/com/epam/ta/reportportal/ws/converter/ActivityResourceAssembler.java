@@ -36,18 +36,13 @@ import javax.inject.Provider;
  * @author Dzmitry_Kavalets
  */
 @Service
-public class ActivityResourceAssembler extends ProjectRelatedResourceAssembler<Activity, ActivityResource> {
+public class ActivityResourceAssembler extends PagedResourcesAssembler<Activity, ActivityResource> {
 
 	@Autowired
 	private Provider<ActivityResourceBuilder> builderLazyReference;
 
 	@Override
-	public ActivityResource toResource(Activity entity) {
-		return toResource(entity, null);
-	}
-
-	@Override
-	public ActivityResource toResource(Activity element, String projectName) {
+	public ActivityResource toResource(Activity element) {
 		return builderLazyReference.get().addActivity(element).build();
 	}
 }

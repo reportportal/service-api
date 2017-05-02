@@ -153,6 +153,7 @@ public class LaunchController implements ILaunchController {
 	@PutMapping("/stop")
 	@ResponseBody
 	@ResponseStatus(OK)
+	@ApiOperation("Force finish launch")
 	public List<OperationCompletionRS> bulkForceFinish(@PathVariable String projectName,
 			@RequestBody @Validated BulkRQ<FinishExecutionRQ> rq, Principal principal) {
 		return finishLaunchMessageHandler.stopLaunch(rq, normalizeProjectName(projectName), principal.getName());
@@ -174,6 +175,7 @@ public class LaunchController implements ILaunchController {
 	@PutMapping("/update")
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ResponseStatus(OK)
+    @ApiOperation("Updates launches for specified project")
 	public List<OperationCompletionRS> updateLaunches(@PathVariable String projectName, @RequestBody @Validated BulkRQ<UpdateLaunchRQ> rq,
 			Principal principal) {
 		return updateLaunchHandler.updateLaunch(rq, normalizeProjectName(projectName), principal.getName());
@@ -235,8 +237,9 @@ public class LaunchController implements ILaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique owners of project launches")
 	public List<String> getAllOwners(@PathVariable String projectName,
-			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + Launch.USER) String value,
-			@RequestParam(value = "mode", required = false, defaultValue = "DEFAULT") String mode, Principal principal) {
+			 @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + Launch.USER) String value,
+			 @ApiParam(allowableValues = "DEFAULT, DEBUG", defaultValue = "DEFAULT") @RequestParam(value = "mode", required = false) String mode,
+			 Principal principal) {
 		return getLaunchMessageHandler.getOwners(normalizeProjectName(projectName), value, "userRef", mode);
 	}
 
@@ -294,7 +297,7 @@ public class LaunchController implements ILaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation("Start launch auto-analyzer on demand")
 	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName, @PathVariable String launchId,
-			@PathVariable String strategy, Principal principal) throws InterruptedException, ExecutionException {
+			@ApiParam(allowableValues = "single, history") @PathVariable String strategy, Principal principal) throws InterruptedException, ExecutionException {
 		return updateLaunchHandler.startLaunchAnalyzer(normalizeProjectName(projectName), launchId, strategy);
 	}
 
@@ -314,8 +317,8 @@ public class LaunchController implements ILaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation(value = "Export specified launch", notes = "Only following formats are supported: pdf (by default), xml, xls, html.")
 	public void getLaunchReport(@PathVariable String projectName, @PathVariable String launchId,
-			@RequestParam(value = "view", required = false, defaultValue = "pdf") String view, Principal principal,
-			HttpServletResponse response) throws IOException {
+			@ApiParam(allowableValues = "pdf, xml, xls, html") @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,
+            Principal principal, HttpServletResponse response) throws IOException {
 
 		JasperPrint jasperPrint = getJasperHandler.getLaunchDetails(launchId, principal.getName());
 
@@ -332,6 +335,7 @@ public class LaunchController implements ILaunchController {
 	@DeleteMapping
 	@ResponseBody
 	@ResponseStatus(OK)
+	@ApiOperation("Delete specified launches by ids")
 	public List<OperationCompletionRS> deleteLaunches(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
 			Principal principal) {
 		return deleteLaunchMessageHandler.deleteLaunches(ids, projectName, principal.getName());

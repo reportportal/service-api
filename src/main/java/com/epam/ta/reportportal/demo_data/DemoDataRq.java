@@ -20,55 +20,55 @@
  */
 package com.epam.ta.reportportal.demo_data;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
 import com.epam.ta.reportportal.ws.annotations.NotEmpty;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DemoDataRq {
 
-	@JsonProperty(defaultValue = "10")
-	private int launchesQuantity = 10;
+    @JsonProperty(defaultValue = "10")
+    private int launchesQuantity = 10;
 
-	@JsonProperty(defaultValue = "false")
-	private boolean isCreateDashboard = false;
+    @JsonProperty(defaultValue = "false")
+    private boolean isCreateDashboard = false;
 
-	@NotNull
-	@NotEmpty
-	@JsonProperty(required = true)
-	@Size(min = 1, max = 90)
-	private String postfix;
+    @NotNull
+    @NotEmpty
+    @JsonProperty(required = true)
+    @Size(min = 1, max = 90)
+    private String postfix;
 
-	public boolean isCreateDashboard() {
-		return isCreateDashboard;
-	}
+    public boolean isCreateDashboard() {
+        return isCreateDashboard;
+    }
 
-	public void setCreateDashboard(boolean createDashboard) {
-		isCreateDashboard = createDashboard;
-	}
+    public void setCreateDashboard(boolean createDashboard) {
+        isCreateDashboard = createDashboard;
+    }
 
-	public int getLaunchesQuantity() {
-		return launchesQuantity;
-	}
+    public int getLaunchesQuantity() {
+        return launchesQuantity;
+    }
 
-	public void setLaunchesQuantity(int launchesQuantity) {
-		this.launchesQuantity = launchesQuantity;
-	}
+    public void setLaunchesQuantity(int launchesQuantity) {
+        this.launchesQuantity = launchesQuantity;
+    }
 
-	public String getPostfix() {
-		return postfix;
-	}
+    public String getPostfix() {
+        return postfix;
+    }
 
-	public void setPostfix(String postfix) {
-		this.postfix = postfix;
-	}
+    public void setPostfix(String postfix) {
+        this.postfix = postfix;
+    }
 
-	@Override
-	public String toString() {
-		return "DemoDataRq{" + "launchesQuantity=" + launchesQuantity + ", isCreateDashboard=" + isCreateDashboard + ", postfix='" + postfix
-				+ '\'' + '}';
-	}
+    @Override
+    public String toString() {
+        return "DemoDataRq{" + "launchesQuantity=" + launchesQuantity + ", isCreateDashboard=" + isCreateDashboard + ", postfix='" + postfix
+                + '\'' + '}';
+    }
 }

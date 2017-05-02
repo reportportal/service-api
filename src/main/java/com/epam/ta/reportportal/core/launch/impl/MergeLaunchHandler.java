@@ -47,7 +47,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -68,7 +67,6 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class MergeLaunchHandler implements IMergeLaunchHandler {
 
-    @Autowired
     private TestItemRepository testItemRepository;
 
     private ProjectRepository projectRepository;
@@ -110,6 +108,11 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         this.userRepository = userRepository;
     }
 
+    @Autowired
+    public void setTestItemRepository(TestItemRepository testItemRepository) {
+        this.testItemRepository = testItemRepository;
+    }
+
     @Override
     public OperationCompletionRS deepMergeLaunches(String projectName, String launchTargetId, String userName, DeepMergeLaunchesRQ mergeLaunchesRQ) {
         expect(mergeLaunchesRQ.getLaunches().contains(launchTargetId), equalTo(false))
@@ -126,31 +129,37 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         validateMergingLaunches(launchesList, user, project);
 
         mergeSameSuites(projectName, launchTarget, launchesIds, userName, mergeLaunchesRQ.getMergeStrategyType());
-        updateChildrenOfLaunch(launchTargetId, launchesIds, mergeLaunchesRQ.isExtendSuitesDescription());
+        updateChildrenOfLaunch(launchTargetId, launchesIds, false);
 
         StatisticsFacade statisticsFacade = statisticsFacadeFactory.
                 getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
         statisticsFacade.recalculateStatistics(launchTarget);
 
         launchTarget = launchRepository.findOne(launchTarget.getId());
-        updateTargetLaunchInfo(launchTarget, launchesList, mergeLaunchesRQ);
+        updateTargetLaunchInfo(launchTarget, mergeLaunchesRQ);
 
         launchRepository.delete(mergeLaunchesRQ.getLaunches());
 
         return new OperationCompletionRS("Launch with ID = '" + launchTargetId + "' is successfully deeply merged.");
     }
 
-    private void updateTargetLaunchInfo(Launch launchTarget, List<Launch> launchesList, DeepMergeLaunchesRQ mergeLaunchesRQ) {
-        launchesList.add(launchTarget);
-        launchesList.sort(Comparator.comparing(Launch::getStartTime));
+    private void updateTargetLaunchInfo(Launch launchTarget, DeepMergeLaunchesRQ mergeLaunchesRQ) {
         launchTarget.setDescription(mergeLaunchesRQ.getDescription());
         launchTarget.setTags(mergeLaunchesRQ.getTags());
-        launchTarget.setStartTime(launchesList.get(0).getStartTime());
-        launchTarget.setEndTime(launchesList.get(launchesList.size() - 1).getEndTime());
+        launchTarget.setStartTime(mergeLaunchesRQ.getStartTime());
+        launchTarget.setEndTime(mergeLaunchesRQ.getEndTime());
         launchTarget.setStatus(StatisticsHelper.getStatusFromStatistics(launchTarget.getStatistics()));
         launchRepository.save(launchTarget);
     }
 
+    /**
+     * Merges test items with suite type that have same name.
+     * @param projectName
+     * @param launchTarget merge into
+     * @param launchesList list of launches that will be merged
+     * @param userName
+     * @param strategy merging strategy
+     */
     private void mergeSameSuites(String projectName, Launch launchTarget, Set<String> launchesList, String userName, String strategy) {
         testItemRepository.findItemsWithType(launchTarget.getId(), TestItemType.SUITE).forEach(suit ->
                 {
@@ -182,13 +191,11 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         startRQ.setDescription(mergeLaunchesRQ.getDescription());
         startRQ.setName(mergeLaunchesRQ.getName());
         startRQ.setTags(mergeLaunchesRQ.getTags());
-
-        launchesList.sort(Comparator.comparing(Launch::getStartTime));
-        startRQ.setStartTime(launchesList.get(0).getStartTime());
+        startRQ.setStartTime(mergeLaunchesRQ.getStartTime());
 
         Launch launch = launchBuilder.get().addStartRQ(startRQ).addProject(projectName).addStatus(IN_PROGRESS).addUser(userName).build();
         launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
-        launch.setEndTime(launchesList.get(launchesList.size() - 1).getEndTime());
+        launch.setEndTime(mergeLaunchesRQ.getEndTime());
 
         launchRepository.save(launch);
 

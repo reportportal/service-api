@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
 import com.epam.ta.reportportal.ws.model.preference.UpdatePreferenceRQ;
 import com.epam.ta.reportportal.ws.model.project.*;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
@@ -71,7 +71,7 @@ public interface IProjectController {
 	/**
 	 * Update {@link Project} instance with specified email configuration
 	 * 
-	 * @see {@link ProjectEmailConfig}}
+	 * @see {@link ProjectEmailConfigDTO}}
 	 * 
 	 * @param projectName
 	 * @param updateProjectRQ
@@ -155,7 +155,7 @@ public interface IProjectController {
 	 * @param pageable Page request
 	 * @return Page of users
 	 */
-	Page<User> searchForUser(String projectName, String term, Pageable pageable);
+	Page<UserResource> searchForUser(String projectName, String term, Pageable pageable);
 
 
 		/**

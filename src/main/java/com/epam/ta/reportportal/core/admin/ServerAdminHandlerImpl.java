@@ -65,117 +65,111 @@ import static org.springframework.data.mongodb.core.query.Query.query;
 @Service
 public class ServerAdminHandlerImpl implements ServerAdminHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServerAdminHandlerImpl.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServerAdminHandlerImpl.class);
 
-    @Autowired
-    private BasicTextEncryptor simpleEncryptor;
+	@Autowired
+	private BasicTextEncryptor simpleEncryptor;
 
-    @Autowired
-    private ServerSettingsRepository repository;
+	@Autowired
+	private ServerSettingsRepository repository;
 
-    @Autowired
-    private ServerSettingsResourceAssembler settingsAssembler;
+	@Autowired
+	private ServerSettingsResourceAssembler settingsAssembler;
 
-    @Autowired
-    private MailServiceFactory emailServiceFactory;
+	@Autowired
+	private MailServiceFactory emailServiceFactory;
 
-    @Autowired
-    private MongoOperations mongoOperations;
+	@Autowired
+	private MongoOperations mongoOperations;
 
-    @Override
-    public ServerSettingsResource getServerSettings(String profileId) {
-        return settingsAssembler.toResource(findServerSettings(profileId));
-    }
+	@Override
+	public ServerSettingsResource getServerSettings(String profileId) {
+		return settingsAssembler.toResource(findServerSettings(profileId));
+	}
 
-    @Override
-    public OperationCompletionRS saveEmailSettings(String profileId, ServerEmailResource request) {
-        ServerSettings settings = findServerSettings(profileId);
-        if (null != request) {
-            ServerEmailDetails serverEmailConfig = new ServerEmailDetails();
+	@Override
+	public OperationCompletionRS saveEmailSettings(String profileId, ServerEmailResource request) {
+		ServerSettings settings = findServerSettings(profileId);
+		if (null != request) {
+			ServerEmailDetails serverEmailConfig = new ServerEmailDetails();
+			serverEmailConfig.setEnabled(request.isEnabled());
+			if (request.isEnabled()) {
+				ofNullable(request.getHost()).ifPresent(serverEmailConfig::setHost);
 
-            if (request.isDebug())
-                serverEmailConfig.setDebug(request.isDebug());
+				int port = Optional.ofNullable(request.getPort()).orElse(25);
+				if ((port <= 0) || (port > 65535))
+					BusinessRule.fail().withError(ErrorType.INCORRECT_REQUEST, "Incorrect 'Port' value. Allowed value is [1..65535]");
+				serverEmailConfig.setPort(port);
 
-            if (null != request.getHost())
-                serverEmailConfig.setHost(request.getHost());
+				serverEmailConfig.setProtocol(ofNullable(request.getProtocol()).orElse("smtp"));
 
-            int port = request.getPort();
-            if ((port <= 0) || (port > 65535))
-                BusinessRule.fail().withError(ErrorType.INCORRECT_REQUEST, "Incorrect 'Port' value. Allowed value is [1..65535]");
-            serverEmailConfig.setPort(port);
+				ofNullable(request.getAuthEnabled()).ifPresent(authEnabled -> {
+					serverEmailConfig.setAuthEnabled(authEnabled);
+					if (authEnabled) {
+						ofNullable(request.getUsername()).ifPresent(serverEmailConfig::setUsername);
+						ofNullable(request.getPassword()).ifPresent(pass -> serverEmailConfig.setPassword(simpleEncryptor.encrypt(pass)));
+					} else {
+					/* Auto-drop values on switched-off authentication */
+						serverEmailConfig.setUsername(null);
+						serverEmailConfig.setPassword(null);
+					}
+				});
 
+				serverEmailConfig.setStarTlsEnabled(Boolean.TRUE.equals(request.getStarTlsEnabled()));
+				serverEmailConfig.setSslEnabled(Boolean.TRUE.equals(request.getSslEnabled()));
 
-            if (null != request.getProtocol())
-                serverEmailConfig.setProtocol(request.getProtocol());
-            if (request.getAuthEnabled()) {
-                serverEmailConfig.setAuthEnabled(request.getAuthEnabled());
-                if (null != request.getUsername())
-                    serverEmailConfig.setUsername(request.getUsername());
-                if (null != request.getPassword())
-                    serverEmailConfig.setPassword(simpleEncryptor.encrypt(request.getPassword()));
+				ofNullable(request.getFrom()).ifPresent(serverEmailConfig::setFrom);
 
-            } else {
-                serverEmailConfig.setAuthEnabled(false);
-                /* Auto-drop values on switched-off authentication */
-                serverEmailConfig.setUsername(null);
-                serverEmailConfig.setPassword(null);
-            }
+				try {
+					emailServiceFactory.getEmailService(serverEmailConfig).get().testConnection();
+				} catch (MessagingException ex) {
+					LOGGER.error("Cannot send email to user", ex);
+					fail().withError(FORBIDDEN_OPERATION,
+							"Email configuration is incorrect. Please, check your configuration. " + ex.getMessage());
+				}
 
-            serverEmailConfig.setStarTlsEnabled(Boolean.TRUE.equals(request.isStarTlsEnabled()));
-            serverEmailConfig.setSslEnabled(Boolean.TRUE.equals(request.isSslEnabled()));
+			}
 
-            //expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
-            ofNullable(request.getFrom()).ifPresent(serverEmailConfig::setFrom);
+			ServerSettings update = new ServerSettings();
+			update.setId(settings.getId());
+			//TODO active primitive should be replaced with Object(Boolean) type
+			update.setActive(settings.getActive());
+			update.setServerEmailDetails(serverEmailConfig);
 
-            try {
-                emailServiceFactory
-                        .getEmailService(serverEmailConfig).get().testConnection();
-            } catch (MessagingException ex) {
-                LOGGER.error("Cannot send email to user", ex);
-                fail().withError(FORBIDDEN_OPERATION,
-                        "Email configuration is incorrect. Please, check your configuration. " + ex.getMessage());
-            }
-            ServerSettings update = new ServerSettings();
-            update.setId(settings.getId());
-            //TODO active primitive should be replaced with Object(Boolean) type
-            update.setActive(settings.getActive());
-            update.setServerEmailDetails(serverEmailConfig);
+			repository.partialUpdate(update);
+		}
+		return new OperationCompletionRS("Server Settings with profile '" + profileId + "' is successfully updated.");
+	}
 
-            repository.partialUpdate(update);
-        }
-        return new OperationCompletionRS("Server Settings with profile '" + profileId + "' is successfully updated.");
-    }
+	public OperationCompletionRS deleteEmailSettings(String profileId) {
+		WriteResult result = mongoOperations
+				.updateFirst(query(Criteria.where("_id").is(profileId)), Update.update("serverEmailDetails", null), ServerSettings.class);
+		BusinessRule.expect(result.getN(), not(equalTo(0))).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, profileId);
 
-    public OperationCompletionRS deleteEmailSettings(String profileId) {
-        WriteResult result = mongoOperations
-                .updateFirst(query(Criteria.where("_id").is(profileId)), Update.update("serverEmailDetails", null), ServerSettings.class);
-        BusinessRule.expect(result.getN(), not(equalTo(0))).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, profileId);
+		return new OperationCompletionRS("Server Settings with profile '" + profileId + "' is successfully updated.");
+	}
 
-        return new OperationCompletionRS("Server Settings with profile '" + profileId + "' is successfully updated.");
-    }
+	@Override
+	public OperationCompletionRS saveAnalyticsSettings(String profileId, AnalyticsResource request) {
+		AnalyticsDetails analyticsDetails;
+		String analyticsType = request.getType();
+		ServerSettings settings = findServerSettings(profileId);
+		Map<String, AnalyticsDetails> serverAnalyticsDetails = ofNullable(settings.getAnalyticsDetails()).orElse(new HashMap<>());
+		if (serverAnalyticsDetails.containsKey(analyticsType)) {
+			analyticsDetails = serverAnalyticsDetails.get(analyticsType);
+		} else {
+			analyticsDetails = new AnalyticsDetails();
+		}
+		analyticsDetails.setEnabled(ofNullable(request.getEnabled()).orElse(false));
+		serverAnalyticsDetails.put(analyticsType, analyticsDetails);
+		settings.setAnalyticsDetails(serverAnalyticsDetails);
+		repository.partialUpdate(settings);
+		return new OperationCompletionRS("Server Settings with profile '" + profileId + "' is successfully updated.");
+	}
 
-    @Override
-    public OperationCompletionRS saveAnalyticsSettings(String profileId, AnalyticsResource request) {
-        AnalyticsDetails analyticsDetails;
-        String analyticsType = request.getType();
-        ServerSettings settings = findServerSettings(profileId);
-        Map<String, AnalyticsDetails> serverAnalyticsDetails = Optional.ofNullable(settings.getAnalyticsDetails())
-                .orElse(new HashMap<>());
-        if (serverAnalyticsDetails.containsKey(analyticsType)) {
-            analyticsDetails = serverAnalyticsDetails.get(analyticsType);
-        } else {
-            analyticsDetails = new AnalyticsDetails();
-        }
-        analyticsDetails.setEnabled(ofNullable(request.getEnabled()).orElse(false));
-        serverAnalyticsDetails.put(analyticsType, analyticsDetails);
-        settings.setAnalyticsDetails(serverAnalyticsDetails);
-        repository.partialUpdate(settings);
-        return new OperationCompletionRS("Server Settings with profile '" + profileId + "' is successfully updated.");
-    }
-
-    private ServerSettings findServerSettings(String profileId) {
-        ServerSettings settings = repository.findOne(profileId);
-        BusinessRule.expect(settings, Predicates.notNull()).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, profileId);
-        return settings;
-    }
+	private ServerSettings findServerSettings(String profileId) {
+		ServerSettings settings = repository.findOne(profileId);
+		BusinessRule.expect(settings, Predicates.notNull()).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, profileId);
+		return settings;
+	}
 }

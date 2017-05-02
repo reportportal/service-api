@@ -27,6 +27,9 @@ eureka:
   client:
     register-with-eureka: true
     enabled: true
+logging:
+  level:
+    BasicMongoPersistentProperty: error
 
 ## Consul as service registry
 ---
@@ -42,3 +45,9 @@ eureka:
     register-with-eureka: false
     enabled: false
 ---
+
+springfox:
+  documentation:
+    swagger:
+      v2:
+        path: /api-docs

@@ -41,5 +41,7 @@ public final class Permissions {
 
 	public static final String PROJECT_MEMBER = "hasPermission(#projectName.toLowerCase(), 'projectMemberPermission')";
 
+	public static final String PROJECT_LEAD_OR_ADMIN = "hasPermission(#projectName.toLowerCase(), 'projectLeadPermission')" + "||" + ADMIN_ONLY;
+
 	public static final String ASSIGNED_TO_PROJECT = "hasPermission(#projectName.toLowerCase(), 'isAssignedToProject')";
 }

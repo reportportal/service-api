@@ -21,28 +21,27 @@
 
 package com.epam.ta.reportportal.core.project;
 
+import com.epam.ta.BaseTest;
 import com.epam.ta.reportportal.auth.AuthConstants;
+import com.epam.ta.reportportal.core.project.impl.UpdateProjectHandler;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserType;
+import com.epam.ta.reportportal.database.fixture.SpringFixture;
+import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
 import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
+import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.epam.ta.BaseTest;
-import com.epam.ta.reportportal.core.project.impl.UpdateProjectHandler;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.fixture.SpringFixture;
-import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
-import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
-import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.containsString;
@@ -78,7 +77,7 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		configuration.setEntry("INTERNAL");
 		configuration.setStatisticCalculationStrategy("TEST_BASED");
 		configuration.setProjectSpecific("DEFAULT");
-		configuration.setEmailConfig(new ProjectEmailConfig());
+		configuration.setEmailConfig(new ProjectEmailConfigDTO());
 		updateProjectRQ.setConfiguration(configuration);
 		String project1 = "project1";
 		updateProjectHandler.updateProject(project1, updateProjectRQ, userName);

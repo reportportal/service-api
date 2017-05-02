@@ -22,9 +22,10 @@ package com.epam.ta.reportportal.util.email;
 
 import com.epam.reportportal.commons.template.TemplateEngine;
 import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
+import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.database.entity.settings.ServerEmailDetails;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,16 +93,18 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	public Optional<EmailService> getEmailService(ServerEmailDetails serverConfig) {
-		return ofNullable(serverConfig).map(serverConf -> {
+		return ofNullable(serverConfig).flatMap(serverConf -> {
+			if (BooleanUtils.isFalse(serverConf.getEnabled())){
+				return Optional.empty();
+			}
 			boolean authRequired = (null != serverConf.getAuthEnabled() && serverConf.getAuthEnabled());
 
 			Properties javaMailProperties = new Properties();
 			javaMailProperties.put("mail.smtp.connectiontimeout", DEFAULT_CONNECTION_TIMEOUT);
 			javaMailProperties.put("mail.smtp.auth", authRequired);
-			javaMailProperties.put("mail.smtp.starttls.enable", authRequired && serverConf.isStarTlsEnabled());
-			javaMailProperties.put("mail.debug", serverConf.isDebug());
+			javaMailProperties.put("mail.smtp.starttls.enable", authRequired && BooleanUtils.toBoolean(serverConf.getStarTlsEnabled()));
 
-			if (serverConf.isSslEnabled()) {
+			if (BooleanUtils.toBoolean(serverConf.getSslEnabled())) {
 				javaMailProperties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
 				javaMailProperties.put("mail.smtp.socketFactory.fallback", "false");
 			}
@@ -116,7 +119,7 @@ public class MailServiceFactory {
 				service.setUsername(serverConf.getUsername());
 				service.setPassword(encryptor.decrypt(serverConf.getPassword()));
 			}
-			return service;
+			return Optional.of(service);
 		});
 	}
 
@@ -189,7 +192,7 @@ public class MailServiceFactory {
 		if (null != e) {
 			LOGGER.error("Cannot send email to user", e);
 		}
-		return new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT, "Please config email server in Report Portal settings.");
+		return new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT, "Please configure email server in Report Portal settings.");
 	}
 
 }

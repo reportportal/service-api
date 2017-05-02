@@ -54,7 +54,7 @@
 
 
 ## 3.0.0
-##### Released: XXX XXX 2017
+##### Released: Apr 20, 2017
 
 ### New Features
 
@@ -90,3 +90,12 @@
 * reportportal#31/EPMRPP-25006 - Widget limits clear up
 * reportportal#92 - Fixed negative value int the "TI" counter for merged launch
 * EPMRPP-25255 - Personal projects have TEST_BASES calculation strategy (BDD) instead of STEP_BASED (regular)
+
+
+## 3.1.x
+##### Released: Apr XXX, 2017
+
+### Bugfixes
+
+* EPMRPP-25346 - WS: No email notification letter on launch finished is received
+* EPMRPP-24913 - Demo Data Postfix should be unique

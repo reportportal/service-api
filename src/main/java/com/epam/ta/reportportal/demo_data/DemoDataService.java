@@ -62,7 +62,7 @@ class DemoDataService {
 		List<String> postfixes = Optional.ofNullable(project.getMetadata()).map(Project.Metadata::getDemoDataPostfix)
 				.orElse(new ArrayList<>());
 		if (!isNullOrEmpty(rq.getPostfix())) {
-			BusinessRule.expect(rq.getPostfix(), not(in(postfixes)));
+			BusinessRule.expect(rq.getPostfix(), not(in(postfixes))).verify(ErrorType.DEMO_DATA_GENERATION_ERROR, String.format("Postfix %s already used", rq.getPostfix()));
 		}
 
 		StatisticsCalculationStrategy statsStrategy = project.getConfiguration().getStatisticsCalculationStrategy();

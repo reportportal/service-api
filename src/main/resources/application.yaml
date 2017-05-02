@@ -27,6 +27,9 @@ eureka:
   client:
     register-with-eureka: true
     enabled: true
+logging:
+  level:
+    BasicMongoPersistentProperty: error
 
 ## Consul as service registry
 ---

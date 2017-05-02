@@ -74,6 +74,21 @@ public class DemoDataControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	public void generateDemoDataSamePostfix() throws Exception {
+		DemoDataRq rq = new DemoDataRq();
+		rq.setPostfix("postfix");
+		rq.setCreateDashboard(true);
+		rq.setLaunchesQuantity(1);
+		rq.setPostfix("qwe");
+		mvcMock.perform(post("/demo/project1").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+				.principal(authentication())).andExpect(status().is(200));
+
+		mvcMock.perform(post("/demo/project1").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+				.principal(authentication())).andExpect(status().is(406));
+
+	}
+
+	@Test
 	public void generateTestBasedDemoData() throws Exception {
 		DemoDataRq rq = new DemoDataRq();
 		rq.setPostfix("postfix");

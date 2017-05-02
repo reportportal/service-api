@@ -95,7 +95,13 @@
 ## 3.1.x
 ##### Released: Apr XXX, 2017
 
+### New Features
+
+* EPMRPP-25011 - Created demo data generation for project with test based strategy
+
 ### Bugfixes
 
 * EPMRPP-25346 - WS: No email notification letter on launch finished is received
 * EPMRPP-24913 - Demo Data Postfix should be unique
+* EPMRPP-25247 - Admin is not able to modify his own role on the project
+* EPMRPP-23287 - Issues (defects) statistics should be calculated by Tests and not by Steps with test based strategy

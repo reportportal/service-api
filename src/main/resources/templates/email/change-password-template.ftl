@@ -3,6 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>ReportPortal</title>
+    <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
     <style>
         body {
             margin: 0;
@@ -13,6 +14,10 @@
             text-decoration: underline;
         }
         a:hover {
+            text-decoration: none;
+        }
+        .rplogo, .rplogo:hover, .rplogo:active, .rplogo:visited {
+            display: inline-block;
             text-decoration: none;
         }
         @media only screen and (max-width: 540px) {
@@ -48,7 +53,9 @@
                 <tbody>
                 <tr>
                     <td height="48">
-                        <a class="rplogo" href="http://reportportal.io" target="_blank"><img src="cid:rp_io_logo.png" border="0" width="141" height="23" alt="ReportPortal.io" title="ReportPortal.io"></a>
+                        <a class="rplogo" href="http://reportportal.io" target="_blank" style="font-size: 15px; color: #595c5c; font-weight: bold; font-family: 'Roboto', sans-serif;">
+                            ReportPortal.io
+                        </a>
                     </td>
                 </tr>
                 </tbody>

@@ -3,6 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>ReportPortal</title>
+    <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
     <style>
         body {
             margin: 0;
@@ -18,7 +19,10 @@
         a:hover {
             text-decoration: none;
         }
-
+        .rplogo, .rplogo:hover, .rplogo:active, .rplogo:visited {
+            display: inline-block;
+            text-decoration: none;
+        }
         @media only screen and (max-width: 540px) {
             body {
                 margin: 0;
@@ -46,11 +50,9 @@
                 <tbody>
                 <tr>
                     <td height="48">
-                        <a class="rplogo" href="http://reportportal.io" target="_blank"><img src="cid:rp_io_logo.png"
-                                                                                             border="0" width="141"
-                                                                                             height="23"
-                                                                                             alt="ReportPortal.io"
-                                                                                             title="ReportPortal.io"></a>
+                        <a class="rplogo" href="http://reportportal.io" target="_blank" style="font-size: 15px; color: #595c5c; font-weight: bold; font-family: 'Roboto', sans-serif;">
+                            ReportPortal.io
+                        </a>
                     </td>
                 </tr>
                 </tbody>
@@ -101,16 +103,15 @@
                     <#if description??>
                         <p style="font-size: 14px; color: #777777;">Description of launch:<br>${description}</p>
                     </#if>
-
-                        <table width="300" border="1" cellspacing="0" cellpadding="6"
-                               style="border-width: 1px; border-style: solid; border-color: #e9e9e9; border-collapse: collapse;">
+                    <div style="width: 300px; border-width: 1px; border-style: solid; border-color: #e9e9e9;">
+                        <table width="300" border="0" cellspacing="0" cellpadding="6" style="border: none; border-collapse: collapse;">
                             <tbody>
                             <tr bgcolor="#f5f5f5" style="background: #f5f5f5;">
                                 <td height="40"
-                                    style="font-size: 12px; color: #777777; border-width:1px; border-style: solid; border-color: #e9e9e9; border-right: none; padding-left: 20px;">
+                                    style="font-size: 12px; color: #777777; border-bottom: 1px solid #e9e9e9; padding-left: 20px;">
                                     <b>LAUNCH STATISTICS</b></td>
                                 <td width="40"
-                                    style="font-size: 12px; color: #777777; border-width:1px; border-style: solid; border-color: #e9e9e9; border-left: none;"></td>
+                                    style="font-size: 12px; color: #777777; border-bottom: 1px solid #e9e9e9;"></td>
                             </tr>
                             <tr bgcolor="#ffffff" style="background: #ffffff;">
                                 <td height="40" style="font-size: 14px; color: #464547; padding-left: 20px; border-width: 0px;"><b>TOTAL</b>
@@ -131,16 +132,17 @@
                             </tr>
                             </tbody>
                         </table>
+                        </div>
                         <br>
-                        <table width="100%" border="1" cellspacing="0" cellpadding="6"
-                               style="border-width: 1px; border-style: solid; border-color: #e9e9e9; border-collapse: collapse;">
+                        <div style="width: 100%; border-width: 1px; border-style: solid; border-color: #e9e9e9;">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="6" style="border: none; border-collapse: collapse;">
                             <tbody>
                             <tr bgcolor="#f5f5f5" style="background: #f5f5f5;">
                                 <td height="40"
-                                    style="font-size: 12px; color: #777777; border-width:1px; border-style: solid; border-color: #e9e9e9; border-right: none; padding-left: 20px;">
+                                    style="font-size: 12px; color: #777777; border-bottom: 1px solid #e9e9e9; padding-left: 20px;">
                                     <b>LAUNCH DEFECTS</b></td>
                                 <td width="40"
-                                    style="font-size: 12px; color: #777777; border-width:1px; border-style: solid; border-color: #e9e9e9; border-left: none;"></td>
+                                    style="font-size: 12px; color: #777777;  border-bottom: 1px solid #e9e9e9;"></td>
                             </tr>
                             <!-- PRODUCT BUG bugs section -->
                             <#assign name="Product Bugs">
@@ -174,7 +176,8 @@
                             <#assign name="To Investigate">
                             <@maintype name="${name}" counter="${toInvestigateTotal}" />
                             </tbody>
-                        </table>
+                            </table>
+                        </div>
                     </td>
                 </tr>
                 </tbody>

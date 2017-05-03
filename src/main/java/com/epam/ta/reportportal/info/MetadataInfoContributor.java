@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.info;
 import com.epam.ta.reportportal.database.entity.project.KeepLogsDelay;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.boot.actuate.info.MapInfoContributor;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
@@ -33,6 +34,7 @@ import static java.util.stream.Collectors.toList;
 /**
  * @author Andrei Varabyeu
  */
+@Component
 public class MetadataInfoContributor extends MapInfoContributor {
 
 	public MetadataInfoContributor() {

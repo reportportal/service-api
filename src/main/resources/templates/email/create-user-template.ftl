@@ -3,6 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>ReportPortal</title>
+    <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
     <style>
         body {
             margin: 0;
@@ -13,6 +14,10 @@
             text-decoration: underline;
         }
         a:hover {
+            text-decoration: none;
+        }
+        .rplogo, .rplogo:hover, .rplogo:active, .rplogo:visited {
+            display: inline-block;
             text-decoration: none;
         }
         @media only screen and (max-width: 540px) {
@@ -48,7 +53,9 @@
                 <tbody>
                 <tr>
                     <td height="48">
-                        <a class="rplogo" href="http://reportportal.io" target="_blank"><img src="cid:rp_io_logo.png" border="0" width="141" height="23" alt="ReportPortal.io" title="ReportPortal.io"></a>
+                        <a class="rplogo" href="http://reportportal.io" target="_blank" style="font-size: 15px; color: #595c5c; font-weight: bold; font-family: 'Roboto', sans-serif;">
+                            ReportPortal.io
+                        </a>
                     </td>
                 </tr>
                 </tbody>
@@ -67,7 +74,7 @@
                 <tbody>
                 <tr>
                     <td align="left" height="170">
-                        <h2 style="font-size: 20px; color: #777777;" align="center">Welcome to Report Portal</h2>
+                        <h2 style="font-size: 20px; color: #777777;" align="center">Welcome to Report Portal!</h2>
                         <p style="font-size: 14px; color: #777777;">You have been successfully registered on Report Portal.</p>
                         <p style="font-size: 14px; line-height: 1.7; color: #777777">Please, use the following information to login:<br>
                             Login: <b>${login}</b><br>
@@ -76,7 +83,7 @@
                             <tbody>
                                 <tr>
                                     <td width="130" height="35" align="center" bgcolor="#a3c644">
-                                        <a href="${url}" style="font-size: 14px; text-decoration: none; color: #ffffff; display: inline-block; padding: 15px; width: 100px;">
+                                        <a href="${url}" style="font-size: 14px; text-decoration: none; color: #ffffff; display: inline-block; padding: 10px 15px; width: 100px;">
                                             Login
                                         </a>
                                     </td>
@@ -121,9 +128,12 @@
             <table width="100%" border="0" cellspacing="0" cellpadding="0" class="footerwrapper">
                 <tbody>
                 <tr>
-                    <td align="center" height="52" class="footercontent">
-                        <p style="font-size: 11px; line-height: 1.5; color: #6d6d6d"><b>Report Portal Notification Center</b><br>
-                            This notification was created automatically. Please don't reply for this e-mail.</p>
+                    <td align="center" height="85" class="footercontent" style="padding: 4px;">
+                        <p style="font-size: 11px; line-height: 1.5; color: #6d6d6d">
+                            <b>Report Portal Notification Center</b><br>
+                            This is an automatically generated notification - please do not reply to this message. You are receiving this email to complete the registration initiated on the ReportPortal application; if you are not waiting
+                            for the ReportPortal's invitation then just ignore this message.
+                        </p>
                     </td>
                 </tr>
                 </tbody>

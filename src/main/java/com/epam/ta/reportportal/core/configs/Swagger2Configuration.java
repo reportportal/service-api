@@ -197,9 +197,10 @@ public class Swagger2Configuration {
 										.parameterType("query")
 										.name(searchCriteria)
 										.modelRef(factory.apply(resolver.resolve(criteriaMap.getCriteriaHolder(searchCriteria).getDataType())))
-										.description("Filters by '" + searchCriteria + "'")
+									.description("Filters by '" + searchCriteria + "'")
 									.build())
-							.filter( p -> p.getType().isPresent())
+							/* if type is not a collection and first letter is not capital (all known to swagger types start from lower case) */
+							.filter( p -> !(null == p.getModelRef().getItemType() && Character.isUpperCase(p.getModelRef().getType().toCharArray()[0])))
 							.collect(Collectors.toList());
 					//@formatter:on
 

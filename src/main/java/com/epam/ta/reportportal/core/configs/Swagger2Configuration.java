@@ -21,6 +21,10 @@
 
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.database.search.CriteriaMap;
+import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
+import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.fasterxml.classmate.ResolvedType;
 import com.fasterxml.classmate.TypeResolver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +55,7 @@ import javax.servlet.ServletContext;
 import java.security.Principal;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Predicates.or;
@@ -72,26 +77,25 @@ import static springfox.documentation.spi.schema.contexts.ModelContext.inputPara
 @ComponentScan(basePackages = "com.epam.ta.reportportal.ws.controller")
 public class Swagger2Configuration {
 
-    @Autowired
-    private ServletContext servletContext;
+	@Autowired
+	private ServletContext servletContext;
 
-    @Autowired
-    @Value("${spring.application.name}")
-    private String eurekaName;
+	@Autowired
+	@Value("${spring.application.name}")
+	private String eurekaName;
 
-    @Autowired
-    @Value("${info.build.version}")
-    private String buildVersion;
+	@Autowired
+	@Value("${info.build.version}")
+	private String buildVersion;
 
-    @Bean
-    public Docket docket() {
-        /* For more information see default params at {@link ApiInfo} */
-        ApiInfo rpInfo = new ApiInfo("Report Portal", "Report Portal API documentation", buildVersion, "urn:tos",
-                new Contact("EPAM Systems", "http://epam.com",
-                        "Support EPMC-TST Report Portal <SupportEPMC-TSTReportPortal@epam.com>"),
-                "GPLv3", "https://www.gnu.org/licenses/licenses.html#GPL");
+	@Bean
+	public Docket docket() {
+		/* For more information see default params at {@link ApiInfo} */
+		ApiInfo rpInfo = new ApiInfo("Report Portal", "Report Portal API documentation", buildVersion, "urn:tos",
+				new Contact("EPAM Systems", "http://epam.com", "Support EPMC-TST Report Portal <SupportEPMC-TSTReportPortal@epam.com>"),
+				"GPLv3", "https://www.gnu.org/licenses/licenses.html#GPL");
 
-        // @formatter:off
+		// @formatter:off
         Docket rpDocket = new Docket(DocumentationType.SWAGGER_2)
                 .ignoredParameterTypes(Principal.class)
                 .pathProvider(rpPathProvider())
@@ -103,101 +107,121 @@ public class Swagger2Configuration {
                 .build();
         //@formatter:on
 
-        rpDocket.apiInfo(rpInfo);
-        return rpDocket;
-    }
+		rpDocket.apiInfo(rpInfo);
+		return rpDocket;
+	}
 
-    @Bean
-    public PathProvider rpPathProvider() {
-        return new RelativePathProvider(servletContext);
-    }
+	@Bean
+	public PathProvider rpPathProvider() {
+		return new RelativePathProvider(servletContext);
+	}
 
-    @Bean
-    PageableParameterBuilderPlugin pageableParameterBuilderPlugin(TypeNameExtractor nameExtractor,
-            TypeResolver resolver) {
-        return new PageableParameterBuilderPlugin(nameExtractor, resolver);
-    }
+	@Bean
+	PageableParameterBuilderPlugin pageableParameterBuilderPlugin(TypeNameExtractor nameExtractor, TypeResolver resolver) {
+		return new PageableParameterBuilderPlugin(nameExtractor, resolver);
+	}
 
-    @Bean(name = "multipartResolver")
-    public CommonsMultipartResolver commonsMultipartResolver() {
-        return new CommonsMultipartResolver();
-    }
+	@Bean(name = "multipartResolver")
+	public CommonsMultipartResolver commonsMultipartResolver() {
+		return new CommonsMultipartResolver();
+	}
 
-    @Bean
-    public UiConfiguration uiConfig() {
-        return new UiConfiguration(null);
-    }
+	@Bean
+	public UiConfiguration uiConfig() {
+		return new UiConfiguration(null);
+	}
 
-    public static class PageableParameterBuilderPlugin implements ParameterBuilderPlugin {
+	public static class PageableParameterBuilderPlugin implements ParameterBuilderPlugin {
 
-        private final TypeNameExtractor nameExtractor;
-        private final TypeResolver resolver;
+		private final TypeNameExtractor nameExtractor;
+		private final TypeResolver resolver;
 
-        PageableParameterBuilderPlugin(TypeNameExtractor nameExtractor, TypeResolver resolver) {
-            this.nameExtractor = nameExtractor;
-            this.resolver = resolver;
-        }
+		PageableParameterBuilderPlugin(TypeNameExtractor nameExtractor, TypeResolver resolver) {
+			this.nameExtractor = nameExtractor;
+			this.resolver = resolver;
+		}
 
-        @Override
-        public boolean supports(DocumentationType delimiter) {
-            return true;
-        }
+		@Override
+		public boolean supports(DocumentationType delimiter) {
+			return true;
+		}
 
-        private Function<ResolvedType, ? extends ModelReference> createModelRefFactory(ParameterContext context) {
-            ModelContext modelContext = inputParam(context.resolvedMethodParameter().getParameterType(),
-                    context.getDocumentationType(),
-                    context.getAlternateTypeProvider(),
-                    context.getGenericNamingStrategy(),
-                    context.getIgnorableParameterTypes());
-            return modelRefFactory(modelContext, nameExtractor);
-        }
+		private Function<ResolvedType, ? extends ModelReference> createModelRefFactory(ParameterContext context) {
+			ModelContext modelContext = inputParam(context.resolvedMethodParameter().getParameterType(), context.getDocumentationType(),
+					context.getAlternateTypeProvider(), context.getGenericNamingStrategy(), context.getIgnorableParameterTypes());
+			return modelRefFactory(modelContext, nameExtractor);
+		}
 
-        @Override
-        public void apply(ParameterContext context) {
-            ResolvedMethodParameter parameter = context.resolvedMethodParameter();
-            Class<?> type = parameter.getParameterType().getErasedType();
-            if (type != null && Pageable.class.isAssignableFrom(type)) {
-                Function<ResolvedType, ? extends ModelReference> factory =
-                        createModelRefFactory(context);
+		@Override
+		public void apply(ParameterContext context) {
+			ResolvedMethodParameter parameter = context.resolvedMethodParameter();
+			Class<?> type = parameter.getParameterType().getErasedType();
+			if (type != null) {
+				Function<ResolvedType, ? extends ModelReference> factory = createModelRefFactory(context);
+				if (Pageable.class.isAssignableFrom(type)) {
 
-                ModelReference intModel = factory.apply(resolver.resolve(Integer.TYPE));
-                ModelReference stringModel = factory.apply(resolver.resolve(List.class, String.class));
+					ModelReference intModel = factory.apply(resolver.resolve(Integer.TYPE));
+					ModelReference stringModel = factory.apply(resolver.resolve(List.class, String.class));
 
-                List<Parameter> parameters = newArrayList(
-                        context.parameterBuilder()
-                                .parameterType("query").name("page").modelRef(intModel)
-                                .description("Page number of the requested page")
-                                .build(),
-                        context.parameterBuilder()
-                                .parameterType("query").name("size").modelRef(intModel)
-                                .description("Size of a page")
-                                .build(),
-                        context.parameterBuilder()
-                                .parameterType("query").name("sort").modelRef(stringModel).allowMultiple(true)
-                                .description("Sorting criteria in the format: property(,asc|desc). "
-                                        + "Default sort order is ascending. "
-                                        + "Multiple sort criteria are supported.")
-                                .build());
+					//@formatter:off
+					List<Parameter> parameters = newArrayList(
+							context.parameterBuilder()
+									.parameterType("query")
+									.name("page")
+									.modelRef(intModel)
+									.description("Page number of the requested page").build(),
+							context.parameterBuilder()
+									.parameterType("query")
+									.name("size")
+									.modelRef(intModel)
+									.description("Size of a page")
+									.build(),
+							context.parameterBuilder()
+									.parameterType("query")
+									.name("sort")
+									.modelRef(stringModel).allowMultiple(true)
+									.description(
+											"Sorting criteria in the format: property(,asc|desc). " + "Default sort order is ascending. "
+													+ "Multiple sort criteria are supported.").build());
 
-                context.getOperationContext().operationBuilder().parameters(parameters);
-            }
-        }
-    }
+					//@formatter:on
+					context.getOperationContext().operationBuilder().parameters(parameters);
+				} else if (Filter.class.isAssignableFrom(type)) {
+					FilterFor filterClass = parameter.findAnnotation(FilterFor.class).get();
+					CriteriaMap<?> criteriaMap = CriteriaMapFactory.DEFAULT_INSTANCE_SUPPLIER.get().getCriteriaMap(filterClass.value());
 
-    @SuppressWarnings("unused")
-    private static class RPPathProvider extends RelativePathProvider {
+					//@formatter:off
+					List<Parameter> params = criteriaMap.getAllowedSearchCriterias().stream()
+							.map(searchCriteria -> context
+									.parameterBuilder()
+										.parameterType("query")
+										.name(searchCriteria)
+										.modelRef(factory.apply(resolver.resolve(criteriaMap.getCriteriaHolder(searchCriteria).getDataType())))
+										.description("Filter criteria '" + searchCriteria + "'")
+									.build()).collect(Collectors.toList());
+					//@formatter:on
 
-        private String gatewayPath;
+					context.getOperationContext().operationBuilder().parameters(params);
 
-        RPPathProvider(ServletContext servletContext, String gatewayPath) {
-            super(servletContext);
-            this.gatewayPath = gatewayPath;
-        }
+				}
+			}
+		}
+	}
 
-        @Override
-        protected String applicationPath() {
-            return "/" + gatewayPath + super.applicationPath();
-        }
-    }
+	@SuppressWarnings("unused")
+	private static class RPPathProvider extends RelativePathProvider {
+
+		private String gatewayPath;
+
+		RPPathProvider(ServletContext servletContext, String gatewayPath) {
+			super(servletContext);
+			this.gatewayPath = gatewayPath;
+		}
+
+		@Override
+		protected String applicationPath() {
+			return "/" + gatewayPath + super.applicationPath();
+		}
+	}
 
 }

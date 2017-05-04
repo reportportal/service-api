@@ -198,7 +198,9 @@ public class Swagger2Configuration {
 										.name(searchCriteria)
 										.modelRef(factory.apply(resolver.resolve(criteriaMap.getCriteriaHolder(searchCriteria).getDataType())))
 										.description("Filter criteria '" + searchCriteria + "'")
-									.build()).collect(Collectors.toList());
+									.build())
+							.filter( p -> p.getType().isPresent())
+							.collect(Collectors.toList());
 					//@formatter:on
 
 					context.getOperationContext().operationBuilder().parameters(params);

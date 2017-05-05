@@ -24,8 +24,10 @@ package com.epam.ta.reportportal.util.email;
 import com.epam.ta.reportportal.core.configs.EmailConfiguration;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
+import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.database.entity.statistics.Statistics;
 import com.google.common.collect.ImmutableMap;
 import org.jsoup.Jsoup;
@@ -34,9 +36,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 import static org.hamcrest.CoreMatchers.*;
 
@@ -62,6 +62,7 @@ public class EmailServiceTest {
 						ImmutableMap.<String, Integer>builder()
 								.put(IssueCounter.GROUP_TOTAL, 3)
 								.put("PB1", 3)
+								.put("PB2", 3)
 								.build(),
 						ImmutableMap.<String, Integer>builder()
 								.put("AB1", 5)
@@ -84,8 +85,15 @@ public class EmailServiceTest {
 		launch.setStatistics(statistics);
 
 		Project.Configuration settings = new Project.Configuration();
+		settings.setSubTypes(ImmutableMap.<TestItemIssueType, List<StatisticSubType>>builder()
+				.put(TestItemIssueType.PRODUCT_BUG,
+				Arrays.asList(
+						new StatisticSubType("PB1", "ref1","pb1-long", "pb1-short", "color"),
+						new StatisticSubType("PB2", "ref2","pb2-long", "pb2-short", "color"))).build());
+
 
 		String text = emailService.mergeFinishLaunchText("http://google.com", launch, settings);
+		System.out.println(text);
 		Assert.assertThat(text, is(not(nullValue())));
 
 		Document doc = Jsoup.parse(text);

@@ -78,7 +78,7 @@ public class EmailServiceTest {
 								.build(),
 						ImmutableMap.<String, Integer>builder()
 								.put(IssueCounter.GROUP_TOTAL, 3)
-								.put("NI1", 3)
+								.put("ND1", 3)
 								.build()));
 		//@formatter:on
 
@@ -89,7 +89,16 @@ public class EmailServiceTest {
 				.put(TestItemIssueType.PRODUCT_BUG,
 				Arrays.asList(
 						new StatisticSubType("PB1", "ref1","pb1-long", "pb1-short", "color"),
-						new StatisticSubType("PB2", "ref2","pb2-long", "pb2-short", "color"))).build());
+						new StatisticSubType("PB2", "ref2","pb2-long", "pb2-short", "color")))
+				.put(TestItemIssueType.AUTOMATION_BUG,
+						Collections.singletonList(new StatisticSubType("AB1", "refA1", "ab1-long", "ab1-short", "color")))
+				.put(TestItemIssueType.TO_INVESTIGATE,
+						Collections.singletonList(new StatisticSubType("TI1", "refTI1", "ti1-long", "ti1-short", "color")))
+				.put(TestItemIssueType.NO_DEFECT,
+						Collections.singletonList(new StatisticSubType("ND1", "refND1", "nd1-long", "nd1-short", "color")))
+				.put(TestItemIssueType.SYSTEM_ISSUE,
+						Collections.singletonList(new StatisticSubType("SI1", "refSI1", "si1-long", "si1-short", "color")))
+				.build());
 
 
 		String text = emailService.mergeFinishLaunchText("http://google.com", launch, settings);

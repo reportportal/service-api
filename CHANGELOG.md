@@ -105,4 +105,5 @@
 * EPMRPP-24913 - Demo Data Postfix should be unique
 * EPMRPP-25247 - Admin is not able to modify his own role on the project
 * EPMRPP-23287 - Issues (defects) statistics should be calculated by Tests and not by Steps with test based strategy
+* EPMRPP-25434 - Remove attached logo from email letter
 * EPMRPP-25424 - Request with empty recipients are sent to server with set notifications to OFF

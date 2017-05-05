@@ -93,7 +93,6 @@ public class EmailServiceTest {
 
 
 		String text = emailService.mergeFinishLaunchText("http://google.com", launch, settings);
-		System.out.println(text);
 		Assert.assertThat(text, is(not(nullValue())));
 
 		Document doc = Jsoup.parse(text);

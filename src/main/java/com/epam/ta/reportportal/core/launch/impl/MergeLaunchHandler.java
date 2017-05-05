@@ -195,7 +195,6 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
         Launch launch = launchBuilder.get().addStartRQ(startRQ).addProject(projectName).addStatus(IN_PROGRESS).addUser(userName).build();
         launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
-        launch.setEndTime(mergeLaunchesRQ.getEndTime());
 
         launchRepository.save(launch);
 
@@ -209,6 +208,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         launch = launchRepository.findOne(launch.getId());
         launch.setStatus(StatisticsHelper.getStatusFromStatistics(launch.getStatistics()));
 
+        launch.setEndTime(mergeLaunchesRQ.getEndTime());
         launchRepository.save(launch);
         launchRepository.delete(launchesIds);
 

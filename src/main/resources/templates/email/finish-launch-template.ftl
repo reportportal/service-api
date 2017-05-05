@@ -154,21 +154,21 @@
                             <!-- AUTOMATION BUG bugs section -->
                             <#assign name="Automation Bugs">
                             <@maintype name="${name}" counter="${automationBugTotal}" />
-                            <#if $abInfo??>
+                            <#if abInfo??>
                                 <@subtypes sbt=abInfo/>
                             </#if>
 
                             <!-- SYSTEM ISSUE bugs section -->
                             <#assign name="System Issues">
                             <@maintype name="${name}" counter="${systemIssueTotal}" />
-                            <#if $siInfo??>
+                            <#if siInfo??>
                                 <@subtypes sbt=siInfo/>
                             </#if>
 
                             <!-- NO DEFECT bugs section -->
                             <#assign name="No Defects">
                             <@maintype name="${name}" counter="${noDefectTotal}" />
-                            <#if $ndInfo??>
+                            <#if ndInfo??>
                                 <@subtypes sbt=ndInfo/>
                             </#if>
 

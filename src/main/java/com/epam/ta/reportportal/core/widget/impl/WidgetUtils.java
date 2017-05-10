@@ -21,21 +21,18 @@
 
 package com.epam.ta.reportportal.core.widget.impl;
 
+import com.epam.ta.reportportal.core.widget.content.GadgetTypes;
+import com.epam.ta.reportportal.core.widget.content.WidgetDataTypes;
+import com.epam.ta.reportportal.database.entity.widget.Widget;
+import com.epam.ta.reportportal.database.search.CriteriaMap;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+
+import java.util.List;
+
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.RESOURCE_ALREADY_EXISTS;
-
-import java.util.List;
-
-import com.epam.ta.reportportal.core.widget.content.GadgetTypes;
-import com.epam.ta.reportportal.core.widget.content.WidgetDataTypes;
-import com.epam.ta.reportportal.database.entity.widget.Widget;
-import com.epam.ta.reportportal.database.search.CriteriaHolder;
-import com.epam.ta.reportportal.database.search.CriteriaMap;
-import com.epam.ta.reportportal.database.search.FilterCriteria;
-import com.epam.ta.reportportal.database.search.QueryBuilder;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 
 /**
  * Widget's related utils
@@ -51,7 +48,7 @@ public class WidgetUtils {
 	public static final String USER = "user";
 
 	private WidgetUtils() {
-
+		//static only
 	}
 
 	/**

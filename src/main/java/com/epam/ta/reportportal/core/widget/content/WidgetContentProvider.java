@@ -21,20 +21,6 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_LOAD_WIDGET_CONTENT;
-import static java.util.stream.Collectors.toList;
-
-import java.util.*;
-
-import javax.annotation.Resource;
-
-import com.epam.ta.reportportal.database.search.QueryBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.database.entity.filter.SelectionOptions;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
@@ -43,6 +29,17 @@ import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.Lists;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.*;
+
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_LOAD_WIDGET_CONTENT;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Widget content strategy context.<br>

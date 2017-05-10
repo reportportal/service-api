@@ -21,16 +21,6 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.StatisticsDocumentHandler;
@@ -38,7 +28,17 @@ import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.text.DecimalFormat;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Implementation for 'Non-Passed test-cases trend chart' widget content
@@ -60,13 +60,11 @@ public class NotPassedTestsContentLoader extends StatisticBasedContentLoader imp
 			List<String> metaDataFields, Map<String, List<String>> options) {
 		BusinessRule.expect(metaDataFields == null || metaDataFields.isEmpty(), Predicates.equalTo(Boolean.FALSE))
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Metadata fields should exist for providing content for 'column chart'.");
-		List<String> allFields = Lists.newArrayList(contentFields);
-		List<String> xAxis = metaDataFields;
-		allFields.addAll(xAxis);
-		StatisticsDocumentHandler handler = new StatisticsDocumentHandler(contentFields, xAxis);
+		List<String> allFields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
+		StatisticsDocumentHandler handler = new StatisticsDocumentHandler(contentFields, metaDataFields);
 		String collectionName = getCollectionName(filter.getTarget());
 
-		// here can be used any repository which extends ReposrtPortalRepository
+		// here can be used any repository which extends ReportPortalRepository
 		launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, collectionName);
 		return this.convertResult(handler);
 	}
@@ -83,10 +81,8 @@ public class NotPassedTestsContentLoader extends StatisticBasedContentLoader imp
 		// Empty result if callback return empty map
 		List<ChartObject> objects = handler.getResult();
 		if (objects.isEmpty()) {
-			return new HashMap<>();
+			return Collections.emptyMap();
 		}
-
-		Map<String, List<ChartObject>> result = new HashMap<>();
 		for (ChartObject object : objects) {
 			Map<String, String> values = new HashMap<>();
 			double failed = Integer.parseInt(object.getValues().get(getFailedFieldName()));
@@ -101,7 +97,6 @@ public class NotPassedTestsContentLoader extends StatisticBasedContentLoader imp
 			}
 			object.setValues(values);
 		}
-		result.put("result", objects);
-		return result;
+		return Collections.singletonMap(RESULT, objects);
 	}
 }

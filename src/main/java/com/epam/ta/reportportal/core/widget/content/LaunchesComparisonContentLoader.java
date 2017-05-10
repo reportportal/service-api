@@ -21,21 +21,21 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.StatisticsDocumentHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.text.DecimalFormat;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * ContentLoader implementation for <b>Different launches comparison chart
@@ -58,11 +58,10 @@ public class LaunchesComparisonContentLoader extends StatisticBasedContentLoader
 			List<String> metaDataFields, Map<String, List<String>> options) {
 
 		if (filter.getTarget().equals(TestItem.class)) {
-			return new HashMap<>();
+			return Collections.emptyMap();
 		}
 		StatisticsDocumentHandler documentHandler = new StatisticsDocumentHandler(contentFields, metaDataFields);
-		List<String> allFields = Lists.newArrayList(contentFields);
-		allFields.addAll(metaDataFields);
+		List<String> allFields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
 
 		String collectionName = getCollectionName(filter.getTarget());
 		launchRepository.loadWithCallback(filter, sorting, QUANTITY, allFields, documentHandler, collectionName);
@@ -71,7 +70,6 @@ public class LaunchesComparisonContentLoader extends StatisticBasedContentLoader
 	}
 
 	private Map<String, List<ChartObject>> convertResult(List<ChartObject> objects) {
-		Map<String, List<ChartObject>> result = new HashMap<>();
 		DecimalFormat formatter = new DecimalFormat("###.##");
 
 		for (ChartObject object : objects) {
@@ -134,7 +132,6 @@ public class LaunchesComparisonContentLoader extends StatisticBasedContentLoader
 			}
 			object.setValues(values);
 		}
-		result.put(RESULT, objects);
-		return result;
+		return Collections.singletonMap(RESULT, objects);
 	}
 }

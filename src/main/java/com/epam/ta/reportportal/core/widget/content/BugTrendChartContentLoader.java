@@ -21,12 +21,10 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -58,10 +56,10 @@ public class BugTrendChartContentLoader extends StatisticBasedContentLoader impl
 			List<String> metaDataFields, Map<String, List<String>> options) {
 
 		StatisticsDocumentHandler statisticsDocumentHandler = new StatisticsDocumentHandler(contentFields, metaDataFields);
-		if (filter.getTarget().equals(TestItem.class))
-			return new HashMap<>();
-		ArrayList<String> allFields = new ArrayList<>(contentFields);
-		allFields.addAll(metaDataFields);
+		if (filter.getTarget().equals(TestItem.class)) {
+			return Collections.emptyMap();
+		}
+		List<String> allFields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
 		launchRepository.loadWithCallback(filter, sorting, quantity, allFields, statisticsDocumentHandler, COLLECTION_NAME);
 		List<ChartObject> result = statisticsDocumentHandler.getResult();
 
@@ -76,14 +74,11 @@ public class BugTrendChartContentLoader extends StatisticBasedContentLoader impl
 	 * @return
 	 */
 	private Map<String, List<ChartObject>> assembleWidgetData(List<ChartObject> input) {
-		if (input.isEmpty())
-			return new HashMap<>();
-
-		input.stream().forEach(one -> one.getValues().put(ISSUES, String.valueOf(getIssuesCount(one))));
-
-		Map<String, List<ChartObject>> result = new HashMap<>();
-		result.put(RESULT, input);
-		return result;
+		if (input.isEmpty()) {
+			return Collections.emptyMap();
+		}
+		input.forEach(one -> one.getValues().put(ISSUES, String.valueOf(getIssuesCount(one))));
+		return Collections.singletonMap(RESULT, input);
 	}
 
 	/**
@@ -98,6 +93,6 @@ public class BugTrendChartContentLoader extends StatisticBasedContentLoader impl
 	 * @return
 	 */
 	private static Integer getIssuesCount(ChartObject single) {
-		return single.getValues().values().stream().collect(Collectors.summingInt(Integer::parseInt));
+		return single.getValues().values().stream().mapToInt(Integer::parseInt).sum();
 	}
 }

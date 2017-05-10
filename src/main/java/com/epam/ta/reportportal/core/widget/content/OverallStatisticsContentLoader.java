@@ -21,16 +21,18 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import java.util.*;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.OverallStatisticsDocumentHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Implementation of
@@ -65,13 +67,11 @@ public class OverallStatisticsContentLoader extends StatisticBasedContentLoader 
 	 * @return
 	 */
 	private Map<String, List<ChartObject>> assembleData(Map<String, Integer> data) {
-		Map<String, String> values = new HashMap<>();
-		data.keySet().stream().forEach(key -> values.put(getFieldName(key), data.get(key).toString()));
+		Map<String, String> values = new HashMap<>(data.keySet().size());
+		data.keySet().forEach(key -> values.put(getFieldName(key), data.get(key).toString()));
 		ChartObject chartObject = new ChartObject();
 		chartObject.setValues(values);
-		Map<String, List<ChartObject>> result = new HashMap<>();
-		result.put(RESULT, Collections.singletonList(chartObject));
-		return result;
+		return Collections.singletonMap(RESULT, Collections.singletonList(chartObject));
 	}
 
 	/**

@@ -41,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -121,8 +122,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 		Optional<Status> actualStatus = fromValue(finishExecutionRQ.getStatus());
 		Issue providedIssue = finishExecutionRQ.getIssue();
-		boolean statusProvided = actualStatus.isPresent();
-		boolean hasDescendants = testItemRepository.hasDescendants(testItem.getId());
 
         StatisticsFacade statisticsFacade = statisticsFacadeFactory
                 .getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
@@ -132,7 +131,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		 * When status provided, no meter test item has or not descendants, test
 		 * item status is resolved to provided
 		 */
-        if (!statusProvided && hasDescendants) {
+        if (!actualStatus.isPresent() && testItem.hasChilds()) {
             testItem = statisticsFacade.identifyStatus(testItem);
         } else {
             testItem.setStatus(actualStatus.get());
@@ -169,14 +168,14 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			expect(testItem, notNull()).verify(TEST_ITEM_NOT_FOUND, testItemId);
 			expect(testItem, not(Preconditions.TEST_ITEM_FINISHED)).verify(REPORTING_ITEM_ALREADY_FINISHED, testItem.getId());
 
-			boolean statusProvided = actualStatus.isPresent();
-
-			List<TestItem> descendants = testItemRepository.findDescendants(testItem.getId());
-			boolean hasDescendants = !descendants.isEmpty();
-
-			expect(!statusProvided && !hasDescendants, equalTo(Boolean.FALSE), formattedSupplier(
+			expect(!actualStatus.isPresent() && !testItem.hasChilds(), equalTo(Boolean.FALSE), formattedSupplier(
 					"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
 					testItemId)).verify();
+
+			List<TestItem> descendants = Collections.emptyList();
+			if (testItem.hasChilds()) {
+				descendants = testItemRepository.findDescendants(testItem.getId());
+			}
 
 			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED,
 					formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'", testItemId,

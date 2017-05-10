@@ -336,7 +336,7 @@ public class LaunchController implements ILaunchController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified launches by ids")
-	public List<OperationCompletionRS> deleteLaunches(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
+	public OperationCompletionRS deleteLaunches(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
 			Principal principal) {
 		return deleteLaunchMessageHandler.deleteLaunches(ids, projectName, principal.getName());
 	}

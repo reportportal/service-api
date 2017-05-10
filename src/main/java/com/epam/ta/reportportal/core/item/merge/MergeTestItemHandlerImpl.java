@@ -79,7 +79,7 @@ public class MergeTestItemHandlerImpl implements MergeTestItemHandler {
         Project project = validateProject(launchTarget.getProjectRef());
         validateLaunchInProject(launchTarget, project);
 
-        List<TestItem> itemsToMerge = new ArrayList<>();
+        List<TestItem> itemsToMerge = new ArrayList<>(rq.getItems().size());
         Set<String> sourceLaunches = new HashSet<>();
         for (String id : rq.getItems()) {
             TestItem itemToMerge = validateTestItem(id);

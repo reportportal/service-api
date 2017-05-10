@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.impl;
 
@@ -36,7 +36,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.RESOURCE_ALREADY_EXIST
 
 /**
  * Widget's related utils
- * 
+ *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
  */
@@ -53,7 +53,7 @@ public class WidgetUtils {
 
 	/**
 	 * Check is widget's data fields names can be converted to DB style.
-	 * 
+	 *
 	 * @param fields
 	 * @param criteriaMap
 	 * @param errorType
@@ -62,10 +62,8 @@ public class WidgetUtils {
 		if (fields == null || criteriaMap == null || errorType == null) {
 			return;
 		}
-		for (String field : fields) {
-			expect(criteriaMap.getCriteriaHolderUnchecked(field).isPresent(), equalTo(true))
-					.verify(errorType, formattedSupplier("Field '{}' cannot be used for calculating data for widget.", field));
-		}
+		fields.forEach(field -> expect(criteriaMap.getCriteriaHolderUnchecked(field).isPresent(), equalTo(true))
+                .verify(errorType, formattedSupplier("Field '{}' cannot be used for calculating data for widget.", field)));
 	}
 
 	public static void validateWidgetDataType(String type, ErrorType errorType) {
@@ -82,10 +80,8 @@ public class WidgetUtils {
 
 	public static void checkUniqueName(String newWidgetName, List<Widget> existingWidgets) {
 		if (null != existingWidgets) {
-			for (Widget existingWidget : existingWidgets) {
-				expect(existingWidget.getName().equals(newWidgetName), equalTo(false))
-						.verify(RESOURCE_ALREADY_EXISTS, newWidgetName);
-			}
+			existingWidgets.forEach(existingWidget -> expect(existingWidget.getName().equals(newWidgetName), equalTo(false))
+					.verify(RESOURCE_ALREADY_EXISTS, newWidgetName));
 		}
 	}
 }

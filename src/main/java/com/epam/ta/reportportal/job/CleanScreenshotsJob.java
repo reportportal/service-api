@@ -17,36 +17,31 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.job;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.epam.ta.reportportal.database.DataStorage;
 import com.epam.ta.reportportal.database.Time;
+import com.epam.ta.reportportal.database.dao.LogRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.project.KeepScreenshotsDelay;
+import com.mongodb.gridfs.GridFSDBFile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.epam.ta.reportportal.database.DataStorage;
-import com.epam.ta.reportportal.database.dao.LogRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.entity.Log;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.project.KeepScreenshotsDelay;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.mongodb.gridfs.GridFSDBFile;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Clear screenshots from GridFS in accordance with projects settings
- * 
+ *
  * @author Andrei_Ramanchuk
  */
 @Service
 public class CleanScreenshotsJob implements Runnable {
-
-	final static String PHOTO_PREFIX = "photo_";
 
 	@Autowired
 	private DataStorage gridFS;
@@ -60,28 +55,17 @@ public class CleanScreenshotsJob implements Runnable {
 	@Override
 	@Scheduled(cron = "${com.ta.reportportal.job.clean.screenshots.cron}")
 	public void run() {
-		List<Project> projects = projectRepository.findAll();
-		for (Project project : projects) {
-			Time period = Time.days(KeepScreenshotsDelay.findByName(project.getConfiguration().getKeepScreenshots()).getDays());
-			List<GridFSDBFile> files = gridFS.findModifiedLaterAgo(period, project.getId());
-			/* Clear binary_content fields from log repository */
-			files.stream().filter(file -> !file.getFilename().startsWith(PHOTO_PREFIX)).forEach(file -> {
-				gridFS.deleteData(file.getId().toString());
+		try (Stream<Project> projects = projectRepository.streamAllIdsAndConfiguration()) {
+			projects.forEach(project -> {
+				Time period = Time.days(KeepScreenshotsDelay.findByName(project.getConfiguration().getKeepScreenshots()).getDays());
+				List<GridFSDBFile> files = gridFS.findModifiedLaterAgo(period, project.getId());
 				/* Clear binary_content fields from log repository */
-				clearLogsBinaryContent(file.getId().toString());
+				files.forEach(file -> {
+					gridFS.deleteData(file.getId().toString());
+					/* Clear binary_content fields from log repository */
+					logRepository.removeBinaryContent(file.getId().toString());
+				});
 			});
-		}
-	}
-
-	private void clearLogsBinaryContent(String fileId) {
-		List<Log> logList = logRepository.findLogsByFileId(fileId).stream().map(log -> {
-			log.setBinaryContent(null);
-			return log;
-		}).collect(Collectors.toList());
-		try {
-			logRepository.save(logList);
-		} catch (Exception e) {
-			throw new ReportPortalException("Exception during update binary content field of Log item", e);
 		}
 	}
 }

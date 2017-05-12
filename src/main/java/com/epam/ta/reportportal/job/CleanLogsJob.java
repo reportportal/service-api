@@ -62,7 +62,7 @@ public class CleanLogsJob implements Runnable {
 	@Override
 	@Scheduled(cron = "${com.ta.reportportal.job.clean.logs.cron}")
 	public void run() {
-		try (Stream<Project> stream = projectRepository.streamAllWithKeepLogs()) {
+		try (Stream<Project> stream = projectRepository.streamAllIdsAndConfiguration()) {
 			stream.forEach(project -> {
 				Time period = days(findByName(project.getConfiguration().getKeepLogs()).getDays());
 				activityRepository.deleteModifiedLaterAgo(project.getId(), period);
@@ -72,7 +72,7 @@ public class CleanLogsJob implements Runnable {
 	}
 
 	private void removeOutdatedLogs(String projectId, Time period) {
-		try(Stream<Launch> launchStream = launchRepo.streamIdsByProject(projectId)) {
+		try (Stream<Launch> launchStream = launchRepo.streamIdsByProject(projectId)) {
 			launchStream.forEach(launch -> {
 				try (Stream<TestItem> testItemStream = testItemRepo.streamIdsByLaunch(launch.getId())) {
 					testItemStream.forEach(testItem -> {

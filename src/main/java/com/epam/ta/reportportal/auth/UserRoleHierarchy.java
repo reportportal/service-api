@@ -53,10 +53,8 @@ public class UserRoleHierarchy implements RoleHierarchy {
 
 	public UserRoleHierarchy() {
 		authoritiesMap = new HashMap<>();
-		for (UserRole role : UserRole.values()) {
-			authoritiesMap.put(asAuthority(role), findReachableRoles(role));
-		}
-
+		Arrays.stream(UserRole.values()).forEach(role ->
+				authoritiesMap.put(asAuthority(role), findReachableRoles(role)));
 		/*
 		 * Specify authorities explicitly. It additionally has USER role to allow other services to pass login check
 		 */

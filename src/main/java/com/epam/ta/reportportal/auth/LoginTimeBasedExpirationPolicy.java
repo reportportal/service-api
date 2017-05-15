@@ -21,17 +21,14 @@
 
 package com.epam.ta.reportportal.auth;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
-
-import com.epam.ta.reportportal.database.Time;
-import org.apache.commons.lang3.time.DateUtils;
+import com.epam.ta.reportportal.database.entity.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.epam.ta.reportportal.database.entity.user.User;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
 
 /**
  * Last Login time based expiration policy. If user don't login during provided
@@ -43,15 +40,15 @@ import com.epam.ta.reportportal.database.entity.user.User;
 @Component
 public class LoginTimeBasedExpirationPolicy implements ExpirationPolicy {
 
-	private Time time;
+	private Duration time;
 
-	public LoginTimeBasedExpirationPolicy(Time time) {
+	public LoginTimeBasedExpirationPolicy(Duration time) {
 		this.time = time;
 	}
 
 	@Autowired
 	public LoginTimeBasedExpirationPolicy(@Value("${rp.auth.expire.account.after}") long expirationDays) {
-		this.time = Time.days(expirationDays);
+		this.time = Duration.ofDays(expirationDays);
 	}
 
 	/*
@@ -61,7 +58,7 @@ public class LoginTimeBasedExpirationPolicy implements ExpirationPolicy {
 	 */
 	@Override
 	public Date getExpirationDate() {
-		return DateUtils.addSeconds(Calendar.getInstance().getTime(), (int) (-1 * time.in(TimeUnit.SECONDS)));
+		return Date.from(Instant.now().minusSeconds(time.getSeconds()));
 	}
 
 	/*

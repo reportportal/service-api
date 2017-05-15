@@ -22,18 +22,17 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.database.DataStorage;
-import com.epam.ta.reportportal.database.Time;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.project.KeepScreenshotsDelay;
-import com.mongodb.gridfs.GridFSDBFile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.stream.Stream;
+
+import static java.time.Duration.ofDays;
 
 /**
  * Clear screenshots from GridFS in accordance with projects settings
@@ -43,29 +42,28 @@ import java.util.stream.Stream;
 @Service
 public class CleanScreenshotsJob implements Runnable {
 
-	@Autowired
-	private DataStorage gridFS;
+    @Autowired
+    private DataStorage gridFS;
 
-	@Autowired
-	private ProjectRepository projectRepository;
+    @Autowired
+    private ProjectRepository projectRepository;
 
-	@Autowired
-	private LogRepository logRepository;
+    @Autowired
+    private LogRepository logRepository;
 
-	@Override
-	@Scheduled(cron = "${com.ta.reportportal.job.clean.screenshots.cron}")
-	public void run() {
-		try (Stream<Project> projects = projectRepository.streamAllIdsAndConfiguration()) {
-			projects.forEach(project -> {
-				Time period = Time.days(KeepScreenshotsDelay.findByName(project.getConfiguration().getKeepScreenshots()).getDays());
-				List<GridFSDBFile> files = gridFS.findModifiedLaterAgo(period, project.getId());
-				/* Clear binary_content fields from log repository */
-				files.forEach(file -> {
-					gridFS.deleteData(file.getId().toString());
-					/* Clear binary_content fields from log repository */
-					logRepository.removeBinaryContent(file.getId().toString());
-				});
-			});
-		}
-	}
+    @Override
+    @Scheduled(cron = "${com.ta.reportportal.job.clean.screenshots.cron}")
+    public void run() {
+        try (Stream<Project> projects = projectRepository.streamAllIdsAndConfiguration()) {
+            projects.forEach(project -> gridFS.findModifiedLaterAgo(
+                    ofDays(KeepScreenshotsDelay.findByName(project.getConfiguration().getKeepScreenshots()).getDays()),
+                    project.getId())
+                    .forEach(file -> {
+                        gridFS.deleteData(file.getId().toString());
+                        /* Clear binary_content fields from log repository */
+                        logRepository.removeBinaryContent(file.getId().toString());
+                    })
+            );
+        }
+    }
 }

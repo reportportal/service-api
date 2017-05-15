@@ -17,12 +17,11 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
-import com.epam.ta.reportportal.database.Time;
 import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
@@ -33,14 +32,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static java.time.Duration.ofHours;
+
 /**
  * Finds jobs witn duration more than defined and finishes them with interrupted
  * {@link com.epam.ta.reportportal.database.entity.Status#INTERRUPTED} status
- * 
+ *
  * @author Andrei Varabyeu
  */
 @Service
@@ -69,14 +71,14 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 	public void run() {
 		try (Stream<Project> projects = projectRepository.streamAllIdsAndConfiguration()) {
 			projects.forEach(project -> {
-				Time maxDuration = Time.hours(InterruptionJobDelay.findByName(project.getConfiguration().getInterruptJobTime()).getPeriod());
-				List<Launch> launches = launchRepository.findModifiedLaterAgo(maxDuration, Status.IN_PROGRESS, project.getId());
-				for (Launch launch : launches) {
+				Duration maxDuration = ofHours(InterruptionJobDelay
+                        .findByName(project.getConfiguration().getInterruptJobTime()).getPeriod());
+				launchRepository.findModifiedLaterAgo(maxDuration, Status.IN_PROGRESS, project.getId()).forEach(launch -> {
 					if (!launchRepository.hasItems(launch, Status.IN_PROGRESS)) {
-					/*
-					 * There are no test items for this launch. Just INTERRUPT
-					 * this launch
-					 */
+                    /*
+                     * There are no test items for this launch. Just INTERRUPT
+                     * this launch
+                     */
 						interruptLaunch(launch);
 					} else {
 					/*
@@ -111,13 +113,12 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 							/*
 							 * If not just INTERRUPT all found items and launch
 							 */
-								List<TestItem> itemsInProgress = testItemRepository.findInStatusItems(Status.IN_PROGRESS.name(),
-										launch.getId());
-								interruptItems(itemsInProgress, launch);
+								interruptItems(testItemRepository.findInStatusItems(Status.IN_PROGRESS.name(),
+                                        launch.getId()), launch);
 							}
 						}
 					}
-				}
+				});
 			});
 		}
 	}
@@ -156,7 +157,7 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 
 	/**
 	 * Clear failReference collections by specified launch id
-	 * 
+	 *
 	 * @param launchId ID of Launch
 	 */
 	private void clearIssueReferences(String launchId) {

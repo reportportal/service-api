@@ -21,35 +21,6 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.database.search.Condition.*;
-import static com.epam.ta.reportportal.events.handler.ExternalSystemActivityHandler.UPDATE;
-import static com.epam.ta.reportportal.events.handler.LaunchActivityHandler.*;
-import static com.epam.ta.reportportal.events.handler.ProjectActivityHandler.UPDATE_PROJECT;
-import static com.epam.ta.reportportal.events.handler.TicketActivitySubscriber.POST_ISSUE;
-import static com.epam.ta.reportportal.events.handler.UserActivityHandler.CREATE_USER;
-import static com.epam.ta.reportportal.events.handler.WidgetActivityEventHandler.SHARE;
-import static com.epam.ta.reportportal.events.handler.WidgetActivityEventHandler.UNSHARE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
-import static java.util.stream.Collectors.toList;
-import static org.springframework.data.domain.Sort.Direction.DESC;
-
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.util.*;
-import java.util.Map.Entry;
-
-import com.epam.ta.reportportal.ws.model.Page;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.project.IGetProjectInfoHandler;
 import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
@@ -64,10 +35,40 @@ import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.events.handler.ExternalSystemActivityHandler;
 import com.epam.ta.reportportal.ws.converter.ProjectInfoResourceAssembler;
+import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.project.LaunchesPerUser;
 import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.Lists;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.util.*;
+import java.util.Map.Entry;
+
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.database.search.Condition.*;
+import static com.epam.ta.reportportal.events.handler.ExternalSystemActivityHandler.UPDATE;
+import static com.epam.ta.reportportal.events.handler.LaunchActivityHandler.DELETE;
+import static com.epam.ta.reportportal.events.handler.LaunchActivityHandler.FINISH;
+import static com.epam.ta.reportportal.events.handler.LaunchActivityHandler.START;
+import static com.epam.ta.reportportal.events.handler.ProjectActivityHandler.UPDATE_PROJECT;
+import static com.epam.ta.reportportal.events.handler.TicketActivitySubscriber.POST_ISSUE;
+import static com.epam.ta.reportportal.events.handler.UserActivityHandler.CREATE_USER;
+import static com.epam.ta.reportportal.events.handler.WidgetActivityEventHandler.SHARE;
+import static com.epam.ta.reportportal.events.handler.WidgetActivityEventHandler.UNSHARE;
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
+import static java.util.stream.Collectors.toList;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 /**
  * Get project information for administrator page
@@ -156,7 +157,7 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 		ProjectInfoWidget widgetType = ProjectInfoWidget.findByCode(widgetCode);
 		expect(widgetType, notNull()).verify(BAD_REQUEST_ERROR, widgetCode);
 
-		Map<String, List<ChartObject>> result = new HashMap<>();
+		Map<String, List<ChartObject>> result;
 		List<Launch> allLaunches = getLaunchesForProjectInformation(projectId, interval);
 		switch (widgetType) {
 		case INVESTIGATED:
@@ -178,15 +179,17 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 			result = getLastLaunchStatistics(projectId);
 			break;
 		default:
-			// do nothing
+			// empty result
+			result = Collections.emptyMap();
 		}
 		return result;
 	}
 
 	@SuppressWarnings("serial")
 	private Map<String, List<ChartObject>> getActivities(String projectId, InfoInterval interval) {
-		String value = UPDATE_PROJECT + "," + START + "," + FINISH + "," + DELETE + "," + SHARE + "," + UNSHARE + "," + POST_ISSUE + ","
-				+ CREATE_USER + "," + UPDATE + "," + ExternalSystemActivityHandler.CREATE + "," + ExternalSystemActivityHandler.DELETE;
+		String value = new StringJoiner(",").add(UPDATE_PROJECT).add(START).add(FINISH).add(DELETE).add(SHARE)
+				.add(UNSHARE).add(POST_ISSUE).add(CREATE_USER).add(UPDATE).add(ExternalSystemActivityHandler.CREATE)
+				.add(ExternalSystemActivityHandler.DELETE).toString();
 		int limit = 150;
 		Filter filter = new Filter(Activity.class, new HashSet<FilterCondition>() {
 			{
@@ -212,7 +215,7 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 			if (it.getName() != null) {
 				values.put("name", it.getName());
 			}
-			it.getHistory().entrySet().stream().forEach(entry -> {
+			it.getHistory().entrySet().forEach(entry -> {
 				Activity.FieldValues fieldValues = entry.getValue();
 				values.put(entry.getKey() + "$oldValue", fieldValues == null ? null : entry.getValue().getOldValue());
 				values.put(entry.getKey() + "$newValue", fieldValues == null ? null : entry.getValue().getNewValue());
@@ -221,11 +224,7 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 			return chartObject;
 		}).collect(toList());
 
-		return new HashMap<String, List<ChartObject>>() {
-			{
-				put("result", chartObjects);
-			}
-		};
+		return Collections.singletonMap("result", chartObjects);
 	}
 
 	@SuppressWarnings("serial")
@@ -241,7 +240,7 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 		Optional<Launch> launchOptional = launchRepository.findLastLaunch(projectId, DEFAULT.name());
 
 		if (!launchOptional.isPresent()) {
-			return new HashMap<>();
+			return Collections.emptyMap();
 		}
 		Launch lastLaunch = launchOptional.get();
 		ChartObject chartObject = new ChartObject();
@@ -263,11 +262,8 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 		chartObject.setName(lastLaunch.getName());
 		chartObject.setStartTime(String.valueOf(lastLaunch.getStartTime().getTime()));
 		chartObject.setNumber(lastLaunch.getNumber().toString());
-		return new HashMap<String, List<ChartObject>>() {
-			{
-				put("result", Collections.singletonList(chartObject));
-			}
-		};
+
+		return Collections.singletonMap("result", Collections.singletonList(chartObject));
 	}
 
 	/**

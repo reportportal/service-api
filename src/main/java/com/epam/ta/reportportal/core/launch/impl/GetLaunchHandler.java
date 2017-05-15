@@ -152,7 +152,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 	public Map<String, List<ChartObject>> getLaunchesComparisonInfo(String projectName, String[] ids) {
 		List<Launch> launches = launchRepository.find(Arrays.asList(ids));
 		List<ChartObject> objects = new ArrayList<>(launches.size());
-		for (Launch launch : launches) {
+		launches.forEach(launch -> {
 			ChartObject object = new ChartObject();
 			object.setName(launch.getName());
 			object.setStartTime(String.valueOf(launch.getStartTime().getTime()));
@@ -178,7 +178,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 			computedStatistics.putAll(computeFraction(executionData));
 			object.setValues(computedStatistics);
 			objects.add(object);
-		}
+		});
 		return Collections.singletonMap(RESULT, objects);
 	}
 

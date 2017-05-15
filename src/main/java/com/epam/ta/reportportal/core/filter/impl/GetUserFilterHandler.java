@@ -111,14 +111,14 @@ public class GetUserFilterHandler implements IGetUserFilterHandler {
 	private Map<String, SharedEntity> getMapOfNames(List<UserFilter> filters) {
 		Map<String, SharedEntity> result = new LinkedHashMap<>();
 		if (filters != null) {
-			for (UserFilter userFilter : filters) {
+			filters.forEach(userFilter -> {
 				SharedEntity entity = new SharedEntity();
 				entity.setName(userFilter.getName());
 				if (null != userFilter.getAcl()) {
 					entity.setOwner(userFilter.getAcl().getOwnerUserId());
 				}
 				result.put(userFilter.getId(), entity);
-			}
+			});
 		}
 		return result;
 	}

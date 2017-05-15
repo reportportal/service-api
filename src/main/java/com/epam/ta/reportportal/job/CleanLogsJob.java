@@ -17,23 +17,24 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.database.Time;
 import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.epam.ta.reportportal.database.Time.days;
+import static java.time.Duration.ofDays;
+
 import static com.epam.ta.reportportal.database.entity.project.KeepLogsDelay.findByName;
 
 /**
@@ -64,22 +65,19 @@ public class CleanLogsJob implements Runnable {
 	public void run() {
 		try (Stream<Project> stream = projectRepository.streamAllIdsAndConfiguration()) {
 			stream.forEach(project -> {
-				Time period = days(findByName(project.getConfiguration().getKeepLogs()).getDays());
+				Duration period = ofDays(findByName(project.getConfiguration().getKeepLogs()).getDays());
 				activityRepository.deleteModifiedLaterAgo(project.getId(), period);
 				removeOutdatedLogs(project.getId(), period);
 			});
 		}
 	}
 
-	private void removeOutdatedLogs(String projectId, Time period) {
+	private void removeOutdatedLogs(String projectId, Duration period) {
 		try (Stream<Launch> launchStream = launchRepo.streamIdsByProject(projectId)) {
 			launchStream.forEach(launch -> {
 				try (Stream<TestItem> testItemStream = testItemRepo.streamIdsByLaunch(launch.getId())) {
-					testItemStream.forEach(testItem -> {
-						try (Stream<Log> logStream = logRepo.streamIdsByPeriodAndItem(period, testItem.getId())){
-							logStream.forEach(log -> logRepo.delete(log.getId()));
-						}
-					});
+					logRepo.deleteByPeriodAndItemsRef(period, testItemStream.map(TestItem::getId)
+							.collect(Collectors.toList()));
 				}
 			});
 		}

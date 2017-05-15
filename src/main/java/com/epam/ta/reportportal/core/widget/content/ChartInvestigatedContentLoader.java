@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
 
@@ -44,9 +44,9 @@ import java.util.Map;
  * ContentLoader implementation for <b>Investigated Gadget</b>.<br>
  * Content represents investigated part of issues in percents to <br>
  * all 'To investigate' items.
- * 
+ *
  * @author Andrei_Ramanchuk
- * 
+ *
  */
 @Service("ChartInvestigatedContentLoader")
 public class ChartInvestigatedContentLoader extends StatisticBasedContentLoader implements IContentLoadingStrategy {
@@ -74,17 +74,16 @@ public class ChartInvestigatedContentLoader extends StatisticBasedContentLoader 
 
 	/**
 	 * Convert database query result to chart data
-	 * 
+	 *
 	 * @param initial
 	 * @return
 	 */
 	private Map<String, List<ChartObject>> convertResult(Map<String, List<ChartObject>> initial) {
-		if (initial.size() == 0) {
+		if (initial.isEmpty()) {
 			return Collections.emptyMap();
 		}
-		for (Map.Entry<String, List<ChartObject>> entry : initial.entrySet()) {
-			entry.getValue().forEach(chart -> chart = this.getInvestigationStatistic(chart));
-		}
+        initial.entrySet().stream().flatMap(entry -> entry.getValue().stream())
+                .forEach(chart -> chart = this.getInvestigationStatistic(chart));
 		return initial;
 	}
 

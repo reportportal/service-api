@@ -47,7 +47,6 @@ import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.google.common.collect.ImmutableMap;
 import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -62,6 +61,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -205,26 +205,29 @@ public class GetJasperReportHandler implements IGetJasperReportHandler {
 		return res;
 	}
 
-	private Map<String, Object> processLaunchParams(Launch launch) {
-		ExecutionCounter exec = launch.getStatistics().getExecutionCounter();
-		IssueCounter issue = launch.getStatistics().getIssueCounter();
-		return ImmutableMap.<String, Object>builder()
-				.put(LAUNCH_NAME, launch.getName() + " #" + launch.getNumber())
-				.put(LAUNCH_DESC, launch.getDescription() == null ? "" : launch.getDescription())
-				.put(LAUNCH_TAGS, launch.getTags())
+    private Map<String, Object> processLaunchParams(Launch launch) {
+        Map<String, Object> params = new HashMap<>();
 
-				/* Possible NPE for IN_PROGRESS launches */
-				.put(DURATION, millisToShortDHMS(launch.getEndTime().getTime() - launch.getStartTime().getTime()))
+        params.put(LAUNCH_NAME, launch.getName() + " #" + launch.getNumber());
+        params.put(LAUNCH_DESC, launch.getDescription() == null ? "" : launch.getDescription());
+        params.put(LAUNCH_TAGS, launch.getTags());
 
-				.put(TOTAL, exec.getTotal())
-				.put(PASSED, exec.getPassed())
-				.put(FAILED, exec.getFailed())
-				.put(SKIPPED, exec.getSkipped())
+						/* Possible NPE for IN_PROGRESS launches */
+        params.put(DURATION, millisToShortDHMS(launch.getEndTime().getTime() - launch.getStartTime().getTime()));
 
-				.put(AB, issue.getAutomationBugTotal())
-				.put(PB, issue.getProductBugTotal())
-				.put(SI, issue.getSystemIssueTotal())
-				.put(ND, issue.getNoDefectTotal())
-				.put(TI, issue.getToInvestigateTotal()).build();
-	}
+        ExecutionCounter exec = launch.getStatistics().getExecutionCounter();
+        params.put(TOTAL, exec.getTotal());
+        params.put(PASSED, exec.getPassed());
+        params.put(FAILED, exec.getFailed());
+        params.put(SKIPPED, exec.getSkipped());
+
+        IssueCounter issue = launch.getStatistics().getIssueCounter();
+        params.put(AB, issue.getAutomationBugTotal());
+        params.put(PB, issue.getProductBugTotal());
+        params.put(SI, issue.getSystemIssueTotal());
+        params.put(ND, issue.getNoDefectTotal());
+        params.put(TI, issue.getToInvestigateTotal());
+
+        return params;
+    }
 }

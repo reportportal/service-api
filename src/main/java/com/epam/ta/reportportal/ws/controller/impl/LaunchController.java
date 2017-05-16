@@ -238,8 +238,7 @@ public class LaunchController implements ILaunchController {
 	@ApiOperation("Get all unique owners of project launches")
 	public List<String> getAllOwners(@PathVariable String projectName,
 			 @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + Launch.USER) String value,
-			 @ApiParam(allowableValues = "DEFAULT, DEBUG", defaultValue = "DEFAULT") @RequestParam(value = "mode", required = false) String mode,
-			 Principal principal) {
+			 @RequestParam(value = "mode", required = false, defaultValue = "DEFAULT") String mode, Principal principal) {
 		return getLaunchMessageHandler.getOwners(normalizeProjectName(projectName), value, "userRef", mode);
 	}
 

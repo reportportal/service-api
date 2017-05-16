@@ -52,9 +52,8 @@ public class UserRoleHierarchy implements RoleHierarchy {
 	private Map<GrantedAuthority, Set<GrantedAuthority>> authoritiesMap;
 
 	public UserRoleHierarchy() {
-		authoritiesMap = new HashMap<>();
-		Arrays.stream(UserRole.values()).forEach(role ->
-				authoritiesMap.put(asAuthority(role), findReachableRoles(role)));
+		authoritiesMap = Arrays.stream(UserRole.values())
+				.collect(Collectors.toMap(this::asAuthority, this::findReachableRoles));
 		/*
 		 * Specify authorities explicitly. It additionally has USER role to allow other services to pass login check
 		 */

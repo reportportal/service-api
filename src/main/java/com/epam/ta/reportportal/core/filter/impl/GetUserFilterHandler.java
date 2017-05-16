@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.sharing.Shareable;
 import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.util.MoreCollectors;
 import com.epam.ta.reportportal.ws.converter.UserFilterResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
@@ -38,7 +39,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedHashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -106,20 +107,21 @@ public class GetUserFilterHandler implements IGetUserFilterHandler {
 	 * key - userFilter's id value - shared entity
 	 * 
 	 * @param filters
-	 * @return Map<String, String>
+	 * @return Map<String, SharedEntity>
 	 */
 	private Map<String, SharedEntity> getMapOfNames(List<UserFilter> filters) {
-		Map<String, SharedEntity> result = new LinkedHashMap<>();
+		Map<String, SharedEntity> result = Collections.emptyMap();
 		if (filters != null) {
-			filters.forEach(userFilter -> {
+			result = filters.stream().collect(MoreCollectors.toLinkedMap(UserFilter::getId, filter -> {
 				SharedEntity entity = new SharedEntity();
-				entity.setName(userFilter.getName());
-				if (null != userFilter.getAcl()) {
-					entity.setOwner(userFilter.getAcl().getOwnerUserId());
+				entity.setName(filter.getName());
+				if (null != filter.getAcl()) {
+					entity.setOwner(filter.getAcl().getOwnerUserId());
 				}
-				result.put(userFilter.getId(), entity);
-			});
+				return entity;
+			}));
 		}
+
 		return result;
 	}
 }

@@ -30,9 +30,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of
@@ -67,8 +67,8 @@ public class OverallStatisticsContentLoader extends StatisticBasedContentLoader 
 	 * @return
 	 */
 	private Map<String, List<ChartObject>> assembleData(Map<String, Integer> data) {
-		Map<String, String> values = new HashMap<>(data.keySet().size());
-		data.keySet().forEach(key -> values.put(getFieldName(key), data.get(key).toString()));
+		Map<String, String> values = data.keySet().stream()
+				.collect(Collectors.toMap(this::getFieldName, key -> data.get(key).toString()));
 		ChartObject chartObject = new ChartObject();
 		chartObject.setValues(values);
 		return Collections.singletonMap(RESULT, Collections.singletonList(chartObject));

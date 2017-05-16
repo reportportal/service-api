@@ -98,6 +98,7 @@
 ### New Features
 
 * EPMRPP-25011 - Created demo data generation for project with test based strategy
+* EPMRPP-25456 - Reduced memory usage by scheduled jobs
 
 ### Bugfixes
 
@@ -108,3 +109,4 @@
 * EPMRPP-25434 - Remove attached logo from email letter
 * EPMRPP-25424 - Request with empty recipients are sent to server with set notifications to OFF
 * EPMRPP-25433 - No custom defects are in the email letter on launch finished.
+* EPMRPP-25474 - Filtering: No suggestion results for search by owner of the launch

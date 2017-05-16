@@ -21,25 +21,6 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import static com.epam.ta.reportportal.commons.Preconditions.IN_PROGRESS;
-import static com.epam.ta.reportportal.commons.Preconditions.hasProjectRoles;
-import static com.epam.ta.reportportal.commons.Predicates.*;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.LEAD;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
-import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
-
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.launch.IDeleteLaunchHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
@@ -51,6 +32,23 @@ import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.events.LaunchDeletedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+import static com.epam.ta.reportportal.commons.Preconditions.IN_PROGRESS;
+import static com.epam.ta.reportportal.commons.Preconditions.hasProjectRoles;
+import static com.epam.ta.reportportal.commons.Predicates.*;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.LEAD;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 /**
  * Default implementation of {@link IDeleteLaunchHandler}
@@ -95,17 +93,15 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 	}
 
 	@Override
-	public List<OperationCompletionRS> deleteLaunches(String[] ids, String projectName, String userName) {
+	public OperationCompletionRS deleteLaunches(String[] ids, String projectName, String userName) {
 		final List<String> toDelete = asList(ids);
 		final List<Launch> launches = launchRepository.find(toDelete);
 		final User user = userRepository.findOne(userName);
 		final Project project = projectRepository.findOne(projectName);
 		launches.forEach(launch -> validate(launch, user, project));
 		launchRepository.delete(toDelete);
-		return launches.stream().map(launch -> {
-			eventPublisher.publishEvent(new LaunchDeletedEvent(launch, userName));
-			return new OperationCompletionRS("Launch with ID = '" + launch.getId() + "' successfully deleted.");
-		}).collect(toList());
+		launches.forEach(launch -> eventPublisher.publishEvent(new LaunchDeletedEvent(launch, userName)));
+		return new OperationCompletionRS("All selected launches have been successfully deleted");
 	}
 
 	private void validate(Launch launch, User user, Project project) {

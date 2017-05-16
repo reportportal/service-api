@@ -154,11 +154,12 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
     /**
      * Merges test items with suite type that have same name.
+     *
      * @param projectName
      * @param launchTarget merge into
      * @param launchesList list of launches that will be merged
      * @param userName
-     * @param strategy merging strategy
+     * @param strategy     merging strategy
      */
     private void mergeSameSuites(String projectName, Launch launchTarget, Set<String> launchesList, String userName, String strategy) {
         testItemRepository.findItemsWithType(launchTarget.getId(), TestItemType.SUITE).forEach(suit ->
@@ -195,7 +196,6 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
         Launch launch = launchBuilder.get().addStartRQ(startRQ).addProject(projectName).addStatus(IN_PROGRESS).addUser(userName).build();
         launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
-        launch.setEndTime(mergeLaunchesRQ.getEndTime());
 
         launchRepository.save(launch);
 
@@ -209,6 +209,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         launch = launchRepository.findOne(launch.getId());
         launch.setStatus(StatisticsHelper.getStatusFromStatistics(launch.getStatistics()));
 
+        launch.setEndTime(mergeLaunchesRQ.getEndTime());
         launchRepository.save(launch);
         launchRepository.delete(launchesIds);
 
@@ -253,7 +254,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
      *
      * @param launchId
      */
-    private List<TestItem> updateChildrenOfLaunch(String launchId, Set<String> launches, boolean extendDescription) {
+    private void updateChildrenOfLaunch(String launchId, Set<String> launches, boolean extendDescription) {
         List<TestItem> testItems = launches.stream().flatMap(id -> {
             Launch launch = launchRepository.findOne(id);
             return testItemRepository.findByLaunch(launch).stream().map(item -> {
@@ -269,7 +270,5 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
             });
         }).collect(toList());
         testItemRepository.save(testItems);
-        return testItems.stream().filter(item -> item.getType().sameLevel(TestItemType.SUITE)).collect(toList());
     }
-
 }

@@ -17,37 +17,32 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.job;
 
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.List;
-
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
-import com.epam.ta.reportportal.database.Time;
+import com.epam.ta.reportportal.database.dao.*;
+import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.Status;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.project.InterruptionJobDelay;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.util.Calendar;
+import java.util.List;
+import java.util.stream.Stream;
 
-import com.epam.ta.reportportal.database.dao.FailReferenceResourceRepository;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.LogRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.Status;
-import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.project.InterruptionJobDelay;
+import static java.time.Duration.ofHours;
 
 /**
  * Finds jobs witn duration more than defined and finishes them with interrupted
  * {@link com.epam.ta.reportportal.database.entity.Status#INTERRUPTED} status
- * 
+ *
  * @author Andrei Varabyeu
  */
 @Service
@@ -74,80 +69,78 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 	@Override
 	@Scheduled(cron = "${com.ta.reportportal.job.interrupt.broken.launches.cron}")
 	public void run() {
-		List<Project> projects = projectRepository.findAll();
-		for (Project project : projects) {
-			Time maxDuration = Time.hours(InterruptionJobDelay.findByName(project.getConfiguration().getInterruptJobTime()).getPeriod());
-			List<Launch> launches = launchRepository.findModifiedLaterAgo(maxDuration, Status.IN_PROGRESS, project.getId());
-			for (Launch launch : launches) {
-				if (!launchRepository.hasItems(launch, Status.IN_PROGRESS)) {
-					/*
-					 * There are no test items for this launch. Just INTERRUPT
-					 * this launch
-					 */
-					interruptLaunches(Collections.singletonList(launch));
-				} else {
+		try (Stream<Project> projects = projectRepository.streamAllIdsAndConfiguration()) {
+			projects.forEach(project -> {
+				Duration maxDuration = ofHours(InterruptionJobDelay
+                        .findByName(project.getConfiguration().getInterruptJobTime()).getPeriod());
+				launchRepository.findModifiedLaterAgo(maxDuration, Status.IN_PROGRESS, project.getId()).forEach(launch -> {
+					if (!launchRepository.hasItems(launch, Status.IN_PROGRESS)) {
+                    /*
+                     * There are no test items for this launch. Just INTERRUPT
+                     * this launch
+                     */
+						interruptLaunch(launch);
+					} else {
 					/*
 					 * Well, there are some test items started for specified
 					 * launch
 					 */
 
-					if (!testItemRepository.hasTestItemsAddedLately(maxDuration, launch, Status.IN_PROGRESS)) {
-						List<TestItem> items = testItemRepository.findModifiedLaterAgo(maxDuration, Status.IN_PROGRESS, launch);
+						if (!testItemRepository.hasTestItemsAddedLately(maxDuration, launch, Status.IN_PROGRESS)) {
+							List<TestItem> items = testItemRepository.findModifiedLaterAgo(maxDuration, Status.IN_PROGRESS, launch);
 
 						/*
 						 * If there are logs, we have to check whether them
 						 * expired
 						 */
-						if (testItemRepository.hasLogs(items)) {
-							boolean isLaunchBroken = true;
-							for (TestItem item : items) {
+							if (testItemRepository.hasLogs(items)) {
+								boolean isLaunchBroken = true;
+								for (TestItem item : items) {
 								/*
 								 * If there are logs which are still valid
 								 * (probably automation project keep writing
 								 * something)
 								 */
-								if (logRepository.hasLogsAddedLately(maxDuration, item)) {
-									isLaunchBroken = false;
-									break;
+									if (logRepository.hasLogsAddedLately(maxDuration, item)) {
+										isLaunchBroken = false;
+										break;
+									}
 								}
-							}
-							if (isLaunchBroken) {
-								interruptItems(testItemRepository.findInStatusItems(Status.IN_PROGRESS.name(), launch.getId()), launch);
-							}
-						} else {
+								if (isLaunchBroken) {
+									interruptItems(testItemRepository.findInStatusItems(Status.IN_PROGRESS.name(), launch.getId()), launch);
+								}
+							} else {
 							/*
 							 * If not just INTERRUPT all found items and launch
 							 */
-							List<TestItem> itemsInProgress = testItemRepository.findInStatusItems(Status.IN_PROGRESS.name(),
-									launch.getId());
-							interruptItems(itemsInProgress, launch);
+								interruptItems(testItemRepository.findInStatusItems(Status.IN_PROGRESS.name(),
+                                        launch.getId()), launch);
+							}
 						}
 					}
-				}
-			}
+				});
+			});
 		}
 	}
 
-	private void interruptLaunches(List<Launch> launches) {
-		for (Launch launch : launches) {
-			launch.setStatus(Status.INTERRUPTED);
-			launch.setEndTime(Calendar.getInstance().getTime());
-			launchRepository.save(launch);
-			/*
-			 * Delete references on failed\skipped tests in launch. It cannot be
-			 * used in main function cause break operators for valid launches.
-			 * For valid launches references from FailReference collections
-			 * should be kept.
-			 */
-			this.clearIssueReferences(launch.getId());
-		}
+	private void interruptLaunch(Launch launch) {
+		launch.setStatus(Status.INTERRUPTED);
+		launch.setEndTime(Calendar.getInstance().getTime());
+		launchRepository.save(launch);
+		/*
+		 * Delete references on failed\skipped tests in launch. It cannot be
+		 * used in main function cause break operators for valid launches.
+		 * For valid launches references from FailReference collections
+		 * should be kept.
+		 */
+		this.clearIssueReferences(launch.getId());
 	}
 
 	private void interruptItems(List<TestItem> testItems, Launch launch) {
 		if (testItems.isEmpty()) {
 			return;
 		}
-		testItems.forEach(this::interruptItem);
+		testItems.forEach(item -> interruptItem(item, launch));
 
 		Launch launchReloaded = launchRepository.findOne(launch.getId());
 		launchReloaded.setStatus(Status.INTERRUPTED);
@@ -164,15 +157,14 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 
 	/**
 	 * Clear failReference collections by specified launch id
-	 * 
+	 *
 	 * @param launchId ID of Launch
 	 */
 	private void clearIssueReferences(String launchId) {
-		List<FailReferenceResource> issues = issuesRepository.findAllLaunchIssues(launchId);
-		issuesRepository.delete(issues);
+		issuesRepository.deleteAllIssuesForLaunch(launchId);
 	}
 
-	private void interruptItem(TestItem item) {
+	private void interruptItem(TestItem item, Launch launch) {
 		/*
 		 * If not interrupted yet
 		 */
@@ -182,7 +174,7 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 			item = testItemRepository.save(item);
 
 			if (!item.hasChilds()) {
-				Project project = projectRepository.findOne(launchRepository.findOne(item.getLaunchRef()).getProjectRef());
+				Project project = projectRepository.findOne(launch.getProjectRef());
 				item = statisticsFacadeFactory
 						.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.updateExecutionStatistics(item);
@@ -194,7 +186,7 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 			}
 
 			if (null != item.getParent()) {
-				interruptItem(testItemRepository.findOne(item.getParent()));
+				interruptItem(testItemRepository.findOne(item.getParent()), launch);
 			}
 		}
 	}

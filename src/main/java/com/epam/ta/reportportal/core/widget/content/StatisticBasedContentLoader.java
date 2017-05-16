@@ -21,14 +21,13 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
+import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import org.joda.time.DateTime;
+
 import java.util.*;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import org.joda.time.DateTime;
-
-import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 
 /**
  * Base class for content loaders {@link IContentLoadingStrategy}<br>
@@ -40,6 +39,7 @@ import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 public class StatisticBasedContentLoader {
 
 	public static final String RESULT = "result";
+	public static final String TIMELINE = "timeline";
 
 	private static final List<String> STATZZ = Arrays.asList("statistics.executionCounter.passed", "statistics.executionCounter.failed",
 			"statistics.executionCounter.skipped");
@@ -138,7 +138,7 @@ public class StatisticBasedContentLoader {
 			range.put(group, axisObject);
 		}
 
-		range.keySet().stream().forEach(date -> result.put(date, Collections.singletonList(range.get(date))));
+		range.keySet().forEach(date -> result.put(date, Collections.singletonList(range.get(date))));
 		return result;
 	}
 
@@ -186,7 +186,7 @@ public class StatisticBasedContentLoader {
 		DateTime intermediate = start;
 		final LinkedHashMap<String, ChartObject> map = new LinkedHashMap<>();
 		if (base.isEmpty())
-			return map;
+			return Collections.emptyMap();
 		while (intermediate.isBefore(end)) {
 			map.put(intermediate.toString(DATE_PATTERN), createChartObject(base.get(0)));
 			switch (period) {
@@ -232,12 +232,8 @@ public class StatisticBasedContentLoader {
 		}
 
 		public static Period findByName(String name) {
-			for (Period time : Period.values()) {
-				if (time.name().equals(name)) {
-					return time;
-				}
-			}
-			return null;
+			return Arrays.stream(Period.values()).filter(time -> time.name()
+					.equalsIgnoreCase(name)).findAny().orElse(null);
 		}
 
 		public static Period getByName(String time) {

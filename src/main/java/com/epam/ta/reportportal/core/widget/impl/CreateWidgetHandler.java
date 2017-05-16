@@ -21,19 +21,6 @@
 
 package com.epam.ta.reportportal.core.widget.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.core.widget.content.GadgetTypes.*;
-import static com.epam.ta.reportportal.core.widget.impl.WidgetUtils.*;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.acl.AclUtils;
 import com.epam.ta.reportportal.core.acl.SharingService;
 import com.epam.ta.reportportal.core.widget.ICreateWidgetHandler;
@@ -50,8 +37,18 @@ import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.google.common.collect.Lists;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
+import java.util.List;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.core.widget.content.GadgetTypes.*;
+import static com.epam.ta.reportportal.core.widget.impl.WidgetUtils.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Default implementation of {@link ICreateWidgetHandler}

@@ -21,23 +21,10 @@
 
 package com.epam.ta.reportportal.core.widget.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.core.widget.content.GadgetTypes.*;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-
-import java.util.List;
-
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.acl.AclUtils;
 import com.epam.ta.reportportal.core.acl.SharingService;
 import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
@@ -52,8 +39,20 @@ import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.SerializationUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
+import java.util.List;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.core.widget.content.GadgetTypes.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Default implementation of {@link IUpdateWidgetHandler}
@@ -88,7 +87,7 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 	@Override
 	public OperationCompletionRS updateWidget(String widgetId, WidgetRQ updateRQ, String userName, String projectName) {
 		Widget widget = widgetRepository.findOne(widgetId);
-		Widget beforeUpdate = org.apache.commons.lang3.SerializationUtils.clone(widget);
+		Widget beforeUpdate = SerializationUtils.clone(widget);
 		expect(widget, notNull()).verify(WIDGET_NOT_FOUND, widgetId);
 
 		List<Widget> widgetList = widgetRepository.findByProjectAndUser(projectName, userName);

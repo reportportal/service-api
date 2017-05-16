@@ -17,18 +17,9 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -37,11 +28,19 @@ import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Implementation of {@link IContentLoadingStrategy} for line chart
- * 
+ *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
  */
@@ -59,20 +58,15 @@ public class LineChartContentLoader extends StatisticBasedContentLoader implemen
 		BusinessRule.expect(metaDataFields == null || metaDataFields.isEmpty(), Predicates.equalTo(Boolean.FALSE))
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Metadata fields should exist for providing content.");
 
-		List<String> allFields = Lists.newArrayList(contentFields);
-		List<String> xAxis = metaDataFields;
-		allFields.addAll(xAxis);
-		StatisticsDocumentHandler handler = new StatisticsDocumentHandler(contentFields, xAxis);
-
+		List<String> allFields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
+		StatisticsDocumentHandler handler = new StatisticsDocumentHandler(contentFields, metaDataFields);
 		String collectionName = getCollectionName(filter.getTarget());
 
-		// here can be used any repository which extends ReposrtPortalRepository
+		// here can be used any repository which extends ReportPortalRepository
 		launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, collectionName);
-		if ((options.get("timeline") != null) && (Period.findByName(options.get("timeline").get(0)) != null)) {
-			return groupByDate(handler.getResult(), Period.findByName(options.get("timeline").get(0)));
+		if ((options.get(TIMELINE) != null) && (Period.findByName(options.get(TIMELINE).get(0)) != null)) {
+			return groupByDate(handler.getResult(), Period.findByName(options.get(TIMELINE).get(0)));
 		}
-		Map<String, List<ChartObject>> result = new HashMap<>();
-		result.put(RESULT, handler.getResult());
-		return result;
+		return Collections.singletonMap(RESULT, handler.getResult());
 	}
 }

@@ -241,5 +241,5 @@ public interface ILaunchController {
 	void getLaunchReport(String projectName, String launchId, String view, Principal principal, HttpServletResponse response)
 			throws IOException;
 
-	List<OperationCompletionRS> deleteLaunches(String projectName, String[] ids, Principal principal);
+	OperationCompletionRS deleteLaunches(String projectName, String[] ids, Principal principal);
 }

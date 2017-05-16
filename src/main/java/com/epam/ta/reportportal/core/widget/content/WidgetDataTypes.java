@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.widget.content;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -63,14 +64,7 @@ public enum WidgetDataTypes {
 	}
 
 	public static Optional<WidgetDataTypes> findByName(@Nullable String input) {
-		if (null == input) {
-			return Optional.empty();
-		}
-		for (WidgetDataTypes widgetDataType : WidgetDataTypes.values()) {
-			if (widgetDataType.getType().equals(input)) {
-				return Optional.of(widgetDataType);
-			}
-		}
-		return Optional.empty();
+		return Arrays.stream(WidgetDataTypes.values()).filter(widgetDataType -> widgetDataType.getType()
+				.equalsIgnoreCase(input)).findAny();
 	}
 }

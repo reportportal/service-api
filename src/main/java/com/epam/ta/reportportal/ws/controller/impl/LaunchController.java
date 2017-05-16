@@ -238,8 +238,7 @@ public class LaunchController implements ILaunchController {
 	@ApiOperation("Get all unique owners of project launches")
 	public List<String> getAllOwners(@PathVariable String projectName,
 			 @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + Launch.USER) String value,
-			 @ApiParam(allowableValues = "DEFAULT, DEBUG", defaultValue = "DEFAULT") @RequestParam(value = "mode", required = false) String mode,
-			 Principal principal) {
+			 @RequestParam(value = "mode", required = false, defaultValue = "DEFAULT") String mode, Principal principal) {
 		return getLaunchMessageHandler.getOwners(normalizeProjectName(projectName), value, "userRef", mode);
 	}
 
@@ -336,7 +335,7 @@ public class LaunchController implements ILaunchController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified launches by ids")
-	public List<OperationCompletionRS> deleteLaunches(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
+	public OperationCompletionRS deleteLaunches(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
 			Principal principal) {
 		return deleteLaunchMessageHandler.deleteLaunches(ids, projectName, principal.getName());
 	}

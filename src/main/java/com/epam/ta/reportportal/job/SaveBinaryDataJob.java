@@ -21,23 +21,22 @@
 
 package com.epam.ta.reportportal.job;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
+import com.epam.reportportal.commons.Thumbnailator;
 import com.epam.ta.reportportal.database.BinaryData;
 import com.epam.ta.reportportal.database.DataStorage;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.entity.BinaryContent;
 import com.epam.ta.reportportal.database.entity.Log;
-import com.epam.reportportal.commons.Thumbnailator;
 import com.google.common.base.Preconditions;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Save binary data job. Expected to be executed asynchronously. Statefull, so
@@ -81,8 +80,7 @@ public class SaveBinaryDataJob implements Runnable {
 	public void run() {
 
 		String thumbnailId = null;
-		Map<String, String> metadata = new HashMap<>();
-		metadata.put("project", project);
+		Map<String, String> metadata = Collections.singletonMap("project", project);
 
 		if (isImage(binaryData)) {
 			try {

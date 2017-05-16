@@ -21,19 +21,20 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.ActivityDocumentHandler;
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import com.google.common.collect.ImmutableList;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader.RESULT;
 
 /**
  * @author Dzmitry_Kavalets
@@ -49,16 +50,11 @@ public class ActivityContentLoader implements IContentLoadingStrategy {
 	@Override
 	public Map<String, List<ChartObject>> loadContent(Filter filter, Sort sorting, int quantity, List<String> contentFields,
 			List<String> metaDataFields, Map<String, List<String>> options) {
-
 		ActivityDocumentHandler activityDocumentHandler = new ActivityDocumentHandler();
-
-		ArrayList<String> fields = new ArrayList<>();
-		fields.addAll(contentFields);
-		fields.addAll(metaDataFields);
-
+		List<String> fields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
 		activityRepository.loadWithCallback(filter, sorting, quantity, fields, activityDocumentHandler, COLLECTION_NAME);
 		Map<String, List<ChartObject>> result = new HashMap<>();
-		result.put("result", activityDocumentHandler.getResult());
+		result.put(RESULT, activityDocumentHandler.getResult());
 		return result;
 	}
 }

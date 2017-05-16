@@ -21,15 +21,6 @@
 
 package com.epam.ta.reportportal.core.filter.impl;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
@@ -42,8 +33,13 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Default implementation of {@link ICreateUserFilterHandler}
@@ -66,14 +62,10 @@ public class CreateUserFilterHandler implements ICreateUserFilterHandler {
 	@Override
 	public List<EntryCreatedRS> createFilter(String userName, String projectName, CollectionsRQ<CreateUserFilterRQ> createFilterRQ) {
 
-		List<UserFilter> filters = new ArrayList<>();
-
 		// validate request
-		for (CreateUserFilterRQ rq : createFilterRQ.getElements()) {
-
+		List<UserFilter> filters = createFilterRQ.getElements().stream().map(rq -> {
 			Set<UserFilterEntity> updatedEntries = userFilterService
 					.validateUserFilterEntities(ObjectType.getTypeByName(rq.getObjectType()), rq.getEntities());
-
 			/*
 			 * If Entries contains new statistic model, update it avoid
 			 * validation conflicts
@@ -86,8 +78,9 @@ public class CreateUserFilterHandler implements ICreateUserFilterHandler {
 
 			userFilterService.validateSortingColumnName(userFilter.getFilter().getTarget(),
 					userFilter.getSelectionOptions().getSortingColumnName());
-			filters.add(userFilter);
-		}
+			return userFilter;
+		}).collect(Collectors.toList());
+
 		// temporary removed - reason memory problems with compound indexes
 		// by 3
 		// added synchronization because if user1 in one session checked
@@ -95,13 +88,13 @@ public class CreateUserFilterHandler implements ICreateUserFilterHandler {
 		// filter name is unique
 		// it should be unique until user1 save this filter
 		// check than act situation
-		Set<String> filterNames = new HashSet<>();
+		Set<String> filterNames;
 
 		synchronized (this) {
-			for (UserFilter userFilter : filters) {
+			filterNames = filters.stream().map(userFilter -> {
 				userFilterService.isFilterNameUnique(userName, userFilter.getName().trim(), projectName);
-				filterNames.add(userFilter.getName());
-			}
+				return userFilter.getName();
+			}).collect(Collectors.toSet());
 			BusinessRule.expect(filterNames.size(), Predicates.equalTo(filters.size())).verify(ErrorType.BAD_SAVE_USER_FILTER_REQUEST);
 			filterRepository.save(filters);
 		}

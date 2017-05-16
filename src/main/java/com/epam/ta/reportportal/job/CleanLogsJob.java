@@ -17,23 +17,25 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.job;
 
-import static com.epam.ta.reportportal.database.Time.days;
-import static com.epam.ta.reportportal.database.entity.project.KeepLogsDelay.findByName;
-
-import com.epam.ta.reportportal.database.Time;
+import com.epam.ta.reportportal.database.dao.*;
+import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.epam.ta.reportportal.database.dao.ActivityRepository;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.LogRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import java.time.Duration;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.time.Duration.ofDays;
+
+import static com.epam.ta.reportportal.database.entity.project.KeepLogsDelay.findByName;
 
 /**
  * Clean logs job in accordance with project settings
@@ -61,15 +63,23 @@ public class CleanLogsJob implements Runnable {
 	@Override
 	@Scheduled(cron = "${com.ta.reportportal.job.clean.logs.cron}")
 	public void run() {
-		projectRepository.findAll().forEach(project -> {
-			Time period = days(findByName(project.getConfiguration().getKeepLogs()).getDays());
-			activityRepository.deleteModifiedLaterAgo(project.getId(), period);
-			removeOutdatedLogs(project.getId(), period);
-		});
+		try (Stream<Project> stream = projectRepository.streamAllIdsAndConfiguration()) {
+			stream.forEach(project -> {
+				Duration period = ofDays(findByName(project.getConfiguration().getKeepLogs()).getDays());
+				activityRepository.deleteModifiedLaterAgo(project.getId(), period);
+				removeOutdatedLogs(project.getId(), period);
+			});
+		}
 	}
 
-	private void removeOutdatedLogs(String projectId, Time period) {
-		launchRepo.findLaunchIdsByProjectId(projectId).stream().map(launch -> testItemRepo.findIdsByLaunch(launch.getId()))
-				.map(testItems -> logRepo.findModifiedLaterAgo(period, testItems)).forEach(logs -> logRepo.delete(logs));
+	private void removeOutdatedLogs(String projectId, Duration period) {
+		try (Stream<Launch> launchStream = launchRepo.streamIdsByProject(projectId)) {
+			launchStream.forEach(launch -> {
+				try (Stream<TestItem> testItemStream = testItemRepo.streamIdsByLaunch(launch.getId())) {
+					logRepo.deleteByPeriodAndItemsRef(period, testItemStream.map(TestItem::getId)
+							.collect(Collectors.toList()));
+				}
+			});
+		}
 	}
 }

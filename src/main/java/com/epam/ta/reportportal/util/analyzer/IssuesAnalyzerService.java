@@ -36,17 +36,6 @@
  */
 package com.epam.ta.reportportal.util.analyzer;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.item.history.ITestItemsHistoryService;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
@@ -63,7 +52,17 @@ import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Basic implementation of {@link IIssuesAnalyzer}
@@ -129,7 +128,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	public void analyze(String launchId, List<TestItem> resources, List<TestItem> scope) {
 		try {
 			for (TestItem current : resources) {
-				List<Double> curRate = Lists.newArrayList();
+				List<Double> curRate = new ArrayList<>();
 				TestItemIssue issue = null;
 				boolean isInvestigated = false;
 				List<Log> curItemErr = logRepository.findTestItemErrorLogs(current.getId());

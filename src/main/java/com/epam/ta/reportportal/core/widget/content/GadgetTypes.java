@@ -22,8 +22,8 @@
 package com.epam.ta.reportportal.core.widget.content;
 
 import javax.annotation.Nullable;
-
-import com.google.common.base.Optional;
+import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * Types of gadgets for Report Portal
@@ -64,14 +64,7 @@ public enum GadgetTypes {
 	}
 
 	public static Optional<GadgetTypes> findByName(@Nullable String name) {
-		if (null == name) {
-			return Optional.absent();
-		}
-		for (GadgetTypes gadgetType : GadgetTypes.values()) {
-			if (gadgetType.getType().equals(name)) {
-				return Optional.of(gadgetType);
-			}
-		}
-		return Optional.absent();
+		return Arrays.stream(GadgetTypes.values()).filter(gadgetTypes -> gadgetTypes.getType()
+				.equalsIgnoreCase(name)).findAny();
 	}
 }

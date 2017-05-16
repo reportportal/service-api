@@ -70,8 +70,9 @@ public class GeneralFilterStrategy implements BuildFilterStrategy {
 			String projectName) {
 		Filter searchFilter = userFilter.getFilter();
 		if (searchFilter.getTarget().getSimpleName().equalsIgnoreCase(TestItem.class.getSimpleName())) {
-			if (null != contentOptions.getMetadataFields() && contentOptions.getMetadataFields().contains(WidgetUtils.NUMBER))
+			if (null != contentOptions.getMetadataFields() && contentOptions.getMetadataFields().contains(WidgetUtils.NUMBER)) {
 				contentOptions.getMetadataFields().remove(WidgetUtils.NUMBER);
+			}
 		}
 		// all widget content should be selected per project, so added
 		// additional condition to filter

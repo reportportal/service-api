@@ -110,3 +110,4 @@
 * EPMRPP-25424 - Request with empty recipients are sent to server with set notifications to OFF
 * EPMRPP-25433 - No custom defects are in the email letter on launch finished.
 * EPMRPP-25474 - Filtering: No suggestion results for search by owner of the launch
+* EPMRPP-25506 - Deleted by PM not own shared widget is not removed from the system (DB)

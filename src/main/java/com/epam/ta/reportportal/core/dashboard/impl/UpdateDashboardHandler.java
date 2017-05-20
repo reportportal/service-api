@@ -150,16 +150,12 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 		// remove widget
 		ofNullable(rq.getDeleteWidgetId()).ifPresent(it -> {
 			expect(dashboard.getWidgets(), hasWidget(it)).verify(WIDGET_NOT_FOUND_IN_DASHBOARD, it, dashboardId);
-
-			//remove from dashboard
-			dashboard.getWidgets().removeIf(w -> w.getWidgetId().equals(it));
-			Widget widget = widgetRepository.findOneLoadACL(it);
-			if (null != widget && widget.getAcl().getOwnerUserId().equals(userName)) {
-				try {
-					widgetRepository.delete(it);
-				} catch (Exception e) {
-					throw new ReportPortalException("Error during deleting widget", e);
-				}
+			try {
+                widgetRepository.delete(it);
+                //remove from dashboard
+                dashboard.getWidgets().removeIf(w -> w.getWidgetId().equals(it));
+			} catch (Exception e) {
+				throw new ReportPortalException("Error during deleting widget", e);
 			}
 		});
 
@@ -194,6 +190,6 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 	 * @return isFound
 	 */
 	private Predicate<List<WidgetObject>> hasWidget(String id) {
-		return (widgets -> widgets.stream().anyMatch(w -> w.getWidgetId().equals(id)));
+		return widgets -> widgets.stream().anyMatch(w -> w.getWidgetId().equals(id));
 	}
 }

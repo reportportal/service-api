@@ -192,7 +192,7 @@ public class LogController implements ILogController {
             @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ
                     + Log.TEST_ITEM_ID) String testStepId, @FilterFor(Log.class) Filter filter,
            @SortDefault({"time"}) @SortFor(Log.class) Pageable pageable, Principal principal) {
-        return getLogHandler.getLogs(testStepId, EntityUtils.normalizeProjectName(projectName), filter, pageable);
+        return getLogHandler.getLogs(testStepId, EntityUtils.normalizeId(projectName), filter, pageable);
     }
 
     @Override

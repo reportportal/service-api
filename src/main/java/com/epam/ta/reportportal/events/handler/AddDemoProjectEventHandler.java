@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.database.entity.settings.ServerSettings;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.entity.user.UserType;
+import com.epam.ta.reportportal.database.personal.PersonalProjectService;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
@@ -47,8 +48,6 @@ import java.util.Calendar;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
-import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.generatePersonalProject;
-import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
 
 /**
  * Initial deploy data
@@ -115,7 +114,7 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		user.setType(UserType.INTERNAL);
 		user.setEmail("defaultadministrator@example.com");
 		user.setFullName("RP Admin");
-		user.setDefaultProject(personalProjectName(user.getLogin()));
+		user.setDefaultProject(Constants.DEFAULT_ADMIN.toString() + PersonalProjectService.PERSONAL_PROJECT_POSTFIX);
 		user.setIsExpired(false);
 		user.getMetaInfo().setLastLogin(Calendar.getInstance().getTime());
 		user.setRole(UserRole.ADMINISTRATOR);
@@ -130,7 +129,7 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		user.setType(UserType.INTERNAL);
 		user.setEmail("defaulttester@example.com");
 		user.setFullName("RP Tester");
-		user.setDefaultProject(personalProjectName(user.getLogin()));
+		user.setDefaultProject(user.getLogin() + PersonalProjectService.PERSONAL_PROJECT_POSTFIX);
 		user.setIsExpired(false);
 		user.getMetaInfo().setLastLogin(Calendar.getInstance().getTime());
 		user.setRole(UserRole.USER);
@@ -157,6 +156,9 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 	@Autowired
 	private ServerSettingsRepository serverSettingsRepository;
 
+	@Autowired
+	private PersonalProjectService personalProjectService;
+
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		/*
@@ -173,7 +175,7 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 				String photoId = userRepository.uploadUserPhoto(user.getLogin(), DEFAULT_ADMIN_PHOTO.get());
 				user.setPhotoId(photoId);
 
-				projectRepository.save(generatePersonalProject(user));
+				projectRepository.save(personalProjectService.generatePersonalProject(user));
 				userRepository.save(user);
 			}
 
@@ -183,7 +185,7 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 				String photoId = userRepository.uploadUserPhoto(user.getLogin(), DEMO_USER_PHOTO.get());
 				user.setPhotoId(photoId);
 
-				projectRepository.save(generatePersonalProject(user));
+				projectRepository.save(personalProjectService.generatePersonalProject(user));
 				userRepository.save(user);
 			}
 

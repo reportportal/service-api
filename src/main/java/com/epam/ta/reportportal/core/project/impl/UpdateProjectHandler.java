@@ -74,7 +74,6 @@ import static com.epam.ta.reportportal.database.entity.StatisticsCalculationStra
 import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.excludeProjectRecipients;
 import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.getOwner;
 import static com.epam.ta.reportportal.database.entity.user.UserUtils.isEmailValid;
-import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -279,7 +278,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			User singleUser = userRepository.findOne(login);
 			expect(singleUser, notNull()).verify(USER_NOT_FOUND, login, "User is not found in database.");
 			UserType userType = singleUser.getType();
-			if (EntryType.PERSONAL.equals(projectType) && projectName.equalsIgnoreCase(personalProjectName(singleUser.getId()))) {
+			if (EntryType.PERSONAL.equals(projectType) && projectName.startsWith(singleUser.getId())) {
 				fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Unable to unassign user from his personal project");
 			}
 			if (projectType.equals(EntryType.UPSA) && userType.equals(UserType.UPSA)) {
@@ -420,7 +419,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 	private void processCandidateForUnaassign(Iterable<User> users, String projectName) {
 		List<User> updated = StreamSupport.stream(users.spliterator(), false).filter(it -> it.getDefaultProject().equals(projectName))
 				.map(it -> {
-					it.setDefaultProject(personalProjectName(it.getId()));
+					projectRepository.findPersonalProjectName(it.getId()).ifPresent(it::setDefaultProject);
 					return it;
 				}).collect(toList());
 		userRepository.save(updated);

@@ -201,6 +201,7 @@ public class MergeLaunchHandlerTest extends BaseTest {
         mergeLaunchesRQ.setStartTime(new Date(0));
         mergeLaunchesRQ.setEndTime(new Date(1000));
         mergeLaunchesRQ.setMode(Mode.DEFAULT);
+        mergeLaunchesRQ.setMergeStrategyType("BASIC");
         mergeLaunchesRQ.setName("Result");
         mergeLaunchesRQ.setTags(ImmutableSet.<String>builder().add("IOS").add("Android").build());
         mergeLaunchesRQ.setDescription("Description");

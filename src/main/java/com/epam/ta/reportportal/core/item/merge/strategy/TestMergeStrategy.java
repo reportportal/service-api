@@ -40,6 +40,7 @@ public class TestMergeStrategy extends AbstractSuiteMergeStrategy {
         return moveAllChildTestItems(itemTarget, items);
     }
 
+    @Override
     public boolean isTestItemAcceptableToMerge(TestItem item) {
         if (!item.getType().sameLevel(TestItemType.SUITE)) {
             return false;

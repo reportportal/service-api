@@ -40,6 +40,7 @@ public class MergeStrategyConfig {
         Map<MergeStrategyType, MergeStrategy> mapping = new HashMap<>();
         mapping.put(MergeStrategyType.TEST, new TestMergeStrategy(testItemRepository));
         mapping.put(MergeStrategyType.SUITE, new SuiteMergeStrategy(testItemRepository));
+        mapping.put(MergeStrategyType.DEEP, new DeepMergeStrategy(testItemRepository));
         return mapping;
     }
 

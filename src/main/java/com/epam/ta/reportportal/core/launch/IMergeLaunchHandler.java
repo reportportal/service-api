@@ -21,43 +21,16 @@
 
 package com.epam.ta.reportportal.core.launch;
 
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 
 /**
- * Update launch operation handler
+ * Merge launches handler in common one
  *
- * @author Aliaksei_Makayed
- * @author Andrei_Ramanchuk
  * @author Pavel_Bortnik
  */
 public interface IMergeLaunchHandler {
-    /**
-     * Merge specified launches in common one
-     *
-     * @param projectName
-     *            Related project name value
-     * @param userName
-     *            Recipient user name
-     * @param mergeLaunchesRQ
-     *            Request data
-     * @return LaunchResource - Response Data
-     */
-    LaunchResource mergeLaunches(String projectName, String userName, MergeLaunchesRQ mergeLaunchesRQ);
 
-    /**
-     * Deep merge specified launches into selected one.
-     * @param projectName
-     * 			  Related project name value
-     * @param launchTargetId
-     * 			  Launch target id
-     * @param userName
-     * 			  Recipient user name
-     * @param mergeLaunchesRQ
-     * 			  Request data
-     * @return LaunchResource - Response Data
-     */
-    OperationCompletionRS deepMergeLaunches(String projectName, String launchTargetId, String userName, DeepMergeLaunchesRQ mergeLaunchesRQ);
+    LaunchResource mergeLaunches(String projectName, String userName, DeepMergeLaunchesRQ mergeLaunchesRQ);
+
 }

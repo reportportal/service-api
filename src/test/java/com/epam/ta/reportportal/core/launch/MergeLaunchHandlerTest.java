@@ -38,11 +38,11 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
 import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -108,7 +108,7 @@ public class MergeLaunchHandlerTest extends BaseTest {
         thrown.expect(ReportPortalException.class);
         thrown.expectMessage("Unable to perform operation for non-finished launch.");
         mergeLaunchHandler.mergeLaunches(PROJECT1, USER1, getMergeRequest(ImmutableList.<String>builder()
-                .add(IN_PROGRESS_ID).build()));
+                .add(IN_PROGRESS_ID).add(MERGE_LAUNCH_1).build()));
     }
 
     @Test
@@ -116,7 +116,7 @@ public class MergeLaunchHandlerTest extends BaseTest {
         thrown.expect(ReportPortalException.class);
         thrown.expectMessage("Impossible to merge launches from different projects.");
         mergeLaunchHandler.mergeLaunches(PROJECT1, USER1, getMergeRequest(ImmutableList.<String>builder()
-                .add(DIFF_PROJECT_LAUNCH_ID).build()));
+                .add(DIFF_PROJECT_LAUNCH_ID).add(MERGE_LAUNCH_1).build()));
     }
 
     @Test
@@ -124,27 +124,28 @@ public class MergeLaunchHandlerTest extends BaseTest {
         thrown.expect(ReportPortalException.class);
         thrown.expectMessage("You are not an owner of launches");
         mergeLaunchHandler.mergeLaunches(PROJECT1, NOT_OWNER, getMergeRequest(ImmutableList.<String>builder()
-                .add(MERGE_LAUNCH_1).build()));
+                .add(MERGE_LAUNCH_1).add(MERGE_LAUNCH_2).build()));
     }
 
     @Test
     public void mergeItselfLaunch(){
         thrown.expect(ReportPortalException.class);
-        thrown.expectMessage("Impossible to merge launch with the same launch");
+        thrown.expectMessage("Error in handled Request. Please, check specified parameters:");
 
-        mergeLaunchHandler.deepMergeLaunches(PROJECT1, MERGE_LAUNCH_1, USER1, getDeepMergeRequest(
-                ImmutableList.<String>builder().add(MERGE_LAUNCH_1).add(MERGE_LAUNCH_2).build()));
+        mergeLaunchHandler.mergeLaunches(PROJECT1, USER1, getDeepMergeRequest(
+                ImmutableList.<String>builder().add(MERGE_LAUNCH_2).build()));
     }
 
     @Test
+    @Ignore
     public void unsupportedStrategy(){
         thrown.expect(ReportPortalException.class);
         thrown.expectMessage("Merge Strategy type UNSUPPORTED is unsupported");
 
-        ImmutableList<String> ids = ImmutableList.<String>builder().add(MERGE_LAUNCH_2).build();
+        ImmutableList<String> ids = ImmutableList.<String>builder().add(MERGE_LAUNCH_2).add(MERGE_LAUNCH_1).build();
         DeepMergeLaunchesRQ deepMergeRequest = getDeepMergeRequest(ids);
         deepMergeRequest.setMergeStrategyType("UNSUPPORTED");
-        mergeLaunchHandler.deepMergeLaunches(PROJECT1, MERGE_LAUNCH_1, USER1, deepMergeRequest);
+        mergeLaunchHandler.mergeLaunches(PROJECT1, USER1, deepMergeRequest);
     }
 
     @Test
@@ -161,19 +162,19 @@ public class MergeLaunchHandlerTest extends BaseTest {
 
     @Test
     public void deepMergeLaunches() throws Exception{
-        ImmutableList<String> ids = ImmutableList.<String>builder().add(MERGE_LAUNCH_2).build();
-        mergeLaunchHandler.deepMergeLaunches(PROJECT1, MERGE_LAUNCH_1, USER1, getDeepMergeRequest(ids));
+        ImmutableList<String> ids = ImmutableList.<String>builder().add(MERGE_LAUNCH_2).add(MERGE_LAUNCH_1).build();
+        LaunchResource launchResource = mergeLaunchHandler.mergeLaunches(PROJECT1, USER1, getDeepMergeRequest(ids));
         Assert.assertTrue(launchRepository.find(ids).isEmpty());
-        Launch launch = launchRepository.findByName(LAUNCH_NAME).get(0);
-        Assert.assertEquals(launch, expectedDeepMergedLaunch(MERGE_LAUNCH_1, launch.getLastModified()));
+        Launch launch = launchRepository.findOne(launchResource.getLaunchId());
+
+        Assert.assertEquals(launch, expectedDeepMergedLaunch(launch.getId(), launch.getLastModified()));
         List<TestItem> items = testItemRepository.findByLaunch(launch);
         Assert.assertEquals(items.size(), 8);
-        items.forEach(it -> Assert.assertEquals(it.getLaunchRef(), MERGE_LAUNCH_1));
-        TestItem testItem = testItemRepository.findOne(MERGE_SUITE_1);
+        items.forEach(it -> Assert.assertEquals(it.getLaunchRef(), launch.getId()));
+        TestItem testItem = testItemRepository.findOne(items.get(items.size() - 1).getId());
         Assert.assertTrue(testItem.getTags().containsAll(ImmutableList.<String>builder()
                 .add("ios").add("andr").build()));
-        Assert.assertTrue(testItem.getItemDescription().endsWith("2"));
-
+        Assert.assertTrue(testItem.getItemDescription().startsWith("suite for history validation2"));
         String startDate = "Thu May 02 14:13:00 MSK 2013";
         String endDate = "Thu May 02 14:43:00 MSK 2013";
         DateFormat df = new SimpleDateFormat("EEE MMM dd kk:mm:ss zzz yyyy");
@@ -194,8 +195,8 @@ public class MergeLaunchHandlerTest extends BaseTest {
         Assert.assertEquals(testItemRepository.findAllDescendants(item.getId()).size(), 3);
     }
 
-    private MergeLaunchesRQ getMergeRequest(List<String> launches) {
-        MergeLaunchesRQ mergeLaunchesRQ = new MergeLaunchesRQ();
+    private DeepMergeLaunchesRQ getMergeRequest(List<String> launches) {
+        DeepMergeLaunchesRQ mergeLaunchesRQ = new DeepMergeLaunchesRQ();
         mergeLaunchesRQ.setLaunches(launches.stream().collect(Collectors.toSet()));
         mergeLaunchesRQ.setStartTime(new Date(0));
         mergeLaunchesRQ.setEndTime(new Date(1000));
@@ -212,10 +213,10 @@ public class MergeLaunchHandlerTest extends BaseTest {
         deepMergeLaunchesRQ.setStartTime(new Date(0));
         deepMergeLaunchesRQ.setEndTime(new Date(1000));
         deepMergeLaunchesRQ.setMode(Mode.DEFAULT);
-        deepMergeLaunchesRQ.setName("Deep merge result");
+        deepMergeLaunchesRQ.setName(LAUNCH_NAME);
         deepMergeLaunchesRQ.setTags(ImmutableSet.<String>builder().add("IOS").add("Android").build());
         deepMergeLaunchesRQ.setDescription("Description");
-        deepMergeLaunchesRQ.setMergeStrategyType("SUITE");
+        deepMergeLaunchesRQ.setMergeStrategyType("DEEP");
         return deepMergeLaunchesRQ;
     }
 

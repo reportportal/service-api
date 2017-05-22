@@ -41,8 +41,10 @@ import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
@@ -94,8 +96,6 @@ public class MergeTestItemHandlerImpl implements MergeTestItemHandler {
         MergeStrategy mergeStrategy = mergeStrategyFactory.getStrategy(mergeStrategyType);
         mergeStrategy.mergeTestItems(testItemTarget, itemsToMerge);
 
-        updateTargetItemInfo(testItemTarget, itemsToMerge);
-
         StatisticsFacade statisticsFacade = statisticsFacadeFactory
                 .getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
         for (String launchID : sourceLaunches) {
@@ -105,34 +105,6 @@ public class MergeTestItemHandlerImpl implements MergeTestItemHandler {
         statisticsFacade.recalculateStatistics(launchTarget);
 
         return new OperationCompletionRS("TestItem with ID = '" + item + "' successfully merged.");
-    }
-
-    /**
-     * Collects tags and descriptions from items and add them to target. Same tags
-     * and descriptions are added only once. Updates start and end times of target.
-     * @param target item to be merged
-     * @param items items to merge
-     */
-    private void updateTargetItemInfo(TestItem target, List<TestItem> items) {
-        Set<String> tags = Optional.ofNullable(target.getTags()).orElse(Collections.emptySet());
-        items.forEach(item -> tags.addAll(Optional.ofNullable(item.getTags())
-                .orElse(Collections.emptySet())));
-        target.setTags(tags);
-
-        StringBuilder result = new StringBuilder(Optional.ofNullable(target.getItemDescription()).orElse(""));
-        String collect = items.stream().map(item -> Optional.ofNullable(item.getItemDescription()).orElse(""))
-                .filter(description -> !description.equals(target.getItemDescription()))
-                .collect(Collectors.joining("\n"));
-
-        if (!collect.isEmpty()) {
-            target.setItemDescription(result.append("\n").append(collect).toString());
-        }
-
-        items.add(target);
-        items.sort(Comparator.comparing(TestItem::getStartTime));
-        target.setStartTime(items.get(0).getStartTime());
-        target.setEndTime(items.get(items.size()-1).getEndTime());
-        testItemRepository.save(target);
     }
 
     private void validateLaunchInProject(Launch launch, Project project) {

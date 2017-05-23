@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserType;
 import com.epam.ta.reportportal.database.fixture.SpringFixture;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
-import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
+import com.epam.ta.reportportal.database.personal.PersonalProjectService;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
@@ -69,6 +69,9 @@ public class UpdateProjectHandlerTest extends BaseTest {
 	@Autowired
 	private UserRepository userRepository;
 
+	@Autowired
+	private PersonalProjectService personalProjectService;
+
 	@Test
 	public void checkEmptyEmailOptions() {
 		String userName = "user1";
@@ -91,7 +94,7 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		user.setEmail("checkUnassignFromPersonal@gmail.com");
 		user.setLogin("checkUnassignFromPersonal");
 		user.setType(UserType.INTERNAL);
-		Project project = PersonalProjectUtils.generatePersonalProject(user);
+		Project project = personalProjectService.generatePersonalProject(user);
 		userRepository.save(user);
 		projectRepository.save(project);
 

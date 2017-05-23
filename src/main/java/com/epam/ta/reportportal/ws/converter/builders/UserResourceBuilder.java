@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.project.EntryType;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserType;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
@@ -30,13 +31,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
 
-import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -79,6 +77,8 @@ public class UserResourceBuilder extends Builder<UserResource> {
 				}
 
 				LinkedHashMap<String, UserResource.AssignedProject> userProjects = new LinkedHashMap<>(projects.size());
+
+				String personalProject = null;
 				for (Project project : projects) {
 					UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
 					Project.UserConfig userConfig = project.getUsers().get(user.getId());
@@ -86,13 +86,17 @@ public class UserResourceBuilder extends Builder<UserResource> {
 					assignedProject.setProposedRole(userConfig.getProposedRole().name());
 					assignedProject.setEntryType(project.getConfiguration().getEntryType().name());
 					userProjects.put(project.getId(), assignedProject);
+
+					if (EntryType.PERSONAL.equals(project.getConfiguration().getEntryType())) {
+						personalProject = project.getId();
+					}
 				}
 
 				resource.setAssignedProjects(userProjects);
 				if (userProjects.containsKey(user.getDefaultProject())) {
 					resource.setDefaultProject(user.getDefaultProject());
 				} else {
-					resource.setDefaultProject(personalProjectName(user.getId()));
+					resource.setDefaultProject(personalProject);
 				}
 			}
 

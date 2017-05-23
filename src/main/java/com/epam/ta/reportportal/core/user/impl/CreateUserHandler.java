@@ -32,7 +32,7 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.user.*;
-import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
+import com.epam.ta.reportportal.database.personal.PersonalProjectService;
 import com.epam.ta.reportportal.events.UserCreatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.Predicates;
@@ -83,6 +83,9 @@ public class CreateUserHandler implements ICreateUserHandler {
 	private ProjectRepository projectRepository;
 
 	@Autowired
+	private PersonalProjectService personalProjectService;
+
+	@Autowired
 	private MailServiceFactory emailServiceFactory;
 
 	@Autowired
@@ -119,7 +122,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 	@Override
 	public CreateUserRS createUserByAdmin(CreateUserRQFull request, String userName, String basicUrl) {
-		String newUsername = EntityUtils.normalizeUsername(request.getLogin());
+		String newUsername = EntityUtils.normalizeId(request.getLogin());
 
 		expect(userRepository.exists(newUsername), equalTo(false))
 				.verify(USER_ALREADY_EXISTS, formattedSupplier("login='{}'", newUsername));
@@ -127,11 +130,11 @@ public class CreateUserHandler implements ICreateUserHandler {
 		expect(newUsername, Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
 				formattedSupplier("Username '{}' consists only of special characters", newUsername));
 
-		String projectName = EntityUtils.normalizeProjectName(request.getDefaultProject());
+		String projectName = EntityUtils.normalizeId(request.getDefaultProject());
 		Project defaultProject = projectRepository.findOne(projectName);
 		expect(defaultProject, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
-		String email = EntityUtils.normalizeEmail(request.getEmail());
+		String email = EntityUtils.normalizeId(request.getEmail());
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 
 		CreateUserRQConfirm req = new CreateUserRQConfirm();
@@ -160,7 +163,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 			/*
 			 * Generate personal project for the user
 			 */
-			Project personalProject = PersonalProjectUtils.generatePersonalProject(user);
+			Project personalProject = personalProjectService.generatePersonalProject(user);
 			if (!defaultProject.getId().equals(personalProject.getId())) {
 				projectRepository.save(personalProject);
 			}
@@ -187,13 +190,13 @@ public class CreateUserHandler implements ICreateUserHandler {
 		User creator = userRepository.findOne(principal.getName());
 		expect(creator, notNull()).verify(ACCESS_DENIED);
 
-		String email = EntityUtils.normalizeEmail(request.getEmail());
+		String email = EntityUtils.normalizeId(request.getEmail());
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 
 		User email_user = userRepository.findByEmail(request.getEmail());
 		expect(email_user, isNull()).verify(USER_ALREADY_EXISTS, formattedSupplier("email={}", request.getEmail()));
 
-		Project defaultProject = projectRepository.findOne(EntityUtils.normalizeProjectName(request.getDefaultProject()));
+		Project defaultProject = projectRepository.findOne(EntityUtils.normalizeId(request.getDefaultProject()));
 
 		expect(defaultProject, notNull()).verify(PROJECT_NOT_FOUND, request.getDefaultProject());
 		UserConfig userConfig = defaultProject.getUsers().get(principal.getName());
@@ -280,7 +283,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 			/*
 			 * Generate personal project for the user
 			 */
-			Project personalProject = PersonalProjectUtils.generatePersonalProject(user);
+			Project personalProject = personalProjectService.generatePersonalProject(user);
 			if (!defaultProject.getId().equals(personalProject.getId())) {
 				projectRepository.save(personalProject);
 			}
@@ -301,7 +304,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 	@Override
 	public OperationCompletionRS createRestorePasswordBid(RestorePasswordRQ rq, String baseUrl) {
 		EmailService emailService = emailServiceFactory.getDefaultEmailService(true);
-		String email = EntityUtils.normalizeEmail(rq.getEmail());
+		String email = EntityUtils.normalizeId(rq.getEmail());
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 		User user = userRepository.findByEmail(email);
 		expect(user, notNull()).verify(USER_NOT_FOUND, email);

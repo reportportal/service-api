@@ -267,6 +267,7 @@ public class EmailService extends JavaMailSenderImpl {
 		message.addInline("ic-twitter.png", emailTemplateResource("ic-twitter.png"));
 		message.addInline("ic-youtube.png", emailTemplateResource("ic-youtube.png"));
 		message.addInline("ic-vk.png", emailTemplateResource("ic-vk.png"));
+		message.addInline("ic-slack.png", emailTemplateResource("ic-slack.png"));
 	}
 
 	private ClassPathResource emailTemplateResource(String resource) {

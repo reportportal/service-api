@@ -30,7 +30,7 @@ import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
+import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -135,11 +135,13 @@ public class LaunchControllerTest extends BaseMvcTest {
 
 	@Test
 	public void mergeLaunchesPositive() throws Exception {
-		MergeLaunchesRQ rq = new MergeLaunchesRQ();
+		DeepMergeLaunchesRQ rq = new DeepMergeLaunchesRQ();
 		HashSet<String> set = new HashSet<>();
 		set.add("88624678053de743b3e5aa3e");
+		set.add("89224678053de743b3e5aa3e");
 		rq.setLaunches(set);
 		rq.setName("Merged");
+		rq.setMergeStrategyType("BASIC");
 		rq.setStartTime(new Date());
 		rq.setEndTime(new Date());
 		this.mvcMock.perform(post(PROJECT_BASE_URL + "/launch/merge").contentType(APPLICATION_JSON).principal(authentication())

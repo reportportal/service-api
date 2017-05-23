@@ -23,7 +23,9 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.item.merge.MergeTestItemHandler;
+import com.epam.ta.reportportal.core.item.merge.strategy.MergeStrategy;
+import com.epam.ta.reportportal.core.item.merge.strategy.MergeStrategyFactory;
+import com.epam.ta.reportportal.core.item.merge.strategy.MergeStrategyType;
 import com.epam.ta.reportportal.core.launch.IMergeLaunchHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
@@ -37,8 +39,6 @@ import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.ws.converter.LaunchResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
 import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
@@ -47,7 +47,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -57,6 +59,7 @@ import static com.epam.ta.reportportal.database.entity.ProjectRole.LEAD;
 import static com.epam.ta.reportportal.database.entity.Status.IN_PROGRESS;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -76,7 +79,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
     private UserRepository userRepository;
 
     @Autowired
-    private MergeTestItemHandler mergeTestItemHandler;
+    private MergeStrategyFactory mergeStrategyFactory;
 
     @Autowired
     private IIssuesAnalyzer analyzerService;
@@ -114,93 +117,35 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
     }
 
     @Override
-    public OperationCompletionRS deepMergeLaunches(String projectName, String launchTargetId, String userName, DeepMergeLaunchesRQ mergeLaunchesRQ) {
-        expect(mergeLaunchesRQ.getLaunches().contains(launchTargetId), equalTo(false))
-                .verify(FORBIDDEN_OPERATION, "Impossible to merge launch with the same launch");
+    public LaunchResource mergeLaunches(String projectName, String userName, DeepMergeLaunchesRQ rq) {
         User user = userRepository.findOne(userName);
         Project project = projectRepository.findOne(projectName);
         expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
-        Launch launchTarget = launchRepository.findOne(launchTargetId);
-        expect(launchTarget, notNull()).verify(LAUNCH_NOT_FOUND, launchTargetId);
-
-        Set<String> launchesIds = mergeLaunchesRQ.getLaunches();
+        Set<String> launchesIds = rq.getLaunches();
+        expect(launchesIds.size() > 1, equalTo(true)).verify(BAD_REQUEST_ERROR, rq.getLaunches());
         List<Launch> launchesList = launchRepository.find(launchesIds);
         validateMergingLaunches(launchesList, user, project);
 
-        mergeSameSuites(projectName, launchTarget, launchesIds, userName, mergeLaunchesRQ.getMergeStrategyType());
-        updateChildrenOfLaunch(launchTargetId, launchesIds, false);
+        Launch launch = createResultedLaunch(projectName, userName, rq);
 
-        StatisticsFacade statisticsFacade = statisticsFacadeFactory.
-                getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
-        statisticsFacade.recalculateStatistics(launchTarget);
+        updateChildrenOfLaunches(launch.getId(), rq.getLaunches(),
+                rq.isExtendSuitesDescription());
 
-        launchTarget = launchRepository.findOne(launchTarget.getId());
-        updateTargetLaunchInfo(launchTarget, mergeLaunchesRQ);
+        MergeStrategyType type = MergeStrategyType.fromValue(rq.getMergeStrategyType());
+        expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
 
-        launchRepository.delete(mergeLaunchesRQ.getLaunches());
-
-        return new OperationCompletionRS("Launch with ID = '" + launchTargetId + "' is successfully deeply merged.");
-    }
-
-    private void updateTargetLaunchInfo(Launch launchTarget, DeepMergeLaunchesRQ mergeLaunchesRQ) {
-        launchTarget.setDescription(mergeLaunchesRQ.getDescription());
-        launchTarget.setTags(mergeLaunchesRQ.getTags());
-        launchTarget.setStartTime(mergeLaunchesRQ.getStartTime());
-        launchTarget.setEndTime(mergeLaunchesRQ.getEndTime());
-        launchTarget.setStatus(StatisticsHelper.getStatusFromStatistics(launchTarget.getStatistics()));
-        launchRepository.save(launchTarget);
-    }
-
-    /**
-     * Merges test items with suite type that have same name.
-     *
-     * @param projectName
-     * @param launchTarget merge into
-     * @param launchesList list of launches that will be merged
-     * @param userName
-     * @param strategy     merging strategy
-     */
-    private void mergeSameSuites(String projectName, Launch launchTarget, Set<String> launchesList, String userName, String strategy) {
-        testItemRepository.findItemsWithType(launchTarget.getId(), TestItemType.SUITE).forEach(suit ->
-                {
-                    List<String> sameNamedSuitsIds = testItemRepository
-                            .findIdsWithNameByLaunchesRef(suit.getName(), launchesList)
-                            .stream().collect(toList());
-
-                    MergeTestItemRQ mergeTestItemRQ = new MergeTestItemRQ();
-                    mergeTestItemRQ.setItems(sameNamedSuitsIds);
-                    mergeTestItemRQ.setMergeStrategyType(strategy);
-                    mergeTestItemHandler.mergeTestItem(projectName, suit.getId(), mergeTestItemRQ, userName);
-                }
-        );
-    }
-
-    @Override
-    public LaunchResource mergeLaunches(String projectName, String userName, MergeLaunchesRQ mergeLaunchesRQ) {
-        User user = userRepository.findOne(userName);
-        Project project = projectRepository.findOne(projectName);
-        expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
-
-        Set<String> launchesIds = mergeLaunchesRQ.getLaunches();
-        List<Launch> launchesList = launchRepository.find(launchesIds);
-
-        validateMergingLaunches(launchesList, user, project);
-
-        StartLaunchRQ startRQ = new StartLaunchRQ();
-        startRQ.setMode(mergeLaunchesRQ.getMode());
-        startRQ.setDescription(mergeLaunchesRQ.getDescription());
-        startRQ.setName(mergeLaunchesRQ.getName());
-        startRQ.setTags(mergeLaunchesRQ.getTags());
-        startRQ.setStartTime(mergeLaunchesRQ.getStartTime());
-
-        Launch launch = launchBuilder.get().addStartRQ(startRQ).addProject(projectName).addStatus(IN_PROGRESS).addUser(userName).build();
-        launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
-
-        launchRepository.save(launch);
-
-        updateChildrenOfLaunch(launch.getId(), mergeLaunchesRQ.getLaunches(),
-                mergeLaunchesRQ.isExtendSuitesDescription());
+        // deep merge strategies
+        if (!type.equals(MergeStrategyType.BASIC)) {
+            MergeStrategy strategy = mergeStrategyFactory.getStrategy(type);
+            //  group items by level types and merge them by same name
+            //  items with same name but different type cannot be merged
+            testItemRepository.findWithoutParentByLaunchRef(launch.getId()).stream()
+                    .collect(groupingBy(TestItem::getType, groupingBy(TestItem::getName)))
+                    .entrySet().stream().map(Map.Entry::getValue).collect(HashMap<String, List<TestItem>>::new, HashMap::putAll, HashMap::putAll)
+                    .entrySet().stream().map(Map.Entry::getValue).collect(toList())
+                    .forEach(items -> strategy.mergeTestItems(items.get(0), items.subList(1, items.size())));
+        }
 
         StatisticsFacade statisticsFacade = statisticsFacadeFactory
                 .getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
@@ -208,8 +153,8 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
         launch = launchRepository.findOne(launch.getId());
         launch.setStatus(StatisticsHelper.getStatusFromStatistics(launch.getStatistics()));
+        launch.setEndTime(rq.getEndTime());
 
-        launch.setEndTime(mergeLaunchesRQ.getEndTime());
         launchRepository.save(launch);
         launchRepository.delete(launchesIds);
 
@@ -251,10 +196,8 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
     /**
      * Update test-items of specified launches with new LaunchID
-     *
-     * @param launchId
      */
-    private void updateChildrenOfLaunch(String launchId, Set<String> launches, boolean extendDescription) {
+    private void updateChildrenOfLaunches(String launchId, Set<String> launches, boolean extendDescription) {
         List<TestItem> testItems = launches.stream().flatMap(id -> {
             Launch launch = launchRepository.findOne(id);
             return testItemRepository.findByLaunch(launch).stream().map(item -> {
@@ -270,5 +213,25 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
             });
         }).collect(toList());
         testItemRepository.save(testItems);
+    }
+
+    /**
+     * Create launch that will be the result of merge
+     *
+     * @param projectName
+     * @param userName
+     * @param mergeLaunchesRQ
+     * @return launch
+     */
+    private Launch createResultedLaunch(String projectName, String userName, MergeLaunchesRQ mergeLaunchesRQ) {
+        StartLaunchRQ startRQ = new StartLaunchRQ();
+        startRQ.setMode(mergeLaunchesRQ.getMode());
+        startRQ.setDescription(mergeLaunchesRQ.getDescription());
+        startRQ.setName(mergeLaunchesRQ.getName());
+        startRQ.setTags(mergeLaunchesRQ.getTags());
+        startRQ.setStartTime(mergeLaunchesRQ.getStartTime());
+        Launch launch = launchBuilder.get().addStartRQ(startRQ).addProject(projectName).addStatus(IN_PROGRESS).addUser(userName).build();
+        launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
+        return launchRepository.save(launch);
     }
 }

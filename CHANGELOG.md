@@ -99,6 +99,7 @@
 
 * EPMRPP-25011 - Created demo data generation for project with test based strategy
 * EPMRPP-25456 - Reduced memory usage by scheduled jobs
+* Implemented deep launches merge
 
 ### Bugfixes
 

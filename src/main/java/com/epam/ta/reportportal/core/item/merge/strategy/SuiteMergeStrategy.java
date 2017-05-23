@@ -32,9 +32,6 @@ import java.util.Set;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-
 public class SuiteMergeStrategy extends AbstractSuiteMergeStrategy {
 
     @Autowired
@@ -47,6 +44,7 @@ public class SuiteMergeStrategy extends AbstractSuiteMergeStrategy {
         return moveAllChildTestItems(itemTarget, items);
     }
 
+    @Override
     public boolean isTestItemAcceptableToMerge(TestItem item) {
         if (!item.getType().sameLevel(TestItemType.SUITE)) {
             return false;

@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.item;
 
 import java.util.List;
 
+import com.epam.ta.reportportal.database.search.Queryable;
 import org.springframework.data.domain.Pageable;
 
 import com.epam.ta.reportportal.database.entity.item.TestItem;
@@ -52,7 +53,7 @@ public interface GetTestItemHandler {
 	 * @param pageable
 	 * @return
 	 */
-	Iterable<TestItemResource> getTestItems(Filter filterable, Pageable pageable);
+	Iterable<TestItemResource> getTestItems(Queryable filterable, Pageable pageable);
 
 	/**
 	 * Get specified tags

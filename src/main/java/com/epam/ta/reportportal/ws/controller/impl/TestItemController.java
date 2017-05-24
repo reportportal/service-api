@@ -26,8 +26,10 @@ import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
 import com.epam.ta.reportportal.core.item.merge.MergeTestItemHandler;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.search.CompositeFilter;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.database.search.Queryable;
 import com.epam.ta.reportportal.ws.controller.ITestItemController;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
@@ -38,6 +40,7 @@ import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
+import com.google.common.collect.ImmutableList;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -50,7 +53,7 @@ import java.security.Principal;
 import java.util.List;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeProjectName;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -128,8 +131,9 @@ public class TestItemController implements ITestItemController {
     @ResponseStatus(OK)
     @ApiOperation("Find test items by specified filter")
     public Iterable<TestItemResource> getTestItems(@PathVariable String projectName, @FilterFor(TestItem.class) Filter filter,
+            @FilterFor(TestItem.class) Queryable predefinedFilter,
                                                    @SortFor(TestItem.class) Pageable pageable, Principal principal) {
-        return getTestItemHandler.getTestItems(filter, pageable);
+        return getTestItemHandler.getTestItems(new CompositeFilter(filter, predefinedFilter), pageable);
     }
 
     @DeleteMapping("/{item}")
@@ -138,7 +142,7 @@ public class TestItemController implements ITestItemController {
     @Override
     @ApiOperation("Delete test item")
     public OperationCompletionRS deleteTestItem(@PathVariable String projectName, @PathVariable String item, Principal principal) {
-        return deleteTestItemHandler.deleteTestItem(item, normalizeProjectName(projectName), principal.getName());
+        return deleteTestItemHandler.deleteTestItem(item, normalizeId(projectName), principal.getName());
     }
 
     @Override
@@ -148,7 +152,7 @@ public class TestItemController implements ITestItemController {
     @ApiOperation("Delete test items by specified ids")
     public List<OperationCompletionRS> deleteTestItems(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
                                                        Principal principal) {
-        return deleteTestItemHandler.deleteTestItem(ids, normalizeProjectName(projectName), principal.getName());
+        return deleteTestItemHandler.deleteTestItem(ids, normalizeId(projectName), principal.getName());
     }
 
     @Override
@@ -158,7 +162,7 @@ public class TestItemController implements ITestItemController {
     @ApiOperation("Update issues of specified test items")
     public List<Issue> defineTestItemIssueType(@PathVariable String projectName, @RequestBody @Validated DefineIssueRQ request,
                                                Principal principal) {
-        return updateTestItemHandler.defineTestItemsIssues(normalizeProjectName(projectName), request, principal.getName());
+        return updateTestItemHandler.defineTestItemsIssues(normalizeId(projectName), request, principal.getName());
     }
 
     @Override
@@ -171,7 +175,7 @@ public class TestItemController implements ITestItemController {
             @RequestParam(value = "ids") String[] ids,
             @RequestParam(value = "is_full", required = false, defaultValue = DEFAULT_HISTORY_FULL) boolean showBrokenLaunches,
             Principal principal) {
-        return testItemsHistoryHandler.getItemsHistory(normalizeProjectName(projectName), ids, historyDepth, showBrokenLaunches);
+        return testItemsHistoryHandler.getItemsHistory(normalizeId(projectName), ids, historyDepth, showBrokenLaunches);
     }
 
     @Override
@@ -193,7 +197,7 @@ public class TestItemController implements ITestItemController {
     @ApiOperation("Update test item")
     public OperationCompletionRS updateTestItem(@PathVariable String projectName, @PathVariable String item,
                                                 @RequestBody @Validated UpdateTestItemRQ rq, Principal principal) {
-        return updateTestItemHandler.updateTestItem(normalizeProjectName(projectName), item, rq, principal.getName());
+        return updateTestItemHandler.updateTestItem(normalizeId(projectName), item, rq, principal.getName());
     }
 
     @Override
@@ -204,7 +208,7 @@ public class TestItemController implements ITestItemController {
     @ApiOperation("Attach external issue for specified test items")
     public List<OperationCompletionRS> addExternalIssues(@PathVariable String projectName, @RequestBody @Validated AddExternalIssueRQ rq,
                                                          Principal principal) {
-        return updateTestItemHandler.addExternalIssues(normalizeProjectName(projectName), rq, principal.getName());
+        return updateTestItemHandler.addExternalIssues(normalizeId(projectName), rq, principal.getName());
     }
 
     @Override
@@ -226,6 +230,6 @@ public class TestItemController implements ITestItemController {
     @ApiOperation("Merge test item")
     public OperationCompletionRS mergeTestItem(@PathVariable String projectName, @PathVariable String item,
                                                @RequestBody @Validated MergeTestItemRQ rq, Principal principal) {
-        return mergeTestItemHandler.mergeTestItem(normalizeProjectName(projectName), item, rq, principal.getName());
+        return mergeTestItemHandler.mergeTestItem(normalizeId(projectName), item, rq, principal.getName());
     }
 }

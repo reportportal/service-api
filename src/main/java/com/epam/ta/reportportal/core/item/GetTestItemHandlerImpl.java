@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.search.Queryable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -87,7 +88,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	 * .lang.String, java.util.Set, org.springframework.data.domain.Pageable)
 	 */
 	@Override
-	public Iterable<TestItemResource> getTestItems(Filter filterable, Pageable pageable) {
+	public Iterable<TestItemResource> getTestItems(Queryable filterable, Pageable pageable) {
 		return itemAssembler.toPagedResources(testItemRepository.findByFilter(filterable, pageable));
 	}
 

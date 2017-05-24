@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.ws.controller;
 import java.security.Principal;
 import java.util.List;
 
+import com.epam.ta.reportportal.database.search.Queryable;
 import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
 import org.springframework.data.domain.Pageable;
 
@@ -85,7 +86,7 @@ public interface ITestItemController {
 	 * @param principal
 	 * @return Iterable<TestItemResource>
 	 */
-	Iterable<TestItemResource> getTestItems(String projectName, Filter filter, Pageable pageble, Principal principal);
+	Iterable<TestItemResource> getTestItems(String projectName, Filter filter, Queryable predefinedFilter, Pageable pageble, Principal principal);
 
 	/**
 	 * Deletes Test Item

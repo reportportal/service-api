@@ -36,6 +36,7 @@
  */
 package com.epam.ta.reportportal.ws.controller.impl;
 
+import com.epam.ta.reportportal.core.imprt.ImportLaunchHandler;
 import com.epam.ta.reportportal.core.jasper.IGetJasperReportHandler;
 import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.core.launch.*;
@@ -47,7 +48,10 @@ import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.launch.*;
+import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
+import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
@@ -62,6 +66,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
@@ -116,6 +121,9 @@ public class LaunchController implements ILaunchController {
 
 	@Autowired
 	private IMergeLaunchHandler mergeLaunchesHandler;
+
+	@Autowired
+	private ImportLaunchHandler importLaunchHandler;
 
 	@Override
 	@PostMapping
@@ -338,5 +346,13 @@ public class LaunchController implements ILaunchController {
 	public OperationCompletionRS deleteLaunches(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
 			Principal principal) {
 		return deleteLaunchMessageHandler.deleteLaunches(ids, projectName, principal.getName());
+	}
+
+	@Override
+	@RequestMapping(value = "/import", method = RequestMethod.POST)
+	@ResponseBody
+	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip.")
+	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file, Principal principal) {
+		return importLaunchHandler.importLaunch(normalizeId(projectName), principal.getName(), "JUNIT", file);
 	}
 }

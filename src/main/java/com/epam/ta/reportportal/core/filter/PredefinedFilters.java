@@ -22,6 +22,7 @@ package com.epam.ta.reportportal.core.filter;
 
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.database.search.PredefinedFilter;
 import com.epam.ta.reportportal.database.search.Queryable;
 import com.epam.ta.reportportal.ws.resolver.PredefinedFilterBuilder;
@@ -45,15 +46,15 @@ public final class PredefinedFilters {
     private PredefinedFilters() {
         //no instance required
     }
-
+//(type.indexOf('METHOD') >= 0 || type.indexOf('CLASS') >= 0) && status !== 'FAILED'
     private static final Map<String, PredefinedFilterBuilder> FILTERS = ImmutableMap.<String, PredefinedFilterBuilder>builder()
             .put("collapsed", new PredefinedFilterBuilder() {
                 @Override
                 public Queryable build(String[] params) {
                     return new PredefinedFilter(TestItem.class, singletonList(
-                            new Criteria().orOperator(
+                            new Criteria().andOperator(
                                     where("status").ne(Status.FAILED),
-                                    where(DEFECTS_FOR_DB + "." + GROUP_TOTAL).gt(0))));
+                                    where("type").in(TestItemType.AFTER_METHOD))));
                 }
             })
             .build();

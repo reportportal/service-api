@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.project;
 
 import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.core.project.settings.impl.DeleteProjectSettingsHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -49,7 +50,7 @@ public class CreateProjectHandlerTest extends BaseTest{
     private final String ENTITY_TYPE = "INTERNAL";
     private final String ADDITIONAL_INFO = "test project";
 
-	@Test
+    @Test
 	public void testCreateProject() {
 		CreateProjectRQ createProjectRQ = new CreateProjectRQ();
 		createProjectRQ.setProjectName(PROJECT_NAME);
@@ -64,14 +65,13 @@ public class CreateProjectHandlerTest extends BaseTest{
 		Assert.assertEquals(ProjectRole.PROJECT_MANAGER, project.getUsers().get(CREATOR).getProjectRole());
 	}
 
-    @Test(expected = ReportPortalException.class)
-    public void testCreateProjectThrowsReportPortalException() {
-        CreateProjectRQ createProjectRQ = new CreateProjectRQ();
-        createProjectRQ.setProjectName(PROJECT_NAME);
-        createProjectRQ.setEntryType(ENTITY_TYPE);
-        createProjectRQ.setAddInfo(ADDITIONAL_INFO);
-        createProjectHandler.createProject(createProjectRQ, CREATOR);
-    }
-
+	@Test(expected = ReportPortalException.class)
+	public void testExceptionCreateProject() {
+		CreateProjectRQ createProjectRQ = new CreateProjectRQ();
+		createProjectRQ.setProjectName(PROJECT_NAME);
+		createProjectRQ.setEntryType(ENTITY_TYPE);
+		createProjectRQ.setAddInfo(ADDITIONAL_INFO);
+		createProjectHandler.createProject(createProjectRQ, CREATOR);
+	}
 
 }

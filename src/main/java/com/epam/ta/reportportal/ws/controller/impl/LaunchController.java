@@ -353,6 +353,9 @@ public class LaunchController implements ILaunchController {
 	@ResponseBody
 	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip.")
 	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file, Principal principal) {
-		return importLaunchHandler.importLaunch(normalizeId(projectName), principal.getName(), "JUNIT", file);
+		long start = System.nanoTime();
+		OperationCompletionRS completionRS = importLaunchHandler.importLaunch(normalizeId(projectName), principal.getName(), "JUNIT", file);
+		System.out.println((System.nanoTime() - start) / Math.pow(10, 9));
+		return completionRS;
 	}
 }

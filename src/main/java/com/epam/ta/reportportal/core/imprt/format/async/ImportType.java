@@ -1,4 +1,4 @@
-package com.epam.ta.reportportal.core.imprt.format.junit;
+package com.epam.ta.reportportal.core.imprt.format.async;
 
 import java.util.Arrays;
 

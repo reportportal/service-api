@@ -1,8 +1,8 @@
 package com.epam.ta.reportportal.core.imprt;
 
-import com.epam.ta.reportportal.core.imprt.format.junit.ImportLaunch;
-import com.epam.ta.reportportal.core.imprt.format.junit.ImportLaunchJunit;
-import com.epam.ta.reportportal.core.imprt.format.junit.ImportType;
+import com.epam.ta.reportportal.core.imprt.format.async.AsyncImportLaunchJunit;
+import com.epam.ta.reportportal.core.imprt.format.async.ImportLaunch;
+import com.epam.ta.reportportal.core.imprt.format.async.ImportType;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -18,7 +18,7 @@ public class ImportLaunchFactoryImpl implements ImportLaunchFactory, Application
 
     private static final Map<ImportType, Class<? extends ImportLaunch>> MAPPING =
             ImmutableMap.<ImportType, Class<? extends ImportLaunch>>builder()
-            .put(ImportType.JUNIT, ImportLaunchJunit.class)
+            .put(ImportType.JUNIT, AsyncImportLaunchJunit.class)
             .build();
 
     @Override

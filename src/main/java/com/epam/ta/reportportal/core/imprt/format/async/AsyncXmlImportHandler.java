@@ -1,4 +1,4 @@
-package com.epam.ta.reportportal.core.imprt.format.junit;
+package com.epam.ta.reportportal.core.imprt.format.async;
 
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
@@ -12,7 +12,6 @@ import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -25,10 +24,9 @@ import java.util.Date;
 import java.util.Deque;
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.core.imprt.format.junit.JunitReportTag.*;
+import static com.epam.ta.reportportal.core.imprt.format.async.JunitReportTag.*;
 
-@Component
-public class ImportHandlerJunit extends DefaultHandler {
+public class AsyncXmlImportHandler extends DefaultHandler {
 
     @Autowired
     private IStartLaunchHandler startLaunchHandler;
@@ -56,13 +54,13 @@ public class ImportHandlerJunit extends DefaultHandler {
     private long currentDuration;
 
     private static long fullDuration;
-    private static LocalDateTime startLaunchTime = LocalDateTime.now();
+    private static LocalDateTime startLaunchTime;
 
     @Override
     public void startDocument() throws SAXException {
         itemsIds = new ArrayDeque<>();
         message = new StringBuilder();
-        time = LocalDateTime.now();
+        startLaunchTime = LocalDateTime.now();
     }
 
     @Override
@@ -71,7 +69,7 @@ public class ImportHandlerJunit extends DefaultHandler {
 
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-        switch (JunitReportTag.fromString(qName)) {
+        switch (fromString(qName)) {
             case TESTSUITE:
                 startRootItem(attributes.getValue(ATTR_NAME.getValue()), attributes.getValue(TIMESTAMP.getValue()));
                 break;
@@ -91,7 +89,7 @@ public class ImportHandlerJunit extends DefaultHandler {
 
     @Override
     public void endElement(String uri, String localName, String qName) throws SAXException {
-        switch (JunitReportTag.fromString(qName)) {
+        switch (fromString(qName)) {
             case TESTSUITE:
                 finishRootItem();
                 break;
@@ -128,13 +126,12 @@ public class ImportHandlerJunit extends DefaultHandler {
 
     private void startRootItem(String name, String timestamp) {
         if (null != timestamp) {
-            time = Optional.ofNullable(LocalDateTime.parse(timestamp))
-                    .orElse(LocalDateTime.now());
+            time = LocalDateTime.parse(timestamp);
+            if (startLaunchTime.isAfter(time)) {
+                startLaunchTime = LocalDateTime.of(time.toLocalDate(), time.toLocalTime());
+            }
         } else {
             time = LocalDateTime.now();
-        }
-        if (startLaunchTime.isAfter(time)) {
-            startLaunchTime = LocalDateTime.of(time.toLocalDate(), time.toLocalTime());
         }
         StartTestItemRQ rq = new StartTestItemRQ();
         rq.setLaunchId(launchId);
@@ -174,7 +171,14 @@ public class ImportHandlerJunit extends DefaultHandler {
         status = null;
     }
 
-    static Date toDate(LocalDateTime startTime) {
+    AsyncXmlImportHandler withParameters(String projectId, String launchId, String user){
+        this.projectId = projectId;
+        this.launchId = launchId;
+        this.userName = user;
+        return this;
+    }
+
+    private static Date toDate(LocalDateTime startTime) {
         return Date.from(startTime.atZone(ZoneId.systemDefault()).toInstant());
     }
 

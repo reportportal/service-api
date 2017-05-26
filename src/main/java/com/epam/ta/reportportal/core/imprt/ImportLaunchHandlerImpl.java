@@ -1,9 +1,7 @@
 package com.epam.ta.reportportal.core.imprt;
 
-import com.epam.ta.reportportal.core.imprt.format.junit.ImportLaunch;
-import com.epam.ta.reportportal.core.imprt.format.junit.ImportType;
-import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.core.imprt.format.async.ImportLaunch;
+import com.epam.ta.reportportal.core.imprt.format.async.ImportType;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -23,13 +21,7 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
     private ImportLaunchFactoryImpl factory;
 
     @Autowired
-    private StatisticsFacadeFactory statisticsFacadeFactory;
-
-    @Autowired
     private ProjectRepository projectRepository;
-
-    @Autowired
-    private LaunchRepository launchRepository;
 
     @Override
     public OperationCompletionRS importLaunch(String projectId, String userName, String format, MultipartFile file) {

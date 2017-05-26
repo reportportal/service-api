@@ -35,11 +35,11 @@ import java.util.List;
 @Service
 public class SharingService {
 
-	@Autowired
 	private final IChainElement strartOfChain;
 
 	private final ApplicationEventPublisher eventPublisher;
 
+	@Autowired
 	public SharingService(@Qualifier("DashboardChainElement") IChainElement strartOfChain, ApplicationEventPublisher eventPublisher) {
 		this.strartOfChain = strartOfChain;
 		this.eventPublisher = eventPublisher;

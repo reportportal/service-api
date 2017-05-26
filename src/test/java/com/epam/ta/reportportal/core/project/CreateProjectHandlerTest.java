@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.project;
 
 import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,19 +44,34 @@ public class CreateProjectHandlerTest extends BaseTest{
 	@Autowired
 	private ProjectRepository projectRepository;
 
+	private final String CREATOR = "user";
+    private final String PROJECT_NAME = "new_project";
+    private final String ENTITY_TYPE = "INTERNAL";
+    private final String ADDITIONAL_INFO = "test project";
+
 	@Test
 	public void testCreateProject() {
-		String creator = "user";
 		CreateProjectRQ createProjectRQ = new CreateProjectRQ();
-		createProjectRQ.setProjectName("new_project");
-		createProjectRQ.setEntryType("INTERNAL");
-		createProjectRQ.setAddInfo("test project");
-		EntryCreatedRS projectRS = createProjectHandler.createProject(createProjectRQ, creator);
+		createProjectRQ.setProjectName(PROJECT_NAME);
+		createProjectRQ.setEntryType(ENTITY_TYPE);
+		createProjectRQ.setAddInfo(ADDITIONAL_INFO);
+		EntryCreatedRS projectRS = createProjectHandler.createProject(createProjectRQ, CREATOR);
 		Project project = projectRepository.findOne(projectRS.getId());
 		Assert.assertNotNull(project);
-		Assert.assertEquals("new_project", projectRS.getId());
+		Assert.assertEquals(PROJECT_NAME, projectRS.getId());
 		Assert.assertNotNull(project.getUsers());
-		Assert.assertTrue(project.getUsers().containsKey(creator));
-		Assert.assertEquals(ProjectRole.PROJECT_MANAGER, project.getUsers().get(creator).getProjectRole());
+		Assert.assertTrue(project.getUsers().containsKey(CREATOR));
+		Assert.assertEquals(ProjectRole.PROJECT_MANAGER, project.getUsers().get(CREATOR).getProjectRole());
 	}
+
+    @Test(expected = ReportPortalException.class)
+    public void testCreateProjectThrowsReportPortalException() {
+        CreateProjectRQ createProjectRQ = new CreateProjectRQ();
+        createProjectRQ.setProjectName(PROJECT_NAME);
+        createProjectRQ.setEntryType(ENTITY_TYPE);
+        createProjectRQ.setAddInfo(ADDITIONAL_INFO);
+        createProjectHandler.createProject(createProjectRQ, CREATOR);
+    }
+
+
 }

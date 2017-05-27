@@ -1,4 +1,24 @@
-package com.epam.ta.reportportal.core.imprt.format.async;
+/*
+ * Copyright 2017 EPAM Systems
+ *
+ *
+ * This file is part of EPAM Report Portal.
+ * https://github.com/reportportal/service-api
+ *
+ * Report Portal is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Report Portal is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package com.epam.ta.reportportal.core.imprt.impl.junit;
 
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
@@ -24,9 +44,11 @@ import java.util.Date;
 import java.util.Deque;
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.core.imprt.format.async.JunitReportTag.*;
+public class JunitImportHandler extends DefaultHandler {
 
-public class AsyncXmlImportHandler extends DefaultHandler {
+    private static long fullDuration;
+
+    private static LocalDateTime startLaunchTime;
 
     @Autowired
     private IStartLaunchHandler startLaunchHandler;
@@ -46,15 +68,11 @@ public class AsyncXmlImportHandler extends DefaultHandler {
     private String projectId;
     private String userName;
     private String launchId;
-
     private Deque<String> itemsIds;
     private Status status;
     private StringBuilder message;
     private LocalDateTime time;
     private long currentDuration;
-
-    private static long fullDuration;
-    private static LocalDateTime startLaunchTime;
 
     @Override
     public void startDocument() throws SAXException {
@@ -69,27 +87,32 @@ public class AsyncXmlImportHandler extends DefaultHandler {
 
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-        switch (fromString(qName)) {
+        switch (JunitReportTag.fromString(qName)) {
             case TESTSUITE:
-                startRootItem(attributes.getValue(ATTR_NAME.getValue()), attributes.getValue(TIMESTAMP.getValue()));
+                startRootItem(attributes.getValue(JunitReportTag.ATTR_NAME.getValue()),
+                        attributes.getValue(JunitReportTag.TIMESTAMP.getValue()));
                 break;
             case TESTCASE:
-                startTestItem(attributes.getValue(ATTR_NAME.getValue()), attributes.getValue(ATTR_TIME.getValue()));
+                startTestItem(attributes.getValue(JunitReportTag.ATTR_NAME.getValue()),
+                        attributes.getValue(JunitReportTag.ATTR_TIME.getValue()));
                 break;
             case FAILURE:
-                message = new StringBuilder("");
+                message = new StringBuilder();
                 status = Status.FAILED;
                 break;
             case SKIPPED:
-                message = new StringBuilder("");
+                message = new StringBuilder();
                 status = Status.SKIPPED;
                 break;
+            case SYSTEM_OUT:
+            case SYSTEM_ERR:
+                message = new StringBuilder();
         }
     }
 
     @Override
     public void endElement(String uri, String localName, String qName) throws SAXException {
-        switch (fromString(qName)) {
+        switch (JunitReportTag.fromString(qName)) {
             case TESTSUITE:
                 finishRootItem();
                 break;
@@ -103,8 +126,8 @@ public class AsyncXmlImportHandler extends DefaultHandler {
                 attachLog(LogLevel.ERROR);
                 break;
             case SYSTEM_OUT:
+            case SYSTEM_ERR:
                 attachLog(LogLevel.DEBUG);
-                break;
         }
     }
 
@@ -171,7 +194,7 @@ public class AsyncXmlImportHandler extends DefaultHandler {
         status = null;
     }
 
-    AsyncXmlImportHandler withParameters(String projectId, String launchId, String user){
+    JunitImportHandler withParameters(String projectId, String launchId, String user) {
         this.projectId = projectId;
         this.launchId = launchId;
         this.userName = user;

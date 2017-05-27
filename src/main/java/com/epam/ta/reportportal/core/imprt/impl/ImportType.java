@@ -18,25 +18,16 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.epam.ta.reportportal.core.imprt;
+package com.epam.ta.reportportal.core.imprt.impl;
 
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import org.springframework.web.multipart.MultipartFile;
+import java.util.Arrays;
 
-/**
- * @author Pavel_Bortnik
- */
-public interface ImportLaunchHandler {
+public enum ImportType {
+    JUNIT;
 
-    /**
-     * Import launch from file with specified format.
-     *
-     * @param projectId project
-     * @param userName  user
-     * @param format    report format
-     * @param file      file with report
-     * @return OperationCompletionRS
-     */
-    OperationCompletionRS importLaunch(String projectId, String userName,
-                                       String format, MultipartFile file);
+    public static ImportType fromValue(String value) {
+        return Arrays.stream(ImportType.values())
+                .filter(type -> type.name().equalsIgnoreCase(value))
+                .findFirst().orElse(null);
+    }
 }

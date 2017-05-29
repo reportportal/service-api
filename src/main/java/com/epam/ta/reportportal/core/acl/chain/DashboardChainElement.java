@@ -21,19 +21,18 @@
 
 package com.epam.ta.reportportal.core.acl.chain;
 
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.dao.DashboardRepository;
 import com.epam.ta.reportportal.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.sharing.Shareable;
-import com.google.common.collect.Lists;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Sharing chain element for processing dashboards.
@@ -64,7 +63,10 @@ public class DashboardChainElement extends ChainElement {
 	public List<? extends Shareable> getNextElements(List<? extends Shareable> elementsToProcess, String owner) {
 		Set<String> ids = elementsToProcess.stream().map(e -> (Dashboard) e).flatMap(d -> d.getWidgets().stream())
 				.map(Dashboard.WidgetObject::getWidgetId).collect(Collectors.toSet());
-		return Lists.newArrayList(widgetRepository.findOnlyOwnedEntities(ids, owner));
+		if (!ids.isEmpty()){
+			return widgetRepository.findOnlyOwnedEntities(ids, owner);
+		}
+		return Collections.emptyList();
 	}
 
 	@Override

@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -61,12 +61,12 @@ public class WidgetChainElement extends ChainElement {
 
     @Override
     public List<? extends Shareable> getNextElements(List<? extends Shareable> elementsToProcess, String ownerId) {
-        Set<String> ids = new HashSet<>();
-        for (Shareable shareable : elementsToProcess) {
-            Widget widget = (Widget) shareable;
-            ids.add(widget.getApplyingFilterId());
+        Set<String> ids = elementsToProcess.stream().map(it -> (Widget) it).map(Widget::getApplyingFilterId)
+                .collect(Collectors.toSet());
+        if (!ids.isEmpty()) {
+            return userFilterRepository.findOnlyOwnedEntities(ids, ownerId);
         }
-        return userFilterRepository.findOnlyOwnedEntities(ids, ownerId);
+        return Collections.emptyList();
     }
 
     @Override

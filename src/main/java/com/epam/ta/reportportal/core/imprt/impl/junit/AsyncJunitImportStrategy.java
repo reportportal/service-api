@@ -60,6 +60,8 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
     @Autowired
     private LaunchRepository launchRepository;
 
+    private static final Date initalStartTime = new Date(0);
+
     private static final ExecutorService service = Executors.newFixedThreadPool(5);
 
     private static final String XML_REGEX = ".*xml";
@@ -98,19 +100,13 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
             CompletableFuture.allOf(futures).get(5, TimeUnit.MINUTES);
             return processResults(futures);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            throw new ReportPortalException("Problem with parsing zip file.", e);
+            throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "There are invalid xml files.", e);
         }
     }
 
     private ParseResults processResults(CompletableFuture[] futures) {
         ParseResults results = new ParseResults();
-        Arrays.stream(futures).map(it -> {
-            try {
-                return (ParseResults) it.get();
-            } catch (InterruptedException | ExecutionException e) {
-                throw new ReportPortalException("There was a problem processing results.", e);
-            }
-        }).forEach(res -> {
+        Arrays.stream(futures).map(it -> (ParseResults) it.join()).forEach(res -> {
             results.checkAndSetStartLaunchTime(res.getStartTime());
             results.increaseDuration(res.getDuration());
         });
@@ -119,7 +115,7 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
 
     private String startLaunch(String projectId, String userName, String launchName) {
         StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
-        startLaunchRQ.setStartTime(new Date(0));
+        startLaunchRQ.setStartTime(initalStartTime);
         startLaunchRQ.setName(launchName);
         startLaunchRQ.setMode(Mode.DEFAULT);
         return startLaunchHandler.startLaunch(userName, projectId, startLaunchRQ).getId();
@@ -131,6 +127,6 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
         finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectId, userName);
         Launch launch = launchRepository.findOne(launchId);
         launch.setStartTime(DateUtils.toDate(results.getStartTime()));
-        launchRepository.save(launch);
+        launchRepository.partialUpdate(launch);
     }
 }

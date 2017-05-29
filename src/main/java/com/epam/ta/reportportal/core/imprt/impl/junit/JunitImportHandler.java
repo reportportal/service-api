@@ -37,18 +37,15 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
-import java.util.Date;
 import java.util.Deque;
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toDate;
+import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toMillis;
+
 public class JunitImportHandler extends DefaultHandler {
-
-    private static long fullDuration;
-
-    private static LocalDateTime startLaunchTime;
 
     @Autowired
     private IStartLaunchHandler startLaunchHandler;
@@ -65,20 +62,30 @@ public class JunitImportHandler extends DefaultHandler {
     @Autowired
     private ICreateLogHandler createLogHandler;
 
+    //initial info
     private String projectId;
     private String userName;
     private String launchId;
+
+    //need to know item's id to attach System.out/System.err logs
+    private String currentId;
+
+    private LocalDateTime startSuiteTime;
+
+    private long commonDuration;
+    private long currentDuration;
+
+    //items structure ids
     private Deque<String> itemsIds;
     private Status status;
     private StringBuilder message;
-    private LocalDateTime time;
-    private long currentDuration;
+    private LocalDateTime startItemTime;
 
     @Override
     public void startDocument() throws SAXException {
         itemsIds = new ArrayDeque<>();
         message = new StringBuilder();
-        startLaunchTime = LocalDateTime.now();
+        startSuiteTime = LocalDateTime.now();
     }
 
     @Override
@@ -127,38 +134,31 @@ public class JunitImportHandler extends DefaultHandler {
                 break;
             case SYSTEM_OUT:
             case SYSTEM_ERR:
-                attachLog(LogLevel.DEBUG);
+                attachDebugLog(LogLevel.DEBUG);
+                break;
         }
     }
 
     @Override
     public void characters(char[] ch, int start, int length) throws SAXException {
-        message.append(new String(ch, start, length));
-    }
-
-    private void attachLog(LogLevel logLevel) {
-        if (null != message && message.length() != 0) {
-            SaveLogRQ saveLogRQ = new SaveLogRQ();
-            saveLogRQ.setLevel(logLevel.name());
-            saveLogRQ.setLogTime(toDate(time));
-            saveLogRQ.setMessage(message.toString());
-            saveLogRQ.setTestItemId(itemsIds.getFirst());
-            createLogHandler.createLog(saveLogRQ, null, null, projectId);
+        String msg = new String(ch, start, length);
+        if (!msg.isEmpty()) {
+            message.append(new String(ch, start, length));
         }
     }
 
     private void startRootItem(String name, String timestamp) {
         if (null != timestamp) {
-            time = LocalDateTime.parse(timestamp);
-            if (startLaunchTime.isAfter(time)) {
-                startLaunchTime = LocalDateTime.of(time.toLocalDate(), time.toLocalTime());
+            startItemTime = LocalDateTime.parse(timestamp);
+            if (startSuiteTime.isAfter(startItemTime)) {
+                startSuiteTime = LocalDateTime.of(startItemTime.toLocalDate(), startItemTime.toLocalTime());
             }
         } else {
-            time = LocalDateTime.now();
+            startItemTime = LocalDateTime.now();
         }
         StartTestItemRQ rq = new StartTestItemRQ();
         rq.setLaunchId(launchId);
-        rq.setStartTime(toDate(time));
+        rq.setStartTime(toDate(startItemTime));
         rq.setType(TestItemType.TEST.name());
         rq.setName(name);
         String id = startTestItemHandler.startRootItem(projectId, rq).getId();
@@ -168,7 +168,7 @@ public class JunitImportHandler extends DefaultHandler {
     private void startTestItem(String name, String duration) {
         StartTestItemRQ rq = new StartTestItemRQ();
         rq.setLaunchId(launchId);
-        rq.setStartTime(toDate(time));
+        rq.setStartTime(toDate(startItemTime));
         rq.setType(TestItemType.STEP.name());
         rq.setName(name);
         String id = startTestItemHandler.startChildItem(rq, itemsIds.peekLast()).getId();
@@ -178,7 +178,7 @@ public class JunitImportHandler extends DefaultHandler {
 
     private void finishRootItem() {
         FinishTestItemRQ rq = new FinishTestItemRQ();
-        rq.setEndTime(toDate(time));
+        rq.setEndTime(toDate(startItemTime));
         rq.setStatus(Optional.ofNullable(status).orElse(Status.PASSED).name());
         finishTestItemHandler.finishTestItem(itemsIds.poll(), rq, userName);
         status = null;
@@ -186,12 +186,35 @@ public class JunitImportHandler extends DefaultHandler {
 
     private void finishTestItem() {
         FinishTestItemRQ rq = new FinishTestItemRQ();
-        time = time.plus(currentDuration, ChronoUnit.MILLIS);
-        fullDuration += currentDuration;
-        rq.setEndTime(toDate(time));
+        startItemTime = startItemTime.plus(currentDuration, ChronoUnit.MILLIS);
+        commonDuration += currentDuration;
+        rq.setEndTime(toDate(startItemTime));
         rq.setStatus(Optional.ofNullable(status).orElse(Status.PASSED).name());
-        finishTestItemHandler.finishTestItem(itemsIds.poll(), rq, userName);
+        currentId = itemsIds.poll();
+        finishTestItemHandler.finishTestItem(currentId, rq, userName);
         status = null;
+    }
+
+    private void attachDebugLog(LogLevel logLevel) {
+        if (null != message && message.length() != 0) {
+            SaveLogRQ saveLogRQ = new SaveLogRQ();
+            saveLogRQ.setLevel(logLevel.name());
+            saveLogRQ.setLogTime(toDate(startItemTime));
+            saveLogRQ.setMessage(message.toString());
+            saveLogRQ.setTestItemId(currentId);
+            createLogHandler.createLog(saveLogRQ, null, null, projectId);
+        }
+    }
+
+    private void attachLog(LogLevel logLevel) {
+        if (null != message && message.length() != 0) {
+            SaveLogRQ saveLogRQ = new SaveLogRQ();
+            saveLogRQ.setLevel(logLevel.name());
+            saveLogRQ.setLogTime(toDate(startItemTime));
+            saveLogRQ.setMessage(message.toString());
+            saveLogRQ.setTestItemId(itemsIds.getFirst());
+            createLogHandler.createLog(saveLogRQ, null, null, projectId);
+        }
     }
 
     JunitImportHandler withParameters(String projectId, String launchId, String user) {
@@ -201,36 +224,11 @@ public class JunitImportHandler extends DefaultHandler {
         return this;
     }
 
-    private static Date toDate(LocalDateTime startTime) {
-        return Date.from(startTime.atZone(ZoneId.systemDefault()).toInstant());
+    LocalDateTime getStartSuiteTime() {
+        return startSuiteTime;
     }
 
-    private long toMillis(String duration) {
-        Double value = Double.valueOf(duration) * 1000;
-        return value.longValue();
-    }
-
-    public void setProjectId(String projectId) {
-        this.projectId = projectId;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public void setLaunchId(String launchId) {
-        this.launchId = launchId;
-    }
-
-    public String getLaunchId() {
-        return launchId;
-    }
-
-    static Date getEndLaunchTime() {
-        return toDate(startLaunchTime.plus(fullDuration, ChronoUnit.MILLIS));
-    }
-
-    static Date getStartLaunchTime() {
-        return toDate(startLaunchTime);
+    long getCommonDuration() {
+        return commonDuration;
     }
 }

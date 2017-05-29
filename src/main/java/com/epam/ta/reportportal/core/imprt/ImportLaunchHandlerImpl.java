@@ -20,11 +20,13 @@
  */
 package com.epam.ta.reportportal.core.imprt;
 
-import com.epam.ta.reportportal.core.imprt.impl.ImportLaunch;
-import com.epam.ta.reportportal.core.imprt.impl.ImportLaunchFactoryImpl;
+import com.epam.ta.reportportal.core.imprt.impl.ImportStrategy;
+import com.epam.ta.reportportal.core.imprt.impl.ImportStrategyFactoryImpl;
 import com.epam.ta.reportportal.core.imprt.impl.ImportType;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,14 +34,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 
 @Service
 public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 
     @Autowired
-    private ImportLaunchFactoryImpl factory;
+    private ImportStrategyFactoryImpl factory;
 
     @Autowired
     private ProjectRepository projectRepository;
@@ -49,10 +50,10 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
         Project project = projectRepository.findOne(projectId);
         expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectId);
 
-        ImportType type = ImportType.fromValue(format);
-        expect(type, notNull()).verify(BAD_REQUEST_ERROR, type);
+        ImportType type = ImportType.fromValue(format).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+                "Incorrect importing file format: " + format));
 
-        ImportLaunch strategy = factory.getImportLaunch(type);
+        ImportStrategy strategy = factory.getImportLaunch(type);
         String launch = strategy.importLaunch(projectId, userName, file);
 
         return new OperationCompletionRS("Launch with id = " + launch + " is successfully imported.");

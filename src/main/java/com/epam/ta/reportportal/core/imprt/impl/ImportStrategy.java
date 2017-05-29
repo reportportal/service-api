@@ -20,15 +20,21 @@
  */
 package com.epam.ta.reportportal.core.imprt.impl;
 
-import java.util.Arrays;
-import java.util.Optional;
+import org.springframework.web.multipart.MultipartFile;
 
-public enum ImportType {
-    JUNIT;
-
-    public static Optional<ImportType> fromValue(String value) {
-        return Arrays.stream(ImportType.values())
-                .filter(type -> type.name().equalsIgnoreCase(value))
-                .findFirst();
-    }
+/**
+ * Handler for processing launch importing.
+ *
+ * @author Pavel_Bortnik
+ */
+public interface ImportStrategy {
+    /**
+     * Processing launch importing.
+     *
+     * @param projectId project
+     * @param userName  user
+     * @param file      zip file that contains xml test reports
+     * @return launch id
+     */
+    String importLaunch(String projectId, String userName, MultipartFile file);
 }

@@ -20,15 +20,23 @@
  */
 package com.epam.ta.reportportal.core.imprt.impl;
 
-import java.util.Arrays;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 
-public enum ImportType {
-    JUNIT;
+public final class DateUtils {
 
-    public static Optional<ImportType> fromValue(String value) {
-        return Arrays.stream(ImportType.values())
-                .filter(type -> type.name().equalsIgnoreCase(value))
-                .findFirst();
+    private DateUtils(){
+        //static only
     }
+
+    public static Date toDate(LocalDateTime startTime) {
+        return Date.from(startTime.atZone(ZoneId.systemDefault()).toInstant());
+    }
+
+    public static long toMillis(String duration) {
+        Double value = Double.valueOf(duration) * 1000;
+        return value.longValue();
+    }
+
 }

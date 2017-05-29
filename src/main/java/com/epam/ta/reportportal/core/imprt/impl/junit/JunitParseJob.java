@@ -29,8 +29,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.Callable;
 
-public class JunitParseJob implements Runnable {
+public class JunitParseJob implements Callable<ParseResults> {
 
     @Autowired
     private Provider<JunitImportHandler> junitImportHandlerProvider;
@@ -40,12 +41,13 @@ public class JunitParseJob implements Runnable {
     private InputStream xmlInputStream;
 
     @Override
-    public void run() {
+    public ParseResults call() {
         try {
             SAXParserFactory.newInstance().newSAXParser().parse(xmlInputStream, handler);
         } catch (SAXException | IOException | ParserConfigurationException e) {
             throw new ReportPortalException("Xml parse job problem.", e);
         }
+        return new ParseResults(handler.getStartSuiteTime(), handler.getCommonDuration());
     }
 
     JunitParseJob withParameters(String projectId, String launchId, String user, InputStream xmlInputStream) {

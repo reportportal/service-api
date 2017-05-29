@@ -20,7 +20,8 @@
  */
 package com.epam.ta.reportportal.core.imprt.impl.junit;
 
-import com.epam.ta.reportportal.core.imprt.impl.ImportLaunch;
+import com.epam.ta.reportportal.core.imprt.impl.DateUtils;
+import com.epam.ta.reportportal.core.imprt.impl.ImportStrategy;
 import com.epam.ta.reportportal.core.launch.IFinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.IStartLaunchHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
@@ -37,6 +38,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.inject.Provider;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.*;
 import java.util.function.Predicate;
@@ -44,7 +46,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 @Service
-public class AsyncJunitImportLaunch implements ImportLaunch {
+public class AsyncJunitImportStrategy implements ImportStrategy {
 
     @Autowired
     private Provider<JunitParseJob> xmlParseJobProvider;
@@ -62,9 +64,9 @@ public class AsyncJunitImportLaunch implements ImportLaunch {
 
     private static final String XML_REGEX = ".*xml";
 
-    private final static Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
+    private static final Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
 
-    private final static Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName().matches(XML_REGEX);
+    private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName().matches(XML_REGEX);
 
     @Override
     public String importLaunch(String projectId, String userName, MultipartFile file) {
@@ -72,15 +74,15 @@ public class AsyncJunitImportLaunch implements ImportLaunch {
             File tmp = File.createTempFile(file.getName(), ".zip");
             file.transferTo(tmp);
             String launchId = startLaunch(projectId, userName, file.getOriginalFilename());
-            processZipFile(tmp, projectId, userName, launchId);
-            finishLaunch(launchId, projectId, userName);
+            ParseResults results = processZipFile(tmp, projectId, userName, launchId);
+            finishLaunch(launchId, projectId, userName, results);
             return launchId;
         } catch (IOException e) {
             throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, file.getName(), e);
         }
     }
 
-    private void processZipFile(File zip, String projectId, String userName, String launchId) throws IOException {
+    private ParseResults processZipFile(File zip, String projectId, String userName, String launchId) throws IOException {
         try (ZipFile zipFile = new ZipFile(zip)) {
             CompletableFuture[] futures = zipFile.stream()
                     .filter(isFile.and(isXml))
@@ -88,15 +90,31 @@ public class AsyncJunitImportLaunch implements ImportLaunch {
                         try {
                             JunitParseJob job = xmlParseJobProvider.get()
                                     .withParameters(projectId, launchId, userName, zipFile.getInputStream(zipEntry));
-                            return CompletableFuture.runAsync(job, service);
+                            return CompletableFuture.supplyAsync(job::call, service);
                         } catch (IOException e) {
                             throw new ReportPortalException("There was a problem while parsing file : " + zipEntry.getName(), e);
                         }
                     }).toArray(CompletableFuture[]::new);
             CompletableFuture.allOf(futures).get(5, TimeUnit.MINUTES);
+            return processResults(futures);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            throw new ReportPortalException("There was a problem while importing", e);
+            throw new ReportPortalException("Problem with parsing zip file.", e);
         }
+    }
+
+    private ParseResults processResults(CompletableFuture[] futures) {
+        ParseResults results = new ParseResults();
+        Arrays.stream(futures).map(it -> {
+            try {
+                return (ParseResults) it.get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new ReportPortalException("There was a problem processing results.", e);
+            }
+        }).forEach(res -> {
+            results.checkAndSetStartLaunchTime(res.getStartTime());
+            results.increaseDuration(res.getDuration());
+        });
+        return results;
     }
 
     private String startLaunch(String projectId, String userName, String launchName) {
@@ -107,12 +125,12 @@ public class AsyncJunitImportLaunch implements ImportLaunch {
         return startLaunchHandler.startLaunch(userName, projectId, startLaunchRQ).getId();
     }
 
-    private void finishLaunch(String launchId, String projectId, String userName) {
+    private void finishLaunch(String launchId, String projectId, String userName, ParseResults results) {
         FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-        finishExecutionRQ.setEndTime(JunitImportHandler.getEndLaunchTime());
+        finishExecutionRQ.setEndTime(results.getEndTime());
         finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectId, userName);
         Launch launch = launchRepository.findOne(launchId);
-        launch.setStartTime(JunitImportHandler.getStartLaunchTime());
+        launch.setStartTime(DateUtils.toDate(results.getStartTime()));
         launchRepository.save(launch);
     }
 }

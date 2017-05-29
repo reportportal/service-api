@@ -20,21 +20,26 @@
  */
 package com.epam.ta.reportportal.core.imprt.impl;
 
-import org.springframework.web.multipart.MultipartFile;
+import com.epam.ta.reportportal.core.imprt.impl.junit.AsyncJunitImportStrategy;
+import com.google.common.collect.ImmutableMap;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-/**
- * Handler for processing launch importing.
- *
- * @author Pavel_Bortnik
- */
-public interface ImportLaunch {
-    /**
-     * Processing launch importing.
-     *
-     * @param projectId project
-     * @param userName  user
-     * @param file      zip file that contains xml test reports
-     * @return launch id
-     */
-    String importLaunch(String projectId, String userName, MultipartFile file);
+import java.util.Map;
+
+@Service
+public class ImportStrategyFactoryImpl implements ImportStrategyFactory {
+
+    private final Map<ImportType, ImportStrategy> MAPPING;
+
+    @Autowired
+    public ImportStrategyFactoryImpl(AsyncJunitImportStrategy asyncJunitImportStrategy) {
+        MAPPING = ImmutableMap.<ImportType, ImportStrategy>builder()
+                .put(ImportType.JUNIT, asyncJunitImportStrategy).build();
+    }
+
+    @Override
+    public ImportStrategy getImportLaunch(ImportType type) {
+        return MAPPING.get(type);
+    }
 }

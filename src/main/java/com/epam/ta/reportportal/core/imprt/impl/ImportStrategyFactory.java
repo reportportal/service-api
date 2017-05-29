@@ -27,11 +27,11 @@ package com.epam.ta.reportportal.core.imprt.impl;
  * @author Pavel_Bortnik
  */
 
-public interface ImportLaunchFactory {
+public interface ImportStrategyFactory {
     /**
      * Return import handler for specified type of import.
      * @param type import type
      * @return handler
      */
-    ImportLaunch getImportLaunch(ImportType type);
+    ImportStrategy getImportLaunch(ImportType type);
 }

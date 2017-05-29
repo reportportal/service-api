@@ -25,11 +25,11 @@ import com.epam.ta.reportportal.database.dao.DashboardRepository;
 import com.epam.ta.reportportal.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.sharing.Shareable;
-import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -64,9 +64,9 @@ public class DashboardChainElement extends ChainElement {
 		Set<String> ids = elementsToProcess.stream().map(e -> (Dashboard) e).flatMap(d -> d.getWidgets().stream())
 				.map(Dashboard.WidgetObject::getWidgetId).collect(Collectors.toSet());
 		if (!ids.isEmpty()){
-			return Lists.newArrayList(widgetRepository.findOnlyOwnedEntities(ids, owner));
+			return widgetRepository.findOnlyOwnedEntities(ids, owner);
 		}
-		return Lists.newArrayList();
+		return Collections.emptyList();
 	}
 
 	@Override

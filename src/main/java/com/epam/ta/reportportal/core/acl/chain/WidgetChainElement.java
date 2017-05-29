@@ -25,11 +25,11 @@ import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.database.entity.sharing.Shareable;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
-import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -66,7 +66,7 @@ public class WidgetChainElement extends ChainElement {
         if (!ids.isEmpty()) {
             return userFilterRepository.findOnlyOwnedEntities(ids, ownerId);
         }
-        return Lists.newArrayList();
+        return Collections.emptyList();
     }
 
     @Override

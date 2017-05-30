@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
@@ -37,10 +38,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -71,6 +76,8 @@ public class LaunchControllerTest extends BaseMvcTest {
 	private ActivityRepository activityRepository;
 	@Autowired
 	private LaunchRepository launchRepository;
+	@Autowired
+	private LaunchController launchController;
 
 	@Test
 	public void happyCreateLaunch() throws Exception {
@@ -92,6 +99,21 @@ public class LaunchControllerTest extends BaseMvcTest {
 		Activity activity = activities.get(0);
 		assertEquals(START, activity.getActionType());
 		assertEquals(Launch.LAUNCH, activity.getObjectType());
+	}
+
+	@Test
+	public void importLaunch() throws Exception{
+		Path file = Paths.get("src/test/resources/test-results.zip");
+		MockMultipartFile multipartFile = new MockMultipartFile("test-results.zip", "test-results.zip",
+				"application/zip", Files.readAllBytes(file));
+		OperationCompletionRS response = launchController
+				.importLaunch("project1", multipartFile, authentication());
+		String id = response.getResultMessage().substring(response.getResultMessage().indexOf("=") + 1,
+				response.getResultMessage().indexOf("is")).trim();
+		Launch launch = launchRepository.findOne(id);
+		assertNotNull(launch);
+		assertTrue(launchRepository.hasItems(launch, Status.FAILED));
+		assertEquals(launch.getName(), multipartFile.getOriginalFilename());
 	}
 
 	@Test

@@ -109,6 +109,16 @@ public class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	public void getTestItemsPredefined() throws Exception {
+		this.mvcMock.perform(get(PROJECT_BASE_URL + "/item?predefined_filter=collapsed").principal(authentication())).andExpect(status().is(200));
+	}
+
+	@Test
+	public void getTestItemsPredefinedUnknown() throws Exception {
+		this.mvcMock.perform(get(PROJECT_BASE_URL + "/item?predefined_filter=unknown").principal(authentication())).andExpect(status().is(400));
+	}
+
+	@Test
 	public void deleteTestItemPositive() throws Exception {
 		this.mvcMock.perform(delete(PROJECT_BASE_URL + "/item/44534cc1663de743b3e5aa33").principal(authentication()))
 				.andExpect(status().is(200));

@@ -160,6 +160,7 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 		}
 		if (null != updateRQ.getShare()) {
 			sharingService.modifySharing(Lists.newArrayList(toUpdate), userName, projectName, updateRQ.getShare());
+
 		}
 	}
 

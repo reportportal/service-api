@@ -126,6 +126,7 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
 
 		argumentResolvers.add(new ActiveUserWebArgumentResolver());
 		argumentResolvers.add(new FilterCriteriaResolver());
+		argumentResolvers.add(new PredefinedFilterCriteriaResolver());
 	}
 
 	@Override

@@ -1,3 +1,24 @@
+/*
+ * Copyright 2016 EPAM Systems
+ *
+ *
+ * This file is part of EPAM Report Portal.
+ * https://github.com/reportportal/service-api
+ *
+ * Report Portal is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Report Portal is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.epam.ta.reportportal.job;
 
 import com.epam.reportportal.commons.Thumbnailator;
@@ -53,18 +74,29 @@ public class SaveBinaryDataJobsTest extends BaseTest {
         byte[] byteArr = {116, 101};
         when(binaryData.getContentType()).thenReturn(CONTENT_TYPE);
         when(thumbnailator.createThumbnail(any(byte[].class))).thenReturn(byteArr);
-        when(dataStorageService.saveData(any(BinaryData.class), anyString(), anyMap())).thenReturn("not null");
-        saveBinData.withBinaryData(BIN_DATA).withProject(PROJECT_NAME).withFilename(FILE_NAME).withLog(LOG).run();
-        verify(logRepository, times(1)).save(LOG);
-        verify(dataStorageService, times(2)).saveData(any(BinaryData.class), anyString(), anyMap());
+        when(dataStorageService.saveData(any(BinaryData.class),
+                    anyString(), anyMap())).thenReturn("not null");
+        saveBinData.withBinaryData(BIN_DATA)
+                   .withProject(PROJECT_NAME)
+                   .withFilename(FILE_NAME)
+                   .withLog(LOG)
+                   .run();
+        verify(logRepository, times(1))
+                   .save(LOG);
+        verify(dataStorageService, times(2))
+                   .saveData(any(BinaryData.class), anyString(), anyMap());
         }
 
     @Test
     public void runTestWithContentTypeNotEqualsImage() {
         String contentType = "binary";
         BinaryData binData = new BinaryData(contentType, LENGHT_FOR_BIN_DATA, INPUT_STREAM);
-        saveBinData.withBinaryData(binData).withProject(PROJECT_NAME).withLog(LOG).run();
-        verify(logRepository, times(1)).save(LOG);
+        saveBinData.withBinaryData(binData)
+                   .withProject(PROJECT_NAME)
+                   .withLog(LOG)
+                   .run();
+        verify(logRepository, times(1))
+                   .save(LOG);
     }
 
 

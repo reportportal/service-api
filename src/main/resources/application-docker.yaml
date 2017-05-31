@@ -29,7 +29,7 @@ spring:
     port: 6379
   cloud:
     consul:
-      host: consul
+      host: registry
       discovery:
         hostname: api
         prefer-ip-address: false

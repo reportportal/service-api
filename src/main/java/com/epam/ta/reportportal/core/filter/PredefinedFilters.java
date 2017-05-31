@@ -22,16 +22,18 @@ package com.epam.ta.reportportal.core.filter;
 
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.database.search.PredefinedFilter;
 import com.epam.ta.reportportal.database.search.Queryable;
 import com.epam.ta.reportportal.ws.resolver.PredefinedFilterBuilder;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.data.mongodb.core.query.Criteria;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.database.entity.statistics.IssueCounter.DEFECTS_FOR_DB;
-import static com.epam.ta.reportportal.database.entity.statistics.IssueCounter.GROUP_TOTAL;
 import static java.util.Collections.singletonList;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
@@ -42,29 +44,41 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
  */
 public final class PredefinedFilters {
 
-    private PredefinedFilters() {
-        //no instance required
-    }
+	private PredefinedFilters() {
+		//no instance required
+	}
 
-    private static final Map<String, PredefinedFilterBuilder> FILTERS = ImmutableMap.<String, PredefinedFilterBuilder>builder()
-            .put("collapsed", new PredefinedFilterBuilder() {
-                @Override
-                public Queryable build(String[] params) {
-                    return new PredefinedFilter(TestItem.class, singletonList(
-                            new Criteria().orOperator(
-                                    where("status").ne(Status.FAILED),
-                                    where(DEFECTS_FOR_DB + "." + GROUP_TOTAL).gt(0))));
-                }
-            })
-            .build();
+	/**
+	 * Костыль requested by UI team. Back-end team doesn't really understand what such a strange
+	 * query is supposed to be used for.
+	 * TODO Incompatible with free structure tree and BDD-like structure
+	 */
+	private static final Collection<TestItemType> HAS_METHOD_OR_CLASS = Arrays.stream(TestItemType.values()).filter(it -> {
+		String name = it.name();
+		return name.contains("METHOD") || name.contains("CLASS");
+	}).collect(Collectors.toList());
 
-    public static boolean hasFilter(String name) {
-        return FILTERS.containsKey(name);
-    }
+	//@formatter:off
+	private static final Map<String, PredefinedFilterBuilder> FILTERS = ImmutableMap.<String, PredefinedFilterBuilder>builder()
+			.put("collapsed", new PredefinedFilterBuilder() {
+				@Override
+				public Queryable build(String[] params) {
+					return new PredefinedFilter(TestItem.class, singletonList(
+							new Criteria()
+									.orOperator(
+											where("status").is(Status.FAILED),
+											where("type").nin(HAS_METHOD_OR_CLASS))));
+				}
+			}).build();
+	//@formatter:on
 
-    public static Queryable buildFilter(String name, String[] params) {
-        final PredefinedFilterBuilder builder = FILTERS.get(name);
-        return builder.buildFilter(params);
-    }
+	public static boolean hasFilter(String name) {
+		return FILTERS.containsKey(name);
+	}
+
+	public static Queryable buildFilter(String name, String[] params) {
+		final PredefinedFilterBuilder builder = FILTERS.get(name);
+		return builder.buildFilter(params);
+	}
 
 }

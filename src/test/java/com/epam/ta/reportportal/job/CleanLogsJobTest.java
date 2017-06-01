@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.job;
 
+import com.epam.ta.BaseTest;
 import com.epam.ta.reportportal.database.DataStorage;
 import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
@@ -29,6 +30,8 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.mongodb.gridfs.GridFSDBFile;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -50,49 +53,21 @@ import static org.mockito.Mockito.*;
  */
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
 public class CleanLogsJobTest {
 
-    @Configuration
-    static class CleanLogsJobTestContextConfiguration {
-        @Bean
-        public CleanLogsJob cleanLogsJob() {
-            return new CleanLogsJob();
-        }
-        @Bean
-        public LogRepository logRepo() {
-            return mock(LogRepository.class);
-        }
-        @Bean
-        public LaunchRepository launchRepo() {
-            return mock(LaunchRepository.class);
-        }
-        @Bean
-        public TestItemRepository testItemRepo() {
-            return mock(TestItemRepository.class);
-        }
-        @Bean
-        public ActivityRepository activityRepository() {
-            return mock(ActivityRepository.class);
-        }
-        @Bean
-        public ProjectRepository projectRepository() {
-            return mock(ProjectRepository.class);
-        }
-    }
+    @InjectMocks
+    private CleanLogsJob cleanLogsJob = new CleanLogsJob();
 
-    @Autowired
+    @Mock
     private LogRepository logRepo;
-    @Autowired
+    @Mock
     private LaunchRepository launchRepo;
-    @Autowired
+    @Mock
     private TestItemRepository testItemRepo;
-    @Autowired
+    @Mock
     private ProjectRepository projectRepository;
-    @Autowired
+    @Mock
     private ActivityRepository activityRepository;
-    @Autowired
-    private CleanLogsJob cleanLogsJob;
 
     @Test
     public void runTest() {

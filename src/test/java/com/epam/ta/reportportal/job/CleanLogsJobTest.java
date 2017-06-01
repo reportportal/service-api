@@ -108,11 +108,9 @@ public class CleanLogsJobTest {
 
         Launch launch = new Launch();
         launch.setId(name);
-
         Stream<Launch> sl = Stream.of(launch);
 
         TestItem testItem = new TestItem();
-
         Stream<TestItem> st = Stream.of(testItem);
 
         when(projectRepository.streamAllIdsAndConfiguration())

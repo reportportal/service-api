@@ -66,6 +66,8 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
 
     private static final String XML_REGEX = ".*xml";
 
+    private static final String ZIP = ".zip";
+
     private static final Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
 
     private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName().matches(XML_REGEX);
@@ -73,14 +75,15 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
     @Override
     public String importLaunch(String projectId, String userName, MultipartFile file) {
         try {
-            File tmp = File.createTempFile(file.getName(), ".zip");
+            File tmp = File.createTempFile(file.getName(), ZIP);
             file.transferTo(tmp);
-            String launchId = startLaunch(projectId, userName, file.getOriginalFilename());
+            String launchId = startLaunch(projectId, userName,
+                    file.getOriginalFilename().substring(0, file.getOriginalFilename().indexOf(ZIP)));
             ParseResults results = processZipFile(tmp, projectId, userName, launchId);
             finishLaunch(launchId, projectId, userName, results);
             return launchId;
         } catch (IOException e) {
-            throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, file.getName(), e);
+            throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, file.getOriginalFilename(), e);
         }
     }
 

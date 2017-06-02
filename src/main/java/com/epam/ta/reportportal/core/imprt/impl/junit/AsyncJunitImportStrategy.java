@@ -83,7 +83,7 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
 
     private String processZipFile(File zip, String projectId, String userName) throws IOException {
         try (ZipFile zipFile = new ZipFile(zip)) {
-            String launchId = startLaunch(projectId, userName, zip.getName());
+            String launchId = startLaunch(projectId, userName, zip.getName().substring(0, zip.getName().indexOf(".zip")));
             CompletableFuture[] futures = zipFile.stream()
                     .filter(isFile.and(isXml))
                     .map(zipEntry -> {

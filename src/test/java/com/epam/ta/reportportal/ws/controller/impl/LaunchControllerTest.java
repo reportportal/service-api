@@ -113,7 +113,7 @@ public class LaunchControllerTest extends BaseMvcTest {
 		Launch launch = launchRepository.findOne(id);
 		assertNotNull(launch);
 		assertTrue(launchRepository.hasItems(launch, Status.FAILED));
-		assertEquals(launch.getName(), multipartFile.getOriginalFilename());
+		assertEquals(launch.getName(), "test-results");
 	}
 
 	@Test

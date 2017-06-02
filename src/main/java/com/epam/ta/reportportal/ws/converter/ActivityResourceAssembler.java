@@ -22,12 +22,9 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.database.entity.item.Activity;
-import com.epam.ta.reportportal.ws.converter.builders.ActivityResourceBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.ActivityConverter;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.inject.Provider;
 
 /**
  * Resource assembler for the
@@ -38,11 +35,8 @@ import javax.inject.Provider;
 @Service
 public class ActivityResourceAssembler extends PagedResourcesAssembler<Activity, ActivityResource> {
 
-	@Autowired
-	private Provider<ActivityResourceBuilder> builderLazyReference;
-
 	@Override
 	public ActivityResource toResource(Activity element) {
-		return builderLazyReference.get().addActivity(element).build();
+		return ActivityConverter.TO_RESOURCE.apply(element);
 	}
 }

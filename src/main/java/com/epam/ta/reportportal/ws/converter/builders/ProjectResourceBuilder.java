@@ -24,7 +24,7 @@ package com.epam.ta.reportportal.ws.converter.builders;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
-import com.epam.ta.reportportal.ws.converter.EmailConfigConverters;
+import com.epam.ta.reportportal.ws.converter.converters.EmailConfigConverters;
 import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;

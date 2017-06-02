@@ -19,7 +19,7 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.ws.converter;
+package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.database.entity.settings.OAuth2LoginDetails;
 import com.epam.ta.reportportal.ws.model.settings.OAuthDetailsResource;

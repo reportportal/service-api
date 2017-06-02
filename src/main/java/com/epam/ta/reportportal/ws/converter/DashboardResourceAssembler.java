@@ -22,12 +22,9 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.database.entity.Dashboard;
-import com.epam.ta.reportportal.ws.converter.builders.DashboardResourceBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.DashboardConverter;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.inject.Provider;
 
 /**
  * Resource Assembler for the {@link Dashboard} DB entity.
@@ -38,14 +35,9 @@ import javax.inject.Provider;
 public class DashboardResourceAssembler extends
         ResourceAssembler<Dashboard, DashboardResource> {
 
-    @Autowired
-    private Provider<DashboardResourceBuilder> builderLazyReference;
-
     @Override
     public DashboardResource toResource(Dashboard entity) {
-        DashboardResourceBuilder resourceBuilder = builderLazyReference.get();
-        resourceBuilder.addDashboard(entity);
-        return resourceBuilder.build();
+        return DashboardConverter.TO_RESOURCE.apply(entity);
     }
 
 }

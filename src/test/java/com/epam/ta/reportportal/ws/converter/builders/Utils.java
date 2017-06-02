@@ -251,7 +251,7 @@ public class Utils {
 		DashboardResource dashboardResource = new DashboardResource();
 		dashboardResource.setName(BuilderTestsConstants.NAME);
 		dashboardResource.setDashboardId(BuilderTestsConstants.BINARY_DATA_ID);
-		dashboardResource.setWidgets(null);
+		dashboardResource.setWidgets(Collections.emptyList());
 		return dashboardResource;
 	}
 

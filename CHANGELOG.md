@@ -115,3 +115,4 @@
 * EPMRPP-25320 - Internal project is replaced with personal in case they have identical names 
 * EPMRPP-24853 - Next, Previous items should contain only visible items in case 'Collapse precondition methods' functionality is ON
 * EPMRPP-25526 - Unshared filter is still shown on Launches page for not owner
+* EPMRPP-25476 - WS: Make 'share'/'isShare' parameter written the same for POST and GET methods

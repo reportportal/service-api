@@ -57,7 +57,7 @@ public class WidgetResourceBuilder extends Builder<WidgetResource> {
 			}
 			if (null != widget.getAcl()) {
 				getObject().setOwner(widget.getAcl().getOwnerUserId());
-				getObject().setIsShared(!widget.getAcl().getEntries().isEmpty());
+				getObject().setShare(!widget.getAcl().getEntries().isEmpty());
 			}
 		}
 		return this;

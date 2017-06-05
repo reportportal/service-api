@@ -55,7 +55,7 @@ public class DashboardResourceBuilder extends Builder<DashboardResource> {
 			}
 			if (null != dashboard.getAcl()) {
 				getObject().setOwner(dashboard.getAcl().getOwnerUserId());
-				getObject().setIsShared(!dashboard.getAcl().getEntries().isEmpty());
+				getObject().setShare(!dashboard.getAcl().getEntries().isEmpty());
 			}
 		}
 		return this;

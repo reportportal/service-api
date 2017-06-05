@@ -30,10 +30,10 @@ import org.springframework.stereotype.Service;
  * Resource Assembler for the {@link Dashboard} DB entity.
  *
  * @author Aliaksei_Makayed
+ * @author Pavel_Bortnik
  */
 @Service
-public class DashboardResourceAssembler extends
-        ResourceAssembler<Dashboard, DashboardResource> {
+public class DashboardResourceAssembler extends ResourceAssembler<Dashboard, DashboardResource> {
 
     @Override
     public DashboardResource toResource(Dashboard entity) {

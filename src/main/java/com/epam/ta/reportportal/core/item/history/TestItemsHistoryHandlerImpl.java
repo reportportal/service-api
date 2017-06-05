@@ -21,19 +21,6 @@
 
 package com.epam.ta.reportportal.core.item.history;
 
-import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_LOAD_TEST_ITEM_HISTORY;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.DbUtils;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -42,11 +29,23 @@ import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.ws.converter.builders.TestItemResourceBuilder;
+import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.google.common.collect.Lists;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_LOAD_TEST_ITEM_HISTORY;
+import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
 
 /**
  * Default implementation of {@link TestItemsHistoryHandler}.
@@ -61,7 +60,7 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 
 	private ProjectRepository projectRepository;
 
-	private TestItemResourceBuilder itemBuilder;
+	private TestItemResourceAssembler itemResourceAssembler;
 
 	private ITestItemsHistoryService historyServiceStrategy;
 
@@ -76,8 +75,8 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 	}
 
 	@Autowired
-	public void setItemBuilder(TestItemResourceBuilder itemBuilder) {
-		this.itemBuilder = itemBuilder;
+	public void setItemBuilder(TestItemResourceAssembler itemResourceAssembler) {
+		this.itemResourceAssembler = itemResourceAssembler;
 	}
 
 	@Autowired
@@ -120,7 +119,8 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 	TestItemHistoryElement buildHistoryElement(Launch launch, List<TestItem> testItems) {
 		List<TestItemResource> resources = new ArrayList<>();
 		if (testItems != null) {
-			resources = testItems.stream().map(item -> itemBuilder.addTestItem(item, launch.getStatus().name()).build())
+			resources = testItems.stream().map(item ->
+					itemResourceAssembler.toResource(item, launch.getStatus().name()))
 					.collect(Collectors.toList());
 		}
 		TestItemHistoryElement testItemHistoryElement = new TestItemHistoryElement();

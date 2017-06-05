@@ -6,9 +6,9 @@ import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
 import java.util.Optional;
 import java.util.function.Function;
 
-public final class FailReferenceResourceConverter {
+public final class PreferenceConverter {
 
-    private FailReferenceResourceConverter() {
+    private PreferenceConverter() {
         //static only
     }
 

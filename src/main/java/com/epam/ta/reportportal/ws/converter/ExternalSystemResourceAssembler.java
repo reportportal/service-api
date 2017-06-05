@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemConverter;
+import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Service;
  * Resource assembler for {@link ExternalSystem} entities
  *
  * @author Andrei_Ramanchuk
+ * @author Pavel_Bortnik
  */
 @Service
 public class ExternalSystemResourceAssembler extends ResourceAssembler<ExternalSystem, ExternalSystemResource> {
@@ -37,5 +39,11 @@ public class ExternalSystemResourceAssembler extends ResourceAssembler<ExternalS
     @Override
     public ExternalSystemResource toResource(ExternalSystem entity) {
         return ExternalSystemConverter.TO_RESOURCE.apply(entity);
+    }
+
+    public ExternalSystem toModel(CreateExternalSystemRQ entity, String rpProject) {
+        ExternalSystem externalSystem = ExternalSystemConverter.TO_MODEL.apply(entity);
+        externalSystem.setProjectRef(rpProject);
+        return externalSystem;
     }
 }

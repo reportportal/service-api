@@ -21,32 +21,29 @@
 
 package com.epam.ta.reportportal.core.externalsystem.handler.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.*;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.*;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-
-import java.util.List;
-
 import com.epam.ta.reportportal.core.externalsystem.ExternalSystemStrategy;
 import com.epam.ta.reportportal.core.externalsystem.StrategyProvider;
+import com.epam.ta.reportportal.core.externalsystem.handler.ICreateExternalSystemHandler;
+import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.AuthType;
+import com.epam.ta.reportportal.database.entity.ExternalSystem;
+import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType;
 import com.epam.ta.reportportal.events.ExternalSystemCreatedEvent;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.ExternalSystemResourceAssembler;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import com.epam.ta.reportportal.core.externalsystem.handler.ICreateExternalSystemHandler;
-import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.entity.ExternalSystem;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.builders.ExternalSystemBuilder;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
+import java.util.List;
 
-import javax.inject.Provider;
+import static com.epam.ta.reportportal.commons.Predicates.*;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Handler realization of {@link ICreateExternalSystemHandler} interface
@@ -65,9 +62,8 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 	@Autowired
 	private ExternalSystemRepository externalSystemRepository;
 
-
 	@Autowired
-	private Provider<ExternalSystemBuilder> builder;
+	private ExternalSystemResourceAssembler externalSystemResourceAssembler;
 
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
@@ -108,7 +104,7 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 		expect(externalSystemStrategy.connectionTest(details), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
 				projectName);
 
-		ExternalSystem newOne = builder.get().addExternalSystem(createRQ, projectName).build();
+		ExternalSystem newOne = externalSystemResourceAssembler.toModel(createRQ, projectName);
 		ExternalSystem createOne;
 		try {
 			createOne = externalSystemRepository.save(newOne);

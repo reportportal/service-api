@@ -238,7 +238,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			});
 
 				/* If project email settings */
-			List<EmailSenderCase> withoutDuplicateCases = cases.stream().distinct().map(EmailConfigConverters.FROM_CASE_RESOURCE)
+			List<EmailSenderCase> withoutDuplicateCases = cases.stream().distinct().map(EmailConfigConverters.TO_CASE_MODEL)
 					.collect(toList());
 			if (cases.size() != withoutDuplicateCases.size())
 				fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");

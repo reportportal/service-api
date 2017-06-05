@@ -15,17 +15,17 @@ public final class ActivityConverter {
         //static only
     }
 
-    public final static Function<Activity, ActivityResource> TO_RESOURCE = model -> {
+    public final static Function<Activity, ActivityResource> TO_RESOURCE = activity -> {
         ActivityResource resource = new ActivityResource();
-        if (Optional.ofNullable(model).isPresent()) {
-            resource.setUserRef(model.getUserRef());
-            resource.setActivityId(model.getId());
-            resource.setLoggedObjectRef(model.getLoggedObjectRef());
-            resource.setLastModifiedDate(model.getLastModified());
-            resource.setObjectType(model.getObjectType());
-            resource.setActionType(model.getActionType());
+        if (Optional.ofNullable(activity).isPresent()) {
+            resource.setUserRef(activity.getUserRef());
+            resource.setActivityId(activity.getId());
+            resource.setLoggedObjectRef(activity.getLoggedObjectRef());
+            resource.setLastModifiedDate(activity.getLastModified());
+            resource.setObjectType(activity.getObjectType());
+            resource.setActionType(activity.getActionType());
             Map<String, ActivityResource.FieldValues> history =
-                    Optional.ofNullable(model.getHistory())
+                    Optional.ofNullable(activity.getHistory())
                             .orElseGet(Collections::emptyMap)
                             .entrySet().stream()
                             .collect(Collectors.toMap(Map.Entry::getKey,

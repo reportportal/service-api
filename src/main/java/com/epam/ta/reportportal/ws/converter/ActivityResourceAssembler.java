@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
  * {@link com.epam.ta.reportportal.database.entity.item.Activity} db entity
  * 
  * @author Dzmitry_Kavalets
+ * @author Pavel_Bortnik
  */
 @Service
 public class ActivityResourceAssembler extends PagedResourcesAssembler<Activity, ActivityResource> {

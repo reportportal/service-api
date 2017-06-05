@@ -21,30 +21,27 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.isPresent;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-
-import java.util.Optional;
-
-import com.epam.ta.reportportal.commons.validation.Suppliers;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.project.ICreateProjectHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.project.EntryType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.builders.ProjectBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import javax.inject.Provider;
+import java.util.Optional;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.isPresent;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 /**
  * @author Hanna_Sukhadolava
@@ -55,9 +52,6 @@ public class CreateProjectHandler implements ICreateProjectHandler {
 
 	@Autowired
 	private ProjectRepository projectRepository;
-
-	@Autowired
-	private Provider<ProjectBuilder> projectBuilder;
 
 	@Override
 	public EntryCreatedRS createProject(CreateProjectRQ createProjectRQ, String username) {
@@ -74,7 +68,7 @@ public class CreateProjectHandler implements ICreateProjectHandler {
 		BusinessRule.expect(projectType.get(), equalTo(EntryType.INTERNAL)).verify(ErrorType.BAD_REQUEST_ERROR,
 				"Only internal projects can be created via API");
 
-		Project project = projectBuilder.get().addCreateProjectRQ(createProjectRQ).build();
+		Project project = ProjectConverter.TO_MODEL.apply(createProjectRQ);
 		Project.UserConfig userConfig = new Project.UserConfig();
 		userConfig.setProjectRole(ProjectRole.PROJECT_MANAGER);
 		userConfig.setProposedRole(ProjectRole.PROJECT_MANAGER);

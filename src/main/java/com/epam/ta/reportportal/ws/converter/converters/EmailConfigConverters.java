@@ -42,13 +42,13 @@ public final class EmailConfigConverters {
         //static only
     }
 
-    public final static Function<ProjectEmailConfigDTO, ProjectEmailConfig> FROM_RESOURCE = resource -> {
+    public final static Function<ProjectEmailConfigDTO, ProjectEmailConfig> TO_MODEL = resource -> {
         ProjectEmailConfig db = new ProjectEmailConfig();
         db.setEmailCases(
                 Optional.ofNullable(resource.getEmailCases())
                         .orElseGet(Collections::emptyList)
                         .stream()
-                        .map(EmailConfigConverters.FROM_CASE_RESOURCE)
+                        .map(EmailConfigConverters.TO_CASE_MODEL)
                         .collect(Collectors.toList())
         );
         db.setEmailEnabled(resource.getEmailEnabled());
@@ -56,21 +56,21 @@ public final class EmailConfigConverters {
         return db;
     };
 
-    public final static Function<ProjectEmailConfig, ProjectEmailConfigDTO> TO_RESOURCE = db -> {
+    public final static Function<ProjectEmailConfig, ProjectEmailConfigDTO> TO_RESOURCE = model -> {
         ProjectEmailConfigDTO resource = new ProjectEmailConfigDTO();
         resource.setEmailCases(
-                Optional.ofNullable(db.getEmailCases())
+                Optional.ofNullable(model.getEmailCases())
                         .orElseGet(Collections::emptyList)
                         .stream()
                         .map(EmailConfigConverters.TO_CASE_RESOURCE)
                         .collect(Collectors.toList())
         );
-        resource.setEmailEnabled(db.getEmailEnabled());
+        resource.setEmailEnabled(model.getEmailEnabled());
         resource.setFrom(resource.getFrom());
         return resource;
     };
 
-    public final static Function<EmailSenderCaseDTO, EmailSenderCase> FROM_CASE_RESOURCE = resource -> {
+    public final static Function<EmailSenderCaseDTO, EmailSenderCase> TO_CASE_MODEL = resource -> {
         EmailSenderCase db = new EmailSenderCase();
         db.setLaunchNames(resource.getLaunchNames());
         db.setRecipients(resource.getRecipients());
@@ -79,12 +79,12 @@ public final class EmailConfigConverters {
         return db;
     };
 
-    public final static Function<EmailSenderCase, EmailSenderCaseDTO> TO_CASE_RESOURCE = db -> {
+    public final static Function<EmailSenderCase, EmailSenderCaseDTO> TO_CASE_RESOURCE = model -> {
         EmailSenderCaseDTO resource = new EmailSenderCaseDTO();
-        resource.setLaunchNames(db.getLaunchNames());
-        resource.setTags(db.getTags());
-        resource.setSendCase(db.getSendCase());
-        resource.setRecipients(db.getRecipients());
+        resource.setLaunchNames(model.getLaunchNames());
+        resource.setTags(model.getTags());
+        resource.setSendCase(model.getSendCase());
+        resource.setRecipients(model.getRecipients());
         return resource;
     };
 }

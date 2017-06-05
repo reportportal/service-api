@@ -45,13 +45,6 @@ public class ProjectBuilderTest extends BaseTest {
 	}
 
 	@Test
-	public void testNull() {
-		Project actualValue = ProjectConverter.TO_MODEL.apply(null);
-		Project expectedValue = new Project();
-		validateProjects(expectedValue, actualValue);
-	}
-
-	@Test
 	public void testValues() {
 		Project actualValue = ProjectConverter.TO_MODEL.apply(getCreateProjectRQ());
 		validateProjects(getProject(), actualValue);

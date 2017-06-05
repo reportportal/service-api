@@ -28,14 +28,14 @@ public final class UserFilterConverter {
                 resource.setObjectType(f.getTarget().getSimpleName().toLowerCase());
                 resource.setEntities(UserFilterConverter.TO_ENTITIES.apply(f));
             }
-            if (null != filter.getSelectionOptions()) {
+            if (Optional.ofNullable(filter.getSelectionOptions()).isPresent()) {
                 SelectionParameters selectionParameters = new SelectionParameters();
                 selectionParameters.setSortingColumnName(filter.getSelectionOptions().getSortingColumnName());
                 selectionParameters.setIsAsc(filter.getSelectionOptions().isAsc());
                 selectionParameters.setPageNumber(filter.getSelectionOptions().getPageNumber());
                 resource.setSelectionParameters(selectionParameters);
             }
-            if (null != filter.getAcl()) {
+            if (Optional.ofNullable(filter.getAcl()).isPresent()) {
                 resource.setOwner(filter.getAcl().getOwnerUserId());
                 resource.setShare(!filter.getAcl().getEntries().isEmpty());
             }

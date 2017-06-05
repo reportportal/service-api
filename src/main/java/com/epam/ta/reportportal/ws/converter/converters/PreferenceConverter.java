@@ -14,14 +14,12 @@ public final class PreferenceConverter {
 
     public static final Function<UserPreference, PreferenceResource> TO_RESOURCE = preference -> {
         PreferenceResource preferenceResource = new PreferenceResource();
-        if (Optional.ofNullable(preference).isPresent()) {
-            preferenceResource.setUserRef(preference.getUserRef());
-            preferenceResource.setProjectRef(preference.getProjectRef());
-            UserPreference.LaunchTabs tabs = preference.getLaunchTabs();
-            if (Optional.ofNullable(tabs).isPresent()) {
-                preferenceResource.setActive(tabs.getActive());
-                preferenceResource.setFilters(tabs.getFilters());
-            }
+        preferenceResource.setUserRef(preference.getUserRef());
+        preferenceResource.setProjectRef(preference.getProjectRef());
+        UserPreference.LaunchTabs tabs = preference.getLaunchTabs();
+        if (Optional.ofNullable(tabs).isPresent()) {
+            preferenceResource.setActive(tabs.getActive());
+            preferenceResource.setFilters(tabs.getFilters());
         }
         return preferenceResource;
     };

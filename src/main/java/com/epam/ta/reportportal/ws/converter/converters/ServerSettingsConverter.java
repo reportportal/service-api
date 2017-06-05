@@ -6,6 +6,7 @@ import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import org.apache.commons.lang3.BooleanUtils;
 
+import java.util.Optional;
 import java.util.function.Function;
 
 public final class ServerSettingsConverter {
@@ -19,18 +20,18 @@ public final class ServerSettingsConverter {
         resource.setProfile(settings.getId());
         resource.setActive(settings.getActive());
         ServerEmailDetails serverEmailDetails = settings.getServerEmailDetails();
-        if (null != serverEmailDetails) {
+        if (Optional.ofNullable(serverEmailDetails).isPresent()) {
             ServerEmailResource output = new ServerEmailResource();
             output.setHost(serverEmailDetails.getHost());
             output.setPort(serverEmailDetails.getPort());
             output.setProtocol(serverEmailDetails.getProtocol());
             output.setAuthEnabled(serverEmailDetails.getAuthEnabled());
-            output.setSslEnabled(BooleanUtils.isTrue(serverEmailDetails.getSslEnabled()) );
+            output.setSslEnabled(BooleanUtils.isTrue(serverEmailDetails.getSslEnabled()));
             output.setStarTlsEnabled(BooleanUtils.isTrue(serverEmailDetails.getStarTlsEnabled()));
             output.setFrom(serverEmailDetails.getFrom());
             if (serverEmailDetails.getAuthEnabled()) {
                 output.setUsername(serverEmailDetails.getUsername());
-				/* Password field not provided in response */
+                /* Password field not provided in response */
             }
             resource.setServerEmailResource(output);
         }

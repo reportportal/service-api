@@ -18,12 +18,9 @@ public final class ProjectSettingsConverter {
     public static final Function<Project, ProjectSettingsResource> TO_RESOURCE = settings -> {
         ProjectSettingsResource resource = new ProjectSettingsResource();
         resource.setProjectId(settings.getId());
-        Map<String, List<IssueSubTypeResource>> result = settings.getConfiguration().getSubTypes().entrySet()
-                .stream().collect(Collectors.toMap(entry -> entry.getKey().getValue(),
-                        entry -> entry.getValue().stream()
-                                .map(subType -> new IssueSubTypeResource(subType.getLocator(), subType.getTypeRef(),
-                                        subType.getLongName(), subType.getShortName(), subType.getHexColor()))
-                                .collect(Collectors.toList())));
+        Map<String, List<IssueSubTypeResource>> result = settings.getConfiguration().getSubTypes()
+                .entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey().getValue(),
+                        entry -> entry.getValue().stream().map(ProjectConverter.TO_SUBTYPE_RESOURCE).collect(Collectors.toList())));
         resource.setSubTypes(result);
         resource.setStatisticsStrategy(settings.getConfiguration().getStatisticsCalculationStrategy().name());
         return resource;

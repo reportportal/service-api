@@ -51,9 +51,8 @@ public final class TestItemConverter {
             resource.setStartTime(item.getStartTime());
             resource.setStatus(item.getStatus() != null ? item.getStatus().toString() : null);
             resource.setType(item.getType() != null ? item.getType().name() : null);
-            resource.setParent(item.getParent() != null ? item.getParent() : null);
+            resource.setParent(Optional.ofNullable(item.getParent()).orElse(null));
             resource.setHasChilds(item.hasChilds());
-            //resource.setLaunchStatus(launchStatus);
             resource.setLaunchId(item.getLaunchRef());
 
             Statistics statistics = item.getStatistics();

@@ -66,8 +66,6 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
 
     private static final String XML_REGEX = ".*xml";
 
-    private static final String ZIP = ".zip";
-
     private static final Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
 
     private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName().matches(XML_REGEX);
@@ -75,20 +73,17 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
     @Override
     public String importLaunch(String projectId, String userName, MultipartFile file) {
         try {
-            File tmp = File.createTempFile(file.getName(), ZIP);
+            File tmp = File.createTempFile(file.getName(), ".zip");
             file.transferTo(tmp);
-            String launchId = startLaunch(projectId, userName,
-                    file.getOriginalFilename().substring(0, file.getOriginalFilename().indexOf(ZIP)));
-            ParseResults results = processZipFile(tmp, projectId, userName, launchId);
-            finishLaunch(launchId, projectId, userName, results);
-            return launchId;
+            return processZipFile(tmp, projectId, userName);
         } catch (IOException e) {
             throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, file.getOriginalFilename(), e);
         }
     }
 
-    private ParseResults processZipFile(File zip, String projectId, String userName, String launchId) throws IOException {
+    private String processZipFile(File zip, String projectId, String userName) throws IOException {
         try (ZipFile zipFile = new ZipFile(zip)) {
+            String launchId = startLaunch(projectId, userName, zip.getName().substring(0, zip.getName().indexOf(".zip")));
             CompletableFuture[] futures = zipFile.stream()
                     .filter(isFile.and(isXml))
                     .map(zipEntry -> {
@@ -101,7 +96,8 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
                         }
                     }).toArray(CompletableFuture[]::new);
             CompletableFuture.allOf(futures).get(5, TimeUnit.MINUTES);
-            return processResults(futures);
+            finishLaunch(launchId, projectId, userName, processResults(futures));
+            return launchId;
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "There are invalid xml files.", e);
         }

@@ -22,9 +22,12 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
+import com.epam.ta.reportportal.ws.converter.builders.LaunchResourceBuilder;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import javax.inject.Provider;
 
 /**
  * Resource Assembler for the {@link Launch} DB entity.
@@ -33,6 +36,10 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class LaunchResourceAssembler extends PagedResourcesAssembler<Launch, LaunchResource> {
+
+    @Autowired
+    private Provider<LaunchResourceBuilder> launchRecordBuilder;
+
     /*
      * (non-Javadoc)
      *
@@ -42,7 +49,7 @@ public class LaunchResourceAssembler extends PagedResourcesAssembler<Launch, Lau
      */
     @Override
     public LaunchResource toResource(Launch launch) {
-        return LaunchConverter.TO_RESOURCE.apply(launch);
+        return launchRecordBuilder.get().addLaunch(launch).build();
     }
 
 }

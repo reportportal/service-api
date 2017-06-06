@@ -19,27 +19,21 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.ws.converter.builders;
+package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.BaseTest;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
-import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
+import com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants;
+import com.epam.ta.reportportal.ws.converter.builders.Utils;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterEntity;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
 import java.util.Iterator;
 
-public class UserFilterResourceBuilderTest extends BaseTest {
+public class UserFilterConverterTest {
 
-    @Autowired
-    private ApplicationContext applicationContext;
-
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testNull() {
         UserFilterConverter.TO_RESOURCE.apply(null);
     }
@@ -65,14 +59,6 @@ public class UserFilterResourceBuilderTest extends BaseTest {
         UserFilterResource expectedValue = Utils.getUserFilterResource();
         expectedValue.setFilterId(BuilderTestsConstants.BINARY_DATA_ID);
         validate(expectedValue, actualValue);
-    }
-
-    @Test
-    @Ignore
-    public void testBeanScope() {
-        Assert.assertTrue("User filter resource builder should be prototype bean because it's not stateless",
-                applicationContext
-                        .isSingleton(applicationContext.getBeanNamesForType(UserFilterConverter.class)[0]));
     }
 
     private void validate(UserFilterResource expectedValue, UserFilterResource actualValue) {

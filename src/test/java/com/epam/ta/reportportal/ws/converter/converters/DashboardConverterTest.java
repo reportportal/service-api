@@ -19,28 +19,23 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */ 
  
-package com.epam.ta.reportportal.ws.converter.builders;
+package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.BaseTest;
 import com.epam.ta.reportportal.database.entity.Dashboard;
-import com.epam.ta.reportportal.ws.converter.converters.DashboardConverter;
+import com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants;
+import com.epam.ta.reportportal.ws.converter.builders.Utils;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource.WidgetObjectModel;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class DashBoardResourceBuilderTest extends BaseTest {
-	
-	@Autowired
-	private ApplicationContext applicationContext;
-	
-	@Test
+public class DashboardConverterTest {
+
+	@Test(expected = NullPointerException.class)
 	public void testNull() {
         DashboardConverter.TO_RESOURCE.apply(null);
 	}
@@ -76,14 +71,6 @@ public class DashBoardResourceBuilderTest extends BaseTest {
 		widgets.add(widget);
 		expectedValue.setWidgets(widgets);
 		validate(expectedValue, actualValue);
-	}
-	
-	@Test
-	public void testBeanScope() {
-/*		Assert.assertTrue(
-				"Dashboard resource builder should be prototype bean because it's not stateless",
-				applicationContext.isPrototype(applicationContext
-						.getBeanNamesForType(DashboardResourceBuilder.class)[0]));*/
 	}
 
 	private void validate(DashboardResource expectedValue, DashboardResource actualValue) {

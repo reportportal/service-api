@@ -19,25 +19,19 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.ws.converter.builders;
+package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.BaseTest;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
-import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
+import com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants;
+import com.epam.ta.reportportal.ws.converter.builders.Utils;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
-public class WidgetResourceBuilderTest extends BaseTest {
+public class WidgetConverterTest {
 
-    @Autowired
-    private ApplicationContext applicationContext;
-
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testNull() {
         WidgetConverter.TO_RESOURCE.apply(null);
     }
@@ -63,13 +57,6 @@ public class WidgetResourceBuilderTest extends BaseTest {
         expectedValue.setName(BuilderTestsConstants.NAME);
         expectedValue.setApplyingFilterID("1234");
         validate(expectedValue, actualValue);
-    }
-
-    @Test
-    @Ignore
-    public void testBeanScope() {
-        Assert.assertTrue("Widget resource builder should be prototype bean because it's not stateless",
-                applicationContext.isPrototype(applicationContext.getBeanNamesForType(WidgetConverter.class)[0]));
     }
 
     private void validate(WidgetResource expectedValue, WidgetResource actualValue) {

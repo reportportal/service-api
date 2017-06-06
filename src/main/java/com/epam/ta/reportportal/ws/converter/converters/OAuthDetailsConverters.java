@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.database.entity.settings.OAuth2LoginDetails;
 import com.epam.ta.reportportal.ws.model.settings.OAuthDetailsResource;
+import com.google.common.base.Preconditions;
 
 import java.util.function.Function;
 
@@ -38,6 +39,7 @@ public final class OAuthDetailsConverters {
 	}
 
 	public final static Function<OAuthDetailsResource, OAuth2LoginDetails> FROM_RESOURCE = resource -> {
+		Preconditions.checkNotNull(resource);
 		OAuth2LoginDetails db = new OAuth2LoginDetails();
 		db.setClientAuthenticationScheme(resource.getClientAuthenticationScheme());
 		db.setUserAuthorizationUri(resource.getUserAuthorizationUri());
@@ -53,6 +55,7 @@ public final class OAuthDetailsConverters {
 	};
 
 	public final static Function<OAuth2LoginDetails, OAuthDetailsResource> TO_RESOURCE = db -> {
+		Preconditions.checkNotNull(db);
 		OAuthDetailsResource resource = new OAuthDetailsResource();
 		resource.setClientAuthenticationScheme(db.getClientAuthenticationScheme());
 		resource.setUserAuthorizationUri(db.getUserAuthorizationUri());

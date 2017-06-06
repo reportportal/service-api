@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
+import com.google.common.base.Preconditions;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -43,6 +44,7 @@ public final class EmailConfigConverters {
     }
 
     public final static Function<ProjectEmailConfigDTO, ProjectEmailConfig> TO_MODEL = resource -> {
+        Preconditions.checkNotNull(resource);
         ProjectEmailConfig db = new ProjectEmailConfig();
         db.setEmailCases(Optional.ofNullable(resource.getEmailCases()).orElseGet(Collections::emptyList).stream()
                         .map(EmailConfigConverters.TO_CASE_MODEL).collect(Collectors.toList()));
@@ -52,6 +54,7 @@ public final class EmailConfigConverters {
     };
 
     public final static Function<ProjectEmailConfig, ProjectEmailConfigDTO> TO_RESOURCE = model -> {
+        Preconditions.checkNotNull(model);
         ProjectEmailConfigDTO resource = new ProjectEmailConfigDTO();
         resource.setEmailCases(Optional.ofNullable(model.getEmailCases()).orElseGet(Collections::emptyList).stream()
                         .map(EmailConfigConverters.TO_CASE_RESOURCE).collect(Collectors.toList()));
@@ -61,6 +64,7 @@ public final class EmailConfigConverters {
     };
 
     public final static Function<EmailSenderCaseDTO, EmailSenderCase> TO_CASE_MODEL = resource -> {
+        Preconditions.checkNotNull(resource);
         EmailSenderCase db = new EmailSenderCase();
         db.setLaunchNames(resource.getLaunchNames());
         db.setRecipients(resource.getRecipients());
@@ -70,6 +74,7 @@ public final class EmailConfigConverters {
     };
 
     private final static Function<EmailSenderCase, EmailSenderCaseDTO> TO_CASE_RESOURCE = model -> {
+        Preconditions.checkNotNull(model);
         EmailSenderCaseDTO resource = new EmailSenderCaseDTO();
         resource.setLaunchNames(model.getLaunchNames());
         resource.setTags(model.getTags());

@@ -17,42 +17,44 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.BaseTest;
-import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import javax.inject.Provider;
+
 public class LaunchResourceBuilderTest extends BaseTest {
 
+	@Autowired
+	private Provider<LaunchResourceBuilder> launchResourceBuilderProvider;
 
 	@Autowired
 	private ApplicationContext applicationContext;
 
 	@Test
-	@Ignore
 	public void testBeanScope() {
 		Assert.assertTrue("Launch resource builder should be prototype bean because it's not stateless",
-				applicationContext.isPrototype(applicationContext.getBeanNamesForType(LaunchConverter.class)[0]));
+				applicationContext.isPrototype(applicationContext.getBeanNamesForType(LaunchResourceBuilder.class)[0]));
 	}
 
-	@Test
+	@Test(expected = NullPointerException.class)
 	public void testNull() {
-		LaunchResource actualResource = LaunchConverter.TO_RESOURCE.apply(null);
+		LaunchResource actualResource = launchResourceBuilderProvider.get().addLaunch(null)
+				.build();
 		LaunchResource expectedResource = new LaunchResource();
 		validateResources(expectedResource, actualResource);
 	}
 
 	@Test
 	public void testValues() {
-		LaunchResource actualResource = LaunchConverter.TO_RESOURCE.apply(Utils.getLaunch());
+		LaunchResource actualResource = launchResourceBuilderProvider.get().addLaunch(Utils.getLaunch()).build();
 		LaunchResource expectedResource = Utils.getLaunchResource();
 		validateResources(expectedResource, actualResource);
 	}

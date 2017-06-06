@@ -68,7 +68,7 @@ public class UserFilterResourceBuilder extends Builder<UserFilterResource> {
 			}
 			if (null != userFilter.getAcl()) {
 				getObject().setOwner(userFilter.getAcl().getOwnerUserId());
-				getObject().setIsShared(!userFilter.getAcl().getEntries().isEmpty());
+				getObject().setShare(!userFilter.getAcl().getEntries().isEmpty());
 			}
 		}
 		return this;

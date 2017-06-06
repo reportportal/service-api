@@ -33,6 +33,9 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * @author Pavel_Bortnik
+ */
 public class DashboardConverterTest {
 
 	@Test(expected = NullPointerException.class)

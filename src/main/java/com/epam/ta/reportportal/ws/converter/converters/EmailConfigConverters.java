@@ -59,7 +59,7 @@ public final class EmailConfigConverters {
         resource.setEmailCases(Optional.ofNullable(model.getEmailCases()).orElseGet(Collections::emptyList).stream()
                         .map(EmailConfigConverters.TO_CASE_RESOURCE).collect(Collectors.toList()));
         resource.setEmailEnabled(model.getEmailEnabled());
-        resource.setFrom(resource.getFrom());
+        resource.setFrom(model.getFrom());
         return resource;
     };
 

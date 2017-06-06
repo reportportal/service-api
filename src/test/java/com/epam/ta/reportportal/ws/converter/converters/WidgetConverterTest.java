@@ -29,6 +29,9 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * @author Pavel_Bortnik
+ */
 public class WidgetConverterTest {
 
     @Test(expected = NullPointerException.class)

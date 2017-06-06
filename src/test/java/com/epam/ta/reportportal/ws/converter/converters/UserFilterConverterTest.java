@@ -31,6 +31,9 @@ import org.junit.Test;
 
 import java.util.Iterator;
 
+/**
+ * @author Pavel_Bortnik
+ */
 public class UserFilterConverterTest {
 
     @Test(expected = NullPointerException.class)

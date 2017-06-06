@@ -32,13 +32,14 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType;
 import com.epam.ta.reportportal.events.ExternalSystemCreatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.ExternalSystemResourceAssembler;
+import com.epam.ta.reportportal.ws.converter.builders.ExternalSystemBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Provider;
 import java.util.List;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
@@ -63,7 +64,7 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 	private ExternalSystemRepository externalSystemRepository;
 
 	@Autowired
-	private ExternalSystemResourceAssembler externalSystemResourceAssembler;
+	private Provider<ExternalSystemBuilder> builder;
 
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
@@ -104,7 +105,7 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 		expect(externalSystemStrategy.connectionTest(details), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
 				projectName);
 
-		ExternalSystem newOne = externalSystemResourceAssembler.toModel(createRQ, projectName);
+		ExternalSystem newOne = builder.get().addExternalSystem(createRQ, projectName).build();
 		ExternalSystem createOne;
 		try {
 			createOne = externalSystemRepository.save(newOne);

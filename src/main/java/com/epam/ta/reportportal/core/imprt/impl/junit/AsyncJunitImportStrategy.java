@@ -73,7 +73,7 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
     @Override
     public String importLaunch(String projectId, String userName, MultipartFile file) {
         try {
-            File tmp = File.createTempFile(file.getName(), ".zip");
+            File tmp = File.createTempFile(file.getOriginalFilename(), ".zip");
             file.transferTo(tmp);
             return processZipFile(tmp, projectId, userName);
         } catch (IOException e) {

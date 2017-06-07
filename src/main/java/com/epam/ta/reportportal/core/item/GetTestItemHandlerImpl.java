@@ -21,25 +21,20 @@
 
 package com.epam.ta.reportportal.core.item;
 
-import java.util.Arrays;
-import java.util.List;
-
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.search.Queryable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-
-import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.database.search.Queryable;
 import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * GET operations for {@link TestItem}<br>
@@ -51,19 +46,13 @@ import com.epam.ta.reportportal.ws.model.TestItemResource;
  */
 @Service
 class GetTestItemHandlerImpl implements GetTestItemHandler {
-	private TestItemRepository testItemRepository;
-	private TestItemResourceAssembler itemAssembler;
-	private LaunchRepository launchRepository;
+	private final TestItemRepository testItemRepository;
+	private final TestItemResourceAssembler itemAssembler;
 
 	@Autowired
 	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, TestItemResourceAssembler itemAssembler) {
 		this.testItemRepository = testItemRepository;
 		this.itemAssembler = itemAssembler;
-	}
-
-	@Autowired
-	public void setLaunchRepository(LaunchRepository launchRepository) {
-		this.launchRepository = launchRepository;
 	}
 
 	/*

@@ -66,8 +66,8 @@ import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
 public class GetLaunchHandler extends StatisticBasedContentLoader implements IGetLaunchHandler {
 
 	private ProjectRepository projectRepository;
-	private LaunchRepository launchRepository;
-	private LaunchResourceAssembler launchResourceAssembler;
+	private final LaunchRepository launchRepository;
+	private final LaunchResourceAssembler launchResourceAssembler;
 
 	@Autowired
 	public GetLaunchHandler(LaunchResourceAssembler launchResourceAssembler, LaunchRepository launchRepository) {

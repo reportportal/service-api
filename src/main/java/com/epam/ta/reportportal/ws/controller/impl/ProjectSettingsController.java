@@ -104,7 +104,7 @@ public class ProjectSettingsController implements IProjectSettingsController {
 	@ApiOperation("Update of custom project specific issue sub-type")
 	public OperationCompletionRS updateProjectIssueSubType(@PathVariable String projectName,
 			@RequestBody @Validated UpdateIssueSubTypeRQ request, Principal principal) {
-		return updateSettings.updateProjectIssueSubType(EntityUtils.normalizeProjectName(projectName), principal.getName(), request);
+		return updateSettings.updateProjectIssueSubType(EntityUtils.normalizeId(projectName), principal.getName(), request);
 	}
 
 	@Override
@@ -114,7 +114,7 @@ public class ProjectSettingsController implements IProjectSettingsController {
 	@PreAuthorize(PROJECT_LEAD)
 	@ApiOperation("Delete custom project specific issue sub-type")
 	public OperationCompletionRS deleteProjectIssueSubType(@PathVariable String projectName, @PathVariable String id, Principal principal) {
-		return deleteSettings.deleteProjectIssueSubType(EntityUtils.normalizeProjectName(projectName), principal.getName(), id);
+		return deleteSettings.deleteProjectIssueSubType(EntityUtils.normalizeId(projectName), principal.getName(), id);
 	}
 
 	@Override
@@ -124,6 +124,6 @@ public class ProjectSettingsController implements IProjectSettingsController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation(value = "Get project specific issue sub-types", notes = "Only for users that are assigned to the project")
 	public ProjectSettingsResource getProjectSettings(@PathVariable String projectName, Principal principal) {
-		return getSettings.getProjectSettings(EntityUtils.normalizeProjectName(projectName));
+		return getSettings.getProjectSettings(EntityUtils.normalizeId(projectName));
 	}
 }

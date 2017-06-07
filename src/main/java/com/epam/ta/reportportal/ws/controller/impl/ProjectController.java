@@ -61,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -118,7 +119,7 @@ public class ProjectController implements IProjectController {
 	@ApiOperation(value = "Update project", notes = "'Email Configuration' block is ignored at this model, please use PUT /{projectName}/emailconfig resource instead.")
 	public OperationCompletionRS updateProject(@PathVariable String projectName, @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
 			Principal principal) {
-		return updateProjectHandler.updateProject(EntityUtils.normalizeProjectName(projectName), updateProjectRQ, principal.getName());
+		return updateProjectHandler.updateProject(normalizeId(projectName), updateProjectRQ, principal.getName());
 	}
 
 	@Override
@@ -129,7 +130,7 @@ public class ProjectController implements IProjectController {
 	@ApiOperation("Update project email configuration")
 	public OperationCompletionRS updateProjectEmailConfig(@PathVariable String projectName,
 			@RequestBody @Validated UpdateProjectEmailRQ updateProjectRQ, Principal principal) {
-		return updateProjectHandler.updateProjectEmailConfig(EntityUtils.normalizeProjectName(projectName), principal.getName(),
+		return updateProjectHandler.updateProjectEmailConfig(normalizeId(projectName), principal.getName(),
 				updateProjectRQ);
 	}
 
@@ -140,7 +141,7 @@ public class ProjectController implements IProjectController {
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Delete project", notes = "Could be deleted only by users with administrator role")
 	public OperationCompletionRS deleteProject(@PathVariable String projectName, Principal principal) {
-		return deleteProjectHandler.deleteProject(EntityUtils.normalizeProjectName(projectName));
+		return deleteProjectHandler.deleteProject(normalizeId(projectName));
 	}
 
 	@Override
@@ -151,7 +152,7 @@ public class ProjectController implements IProjectController {
 	@ApiOperation("Get users from project")
 	public Iterable<UserResource> getProjectUsers(@PathVariable String projectName, @FilterFor(User.class) Filter filter,
 			@SortFor(User.class) Pageable pageable, Principal principal) {
-		return getProjectHandler.getProjectUsers(EntityUtils.normalizeProjectName(projectName), filter, pageable);
+		return getProjectHandler.getProjectUsers(normalizeId(projectName), filter, pageable);
 	}
 
 	@Override
@@ -160,7 +161,7 @@ public class ProjectController implements IProjectController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation(value = "Get information about project", notes = "Only for users that are assigned to the project")
 	public ProjectResource getProject(@PathVariable String projectName, Principal principal) {
-		return getProjectHandler.getProject(EntityUtils.normalizeProjectName(projectName));
+		return getProjectHandler.getProject(normalizeId(projectName));
 	}
 
 	@Override
@@ -171,7 +172,7 @@ public class ProjectController implements IProjectController {
 	@ApiOperation("Un assign users")
 	public OperationCompletionRS unassignProjectUsers(@PathVariable String projectName,
 			@RequestBody @Validated UnassignUsersRQ unassignUsersRQ, Principal principal) {
-		return updateProjectHandler.unassignUsers(EntityUtils.normalizeProjectName(projectName), principal.getName(), unassignUsersRQ);
+		return updateProjectHandler.unassignUsers(normalizeId(projectName), principal.getName(), unassignUsersRQ);
 	}
 
 	@Override
@@ -182,7 +183,7 @@ public class ProjectController implements IProjectController {
 	@ApiOperation("Assign users")
 	public OperationCompletionRS assignProjectUsers(@PathVariable String projectName, @RequestBody @Validated AssignUsersRQ assignUsersRQ,
 			Principal principal) {
-		return updateProjectHandler.assignUsers(EntityUtils.normalizeProjectName(projectName), principal.getName(), assignUsersRQ);
+		return updateProjectHandler.assignUsers(normalizeId(projectName), principal.getName(), assignUsersRQ);
 	}
 
 	@Override
@@ -194,7 +195,7 @@ public class ProjectController implements IProjectController {
 	@ApiOperation(value = "Load users which can be assigned to specified project", notes = "Only for users with project lead permissions")
 	public Iterable<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
 			@PathVariable String projectName, Principal principal) {
-		return userHandler.getUsers(filter, pageable, EntityUtils.normalizeProjectName(projectName));
+		return userHandler.getUsers(filter, pageable, normalizeId(projectName));
 	}
 
 	@Override
@@ -206,7 +207,7 @@ public class ProjectController implements IProjectController {
 	public List<String> getProjectUsers(@PathVariable String projectName,
 			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + Project.USERS) String value,
 			Principal principal) {
-		return getProjectHandler.getUserNames(EntityUtils.normalizeProjectName(projectName), EntityUtils.normalizeUsername(value));
+		return getProjectHandler.getUserNames(normalizeId(projectName), normalizeId(value));
 	}
 
 	@RequestMapping(value = "/{projectName}/usernames/search/{term:.+}", method = GET)
@@ -227,7 +228,7 @@ public class ProjectController implements IProjectController {
 	// Hide method cause results using for UI only and doesn't affect WS
 	public OperationCompletionRS updateUserPreference(@PathVariable String projectName,
 			@RequestBody @Validated UpdatePreferenceRQ updatePreferenceRQ, @PathVariable String login, Principal principal) {
-		return updatePreferenceHandler.updatePreference(principal.getName(), EntityUtils.normalizeProjectName(projectName),
+		return updatePreferenceHandler.updatePreference(principal.getName(), EntityUtils.normalizeId(projectName),
 				updatePreferenceRQ);
 	}
 
@@ -238,7 +239,7 @@ public class ProjectController implements IProjectController {
 	@PreAuthorize(ALLOWED_TO_EDIT_USER)
 	@ApiOperation(value = "Load user preferences", notes = "Only for users that allowed to edit other users")
 	public PreferenceResource getUserPreference(@PathVariable String projectName, @PathVariable String login, Principal principal) {
-		return getPreferenceHandler.getPreference(EntityUtils.normalizeProjectName(projectName), EntityUtils.normalizeUsername(login));
+		return getPreferenceHandler.getPreference(normalizeId(projectName), normalizeId(login));
 	}
 
 	@Override
@@ -261,7 +262,7 @@ public class ProjectController implements IProjectController {
 	@ApiIgnore
 	public ProjectInfoResource getProjectInfo(@PathVariable String projectName,
 			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval, Principal principal) {
-		return getProjectInfoHandler.getProjectInfo(EntityUtils.normalizeProjectName(projectName), interval);
+		return getProjectInfoHandler.getProjectInfo(normalizeId(projectName), interval);
 	}
 
 	@Override
@@ -274,7 +275,7 @@ public class ProjectController implements IProjectController {
 	public Map<String, List<ChartObject>> getProjectWidget(@PathVariable String projectName,
 			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval, @PathVariable String widgetId,
 			Principal principal) {
-		return getProjectInfoHandler.getProjectInfoWidgetContent(EntityUtils.normalizeProjectName(projectName), interval, widgetId);
+		return getProjectInfoHandler.getProjectInfoWidgetContent(normalizeId(projectName), interval, widgetId);
 	}
 
 	@Override

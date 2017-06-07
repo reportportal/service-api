@@ -22,12 +22,12 @@
 package com.epam.ta.reportportal.ws.controller.impl;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -93,7 +93,7 @@ public class UserFilterController implements IUserFilterController {
 	@ApiOperation("Create user filter")
 	public List<EntryCreatedRS> createFilter(@PathVariable String projectName,
 			@RequestBody @Validated CollectionsRQ<CreateUserFilterRQ> createFilterRQ, Principal principal) {
-		return createFilterHandler.createFilter(principal.getName(), EntityUtils.normalizeProjectName(projectName), createFilterRQ);
+		return createFilterHandler.createFilter(principal.getName(), normalizeId(projectName), createFilterRQ);
 	}
 
 	@Override
@@ -102,7 +102,7 @@ public class UserFilterController implements IUserFilterController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get specified user filter by id")
 	public UserFilterResource getFilter(@PathVariable String projectName, @PathVariable String filterId, Principal principal) {
-		return getFilterHandler.getFilter(principal.getName(), filterId, EntityUtils.normalizeProjectName(projectName));
+		return getFilterHandler.getFilter(principal.getName(), filterId, normalizeId(projectName));
 	}
 
 	@Override
@@ -112,7 +112,7 @@ public class UserFilterController implements IUserFilterController {
 	@ApiOperation("Get all filters")
 	public Iterable<UserFilterResource> getAllFilters(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
 			@FilterFor(UserFilter.class) Filter filter, Principal principal) {
-		return getFilterHandler.getFilters(principal.getName(), pageable, filter, EntityUtils.normalizeProjectName(projectName));
+		return getFilterHandler.getFilters(principal.getName(), pageable, filter, normalizeId(projectName));
 	}
 
 	// filter/own
@@ -123,7 +123,7 @@ public class UserFilterController implements IUserFilterController {
 	@ApiOperation("Get all filters for specified user who own them")
 	public List<UserFilterResource> getOwnFilters(@PathVariable String projectName, @FilterFor(UserFilter.class) Filter filter,
 			Principal principal) {
-		return getFilterHandler.getOwnFilters(principal.getName(), filter, EntityUtils.normalizeProjectName(projectName));
+		return getFilterHandler.getOwnFilters(principal.getName(), filter, normalizeId(projectName));
 	}
 
 	// filter/shared
@@ -134,7 +134,7 @@ public class UserFilterController implements IUserFilterController {
 	@ApiOperation("Get all available shared filters (except own shared filters)")
 	public List<UserFilterResource> getSharedFilters(@PathVariable String projectName, @FilterFor(UserFilter.class) Filter filter,
 			Principal principal) {
-		return getFilterHandler.getSharedFilters(principal.getName(), filter, EntityUtils.normalizeProjectName(projectName));
+		return getFilterHandler.getSharedFilters(principal.getName(), filter, normalizeId(projectName));
 	}
 
 	@Override
@@ -143,7 +143,7 @@ public class UserFilterController implements IUserFilterController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Delete specified user filter by id")
 	public OperationCompletionRS deleteFilter(@PathVariable String projectName, @PathVariable String filterId, Principal principal) {
-		return deleteFilterHandler.deleteFilter(filterId, principal.getName(), EntityUtils.normalizeProjectName(projectName));
+		return deleteFilterHandler.deleteFilter(filterId, principal.getName(), normalizeId(projectName));
 	}
 
 	@Override
@@ -153,7 +153,7 @@ public class UserFilterController implements IUserFilterController {
 	@ApiOperation("Get available filter names")
 	public Map<String, SharedEntity> getAllFiltersNames(@PathVariable String projectName, Principal principal,
 			@RequestParam(value = "is_shared", defaultValue = "false", required = false) boolean isShared) {
-		return getFilterHandler.getFiltersNames(principal.getName(), EntityUtils.normalizeProjectName(projectName), isShared);
+		return getFilterHandler.getFiltersNames(principal.getName(), normalizeId(projectName), isShared);
 	}
 
 	@Override
@@ -164,7 +164,7 @@ public class UserFilterController implements IUserFilterController {
 	public OperationCompletionRS updateUserFilter(@PathVariable String projectName, @PathVariable String filterId,
 			@RequestBody @Validated UpdateUserFilterRQ updateRQ, Principal principal) {
 		return updateUserFilterHandler.updateUserFilter(filterId, updateRQ, principal.getName(),
-				EntityUtils.normalizeProjectName(projectName));
+				normalizeId(projectName));
 	}
 
 	@Override
@@ -174,7 +174,7 @@ public class UserFilterController implements IUserFilterController {
 	@ApiOperation("Get list of specified user filters")
 	public List<UserFilterResource> getUserFilters(@PathVariable String projectName,
 			@RequestParam(value = "ids", required = true) String[] ids, Principal principal) {
-		return getFilterHandler.getFilters(EntityUtils.normalizeProjectName(projectName), ids, principal.getName());
+		return getFilterHandler.getFilters(normalizeId(projectName), ids, principal.getName());
 	}
 
 	@Override
@@ -184,6 +184,6 @@ public class UserFilterController implements IUserFilterController {
 	@ApiOperation("Update list of user filters")
 	public List<OperationCompletionRS> updateUserFilters(@PathVariable String projectName,
 			@RequestBody @Validated CollectionsRQ<BulkUpdateFilterRQ> updateRQ, Principal principal) {
-		return updateUserFilterHandler.updateUserFilter(updateRQ, principal.getName(), EntityUtils.normalizeProjectName(projectName));
+		return updateUserFilterHandler.updateUserFilter(updateRQ, principal.getName(), normalizeId(projectName));
 	}
 }

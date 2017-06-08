@@ -48,7 +48,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 @Service
 public class DeleteProjectHandler implements IDeleteProjectHandler {
 
-	private ProjectRepository projectRepository;
+	private final ProjectRepository projectRepository;
 
 	@Autowired
 	public DeleteProjectHandler(ProjectRepository projectRepository) {

@@ -186,5 +186,4 @@ public class UserFilterController implements IUserFilterController {
             @RequestBody @Validated CollectionsRQ<BulkUpdateFilterRQ> updateRQ, Principal principal) {
         return updateUserFilterHandler.updateUserFilter(updateRQ, principal.getName(), normalizeId(projectName));
     }
-		return updateUserFilterHandler.updateUserFilter(updateRQ, principal.getName(), normalizeId(projectName));
 }

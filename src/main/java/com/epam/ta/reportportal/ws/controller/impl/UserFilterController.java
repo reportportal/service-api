@@ -152,7 +152,7 @@ public class UserFilterController implements IUserFilterController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get available filter names")
 	public Map<String, SharedEntity> getAllFiltersNames(@PathVariable String projectName, Principal principal,
-			@RequestParam(value = "is_shared", defaultValue = "false", required = false) boolean isShared) {
+			@RequestParam(value = "share", defaultValue = "false", required = false) boolean isShared) {
 		return getFilterHandler.getFiltersNames(principal.getName(), EntityUtils.normalizeProjectName(projectName), isShared);
 	}
 

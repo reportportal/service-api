@@ -33,7 +33,6 @@ import org.springframework.stereotype.Service;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
-import com.epam.ta.reportportal.database.entity.user.UserUtils;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQConfirm;
 
 @Service
@@ -45,10 +44,10 @@ public class UserBuilder extends Builder<User> {
 	public UserBuilder addCreateUserRQ(CreateUserRQConfirm request) {
 		if (request != null) {
 			User user = getObject();
-			user.setLogin(EntityUtils.normalizeUsername(request.getLogin()));
+			user.setLogin(EntityUtils.normalizeId(request.getLogin()));
 			user.setPassword(HASH_FUNCTION.hashString(request.getPassword(), Charsets.UTF_8).toString());
-			user.setEmail(EntityUtils.normalizeEmail(request.getEmail().trim()));
-			user.setDefaultProject(EntityUtils.normalizeProjectName(request.getDefaultProject()));
+			user.setEmail(EntityUtils.normalizeId(request.getEmail().trim()));
+			user.setDefaultProject(EntityUtils.normalizeId(request.getDefaultProject()));
 			user.setFullName(request.getFullName());
 			user.setType(UserType.INTERNAL);
 			user.setIsExpired(false);

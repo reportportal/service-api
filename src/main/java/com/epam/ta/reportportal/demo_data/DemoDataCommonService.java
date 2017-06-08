@@ -51,7 +51,7 @@ public class DemoDataCommonService {
 
     static final String NAME = "Demo Api Tests";
 
-    protected Random random = new Random();
+    protected final Random random = new Random();
 
     @Autowired
     DemoLogsService logDemoDataService;

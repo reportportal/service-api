@@ -79,6 +79,7 @@ public class SortArgumentResolver extends SortHandlerMethodArgumentResolver {
                         BusinessRule.expect(criteriaHolder, Preconditions.IS_PRESENT)
                                 .verify(ErrorType.INCORRECT_SORTING_PARAMETERS,
                                         order.getProperty());
+                        //noinspection ConstantConditions
                         return new Order(order.getDirection(), criteriaHolder.get().getQueryCriteria());
                     }).collect(toList()));
         } else {

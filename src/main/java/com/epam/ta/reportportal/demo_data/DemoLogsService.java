@@ -51,9 +51,9 @@ import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
 @Service
 class DemoLogsService {
 
-	private Random random;
-	private LogRepository logRepository;
-	private DataStorage dataStorage;
+	private final Random random;
+	private final LogRepository logRepository;
+	private final DataStorage dataStorage;
 	@Value("classpath:demo/img.png")
 	private Resource img;
 	@Value("classpath:demo/demo_logs.txt")

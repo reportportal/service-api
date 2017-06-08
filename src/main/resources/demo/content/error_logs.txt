@@ -42,11 +42,11 @@ Stack Trace:
 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
 	at java.lang.Thread.run(Thread.java:748)
-
+####
 11:59:05.823 [TestNG-tests-1] ERROR c.e.t.r.q.w.c.FailureLoggingListener - Test createExternalSystemUnableInteractWithExternalSystem has been failed with exception org.testng.TestException:
 Incorrect Error Type. Expected: UNABLE_INTERACT_WITH_EXTERNAL_SYSTEM, but was 'PROJECT_NOT_FOUND'.
 Incorrect status code. Expected '409, but was '404'
-
+####
 11:59:04.674 [TestNG-tests-2] ERROR c.e.t.r.q.w.c.FailureLoggingListener - Configuration clearCreatedObjects has been failed with exception com.epam.ta.client.exception.ReportPortalClientException: Report Portal returned error
 Status code: 404
 Status message:
@@ -83,7 +83,7 @@ Stack Trace:
 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
 	at java.lang.Thread.run(Thread.java:748)
-
+####
 11:59:05.791 [TestNG-tests-1] ERROR c.e.t.r.q.w.c.FailureLoggingListener - Test createExternalSystemUnableInteractWithExternalSystem has been failed with exception org.testng.TestException:
 Incorrect Error Type. Expected: UNABLE_INTERACT_WITH_EXTERNAL_SYSTEM, but was 'PROJECT_NOT_FOUND'.
 Incorrect status code. Expected '409, but was '404'
@@ -107,7 +107,7 @@ Incorrect status code. Expected '409, but was '404'
 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
 	at java.lang.Thread.run(Thread.java:748)
-
+####
 11:59:18.767 [TestNG-tests-2] ERROR c.e.t.r.q.w.c.FailureLoggingListener - Configuration createProject has been failed with exception java.lang.NullPointerException
 	at com.epam.ta.reportportal.qa.ws.factory.ReportPortalServiceFactory.getToken(ReportPortalServiceFactory.java:140)
 	at com.epam.ta.reportportal.qa.ws.factory.ReportPortalServiceFactory.createService(ReportPortalServiceFactory.java:102)
@@ -135,7 +135,7 @@ Incorrect status code. Expected '409, but was '404'
 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
 	at java.lang.Thread.run(Thread.java:748)
-
+####
 13:06:43.332 [main] ERROR c.e.t.r.q.w.c.FailureLoggingListener - Test launchMixedItemsStatusTest has been failed with exception com.epam.ta.restclient.endpoint.exception.SerializerException: Unable to deserialize content '{"error":"invalid_token","error_description":"f795e680-9a44-424e-8d1b-b29f1b7b4f1c"}' to type 'com.epam.ta.model.ErrorRS'
 	at com.epam.ta.restclient.serializer.Jackson2Serializer.deserialize(Jackson2Serializer.java:79)
 	at com.epam.ta.client.service.ReportPortalErrorHandler.deserializeError(ReportPortalErrorHandler.java:56)
@@ -202,7 +202,7 @@ Caused by: com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException: Unr
 	at com.fasterxml.jackson.core.JsonParser.readValueAs(JsonParser.java:1696)
 	at com.epam.ta.restclient.serializer.Jackson2Serializer.deserialize(Jackson2Serializer.java:77)
 	... 50 more
-
+####
 14:05:56.621 [TestNG-tests-1] ERROR o.s.test.context.TestContextManager - Caught exception while allowing TestExecutionListener [org.springframework.test.context.support.DependencyInjectionTestExecutionListener@7398c5e9] to prepare test instance [com.epam.ta.reportportal.qa.ws.tests.email_settings.EmailServerSettingsTest@5cc5b667]
 java.lang.IllegalStateException: Failed to load ApplicationContext
 	at org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate.loadContext(DefaultCacheAwareContextLoaderDelegate.java:124)
@@ -231,7 +231,7 @@ java.lang.IllegalStateException: Failed to load ApplicationContext
 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
 	at java.lang.Thread.run(Thread.java:748)
-
+####
 14:05:57.127 [TestNG-tests-1] ERROR c.e.t.r.q.w.c.FailureLoggingListener - Configuration restoreDefaultServerSettings has been failed with exception java.lang.NullPointerException
 	at com.epam.ta.reportportal.qa.ws.tests.email_settings.EmailServerSettingsTest.restoreDefaultServerSettings(EmailServerSettingsTest.java:61)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
@@ -254,3 +254,4 @@ java.lang.IllegalStateException: Failed to load ApplicationContext
 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
 	at java.lang.Thread.run(Thread.java:748)
+####

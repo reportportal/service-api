@@ -74,19 +74,15 @@ public class DemoDataCommonService {
     @Autowired
     protected StatisticsFacadeFactory statisticsFacadeFactory;
 
-    private ContentUtils contentUtils;
-
     private static final Range<Integer> PROBABILITY_RANGE = Range.openClosed(0, 100);
 
     String startLaunch(String name, int i, String project, String user) {
-        contentUtils = new ContentUtils();
-        contentUtils.initContent();
         Launch launch = new Launch();
         launch.setName(name);
         launch.setStartTime(new Date());
         launch.setTags(ImmutableSet.<String>builder().addAll(Arrays.asList("desktop", "demo",
                 "build:3.0.1." + (i + 1))).build());
-        launch.setDescription(contentUtils.getLaunchDescription());
+        launch.setDescription(ContentUtils.getLaunchDescription());
         launch.setStatus(IN_PROGRESS);
         launch.setUserRef(user);
         launch.setProjectRef(project);
@@ -100,15 +96,14 @@ public class DemoDataCommonService {
         launch.setEndTime(new Date());
         launch.setStatus(getStatusFromStatistics(launch.getStatistics()));
         launchRepository.save(launch);
-        contentUtils = null;
     }
 
     TestItem startRootItem(String rootItemName, String launchId, TestItemType type) {
         TestItem testItem = new TestItem();
         testItem.setLaunchRef(launchId);
         if (type.sameLevel(SUITE) && random.nextBoolean()) {
-            testItem.setTags(contentUtils.getTagsInRange(3));
-            testItem.setItemDescription(contentUtils.getSuiteDescription());
+            testItem.setTags(ContentUtils.getTagsInRange(3));
+            testItem.setItemDescription(ContentUtils.getSuiteDescription());
         }
         testItem.setStartTime(new Date());
         testItem.setName(rootItemName);
@@ -129,11 +124,11 @@ public class DemoDataCommonService {
         TestItem testItem = new TestItem();
         if (random.nextBoolean()) {
             if (hasChildren(type)) {
-                testItem.setTags(contentUtils.getTagsInRange(2));
-                testItem.setItemDescription(contentUtils.getTestDescription());
+                testItem.setTags(ContentUtils.getTagsInRange(2));
+                testItem.setItemDescription(ContentUtils.getTestDescription());
             }else {
-                testItem.setTags(contentUtils.getTagsInRange(1));
-                testItem.setItemDescription(contentUtils.getStepDescription());
+                testItem.setTags(ContentUtils.getTagsInRange(1));
+                testItem.setItemDescription(ContentUtils.getStepDescription());
             }
         }
         testItem.setLaunchRef(launchId);

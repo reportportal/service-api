@@ -12,62 +12,54 @@ import java.util.Set;
 import java.util.SplittableRandom;
 import java.util.stream.Collectors;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 /**
+ * By reason of demo data generation is used not so often,
+ * we don't need to cache the files' content.
+ *
  * @author Pavel_Bortnik
  */
-public class ContentUtils {
+public final class ContentUtils {
 
-    private String launchDescription;
-
-    private List<String> tags;
-
-    private List<String> suiteLines;
-
-    private List<String> testLines;
-
-    private List<String> stepLines;
-
-    private SplittableRandom random;
-
-    public void initContent() {
-        try (BufferedReader descr = new BufferedReader(new InputStreamReader(new ClassPathResource("demo/content/description.txt").getInputStream(), UTF_8));
-             BufferedReader suite = new BufferedReader(new InputStreamReader(new ClassPathResource("demo/content/suite-description.txt").getInputStream(), UTF_8));
-             BufferedReader test = new BufferedReader(new InputStreamReader(new ClassPathResource("demo/content/test-description.txt").getInputStream(), UTF_8));
-             BufferedReader step = new BufferedReader(new InputStreamReader(new ClassPathResource("demo/content/step-description.txt").getInputStream(), UTF_8));
-             BufferedReader tags = new BufferedReader(new InputStreamReader(new ClassPathResource("demo/content/tags.txt").getInputStream(), UTF_8))
-        ) {
-            launchDescription = descr.lines().collect(Collectors.joining("\n"));
-            suiteLines = suite.lines().collect(Collectors.toList());
-            testLines = test.lines().collect(Collectors.toList());
-            stepLines = step.lines().collect(Collectors.toList());
-            this.tags = tags.lines().collect(Collectors.toList());
-        } catch (IOException e) {
-            throw new ReportPortalException("Missing demo content attachments.", e);
-        }
-        random = new SplittableRandom();
+    private ContentUtils() {
+        //static only
     }
 
-    Set<String> getTagsInRange(int limit) {
-        int fromIndex = random.nextInt(tags.size() - limit);
+    private static SplittableRandom random = new SplittableRandom();
+
+    static Set<String> getTagsInRange(int limit) {
+        List<String> content = readContent("demo/content/tags.txt");
+        int fromIndex = random.nextInt(content.size() - limit);
         return ImmutableSet.<String>builder()
-                .addAll(tags.subList(fromIndex, fromIndex + limit)).build();
+                .addAll(content.subList(fromIndex, fromIndex + limit)).build();
     }
 
-    String getSuiteDescription() {
-        return suiteLines.get(random.nextInt(suiteLines.size()));
+    static String getSuiteDescription() {
+        List<String> content = readContent("demo/content/suite-description.txt");
+        return content.get(random.nextInt(content.size()));
     }
 
-    String getStepDescription() {
-        return stepLines.get(random.nextInt(stepLines.size()));
+    static String getStepDescription() {
+        List<String> content = readContent("demo/content/step-description.txt");
+        return content.get(random.nextInt(content.size()));
     }
 
-    String getTestDescription() {
-        return testLines.get(random.nextInt(testLines.size()));
+    static String getTestDescription() {
+        List<String> content = readContent("demo/content/test-description.txt");
+        return content.get(random.nextInt(content.size()));
     }
 
-    String getLaunchDescription() {
-        return launchDescription;
+    static String getLaunchDescription() {
+        List<String> list = readContent("demo/content/description.txt");
+        return list.get(0);
+    }
+
+    private static List<String> readContent(String resource) {
+        List<String> content;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ClassPathResource(resource).getInputStream()))){
+            content = reader.lines().collect(Collectors.toList());
+        }catch (IOException e) {
+            throw new ReportPortalException("Missing demo content.", e);
+        }
+        return content;
     }
 }

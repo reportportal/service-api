@@ -63,6 +63,8 @@ class DemoLogsService {
 	@Value("classpath:demo/content/error_logs.txt")
 	private Resource errorLogsResource;
 
+	private static final String DELIMITER = "####";
+
 	@Autowired
 	DemoLogsService(DataStorage dataStorage, LogRepository logRepository) {
 		this.dataStorage = dataStorage;
@@ -73,7 +75,7 @@ class DemoLogsService {
 	List<Log> generateDemoLogs(String itemId, String status) {
 		try (BufferedReader errorsBufferedReader = new BufferedReader(new InputStreamReader(errorLogsResource.getInputStream(), UTF_8));
              BufferedReader demoLogsBufferedReader = new BufferedReader(new InputStreamReader(demoLogs.getInputStream(), UTF_8))) {
-            List<String> errorLogs = Arrays.stream(CharStreams.toString(errorsBufferedReader).split("\r\n\r\n")).collect(toList());
+            List<String> errorLogs = Arrays.stream(CharStreams.toString(errorsBufferedReader).split(DELIMITER)).collect(toList());
             List<String> logMessages = demoLogsBufferedReader.lines().collect(toList());
 			int t = random.nextInt(30);
 			List<Log> logs = IntStream.range(1, t + 1).mapToObj(it -> {
@@ -108,8 +110,8 @@ class DemoLogsService {
 	}
 
 	private BinaryContent attachBinaryContent() {
-		ClassPathResource resource = null;
-		String contentType = null;
+		ClassPathResource resource;
+		String contentType;
 		switch (random.nextInt(20)){
 			case 0:
 				contentType = TEXT_PLAIN_VALUE;
@@ -155,7 +157,7 @@ class DemoLogsService {
 				contentType = IMAGE_PNG_VALUE;
 				resource = new ClassPathResource("demo/attachments/img.png");
 		}
-        String file = null;
+        String file;
         try {
             file = saveResource(contentType, resource);
         } catch (IOException e) {

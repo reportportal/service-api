@@ -124,7 +124,7 @@ public class LogController implements ILogController {
         String prjName = EntityUtils.normalizeProjectName(projectName);
         /*
          * Since this is multipart request we can retrieve list of uploaded
-		 * files
+		 * attachments
 		 */
         Map<String, MultipartFile> uploadedFiles = getUploadedFiles(request);
         BatchSaveOperatingRS response = new BatchSaveOperatingRS();
@@ -216,7 +216,7 @@ public class LogController implements ILogController {
     }
 
     /**
-     * Tries to find request part or file with specified name in multipart files
+     * Tries to find request part or file with specified name in multipart attachments
      * map.
      *
      * @param filename

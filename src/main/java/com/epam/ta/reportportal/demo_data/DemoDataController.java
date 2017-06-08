@@ -21,6 +21,7 @@
 package com.epam.ta.reportportal.demo_data;
 
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +38,7 @@ class DemoDataController {
 
     private DemoDataService demoDataService;
 
+    @Autowired
     DemoDataController(DemoDataService demoDataService) {
         this.demoDataService = demoDataService;
     }

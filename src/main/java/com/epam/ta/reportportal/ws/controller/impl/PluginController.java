@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeProjectName;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 
 import java.security.Principal;
@@ -81,7 +81,7 @@ public class PluginController implements IPluginsController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public LaunchResource getLaunchByName(@PathVariable String projectName, @SortFor(Launch.class) Pageable pageable,
 			@FilterFor(Launch.class) Filter filter, Principal principal) {
-		return getLaunchMessageHandler.getLaunchByName(normalizeProjectName(projectName), pageable, filter, principal.getName());
+		return getLaunchMessageHandler.getLaunchByName(normalizeId(projectName), pageable, filter, principal.getName());
 	}
 
 	@Override

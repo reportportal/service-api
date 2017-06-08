@@ -20,6 +20,7 @@
  */
 package com.epam.ta.reportportal.core.imprt.impl.junit;
 
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.imprt.impl.DateUtils;
 import com.epam.ta.reportportal.core.imprt.impl.ImportStrategy;
 import com.epam.ta.reportportal.core.launch.IFinishLaunchHandler;
@@ -60,11 +61,13 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
     @Autowired
     private LaunchRepository launchRepository;
 
-    private static final Date initalStartTime = new Date(0);
+    private static final Date initialStartTime = new Date(0);
 
     private static final ExecutorService service = Executors.newFixedThreadPool(5);
 
     private static final String XML_REGEX = ".*xml";
+
+    private static final String ZIP_REGEX = ".*zip";
 
     private static final Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
 
@@ -73,11 +76,13 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
     @Override
     public String importLaunch(String projectId, String userName, MultipartFile file) {
         try {
-            File tmp = File.createTempFile(file.getName(), ".zip");
+            BusinessRule.expect(file.getOriginalFilename(), it -> it.matches(ZIP_REGEX))
+                    .verify(ErrorType.BAD_IMPORT_FILE_TYPE, file.getOriginalFilename());
+            File tmp = File.createTempFile(file.getOriginalFilename(), ".zip");
             file.transferTo(tmp);
             return processZipFile(tmp, projectId, userName);
         } catch (IOException e) {
-            throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, file.getOriginalFilename(), e);
+            throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, file.getOriginalFilename(), e);
         }
     }
 
@@ -99,7 +104,7 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
             finishLaunch(launchId, projectId, userName, processResults(futures));
             return launchId;
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "There are invalid xml files.", e);
+            throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, "There are invalid xml files inside.", e);
         }
     }
 
@@ -114,7 +119,7 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
 
     private String startLaunch(String projectId, String userName, String launchName) {
         StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
-        startLaunchRQ.setStartTime(initalStartTime);
+        startLaunchRQ.setStartTime(initialStartTime);
         startLaunchRQ.setName(launchName);
         startLaunchRQ.setMode(Mode.DEFAULT);
         return startLaunchHandler.startLaunch(userName, projectId, startLaunchRQ).getId();

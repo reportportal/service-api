@@ -49,7 +49,7 @@ public enum GadgetTypes {
 	MOST_FAILED_TEST_CASES("most_failed_test_cases");
 	// @formatter:on
 
-	private String type;
+	private final String type;
 
 	GadgetTypes(String type) {
 		this.type = type;

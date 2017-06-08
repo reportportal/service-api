@@ -30,6 +30,8 @@ import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.database.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQ;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+
 /**
  * New user creation bid builder
  * 
@@ -42,8 +44,8 @@ public class UserCreationBidBuilder extends Builder<UserCreationBid> {
 	public UserCreationBidBuilder addUserCreationBid(CreateUserRQ request) {
 		if (request != null) {
 			getObject().setId(UUID.randomUUID().toString());
-			getObject().setEmail(EntityUtils.normalizeEmail(request.getEmail().trim()));
-			getObject().setDefaultProject(EntityUtils.normalizeProjectName(request.getDefaultProject()));
+			getObject().setEmail(normalizeId(request.getEmail().trim()));
+			getObject().setDefaultProject(normalizeId(request.getDefaultProject()));
 			getObject().setRole(request.getRole());
 		}
 		return this;

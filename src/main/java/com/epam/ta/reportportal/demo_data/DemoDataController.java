@@ -36,7 +36,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_LEAD
 @RequestMapping("/demo/{projectName}")
 class DemoDataController {
 
-    private DemoDataService demoDataService;
+    private final DemoDataService demoDataService;
 
     @Autowired
     DemoDataController(DemoDataService demoDataService) {

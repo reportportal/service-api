@@ -100,7 +100,7 @@ public class ExternalSystemController implements IExternalSystemController {
 	@ApiOperation("Register external system instance")
 	public EntryCreatedRS createExternalSystemInstance(@Validated @RequestBody CreateExternalSystemRQ createRQ,
 			@PathVariable String projectName, Principal principal) {
-		return createExternalSystemHandler.createExternalSystem(createRQ, EntityUtils.normalizeProjectName(projectName),
+		return createExternalSystemHandler.createExternalSystem(createRQ, EntityUtils.normalizeId(projectName),
 				principal.getName());
 	}
 
@@ -110,7 +110,7 @@ public class ExternalSystemController implements IExternalSystemController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get registered external system instance")
 	public ExternalSystemResource getExternalSystem(@PathVariable String projectName, @PathVariable String systemId, Principal principal) {
-		return getExternalSystemHandler.getExternalSystem(EntityUtils.normalizeProjectName(projectName), systemId);
+		return getExternalSystemHandler.getExternalSystem(EntityUtils.normalizeId(projectName), systemId);
 	}
 
 	@Override
@@ -121,7 +121,7 @@ public class ExternalSystemController implements IExternalSystemController {
 	@ApiOperation("Delete registered external system instance")
 	public OperationCompletionRS deleteExternalSystem(@PathVariable String projectName, @PathVariable String systemId,
 			Principal principal) {
-		return deleteExternalSystemHandler.deleteExternalSystem(EntityUtils.normalizeProjectName(projectName), systemId,
+		return deleteExternalSystemHandler.deleteExternalSystem(EntityUtils.normalizeId(projectName), systemId,
 				principal.getName());
 	}
 
@@ -132,7 +132,7 @@ public class ExternalSystemController implements IExternalSystemController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Delete all external system assigned to specified project")
 	public OperationCompletionRS deleteAllExternalSystems(@PathVariable String projectName, Principal principal) {
-		return deleteExternalSystemHandler.deleteAllExternalSystems(EntityUtils.normalizeProjectName(projectName), principal.getName());
+		return deleteExternalSystemHandler.deleteAllExternalSystems(EntityUtils.normalizeId(projectName), principal.getName());
 	}
 
 	@Override
@@ -143,7 +143,7 @@ public class ExternalSystemController implements IExternalSystemController {
 	@ApiOperation("Update registered external system instance")
 	public OperationCompletionRS updateExternalSystem(@Validated @RequestBody UpdateExternalSystemRQ request,
 			@PathVariable String projectName, @PathVariable String systemId, Principal principal) {
-		return updateExternalSystemHandler.updateExternalSystem(request, EntityUtils.normalizeProjectName(projectName), systemId,
+		return updateExternalSystemHandler.updateExternalSystem(request, EntityUtils.normalizeId(projectName), systemId,
 				principal.getName());
 	}
 
@@ -167,7 +167,7 @@ public class ExternalSystemController implements IExternalSystemController {
 	@ApiOperation("Get list of fields required for posting ticket")
 	public List<PostFormField> getSetOfExternalSystemFields(@RequestParam(value = "issuetype") String issuetype,
 			@PathVariable String projectName, @PathVariable String systemId) {
-		return getTicketHandler.getSubmitTicketFields(issuetype, EntityUtils.normalizeProjectName(projectName), systemId);
+		return getTicketHandler.getSubmitTicketFields(issuetype, EntityUtils.normalizeId(projectName), systemId);
 	}
 
 	// ===================
@@ -180,7 +180,7 @@ public class ExternalSystemController implements IExternalSystemController {
 	@ApiOperation("Post ticket to external system")
 	public Ticket createIssue(@Validated @RequestBody PostTicketRQ ticketRQ, @PathVariable String projectName,
 			@PathVariable String systemId, Principal principal) {
-		return createTicketHandler.createIssue(ticketRQ, EntityUtils.normalizeProjectName(projectName), systemId, principal.getName());
+		return createTicketHandler.createIssue(ticketRQ, EntityUtils.normalizeId(projectName), systemId, principal.getName());
 	}
 
 	@Override
@@ -190,7 +190,7 @@ public class ExternalSystemController implements IExternalSystemController {
 	@ApiOperation("Get ticket from external system")
 	public Ticket getTicket(@PathVariable String ticketId, @PathVariable String projectName, @PathVariable String systemId,
 			Principal principal) {
-		return getTicketHandler.getTicket(ticketId, EntityUtils.normalizeProjectName(projectName), systemId);
+		return getTicketHandler.getTicket(ticketId, EntityUtils.normalizeId(projectName), systemId);
 	}
 
 }

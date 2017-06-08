@@ -140,7 +140,9 @@ public class EditUserHandler implements IEditUserHandler {
 		if ((null != editUserRQ.getRole()) && isAdmin) {
 			Optional<UserRole> newRole = UserRole.findByName(editUserRQ.getRole());
 			expect(newRole.isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter.");
+			//noinspection ConstantConditions
 			user.setRole(newRole.get());
+			//noinspection ConstantConditions
 			source = new UpdatedRole(username, newRole.get());
 			isRoleChanged = true;
 		}

@@ -91,7 +91,7 @@ public class DemoDataControllerTest extends BaseMvcTest {
 	@Test
 	public void generateTestBasedDemoData() throws Exception {
 		DemoDataRq rq = new DemoDataRq();
-		rq.setPostfix("postfix");
+		rq.setPostfix("test");
 		rq.setCreateDashboard(true);
 		rq.setLaunchesQuantity(1);
 		mvcMock.perform(post("/demo/project2").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)

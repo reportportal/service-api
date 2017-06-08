@@ -45,7 +45,6 @@ import java.util.stream.IntStream;
 
 import static com.epam.ta.reportportal.database.entity.LogLevel.*;
 import static com.epam.ta.reportportal.database.entity.Status.FAILED;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.MediaType.*;
 
@@ -73,8 +72,8 @@ class DemoLogsService {
 	}
 
 	List<Log> generateDemoLogs(String itemId, String status) {
-		try (BufferedReader errorsBufferedReader = new BufferedReader(new InputStreamReader(errorLogsResource.getInputStream(), UTF_8));
-             BufferedReader demoLogsBufferedReader = new BufferedReader(new InputStreamReader(demoLogs.getInputStream(), UTF_8))) {
+		try (BufferedReader errorsBufferedReader = new BufferedReader(new InputStreamReader(errorLogsResource.getInputStream()));
+             BufferedReader demoLogsBufferedReader = new BufferedReader(new InputStreamReader(demoLogs.getInputStream()))) {
             List<String> errorLogs = Arrays.stream(CharStreams.toString(errorsBufferedReader).split(DELIMITER)).collect(toList());
             List<String> logMessages = demoLogsBufferedReader.lines().collect(toList());
 			int t = random.nextInt(30);

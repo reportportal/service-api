@@ -67,7 +67,8 @@ public final class PredefinedFilters {
 							new Criteria()
 									.orOperator(
 											where("status").is(Status.FAILED),
-											where("type").nin(HAS_METHOD_OR_CLASS))));
+											where("type").nin(HAS_METHOD_OR_CLASS),
+											where("issue").exists(true))));
 				}
 			}).build();
 	//@formatter:on

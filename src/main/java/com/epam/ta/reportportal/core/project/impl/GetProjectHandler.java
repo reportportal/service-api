@@ -122,10 +122,8 @@ public class GetProjectHandler implements IGetProjectHandler {
 			Iterable<ExternalSystem> systems = externalSystemRepository.findAll(dbProject.getConfiguration().getExternalSystem());
 			return projectResourceAssembler.toResource(dbProject, systems);
 		}
-		if (null != dbProject.getConfiguration().getSubTypes())
-			return projectResourceAssembler.toResource(dbProject);
-		else
-			return projectResourceAssembler.toResource(dbProject);
+
+		return projectResourceAssembler.toResource(dbProject);
 	}
 
 	@Override

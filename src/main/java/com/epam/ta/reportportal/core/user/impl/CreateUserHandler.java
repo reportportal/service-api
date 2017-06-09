@@ -140,11 +140,13 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 		final Optional<UserRole> userRole = UserRole.findByName(request.getAccountRole());
 		expect(userRole.isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter.");
+		//noinspection ConstantConditions
 		User user = userBuilder.get().addCreateUserRQ(req).addUserRole(userRole.get()).build();
 		Optional<ProjectRole> projectRole = forName(request.getProjectRole());
 		expect(projectRole, Preconditions.IS_PRESENT).verify(ROLE_NOT_FOUND, request.getProjectRole());
 
 		Map<String, UserConfig> projectUsers = defaultProject.getUsers();
+		//noinspection ConstantConditions
 		projectUsers.put(user.getId(), UserConfig.newOne().withProjectRole(projectRole.get()).withProposedRole(projectRole.get()));
 		defaultProject.setUsers(projectUsers);
 
@@ -203,6 +205,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		// FIXME move to controller level
 		if (creator.getRole() != UserRole.ADMINISTRATOR) {
 			int creatorProjectRoleLevel = userConfig.getProjectRole().getRoleLevel();
+			//noinspection ConstantConditions
 			int newUserProjectRoleLevel = role.get().getRoleLevel();
 			expect(creatorProjectRoleLevel >= newUserProjectRoleLevel, equalTo(Boolean.TRUE)).verify(ACCESS_DENIED);
 		}
@@ -263,9 +266,11 @@ public class CreateUserHandler implements ICreateUserHandler {
 		expect(projectRole, Preconditions.IS_PRESENT).verify(ROLE_NOT_FOUND, bid.getRole());
 
 		Map<String, UserConfig> projectUsers = defaultProject.getUsers();
+		//noinspection ConstantConditions
 		if (projectRole.get().equals(CUSTOMER)) {
 			projectUsers.put(user.getId(), UserConfig.newOne().withProjectRole(CUSTOMER).withProposedRole(CUSTOMER));
 		} else {
+			//noinspection ConstantConditions
 			projectUsers.put(user.getId(), UserConfig.newOne().withProjectRole(projectRole.get()).withProposedRole(projectRole.get()));
 		}
 		defaultProject.setUsers(projectUsers);

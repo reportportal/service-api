@@ -133,7 +133,7 @@ public class UserController implements IUserController {
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Delete specified user", notes = "Allowable only for users with administrator role")
 	public OperationCompletionRS deleteUser(@PathVariable String login, Principal principal) {
-		return deleteUserMessageHandler.deleteUser(EntityUtils.normalizeUsername(login), principal.getName());
+		return deleteUserMessageHandler.deleteUser(EntityUtils.normalizeId(login), principal.getName());
 	}
 
 	@Override
@@ -143,7 +143,7 @@ public class UserController implements IUserController {
 	@ApiOperation(value = "Edit specified user", notes = "Only for administrators and profile's owner")
 	public OperationCompletionRS editUser(@PathVariable String login, @RequestBody @Validated EditUserRQ editUserRQ,
 			@ActiveRole UserRole role, Principal principal) {
-		return editUserMessageHandler.editUser(EntityUtils.normalizeUsername(login), editUserRQ, role);
+		return editUserMessageHandler.editUser(EntityUtils.normalizeId(login), editUserRQ, role);
 	}
 
 	@Override
@@ -153,7 +153,7 @@ public class UserController implements IUserController {
 	@PreAuthorize(ALLOWED_TO_EDIT_USER)
 	@ApiOperation(value = "Return information about specified user", notes = "Only for administrators and profile's owner")
 	public UserResource getUser(@PathVariable String login, Principal principal) {
-		return getUserHandler.getUser(EntityUtils.normalizeUsername(login), principal);
+		return getUserHandler.getUser(EntityUtils.normalizeId(login), principal);
 	}
 
 	@Override
@@ -162,7 +162,7 @@ public class UserController implements IUserController {
 	@ResponseView(ModelViews.FullUserView.class)
 	@ApiOperation("Return information about current logged-in user")
 	public UserResource getMyself(Principal principal) {
-		return getUserHandler.getUser(EntityUtils.normalizeUsername(principal.getName()), principal);
+		return getUserHandler.getUser(EntityUtils.normalizeId(principal.getName()), principal);
 	}
 
 	@Override

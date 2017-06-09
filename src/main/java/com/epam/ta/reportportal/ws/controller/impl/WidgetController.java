@@ -22,12 +22,12 @@
 package com.epam.ta.reportportal.ws.controller.impl;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.ws.validation.WidgetRQCustomValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -93,7 +93,7 @@ public class WidgetController implements IWidgetController {
 	@ApiOperation("Create new widget")
 	public EntryCreatedRS createWidget(@PathVariable String projectName,
 			@RequestBody @Validated(WidgetRQCustomValidator.class) WidgetRQ createWidgetRQ, Principal principal) {
-		return createHandler.createWidget(createWidgetRQ, EntityUtils.normalizeProjectName(projectName), principal.getName());
+		return createHandler.createWidget(createWidgetRQ, normalizeId(projectName), principal.getName());
 	}
 
 	@Override
@@ -102,7 +102,7 @@ public class WidgetController implements IWidgetController {
 	@ResponseBody
 	@ApiOperation("Get widget by ID")
 	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable String widgetId, Principal principal) {
-		return getHandler.getWidget(widgetId, principal.getName(), EntityUtils.normalizeProjectName(projectName));
+		return getHandler.getWidget(widgetId, principal.getName(), normalizeId(projectName));
 	}
 
 	@Override
@@ -112,7 +112,7 @@ public class WidgetController implements IWidgetController {
 	@ApiOperation("Update specified widget")
 	public OperationCompletionRS updateWidget(@PathVariable String projectName, @PathVariable String widgetId,
 			@RequestBody @Validated WidgetRQ updateRQ, Principal principal) {
-		return updateHandler.updateWidget(widgetId, updateRQ, principal.getName(), EntityUtils.normalizeProjectName(projectName));
+		return updateHandler.updateWidget(widgetId, updateRQ, principal.getName(), normalizeId(projectName));
 	}
 
 	@Override
@@ -122,7 +122,7 @@ public class WidgetController implements IWidgetController {
 	@Deprecated
 	@ApiIgnore
 	public Map<String, SharedEntity> getSharedWidgets(Principal principal, @PathVariable String projectName) {
-		return getHandler.getSharedWidgetNames(principal.getName(), EntityUtils.normalizeProjectName(projectName));
+		return getHandler.getSharedWidgetNames(principal.getName(), normalizeId(projectName));
 	}
 
 	@Override
@@ -131,7 +131,7 @@ public class WidgetController implements IWidgetController {
 	@ResponseBody
 	@ApiOperation("Load shared widgets")
 	public List<WidgetResource> getSharedWidgetsList(Principal principal, @PathVariable String projectName) {
-		return getHandler.getSharedWidgetsList(principal.getName(), EntityUtils.normalizeProjectName(projectName));
+		return getHandler.getSharedWidgetsList(principal.getName(), normalizeId(projectName));
 	}
 
 	@Override
@@ -140,6 +140,6 @@ public class WidgetController implements IWidgetController {
 	@ResponseBody
 	@ApiOperation("Load all widget names which belong to a user")
 	public List<String> getWidgetNames(@PathVariable String projectName, Principal principal) {
-		return getHandler.getWidgetNames(EntityUtils.normalizeProjectName(projectName), principal.getName());
+		return getHandler.getWidgetNames(normalizeId(projectName), principal.getName());
 	}
 }

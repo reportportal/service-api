@@ -78,7 +78,7 @@
                         <p style="font-size: 14px; color: #777777">The password for user
                             <b>${user_name}</b> has been successfully changed.</p>
                         <p style="font-size: 14px; color: #777777">If you didn’t change your password,
-                            please <a href="mailto:SupportEPMC-TSTReportPortal@epam.com?subject=Report%20Portal%20Support">Contact us</a>.</p>
+                            please <a href="mailto:support@reportportal.io">Contact us</a>.</p>
                     </td>
                 </tr>
                 </tbody>

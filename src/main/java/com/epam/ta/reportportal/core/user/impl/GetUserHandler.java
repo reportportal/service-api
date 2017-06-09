@@ -111,10 +111,10 @@ public class GetUserHandler implements IGetUserHandler {
 	@Override
 	public YesNoRS validateInfo(String username, String email) {
 		if (null != username) {
-			User user = userRepository.findOne(EntityUtils.normalizeUsername(username));
+			User user = userRepository.findOne(EntityUtils.normalizeId(username));
 			return null != user ? new YesNoRS(true) : new YesNoRS(false);
 		} else if (null != email) {
-			User user = userRepository.findByEmail(EntityUtils.normalizeEmail(email));
+			User user = userRepository.findByEmail(EntityUtils.normalizeId(email));
 			return null != user ? new YesNoRS(true) : new YesNoRS(false);
 		}
 		return new YesNoRS(false);

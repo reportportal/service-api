@@ -122,8 +122,8 @@ public class FileStorageController implements IFileStorageController {
 	/**
 	 * Copies provided {@link BinaryData} to Response
 	 * 
-	 * @param response
-	 * @param binaryData
+	 * @param response Response
+	 * @param binaryData Binary data object
 	 */
 	private void toResponse(HttpServletResponse response, BinaryData binaryData) {
 		if (binaryData != null) {

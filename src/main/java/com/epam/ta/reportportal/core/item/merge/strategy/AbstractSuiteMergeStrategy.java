@@ -33,7 +33,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
-    protected TestItemRepository testItemRepository;
+    protected final TestItemRepository testItemRepository;
 
     public AbstractSuiteMergeStrategy(TestItemRepository testItemRepository) {
         this.testItemRepository = testItemRepository;

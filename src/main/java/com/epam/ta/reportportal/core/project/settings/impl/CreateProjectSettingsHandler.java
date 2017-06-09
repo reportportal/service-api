@@ -80,11 +80,11 @@ public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandl
 			.put(PRODUCT_BUG.getValue(), "pb_").put(SYSTEM_ISSUE.getValue(), "si_").put(NO_DEFECT.getValue(), "nd_")
 			.put(TO_INVESTIGATE.getValue(), "ti_").build();
 
-	private ProjectRepository projectRepo;
+	private final ProjectRepository projectRepo;
 
-	private WidgetRepository widgetRepository;
+	private final WidgetRepository widgetRepository;
 
-	private ApplicationEventPublisher eventPublisher;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	public CreateProjectSettingsHandler(ProjectRepository projectRepository, WidgetRepository widgetRepository,

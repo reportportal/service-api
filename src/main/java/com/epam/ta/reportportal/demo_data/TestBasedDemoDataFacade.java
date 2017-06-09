@@ -62,7 +62,7 @@ public class TestBasedDemoDataFacade extends DemoDataCommonService implements De
         return IntStream.range(0, rq.getLaunchesQuantity()).mapToObj(i -> {
             String launchId = startLaunch(NAME + "_" + rq.getPostfix(), i, project, user);
 
-            boolean hasBeforeAfterStories = random.nextBoolean();
+            boolean hasBeforeAfterStories = ContentUtils.getWithProbability(STORY_PROBABILITY);
             if (hasBeforeAfterStories) {
                 finishRootItem(
                         startRootItem("BeforeStories", launchId, STORY).getId());
@@ -78,11 +78,10 @@ public class TestBasedDemoDataFacade extends DemoDataCommonService implements De
     }
 
     private List<String> generateStories(Map<String, Map<String, List<String>>> storiesStructure, int i, String launchId) {
-        final boolean hasInfo = i % 2 == 0;
         List<String> stories = storiesStructure.entrySet().stream().limit(i + 1).map(story -> {
             TestItem storyItem = startRootItem(story.getKey(), launchId, STORY);
             story.getValue().entrySet().forEach(scenario -> {
-                if (random.nextBoolean()) {
+                if (ContentUtils.getWithProbability(STORY_PROBABILITY)) {
                     finishTestItem(
                             startTestItem(storyItem, launchId, "beforeScenario", SCENARIO).getId(), status(), strategy);
                 }
@@ -103,7 +102,7 @@ public class TestBasedDemoDataFacade extends DemoDataCommonService implements De
                     finishTestItem(stepItem.getId(), status, strategy);
                 }
                 finishTestItem(scenarioItem.getId(), isFailed ? FAILED.name() : PASSED.name(), strategy);
-                if (random.nextBoolean()) {
+                if (ContentUtils.getWithProbability(STORY_PROBABILITY)) {
                     finishTestItem(
                             startTestItem(storyItem, launchId, "afterScenario", SCENARIO).getId(), status(), strategy);
                 }
@@ -111,7 +110,7 @@ public class TestBasedDemoDataFacade extends DemoDataCommonService implements De
             finishRootItem(storyItem.getId());
             return storyItem.getId();
         }).collect(toList());
-        if (hasInfo) {
+        if (ContentUtils.getWithProbability(STORY_PROBABILITY)) {
             stories.add(generateCustomStory(launchId));
         }
         return stories;

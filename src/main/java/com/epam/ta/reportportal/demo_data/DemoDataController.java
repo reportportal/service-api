@@ -48,9 +48,6 @@ class DemoDataController {
     @ApiOperation(value = "generate")
     @ApiIgnore
     DemoDataRs generate(@PathVariable String projectName, @Validated @RequestBody DemoDataRq demoDataRq, Principal principal) {
-        long start = System.nanoTime();
-        DemoDataRs rs = demoDataService.generate(demoDataRq, projectName, principal.getName());
-        System.out.println((System.nanoTime() - start) / Math.pow(10,9));
-        return rs;
+        return demoDataService.generate(demoDataRq, projectName, principal.getName());
     }
 }

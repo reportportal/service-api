@@ -22,7 +22,9 @@
 package com.epam.ta.reportportal.demo_data;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Range;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.BufferedReader;
@@ -42,9 +44,13 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  *
  * @author Pavel_Bortnik
  */
-public final class ContentUtils {
+final class ContentUtils {
 
-    private static final int ERRORS_COUNT = 8;
+    private static final int MAX_ERROR_LOGS_COUNT = 2;
+
+    private static final int ERRORS_COUNT = 9;
+
+    private static final Range<Integer> PROBABILITY_RANGE = Range.openClosed(0, 100);
 
     private ContentUtils() {
         //static only
@@ -98,9 +104,9 @@ public final class ContentUtils {
         return content;
     }
 
-    static List<String> getErrorLogs(int bound) {
-        return IntStream.range(0, bound).mapToObj(i -> {
-            int errorNumber = random.nextInt(ERRORS_COUNT) + 1;
+    static List<String> getErrorLogs() {
+        return IntStream.range(0, MAX_ERROR_LOGS_COUNT).mapToObj(i -> {
+            int errorNumber = random.nextInt(1, ERRORS_COUNT);
             return readToString("demo/errors/" + errorNumber + ".txt");
         }).collect(Collectors.toList());
     }
@@ -108,5 +114,12 @@ public final class ContentUtils {
     static String getLogMessage() {
         List<String> logs = readToList("demo/content/demo_logs.txt");
         return logs.get(random.nextInt(logs.size()));
+    }
+
+    static boolean getWithProbability(int probability) {
+        Preconditions.checkArgument(PROBABILITY_RANGE.contains(probability),
+                "%s is not in range [%s]", probability, PROBABILITY_RANGE);
+        return Range.closedOpen(PROBABILITY_RANGE.lowerEndpoint(), probability)
+                .contains(random.nextInt(PROBABILITY_RANGE.upperEndpoint()));
     }
 }

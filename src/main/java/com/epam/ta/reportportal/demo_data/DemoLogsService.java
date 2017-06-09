@@ -40,7 +40,6 @@ import java.util.stream.IntStream;
 import static com.epam.ta.reportportal.database.entity.LogLevel.*;
 import static com.epam.ta.reportportal.database.entity.Status.FAILED;
 import static java.util.stream.Collectors.toList;
-import static org.springframework.http.MediaType.*;
 
 @Service
 class DemoLogsService {
@@ -50,6 +49,12 @@ class DemoLogsService {
 
     private DataStorage dataStorage;
 
+    private static final int MIN_LOGS_COUNT = 5;
+
+    private static final int MAX_LOGS_COUNT = 30;
+
+    private static final int BINARY_CONTENT_PROBABILITY = 20;
+
     @Autowired
     DemoLogsService(DataStorage dataStorage, LogRepository logRepository) {
         this.dataStorage = dataStorage;
@@ -58,12 +63,12 @@ class DemoLogsService {
     }
 
     List<Log> generateDemoLogs(String itemId, String status) {
-        int t = random.nextInt(30) + 5;
-        List<Log> logs = IntStream.range(1, t + 1).mapToObj(it -> {
+        int logsCount = random.nextInt(MIN_LOGS_COUNT, MAX_LOGS_COUNT);
+        List<Log> logs = IntStream.range(1, logsCount).mapToObj(it -> {
             Log log = new Log();
             log.setLevel(logLevel());
             log.setLogTime(new Date());
-            if (random.nextInt(t) <= t / 8) {
+            if (ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
                 log.setBinaryContent(attachBinaryContent());
             }
             log.setTestItemRef(itemId);
@@ -71,7 +76,7 @@ class DemoLogsService {
             return log;
         }).collect(toList());
         if (FAILED.name().equals(status)) {
-            List<String> errors = ContentUtils.getErrorLogs(2);
+            List<String> errors = ContentUtils.getErrorLogs();
             logs.addAll(errors.stream().map(msg -> {
                 Log log = new Log();
                 log.setLevel(ERROR);
@@ -87,65 +92,22 @@ class DemoLogsService {
     }
 
     private BinaryContent attachBinaryContent() {
-        ClassPathResource resource;
-        String contentType;
-        switch (random.nextInt(20)) {
-            case 0:
-                contentType = TEXT_PLAIN_VALUE;
-                resource = new ClassPathResource("demo/attachments/Test.cmd");
-                break;
-            case 1:
-                contentType = "text/css";
-                resource = new ClassPathResource("demo/attachments/css.css");
-                break;
-            case 2:
-                contentType = "text/csv";
-                resource = new ClassPathResource("demo/attachments/Test.csv");
-                break;
-            case 3:
-                contentType = TEXT_HTML_VALUE;
-                resource = new ClassPathResource("demo/attachments/html.html");
-                break;
-            case 4:
-                contentType = "application/javascript";
-                resource = new ClassPathResource("demo/attachments/javascript.js");
-                break;
-            case 5:
-                contentType = APPLICATION_PDF_VALUE;
-                resource = new ClassPathResource("demo/attachments/test.pdf");
-                break;
-            case 6:
-                contentType = "text/x-php";
-                resource = new ClassPathResource("demo/attachments/php.php");
-                break;
-            case 7:
-                contentType = TEXT_PLAIN_VALUE;
-                resource = new ClassPathResource("demo/attachments/plain.txt");
-                break;
-            case 8:
-                contentType = "application/zip";
-                resource = new ClassPathResource("demo/attachments/demo.zip");
-                break;
-            case 9:
-                contentType = APPLICATION_JSON_VALUE;
-                resource = new ClassPathResource("demo/demo_widgets.json");
-                break;
-            default:
-                contentType = IMAGE_PNG_VALUE;
-                resource = new ClassPathResource("demo/attachments/img.png");
-        }
-        String file;
         try {
-            file = saveResource(contentType, resource);
+            Attachment attachment = randomAttachment();
+            String file = saveResource(attachment.getContentType(), attachment.getResource());
+            return new BinaryContent(file, file, attachment.getContentType());
         } catch (IOException e) {
             throw new ReportPortalException("Unable to save binary data", e);
         }
-        return new BinaryContent(file, file, contentType);
     }
 
     private String saveResource(String contentType, ClassPathResource resource) throws IOException {
         return dataStorage.saveData(new BinaryData(contentType,
                 resource.contentLength(), resource.getInputStream()), "file");
+    }
+
+    private Attachment randomAttachment() {
+        return Attachment.values()[random.nextInt(Attachment.values().length)];
     }
 
     private LogLevel logLevel() {

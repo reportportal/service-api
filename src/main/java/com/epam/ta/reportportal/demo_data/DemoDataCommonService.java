@@ -33,7 +33,6 @@ import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Range;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -54,16 +53,19 @@ public class DemoDataCommonService {
 
     static final String NAME = "Demo Api Tests";
 
+    static final int STORY_PROBABILITY = 30;
+
     protected SplittableRandom random = new SplittableRandom();
+
+    private static final int CONTENT_PROBABILITY = 60;
+
+    private static final int TAGS_COUNT = 3;
 
     @Autowired
     DemoLogsService logDemoDataService;
 
     @Autowired
     protected LaunchRepository launchRepository;
-
-    @Autowired
-    private LaunchMetaInfoRepository launchCounter;
 
     @Autowired
     protected ObjectMapper objectMapper;
@@ -74,7 +76,8 @@ public class DemoDataCommonService {
     @Autowired
     protected StatisticsFacadeFactory statisticsFacadeFactory;
 
-    private static final Range<Integer> PROBABILITY_RANGE = Range.openClosed(0, 100);
+    @Autowired
+    private LaunchMetaInfoRepository launchCounter;
 
     String startLaunch(String name, int i, String project, String user) {
         Launch launch = new Launch();
@@ -101,8 +104,8 @@ public class DemoDataCommonService {
     TestItem startRootItem(String rootItemName, String launchId, TestItemType type) {
         TestItem testItem = new TestItem();
         testItem.setLaunchRef(launchId);
-        if (type.sameLevel(SUITE) && random.nextBoolean()) {
-            testItem.setTags(ContentUtils.getTagsInRange(3));
+        if (type.sameLevel(SUITE) && ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
+            testItem.setTags(ContentUtils.getTagsInRange(TAGS_COUNT));
             testItem.setItemDescription(ContentUtils.getSuiteDescription());
         }
         testItem.setStartTime(new Date());
@@ -122,12 +125,12 @@ public class DemoDataCommonService {
 
     TestItem startTestItem(TestItem rootItemId, String launchId, String name, TestItemType type) {
         TestItem testItem = new TestItem();
-        if (random.nextBoolean()) {
+        if (ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
             if (hasChildren(type)) {
-                testItem.setTags(ContentUtils.getTagsInRange(2));
+                testItem.setTags(ContentUtils.getTagsInRange(TAGS_COUNT));
                 testItem.setItemDescription(ContentUtils.getTestDescription());
-            }else {
-                testItem.setTags(ContentUtils.getTagsInRange(1));
+            } else {
+                testItem.setTags(ContentUtils.getTagsInRange(TAGS_COUNT));
                 testItem.setItemDescription(ContentUtils.getStepDescription());
             }
         }
@@ -160,9 +163,9 @@ public class DemoDataCommonService {
 
     String status() {
         int STATUS_PROBABILITY = 15;
-        if (checkProbability(STATUS_PROBABILITY)) {
+        if (ContentUtils.getWithProbability(STATUS_PROBABILITY)) {
             return SKIPPED.name();
-        } else if (checkProbability(2 * STATUS_PROBABILITY)) {
+        } else if (ContentUtils.getWithProbability(2 * STATUS_PROBABILITY)) {
             return FAILED.name();
         }
         return PASSED.name();
@@ -175,19 +178,14 @@ public class DemoDataCommonService {
 
     String issueType() {
         int ISSUE_PROBABILITY = 25;
-        if (checkProbability(ISSUE_PROBABILITY)) {
+        if (ContentUtils.getWithProbability(ISSUE_PROBABILITY)) {
             return "PB001";
-        } else if (checkProbability(ISSUE_PROBABILITY)) {
+        } else if (ContentUtils.getWithProbability(ISSUE_PROBABILITY)) {
             return "AB001";
-        } else if (checkProbability(ISSUE_PROBABILITY)) {
+        } else if (ContentUtils.getWithProbability(ISSUE_PROBABILITY)) {
             return "SI001";
         } else {
             return "TI001";
         }
-    }
-
-    private boolean checkProbability(int probability) {
-        return Range.openClosed(PROBABILITY_RANGE.lowerEndpoint(), probability)
-                .contains(random.nextInt(PROBABILITY_RANGE.upperEndpoint()));
     }
 }

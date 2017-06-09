@@ -34,6 +34,8 @@ import java.util.SplittableRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 /**
  * By reason of demo data generation is used not so often,
  * we don't need to cache the files' content.
@@ -78,7 +80,7 @@ public final class ContentUtils {
 
     private static List<String> readToList(String resource) {
         List<String> content;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ClassPathResource(resource).getInputStream()))){
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ClassPathResource(resource).getInputStream(), UTF_8))){
             content = reader.lines().collect(Collectors.toList());
         }catch (IOException e) {
             throw new ReportPortalException("Missing demo content.", e);
@@ -88,7 +90,7 @@ public final class ContentUtils {
 
     private static String readToString(String resource) {
         String content;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ClassPathResource(resource).getInputStream()))){
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ClassPathResource(resource).getInputStream(), UTF_8))){
             content = reader.lines().collect(Collectors.joining("\n"));
         }catch (IOException e) {
             throw new ReportPortalException("Missing demo content.", e);

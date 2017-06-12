@@ -58,8 +58,8 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Dalston.RELEASE"
-        mavenBom "org.springframework.boot:spring-boot-dependencies:1.5.3.RELEASE"
+        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Dalston.SR1"
+        mavenBom "org.springframework.boot:spring-boot-dependencies:1.5.4.RELEASE"
     }
 }
 
@@ -78,7 +78,7 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:3.0.0'
         compile 'com.epam.reportportal:commons:3.0.0'
     } else {
-        compile('com.github.reportportal:commons-dao:d56a3b2')
+        compile('com.github.reportportal:commons-dao:1656e4a')
         compile('com.github.reportportal:commons-rules:6e514cb')
         compile 'com.github.reportportal:commons-model:94c897d'
         compile ('com.github.reportportal:commons:develop-SNAPSHOT')

@@ -21,27 +21,20 @@
 
 package com.epam.ta.reportportal.ws.converter;
 
-import javax.inject.Provider;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.ws.converter.builders.ProjectSettingsResourceBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.ProjectSettingsConverter;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Andrei_Ramanchuk
+ * @author Pavel_Bortnik
  */
 @Service
 public class ProjectSettingsResourceAssembler extends ResourceAssembler<Project, ProjectSettingsResource> {
 
-	@Autowired
-	private Provider<ProjectSettingsResourceBuilder> builder;
-
-
 	@Override
 	public ProjectSettingsResource toResource(Project entity) {
-		return builder.get().addProjectSettings(entity).build();
+		return ProjectSettingsConverter.TO_RESOURCE.apply(entity);
 	}
 }

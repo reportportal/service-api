@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  * 
  * 
  * This file is part of EPAM Report Portal.
@@ -19,31 +19,26 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.ws.converter.builders;
+package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.BaseTest;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
+import com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants;
+import com.epam.ta.reportportal.ws.converter.builders.Utils;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterEntity;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
-import javax.inject.Provider;
 import java.util.Iterator;
 
-public class UserFilterResourceBuilderTest extends BaseTest {
+/**
+ * @author Pavel_Bortnik
+ */
+public class UserFilterConverterTest {
 
-    @Autowired
-    private Provider<UserFilterResourceBuilder> filterResourceBuilderProvider;
-
-    @Autowired
-    private ApplicationContext applicationContext;
-
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testNull() {
-        filterResourceBuilderProvider.get().addUserFilter(null).build();
+        UserFilterConverter.TO_RESOURCE.apply(null);
     }
 
     @Test
@@ -51,7 +46,7 @@ public class UserFilterResourceBuilderTest extends BaseTest {
         UserFilter userFilter = Utils.getUserFilter();
         userFilter.setFilter(null);
         userFilter.setSelectionOptions(null);
-        UserFilterResource actualValue = filterResourceBuilderProvider.get().addUserFilter(userFilter).build();
+        UserFilterResource actualValue = UserFilterConverter.TO_RESOURCE.apply(userFilter);
         UserFilterResource expectedValue = Utils.getUserFilterResource();
         expectedValue.setEntities(null);
         expectedValue.setObjectType(null);
@@ -63,17 +58,10 @@ public class UserFilterResourceBuilderTest extends BaseTest {
     public void testValues() {
         UserFilter userFilter = Utils.getUserFilter();
         userFilter.setId(BuilderTestsConstants.BINARY_DATA_ID);
-        UserFilterResource actualValue = filterResourceBuilderProvider.get().addUserFilter(userFilter).build();
+        UserFilterResource actualValue = UserFilterConverter.TO_RESOURCE.apply(userFilter);
         UserFilterResource expectedValue = Utils.getUserFilterResource();
         expectedValue.setFilterId(BuilderTestsConstants.BINARY_DATA_ID);
         validate(expectedValue, actualValue);
-    }
-
-    @Test
-    public void testBeanScope() {
-        Assert.assertTrue("User filter resource builder should be prototype bean because it's not stateless",
-                applicationContext
-                        .isPrototype(applicationContext.getBeanNamesForType(UserFilterResourceBuilder.class)[0]));
     }
 
     private void validate(UserFilterResource expectedValue, UserFilterResource actualValue) {

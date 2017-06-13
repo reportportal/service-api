@@ -41,7 +41,7 @@ import com.epam.ta.reportportal.database.entity.user.UserType;
 import com.epam.ta.reportportal.events.EmailConfigUpdatedEvent;
 import com.epam.ta.reportportal.events.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.EmailConfigConverters;
+import com.epam.ta.reportportal.ws.converter.converters.EmailConfigConverters;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
@@ -238,7 +238,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			});
 
 				/* If project email settings */
-			List<EmailSenderCase> withoutDuplicateCases = cases.stream().distinct().map(EmailConfigConverters.FROM_CASE_RESOURCE)
+			List<EmailSenderCase> withoutDuplicateCases = cases.stream().distinct().map(EmailConfigConverters.TO_CASE_MODEL)
 					.collect(toList());
 			if (cases.size() != withoutDuplicateCases.size())
 				fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");

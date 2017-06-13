@@ -38,9 +38,9 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.Predicates;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.ws.converter.builders.RestorePasswordBidBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
-import com.epam.ta.reportportal.ws.converter.builders.UserCreationBidBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.RestorePasswordBidConverter;
+import com.epam.ta.reportportal.ws.converter.converters.UserCreationBidConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
@@ -98,12 +98,6 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 	@Autowired
 	private Provider<UserBuilder> userBuilder;
-
-	@Autowired
-	private Provider<UserCreationBidBuilder> userCreationBidBuilder;
-
-	@Autowired
-	private Provider<RestorePasswordBidBuilder> restorePasswordBidBuilder;
 
 	@Autowired
 	public void setUserRepository(UserRepository userRepository) {
@@ -216,7 +210,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 			expect(creatorProjectRoleLevel >= newUserProjectRoleLevel, equalTo(Boolean.TRUE)).verify(ACCESS_DENIED);
 		}
 
-		UserCreationBid bid = userCreationBidBuilder.get().addUserCreationBid(request).build();
+		UserCreationBid bid = UserCreationBidConverter.TO_USER.apply(request);
 		try {
 			userCreationBidRepository.save(bid);
 		} catch (Exception e) {
@@ -314,7 +308,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		User user = userRepository.findByEmail(email);
 		expect(user, notNull()).verify(USER_NOT_FOUND, email);
 		expect(user.getType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR, "Unable to change password for external user");
-		RestorePasswordBid bid = restorePasswordBidBuilder.get().addRestorePasswordBid(rq).build();
+		RestorePasswordBid bid = RestorePasswordBidConverter.TO_BID.apply(rq);
 		restorePasswordBidRepository.save(bid);
 		try {
 			// TODO use default 'from' param or project specified?

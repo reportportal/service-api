@@ -22,28 +22,21 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.database.entity.widget.Widget;
-import com.epam.ta.reportportal.ws.converter.builders.WidgetResourceBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.inject.Provider;
 
 /**
  * Resource Assembler for the {@link Widget} DB entity.
  *
  * @author Aliaksei_Makayed
+ * @author Pavel_Bortnik
  */
 @Service
 public class WidgetResourceAssembler extends ResourceAssembler<Widget, WidgetResource> {
 
-    @Autowired
-    private Provider<WidgetResourceBuilder> builderLazyReference;
-
     @Override
     public WidgetResource toResource(Widget widget) {
-        WidgetResourceBuilder widgetResourceBuilder = builderLazyReference.get();
-        widgetResourceBuilder.addWidget(widget);
-        return widgetResourceBuilder.build();
+        return WidgetConverter.TO_RESOURCE.apply(widget);
     }
 }

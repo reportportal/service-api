@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  * 
  * 
  * This file is part of EPAM Report Portal.
@@ -19,30 +19,24 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.ws.converter.builders;
+package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.BaseTest;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
+import com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants;
+import com.epam.ta.reportportal.ws.converter.builders.Utils;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
-import javax.inject.Provider;
+/**
+ * @author Pavel_Bortnik
+ */
+public class WidgetConverterTest {
 
-public class WidgetResourceBuilderTest extends BaseTest {
-
-    @Autowired
-    private Provider<WidgetResourceBuilder> widgetResourceBuilderProvider;
-
-    @Autowired
-    private ApplicationContext applicationContext;
-
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testNull() {
-        widgetResourceBuilderProvider.get().addWidget(null).build();
+        WidgetConverter.TO_RESOURCE.apply(null);
     }
 
     @Test
@@ -51,8 +45,7 @@ public class WidgetResourceBuilderTest extends BaseTest {
         widget.setId(BuilderTestsConstants.BINARY_DATA_ID);
         widget.setApplyingFilterId(null);
         widget.setContentOptions(null);
-        WidgetResource actualValue = widgetResourceBuilderProvider.get().addWidget(widget)
-                .build();
+        WidgetResource actualValue = WidgetConverter.TO_RESOURCE.apply(widget);
         WidgetResource expectedValue = new WidgetResource();
         expectedValue.setName(BuilderTestsConstants.NAME);
         expectedValue.setWidgetId(BuilderTestsConstants.BINARY_DATA_ID);
@@ -61,18 +54,12 @@ public class WidgetResourceBuilderTest extends BaseTest {
 
     @Test
     public void testValues() {
-        WidgetResource actualValue = widgetResourceBuilderProvider.get().addWidget(Utils.getWidget()).build();
+        WidgetResource actualValue = WidgetConverter.TO_RESOURCE.apply(Utils.getWidget());
         WidgetResource expectedValue = new WidgetResource();
         expectedValue.setContentParameters(new ContentParameters());
         expectedValue.setName(BuilderTestsConstants.NAME);
         expectedValue.setApplyingFilterID("1234");
         validate(expectedValue, actualValue);
-    }
-
-    @Test
-    public void testBeanScope() {
-        Assert.assertTrue("Widget resource builder should be prototype bean because it's not stateless",
-                applicationContext.isPrototype(applicationContext.getBeanNamesForType(WidgetResourceBuilder.class)[0]));
     }
 
     private void validate(WidgetResource expectedValue, WidgetResource actualValue) {

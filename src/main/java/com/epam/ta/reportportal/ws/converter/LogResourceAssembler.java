@@ -22,7 +22,7 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.database.entity.Log;
-import com.epam.ta.reportportal.ws.converter.builders.LogResourceBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import org.springframework.stereotype.Service;
 
@@ -34,13 +34,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class LogResourceAssembler extends PagedResourcesAssembler<Log, LogResource> {
 
-    public LogResourceAssembler() {
-
-    }
-
     @Override
     public LogResource toResource(Log log) {
-        // Removed lazy reference for performance increasing
-        return new LogResourceBuilder().addLog(log).build();
+        return LogConverter.TO_RESOURCE.apply(log);
     }
 }

@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.events.EmailConfigUpdatedEvent;
-import com.epam.ta.reportportal.ws.converter.EmailConfigConverters;
+import com.epam.ta.reportportal.ws.converter.converters.EmailConfigConverters;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -22,26 +22,21 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
-import com.epam.ta.reportportal.ws.converter.builders.ExternalSystemResourceBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemConverter;
 import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.inject.Provider;
 
 /**
  * Resource assembler for {@link ExternalSystem} entities
  *
  * @author Andrei_Ramanchuk
+ * @author Pavel_Bortnik
  */
 @Service
 public class ExternalSystemResourceAssembler extends ResourceAssembler<ExternalSystem, ExternalSystemResource> {
 
-    @Autowired
-    private Provider<ExternalSystemResourceBuilder> builder;
-
     @Override
     public ExternalSystemResource toResource(ExternalSystem entity) {
-        return builder.get().addExternalSystem(entity).build();
+        return ExternalSystemConverter.TO_RESOURCE.apply(entity);
     }
 }

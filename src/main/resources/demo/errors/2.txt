@@ -1,0 +1,3 @@
+11:59:05.823 [TestNG-tests-1] ERROR c.e.t.r.q.w.c.FailureLoggingListener - Test createExternalSystemUnableInteractWithExternalSystem has been failed with exception org.testng.TestException:
+Incorrect Error Type. Expected: UNABLE_INTERACT_WITH_EXTERNAL_SYSTEM, but was 'PROJECT_NOT_FOUND'.
+Incorrect status code. Expected '409, but was '404'

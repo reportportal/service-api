@@ -32,35 +32,40 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Range;
+import com.google.common.collect.ImmutableSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Random;
+import java.util.SplittableRandom;
 
 import static com.epam.ta.reportportal.core.statistics.StatisticsHelper.getStatusFromStatistics;
 import static com.epam.ta.reportportal.database.entity.Status.*;
 import static com.epam.ta.reportportal.database.entity.item.TestItemType.*;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
-import static java.util.Arrays.asList;
 
+/**
+ * @author Pavel_Bortnik
+ */
 @Service
 public class DemoDataCommonService {
 
     static final String NAME = "Demo Api Tests";
 
-    protected final Random random = new Random();
+    static final int STORY_PROBABILITY = 30;
+
+    protected SplittableRandom random = new SplittableRandom();
+
+    private static final int CONTENT_PROBABILITY = 60;
+
+    private static final int TAGS_COUNT = 3;
 
     @Autowired
     DemoLogsService logDemoDataService;
 
     @Autowired
     protected LaunchRepository launchRepository;
-
-    @Autowired
-    private LaunchMetaInfoRepository launchCounter;
 
     @Autowired
     protected ObjectMapper objectMapper;
@@ -71,14 +76,16 @@ public class DemoDataCommonService {
     @Autowired
     protected StatisticsFacadeFactory statisticsFacadeFactory;
 
-    private static final Range<Integer> PROBABILITY_RANGE = Range.openClosed(0, 100);
+    @Autowired
+    private LaunchMetaInfoRepository launchCounter;
 
     String startLaunch(String name, int i, String project, String user) {
         Launch launch = new Launch();
         launch.setName(name);
-        launch.setDescription("Demo Launch");
         launch.setStartTime(new Date());
-        launch.setTags(new HashSet<>(asList("desktop", "demo", "build:3.0.1." + (i + 1))));
+        launch.setTags(ImmutableSet.<String>builder().addAll(Arrays.asList("desktop", "demo",
+                "build:3.0.1." + (i + 1))).build());
+        launch.setDescription(ContentUtils.getLaunchDescription());
         launch.setStatus(IN_PROGRESS);
         launch.setUserRef(user);
         launch.setProjectRef(project);
@@ -97,6 +104,10 @@ public class DemoDataCommonService {
     TestItem startRootItem(String rootItemName, String launchId, TestItemType type) {
         TestItem testItem = new TestItem();
         testItem.setLaunchRef(launchId);
+        if (type.sameLevel(SUITE) && ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
+            testItem.setTags(ContentUtils.getTagsInRange(TAGS_COUNT));
+            testItem.setItemDescription(ContentUtils.getSuiteDescription());
+        }
         testItem.setStartTime(new Date());
         testItem.setName(rootItemName);
         testItem.setHasChilds(true);
@@ -112,15 +123,24 @@ public class DemoDataCommonService {
         testItemRepository.save(testItem);
     }
 
-    TestItem startTestItem(TestItem rootItemId, String launchId, String name, TestItemType testItemType) {
+    TestItem startTestItem(TestItem rootItemId, String launchId, String name, TestItemType type) {
         TestItem testItem = new TestItem();
+        if (ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
+            if (hasChildren(type)) {
+                testItem.setTags(ContentUtils.getTagsInRange(TAGS_COUNT));
+                testItem.setItemDescription(ContentUtils.getTestDescription());
+            } else {
+                testItem.setTags(ContentUtils.getTagsInRange(TAGS_COUNT));
+                testItem.setItemDescription(ContentUtils.getStepDescription());
+            }
+        }
         testItem.setLaunchRef(launchId);
         testItem.setStartTime(new Date());
         testItem.setName(name);
         testItem.setParent(rootItemId.getId());
-        testItem.setHasChilds(hasChildren(testItemType));
+        testItem.setHasChilds(hasChildren(type));
         testItem.setStatus(IN_PROGRESS);
-        testItem.setType(testItemType);
+        testItem.setType(type);
         testItem.getPath().addAll(rootItemId.getPath());
         testItem.getPath().add(rootItemId.getId());
         return testItemRepository.save(testItem);
@@ -140,12 +160,12 @@ public class DemoDataCommonService {
             statisticsFacade.updateIssueStatistics(testItem);
         }
     }
-    
-    String status(){
+
+    String status() {
         int STATUS_PROBABILITY = 15;
-        if (checkProbability(STATUS_PROBABILITY)){
+        if (ContentUtils.getWithProbability(STATUS_PROBABILITY)) {
             return SKIPPED.name();
-        }else if (checkProbability(2 * STATUS_PROBABILITY)){
+        } else if (ContentUtils.getWithProbability(2 * STATUS_PROBABILITY)) {
             return FAILED.name();
         }
         return PASSED.name();
@@ -158,19 +178,14 @@ public class DemoDataCommonService {
 
     String issueType() {
         int ISSUE_PROBABILITY = 25;
-        if (checkProbability(ISSUE_PROBABILITY)) {
+        if (ContentUtils.getWithProbability(ISSUE_PROBABILITY)) {
             return "PB001";
-        } else if (checkProbability(ISSUE_PROBABILITY)) {
+        } else if (ContentUtils.getWithProbability(ISSUE_PROBABILITY)) {
             return "AB001";
-        } else if (checkProbability(ISSUE_PROBABILITY)) {
+        } else if (ContentUtils.getWithProbability(ISSUE_PROBABILITY)) {
             return "SI001";
         } else {
             return "TI001";
         }
-    }
-
-    private boolean checkProbability(int probability){
-        return Range.openClosed(PROBABILITY_RANGE.lowerEndpoint(), probability)
-                .contains(random.nextInt(PROBABILITY_RANGE.upperEndpoint()));
     }
 }

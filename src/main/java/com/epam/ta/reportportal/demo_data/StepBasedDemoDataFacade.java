@@ -48,8 +48,7 @@ public class StepBasedDemoDataFacade extends DemoDataCommonService implements De
     public List<String> generateDemoLaunches(DemoDataRq demoDataRq, String user, String projectName) {
         Map<String, Map<String, List<String>>> suites;
         try {
-            suites = objectMapper.readValue(resource.getURL(), new TypeReference<Map<String, Map<String, List<String>>>>() {
-            });
+            suites = objectMapper.readValue(resource.getURL(), new TypeReference<Map<String, Map<String, List<String>>>>() {});
         } catch (IOException e) {
             throw new ReportPortalException("Unable to load suites description. " + e.getMessage(), e);
         }
@@ -73,13 +72,14 @@ public class StepBasedDemoDataFacade extends DemoDataCommonService implements De
             suites.getValue().entrySet().forEach(tests -> {
                 TestItem testItem = startTestItem(suiteItem, launchId, tests.getKey(), TEST);
                 String beforeClassStatus = "";
-                if (random.nextBoolean()) {
+                boolean isGenerateClass = ContentUtils.getWithProbability(STORY_PROBABILITY);
+                if (isGenerateClass) {
                     TestItem beforeClass = startTestItem(testItem, launchId, "beforeClass", BEFORE_CLASS);
                     beforeClassStatus = status();
                     finishTestItem(beforeClass.getId(), beforeClassStatus, statsStrategy);
                 }
-                boolean isGenerateBeforeMethod = random.nextBoolean();
-                boolean isGenerateAfterMethod = random.nextBoolean();
+                boolean isGenerateBeforeMethod = ContentUtils.getWithProbability(STORY_PROBABILITY);
+                boolean isGenerateAfterMethod = ContentUtils.getWithProbability(STORY_PROBABILITY);
                 tests.getValue().stream().limit(i + 1).forEach(name -> {
                     if (isGenerateBeforeMethod) {
                         finishTestItem(
@@ -94,7 +94,7 @@ public class StepBasedDemoDataFacade extends DemoDataCommonService implements De
                                 startTestItem(testItem, launchId, "afterMethod", AFTER_METHOD).getId(), status(), statsStrategy);
                     }
                 });
-                if (random.nextBoolean()) {
+                if (isGenerateClass) {
                     TestItem afterClass = startTestItem(testItem, launchId, "afterClass", AFTER_CLASS);
                     finishTestItem(afterClass.getId(), status(), statsStrategy);
                 }

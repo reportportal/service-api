@@ -1,0 +1,6 @@
+Test logic update needed.
+Changed requirements. Script outdated
+Framework issue. Script outdated
+Incorrect test/data. Script outdated
+Seems to be some canhing issue at the tests side. To be confirmed and fixed in DEV-7296
+RPD-7037 test failure caused by segment removal. Need to recover deleted segments.

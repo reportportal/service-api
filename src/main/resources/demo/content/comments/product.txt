@@ -1,0 +1,8 @@
+App issue Error message "No packages found according to your search criteria" on Vacation Search Page
+App issue Button was not found on UI, underlying functionality not available https://github.com/reportportal/reportportal/issues/103
+RPD-5700 values in Source filter populated from incorrect DB column Similar issue has been found in history as: *IssueType:* Product Bug *TicketIds:* *IssueDescription:* RPD-5700 values in Source filter populated from incorrect DB column
+RPD-4220 - Don't allow to disabled tags to be exposed for Approvals
+RPD-4335 - On disabling Pending Approval or Declined tags they should take 'Disabled' status
+Real-time Segments with event in rule not match (RPD-6369)
+Tag body evaluated too late if waiting on remote script (RPD-6370)
+RPD-5638 segments in buckets never expire

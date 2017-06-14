@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://www.springframework.org/schema/beans"
-	xmlns:util="http://www.springframework.org/schema/util"
-	default-lazy-init="true"
-	xmlns:p="http://www.springframework.org/schema/p"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-	http://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   default-lazy-init="true"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util
-	http://www.springframework.org/schema/util/spring-util-4.0.xsd
-		http://www.springframework.org/schema/context
-	http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+		http://www.springframework.org/schema/util/spring-util-4.0.xsd">
 
 	<bean id="dateEditor" class="org.springframework.beans.propertyeditors.CustomDateEditor">
 		<constructor-arg>
@@ -489,7 +485,7 @@
 					</util:map>
 				</property>
 				<property name="statisticsCalculationStrategy"
-					value="#{T(com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy).TEST_BASED}">
+					value="#{T(com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy).STEP_BASED}">
 				</property>
 				<property name="externalSystem">
 					<util:list>
@@ -503,13 +499,14 @@
 				<property name="keepLogs" value="2 weeks" />
 				<property name="keepScreenshots" value="1 week" />
 				<property name="isAutoAnalyzerEnabled" value="true" />
+				<property name="projectSpecific" value="DEFAULT" />
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="false"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="ALWAYS"/>
 									<property name="recipients">
 										<util:list>
@@ -625,12 +622,12 @@
 				<property name="keepScreenshots" value="1 week" />
 				<property name="isAutoAnalyzerEnabled" value="true" />
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="false"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="ALWAYS"/>
 									<property name="recipients">
 										<util:list>
@@ -681,12 +678,12 @@
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
 				<property name="isAutoAnalyzerEnabled" value="false"/>
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="true"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="ALWAYS"/>
 									<property name="recipients">
 										<util:list>
@@ -710,12 +707,12 @@
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
 				<property name="isAutoAnalyzerEnabled" value="false"/>
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="true"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="FAILED"/>
 									<property name="recipients">
 										<util:list>
@@ -739,12 +736,12 @@
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
 				<property name="isAutoAnalyzerEnabled" value="false"/>
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="true"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="MORE_10"/>
 									<property name="recipients">
 										<util:list>
@@ -768,12 +765,12 @@
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
 				<property name="isAutoAnalyzerEnabled" value="false"/>
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="true"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="MORE_20"/>
 									<property name="recipients">
 										<util:list>
@@ -797,12 +794,12 @@
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
 				<property name="isAutoAnalyzerEnabled" value="false"/>
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="true"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="MORE_50"/>
 									<property name="recipients">
 										<util:list>
@@ -826,12 +823,12 @@
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
 				<property name="isAutoAnalyzerEnabled" value="false"/>
 				<property name="emailConfig">
-					<bean class="com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig">
+					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
 						<property name="emailEnabled" value="true"/>
 						<property name="from" value="ReportPortal@example.com"/>
 						<property name="emailCases">
 							<util:list>
-								<bean class="com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase">
+								<bean class="com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase">
 									<property name="sendCase" value="ALWAYS"/>
 									<property name="recipients">
 										<util:list>
@@ -2856,7 +2853,6 @@
 				<property name="port" value="10025"/>
 				<property name="protocol" value="smtp"/>
 				<property name="authEnabled" value="false"/>
-				<property name="debug" value="false"/>
 			</bean>
 		</property>
 
@@ -2896,4 +2892,223 @@
 		<ref bean="triggerLaunch"/>
 		<ref bean="triggerTestItem"/>
 	</util:list>
+
+
+	<util:list id="mergeLaunches">
+		<ref bean="project1"/>
+		<ref bean="user1"/>
+		<ref bean="customer"/>
+		<ref bean="mergeLaunch1"/>
+        <ref bean="mergeSuite1"/>
+        <ref bean="mergeTest1"/>
+        <ref bean="mergeStep1"/>
+        <ref bean="mergeLaunch2"/>
+        <ref bean="mergeSuite2"/>
+        <ref bean="mergeTest2"/>
+        <ref bean="mergeStep2"/>
+		<ref bean="sameSuite"/>
+		<ref bean="sameTest"/>
+		<ref bean="sameStep"/>
+        <ref bean="launch1"/>
+		<ref bean="triggerLaunch"/>
+	</util:list>
+
+	<bean id="notOwner" class="com.epam.ta.reportportal.database.entity.user.User">
+		<property name="login" value="notOwner" />
+		<property name="defaultProject" value="test_123" />
+		<property name="email" value="notowneremail@epam.com" />
+		<property name="password" value="3fde6bb0541387e4ebdadf7c2ff31123" />
+		<property name="role"
+				  value="#{T(com.epam.ta.reportportal.database.entity.user.UserRole).USER}" />
+		<property name="type"
+				  value="#{T(com.epam.ta.reportportal.database.entity.user.UserType).INTERNAL}" />
+	</bean>
+
+	<bean id="mergeLaunch1" class="com.epam.ta.reportportal.database.entity.Launch">
+		<property name="id" value="51824cc1553de743b3e5bb2c" />
+		<property name="name" value="Merged" />
+		<property name="description" value="Demo launch description_GJYJr" />
+		<property name="startTime" value="05/02/2013 14:23 +0300" />
+		<property name="endTime" value="05/02/2013 14:53 +0300" />
+		<property name="status" value="FAILED" />
+		<property name="projectRef" value="project1" />
+		<property name="userRef" value="user1" />
+		<property name="number" value="1" />
+		<property name="mode" value="DEFAULT"/>
+	</bean>
+
+
+    <bean id="mergeSuite1" class="com.epam.ta.reportportal.database.entity.item.TestItem">
+		<property name="id" value="44524cc1553de743b3e5bb30" />
+		<property name="name" value="suiteItem1" />
+		<property name="itemDescription" value="suite for history validation" />
+		<property name="tags">
+			<util:list>
+				<value>ios</value>
+			</util:list>
+		</property>
+        <property name="status" value="FAILED"/>
+		<property name="launchRef" value="51824cc1553de743b3e5bb2c" />
+        <property name="hasChilds" value="true"/>
+		<property name="startTime" value="05/02/2013 14:13 +0300"/>
+		<property name="endTime" value="05/02/2013 14:23 +0300"/>
+		<property name="type"
+				  value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).SUITE}"
+		/>
+	</bean>
+    <bean id="mergeTest1" class="com.epam.ta.reportportal.database.entity.item.TestItem">
+		<property name="id" value="44524cc15123de743b3e5bb30" />
+		<property name="name" value="testItem1" />
+		<property name="itemDescription" value="test for history validation 1" />
+        <property name="status" value="FAILED"/>
+		<property name="launchRef" value="51824cc1553de743b3e5bb2c" />
+		<property name="type"
+				  value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).TEST}"
+		/>
+        <property name="parent" value="44524cc1553de743b3e5bb30" />
+        <property name="hasChilds" value="true"/>
+        <property name="path">
+            <util:list>
+                <value>44524cc1553de743b3e5bb30</value>
+            </util:list>
+        </property>
+	</bean>
+    <bean id="mergeStep1" class="com.epam.ta.reportportal.database.entity.item.TestItem">
+		<property name="id" value="44524cc11123de743b3e5bb30" />
+		<property name="name" value="stepItem1" />
+		<property name="status" value="FAILED"/>
+		<property name="itemDescription" value="step for history validation 1" />
+		<property name="launchRef" value="51824cc1553de743b3e5bb2c" />
+		<property name="type"
+				  value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).STEP}"
+		/>
+        <property name="parent" value="44524cc15123de743b3e5bb30" />
+        <property name="hasChilds" value="false"/>
+        <property name="path">
+            <util:list>
+                <value>44524cc1553de743b3e5bb30</value>
+                <value>44524cc15123de743b3e5bb30</value>
+            </util:list>
+        </property>
+        <property name="issue">
+            <bean class="com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue"/>
+        </property>
+	</bean>
+
+    <bean id="mergeLaunch2" class="com.epam.ta.reportportal.database.entity.Launch">
+        <property name="id" value="51824cc1553de743b3e5cc2c" />
+        <property name="name" value="Demo launch_launch2" />
+        <property name="description" value="Demo launch description_GJYJr" />
+        <property name="startTime" value="05/02/2013 14:33 +0300" />
+        <property name="endTime" value="05/02/2013 14:43 +0300" />
+        <property name="status" value="PASSED" />
+        <property name="projectRef" value="project1" />
+        <property name="userRef" value="user1" />
+        <property name="number" value="1" />
+        <property name="mode" value="DEFAULT"/>
+    </bean>
+
+
+	<bean id="mergeSuite2" class="com.epam.ta.reportportal.database.entity.item.TestItem">
+        <property name="id" value="44524cc1553de743b3a5bb30" />
+        <property name="name" value="suiteItem2" />
+        <property name="itemDescription" value="suite for history validation" />
+        <property name="launchRef" value="51824cc1553de743b3e5cc2c" />
+		<property name="startTime" value="05/02/2013 14:33 +0300" />
+		<property name="endTime" value="05/02/2013 14:43 +0300" />
+        <property name="status" value="PASSED"/>
+        <property name="hasChilds" value="true"/>
+        <property name="type"
+                  value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).SUITE}"
+        />
+    </bean>
+	<bean id="mergeTest2" class="com.epam.ta.reportportal.database.entity.item.TestItem">
+        <property name="id" value="44524cc15123cc743b3e5bb30" />
+        <property name="name" value="testItem2" />
+        <property name="itemDescription" value="test for history validation 1" />
+        <property name="launchRef" value="51824cc1553de743b3e5cc2c" />
+        <property name="status" value="PASSED"/>
+        <property name="type"
+                  value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).TEST}"
+        />
+        <property name="parent" value="44524cc1553de743b3a5bb30" />
+        <property name="hasChilds" value="true"/>
+        <property name="path">
+            <util:list>
+                <value>44524cc1553de743b3a5bb30</value>
+            </util:list>
+        </property>
+    </bean>
+	<bean id="mergeStep2" class="com.epam.ta.reportportal.database.entity.item.TestItem">
+        <property name="id" value="44524cc11123we743b3e5bb30" />
+        <property name="name" value="stepItem2" />
+        <property name="status" value="PASSED"/>
+        <property name="itemDescription" value="step for history validation 2" />
+        <property name="launchRef" value="51824cc1553de743b3e5cc2c" />
+        <property name="type"
+                  value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).STEP}" />
+        <property name="parent" value="44524cc15123cc743b3e5bb30" />
+        <property name="hasChilds" value="false"/>
+        <property name="path">
+            <util:list>
+                <value>44524cc1553de743b3a5bb30</value>
+                <value>44524cc15123cc743b3e5bb30</value>
+            </util:list>
+        </property>
+    </bean>
+
+	<bean id="sameSuite" class="com.epam.ta.reportportal.database.entity.item.TestItem">
+		<property name="id" value="14524cc1553de743abc5bb30" />
+		<property name="name" value="suiteItem1" />
+		<property name="itemDescription" value="suite for history validation2" />
+		<property name="tags">
+			<util:list>
+				<value>andr</value>
+			</util:list>
+		</property>
+		<property name="status" value="PASSED"/>
+		<property name="launchRef" value="51824cc1553de743b3e5cc2c" />
+		<property name="hasChilds" value="true"/>
+		<property name="startTime" value="05/02/2013 14:33 +0300"/>
+		<property name="endTime" value="05/02/2013 14:43 +0300"/>
+		<property name="type"
+				  value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).SUITE}"
+		/>
+	</bean>
+
+	<bean id="sameTest" class="com.epam.ta.reportportal.database.entity.item.TestItem">
+		<property name="id" value="24524cc15123ec743b3e5bb30" />
+		<property name="name" value="sameTest" />
+		<property name="itemDescription" value="test for history validation 1" />
+		<property name="launchRef" value="51824cc1553de743b3e5cc2c" />
+		<property name="status" value="PASSED"/>
+		<property name="type"
+				  value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).TEST}"
+		/>
+		<property name="parent" value="14524cc1553de743abc5bb30" />
+		<property name="hasChilds" value="true"/>
+		<property name="path">
+			<util:list>
+				<value>14524cc1553de743abc5bb30</value>
+			</util:list>
+		</property>
+	</bean>
+	<bean id="sameStep" class="com.epam.ta.reportportal.database.entity.item.TestItem">
+		<property name="id" value="34524cc11123we743b3e5bb30" />
+		<property name="name" value="sameStep" />
+		<property name="status" value="PASSED"/>
+		<property name="itemDescription" value="step for history validation 2" />
+		<property name="launchRef" value="51824cc1553de743b3e5cc2c" />
+		<property name="type"
+				  value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).STEP}" />
+		<property name="parent" value="24524cc15123ec743b3e5bb30" />
+		<property name="hasChilds" value="false"/>
+		<property name="path">
+			<util:list>
+				<value>14524cc1553de743abc5bb30</value>
+				<value>24524cc15123ec743b3e5bb30</value>
+			</util:list>
+		</property>
+	</bean>
+
 </beans>

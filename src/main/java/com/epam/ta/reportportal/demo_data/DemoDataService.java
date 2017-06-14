@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  *
  *
  * This file is part of EPAM Report Portal.
@@ -20,48 +20,61 @@
  */
 package com.epam.ta.reportportal.demo_data;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.epam.ta.reportportal.database.entity.Dashboard;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import static com.epam.ta.reportportal.commons.Predicates.in;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 @Service
 class DemoDataService {
 
-	private final DemoLaunchesService demoLaunchesService;
 	private final DemoDashboardsService demoDashboardsService;
+	private final DemoDataFacadeFactory demoDataFacadeFactory;
 	private final ProjectRepository projectRepository;
 
 	@Autowired
-	DemoDataService(DemoLaunchesService demoLaunchesService, DemoDashboardsService demoDashboardsService, ProjectRepository projectRepository) {
-		this.demoLaunchesService = demoLaunchesService;
+	DemoDataService(DemoDashboardsService demoDashboardsService, ProjectRepository projectRepository,
+			DemoDataFacadeFactory demoDataFacadeFactory) {
 		this.demoDashboardsService = demoDashboardsService;
 		this.projectRepository = projectRepository;
+		this.demoDataFacadeFactory = demoDataFacadeFactory;
 	}
 
 	DemoDataRs generate(DemoDataRq rq, String projectName, String user) {
 		DemoDataRs demoDataRs = new DemoDataRs();
 		Project project = projectRepository.findOne(projectName);
-		StatisticsCalculationStrategy statsStrategy =
-				Optional.ofNullable(project.getConfiguration().getStatisticsCalculationStrategy())
-						.orElse(StatisticsCalculationStrategy.STEP_BASED);
 		BusinessRule.expect(project, Predicates.notNull()).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
-		final List<String> launches = demoLaunchesService.generateDemoLaunches(rq, user, projectName, statsStrategy);
+
+		List<String> postfixes = Optional.ofNullable(project.getMetadata()).map(Project.Metadata::getDemoDataPostfix)
+				.orElse(new ArrayList<>());
+		if (!isNullOrEmpty(rq.getPostfix())) {
+			BusinessRule.expect(rq.getPostfix(), not(in(postfixes))).verify(ErrorType.DEMO_DATA_GENERATION_ERROR, String.format("Postfix %s already used", rq.getPostfix()));
+		}
+
+		StatisticsCalculationStrategy statsStrategy = project.getConfiguration().getStatisticsCalculationStrategy();
+		DemoDataFacade demoData = demoDataFacadeFactory.getDemoDataFacade(statsStrategy);
+		final List<String> launches = demoData.generateDemoLaunches(rq, user, projectName);
 		demoDataRs.setLaunches(launches);
 		if (rq.isCreateDashboard()) {
 			Dashboard demoDashboard = demoDashboardsService.generate(rq, user, projectName);
 			demoDataRs.setDashboards(Collections.singletonList(demoDashboard.getId()));
 		}
+
+		projectRepository.addDemoDataPostfix(project.getName(), rq.getPostfix());
 		return demoDataRs;
 	}
 }

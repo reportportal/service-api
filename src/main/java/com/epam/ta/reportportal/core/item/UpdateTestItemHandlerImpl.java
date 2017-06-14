@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
@@ -272,23 +271,19 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		expect(testItem, notNull(), Suppliers.formattedSupplier("Cannot update issue type for test item '{}', cause it is not found.", id))
 				.verify();
 
-		Status actualStatus = testItem.getStatus();
-		expect(actualStatus, not(equalTo(PASSED)), Suppliers
+		expect(testItem.getStatus(), not(equalTo(PASSED)), Suppliers
 				.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.", PASSED.name()))
 				.verify();
 
-		boolean hasDescendants = testItemRepository.hasDescendants(testItem.getId());
-		expect(hasDescendants, not(equalTo(TRUE)), Suppliers
+		expect(testItem.hasChilds(), not(equalTo(TRUE)), Suppliers
 				.formattedSupplier("It is not allowed to udpate issue type for items with descendants. Test item '{}' has descendants.",
 						id)).verify();
 
-		TestItemIssue actualItemIssue = testItem.getIssue();
-		expect(actualItemIssue, notNull(), Suppliers
+		expect(testItem.getIssue(), notNull(), Suppliers
 				.formattedSupplier("Cannot update issue type for test item '{}', cause there is no info about actual issue type value.",
 						id)).verify();
 
-		String actualIssueType = actualItemIssue.getIssueType();
-		expect(actualIssueType, notNull(), Suppliers
+		expect(testItem.getIssue().getIssueType(), notNull(), Suppliers
 				.formattedSupplier("Cannot update issue type for test item {}, cause it's actual issue type value is not provided.", id))
 				.verify();
 	}

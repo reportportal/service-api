@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.statistics;
 
+import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import org.springframework.stereotype.Service;
@@ -28,9 +29,9 @@ import org.springframework.stereotype.Service;
 /**
  * BDD Optimized statistics calculation strategy
  * Do not calculates stats for step-level
- * @see TestItemType#level
  *
  * @author Andrei Varabyeu
+ * @see TestItemType#level
  */
 @Service
 public class TestBasedStatisticsFacade extends StatisticsFacadeImpl implements StatisticsFacade {
@@ -63,5 +64,21 @@ public class TestBasedStatisticsFacade extends StatisticsFacadeImpl implements S
         } else {
             return testItem;
         }
+    }
+
+    @Override
+    public TestItem identifyStatus(TestItem testItem) {
+        if (testItem.getType().sameLevel(TestItemType.TEST)) {
+            if (testItemRepository.hasChildrenWithStatuses(testItem.getId(), Status.FAILED, Status.SKIPPED)) {
+                testItem.setStatus(Status.FAILED);
+                return testItem;
+            }
+        }
+        return super.identifyStatus(testItem);
+    }
+
+    @Override
+    public boolean awareIssue(TestItem testItem) {
+        return testItem.getType().sameLevel(TestItemType.TEST);
     }
 }

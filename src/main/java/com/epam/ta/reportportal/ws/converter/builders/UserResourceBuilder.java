@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.project.EntryType;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserType;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
@@ -30,12 +31,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
+import static java.util.Optional.ofNullable;
 
 /**
  * Response {@link UserResource} builder for controllers
@@ -64,30 +64,43 @@ public class UserResourceBuilder extends Builder<UserResource> {
 			resource.setEmail(user.getEmail());
 			resource.setPhotoId(user.getPhotoId());
 			resource.setFullName(user.getFullName());
-			resource.setAccountType(user.getType().toString());
-			resource.setUserRole(user.getRole().toString());
-			resource.setLastlogin(user.getMetaInfo().getLastLogin());
+
+			ofNullable(user.getType()).ifPresent(type -> resource.setAccountType(type.toString()));
+			ofNullable(user.getRole()).ifPresent(role -> resource.setUserRole(role.toString()));
+			ofNullable(user.getMetaInfo()).ifPresent(meta -> resource.setLastlogin(meta.getLastLogin()));
+
 			resource.setIsLoaded(UserType.UPSA != user.getType());
 
-			if (projects.size() > 1)
-				Collections.sort(projects, PROJECT_NAME_ALPHABET);
-			LinkedHashMap<String, UserResource.AssignedProject> userProjects = new LinkedHashMap<>(projects.size());
-			for (Project project : projects) {
-				UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-				Project.UserConfig userConfig = project.getUsers().get(user.getId());
-				assignedProject.setProjectRole(userConfig.getProjectRole().name());
-				assignedProject.setProposedRole(userConfig.getProposedRole().name());
-				assignedProject.setEntryType(project.getConfiguration().getEntryType().name());
-				userProjects.put(project.getId(), assignedProject);
+			if (null != projects) {
+				if (projects.size() > 1){
+					projects.sort(PROJECT_NAME_ALPHABET);
+				}
+
+				LinkedHashMap<String, UserResource.AssignedProject> userProjects = new LinkedHashMap<>(projects.size());
+
+				String personalProject = null;
+				for (Project project : projects) {
+					UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
+					Project.UserConfig userConfig = project.getUsers().get(user.getId());
+					assignedProject.setProjectRole(userConfig.getProjectRole().name());
+					assignedProject.setProposedRole(userConfig.getProposedRole().name());
+					assignedProject.setEntryType(project.getConfiguration().getEntryType().name());
+					userProjects.put(project.getId(), assignedProject);
+
+					if (EntryType.PERSONAL.equals(project.getConfiguration().getEntryType())) {
+						personalProject = project.getId();
+					}
+				}
+
+				resource.setAssignedProjects(userProjects);
+				if (userProjects.containsKey(user.getDefaultProject())) {
+					resource.setDefaultProject(user.getDefaultProject());
+				} else {
+					resource.setDefaultProject(personalProject);
+				}
 			}
 
-			resource.setAssignedProjects(userProjects);
 
-			if (userProjects.containsKey(user.getDefaultProject())) {
-				resource.setDefaultProject(user.getDefaultProject());
-			} else {
-				resource.setDefaultProject(personalProjectName(user.getId()));
-			}
 		}
 		return this;
 	}

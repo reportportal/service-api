@@ -1,0 +1,6 @@
+### **Demonstration launch.**
+A typical *Launch structure* comprises the following elements: Suite > Test > Step > Log.
+Launch contains *randomly* generated `suites`, `tests`, `steps` with:
+* random issues and statuses,
+* logs,
+* attachments with different formats.

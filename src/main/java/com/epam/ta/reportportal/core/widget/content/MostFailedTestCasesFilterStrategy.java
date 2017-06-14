@@ -21,15 +21,6 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import static java.util.stream.Collectors.toMap;
-
-import java.text.DecimalFormat;
-import java.util.*;
-import java.util.Map.Entry;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.item.history.ITestItemsHistoryService;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -40,6 +31,14 @@ import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.Lists;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.text.DecimalFormat;
+import java.util.*;
+import java.util.Map.Entry;
+
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Most failed test-cases widget content loader<br>
@@ -79,7 +78,7 @@ public class MostFailedTestCasesFilterStrategy implements BuildFilterStrategy {
 		 * Load content without building filter cause we don't need detailed
 		 * information per item here
 		 */
-		Map<String, List<ChartObject>> result = new HashMap<>();
+		Map<String, List<ChartObject>> result = Collections.emptyMap();
 		/*
 		 * Return empty response for absent filtering launch name parameter
 		 */

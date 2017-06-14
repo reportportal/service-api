@@ -205,29 +205,29 @@ public class GetJasperReportHandler implements IGetJasperReportHandler {
 		return res;
 	}
 
-	private Map<String, Object> processLaunchParams(Launch launch) {
-		Map<String, Object> params = new HashMap<>();
+    private Map<String, Object> processLaunchParams(Launch launch) {
+        Map<String, Object> params = new HashMap<>();
 
-		params.put(LAUNCH_NAME, launch.getName() + " #" + launch.getNumber());
-		params.put(LAUNCH_DESC, launch.getDescription() == null ? "" : launch.getDescription());
-		params.put(LAUNCH_TAGS, launch.getTags());
+        params.put(LAUNCH_NAME, launch.getName() + " #" + launch.getNumber());
+        params.put(LAUNCH_DESC, launch.getDescription() == null ? "" : launch.getDescription());
+        params.put(LAUNCH_TAGS, launch.getTags());
 
-		/* Possible NPE for IN_PROGRESS launches */
-		params.put(DURATION, millisToShortDHMS(launch.getEndTime().getTime() - launch.getStartTime().getTime()));
+						/* Possible NPE for IN_PROGRESS launches */
+        params.put(DURATION, millisToShortDHMS(launch.getEndTime().getTime() - launch.getStartTime().getTime()));
 
-		ExecutionCounter exec = launch.getStatistics().getExecutionCounter();
-		params.put(TOTAL, exec.getTotal());
-		params.put(PASSED, exec.getPassed());
-		params.put(FAILED, exec.getFailed());
-		params.put(SKIPPED, exec.getSkipped());
+        ExecutionCounter exec = launch.getStatistics().getExecutionCounter();
+        params.put(TOTAL, exec.getTotal());
+        params.put(PASSED, exec.getPassed());
+        params.put(FAILED, exec.getFailed());
+        params.put(SKIPPED, exec.getSkipped());
 
-		IssueCounter issue = launch.getStatistics().getIssueCounter();
-		params.put(AB, issue.getAutomationBugTotal());
-		params.put(PB, issue.getProductBugTotal());
-		params.put(SI, issue.getSystemIssueTotal());
-		params.put(ND, issue.getNoDefectTotal());
-		params.put(TI, issue.getToInvestigateTotal());
+        IssueCounter issue = launch.getStatistics().getIssueCounter();
+        params.put(AB, issue.getAutomationBugTotal());
+        params.put(PB, issue.getProductBugTotal());
+        params.put(SI, issue.getSystemIssueTotal());
+        params.put(ND, issue.getNoDefectTotal());
+        params.put(TI, issue.getToInvestigateTotal());
 
-		return params;
-	}
+        return params;
+    }
 }

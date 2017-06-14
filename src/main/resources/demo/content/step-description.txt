@@ -1,0 +1,3 @@
+This is the last **test case** of demo launch. There are only `logs` with `attachments` inside it.
+Clear all created and not deleted during test *userFilter*, *widget* and *dashboard* objects.
+Greater or equals filter test for test items product bugs criteria. Negative value

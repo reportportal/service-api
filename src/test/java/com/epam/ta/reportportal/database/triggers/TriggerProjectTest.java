@@ -21,9 +21,9 @@
 
 package com.epam.ta.reportportal.database.triggers;
 
-import static com.epam.ta.reportportal.database.personal.PersonalProjectUtils.personalProjectName;
 import static java.util.Collections.singletonList;
 
+import com.epam.ta.reportportal.database.personal.PersonalProjectService;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,14 +41,15 @@ import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
 @SpringFixture("unitTestsProjectTriggers")
 public class TriggerProjectTest extends BaseTest {
 
-	@Autowired
-	private LaunchRepository launchRepository;
+
 	@Autowired
 	private ProjectRepository projectRepository;
+
 	@Autowired
 	private UserRepository userRepository;
+
 	@Autowired
-	private TestItemRepository testItemRepository;
+	private PersonalProjectService personalProjectService;
 
 	@Rule
 	@Autowired
@@ -57,9 +58,12 @@ public class TriggerProjectTest extends BaseTest {
 	@Test
 	public void testDeleteDefaultProject() {
 		User user = userRepository.findOne("user1");
+
+		projectRepository.save(personalProjectService.generatePersonalProject(user));
+
 		Assert.assertEquals("test_123", user.getDefaultProject());
 		projectRepository.delete(singletonList("test_123"));
 		user = userRepository.findOne("user1");
-		Assert.assertEquals(personalProjectName(user.getId()), user.getDefaultProject());
+		Assert.assertEquals(user.getId() + PersonalProjectService.PERSONAL_PROJECT_POSTFIX, user.getDefaultProject());
 	}
 }

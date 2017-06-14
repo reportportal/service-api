@@ -21,6 +21,36 @@
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
+import com.epam.ta.reportportal.database.dao.ActivityRepository;
+import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.Status;
+import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.epam.ta.reportportal.ws.model.BulkRQ;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
+import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.core.Authentication;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
 import static com.epam.ta.reportportal.auth.AuthConstants.ADMINISTRATOR;
 import static com.epam.ta.reportportal.auth.AuthConstants.USER_PROJECT;
 import static com.epam.ta.reportportal.events.handler.LaunchActivityHandler.START;
@@ -32,32 +62,6 @@ import static org.junit.Assert.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
-
-import com.epam.ta.reportportal.database.dao.ActivityRepository;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Status;
-import com.epam.ta.reportportal.database.entity.item.Activity;
-import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.BulkRQ;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 
 /**
  * Base MVC test for Launch Controller
@@ -72,6 +76,8 @@ public class LaunchControllerTest extends BaseMvcTest {
 	private ActivityRepository activityRepository;
 	@Autowired
 	private LaunchRepository launchRepository;
+	@Autowired
+	private LaunchController launchController;
 
 	@Test
 	public void happyCreateLaunch() throws Exception {
@@ -93,6 +99,21 @@ public class LaunchControllerTest extends BaseMvcTest {
 		Activity activity = activities.get(0);
 		assertEquals(START, activity.getActionType());
 		assertEquals(Launch.LAUNCH, activity.getObjectType());
+	}
+
+	@Test
+	public void importLaunch() throws Exception{
+		Path file = Paths.get("src/test/resources/test-results.zip");
+		MockMultipartFile multipartFile = new MockMultipartFile("test-results.zip", "test-results.zip",
+				"application/zip", Files.readAllBytes(file));
+		OperationCompletionRS response = launchController
+				.importLaunch("project1", multipartFile, authentication());
+		String id = response.getResultMessage().substring(response.getResultMessage().indexOf("=") + 1,
+				response.getResultMessage().indexOf("is")).trim();
+		Launch launch = launchRepository.findOne(id);
+		assertNotNull(launch);
+		assertTrue(launchRepository.hasItems(launch, Status.FAILED));
+		assertEquals(launch.getName(), "test-results");
 	}
 
 	@Test
@@ -136,12 +157,15 @@ public class LaunchControllerTest extends BaseMvcTest {
 
 	@Test
 	public void mergeLaunchesPositive() throws Exception {
-		MergeLaunchesRQ rq = new MergeLaunchesRQ();
+		DeepMergeLaunchesRQ rq = new DeepMergeLaunchesRQ();
 		HashSet<String> set = new HashSet<>();
 		set.add("88624678053de743b3e5aa3e");
+		set.add("89224678053de743b3e5aa3e");
 		rq.setLaunches(set);
 		rq.setName("Merged");
+		rq.setMergeStrategyType("BASIC");
 		rq.setStartTime(new Date());
+		rq.setEndTime(new Date());
 		this.mvcMock.perform(post(PROJECT_BASE_URL + "/launch/merge").contentType(APPLICATION_JSON).principal(authentication())
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
 	}

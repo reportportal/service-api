@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.item.Activity;
-import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
+import com.epam.ta.reportportal.database.personal.PersonalProjectService;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
@@ -91,7 +91,7 @@ public class UserControllerTest extends BaseMvcTest {
 				post("/user").principal(authentication()).contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
 				.andExpect(status().isCreated());
 		Assert.assertTrue(projectRepository.findOne("project1").getUsers().containsKey("testlogin"));
-		Assert.assertTrue("Personal project isn't created", projectRepository.exists(PersonalProjectUtils.personalProjectName("testLogin")));
+		Assert.assertTrue("Personal project isn't created", projectRepository.exists("testlogin" + PersonalProjectService.PERSONAL_PROJECT_POSTFIX));
 	}
 
 	@Test

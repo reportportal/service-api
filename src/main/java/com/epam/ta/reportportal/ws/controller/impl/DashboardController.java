@@ -22,13 +22,13 @@
 package com.epam.ta.reportportal.ws.controller.impl;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 import java.security.Principal;
 import java.util.Map;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -85,7 +85,7 @@ public class DashboardController implements IDashboardController {
 	@ApiOperation("Create dashboard for specified project")
 	public EntryCreatedRS createDashboard(@PathVariable String projectName, @RequestBody @Validated CreateDashboardRQ createRQ,
 			Principal principal) {
-		return createHandler.createDashboard(EntityUtils.normalizeProjectName(projectName), createRQ, principal.getName());
+		return createHandler.createDashboard(normalizeId(projectName), createRQ, principal.getName());
 	}
 
 	@Override
@@ -94,7 +94,7 @@ public class DashboardController implements IDashboardController {
 	@ResponseBody
 	@ApiOperation("Get all dashboard resources for specified project")
 	public Iterable<DashboardResource> getAllDashboards(@PathVariable String projectName, Principal principal) {
-		return getHandler.getAllDashboards(principal.getName(), EntityUtils.normalizeProjectName(projectName));
+		return getHandler.getAllDashboards(principal.getName(), normalizeId(projectName));
 	}
 
 	@Override
@@ -103,7 +103,7 @@ public class DashboardController implements IDashboardController {
 	@ResponseBody
 	@ApiOperation("Get specified dashboard by ID for specified project")
 	public DashboardResource getDashboard(@PathVariable String projectName, @PathVariable String dashboardId, Principal principal) {
-		return getHandler.getDashboard(dashboardId, principal.getName(), EntityUtils.normalizeProjectName(projectName));
+		return getHandler.getDashboard(dashboardId, principal.getName(), normalizeId(projectName));
 	}
 
 	@Override
@@ -113,7 +113,7 @@ public class DashboardController implements IDashboardController {
 	@ApiOperation("Update specified dashboard for specified project")
 	public OperationCompletionRS updateDashboard(@PathVariable String projectName, @PathVariable String dashboardId,
 			@RequestBody @Validated UpdateDashboardRQ updateRQ, Principal principal) {
-		return updateHandler.updateDashboard(updateRQ, dashboardId, principal.getName(), EntityUtils.normalizeProjectName(projectName));
+		return updateHandler.updateDashboard(updateRQ, dashboardId, principal.getName(), normalizeId(projectName));
 	}
 
 	@Override
@@ -122,7 +122,7 @@ public class DashboardController implements IDashboardController {
 	@ResponseBody
 	@ApiOperation("Delete specified dashboard by ID for specified project")
 	public OperationCompletionRS deleteDashboard(@PathVariable String projectName, @PathVariable String dashboardId, Principal principal) {
-		return deleteHandler.deleteDashboard(dashboardId, principal.getName(), EntityUtils.normalizeProjectName(projectName));
+		return deleteHandler.deleteDashboard(dashboardId, principal.getName(), normalizeId(projectName));
 	}
 
 	@Override
@@ -131,6 +131,6 @@ public class DashboardController implements IDashboardController {
 	@ResponseBody
 	@ApiOperation("Get names of shared dashboards from specified project")
 	public Map<String, SharedEntity> getSharedDashboardsNames(@PathVariable String projectName, Principal principal) {
-		return getHandler.getSharedDashboardsNames(principal.getName(), EntityUtils.normalizeProjectName(projectName));
+		return getHandler.getSharedDashboardsNames(principal.getName(), normalizeId(projectName));
 	}
 }

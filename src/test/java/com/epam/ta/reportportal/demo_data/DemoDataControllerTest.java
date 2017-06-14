@@ -20,18 +20,6 @@
  */
 package com.epam.ta.reportportal.demo_data;
 
-import static com.epam.ta.reportportal.auth.AuthConstants.ADMINISTRATOR;
-import static org.junit.Assert.*;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.List;
-
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-
 import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.database.dao.DashboardRepository;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
@@ -42,6 +30,17 @@ import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+
+import java.util.List;
+
+import static com.epam.ta.reportportal.auth.AuthConstants.ADMINISTRATOR;
+import static org.junit.Assert.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class DemoDataControllerTest extends BaseMvcTest {
 
@@ -62,7 +61,7 @@ public class DemoDataControllerTest extends BaseMvcTest {
 		rq.setLaunchesQuantity(1);
 		mvcMock.perform(post("/demo/project1").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
 				.principal(authentication())).andExpect(status().is(200));
-		List<Launch> byName = launchRepository.findByName(DemoLaunchesService.NAME + "_" + rq.getPostfix());
+		List<Launch> byName = launchRepository.findByName(DemoDataCommonService.NAME + "_" + rq.getPostfix());
 		assertFalse(byName.isEmpty());
 		assertEquals(rq.getLaunchesQuantity(), byName.size());
 		Dashboard dashboard = dashboardRepository.findOneByUserProject(AuthConstants.TEST_USER, "project1",
@@ -71,6 +70,41 @@ public class DemoDataControllerTest extends BaseMvcTest {
 		assertEquals(9, dashboardRepository.findOne(dashboard.getId()).getWidgets().size());
 		final UserFilter filter = userFilterRepository.findOneByName(AuthConstants.TEST_USER,
 				DemoDashboardsService.F_NAME + "#" + rq.getPostfix(), "project1");
+		assertNotNull(filter);
+	}
+
+	@Test
+	public void generateDemoDataSamePostfix() throws Exception {
+		DemoDataRq rq = new DemoDataRq();
+		rq.setPostfix("postfix");
+		rq.setCreateDashboard(true);
+		rq.setLaunchesQuantity(1);
+		rq.setPostfix("qwe");
+		mvcMock.perform(post("/demo/project1").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+				.principal(authentication())).andExpect(status().is(200));
+
+		mvcMock.perform(post("/demo/project1").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+				.principal(authentication())).andExpect(status().is(406));
+
+	}
+
+	@Test
+	public void generateTestBasedDemoData() throws Exception {
+		DemoDataRq rq = new DemoDataRq();
+		rq.setPostfix("test");
+		rq.setCreateDashboard(true);
+		rq.setLaunchesQuantity(1);
+		mvcMock.perform(post("/demo/project2").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+				.principal(authentication())).andExpect(status().is(200));
+		List<Launch> byName = launchRepository.findByName(DemoDataCommonService.NAME + "_" + rq.getPostfix());
+		assertFalse(byName.isEmpty());
+		assertEquals(rq.getLaunchesQuantity(), byName.size());
+		Dashboard dashboard = dashboardRepository.findOneByUserProject(AuthConstants.TEST_USER, "project2",
+				DemoDashboardsService.D_NAME + "#" + rq.getPostfix());
+		assertNotNull(dashboard);
+		assertEquals(9, dashboardRepository.findOne(dashboard.getId()).getWidgets().size());
+		final UserFilter filter = userFilterRepository.findOneByName(AuthConstants.TEST_USER,
+				DemoDashboardsService.F_NAME + "#" + rq.getPostfix(), "project2");
 		assertNotNull(filter);
 	}
 

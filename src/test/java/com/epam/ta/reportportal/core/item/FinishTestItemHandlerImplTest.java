@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
@@ -83,6 +84,7 @@ public class FinishTestItemHandlerImplTest {
 		issue.setIssueType(locator);
 		TestItem item = new TestItem();
 		item.setStatus(FAILED);
+		item.setType(TestItemType.STEP);
 		TestItem testItem = finishTestItemHandler.awareTestItemIssueTypeFromStatus(item, issue, project, "someuser");
 		Assert.assertNotNull(testItem);
 		TestItemIssue testItemIssue = testItem.getIssue();
@@ -105,6 +107,7 @@ public class FinishTestItemHandlerImplTest {
 	public void awareTestItemIssueTypeSkippedNotIssue() {
 		TestItem testItem = new TestItem();
 		testItem.setStatus(SKIPPED);
+		testItem.setType(TestItemType.STEP);
 		Issue providedIssue = new Issue();
 		providedIssue.setIssueType("not_Issue");
 
@@ -128,6 +131,7 @@ public class FinishTestItemHandlerImplTest {
 		TestItem testItem = new TestItem();
 		testItem.setLaunchRef(launchRef);
 		testItem.setStatus(FAILED);
+		testItem.setType(TestItemType.STEP);
 		Project project = new Project();
 		Project.Configuration configuration = new Project.Configuration();
 		configuration.setIsAutoAnalyzerEnabled(true);
@@ -157,6 +161,7 @@ public class FinishTestItemHandlerImplTest {
 
 		TestItem item = new TestItem();
 		item.setStatus(FAILED);
+		item.setType(TestItemType.STEP);
 
 		Project project = new Project();
 		Project.Configuration configuration = new Project.Configuration();
@@ -189,6 +194,7 @@ public class FinishTestItemHandlerImplTest {
 
 		TestItem item = new TestItem();
 		item.setStatus(FAILED);
+		item.setType(TestItemType.STEP);
 
 		Project project = new Project();
 		Project.Configuration configuration = new Project.Configuration();

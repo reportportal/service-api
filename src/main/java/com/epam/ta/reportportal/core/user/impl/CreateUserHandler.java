@@ -32,15 +32,15 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.user.*;
-import com.epam.ta.reportportal.database.personal.PersonalProjectUtils;
+import com.epam.ta.reportportal.database.personal.PersonalProjectService;
 import com.epam.ta.reportportal.events.UserCreatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.Predicates;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.ws.converter.builders.RestorePasswordBidBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
-import com.epam.ta.reportportal.ws.converter.builders.UserCreationBidBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.RestorePasswordBidConverter;
+import com.epam.ta.reportportal.ws.converter.converters.UserCreationBidConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
@@ -83,6 +83,9 @@ public class CreateUserHandler implements ICreateUserHandler {
 	private ProjectRepository projectRepository;
 
 	@Autowired
+	private PersonalProjectService personalProjectService;
+
+	@Autowired
 	private MailServiceFactory emailServiceFactory;
 
 	@Autowired
@@ -95,12 +98,6 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 	@Autowired
 	private Provider<UserBuilder> userBuilder;
-
-	@Autowired
-	private Provider<UserCreationBidBuilder> userCreationBidBuilder;
-
-	@Autowired
-	private Provider<RestorePasswordBidBuilder> restorePasswordBidBuilder;
 
 	@Autowired
 	public void setUserRepository(UserRepository userRepository) {
@@ -119,7 +116,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 	@Override
 	public CreateUserRS createUserByAdmin(CreateUserRQFull request, String userName, String basicUrl) {
-		String newUsername = EntityUtils.normalizeUsername(request.getLogin());
+		String newUsername = EntityUtils.normalizeId(request.getLogin());
 
 		expect(userRepository.exists(newUsername), equalTo(false))
 				.verify(USER_ALREADY_EXISTS, formattedSupplier("login='{}'", newUsername));
@@ -127,11 +124,11 @@ public class CreateUserHandler implements ICreateUserHandler {
 		expect(newUsername, Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
 				formattedSupplier("Username '{}' consists only of special characters", newUsername));
 
-		String projectName = EntityUtils.normalizeProjectName(request.getDefaultProject());
+		String projectName = EntityUtils.normalizeId(request.getDefaultProject());
 		Project defaultProject = projectRepository.findOne(projectName);
 		expect(defaultProject, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
-		String email = EntityUtils.normalizeEmail(request.getEmail());
+		String email = EntityUtils.normalizeId(request.getEmail());
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 
 		CreateUserRQConfirm req = new CreateUserRQConfirm();
@@ -143,11 +140,13 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 		final Optional<UserRole> userRole = UserRole.findByName(request.getAccountRole());
 		expect(userRole.isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter.");
+		//noinspection ConstantConditions
 		User user = userBuilder.get().addCreateUserRQ(req).addUserRole(userRole.get()).build();
 		Optional<ProjectRole> projectRole = forName(request.getProjectRole());
 		expect(projectRole, Preconditions.IS_PRESENT).verify(ROLE_NOT_FOUND, request.getProjectRole());
 
 		Map<String, UserConfig> projectUsers = defaultProject.getUsers();
+		//noinspection ConstantConditions
 		projectUsers.put(user.getId(), UserConfig.newOne().withProjectRole(projectRole.get()).withProposedRole(projectRole.get()));
 		defaultProject.setUsers(projectUsers);
 
@@ -160,13 +159,13 @@ public class CreateUserHandler implements ICreateUserHandler {
 			/*
 			 * Generate personal project for the user
 			 */
-			Project personalProject = PersonalProjectUtils.generatePersonalProject(user);
+			Project personalProject = personalProjectService.generatePersonalProject(user);
 			if (!defaultProject.getId().equals(personalProject.getId())) {
 				projectRepository.save(personalProject);
 			}
 
 			safe(() -> emailServiceFactory.getDefaultEmailService(true)
-					.sendConfirmationEmail(request, basicUrl), e -> response.setWarning(e.getMessage()));
+					.sendCreateUserConfirmationEmail(request, basicUrl), e -> response.setWarning(e.getMessage()));
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {
@@ -187,13 +186,13 @@ public class CreateUserHandler implements ICreateUserHandler {
 		User creator = userRepository.findOne(principal.getName());
 		expect(creator, notNull()).verify(ACCESS_DENIED);
 
-		String email = EntityUtils.normalizeEmail(request.getEmail());
+		String email = EntityUtils.normalizeId(request.getEmail());
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 
 		User email_user = userRepository.findByEmail(request.getEmail());
 		expect(email_user, isNull()).verify(USER_ALREADY_EXISTS, formattedSupplier("email={}", request.getEmail()));
 
-		Project defaultProject = projectRepository.findOne(EntityUtils.normalizeProjectName(request.getDefaultProject()));
+		Project defaultProject = projectRepository.findOne(EntityUtils.normalizeId(request.getDefaultProject()));
 
 		expect(defaultProject, notNull()).verify(PROJECT_NOT_FOUND, request.getDefaultProject());
 		UserConfig userConfig = defaultProject.getUsers().get(principal.getName());
@@ -206,11 +205,12 @@ public class CreateUserHandler implements ICreateUserHandler {
 		// FIXME move to controller level
 		if (creator.getRole() != UserRole.ADMINISTRATOR) {
 			int creatorProjectRoleLevel = userConfig.getProjectRole().getRoleLevel();
+			//noinspection ConstantConditions
 			int newUserProjectRoleLevel = role.get().getRoleLevel();
 			expect(creatorProjectRoleLevel >= newUserProjectRoleLevel, equalTo(Boolean.TRUE)).verify(ACCESS_DENIED);
 		}
 
-		UserCreationBid bid = userCreationBidBuilder.get().addUserCreationBid(request).build();
+		UserCreationBid bid = UserCreationBidConverter.TO_USER.apply(request);
 		try {
 			userCreationBidRepository.save(bid);
 		} catch (Exception e) {
@@ -221,7 +221,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		try {
 			emailLink.append("/ui/#registration?uuid=");
 			emailLink.append(bid.getId());
-			emailService.sendConfirmationEmail("User registration confirmation", new String[] { bid.getEmail() }, emailLink.toString());
+			emailService.sendCreateUserConfirmationEmail("User registration confirmation", new String[] { bid.getEmail() }, emailLink.toString());
 		} catch (Exception e) {
 			fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
 					formattedSupplier("Unable to send email for bid '{}'." + e.getMessage(), bid.getId()));
@@ -266,9 +266,11 @@ public class CreateUserHandler implements ICreateUserHandler {
 		expect(projectRole, Preconditions.IS_PRESENT).verify(ROLE_NOT_FOUND, bid.getRole());
 
 		Map<String, UserConfig> projectUsers = defaultProject.getUsers();
+		//noinspection ConstantConditions
 		if (projectRole.get().equals(CUSTOMER)) {
 			projectUsers.put(user.getId(), UserConfig.newOne().withProjectRole(CUSTOMER).withProposedRole(CUSTOMER));
 		} else {
+			//noinspection ConstantConditions
 			projectUsers.put(user.getId(), UserConfig.newOne().withProjectRole(projectRole.get()).withProposedRole(projectRole.get()));
 		}
 		defaultProject.setUsers(projectUsers);
@@ -280,7 +282,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 			/*
 			 * Generate personal project for the user
 			 */
-			Project personalProject = PersonalProjectUtils.generatePersonalProject(user);
+			Project personalProject = personalProjectService.generatePersonalProject(user);
 			if (!defaultProject.getId().equals(personalProject.getId())) {
 				projectRepository.save(personalProject);
 			}
@@ -301,12 +303,12 @@ public class CreateUserHandler implements ICreateUserHandler {
 	@Override
 	public OperationCompletionRS createRestorePasswordBid(RestorePasswordRQ rq, String baseUrl) {
 		EmailService emailService = emailServiceFactory.getDefaultEmailService(true);
-		String email = EntityUtils.normalizeEmail(rq.getEmail());
+		String email = EntityUtils.normalizeId(rq.getEmail());
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 		User user = userRepository.findByEmail(email);
 		expect(user, notNull()).verify(USER_NOT_FOUND, email);
 		expect(user.getType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR, "Unable to change password for external user");
-		RestorePasswordBid bid = restorePasswordBidBuilder.get().addRestorePasswordBid(rq).build();
+		RestorePasswordBid bid = RestorePasswordBidConverter.TO_BID.apply(rq);
 		restorePasswordBidRepository.save(bid);
 		try {
 			// TODO use default 'from' param or project specified?

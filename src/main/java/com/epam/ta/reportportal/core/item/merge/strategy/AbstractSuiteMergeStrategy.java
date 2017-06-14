@@ -23,15 +23,17 @@ package com.epam.ta.reportportal.core.item.merge.strategy;
 
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.google.common.collect.Sets;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
-    protected TestItemRepository testItemRepository;
+    protected final TestItemRepository testItemRepository;
 
     public AbstractSuiteMergeStrategy(TestItemRepository testItemRepository) {
         this.testItemRepository = testItemRepository;
@@ -54,6 +56,7 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
             setLaunchRefForChilds(childItem, itemTarget.getLaunchRef());
             testItemRepository.save(childItem);
         }
+        updateTargetItemInfo(itemTarget, itemSource);
         testItemRepository.delete(itemSource);
         return itemTarget;
     }
@@ -79,7 +82,7 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
         }
     }
 
-    private void mergeAllChildItems(TestItem testItemParent) {
+    protected void mergeAllChildItems(TestItem testItemParent) {
         List<TestItem> childItems = testItemRepository.findAllDescendants(testItemParent.getId());
         List<TestItem> suites = childItems.stream().filter(this::isTestItemAcceptableToMerge).collect(toList());
 
@@ -89,5 +92,38 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
             moveAllChildTestItems(entry.getValue().get(0),
                     entry.getValue().subList(1, entry.getValue().size()));
         });
+    }
+
+    /**
+     * Collects tags and descriptions from source and add them to target. Same tags
+     * are added only once. Updates start and end times of target.
+     * @param target item to be merged
+     * @param source item to merge
+     */
+    private void updateTargetItemInfo(TestItem target, TestItem source) {
+
+        target.setStartTime(target.getStartTime().compareTo(source.getStartTime()) < 0 ?
+                target.getStartTime() : source.getStartTime());
+        target.setEndTime(target.getEndTime().compareTo(source.getEndTime()) > 0 ?
+                target.getEndTime() : source.getEndTime());
+
+        Set<String> tags = Stream.concat(
+                Optional.ofNullable(target.getTags()).orElse(Sets.newHashSet()).stream(),
+                Optional.ofNullable(source.getTags()).orElse(Sets.newHashSet()).stream())
+                .collect(toSet());
+        if (!tags.isEmpty()){
+            target.setTags(tags);
+        }
+
+        String result = new StringJoiner("\r\n")
+                .add(Optional.ofNullable(target.getItemDescription()).orElse(""))
+                .add(Optional.ofNullable(source.getItemDescription()).orElse(""))
+                .toString();
+
+        if (!result.isEmpty()) {
+            target.setItemDescription(result);
+        }
+
+        testItemRepository.save(target);
     }
 }

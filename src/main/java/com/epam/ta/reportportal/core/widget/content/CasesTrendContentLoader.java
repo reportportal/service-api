@@ -21,22 +21,21 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_LOAD_WIDGET_CONTENT;
-
-import java.util.*;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.StatisticsDocumentHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_LOAD_WIDGET_CONTENT;
 
 /**
  * ContentLoader implementation for <b>Cases Trend Gadget</b>.<br>
@@ -68,26 +67,25 @@ public class CasesTrendContentLoader extends StatisticBasedContentLoader impleme
 		 * for those filters so its unnecessary to proceed it.
 		 */
 		if (filter.getTarget().getCanonicalName().equalsIgnoreCase(TestItem.class.getName())) {
-			return new HashMap<>();
+			return Collections.emptyMap();
 		}
 
-		List<String> allFields = Lists.newArrayList(contentFields);
-		allFields.addAll(metaDataFields);
+		List<String> allFields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
 		StatisticsDocumentHandler handler = new StatisticsDocumentHandler(contentFields, metaDataFields);
 
 		// Expecting 'start_time'
 		String field = sorting.iterator().next().getProperty();
 		// If sorting column not a start_time (it is required sorting for trend
 		// charts) then setup it before call loadWithCallback()
-		if (!field.equalsIgnoreCase(SORT_FIELD))
+		if (!field.equalsIgnoreCase(SORT_FIELD)) {
 			sorting = new Sort(Sort.Direction.DESC, SORT_FIELD);
-
+		}
 		launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, COLLECTION);
 		List<ChartObject> rawData = handler.getResult();
 
 		Map<String, List<ChartObject>> result = new LinkedHashMap<>();
-		if ((options.get("timeline") != null) && (Period.findByName(options.get("timeline").get(0)) != null)) {
-			Map<String, List<ChartObject>> timeline = maxByDate(rawData, Period.findByName(options.get("timeline").get(0)),
+		if ((options.get(TIMELINE) != null) && (Period.findByName(options.get(TIMELINE).get(0)) != null)) {
+			Map<String, List<ChartObject>> timeline = maxByDate(rawData, Period.findByName(options.get(TIMELINE).get(0)),
 					getTotalFieldName());
 			result.putAll(calculateGroupedDiffs(timeline, sorting));
 		} else {
@@ -104,8 +102,9 @@ public class CasesTrendContentLoader extends StatisticBasedContentLoader impleme
 	 * @return
 	 */
 	private Map<String, List<ChartObject>> calculateGroupedDiffs(Map<String, List<ChartObject>> initial, Sort sorting) {
-		if (initial.keySet().isEmpty())
-			return new HashMap<>();
+		if (initial.keySet().isEmpty()) {
+			return Collections.emptyMap();
+		}
 
 		if (sorting.toString().contains(Sort.Direction.ASC.name())) {
 			ArrayList<String> keys = new ArrayList<>(initial.keySet());

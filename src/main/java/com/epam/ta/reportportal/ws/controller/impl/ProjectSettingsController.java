@@ -36,18 +36,6 @@
  */
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
-
-import java.security.Principal;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.project.settings.impl.CreateProjectSettingsHandler;
 import com.epam.ta.reportportal.core.project.settings.impl.DeleteProjectSettingsHandler;
@@ -59,8 +47,19 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
-
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_LEAD;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 
 /**
  * Projects settings controller implementation of
@@ -105,7 +104,7 @@ public class ProjectSettingsController implements IProjectSettingsController {
 	@ApiOperation("Update of custom project specific issue sub-type")
 	public OperationCompletionRS updateProjectIssueSubType(@PathVariable String projectName,
 			@RequestBody @Validated UpdateIssueSubTypeRQ request, Principal principal) {
-		return updateSettings.updateProjectIssueSubType(EntityUtils.normalizeProjectName(projectName), principal.getName(), request);
+		return updateSettings.updateProjectIssueSubType(EntityUtils.normalizeId(projectName), principal.getName(), request);
 	}
 
 	@Override
@@ -115,7 +114,7 @@ public class ProjectSettingsController implements IProjectSettingsController {
 	@PreAuthorize(PROJECT_LEAD)
 	@ApiOperation("Delete custom project specific issue sub-type")
 	public OperationCompletionRS deleteProjectIssueSubType(@PathVariable String projectName, @PathVariable String id, Principal principal) {
-		return deleteSettings.deleteProjectIssueSubType(EntityUtils.normalizeProjectName(projectName), principal.getName(), id);
+		return deleteSettings.deleteProjectIssueSubType(EntityUtils.normalizeId(projectName), principal.getName(), id);
 	}
 
 	@Override
@@ -123,8 +122,8 @@ public class ProjectSettingsController implements IProjectSettingsController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
-	@ApiOperation("Get project specific issue sub-types")
+	@ApiOperation(value = "Get project specific issue sub-types", notes = "Only for users that are assigned to the project")
 	public ProjectSettingsResource getProjectSettings(@PathVariable String projectName, Principal principal) {
-		return getSettings.getProjectSettings(EntityUtils.normalizeProjectName(projectName));
+		return getSettings.getProjectSettings(EntityUtils.normalizeId(projectName));
 	}
 }

@@ -36,20 +36,6 @@
  */
 package com.epam.ta.reportportal.core.project.settings.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.*;
-import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.*;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.stream.Collectors.toList;
-
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.project.settings.IDeleteProjectSettingsHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
@@ -66,6 +52,19 @@ import com.epam.ta.reportportal.events.DefectTypeDeletedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Sets;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.*;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Initial realization of
@@ -127,7 +126,7 @@ public class DeleteProjectSettingsHandler implements IDeleteProjectSettingsHandl
 		/* Drop removing sub-type statistic from end-point elements */
 		List<TestItem> items = testItemRepository.findForSpecifiedSubType(ids, false, type);
 		/* parallelStream and remove sync? */
-		items.stream().forEach(testItem -> {
+		items.forEach(testItem -> {
 			/* Sync against cross-access to suites and tests */
 			synchronized (this) {
 				/* Update statistic only if issueType equals deleting ID!!! */

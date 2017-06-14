@@ -17,27 +17,34 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.core.acl;
-
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.core.acl.chain.ChainMessage;
 import com.epam.ta.reportportal.core.acl.chain.IChainElement;
 import com.epam.ta.reportportal.database.entity.sharing.Shareable;
+import com.epam.ta.reportportal.events.SharingModifiedEvent;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class SharingService {
-	
+
+	private final IChainElement strartOfChain;
+
+	private final ApplicationEventPublisher eventPublisher;
+
 	@Autowired
-	@Qualifier("DashboardChainElement")
-	private IChainElement strartOfChain;
-	
+	public SharingService(@Qualifier("DashboardChainElement") IChainElement strartOfChain, ApplicationEventPublisher eventPublisher) {
+		this.strartOfChain = strartOfChain;
+		this.eventPublisher = eventPublisher;
+	}
+
 	public void modifySharing(List<? extends Shareable> elements, String userName, String projectName, boolean isShare) {
 		ChainMessage chainMessage = new ChainMessage();
 		chainMessage.setElements(elements);
@@ -45,6 +52,7 @@ public class SharingService {
 		chainMessage.setUserName(userName);
 		chainMessage.setShare(isShare);
 		strartOfChain.process(chainMessage);
+		eventPublisher.publishEvent(new SharingModifiedEvent(elements, userName, projectName, isShare));
 	}
 
 }

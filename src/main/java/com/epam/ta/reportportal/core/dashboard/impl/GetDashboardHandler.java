@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.core.dashboard.IGetDashboardHandler;
 import com.epam.ta.reportportal.database.dao.DashboardRepository;
 import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.sharing.Shareable;
+import com.epam.ta.reportportal.util.MoreCollectors;
 import com.epam.ta.reportportal.ws.converter.DashboardResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
@@ -39,7 +40,6 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -97,17 +97,16 @@ public class GetDashboardHandler implements IGetDashboardHandler {
 	 * @return Transformed map
 	 */
 	private Map<String, SharedEntity> toMap(List<Dashboard> dashboards) {
-		Map<String, SharedEntity> result = new LinkedHashMap<>();
-		for (Dashboard dashboard : dashboards) {
-			SharedEntity sharedEntity = new SharedEntity();
-			sharedEntity.setName(dashboard.getName());
-			sharedEntity.setDescription(dashboard.getDescription());
-			if (null != dashboard.getAcl()) {
-				sharedEntity.setOwner(dashboard.getAcl().getOwnerUserId());
-			}
-			result.put(dashboard.getId(), sharedEntity);
-		}
-		return result;
+		return dashboards.stream()
+				.collect(MoreCollectors.toLinkedMap(Dashboard::getId, dashboard -> {
+					SharedEntity sharedEntity = new SharedEntity();
+					sharedEntity.setName(dashboard.getName());
+					sharedEntity.setDescription(dashboard.getDescription());
+					if (null != dashboard.getAcl()) {
+						sharedEntity.setOwner(dashboard.getAcl().getOwnerUserId());
+					}
+					return sharedEntity;
+				}));
 	}
 
 }

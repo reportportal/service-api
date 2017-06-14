@@ -22,24 +22,19 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.ws.converter.builders.ProjectInfoResourceBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.ProjectInfoConverter;
 import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.inject.Provider;
 
 /**
  * @author Dzmitry_Kavalets
+ * @author Pavel_Bortnik
  */
 @Service
 public class ProjectInfoResourceAssembler extends PagedResourcesAssembler<Project, ProjectInfoResource> {
 
-    @Autowired
-    private Provider<ProjectInfoResourceBuilder> builder;
-
     @Override
     public ProjectInfoResource toResource(Project entity) {
-        return builder.get().addProject(entity).build();
+        return ProjectInfoConverter.TO_RESOURCE.apply(entity);
     }
 }

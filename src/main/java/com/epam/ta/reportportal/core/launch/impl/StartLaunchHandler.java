@@ -21,24 +21,6 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import static com.epam.ta.reportportal.database.entity.Launch.*;
-import static com.epam.ta.reportportal.database.entity.Status.*;
-import static com.epam.ta.reportportal.database.search.Condition.EQUALS;
-import static com.epam.ta.reportportal.database.search.Condition.IN;
-import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
-import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
-import static org.springframework.data.domain.Sort.Direction.DESC;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import com.epam.ta.reportportal.events.LaunchStartedEvent;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.launch.IStartLaunchHandler;
 import com.epam.ta.reportportal.database.dao.LaunchMetaInfoRepository;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
@@ -48,11 +30,27 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
+import com.epam.ta.reportportal.events.LaunchStartedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.google.common.collect.ImmutableSet;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
+import java.util.List;
+import java.util.Set;
+
+import static com.epam.ta.reportportal.database.entity.Launch.*;
+import static com.epam.ta.reportportal.database.entity.Status.*;
+import static com.epam.ta.reportportal.database.search.Condition.EQUALS;
+import static com.epam.ta.reportportal.database.search.Condition.IN;
+import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
+import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 /**
  * Default implementation of {@link IStartLaunchHandler}
@@ -116,11 +114,11 @@ class StartLaunchHandler implements IStartLaunchHandler {
 	}
 
 	private double calculateApproximateDuration(String projectName, String launchName, int limit) {
-		Set<FilterCondition> conditions = new HashSet<>();
-		conditions.add(new FilterCondition(EQUALS, false, launchName, NAME));
-		conditions.add(new FilterCondition(EQUALS, false, projectName, PROJECT));
-		conditions.add(new FilterCondition(IN, true, STOPPED.name() + "," + INTERRUPTED.name() + "," + IN_PROGRESS.name(), STATUS));
-		conditions.add(new FilterCondition(EQUALS, false, DEFAULT.name(), MODE_CRITERIA));
+		Set<FilterCondition> conditions = ImmutableSet.<FilterCondition>builder()
+				.add(new FilterCondition(EQUALS, false, launchName, NAME))
+				.add(new FilterCondition(EQUALS, false, projectName, PROJECT))
+				.add(new FilterCondition(IN, true, STOPPED.name() + "," + INTERRUPTED.name() + "," + IN_PROGRESS.name(), STATUS))
+				.add(new FilterCondition(EQUALS, false, DEFAULT.name(), MODE_CRITERIA)).build();
 		Filter filter = new Filter(Launch.class, conditions);
 		Sort sort = new Sort(new Sort.Order(DESC, "start_time"));
 		List<Launch> launches = launchRepository.findByFilterWithSortingAndLimit(filter, sort, limit);

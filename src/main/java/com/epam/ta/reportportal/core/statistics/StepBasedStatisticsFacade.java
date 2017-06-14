@@ -58,4 +58,9 @@ public class StepBasedStatisticsFacade extends StatisticsFacadeImpl implements S
 			return testItem;
 		}
 	}
+
+    @Override
+    public boolean awareIssue(TestItem testItem) {
+		return !testItem.hasChilds();
+	}
 }

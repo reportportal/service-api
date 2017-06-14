@@ -102,10 +102,10 @@ public class GetProjectHandler implements IGetProjectHandler {
 	}
 
 	@Override
-	public com.epam.ta.reportportal.ws.model.Page<User> getUserNames(String value, Pageable pageable) {
+	public com.epam.ta.reportportal.ws.model.Page<UserResource> getUserNames(String value, Pageable pageable) {
 		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
 				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value));
-		return PagedResourcesAssembler.<User>pageConverter().apply(userRepository.searchForUserLogin(value, pageable));
+		return userResourceAssembler.toPagedResources(userRepository.searchForUserLogin(value, pageable));
 	}
 
 	@Override
@@ -122,10 +122,8 @@ public class GetProjectHandler implements IGetProjectHandler {
 			Iterable<ExternalSystem> systems = externalSystemRepository.findAll(dbProject.getConfiguration().getExternalSystem());
 			return projectResourceAssembler.toResource(dbProject, systems);
 		}
-		if (null != dbProject.getConfiguration().getSubTypes())
-			return projectResourceAssembler.toResource(dbProject);
-		else
-			return projectResourceAssembler.toResource(dbProject);
+
+		return projectResourceAssembler.toResource(dbProject);
 	}
 
 	@Override

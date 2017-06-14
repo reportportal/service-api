@@ -20,30 +20,34 @@
  */
 package com.epam.ta.reportportal.demo_data;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_LEAD;
-
-import java.security.Principal;
-
+import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
 import springfox.documentation.annotations.ApiIgnore;
 
-@ApiIgnore
+import java.security.Principal;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_LEAD;
+
+
 @RestController
 @RequestMapping("/demo/{projectName}")
 class DemoDataController {
 
-	private DemoDataService demoDataService;
+    private final DemoDataService demoDataService;
 
-	DemoDataController(DemoDataService demoDataService) {
-		this.demoDataService = demoDataService;
-	}
+    @Autowired
+    DemoDataController(DemoDataService demoDataService) {
+        this.demoDataService = demoDataService;
+    }
 
-	@PostMapping
-	@PreAuthorize(PROJECT_LEAD)
-	DemoDataRs generate(@PathVariable String projectName, @Validated @RequestBody DemoDataRq demoDataRq, Principal principal) {
-		return demoDataService.generate(demoDataRq, projectName, principal.getName());
-	}
+    @PostMapping
+    @PreAuthorize(PROJECT_LEAD)
+    @ApiOperation(value = "generate")
+    @ApiIgnore
+    DemoDataRs generate(@PathVariable String projectName, @Validated @RequestBody DemoDataRq demoDataRq, Principal principal) {
+        return demoDataService.generate(demoDataRq, projectName, principal.getName());
+    }
 }

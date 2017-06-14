@@ -58,8 +58,8 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Camden.SR6"
-        mavenBom "org.springframework.boot:spring-boot-dependencies:1.5.2.RELEASE"
+        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Dalston.SR1"
+        mavenBom "org.springframework.boot:spring-boot-dependencies:1.5.4.RELEASE"
     }
 }
 
@@ -73,15 +73,15 @@ configurations.all {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:3.0.0'
-        compile 'com.epam.reportportal:commons-rules:3.0.0'
-        compile 'com.epam.reportportal:commons-model:3.0.0'
+        compile 'com.epam.reportportal:commons-dao:3.0.1'
+        compile 'com.epam.reportportal:commons-rules:3.0.1'
+        compile 'com.epam.reportportal:commons-model:3.0.1'
         compile 'com.epam.reportportal:commons:3.0.0'
     } else {
-        compile 'com.github.reportportal:commons-model:3.0.0'
-        compile('com.github.reportportal:commons-dao:3.0.0')
-        compile('com.github.reportportal:commons-rules:3.0.0')
-        compile 'com.github.reportportal:commons:3.0.0'
+        compile('com.github.reportportal:commons-dao:3.0.1')
+        compile('com.github.reportportal:commons-rules:3.0.1')
+        compile 'com.github.reportportal:commons-model:3.0.1'
+        compile ('com.github.reportportal:commons:develop-SNAPSHOT')
     }
 
     compile 'org.jasypt:jasypt:1.9.2'
@@ -94,7 +94,6 @@ dependencies {
     compile "ch.qos.logback:logback-classic:${logback}"
     compile 'net.coobird:thumbnailator:0.4.8'
     compile 'com.sun.mail:javax.mail:1.5.6'
-    compile 'org.apache.velocity:velocity:1.7'
 
 //    compile 'org.springframework.cloud:spring-cloud-config-client'
     compile 'org.springframework.retry:spring-retry'
@@ -106,6 +105,7 @@ dependencies {
 
     compile 'org.springframework.boot:spring-boot-starter-aop'
     compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework.boot:spring-boot-starter-freemarker'
     compile 'org.springframework.boot:spring-boot-starter-actuator'
     compile 'org.springframework.boot:spring-boot-starter-data-redis'
     compile 'org.springframework.cloud:spring-cloud-starter-oauth2'
@@ -123,8 +123,8 @@ dependencies {
     compile 'javax.inject:javax.inject:1'
     compile 'com.google.code.findbugs:annotations:3.0.1'
 
-    compile 'io.springfox:springfox-swagger2:2.3.0'
-    compile 'io.springfox:springfox-swagger-ui:2.3.0'
+    compile 'io.springfox:springfox-swagger2:2.6.1'
+    compile 'io.springfox:springfox-swagger-ui:2.6.1'
 
     compile 'com.google.guava:guava:21.0'
 
@@ -140,6 +140,8 @@ dependencies {
     testCompile 'org.apache.commons:commons-math3:3.6.1'
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     testCompile 'com.bitmechanic:dumbster:1.9.0.2'
+
+    testCompile 'org.jsoup:jsoup:1.10.2'
 
 }
 

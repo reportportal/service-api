@@ -21,26 +21,6 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import static com.epam.ta.reportportal.commons.Preconditions.hasProjectRoles;
-import static com.epam.ta.reportportal.commons.Predicates.*;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.LEAD;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
-import static com.epam.ta.reportportal.database.entity.Status.*;
-import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.stream.Collectors.toList;
-
-import java.util.*;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import org.slf4j.helpers.MessageFormatter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.DbUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.launch.IFinishLaunchHandler;
@@ -61,6 +41,25 @@ import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
+import org.slf4j.helpers.MessageFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.commons.Preconditions.hasProjectRoles;
+import static com.epam.ta.reportportal.commons.Predicates.*;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.LEAD;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.database.entity.Status.*;
+import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Default implementation of {@link IFinishLaunchHandler}
@@ -224,7 +223,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 	}
 
 	private void interruptItems(List<TestItem> testItems, Launch launch) {
-		testItems.stream().forEach(this::interruptItem);
+		testItems.forEach(this::interruptItem);
 		clearIssueReferences(launch.getId());
 	}
 

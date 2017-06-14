@@ -21,8 +21,7 @@
 
 package com.epam.ta.reportportal.database.fixture;
 
-import java.lang.reflect.Method;
-
+import com.google.common.base.Throwables;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -33,7 +32,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.annotation.AnnotationUtils;
 
-import com.google.common.base.Throwables;
+import java.lang.reflect.Method;
 
 /**
  * JUnit's rule. Imports demo data for testing purposes. Implements
@@ -63,7 +62,7 @@ public class SpringFixtureRule extends ExternalResource implements ApplicationCo
 		Object toBeImported = applicationContext.getBean(bean);
 		FixtureImporter fixtureImporter = applicationContext.getBean(FixtureImporter.class);
 		fixtureImporter.dropDatabase();
-		cacheManager.getCacheNames().stream().forEach(it -> cacheManager.getCache(it).clear());
+		cacheManager.getCacheNames().forEach(it -> cacheManager.getCache(it).clear());
 		fixtureImporter.importFixture(toBeImported);
 
 		return statement;

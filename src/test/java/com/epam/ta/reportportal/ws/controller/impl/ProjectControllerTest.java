@@ -20,32 +20,17 @@
  */
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import com.epam.ta.reportportal.ws.model.Page;
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.test.web.servlet.MvcResult;
-
 import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.commons.SendCase;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase;
+import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.project.*;
-import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCase;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfig;
+import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -53,6 +38,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.test.web.servlet.MvcResult;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author Dzmitry_Kavalets
@@ -184,9 +185,9 @@ public class ProjectControllerTest extends BaseMvcTest {
 	@Test
 	public void updateProjectEmailConfig() throws Exception {
 		final UpdateProjectEmailRQ rq = new UpdateProjectEmailRQ();
-		final EmailSenderCase emailSenderCase = new EmailSenderCase(Arrays.asList("OWNER", "user1", "user1email@epam.com"),
+		final EmailSenderCaseDTO emailSenderCase = new EmailSenderCaseDTO(Arrays.asList("OWNER", "user1", "user1email@epam.com"),
 				SendCase.ALWAYS.name(), singletonList("launchName"), singletonList("tags"));
-		final ProjectEmailConfig config = new ProjectEmailConfig(true, "from@fake.org", Lists.newArrayList(emailSenderCase));
+		final ProjectEmailConfigDTO config = new ProjectEmailConfigDTO(true, "from@fake.org", Lists.newArrayList(emailSenderCase));
 		rq.setConfiguration(config);
 		this.mvcMock.perform(put("/project/project1/emailconfig").principal(authentication()).contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));

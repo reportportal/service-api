@@ -24,12 +24,10 @@ package com.epam.ta.reportportal.ws.converter.builders;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.trimStrings;

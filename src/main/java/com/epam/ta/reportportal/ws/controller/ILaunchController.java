@@ -42,9 +42,13 @@ import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.launch.*;
+import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
+import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -195,24 +199,13 @@ public interface ILaunchController {
 
 	/**
 	 * Merge specified launches in common one
-	 *
+	 * Could be merged in different ways
 	 * @param projectName
-	 * @param mergeLaunchesRQ
-	 * @param principal
-	 * @return
-	 */
-	LaunchResource mergeLaunches(String projectName, MergeLaunchesRQ mergeLaunchesRQ, Principal principal);
-
-	/**
-	 * Deep merge specified launches in one. It means
-	 * that items on suit level will be merged as well.
-	 * @param projectName
-	 * @param launchId id of launch to be merged
 	 * @param mergeLaunchesRQ request data
 	 * @param principal
 	 * @return
 	 */
-	OperationCompletionRS deepMergeLaunches(String projectName, String launchId, DeepMergeLaunchesRQ mergeLaunchesRQ, Principal principal);
+	LaunchResource mergeLaunches(String projectName, DeepMergeLaunchesRQ mergeLaunchesRQ, Principal principal);
 
 	/**
 	 * Start auto-analyzer for specified launch
@@ -241,5 +234,7 @@ public interface ILaunchController {
 	void getLaunchReport(String projectName, String launchId, String view, Principal principal, HttpServletResponse response)
 			throws IOException;
 
-	List<OperationCompletionRS> deleteLaunches(String projectName, String[] ids, Principal principal);
+	OperationCompletionRS deleteLaunches(String projectName, String[] ids, Principal principal);
+
+	OperationCompletionRS importLaunch(String projectId, MultipartFile file, Principal principal) throws IOException;
 }

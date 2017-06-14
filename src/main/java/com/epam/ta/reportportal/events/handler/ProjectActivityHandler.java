@@ -45,6 +45,7 @@ public class ProjectActivityHandler {
 	public static final String KEEP_SCREENSHOTS = "keepScreenshots";
 	public static final String KEEP_LOGS = "keepLogs";
 	public static final String LAUNCH_INACTIVITY = "launchInactivity";
+	public static final String STATISTICS_CALCULATION_STRATEGY = "statisticsCalculationStrategy";
 	public static final String AUTO_ANALYZE = "auto_analyze";
 
 	private final ActivityRepository activityRepository;
@@ -67,6 +68,7 @@ public class ProjectActivityHandler {
 			processKeepScreenshots(history, project, configuration);
 			processLaunchInactivityTimeout(history, project, configuration);
 			processAutoAnalyze(history, project, configuration);
+			processStatisticsStrategy(history, project, configuration);
 		}
 
 		if (!history.isEmpty()) {
@@ -74,6 +76,15 @@ public class ProjectActivityHandler {
 					.addActionType(UPDATE_PROJECT).addUserRef(event.getUpdatedBy()).build();
 			activityLog.setHistory(history);
 			activityRepository.save(activityLog);
+		}
+	}
+
+	private void processStatisticsStrategy(HashMap<String, Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
+		if ((null != configuration.getStatisticCalculationStrategy())
+				&& (!configuration.getStatisticCalculationStrategy().equalsIgnoreCase((project.getConfiguration().getStatisticsCalculationStrategy().name())))){
+			Activity.FieldValues fieldValues = Activity.FieldValues.newOne().withOldValue(project.getConfiguration().getStatisticsCalculationStrategy().name())
+					.withNewValue(configuration.getStatisticCalculationStrategy());
+			history.put(STATISTICS_CALCULATION_STRATEGY, fieldValues);
 		}
 	}
 

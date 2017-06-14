@@ -21,22 +21,6 @@
 
 package com.epam.ta.reportportal.core.item.history;
 
-import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_LOAD_TEST_ITEM_HISTORY;
-import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
-import static java.lang.Boolean.TRUE;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-import static org.springframework.data.domain.Sort.Direction.DESC;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -46,6 +30,20 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.google.common.collect.Lists;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_LOAD_TEST_ITEM_HISTORY;
+import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
+import static java.lang.Boolean.TRUE;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 /**
  * History loading service for regular test items (is_root property was set to
@@ -71,7 +69,7 @@ public class TestItemsHistoryService implements ITestItemsHistoryService {
 	public List<Launch> loadLaunches(int quantity, String startingLaunchId, String projectName, boolean showBrokenLaunches) {
 		Launch startingLaunch = launchRepository.findNameNumberAndModeById(startingLaunchId);
 		if (startingLaunch == null) {
-			return new ArrayList<>();
+			return Collections.emptyList();
 		}
 		if (startingLaunch.getMode() == DEBUG) {
 			return Collections.singletonList(startingLaunch);

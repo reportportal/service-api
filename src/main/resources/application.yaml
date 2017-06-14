@@ -27,6 +27,11 @@ eureka:
   client:
     register-with-eureka: true
     enabled: true
+logging:
+  level:
+    org.springframework.data.mongodb.core.mapping: error
+    org.springframework.context.support: warn
+    org.springframework.data.mongodb.core.index: warn
 
 ## Consul as service registry
 ---
@@ -42,3 +47,9 @@ eureka:
     register-with-eureka: false
     enabled: false
 ---
+
+springfox:
+  documentation:
+    swagger:
+      v2:
+        path: /api-docs

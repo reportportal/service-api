@@ -42,8 +42,7 @@ class Conditions {
 
 		@Override
 		public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-			return !Arrays.stream(context.getEnvironment().getActiveProfiles()).filter(profile -> profile.equals("unittest")).findAny()
-					.isPresent();
+			return Arrays.stream(context.getEnvironment().getActiveProfiles()).noneMatch(profile -> profile.equals("unittest"));
 		}
 	}
 

@@ -107,7 +107,7 @@ public class LogController implements ILogController {
             Principal principal) {
         validateSaveRQ(createLogRQ);
         return createLogMessageHandler
-                .createLog(createLogRQ, null, null, EntityUtils.normalizeProjectName(projectName));
+                .createLog(createLogRQ, null, null, EntityUtils.normalizeId(projectName));
     }
 
     @Override
@@ -121,10 +121,10 @@ public class LogController implements ILogController {
             @RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs, HttpServletRequest request,
             Principal principal) {
 
-        String prjName = EntityUtils.normalizeProjectName(projectName);
+        String prjName = EntityUtils.normalizeId(projectName);
         /*
          * Since this is multipart request we can retrieve list of uploaded
-		 * files
+		 * attachments
 		 */
         Map<String, MultipartFile> uploadedFiles = getUploadedFiles(request);
         BatchSaveOperatingRS response = new BatchSaveOperatingRS();
@@ -151,6 +151,7 @@ public class LogController implements ILogController {
 					 * stream, try to detect real content type of binary
 					 * data
 					 */
+                    //noinspection ConstantConditions
                     if (!StringUtils.isEmpty(data.getContentType()) && !MediaType.APPLICATION_OCTET_STREAM_VALUE
                             .equals(data.getContentType())) {
                         responseItem = createLogMessageHandler
@@ -181,7 +182,7 @@ public class LogController implements ILogController {
     public OperationCompletionRS deleteLog(@PathVariable String projectName, @PathVariable String logId,
             Principal principal) {
         return deleteLogMessageHandler
-                .deleteLog(logId, EntityUtils.normalizeProjectName(projectName), principal.getName());
+                .deleteLog(logId, EntityUtils.normalizeId(projectName), principal.getName());
     }
 
     @Override
@@ -192,7 +193,7 @@ public class LogController implements ILogController {
             @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ
                     + Log.TEST_ITEM_ID) String testStepId, @FilterFor(Log.class) Filter filter,
            @SortDefault({"time"}) @SortFor(Log.class) Pageable pageable, Principal principal) {
-        return getLogHandler.getLogs(testStepId, EntityUtils.normalizeProjectName(projectName), filter, pageable);
+        return getLogHandler.getLogs(testStepId, EntityUtils.normalizeId(projectName), filter, pageable);
     }
 
     @Override
@@ -203,7 +204,7 @@ public class LogController implements ILogController {
             @FilterFor(Log.class) Filter filter,
             @SortFor(Log.class) Pageable pageable, Principal principal) {
         return ImmutableMap.<String, Serializable>builder().put("number", getLogHandler
-				.getPageNumber(logId, EntityUtils.normalizeProjectName(projectName), filter, pageable))
+				.getPageNumber(logId, EntityUtils.normalizeId(projectName), filter, pageable))
 				.build();
     }
 
@@ -212,16 +213,16 @@ public class LogController implements ILogController {
     @ResponseBody
     @ApiOperation("Get log")
     public LogResource getLog(@PathVariable String projectName, @PathVariable String logId, Principal principal) {
-        return getLogHandler.getLog(logId, EntityUtils.normalizeProjectName(projectName));
+        return getLogHandler.getLog(logId, EntityUtils.normalizeId(projectName));
     }
 
     /**
-     * Tries to find request part or file with specified name in multipart files
+     * Tries to find request part or file with specified name in multipart attachments
      * map.
      *
-     * @param filename
-     * @param files
-     * @return
+     * @param filename File name
+     * @param files Files map
+     * @return Found file
      */
     private MultipartFile findByFileName(String filename, Map<String, MultipartFile> files) {
 		/* Request part name? */

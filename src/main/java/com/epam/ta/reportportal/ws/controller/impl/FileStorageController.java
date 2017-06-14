@@ -21,26 +21,7 @@
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-
-import java.io.IOException;
-import java.security.Principal;
-
-import javax.servlet.http.HttpServletResponse;
-
 import com.epam.ta.reportportal.commons.EntityUtils;
-import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.epam.ta.reportportal.core.user.impl.EditUserHandler;
 import com.epam.ta.reportportal.database.BinaryData;
 import com.epam.ta.reportportal.database.DataStorage;
@@ -48,8 +29,20 @@ import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.controller.IFileStorageController;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.security.Principal;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 
 /**
  * Implementation of file storage controller. <br>
@@ -107,7 +100,7 @@ public class FileStorageController implements IFileStorageController {
 	@Override
 	@ApiOperation("Get user's photo")
 	public void getUserPhoto(@RequestParam(value = "id") String username, HttpServletResponse response, Principal principal) {
-		toResponse(response, userRepository.findUserPhoto(EntityUtils.normalizeUsername(username)));
+		toResponse(response, userRepository.findUserPhoto(EntityUtils.normalizeId(username)));
 	}
 
 	@Override
@@ -129,8 +122,8 @@ public class FileStorageController implements IFileStorageController {
 	/**
 	 * Copies provided {@link BinaryData} to Response
 	 * 
-	 * @param response
-	 * @param binaryData
+	 * @param response Response
+	 * @param binaryData Binary data object
 	 */
 	private void toResponse(HttpServletResponse response, BinaryData binaryData) {
 		if (binaryData != null) {

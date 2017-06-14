@@ -17,28 +17,27 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.database.LaunchesTableDocumentHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import com.google.common.collect.ImmutableList;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Content loader for Filter results widget
- * 
+ *
  * @author Dzmitry_Kavalets
  */
 @Service("LaunchesTableContentLoader")
@@ -50,16 +49,10 @@ public class LaunchesTableContentLoader implements IContentLoadingStrategy {
 	@Override
 	public Map<String, List<ChartObject>> loadContent(Filter filter, Sort sorting, int quantity, List<String> contentFields,
 			List<String> metaDataFields, Map<String, List<String>> options) {
-
 		if (filter.getTarget().equals(TestItem.class)) {
-			return new HashMap<>();
+			return Collections.emptyMap();
 		}
-
-		ArrayList<String> fields = new ArrayList<>();
-
-		fields.addAll(contentFields);
-		fields.addAll(metaDataFields);
-
+		List<String> fields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
 		LaunchesTableDocumentHandler launchesTableDocumentHandler = new LaunchesTableDocumentHandler(fields);
 		launchRepository.loadWithCallback(filter, sorting, quantity, fields, launchesTableDocumentHandler,
 				StatisticBasedContentLoader.getCollectionName(filter.getTarget()));

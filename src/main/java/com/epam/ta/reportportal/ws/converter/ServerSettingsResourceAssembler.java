@@ -22,28 +22,22 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.database.entity.settings.ServerSettings;
-import com.epam.ta.reportportal.ws.converter.builders.ServerSettingsResourceBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.ServerSettingsConverter;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Provider;
 
 /**
  * REST Maturity Lvl3 rel object creation for response
  *
  * @author Andrei_Ramanchuk
+ * @author Pavel_Bortnik
  */
 @Service
 public class ServerSettingsResourceAssembler extends ResourceAssembler<ServerSettings, ServerSettingsResource> {
 
-    @Autowired
-    private Provider<ServerSettingsResourceBuilder> builder;
-
     @Override
-    public ServerSettingsResource toResource(ServerSettings settings) {
-        ServerSettingsResourceBuilder resourceBuilder = builder.get();
-        resourceBuilder.addServerSettings(settings);
-        return resourceBuilder.build();
+    public ServerSettingsResource toResource(ServerSettings serverSettings) {
+        return ServerSettingsConverter.TO_RESOURCE.apply(serverSettings);
     }
 }

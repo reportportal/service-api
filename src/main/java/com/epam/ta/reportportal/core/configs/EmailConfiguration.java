@@ -21,14 +21,18 @@
 
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.reportportal.commons.template.FreemarkerTemplateEngine;
 import com.epam.reportportal.commons.template.TemplateEngine;
-import com.epam.reportportal.commons.template.VelocityTemplateEngine;
 import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
+import com.google.common.base.Charsets;
+import freemarker.template.TemplateExceptionHandler;
+import freemarker.template.Version;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.ui.velocity.VelocityEngineFactoryBean;
+
+import java.util.Locale;
 
 /**
  * Global Email Configuration<br>
@@ -45,16 +49,20 @@ public class EmailConfiguration {
 		return new MailServiceFactory(templateEngine, encryptor, settingsRepository);
 	}
 
-	@Bean(name = "velocityEngine")
-	public VelocityEngineFactoryBean getVelocityEngineFactory() {
-		VelocityEngineFactoryBean velocityEngineFactory = new VelocityEngineFactoryBean();
-		velocityEngineFactory.setResourceLoaderPath("classpath:/templates/email");
-		velocityEngineFactory.setPreferFileSystemAccess(false);
-		return velocityEngineFactory;
-	}
 
-	@Bean(name = "templateVelocityEngine")
-	public VelocityTemplateEngine getVelocityTemplateEngine() {
-		return new VelocityTemplateEngine(getVelocityEngineFactory().getObject());
+	@Bean
+	public TemplateEngine getTemplateEngine() {
+
+		Version version = new Version(2, 3, 25);
+		freemarker.template.Configuration cfg = new freemarker.template.Configuration(version);
+
+		cfg.setClassForTemplateLoading(EmailConfiguration.class, "/templates/email");
+
+		cfg.setIncompatibleImprovements(version);
+		cfg.setDefaultEncoding(Charsets.UTF_8.toString());
+		cfg.setLocale(Locale.US);
+		cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+
+		return new FreemarkerTemplateEngine(cfg);
 	}
 }

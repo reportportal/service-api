@@ -66,7 +66,7 @@ public class ActivityController implements IActivityController {
 	@ResponseBody
 	@ApiIgnore
 	public ActivityResource getActivity(@PathVariable String projectName, @PathVariable String activityId, Principal principal) {
-		return activityHandler.getActivity(EntityUtils.normalizeProjectName(projectName), activityId);
+		return activityHandler.getActivity(EntityUtils.normalizeId(projectName), activityId);
 	}
 
 	@Override
@@ -76,6 +76,6 @@ public class ActivityController implements IActivityController {
 	@ApiOperation("Get activities by filter")
 	public List<ActivityResource> getTestItemActivities(@PathVariable String projectName, @PathVariable String itemId,
 			@FilterFor(Activity.class) Filter filter, @SortFor(Activity.class) Pageable pageable, Principal principal) {
-		return activityHandler.getItemActivities(EntityUtils.normalizeProjectName(projectName), itemId, filter, pageable);
+		return activityHandler.getItemActivities(EntityUtils.normalizeId(projectName), itemId, filter, pageable);
 	}
 }

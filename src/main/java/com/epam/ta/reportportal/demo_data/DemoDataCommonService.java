@@ -57,7 +57,7 @@ public class DemoDataCommonService {
 
     protected SplittableRandom random = new SplittableRandom();
 
-    private static final int CONTENT_PROBABILITY = 60;
+    static final int CONTENT_PROBABILITY = 60;
 
     private static final int TAGS_COUNT = 3;
 
@@ -150,7 +150,7 @@ public class DemoDataCommonService {
         TestItem testItem = testItemRepository.findOne(testItemId);
         StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(statsStrategy);
         if ("FAILED".equals(status) && statisticsFacade.awareIssue(testItem)) {
-            testItem.setIssue(new TestItemIssue(issueType(), null));
+            testItem.setIssue(issueType());
         }
         testItem.setStatus(Status.fromValue(status).get());
         testItem.setEndTime(new Date());
@@ -176,16 +176,18 @@ public class DemoDataCommonService {
                 || testItemType == AFTER_METHOD);
     }
 
-    String issueType() {
+    TestItemIssue issueType() {
         int ISSUE_PROBABILITY = 25;
         if (ContentUtils.getWithProbability(ISSUE_PROBABILITY)) {
-            return "PB001";
+            return ContentUtils.getProductBug();
         } else if (ContentUtils.getWithProbability(ISSUE_PROBABILITY)) {
-            return "AB001";
+            return ContentUtils.getAutomationBug();
         } else if (ContentUtils.getWithProbability(ISSUE_PROBABILITY)) {
-            return "SI001";
+            return ContentUtils.getSystemIssue();
         } else {
-            return "TI001";
+            return ContentUtils.getInvestigate();
         }
     }
+
+
 }

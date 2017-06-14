@@ -1,0 +1,4 @@
+Locally passed. Can be related to https://github.com/reportportal/reportportal/issues/143
+Environment not available. VM Down
+CLONE - Build_APK_for_Android_Test_App job is broken
+App version is not equal to latest. Wrong app build - Build_APK_for_Android_Test_App job is broken

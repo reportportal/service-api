@@ -76,12 +76,12 @@ dependencies {
         compile 'com.epam.reportportal:commons-dao:3.0.1'
         compile 'com.epam.reportportal:commons-rules:3.0.1'
         compile 'com.epam.reportportal:commons-model:3.0.1'
-        compile 'com.epam.reportportal:commons:3.0.0'
+        compile 'com.epam.reportportal:commons:3.0.1'
     } else {
         compile('com.github.reportportal:commons-dao:3.0.1')
         compile('com.github.reportportal:commons-rules:3.0.1')
         compile 'com.github.reportportal:commons-model:3.0.1'
-        compile ('com.github.reportportal:commons:develop-SNAPSHOT')
+        compile ('com.github.reportportal:commons:3.0.1')
     }
 
     compile 'org.jasypt:jasypt:1.9.2'

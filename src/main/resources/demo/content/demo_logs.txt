@@ -1,0 +1,69 @@
+[main] com.epam.ta.utils.logger.Logger - Attempt to find element by By.xpath: //a[@href='#widgetTemplates'].
+[Forwarding findElement on session 477bee808ca0c415a7aae2de2edc5cc9 to remote] DEBUG o.a.h.c.protocol.RequestAddCookies - CookieSpec selected: default
+[Forwarding findElement on session 477bee808ca0c415a7aae2de2edc5cc9 to remote] DEBUG o.a.h.c.protocol.RequestAuthCache - Auth cache not set in the context
+[Forwarding findElement on session 477bee808ca0c415a7aae2de2edc5cc9 to remote] DEBUG o.a.h.i.c.PoolingHttpClientConnectionManager - Connection request: [route: {}->http://localhost:19511][total kept alive: 0; route allocated: 0 of 2000; total allocated: 0 of 2000]
+[Forwarding findElement on session 477bee808ca0c415a7aae2de2edc5cc9 to remote] DEBUG o.a.h.i.c.PoolingHttpClientConnectionManager - Connection leased: [id: 51][route: {}->http://localhost:19511][total kept alive: 0; route allocated: 1 of 2000; total allocated: 1 of 2000]
+[Forwarding findElement on session 477bee808ca0c415a7aae2de2edc5cc9 to remote] DEBUG o.a.h.impl.execchain.MainClientExec - Opening connection {}->http://localhost:19511
+[main] com.epam.ta.utils.logger.Logger - Attempt to find element by By.xpath: //div[@data-id='allCases']/span[@class='name-text multiple-spaces'].
+[main] DEBUG com.epam.ta.utils.logger.Logger - Find element by By.xpath: //div[@data-id='allCases']/span[@class='name-text multiple-spaces'] was performed.
+[main] INFO com.epam.ta.utils.logger.Logger - Create new filter EPMCDP-7196ra8j.
+14:18:05.496 [Finalizer] DEBUG c.e.r.a.h.i.c.PoolingHttpClientConnectionManager - Connection manager is shutting down
+11:29:02.237 [TestNG-tests-1] INFO  c.e.t.r.q.w.c.FailureLoggingListener - Cannot finish test item #590ae64c08813b0006bba653 on current step.
+Build info: version: '2.53.1', revision: 'a36b8b1cd5757287168e54b817830adce9b0158d', time: '2016-06-30 19:26:09'\nSystem info: host: 'EVBYMINSD1366.minsk.epam.com', ip: '10.6.139.226', os.name: 'Linux', os.arch: 'amd64', os.version: '3.13.0-53-generic', java.version: '1.8.0_101'\nDriver info: org.openqa.selenium.chrome.ChromeDriver
+09:11:55.442 [main] INFO  com.epam.ta.utils.logger.Logger - ScreenShot name: i98tivm7g2bq87rcehcs5ficdv
+09:53:12.630 [main] INFO  com.epam.ta.utils.logger.Logger - Login with superadmin/erebus.
+09:53:13.546 [main] INFO  com.epam.ta.utils.logger.Logger - Switch to project: default_project.
+09:53:14.707 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Invite user.
+09:53:14.709 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Open 'Users' page
+09:53:15.723 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Click 'Invite User'.
+09:53:16.412 [main] INFO  com.epam.ta.utils.logger.Logger - Set user email.
+09:53:18.335 [main] INFO  com.epam.ta.utils.logger.Logger - Set user project.
+09:53:21.221 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Follow registration link and fill registration form.
+09:53:42.238 [main] INFO  com.epam.ta.utils.logger.Logger - Login with superadmin/erebus.
+09:53:43.161 [main] INFO  com.epam.ta.utils.logger.Logger - Switch to project: default_project.
+09:53:44.190 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Open 'Projects' page.
+09:53:45.283 [main] INFO  com.epam.ta.utils.logger.Logger - Switching to table view
+09:54:01.845 [main] INFO  com.epam.ta.utils.logger.Logger - ScreenShot name: 6k1548f0or3q7avoe2qmejcih9
+09:55:09.717 [main] INFO  com.epam.ta.utils.logger.Logger - Switch to project: default_project.
+09:55:10.998 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Create test project.
+09:55:18.608 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Navigate to launches and open the last one.
+09:55:18.609 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Open 'Launches' page.
+09:55:21.743 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Click History button.
+09:55:37.256 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Navigate to launches and open the last one.
+09:55:37.264 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Open 'Launches' page.
+09:55:39.020 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Navigate to test level.
+10:14:36.146 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Open 'Project Settingstest_project_8fguvuwbxk' page
+10:14:37.798 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Open 'Project Settingsautotest_projectso0vfbrthw' page
+10:14:42.289 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Open 'Launches' page.
+10:14:45.250 [main] INFO  com.epam.ta.utils.logger.Logger - Open 'Edit Defect Type' modal and set defect type to 'Custom_defect'
+10:14:45.665 [main] INFO  com.epam.ta.utils.logger.Logger - Select 'Defect Type' from drop-down menu
+10:14:47.405 [main] INFO  com.epam.ta.utils.logger.Logger - Refresh current page.
+10:14:49.168 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Delete project with name 'test_project_8fguvuwbxk'
+10:14:52.474 [main] INFO  com.epam.ta.utils.logger.Logger - Login with superadmin/erebus.
+10:14:53.304 [main] INFO  com.epam.ta.utils.logger.Logger - Switch to project: default_project.
+10:14:54.146 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Create project with name 'test_project_tpemkrons1'.
+10:14:54.187 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Open 'Project Settingstest_project_tpemkrons1' page
+10:14:56.364 [main] INFO  com.epam.ta.utils.logger.Logger - Check all expected elements present on 'Email Notifications' settings page
+10:15:02.454 [main] INFO  com.epam.ta.utils.logger.Logger - Submit changes in notifications settings
+10:20:47.926 [main] INFO  com.epam.ta.utils.logger.Logger - Switch to project: default_project.
+10:20:48.949 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Create project with name 'test_project_lwsjofbwwa'.
+10:20:48.996 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Open 'Project Settingstest_project_lwsjofbwwa' page
+10:20:51.541 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Add new email rule EmailRule{launches=[], recipients=[OWNER, rp.autouser@gmail.com], tags=[], sendCase=null}
+10:20:53.405 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Add new email rule EmailRule{launches=[Launch For Notifications arif52, Launch For Notifications mpcu8u], recipients=[], tags=[], sendCase=null}
+10:21:00.335 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Add new email rule EmailRule{launches=[], recipients=[], tags=[tag1, tag2], sendCase=null}
+10:21:02.025 [main] INFO  com.epam.ta.utils.logger.Logger - Submit changes in notifications settings
+10:21:02.722 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Delete project with name 'test_project_lwsjofbwwa'
+10:21:06.379 [main] INFO  com.epam.ta.utils.logger.Logger - Login with superadmin/erebus.
+10:21:07.292 [main] INFO  com.epam.ta.utils.logger.Logger - Switch to project: default_project.
+10:21:08.158 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Create project with name 'test_project_qalquapmqc'.
+10:21:08.202 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Open 'Project Settingstest_project_qalquapmqc' page
+10:21:09.918 [main] INFO  com.epam.ta.utils.logger.Logger - Select 'Bug Tracking System' from list: 'JIRA'
+10:21:12.642 [main] INFO  com.epam.ta.utils.logger.Logger - Click 'Submit' button.
+10:21:15.206 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Delete project with name 'test_project_qalquapmqc'
+10:21:18.417 [main] INFO  com.epam.ta.utils.logger.Logger - Login with superadmin/erebus.
+10:21:19.363 [main] INFO  com.epam.ta.utils.logger.Logger - Switch to project: default_project.
+10:21:20.273 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Create project with name 'test_project_wskwd6abhj'.
+10:21:20.314 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Open 'Project Settingstest_project_wskwd6abhj' page
+10:21:21.892 [main] INFO  com.epam.ta.utils.logger.Logger - Select 'Bug Tracking System' from list: 'RALLY'
+10:21:24.668 [main] INFO  com.epam.ta.utils.logger.Logger - Click 'Submit' button.
+10:21:32.306 [main] INFO  com.epam.ta.utils.logger.Logger - [STEP] Delete project with name 'test_project_wskwd6abhj'

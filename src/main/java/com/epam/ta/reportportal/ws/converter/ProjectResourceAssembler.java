@@ -23,35 +23,35 @@ package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.ws.converter.builders.ProjectResourceBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemConverter;
+import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.google.common.collect.Lists;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Provider;
-import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 /**
  * Resource Assembler for the {@link Project} DB entity
  *
  * @author Andrei_Ramanchuk
+ * @author Pavel_Bortnik
  */
 @Service
 public class ProjectResourceAssembler extends PagedResourcesAssembler<Project, ProjectResource> {
 
-    @Autowired
-    private Provider<ProjectResourceBuilder> builder;
-
-    public ProjectResource toResource(Project project, Iterable<ExternalSystem> systems) {
-        ProjectResourceBuilder resourceBuilder = builder.get();
-        resourceBuilder.addProject(project, systems);
-        return resourceBuilder.build();
-    }
-
     @Override
     public ProjectResource toResource(Project entity) {
-        ProjectResourceBuilder resourceBuilder = builder.get();
-        resourceBuilder.addProject(entity, new ArrayList<>());
-        return resourceBuilder.build();
+        ProjectResource resource = ProjectConverter.TO_RESOURCE.apply(entity);
+        resource.getConfiguration().setExternalSystem(Lists.newArrayList());
+        return resource;
+    }
+
+    public ProjectResource toResource(Project project, Iterable<ExternalSystem> systems) {
+        ProjectResource resource = ProjectConverter.TO_RESOURCE.apply(project);
+        resource.getConfiguration().setExternalSystem(Lists.newArrayList(systems)
+                .stream().map(ExternalSystemConverter.TO_RESOURCE).collect(Collectors.toList())
+        );
+        return resource;
     }
 }

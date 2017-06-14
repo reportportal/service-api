@@ -22,27 +22,22 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.database.entity.UserPreference;
-import com.epam.ta.reportportal.ws.converter.builders.PreferenceResourceBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.PreferenceConverter;
 import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.inject.Provider;
 
 /**
  * Resource assembler for
  * {@link com.epam.ta.reportportal.database.entity.UserPreference} db entity
  *
  * @author Dzmitry_Kavalets
+ * @author Pavel_Bortnik
  */
 @Service
 public class UserPreferenceResourceAssembler extends PagedResourcesAssembler<UserPreference, PreferenceResource> {
 
-    @Autowired
-    private Provider<PreferenceResourceBuilder> builder;
-
     @Override
     public PreferenceResource toResource(UserPreference entity) {
-        return builder.get().addPreference(entity).build();
+        return PreferenceConverter.TO_RESOURCE.apply(entity);
     }
 }

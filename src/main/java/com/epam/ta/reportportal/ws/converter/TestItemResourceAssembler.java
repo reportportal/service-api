@@ -23,20 +23,15 @@ package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.ws.converter.builders.TestItemResourceBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.toList;
@@ -67,17 +62,17 @@ public class TestItemResourceAssembler extends PagedResourcesAssembler<TestItem,
         return resources;
     }
 
-    //TODO check path names
     @Override
-    public TestItemResource toResource(TestItem item) {
-        // initialize map of path names
-        Map<String, String> pathNamesInitValue = new LinkedHashMap<>();
-        for (String pathElement : item.getPath()) {
-            pathNamesInitValue.put(pathElement, null);
-        }
+    public TestItemResource toResource(TestItem entity) {
+        TestItemResource resource = TestItemConverter.TO_RESOURCE.apply(entity);
+        resource.setPathNames(getItemName(entity.getPath()));
+        return resource;
+    }
 
-        final TestItemResource resource = new TestItemResourceBuilder().addTestItem(item, null)
-                .addPathNames(pathNamesInitValue).build();
+    //TODO check path names
+    public TestItemResource toResource(TestItem item, String launchStatus) {
+        TestItemResource resource = TestItemConverter.TO_RESOURCE.apply(item);
+        resource.setLaunchStatus(launchStatus);
         resource.setPathNames(getItemName(item.getPath()));
         return resource;
     }

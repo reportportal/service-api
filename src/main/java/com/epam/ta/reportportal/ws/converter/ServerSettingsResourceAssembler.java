@@ -21,11 +21,9 @@
 
 package com.epam.ta.reportportal.ws.converter;
 
-import com.epam.ta.reportportal.database.entity.settings.ServerEmailDetails;
 import com.epam.ta.reportportal.database.entity.settings.ServerSettings;
-import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
+import com.epam.ta.reportportal.ws.converter.converters.ServerSettingsConverter;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Service;
 
 
@@ -33,31 +31,13 @@ import org.springframework.stereotype.Service;
  * REST Maturity Lvl3 rel object creation for response
  *
  * @author Andrei_Ramanchuk
+ * @author Pavel_Bortnik
  */
 @Service
 public class ServerSettingsResourceAssembler extends ResourceAssembler<ServerSettings, ServerSettingsResource> {
 
     @Override
     public ServerSettingsResource toResource(ServerSettings serverSettings) {
-        ServerSettingsResource resource = new ServerSettingsResource();
-        resource.setProfile(serverSettings.getId());
-        resource.setActive(serverSettings.getActive());
-        ServerEmailDetails serverEmailDetails = serverSettings.getServerEmailDetails();
-        if (null != serverEmailDetails) {
-            ServerEmailResource output = new ServerEmailResource();
-            output.setHost(serverEmailDetails.getHost());
-            output.setPort(serverEmailDetails.getPort());
-            output.setProtocol(serverEmailDetails.getProtocol());
-            output.setAuthEnabled(serverEmailDetails.getAuthEnabled());
-            output.setSslEnabled(BooleanUtils.isTrue(serverEmailDetails.getSslEnabled()) );
-            output.setStarTlsEnabled(BooleanUtils.isTrue(serverEmailDetails.getStarTlsEnabled()));
-            output.setFrom(serverEmailDetails.getFrom());
-            if (serverEmailDetails.getAuthEnabled()) {
-                output.setUsername(serverEmailDetails.getUsername());
-				/* Password field not provided in response */
-            }
-            resource.setServerEmailResource(output);
-        }
-        return resource;
+        return ServerSettingsConverter.TO_RESOURCE.apply(serverSettings);
     }
 }

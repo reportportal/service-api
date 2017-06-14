@@ -22,28 +22,22 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
-import com.epam.ta.reportportal.ws.converter.builders.UserFilterResourceBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.inject.Provider;
 
 /**
  * Resource Assembler for the {@link UserFilter} DB entity.
  *
  * @author Aliaksei_Makayed
+ * @author Pavel_Bortnik
  */
 @Service
-public class UserFilterResourceAssembler extends
-        PagedResourcesAssembler<UserFilter, UserFilterResource> {
-
-    @Autowired
-    private Provider<UserFilterResourceBuilder> filterResourceBuilder;
+public class UserFilterResourceAssembler extends PagedResourcesAssembler<UserFilter, UserFilterResource> {
 
     @Override
     public UserFilterResource toResource(UserFilter userFilter) {
-        return filterResourceBuilder.get().addUserFilter(userFilter).build();
+        return UserFilterConverter.TO_RESOURCE.apply(userFilter);
     }
 
 }

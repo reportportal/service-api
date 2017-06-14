@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.filter.impl;
 
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -55,11 +56,12 @@ public class DeleteUserFilterHandler implements IDeleteUserFilterHandler {
 	}
 
 	@Override
-	public OperationCompletionRS deleteFilter(String filterId, String userName, String projectName) {
+	public OperationCompletionRS deleteFilter(String filterId, String userName, String projectName, UserRole userRole) {
 
 		UserFilter userFilter = filterRepository.findOne(filterId);
 		BusinessRule.expect(userFilter, Predicates.notNull()).verify(ErrorType.USER_FILTER_NOT_FOUND, filterId, userName);
-		AclUtils.isAllowedToEdit(userFilter.getAcl(), userName, projectRepository.findProjectRoles(userName), userFilter.getName());
+		AclUtils.isAllowedToEdit(userFilter.getAcl(), userName, projectRepository.findProjectRoles(userName),
+				userFilter.getName(), userRole);
 		BusinessRule.expect(userFilter.getProjectName(), Predicates.equalTo(projectName)).verify(ErrorType.ACCESS_DENIED);
 
 		try {

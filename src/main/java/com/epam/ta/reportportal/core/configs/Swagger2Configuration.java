@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.search.CriteriaMap;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
 import com.epam.ta.reportportal.database.search.Filter;
@@ -100,6 +101,7 @@ public class Swagger2Configuration {
                 .ignoredParameterTypes(Principal.class)
                 .pathProvider(rpPathProvider())
                 .useDefaultResponseMessages(false)
+				.ignoredParameterTypes(UserRole.class)
                 /* remove default endpoints from listing */
                 .select().apis(not(or(
                         basePackage("org.springframework.boot"),

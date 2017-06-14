@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -58,7 +59,7 @@ public class DeleteDashboardHandler implements IDeleteDashboardHandler {
     }
 
     @Override
-    public OperationCompletionRS deleteDashboard(String dashboardId, String userName, String projectName) {
+    public OperationCompletionRS deleteDashboard(String dashboardId, String userName, String projectName, UserRole userRole) {
 
         Dashboard dashboard = dashboardRepository.findOne(dashboardId);
 
@@ -68,7 +69,7 @@ public class DeleteDashboardHandler implements IDeleteDashboardHandler {
         Map<String, ProjectRole> roles = userProjects
                 .stream().collect(Collectors.toMap(Project::getName, p -> p.getUsers().get(userName).getProjectRole()));
 
-        AclUtils.isAllowedToEdit(dashboard.getAcl(), userName, roles, dashboard.getName());
+        AclUtils.isAllowedToEdit(dashboard.getAcl(), userName, roles, dashboard.getName(), userRole);
 
         BusinessRule.expect(dashboard.getProjectName(), Predicates.equalTo(projectName))
                 .verify(ErrorType.ACCESS_DENIED);

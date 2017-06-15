@@ -21,6 +21,7 @@
  
 package com.epam.ta.reportportal.core.filter;
 
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -45,10 +46,12 @@ public interface IUpdateUserFilterHandler {
 	 * @param userFilterId
 	 * @param userName
 	 * @param projectName
+	 * @param userRole
 	 * @return OperationCompletionRS
 	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS updateUserFilter(String userFilterId, UpdateUserFilterRQ updateRQ, String userName, String projectName);
+	OperationCompletionRS updateUserFilter(String userFilterId, UpdateUserFilterRQ updateRQ, String userName,
+										   String projectName, UserRole userRole);
 
 	/**
 	 * Update user filter
@@ -56,8 +59,10 @@ public interface IUpdateUserFilterHandler {
 	 * @param updateRQ
 	 * @param userName
 	 * @param projectName
+	 * @param userRole
 	 * @return
 	 */
-	List<OperationCompletionRS> updateUserFilter(CollectionsRQ<BulkUpdateFilterRQ> updateRQ, String userName, String projectName);
+	List<OperationCompletionRS> updateUserFilter(CollectionsRQ<BulkUpdateFilterRQ> updateRQ, String userName,
+												 String projectName, UserRole userRole);
 
 }

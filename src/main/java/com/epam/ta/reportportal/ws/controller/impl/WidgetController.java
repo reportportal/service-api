@@ -21,40 +21,34 @@
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-
-import java.security.Principal;
-import java.util.List;
-import java.util.Map;
-
-import com.epam.ta.reportportal.ws.validation.WidgetRQCustomValidator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
 import com.epam.ta.reportportal.core.widget.ICreateWidgetHandler;
 import com.epam.ta.reportportal.core.widget.IGetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.controller.IWidgetController;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
-
+import com.epam.ta.reportportal.ws.resolver.ActiveRole;
+import com.epam.ta.reportportal.ws.validation.WidgetRQCustomValidator;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
+
+import java.security.Principal;
+import java.util.List;
+import java.util.Map;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 
 /**
  * Controller implementation for
@@ -111,8 +105,8 @@ public class WidgetController implements IWidgetController {
 	@ResponseBody
 	@ApiOperation("Update specified widget")
 	public OperationCompletionRS updateWidget(@PathVariable String projectName, @PathVariable String widgetId,
-			@RequestBody @Validated WidgetRQ updateRQ, Principal principal) {
-		return updateHandler.updateWidget(widgetId, updateRQ, principal.getName(), normalizeId(projectName));
+											  @RequestBody @Validated WidgetRQ updateRQ, @ActiveRole UserRole userRole, Principal principal) {
+		return updateHandler.updateWidget(widgetId, updateRQ, principal.getName(), normalizeId(projectName), userRole);
 	}
 
 	@Override

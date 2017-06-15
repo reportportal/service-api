@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.Dashboard.WidgetObject;
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.events.DashboardUpdatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -78,13 +79,15 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 	}
 
 	@Override
-	public OperationCompletionRS updateDashboard(UpdateDashboardRQ rq, String dashboardId, String userName, String projectName) {
+	public OperationCompletionRS updateDashboard(UpdateDashboardRQ rq, String dashboardId, String userName,
+												 String projectName, UserRole userRole) {
 
 		StringBuilder additionalInfo = new StringBuilder();
 		Dashboard dashboard = dashboardRepository.findOne(dashboardId);
 		expect(dashboard, notNull()).verify(DASHBOARD_NOT_FOUND, dashboardId);
 
-		AclUtils.isAllowedToEdit(dashboard.getAcl(), userName, projectRepository.findProjectRoles(userName), dashboard.getName());
+		AclUtils.isAllowedToEdit(dashboard.getAcl(), userName, projectRepository.findProjectRoles(userName),
+				dashboard.getName(), userRole);
 		expect(dashboard.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
 
 		ofNullable(rq.getName()).ifPresent(it -> {

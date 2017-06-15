@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
@@ -101,9 +102,10 @@ public interface IUserFilterController {
      * @param filterId    ID of filter
      * @param projectName Project Name
      * @param principal   User performing this request
+     * @param userRole
      * @return OperationCompletionRS
      */
-    OperationCompletionRS deleteFilter(String projectName, String filterId, Principal principal);
+    OperationCompletionRS deleteFilter(String projectName, String filterId, UserRole userRole, Principal principal);
 
     /**
      * Get all user filter's names
@@ -124,7 +126,7 @@ public interface IUserFilterController {
      * @return {@link OperationCompletionRS}
      */
     OperationCompletionRS updateUserFilter(String projectName, String userFilterId, UpdateUserFilterRQ updateRQ,
-            Principal principal);
+            Principal principal, UserRole userRole);
 
     /**
      * Get user filters
@@ -145,6 +147,6 @@ public interface IUserFilterController {
      * @return Operation result
      */
     List<OperationCompletionRS> updateUserFilters(String projectName, CollectionsRQ<BulkUpdateFilterRQ> updateRQ,
-            Principal principal);
+            Principal principal, UserRole userRole);
 
 }

@@ -18,8 +18,9 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.epam.ta.reportportal.core.filter.impl;
+package com.epam.ta.reportportal.core.filter;
 
+import com.epam.ta.reportportal.core.filter.impl.DeleteUserFilterHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.entity.ProjectRole;

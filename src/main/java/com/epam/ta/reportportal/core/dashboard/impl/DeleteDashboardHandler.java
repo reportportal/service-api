@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.core.dashboard.IDeleteDashboardHandler;
 import com.epam.ta.reportportal.database.dao.DashboardRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Dashboard;
-import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -37,9 +36,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Default implementation of {@link IDeleteDashboardHandler}
@@ -60,17 +57,10 @@ public class DeleteDashboardHandler implements IDeleteDashboardHandler {
 
     @Override
     public OperationCompletionRS deleteDashboard(String dashboardId, String userName, String projectName, UserRole userRole) {
-
         Dashboard dashboard = dashboardRepository.findOne(dashboardId);
-
         BusinessRule.expect(dashboard, Predicates.notNull()).verify(ErrorType.DASHBOARD_NOT_FOUND, dashboardId);
-
-        final List<Project> userProjects = projectRepository.findUserProjects(userName);
-        Map<String, ProjectRole> roles = userProjects
-                .stream().collect(Collectors.toMap(Project::getName, p -> p.getUsers().get(userName).getProjectRole()));
-
+        Map<String, ProjectRole> roles = projectRepository.findProjectRoles(userName);
         AclUtils.isAllowedToEdit(dashboard.getAcl(), userName, roles, dashboard.getName(), userRole);
-
         BusinessRule.expect(dashboard.getProjectName(), Predicates.equalTo(projectName))
                 .verify(ErrorType.ACCESS_DENIED);
 

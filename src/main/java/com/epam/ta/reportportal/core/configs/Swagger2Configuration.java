@@ -54,6 +54,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.servlet.ServletContext;
 import java.security.Principal;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -94,7 +95,7 @@ public class Swagger2Configuration {
 		/* For more information see default params at {@link ApiInfo} */
 		ApiInfo rpInfo = new ApiInfo("Report Portal", "Report Portal API documentation", buildVersion, "urn:tos",
 				new Contact("EPAM Systems", "http://epam.com", "Support EPMC-TST Report Portal <SupportEPMC-TSTReportPortal@epam.com>"),
-				"GPLv3", "https://www.gnu.org/licenses/licenses.html#GPL");
+				"GPLv3", "https://www.gnu.org/licenses/licenses.html#GPL", Collections.emptyList());
 
 		// @formatter:off
         Docket rpDocket = new Docket(DocumentationType.SWAGGER_2)
@@ -149,8 +150,10 @@ public class Swagger2Configuration {
 		}
 
 		private Function<ResolvedType, ? extends ModelReference> createModelRefFactory(ParameterContext context) {
-			ModelContext modelContext = inputParam(context.resolvedMethodParameter().getParameterType(), context.getDocumentationType(),
-					context.getAlternateTypeProvider(), context.getGenericNamingStrategy(), context.getIgnorableParameterTypes());
+			ModelContext modelContext = inputParam(context.getGroupName(),
+					resolver.resolve(context.resolvedMethodParameter().getParameterType()),
+					context.getDocumentationType(), context.getAlternateTypeProvider(),
+					context.getGenericNamingStrategy(), context.getIgnorableParameterTypes());
 			return modelRefFactory(modelContext, nameExtractor);
 		}
 

@@ -21,6 +21,7 @@
  
 package com.epam.ta.reportportal.core.widget;
 
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
@@ -39,9 +40,11 @@ public interface IUpdateWidgetHandler {
 	 * @param updateRQ
 	 * @param userName
 	 * @param projectName
-	 * @return OperationCompletionRS
+	 * @param userRole
+     * @return OperationCompletionRS
 	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS updateWidget(String widgetId, WidgetRQ updateRQ, String userName, String projectName);
+	OperationCompletionRS updateWidget(String widgetId, WidgetRQ updateRQ, String userName,
+									   String projectName, UserRole userRole);
 
 }

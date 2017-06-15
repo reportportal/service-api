@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.database.search.CriteriaMap;
@@ -56,9 +57,9 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Default implementation of {@link IUpdateWidgetHandler}
- * 
+ *
  * @author Aliaksei_Makayed
- * 
+ *
  */
 @Service
 public class UpdateWidgetHandler implements IUpdateWidgetHandler {
@@ -85,7 +86,8 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 	private ApplicationEventPublisher eventPublisher;
 
 	@Override
-	public OperationCompletionRS updateWidget(String widgetId, WidgetRQ updateRQ, String userName, String projectName) {
+	public OperationCompletionRS updateWidget(String widgetId, WidgetRQ updateRQ, String userName,
+											  String projectName, UserRole userRole) {
 		Widget widget = widgetRepository.findOne(widgetId);
 		Widget beforeUpdate = SerializationUtils.clone(widget);
 		expect(widget, notNull()).verify(WIDGET_NOT_FOUND, widgetId);
@@ -96,7 +98,8 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 		}
 		widget.setDescription(updateRQ.getDescription());
 
-		AclUtils.isAllowedToEdit(widget.getAcl(), userName, projectRepository.findProjectRoles(userName), widget.getName());
+		AclUtils.isAllowedToEdit(widget.getAcl(), userName, projectRepository.findProjectRoles(userName),
+                widget.getName(), userRole);
 		expect(widget.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
 
 		UserFilter newFilter = null;
@@ -151,7 +154,7 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 	/**
 	 * Validate is content fields known to server and if them agreed with
 	 * filter(new filter or current filter).
-	 * 
+	 *
 	 * @param newWidget
 	 * @param newFilter
 	 * @param widget

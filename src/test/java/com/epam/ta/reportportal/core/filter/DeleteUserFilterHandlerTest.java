@@ -18,14 +18,16 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.epam.ta.reportportal.core.filter.impl;
+package com.epam.ta.reportportal.core.filter;
 
+import com.epam.ta.reportportal.core.filter.impl.DeleteUserFilterHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.sharing.Acl;
 import com.epam.ta.reportportal.database.entity.sharing.AclEntry;
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.ImmutableMap;
@@ -56,7 +58,7 @@ public class DeleteUserFilterHandlerTest {
     public void deleteFilterByOwner() {
         when(userFilterRepository.findOne(FILTER)).thenReturn(getOwnerFilter());
         when(projectRepository.findProjectRoles(SIMPLE_USER)).thenReturn(getProjectRolesForSimpleUser());
-        OperationCompletionRS operationCompletionRS = handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT);
+        OperationCompletionRS operationCompletionRS = handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT, UserRole.USER);
         assertTrue(operationCompletionRS.getResultMessage().contains(FILTER));
     }
 
@@ -64,21 +66,29 @@ public class DeleteUserFilterHandlerTest {
     public void negativeDeleteFilter() {
         when(userFilterRepository.findOne(FILTER)).thenReturn(getNotOwnerFilter());
         when(projectRepository.findProjectRoles(SIMPLE_USER)).thenReturn(getProjectRolesForSimpleUser());
-        handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT);
+        handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT, UserRole.USER);
     }
 
     @Test(expected = ReportPortalException.class)
     public void negativeDeleteFilterNull() {
         when(userFilterRepository.findOne(FILTER)).thenReturn(null);
-        handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT);
+        handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT, UserRole.USER);
     }
 
     @Test
     public void deleteFilterByPm() {
         when(userFilterRepository.findOne(FILTER)).thenReturn(getNotOwnerFilter());
         when(projectRepository.findProjectRoles(SIMPLE_USER)).thenReturn(getProjectRolesForSimpleUserWithPmRole());
-        OperationCompletionRS operationCompletionRS = handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT);
+        OperationCompletionRS operationCompletionRS = handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT, UserRole.USER);
         assertTrue(operationCompletionRS.getResultMessage().contains(FILTER));
+    }
+
+    @Test
+    public void deleteFilterByAdmin() {
+        when(userFilterRepository.findOne(FILTER)).thenReturn(getNotOwnerFilter());
+        when(projectRepository.findProjectRoles(SIMPLE_USER)).thenReturn(getProjectRolesForSimpleUser());
+        OperationCompletionRS rs = handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT, UserRole.ADMINISTRATOR);
+        assertTrue(rs.getResultMessage().contains(FILTER));
     }
 
     private UserFilter getNotOwnerFilter() {

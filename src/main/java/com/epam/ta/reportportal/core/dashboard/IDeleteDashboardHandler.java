@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.dashboard;
 
 import com.epam.ta.reportportal.database.entity.Dashboard;
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
@@ -42,5 +43,5 @@ public interface IDeleteDashboardHandler {
 	 * @return {@link OperationCompletionRS}
 	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS deleteDashboard(String dashboardId, String userName, String projectName);
+	OperationCompletionRS deleteDashboard(String dashboardId, String userName, String projectName, UserRole userRole);
 }

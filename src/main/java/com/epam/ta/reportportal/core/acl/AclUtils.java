@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.database.entity.sharing.Acl;
 import com.epam.ta.reportportal.database.entity.sharing.AclEntry;
 import com.epam.ta.reportportal.database.entity.sharing.AclPermissions;
 import com.epam.ta.reportportal.database.entity.sharing.Shareable;
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 
 import java.util.Map;
@@ -74,12 +75,14 @@ public class AclUtils {
     }
 
     // TODO consider move this validation to permission validation layer
-    public static void isAllowedToEdit(Acl acl, String userModifier, Map<String, ProjectRole> userProjects, String resourceName) {
-        BusinessRule.expect(acl,
-                Preconditions.isOwner(userModifier).or(hasProjectRole(userProjects, ProjectRole.PROJECT_MANAGER)))
-                .verify(ErrorType.UNABLE_MODIFY_SHARABLE_RESOURCE,
-                        Suppliers.formattedSupplier("User {} isn't owner of {} resource.", userModifier, resourceName));
-
+    public static void isAllowedToEdit(Acl acl, String userModifier, Map<String, ProjectRole> userProjects,
+                                       String resourceName, UserRole userRole) {
+        if (!UserRole.ADMINISTRATOR.equals(userRole)) {
+            BusinessRule.expect(acl,
+                    Preconditions.isOwner(userModifier).or(hasProjectRole(userProjects, ProjectRole.PROJECT_MANAGER)))
+                    .verify(ErrorType.UNABLE_MODIFY_SHARABLE_RESOURCE,
+                            Suppliers.formattedSupplier("User {} isn't owner of {} resource.", userModifier, resourceName));
+        }
     }
 
     /**
@@ -116,7 +119,7 @@ public class AclUtils {
     }
 
     /**
-     * @param acl ACL entry
+     * @param acl         ACL entry
      * @param projectName Project Name
      */
     public static void share(Acl acl, String projectName) {

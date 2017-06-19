@@ -21,6 +21,7 @@
  
 package com.epam.ta.reportportal.core.dashboard;
 
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
@@ -41,5 +42,6 @@ public interface IUpdateDashboardHandler {
 	 * @return OperationCompletionRS
 	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS updateDashboard(UpdateDashboardRQ rq, String dashboardId, String userName, String projectName);
+	OperationCompletionRS updateDashboard(UpdateDashboardRQ rq, String dashboardId, String userName,
+										  String projectName, UserRole userRole);
 }

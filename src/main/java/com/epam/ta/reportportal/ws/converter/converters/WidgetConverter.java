@@ -59,7 +59,7 @@ public final class WidgetConverter {
         });
         Optional.ofNullable(widget.getAcl()).ifPresent(acl -> {
             widgetResource.setOwner(acl.getOwnerUserId());
-            widgetResource.setShare(acl.getEntries().isEmpty());
+            widgetResource.setShare(!acl.getEntries().isEmpty());
         });
         return widgetResource;
     };

@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -81,7 +82,7 @@ public interface IDashboardController {
      * @throws ReportPortalException
      */
     OperationCompletionRS updateDashboard(String projectName, String dashboardId, UpdateDashboardRQ updateRQ,
-            Principal principal);
+            Principal principal, UserRole userRole);
 
     /**
      * Delete dashboard with specified id.
@@ -92,7 +93,7 @@ public interface IDashboardController {
      * @return OperationCompletionRS
      * @throws ReportPortalException
      */
-    OperationCompletionRS deleteDashboard(String projectName, String dashboardId, Principal principal);
+    OperationCompletionRS deleteDashboard(String projectName, String dashboardId, UserRole userRole, Principal principal);
 
     /**
      * Get all dashboards for current user

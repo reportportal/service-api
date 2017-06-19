@@ -21,34 +21,12 @@
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-
-import java.security.Principal;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-import com.epam.ta.reportportal.ws.resolver.FilterFor;
-import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.IDeleteUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.IGetUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.IUpdateUserFilterHandler;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.controller.IUserFilterController;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
@@ -59,8 +37,24 @@ import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
-
+import com.epam.ta.reportportal.ws.resolver.ActiveRole;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
+import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.util.List;
+import java.util.Map;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 
 /**
  * Controller implementation for
@@ -142,8 +136,9 @@ public class UserFilterController implements IUserFilterController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @ApiOperation("Delete specified user filter by id")
-    public OperationCompletionRS deleteFilter(@PathVariable String projectName, @PathVariable String filterId, Principal principal) {
-        return deleteFilterHandler.deleteFilter(filterId, principal.getName(), normalizeId(projectName));
+    public OperationCompletionRS deleteFilter(@PathVariable String projectName, @PathVariable String filterId,
+                                              @ActiveRole UserRole userRole, Principal principal) {
+        return deleteFilterHandler.deleteFilter(filterId, principal.getName(), normalizeId(projectName), userRole);
     }
 
     @Override
@@ -162,9 +157,9 @@ public class UserFilterController implements IUserFilterController {
     @ResponseStatus(HttpStatus.OK)
     @ApiOperation("Update specified user filter")
     public OperationCompletionRS updateUserFilter(@PathVariable String projectName, @PathVariable String filterId,
-            @RequestBody @Validated UpdateUserFilterRQ updateRQ, Principal principal) {
+            @RequestBody @Validated UpdateUserFilterRQ updateRQ, Principal principal, @ActiveRole UserRole userRole) {
         return updateUserFilterHandler.updateUserFilter(filterId, updateRQ, principal.getName(),
-                normalizeId(projectName));
+                normalizeId(projectName), userRole);
     }
 
     @Override
@@ -183,7 +178,7 @@ public class UserFilterController implements IUserFilterController {
     @ResponseStatus(HttpStatus.OK)
     @ApiOperation("Update list of user filters")
     public List<OperationCompletionRS> updateUserFilters(@PathVariable String projectName,
-            @RequestBody @Validated CollectionsRQ<BulkUpdateFilterRQ> updateRQ, Principal principal) {
-        return updateUserFilterHandler.updateUserFilter(updateRQ, principal.getName(), normalizeId(projectName));
+            @RequestBody @Validated CollectionsRQ<BulkUpdateFilterRQ> updateRQ, Principal principal, @ActiveRole UserRole userRole) {
+        return updateUserFilterHandler.updateUserFilter(updateRQ, principal.getName(), normalizeId(projectName), userRole);
     }
 }

@@ -21,29 +21,11 @@
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
-
-import java.security.Principal;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
 import com.epam.ta.reportportal.core.dashboard.ICreateDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.IDeleteDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.IGetDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.IUpdateDashboardHandler;
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.controller.IDashboardController;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -51,8 +33,21 @@ import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
-
+import com.epam.ta.reportportal.ws.resolver.ActiveRole;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.util.Map;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 
 /**
  * Controller implementation for
@@ -112,8 +107,8 @@ public class DashboardController implements IDashboardController {
 	@ResponseStatus(OK)
 	@ApiOperation("Update specified dashboard for specified project")
 	public OperationCompletionRS updateDashboard(@PathVariable String projectName, @PathVariable String dashboardId,
-			@RequestBody @Validated UpdateDashboardRQ updateRQ, Principal principal) {
-		return updateHandler.updateDashboard(updateRQ, dashboardId, principal.getName(), normalizeId(projectName));
+			@RequestBody @Validated UpdateDashboardRQ updateRQ, Principal principal, @ActiveRole UserRole userRole) {
+		return updateHandler.updateDashboard(updateRQ, dashboardId, principal.getName(), normalizeId(projectName), userRole);
 	}
 
 	@Override
@@ -121,8 +116,9 @@ public class DashboardController implements IDashboardController {
 	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiOperation("Delete specified dashboard by ID for specified project")
-	public OperationCompletionRS deleteDashboard(@PathVariable String projectName, @PathVariable String dashboardId, Principal principal) {
-		return deleteHandler.deleteDashboard(dashboardId, principal.getName(), normalizeId(projectName));
+	public OperationCompletionRS deleteDashboard(@PathVariable String projectName, @PathVariable String dashboardId,
+												 @ActiveRole UserRole userRole, Principal principal) {
+		return deleteHandler.deleteDashboard(dashboardId, principal.getName(), normalizeId(projectName), userRole);
 	}
 
 	@Override

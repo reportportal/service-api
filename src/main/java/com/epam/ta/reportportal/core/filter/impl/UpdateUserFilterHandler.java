@@ -39,6 +39,7 @@ import java.util.stream.StreamSupport;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.entity.user.UserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -82,12 +83,14 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 	private SharingService sharingService;
 
 	@Override
-	public OperationCompletionRS updateUserFilter(String userFilterId, UpdateUserFilterRQ updateRQ, String userName, String projectName) {
+	public OperationCompletionRS updateUserFilter(String userFilterId, UpdateUserFilterRQ updateRQ, String userName,
+												  String projectName, UserRole userRole) {
 
 		UserFilter existingFilter = userFilterRepository.findOne(userFilterId);
 
 		expect(existingFilter, notNull()).verify(USER_FILTER_NOT_FOUND, userFilterId, userName);
-		AclUtils.isAllowedToEdit(existingFilter.getAcl(), userName, projectRepository.findProjectRoles(userName), existingFilter.getName());
+		AclUtils.isAllowedToEdit(existingFilter.getAcl(), userName, projectRepository.findProjectRoles(userName),
+				existingFilter.getName(), userRole);
 		expect(existingFilter.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
 
 		// added synchronization because if user1 in one session checked that
@@ -107,7 +110,7 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 
 	@Override
 	public List<OperationCompletionRS> updateUserFilter(CollectionsRQ<BulkUpdateFilterRQ> updateFilterRQs, String userName,
-			String projectName) {
+			String projectName, UserRole userRole) {
 
 		Set<String> idsToLoad = updateFilterRQs.getElements().stream().map(BulkUpdateFilterRQ::getId).collect(toSet());
 		expect(idsToLoad.size(), equalTo(updateFilterRQs.getElements().size())).verify(BAD_REQUEST_ERROR);
@@ -126,7 +129,7 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 			List<UserFilter> updatedFilters = new ArrayList<>(idsToLoad.size());
 			for (int i = 0; i < updateFilterRQs.getElements().size(); i++) {
 				AclUtils.isAllowedToEdit(userFilters[i].getAcl(), userName,
-						projectRoles, userFilters[i].getName());
+						projectRoles, userFilters[i].getName(), userRole);
 				String name = updateFilterRQs.getElements().get(i).getName();
 				if (null != name && !name.equals(userFilters[i].getName())) {
 					userFilterService.isFilterNameUnique(userName, updateFilterRQs.getElements().get(i).getName(), projectName);

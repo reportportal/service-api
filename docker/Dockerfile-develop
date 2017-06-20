@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-alpine
+FROM openjdk:8-jre
 
 MAINTAINER Andrei Varabyeu <andrei_varabyeu@epam.com>
 LABEL version="@version@"
@@ -6,7 +6,9 @@ LABEL description="@description@"
 
 ENV JAVA_OPTS="-Xmx1g"
 
-RUN apk --no-cache add ttf-droid ttf-dejavu
+RUN apt-get update && \
+    apt-get install -y fonts-droid && \
+    rm -rf /var/lib/apt/lists/*
 
 VOLUME /tmp
 ADD @name@-@version@.jar app.jar
@@ -14,5 +16,5 @@ ADD @name@-@version@.jar app.jar
 RUN sh -c 'touch /app.jar'
 EXPOSE 8080
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -Djava.awt.headless=true -jar /app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app.jar"]
 

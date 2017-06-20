@@ -86,6 +86,24 @@ public class AclUtils {
     }
 
     /**
+     * Checks all cases before deleting specified widget from database.
+     * Widget could be deleted when modifier is owner of widget,
+     * when admin or project manager deletes it from shared dashboard
+     *
+     * @param dashboardAcl where widget is
+     * @param widgetAcl    widget's acl
+     * @param modifier     id of modifier
+     * @param projectRole  modifier's project role
+     * @param userRole     modifier's role
+     * @return
+     */
+    public static boolean isAllowedToDeleteWidget(Acl dashboardAcl, Acl widgetAcl, String modifier,
+                                                  ProjectRole projectRole, UserRole userRole) {
+        return dashboardAcl.getEntries().isEmpty() && widgetAcl.getOwnerUserId().equals(modifier) ||
+                !dashboardAcl.getEntries().isEmpty() && (UserRole.ADMINISTRATOR.equals(userRole) || ProjectRole.PROJECT_MANAGER.equals(projectRole));
+    }
+
+    /**
      * Validate is specified acl owned by specified user or is shared to
      * specified project
      *

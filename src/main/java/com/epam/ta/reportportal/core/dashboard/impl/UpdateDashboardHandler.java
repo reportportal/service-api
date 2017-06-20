@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.Dashboard.WidgetObject;
+import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.events.DashboardUpdatedEvent;
@@ -43,6 +44,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -86,7 +88,8 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 		Dashboard dashboard = dashboardRepository.findOne(dashboardId);
 		expect(dashboard, notNull()).verify(DASHBOARD_NOT_FOUND, dashboardId);
 
-		AclUtils.isAllowedToEdit(dashboard.getAcl(), userName, projectRepository.findProjectRoles(userName),
+		Map<String, ProjectRole> projectRoles = projectRepository.findProjectRoles(userName);
+		AclUtils.isAllowedToEdit(dashboard.getAcl(), userName, projectRoles,
 				dashboard.getName(), userRole);
 		expect(dashboard.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
 
@@ -153,10 +156,14 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 		// remove widget
 		ofNullable(rq.getDeleteWidgetId()).ifPresent(it -> {
 			expect(dashboard.getWidgets(), hasWidget(it)).verify(WIDGET_NOT_FOUND_IN_DASHBOARD, it, dashboardId);
+			//remove from dashboard
+			dashboard.getWidgets().removeIf(w -> w.getWidgetId().equals(it));
+			Widget widget = widgetRepository.findOneLoadACL(it);
 			try {
-                widgetRepository.delete(it);
-                //remove from dashboard
-                dashboard.getWidgets().removeIf(w -> w.getWidgetId().equals(it));
+				if (AclUtils.isAllowedToDeleteWidget(dashboard.getAcl(), widget.getAcl(), userName,
+						projectRoles.get(projectName), userRole)) {
+					widgetRepository.delete(it);
+				}
 			} catch (Exception e) {
 				throw new ReportPortalException("Error during deleting widget", e);
 			}

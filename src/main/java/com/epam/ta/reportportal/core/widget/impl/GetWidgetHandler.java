@@ -38,9 +38,9 @@ import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -81,7 +81,8 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 		this.userFilterRepository = userFilterRepository;
 	}
 
-	@Resource(name = "buildFilterStrategy")
+	@Autowired
+	@Qualifier("buildFilterStrategy")
 	public void setBuildFilterStrategy(Map<GadgetTypes, BuildFilterStrategy> buildFilterStrategy) {
 		this.buildFilterStrategy = buildFilterStrategy;
 	}

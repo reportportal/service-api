@@ -95,6 +95,11 @@ class DemoLogsService {
         try {
             Attachment attachment = randomAttachment();
             String file = saveResource(attachment.getContentType(), attachment.getResource());
+            if (attachment.equals(Attachment.PNG)) {
+                String thumbnail = saveResource(attachment.getContentType(),
+                        new ClassPathResource("demo/attachments/img_tn.png"));
+                return new BinaryContent(file, thumbnail, attachment.getContentType());
+            }
             return new BinaryContent(file, file, attachment.getContentType());
         } catch (IOException e) {
             throw new ReportPortalException("Unable to save binary data", e);
@@ -103,7 +108,7 @@ class DemoLogsService {
 
     private String saveResource(String contentType, ClassPathResource resource) throws IOException {
         return dataStorage.saveData(new BinaryData(contentType,
-                resource.contentLength(), resource.getInputStream()), "file");
+                resource.contentLength(), resource.getInputStream()), resource.getFilename());
     }
 
     private Attachment randomAttachment() {

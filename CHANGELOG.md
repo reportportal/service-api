@@ -118,4 +118,5 @@
 * EPMRPP-25526 - Unshared filter is still shown on Launches page for not owner
 * EPMRPP-25476 - WS: Make 'share'/'isShare' parameter written the same for POST and GET methods
 * EPMRPP-25782 - Share option of widgets is not saved on backend
+* EPMRPP-26002 - Shared widget is deleted from system in case it was removed from own dashboard
 * EPMRPP-26020 - 500 error on attempt to delete not existed widget

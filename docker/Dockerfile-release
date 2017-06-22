@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-alpine
+FROM openjdk:8-jre
 
 LABEL maintainer "Andrei Varabyeu <andrei_varabyeu@epam.com>"
 LABEL version="@version@"
@@ -8,7 +8,9 @@ ENV APP_FILE @name@-@version@
 ENV APP_DOWNLOAD_URL https://dl.bintray.com/epam/reportportal/com/epam/reportportal/@name@/@version@/$APP_FILE.jar
 ENV JAVA_OPTS="-Xmx1g"
 
-RUN apk --no-cache add ttf-droid openssl
+RUN apt-get update && \
+    apt-get install -y fonts-droid && \
+    rm -rf /var/lib/apt/lists/*
 
 VOLUME /tmp
 RUN wget -O /app.jar $APP_DOWNLOAD_URL

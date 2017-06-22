@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.core.widget.ICreateWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.GadgetTypes;
 import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.dao.WidgetRepository;
+import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
@@ -106,7 +107,8 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 		validateGadgetType(createWidgetRQ.getContentParameters().getGadget(), BAD_SAVE_WIDGET_REQUEST);
 
 		if ((findByName(createWidgetRQ.getContentParameters().getGadget()).get() != ACTIVITY)
-				&& (findByName(createWidgetRQ.getContentParameters().getGadget()).get() != MOST_FAILED_TEST_CASES)) {
+				&& (findByName(createWidgetRQ.getContentParameters().getGadget()).get() != MOST_FAILED_TEST_CASES)
+				&& (findByName(createWidgetRQ.getContentParameters().getGadget()).get() != PASSING_RATE_PER_LAUNCH)) {
 			checkApplyingFilter(filter, createWidgetRQ.getApplyingFilter(), userName);
 		}
 
@@ -133,6 +135,8 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 			filterTarget = Activity.class;
 		} else if (gadget == MOST_FAILED_TEST_CASES) {
 			filterTarget = TestItem.class;
+		} else if (gadget == PASSING_RATE_PER_LAUNCH) {
+			filterTarget = Launch.class;
 		} else {
 			filterTarget = filter.getFilter().getTarget();
 		}

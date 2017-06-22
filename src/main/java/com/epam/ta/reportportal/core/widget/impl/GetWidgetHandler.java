@@ -160,7 +160,9 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 	}
 
 	private boolean isRequireUserFilter(GadgetTypes gadgetType, Optional<UserFilter> userFilter) {
-		return !(!userFilter.isPresent() && (gadgetType != GadgetTypes.ACTIVITY) && (gadgetType != GadgetTypes.MOST_FAILED_TEST_CASES));
+		return !(!userFilter.isPresent() && (gadgetType != GadgetTypes.ACTIVITY)
+				&& (gadgetType != GadgetTypes.MOST_FAILED_TEST_CASES)
+				&& (gadgetType != GadgetTypes.PASSING_RATE_PER_LAUNCH));
 	}
 
 	private boolean isFilterUnShared(String userName, String project, Optional<UserFilter> userFilter) {

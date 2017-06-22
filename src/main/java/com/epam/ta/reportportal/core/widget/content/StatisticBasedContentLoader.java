@@ -40,6 +40,8 @@ public class StatisticBasedContentLoader {
 
 	public static final String RESULT = "result";
 	public static final String TIMELINE = "timeline";
+	public static final String TOTAL_FIELD = "total";
+	public static final String PASSED_FIELD = "passed";
 
 	private static final String PASSED = "statistics.executionCounter.passed";
 	private static final String FAILED = "statistics.executionCounter.failed";

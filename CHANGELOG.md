@@ -99,7 +99,8 @@
 
 * EPMRPP-25011 - Created demo data generation for project with test based strategy
 * EPMRPP-25456 - Reduced memory usage by scheduled jobs
-* Implemented deep launches merge
+* EPMRPP-12090 - Implemented deep launches merge
+* EPMRPP-26010 - Implemented Passing rate widget
 
 ### Bugfixes
 
@@ -117,3 +118,4 @@
 * EPMRPP-25526 - Unshared filter is still shown on Launches page for not owner
 * EPMRPP-25476 - WS: Make 'share'/'isShare' parameter written the same for POST and GET methods
 * EPMRPP-25782 - Share option of widgets is not saved on backend
+* EPMRPP-26020 - 500 error on attempt to delete not existed widget

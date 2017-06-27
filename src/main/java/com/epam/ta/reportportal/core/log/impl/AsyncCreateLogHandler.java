@@ -28,13 +28,14 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.core.log.ICreateLogHandler;
-import com.epam.ta.reportportal.database.BinaryData;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Nonnull;
 import javax.inject.Provider;
 
 /**
@@ -62,7 +63,8 @@ public class AsyncCreateLogHandler extends CreateLogHandler implements ICreateLo
 	private TaskExecutor taskExecutor;
 
 	@Override
-	public EntryCreatedRS createLog(SaveLogRQ createLogRQ, BinaryData binaryData, String filename, String projectName) {
+	@Nonnull
+	public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, String projectName) {
 		TestItem testItem = testItemRepository.findOne(createLogRQ.getTestItemId());
 		validate(testItem, createLogRQ);
 
@@ -74,9 +76,9 @@ public class AsyncCreateLogHandler extends CreateLogHandler implements ICreateLo
 			throw new ReportPortalException("Error while Log instance creating.", exc);
 		}
 
-		if (null != binaryData) {
+		if (null != file) {
 			taskExecutor.execute(
-					saveBinaryDataJob.get().withProject(projectName).withBinaryData(binaryData).withFilename(filename).withLog(log));
+					saveBinaryDataJob.get().withProject(projectName).withFile(file).withLog(log));
 		}
 		return new EntryCreatedRS(log.getId());
 	}

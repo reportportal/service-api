@@ -81,7 +81,7 @@ dependencies {
         compile('com.github.reportportal:commons-dao:3.0.1')
         compile('com.github.reportportal:commons-rules:3.0.1')
         compile 'com.github.reportportal:commons-model:3.0.1'
-        compile ('com.github.reportportal:commons:3.0.1')
+        compile ('com.github.reportportal:commons:6dbe5c6')
     }
 
     compile 'org.jasypt:jasypt:1.9.2'

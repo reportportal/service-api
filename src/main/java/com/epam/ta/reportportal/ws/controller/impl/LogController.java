@@ -21,7 +21,6 @@
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import com.epam.reportportal.commons.ContentTypeResolver;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -43,7 +42,6 @@ import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.collect.ImmutableMap;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +62,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.Path.Node;
 import javax.validation.Validator;
-import java.io.ByteArrayInputStream;
 import java.io.Serializable;
 import java.security.Principal;
 import java.util.*;
@@ -85,16 +82,14 @@ public class LogController implements ILogController {
     private final ICreateLogHandler createLogMessageHandler;
     private final IDeleteLogHandler deleteLogMessageHandler;
     private final IGetLogHandler getLogHandler;
-    private final ContentTypeResolver contentTypeResolver;
     private final Validator validator;
 
     @Autowired
     public LogController(ICreateLogHandler createLogMessageHandler, IDeleteLogHandler deleteLogMessageHandler,
-            IGetLogHandler getLogHandler, ContentTypeResolver contentTypeResolver, Validator validator) {
+            IGetLogHandler getLogHandler, Validator validator) {
         this.createLogMessageHandler = createLogMessageHandler;
         this.deleteLogMessageHandler = deleteLogMessageHandler;
         this.getLogHandler = getLogHandler;
-        this.contentTypeResolver = contentTypeResolver;
         this.validator = validator;
     }
 
@@ -152,19 +147,10 @@ public class LogController implements ILogController {
 					 * data
 					 */
                     //noinspection ConstantConditions
-                    if (!StringUtils.isEmpty(data.getContentType()) && !MediaType.APPLICATION_OCTET_STREAM_VALUE
-                            .equals(data.getContentType())) {
-                        responseItem = createLogMessageHandler
-                                .createLog(createLogRq,
-                                        new BinaryData(data.getContentType(), data.getSize(), data.getInputStream()),
-                                        data.getOriginalFilename(), prjName);
-                    } else {
-                        byte[] consumedData = IOUtils.toByteArray(data.getInputStream());
-                        responseItem = createLogMessageHandler.createLog(createLogRq,
-                                new BinaryData(contentTypeResolver.detectContentType(consumedData), data.getSize(),
-                                        new ByteArrayInputStream(consumedData)), data.getOriginalFilename(), prjName);
-
-                    }
+                    responseItem =  createLogMessageHandler
+                            .createLog(createLogRq,
+                                    new BinaryData(data.getContentType(), data.getSize(), data.getInputStream()),
+                                    data.getOriginalFilename(), prjName);
                 }
                 response.addResponse(new BatchElementCreatedRS(responseItem.getId()));
             } catch (Exception e) {

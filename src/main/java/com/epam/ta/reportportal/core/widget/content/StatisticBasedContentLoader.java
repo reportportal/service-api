@@ -40,22 +40,23 @@ public class StatisticBasedContentLoader {
 
 	public static final String RESULT = "result";
 	public static final String TIMELINE = "timeline";
+	public static final String TOTAL_FIELD = "total";
+	public static final String PASSED_FIELD = "passed";
 
-	private static final List<String> STATZZ = Arrays.asList("statistics.executionCounter.passed", "statistics.executionCounter.failed",
-			"statistics.executionCounter.skipped");
 	private static final String PASSED = "statistics.executionCounter.passed";
 	private static final String FAILED = "statistics.executionCounter.failed";
 	private static final String SKIPPED = "statistics.executionCounter.skipped";
 	private static final String TOTAL = "statistics.executionCounter.total";
+	private static final List<String> STATZZ = Arrays.asList(PASSED, FAILED, SKIPPED);
 
-	private static final List<String> BUGZZ = Arrays.asList("statistics.issueCounter.productBug.total",
-			"statistics.issueCounter.automationBug.total", "statistics.issueCounter.systemIssue.total",
-			"statistics.issueCounter.noDefect.total");
 	private static final String TO_INVESTIGATE = "statistics.issueCounter.toInvestigate.total";
 	private static final String PRODUCT_BUG = "statistics.issueCounter.productBug.total";
 	private static final String AUTOMATION_BUG = "statistics.issueCounter.automationBug.total";
 	private static final String SYSTEM_ISSUE = "statistics.issueCounter.systemIssue.total";
 	private static final String NO_DEFECT = "statistics.issueCounter.noDefect.total";
+	private static final List<String> BUGZZ = Arrays.asList(PRODUCT_BUG,
+			AUTOMATION_BUG, SYSTEM_ISSUE, NO_DEFECT);
+
 	private static final String DATE_PATTERN = "yyyy-MM-dd";
 
 	/**

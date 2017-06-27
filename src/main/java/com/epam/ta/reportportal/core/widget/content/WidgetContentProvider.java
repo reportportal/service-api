@@ -30,10 +30,10 @@ import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.*;
 
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
@@ -58,8 +58,9 @@ public class WidgetContentProvider {
 	/*
 	 * key - widget content; type value - content loader
 	 */
-	@Resource(name = "contentLoaders")
-	private Map<GadgetTypes, IContentLoadingStrategy> contentLoadersMap;
+	@Autowired
+	@Qualifier("contentLoader")
+	private Map<GadgetTypes, IContentLoadingStrategy> contentLoader;
 
 	/**
 	 * Load content according input parameters
@@ -98,7 +99,7 @@ public class WidgetContentProvider {
 
 		Map<String, List<ChartObject>> result;
 
-		IContentLoadingStrategy loadingStrategy = contentLoadersMap.get(GadgetTypes.findByName(options.getGadgetType()).get());
+		IContentLoadingStrategy loadingStrategy = contentLoader.get(GadgetTypes.findByName(options.getGadgetType()).get());
 		expect(loadingStrategy, notNull()).verify(UNABLE_LOAD_WIDGET_CONTENT,
 				Suppliers.formattedSupplier("Unknown gadget type: '{}'.", options.getGadgetType()));
 		Map<String, List<String>> widgetOptions = null == options.getWidgetOptions() ? new HashMap<>() : options.getWidgetOptions();

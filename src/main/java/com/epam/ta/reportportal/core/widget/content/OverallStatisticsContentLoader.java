@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  * @author Andrei_Ramanchuk
  */
 @Service("OverallStatisticsContentLoader")
-public class OverallStatisticsContentLoader extends StatisticBasedContentLoader implements IContentLoadingStrategy {
+public class  OverallStatisticsContentLoader extends StatisticBasedContentLoader implements IContentLoadingStrategy {
 
 	@Autowired
 	private LaunchRepository launchRepository;

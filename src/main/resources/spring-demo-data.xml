@@ -45,6 +45,17 @@
 		<ref bean="child5" />
 	</util:list>
 
+	<util:list id="widgets">
+		<ref bean="launch1_with_stat"/>
+		<ref bean="launch2_with_stat"/>
+		<ref bean="launch3_with_stat"/>
+		<ref bean="launch2"/>
+		<ref bean="triggerLaunch"/>
+		<ref bean="user1"/>
+		<ref bean="project2"/>
+		<ref bean="userFilter5"/>
+	</util:list>
+
 	<util:list id="authTests">
 		<ref bean="project1" />
 		<ref bean="user1" />
@@ -180,7 +191,7 @@
 		<property name="description" value="Demo launch description_sxbOa" />
 		<property name="startTime" value="05/06/2013 18:26 +0300" />
 		<property name="endTime" value="05/06/2013 18:26 +0300" />
-		<property name="status" value="IN_PROGRESS" />
+		<property name="status" value="FAILED" />
 		<property name="projectRef" value="project2" />
 		<property name="userRef" value="user1" />
 		<property name="statistics">
@@ -190,6 +201,7 @@
 					<bean
 						class="com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter">
 						<property name="total" value="4" />
+						<property name="passed" value="3"/>
 						<property name="failed" value="1" />
 					</bean>
 				</constructor-arg>
@@ -218,6 +230,7 @@
 					<bean
 						class="com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter">
 						<property name="total" value="0" />
+						<property name="passed" value="0"/>
 						<property name="failed" value="0" />
 					</bean>
 				</constructor-arg>
@@ -235,7 +248,7 @@
 		<property name="name" value="launch for call back validation" />
 		<property name="description" value="Demo launch description_sxbOa" />
 		<property name="startTime" value="05/06/2013 18:26 +0300" />
-		<property name="status" value="IN_PROGRESS" />
+		<property name="status" value="FAILED" />
 		<property name="projectRef" value="project2" />
 		<property name="userRef" value="user1" />
 		<property name="statistics">
@@ -245,6 +258,7 @@
 					<bean
 						class="com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter">
 						<property name="total" value="4" />
+						<property name="passed" value="0"/>
 						<property name="failed" value="4" />
 					</bean>
 				</constructor-arg>
@@ -263,10 +277,28 @@
 		<property name="description" value="Demo launch description_sxbOa" />
 		<property name="startTime" value="05/06/2013 18:26 +0300" />
 		<!--<property name="endTime" value="05/06/2013 18:26 +0300" />-->
-		<property name="status" value="IN_PROGRESS" />
+		<property name="status" value="FAILED" />
 		<property name="projectRef" value="project2" />
 		<property name="userRef" value="user1" />
 		<property name="number" value="2" />
+		<property name="statistics">
+			<bean
+					class="com.epam.ta.reportportal.database.entity.statistics.Statistics">
+				<constructor-arg name="executionCounter">
+					<bean
+							class="com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter">
+						<property name="total" value="4" />
+						<property name="passed" value="3"/>
+						<property name="failed" value="1" />
+					</bean>
+				</constructor-arg>
+				<constructor-arg name="issueCounter">
+					<bean
+							class="com.epam.ta.reportportal.database.entity.statistics.IssueCounter"
+					/>
+				</constructor-arg>
+			</bean>
+		</property>
 	</bean>
 
 	<bean id="launch3" class="com.epam.ta.reportportal.database.entity.Launch">
@@ -2393,6 +2425,37 @@
 				<constructor-arg type="com.epam.ta.reportportal.database.search.Condition" value="CONTAINS"/>
 				<constructor-arg type="boolean" value="false"/>
 				<constructor-arg type="java.lang.String" value="item"/>
+				<constructor-arg type="java.lang.String" value="name"/>
+			</bean>
+		</property>
+		<property name="selectionOptions">
+			<bean class="com.epam.ta.reportportal.database.entity.filter.SelectionOptions">
+				<property name="sortingColumnName" value="start_time"/>
+				<property name="isAsc" value="false"/>
+				<property name="pageNumber" value="1"/>
+			</bean>
+		</property>
+		<property name="acl">
+			<bean class="com.epam.ta.reportportal.database.entity.sharing.Acl">
+				<constructor-arg value="user1" />
+				<property name="entries">
+					<util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclEntry"/>
+				</property>
+
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="userFilter5" class="com.epam.ta.reportportal.database.entity.filter.UserFilter">
+		<property name="id" value="566e1f3818177ca334439d38" />
+		<property name="projectName" value="project2" />
+		<property name="name" value="userFilter5" />
+		<property name="filter">
+			<bean class="com.epam.ta.reportportal.database.search.Filter">
+				<constructor-arg type="java.lang.Class" value="com.epam.ta.reportportal.database.entity.Launch"/>
+				<constructor-arg type="com.epam.ta.reportportal.database.search.Condition" value="CONTAINS"/>
+				<constructor-arg type="boolean" value="false"/>
+				<constructor-arg type="java.lang.String" value="Demo launch"/>
 				<constructor-arg type="java.lang.String" value="name"/>
 			</bean>
 		</property>

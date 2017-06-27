@@ -56,7 +56,7 @@ public class JobsConfiguration {
 	public TaskExecutor saveLogsTaskExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		executor.setCorePoolSize(20);
-		executor.setMaxPoolSize(200);
+		executor.setMaxPoolSize(50);
 		executor.setQueueCapacity(400);
 		executor.setAllowCoreThreadTimeOut(true);
 		executor.setThreadNamePrefix("logs-task-exec");

@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.Map;
 
@@ -85,9 +86,9 @@ public class SaveBinaryDataJob implements Runnable {
 		if (isImage(binaryData)) {
 			try {
 				byte[] image = IOUtils.toByteArray(binaryData.getInputStream());
-				byte[] thumbnailBytes = thumbnailator.createThumbnail(image);
-				thumbnailId = dataStorageService.saveData(new BinaryData(binaryData.getContentType(), (long) thumbnailBytes.length,
-						new ByteArrayInputStream(thumbnailBytes)), "thumbnail-".concat(filename), metadata);
+				InputStream thumbnailStream = thumbnailator.createThumbnail(new ByteArrayInputStream(image));
+				thumbnailId = dataStorageService.saveData(new BinaryData(binaryData.getContentType(), -1L,
+						thumbnailStream), "thumbnail-".concat(filename), metadata);
 				binaryData = new BinaryData(binaryData.getContentType(), binaryData.getLength(), new ByteArrayInputStream(image));
 			} catch (IOException e) {
 				// do not propogate. Thumbnail is not so critical

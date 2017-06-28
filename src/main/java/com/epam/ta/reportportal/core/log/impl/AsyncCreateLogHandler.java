@@ -81,8 +81,6 @@ public class AsyncCreateLogHandler extends CreateLogHandler implements ICreateLo
 
         if (null != file) {
             try {
-                System.out.println(file.getOriginalFilename());
-
                 File tempFile = new File(StandardSystemProperty.JAVA_IO_TMPDIR.toString(), file.getOriginalFilename());
                 if (tempFile.exists()) {
                     tempFile = File.createTempFile(file.getOriginalFilename(), UUID.randomUUID().toString());

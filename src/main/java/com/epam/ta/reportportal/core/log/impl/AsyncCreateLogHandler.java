@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.job.SaveBinaryDataJob;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import com.google.common.base.StandardSystemProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
@@ -81,8 +82,8 @@ public class AsyncCreateLogHandler extends CreateLogHandler implements ICreateLo
         if (null != file) {
             try {
                 System.out.println(file.getOriginalFilename());
-                File tempFile = File.createTempFile(file.getOriginalFilename(), "");
-                System.out.println(tempFile.getName());
+
+                File tempFile = new File(StandardSystemProperty.JAVA_IO_TMPDIR.toString(), file.getOriginalFilename());
                 if (tempFile.exists()) {
                     tempFile = File.createTempFile(file.getOriginalFilename(), UUID.randomUUID().toString());
                 }

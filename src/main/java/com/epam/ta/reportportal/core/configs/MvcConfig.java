@@ -44,8 +44,6 @@ import com.epam.ta.reportportal.commons.exception.rest.RestExceptionHandler;
 import com.epam.ta.reportportal.ws.resolver.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.io.FileCleaningTracker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -57,7 +55,6 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.validation.beanvalidation.BeanValidationPostProcessor;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
@@ -176,19 +173,7 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
 
 	@Bean
 	public CommonsMultipartResolver multipartResolver(MultipartConfig multipartConfig) {
-		CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver() {
-			@Override
-			public void cleanupMultipart(MultipartHttpServletRequest request) {
-				//do not cleaunup
-			}
-
-			@Override
-			protected DiskFileItemFactory newFileItemFactory() {
-				DiskFileItemFactory factory = super.newFileItemFactory();
-				factory.setFileCleaningTracker(null);
-				return factory;
-			}
-		};
+		CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver();
 
 		//Lazy resolving gives a way to process file limits inside a controller
 		//level and handle exceptions in proper way. Fixes reportportal/reportportal#19

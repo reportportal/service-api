@@ -21,22 +21,25 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
-import com.epam.ta.reportportal.job.SaveBinaryDataJob;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.log.ICreateLogHandler;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.job.SaveBinaryDataJob;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Nonnull;
 import javax.inject.Provider;
+import java.io.File;
+import java.io.IOException;
+import java.util.UUID;
 
 /**
  * Asynchronous implementation of {@link ICreateLogHandler}. Saves log and
@@ -44,7 +47,6 @@ import javax.inject.Provider;
  * decrease server response time
  *
  * @author Andrei Varabyeu
- *
  */
 @Service
 public class AsyncCreateLogHandler extends CreateLogHandler implements ICreateLogHandler {
@@ -77,8 +79,21 @@ public class AsyncCreateLogHandler extends CreateLogHandler implements ICreateLo
         }
 
         if (null != file) {
-            taskExecutor.execute(
-                    saveBinaryDataJob.get().withProject(projectName).withFile(file).withLog(log));
+            try {
+                File tempFile = File.createTempFile(file.getOriginalFilename(), "");
+                if (tempFile.exists()) {
+                    tempFile = File.createTempFile(file.getOriginalFilename(), UUID.randomUUID().toString());
+                }
+                file.transferTo(tempFile);
+                taskExecutor.execute(
+                        saveBinaryDataJob.get().withProject(projectName)
+                                .withFile(tempFile)
+                                .withContentType(file.getContentType())
+                                .withLength(file.getSize())
+                                .withLog(log));
+            } catch (IOException e) {
+                throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to save file");
+            }
         }
         return new EntryCreatedRS(log.getId());
     }

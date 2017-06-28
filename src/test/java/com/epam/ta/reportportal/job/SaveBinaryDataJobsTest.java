@@ -31,9 +31,9 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -41,9 +41,7 @@ import java.nio.charset.StandardCharsets;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyMap;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SaveBinaryDataJobsTest {
@@ -66,24 +64,22 @@ public class SaveBinaryDataJobsTest {
     private final String CONTENT_TYPE = "image";
     private final String PROJECT_NAME = "project";
     private final String FILE_NAME = "filename.fln";
-    private final Long LENGHT_FOR_BIN_DATA = 1L;
     private final Log LOG = new Log();
     private final InputStream INPUT_STREAM = new ByteArrayInputStream(CONTENT_TYPE.getBytes(StandardCharsets.UTF_8));
-    private final File BIN_DATA = File.createTempFile(FILE_NAME, "");
+    private final MockMultipartFile BIN_DATA = new MockMultipartFile(FILE_NAME, FILE_NAME, CONTENT_TYPE, INPUT_STREAM);
 
     public SaveBinaryDataJobsTest() throws IOException {
     }
 
     @Test
     public void runTestWithContentTypeEqualsImage() throws IOException {
-        byte[] byteArr = { 116, 101 };
+        byte[] byteArr = {116, 101};
         when(binaryData.getContentType()).thenReturn(CONTENT_TYPE);
         when(thumbnailator.createThumbnail(any(byte[].class))).thenReturn(byteArr);
         when(dataStorageService.saveData(any(BinaryData.class),
                 anyString(), anyMap())).thenReturn("not null");
         saveBinData.withFile(BIN_DATA)
                 .withProject(PROJECT_NAME)
-                .withContentType(CONTENT_TYPE)
                 .withLog(LOG)
                 .run();
         verify(logRepository, times(1))
@@ -95,15 +91,14 @@ public class SaveBinaryDataJobsTest {
     @Test
     public void runTestWithContentTypeNotEqualsImage() throws IOException {
         String contentType = "binary";
-        File binData = File.createTempFile(FILE_NAME, "");
+        MockMultipartFile binData = new MockMultipartFile(FILE_NAME, FILE_NAME, contentType, INPUT_STREAM);
         saveBinData.withFile(binData)
                 .withProject(PROJECT_NAME)
                 .withLog(LOG)
-                .withContentType(contentType)
-                .withLength(LENGHT_FOR_BIN_DATA)
                 .run();
         verify(logRepository, times(1))
                 .save(LOG);
     }
+
 
 }

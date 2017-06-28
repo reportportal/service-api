@@ -55,6 +55,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.validation.beanvalidation.BeanValidationPostProcessor;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
@@ -173,7 +174,12 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
 
 	@Bean
 	public CommonsMultipartResolver multipartResolver(MultipartConfig multipartConfig) {
-		CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver();
+		CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver() {
+			@Override
+			public void cleanupMultipart(MultipartHttpServletRequest request) {
+				//do not cleaunup
+			}
+		};
 
 		//Lazy resolving gives a way to process file limits inside a controller
 		//level and handle exceptions in proper way. Fixes reportportal/reportportal#19

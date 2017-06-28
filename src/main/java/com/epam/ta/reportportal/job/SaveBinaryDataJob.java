@@ -131,7 +131,9 @@ public class SaveBinaryDataJob implements Runnable {
         } catch (IOException e) {
             LOGGER.error("Unable to save binary data", e);
         } finally {
-            ((CommonsMultipartFile) file).getFileItem().delete();
+            if (file instanceof CommonsMultipartFile) {
+                ((CommonsMultipartFile) file).getFileItem().delete();
+            }
         }
     }
 

@@ -44,6 +44,8 @@ import com.epam.ta.reportportal.commons.exception.rest.RestExceptionHandler;
 import com.epam.ta.reportportal.ws.resolver.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.io.FileCleaningTracker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -178,6 +180,13 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
 			@Override
 			public void cleanupMultipart(MultipartHttpServletRequest request) {
 				//do not cleaunup
+			}
+
+			@Override
+			protected DiskFileItemFactory newFileItemFactory() {
+				DiskFileItemFactory factory = super.newFileItemFactory();
+				factory.setFileCleaningTracker(null);
+				return factory;
 			}
 		};
 

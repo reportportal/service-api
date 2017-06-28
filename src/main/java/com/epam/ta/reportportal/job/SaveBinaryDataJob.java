@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -129,6 +130,8 @@ public class SaveBinaryDataJob implements Runnable {
 
         } catch (IOException e) {
             LOGGER.error("Unable to save binary data", e);
+        } finally {
+            ((CommonsMultipartFile) file).getFileItem().delete();
         }
     }
 

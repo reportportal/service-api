@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.database.entity.Log;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.io.Files;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -137,6 +138,8 @@ public class SaveBinaryDataJob implements Runnable {
 
         } catch (IOException e) {
             LOGGER.error("Unable to save binary data", e);
+        } finally {
+            FileUtils.deleteQuietly(file);
         }
     }
 

@@ -177,7 +177,7 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
 
 		//Lazy resolving gives a way to process file limits inside a controller
 		//level and handle exceptions in proper way. Fixes reportportal/reportportal#19
-		commonsMultipartResolver.setResolveLazily(false);
+		commonsMultipartResolver.setResolveLazily(true);
 
 		commonsMultipartResolver.setMaxUploadSize(multipartConfig.maxUploadSize);
 		commonsMultipartResolver.setMaxUploadSizePerFile(multipartConfig.maxFileSize);

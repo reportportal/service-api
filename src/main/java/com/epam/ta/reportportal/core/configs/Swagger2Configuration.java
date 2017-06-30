@@ -124,11 +124,6 @@ public class Swagger2Configuration {
 		return new PageableParameterBuilderPlugin(nameExtractor, resolver);
 	}
 
-	@Bean(name = "multipartResolver")
-	public CommonsMultipartResolver commonsMultipartResolver() {
-		return new CommonsMultipartResolver();
-	}
-
 	@Bean
 	public UiConfiguration uiConfig() {
 		return new UiConfiguration(null);

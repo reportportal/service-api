@@ -27,9 +27,7 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.job.SaveBinaryDataJob;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
-import com.google.common.base.StandardSystemProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
@@ -38,12 +36,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Nonnull;
 import javax.inject.Provider;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.UUID;
 
 /**
  * Asynchronous implementation of {@link ICreateLogHandler}. Saves log and
@@ -83,21 +75,10 @@ public class AsyncCreateLogHandler extends CreateLogHandler implements ICreateLo
         }
 
         if (null != file) {
-            try {
-                File tempFile = Paths.get(StandardSystemProperty.JAVA_IO_TMPDIR.toString(), "rp", file.getOriginalFilename()).toFile();
-                if (tempFile.exists()) {
-                    tempFile = File.createTempFile(file.getOriginalFilename(), UUID.randomUUID().toString());
-                }
-                com.google.common.io.Files.asByteSink(tempFile).writeFrom(file.getInputStream());
-                taskExecutor.execute(
-                        saveBinaryDataJob.get().withProject(projectName)
-                                .withFile(tempFile)
-                                .withContentType(file.getContentType())
-                                .withLength(file.getSize())
-                                .withLog(log));
-            } catch (IOException e) {
-                throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to save file");
-            }
+            taskExecutor.execute(
+					saveBinaryDataJob.get().withProject(projectName)
+							.withFile(file)
+							.withLog(log));
         }
         return new EntryCreatedRS(log.getId());
     }

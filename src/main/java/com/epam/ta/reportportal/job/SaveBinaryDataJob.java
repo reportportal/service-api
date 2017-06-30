@@ -30,19 +30,18 @@ import com.epam.ta.reportportal.database.entity.BinaryContent;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Map;
 
-import static com.google.common.io.Files.asByteSource;
 
 /**
  * Save binary data job. Expected to be executed asynchronously. Statefull, so
@@ -70,11 +69,7 @@ public class SaveBinaryDataJob implements Runnable {
     /**
      * Binary data representation
      */
-    private File file;
-
-    private String contentType;
-
-    private Long length;
+    private MultipartFile file;
 
     private String project;
 
@@ -87,13 +82,13 @@ public class SaveBinaryDataJob implements Runnable {
     public void run() {
         try {
             BinaryData binaryData;
-            if (!Strings.isNullOrEmpty(contentType) && !MediaType.APPLICATION_OCTET_STREAM_VALUE
-                    .equals(contentType)) {
-                binaryData = new BinaryData(contentType, length, asByteSource(file).openBufferedStream());
+            if (!Strings.isNullOrEmpty(file.getContentType()) && !MediaType.APPLICATION_OCTET_STREAM_VALUE
+                    .equals(file.getContentType())) {
+                binaryData = new BinaryData(file.getContentType(), file.getSize(), file.getInputStream());
             } else {
-                binaryData = new BinaryData(contentTypeResolver.detectContentType(asByteSource(file).openBufferedStream()),
-                        length,
-                        asByteSource(file).openBufferedStream());
+                binaryData = new BinaryData(contentTypeResolver.detectContentType(file.getInputStream()),
+                        file.getSize(),
+                        file.getInputStream());
             }
 
             String thumbnailId = null;
@@ -101,11 +96,11 @@ public class SaveBinaryDataJob implements Runnable {
 
             if (isImage(binaryData.getContentType())) {
                 try {
-                    InputStream thumbnailStream = thumbnailator.createThumbnail(asByteSource(file).openBufferedStream());
+                    InputStream thumbnailStream = thumbnailator.createThumbnail(file.getInputStream());
                     thumbnailId = dataStorageService.saveData(new BinaryData(binaryData.getContentType(), -1L,
                             thumbnailStream), "thumbnail-".concat(file.getName()), metadata);
                     binaryData = new BinaryData(binaryData.getContentType(), binaryData.getLength(),
-                            asByteSource(file).openBufferedStream());
+                            file.getInputStream());
                 } catch (IOException e) {
                     // do not propogate. Thumbnail is not so critical
                     LOGGER.error("Thumbnail is not created for log [{}]. Error:\n{}", log.getId(), e);
@@ -137,27 +132,15 @@ public class SaveBinaryDataJob implements Runnable {
         } catch (IOException e) {
             LOGGER.error("Unable to save binary data", e);
         } finally {
-            FileUtils.deleteQuietly(file);
+            ((CommonsMultipartFile) file).getFileItem().delete();
         }
     }
 
-    public SaveBinaryDataJob withFile(File file) {
+    public SaveBinaryDataJob withFile(MultipartFile file) {
         Preconditions.checkNotNull(file, "Binary data shouldn't be null");
         this.file = file;
         return this;
     }
-
-    public SaveBinaryDataJob withContentType(String contentType) {
-        Preconditions.checkNotNull(file, "Content type shouldn't be null");
-        this.contentType = contentType;
-        return this;
-    }
-
-    public SaveBinaryDataJob withLength(Long length) {
-        this.length = length;
-        return this;
-    }
-
 
 
     public SaveBinaryDataJob withLog(Log log) {

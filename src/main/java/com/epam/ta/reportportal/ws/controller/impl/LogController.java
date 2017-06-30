@@ -54,6 +54,7 @@ import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MultiValueMap;
@@ -127,6 +128,7 @@ public class LogController implements ILogController {
     // Specific handler should be added for springfox in case of similar POST
     // request mappings
     @ApiIgnore
+    @Async
     public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectName,
             @RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs, HttpServletRequest request,
             Principal principal) {

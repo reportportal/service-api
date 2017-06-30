@@ -44,6 +44,7 @@ import com.epam.ta.reportportal.commons.exception.rest.RestExceptionHandler;
 import com.epam.ta.reportportal.ws.resolver.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -55,7 +56,9 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.validation.beanvalidation.BeanValidationPostProcessor;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -171,9 +174,21 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
 		return new HttpMessageConverters(converters);
 	}
 
-	@Bean
+	@Bean(name = DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME)
 	public CommonsMultipartResolver multipartResolver(MultipartConfig multipartConfig) {
-		CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver();
+		CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver(){
+			@Override
+			protected DiskFileItemFactory newFileItemFactory() {
+				DiskFileItemFactory diskFileItemFactory = super.newFileItemFactory();
+				diskFileItemFactory.setFileCleaningTracker(null);
+				return diskFileItemFactory;
+			}
+
+			@Override
+			public void cleanupMultipart(MultipartHttpServletRequest request) {
+				//
+			}
+		};
 
 		//Lazy resolving gives a way to process file limits inside a controller
 		//level and handle exceptions in proper way. Fixes reportportal/reportportal#19

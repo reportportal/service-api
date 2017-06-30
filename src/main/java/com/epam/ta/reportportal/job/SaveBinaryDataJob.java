@@ -54,10 +54,17 @@ public class SaveBinaryDataJob implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SaveBinaryDataJob.class);
 
-    private final LogRepository logRepository;
-    private final DataStorage dataStorageService;
-    private final Thumbnailator thumbnailator;
-    private final ContentTypeResolver contentTypeResolver;
+    @Autowired
+    private LogRepository logRepository;
+
+    @Autowired
+    private DataStorage dataStorageService;
+
+    @Autowired
+    private Thumbnailator thumbnailator;
+
+    @Autowired
+    private ContentTypeResolver contentTypeResolver;
 
     /**
      * Binary data representation
@@ -70,15 +77,6 @@ public class SaveBinaryDataJob implements Runnable {
      * {@link Log} entry related to this binary data
      */
     private Log log;
-
-    @Autowired
-    public SaveBinaryDataJob(LogRepository logRepository, DataStorage dataStorageService, Thumbnailator thumbnailator,
-            ContentTypeResolver contentTypeResolver) {
-        this.logRepository = logRepository;
-        this.dataStorageService = dataStorageService;
-        this.thumbnailator = thumbnailator;
-        this.contentTypeResolver = contentTypeResolver;
-    }
 
     @Override
     public void run() {

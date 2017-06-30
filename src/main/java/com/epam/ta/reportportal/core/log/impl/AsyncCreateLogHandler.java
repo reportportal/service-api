@@ -42,6 +42,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.UUID;
 
 /**
@@ -83,7 +84,7 @@ public class AsyncCreateLogHandler extends CreateLogHandler implements ICreateLo
 
         if (null != file) {
             try {
-                File tempFile = new File(StandardSystemProperty.JAVA_IO_TMPDIR.toString(), file.getOriginalFilename());
+                File tempFile = Paths.get(StandardSystemProperty.JAVA_IO_TMPDIR.toString(), "rp", file.getOriginalFilename()).toFile();
                 if (tempFile.exists()) {
                     tempFile = File.createTempFile(file.getOriginalFilename(), UUID.randomUUID().toString());
                 }

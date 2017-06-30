@@ -40,6 +40,8 @@ import javax.annotation.Nonnull;
 import javax.inject.Provider;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.util.UUID;
 
 /**
@@ -85,7 +87,7 @@ public class AsyncCreateLogHandler extends CreateLogHandler implements ICreateLo
                 if (tempFile.exists()) {
                     tempFile = File.createTempFile(file.getOriginalFilename(), UUID.randomUUID().toString());
                 }
-                file.transferTo(tempFile);
+                com.google.common.io.Files.asByteSink(tempFile).writeFrom(file.getInputStream());
                 taskExecutor.execute(
                         saveBinaryDataJob.get().withProject(projectName)
                                 .withFile(tempFile)

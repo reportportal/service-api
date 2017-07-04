@@ -47,6 +47,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.security.Principal;
 import java.util.List;
@@ -226,7 +227,8 @@ public class TestItemController implements ITestItemController {
     @ResponseBody
     @ResponseStatus(OK)
     @PreAuthorize(ASSIGNED_TO_PROJECT)
-    @ApiOperation("Merge test item")
+//    @ApiOperation("Merge test item")
+    @ApiIgnore
     public OperationCompletionRS mergeTestItem(@PathVariable String projectName, @PathVariable String item,
                                                @RequestBody @Validated MergeTestItemRQ rq, Principal principal) {
         return mergeTestItemHandler.mergeTestItem(normalizeId(projectName), item, rq, principal.getName());

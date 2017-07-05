@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
-import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 
 /**
  * Update {@link Project} request handler
@@ -60,7 +60,7 @@ public interface IUpdateProjectHandler {
 	 * @param user User performing that update
 	 * @return Operation Result
 	 */
-	OperationCompletionRS updateProjectEmailConfig(String projectName, String user, UpdateProjectEmailRQ updateProjectRQ);
+	OperationCompletionRS updateProjectEmailConfig(String projectName, String user, ProjectEmailConfigDTO updateProjectRQ);
 
 	/**
 	 * Un-assign specified user from project

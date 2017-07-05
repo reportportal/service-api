@@ -120,3 +120,4 @@
 * EPMRPP-25782 - Share option of widgets is not saved on backend
 * EPMRPP-26002 - Shared widget is deleted from system in case it was removed from own dashboard
 * EPMRPP-26020 - 500 error on attempt to delete not existed widget
+* EPMRPP-23553 - Verify API methods against last updates/changes

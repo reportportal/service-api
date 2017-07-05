@@ -60,7 +60,7 @@ public class ProjectEmailUpdatedHandler {
 	@EventListener
 	public void onProjectEmailUpdate(EmailConfigUpdatedEvent event) {
 		Map<String, Activity.FieldValues> history = new HashMap<>();
-		final ProjectEmailConfigDTO configuration = event.getUpdateProjectEmailRQ().getConfiguration();
+		final ProjectEmailConfigDTO configuration = event.getUpdateProjectEmailRQ();
 		if (null != configuration) {
 			processEmailConfiguration(history, event.getBefore(), configuration);
 		}

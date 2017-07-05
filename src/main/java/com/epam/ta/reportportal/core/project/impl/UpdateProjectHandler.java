@@ -50,7 +50,6 @@ import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
-import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -178,6 +177,14 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 						.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
 								"Incorrect statistics calculation type: " + modelConfig.getStatisticCalculationStrategy())));
 			}
+
+			if (null != modelConfig.getEmailConfig()) {
+				updateProjectEmailConfig(projectName, principalName, modelConfig.getEmailConfig());
+				project.getConfiguration().setStatisticsCalculationStrategy(fromString(modelConfig.getStatisticCalculationStrategy())
+						.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+								"Incorrect statistics calculation type: " + modelConfig.getStatisticCalculationStrategy())));
+			}
+
 		}
 
 		try {
@@ -191,61 +198,55 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS updateProjectEmailConfig(String projectName, String user, UpdateProjectEmailRQ updateProjectEmailRQ) {
+	public OperationCompletionRS updateProjectEmailConfig(String projectName, String user, ProjectEmailConfigDTO configUpdate) {
 		Project project = projectRepository.findOne(projectName);
 		Project beforeUpdate = SerializationUtils.clone(project);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
-		if (null != updateProjectEmailRQ.getConfiguration()) {
-			ProjectEmailConfigDTO configUpdate = updateProjectEmailRQ.getConfiguration();
+		boolean emailEnabled = BooleanUtils.isTrue(configUpdate.getEmailEnabled());
+		project.getConfiguration().getEmailConfig().setEmailEnabled(emailEnabled);
 
-			boolean emailEnabled = BooleanUtils.isTrue(configUpdate.getEmailEnabled());
-			project.getConfiguration().getEmailConfig().setEmailEnabled(emailEnabled);
+		List<EmailSenderCaseDTO> cases = configUpdate.getEmailCases();
 
-			List<EmailSenderCaseDTO> cases = configUpdate.getEmailCases();
+		Optional.ofNullable(configUpdate.getFrom()).ifPresent(from -> {
+			expect(isEmailValid(configUpdate.getFrom()), equalTo(true))
+					.verify(BAD_REQUEST_ERROR, formattedSupplier("Provided FROM value '{}' is invalid", configUpdate.getFrom()));
+			project.getConfiguration().getEmailConfig().setFrom(configUpdate.getFrom());
+		});
 
-			Optional.ofNullable(configUpdate.getFrom()).ifPresent(from -> {
-				expect(isEmailValid(configUpdate.getFrom()), equalTo(true))
-						.verify(BAD_REQUEST_ERROR, formattedSupplier("Provided FROM value '{}' is invalid", configUpdate.getFrom()));
-				project.getConfiguration().getEmailConfig().setFrom(configUpdate.getFrom());
-			});
+		expect(cases, Preconditions.NOT_EMPTY_COLLECTION).verify(BAD_REQUEST_ERROR, "At least one rule should be present.");
+		cases.forEach(sendCase -> {
+			expect(findByName(sendCase.getSendCase()).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, sendCase.getSendCase());
+			expect(sendCase.getRecipients(), notNull()).verify(BAD_REQUEST_ERROR, "Recipients list should not be null");
+			expect(sendCase.getRecipients().isEmpty(), equalTo(false))
+					.verify(BAD_REQUEST_ERROR, formattedSupplier("Empty recipients list for email case '{}' ", sendCase));
+			sendCase.setRecipients(sendCase.getRecipients().stream().map(it -> {
+				validateRecipient(project, it);
+				return it.trim();
+			}).distinct().collect(toList()));
 
-			expect(cases, Preconditions.NOT_EMPTY_COLLECTION).verify(BAD_REQUEST_ERROR, "At least one rule should be present.");
-			cases.forEach(sendCase -> {
-				expect(findByName(sendCase.getSendCase()).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, sendCase.getSendCase());
-				expect(sendCase.getRecipients(), notNull()).verify(BAD_REQUEST_ERROR, "Recipients list should not be null");
-				expect(sendCase.getRecipients().isEmpty(), equalTo(false))
-						.verify(BAD_REQUEST_ERROR, formattedSupplier("Empty recipients list for email case '{}' ", sendCase));
-				sendCase.setRecipients(sendCase.getRecipients().stream().map(it -> {
-					validateRecipient(project, it);
-					return it.trim();
+			if (null != sendCase.getLaunchNames()) {
+				sendCase.setLaunchNames(sendCase.getLaunchNames().stream().map(name -> {
+					validateLaunchName(name);
+					return name.trim();
 				}).distinct().collect(toList()));
+			}
 
-				if (null != sendCase.getLaunchNames()) {
-					sendCase.setLaunchNames(sendCase.getLaunchNames().stream().map(name -> {
-						validateLaunchName(name);
-						return name.trim();
-					}).distinct().collect(toList()));
-				}
-
-				if (null != sendCase.getTags()) {
-					sendCase.setTags(sendCase.getTags().stream().map(tag -> {
-						expect(isNullOrEmpty(tag), equalTo(false))
-								.verify(BAD_REQUEST_ERROR, "Tags values cannot be empty. Please specify it or not include in request.");
-						return tag.trim();
-					}).distinct().collect(toList()));
-				}
-			});
+			if (null != sendCase.getTags()) {
+				sendCase.setTags(sendCase.getTags().stream().map(tag -> {
+					expect(isNullOrEmpty(tag), equalTo(false))
+							.verify(BAD_REQUEST_ERROR, "Tags values cannot be empty. Please specify it or not include in request.");
+					return tag.trim();
+				}).distinct().collect(toList()));
+			}
+		});
 
 				/* If project email settings */
-			List<EmailSenderCase> withoutDuplicateCases = cases.stream().distinct().map(EmailConfigConverters.TO_CASE_MODEL)
-					.collect(toList());
-			if (cases.size() != withoutDuplicateCases.size())
-				fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
+		List<EmailSenderCase> withoutDuplicateCases = cases.stream().distinct().map(EmailConfigConverters.TO_CASE_MODEL).collect(toList());
+		if (cases.size() != withoutDuplicateCases.size())
+			fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
 
-			project.getConfiguration().getEmailConfig().setEmailCases(withoutDuplicateCases);
-
-		}
+		project.getConfiguration().getEmailConfig().setEmailCases(withoutDuplicateCases);
 
 		try {
 			projectRepository.save(project);
@@ -253,7 +254,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			throw new ReportPortalException("Error during updating Project", e);
 		}
 
-		publisher.publishEvent(new EmailConfigUpdatedEvent(beforeUpdate, updateProjectEmailRQ, user));
+		publisher.publishEvent(new EmailConfigUpdatedEvent(beforeUpdate, configUpdate, user));
 		return new OperationCompletionRS("EMail configuration of project with name = '" + projectName + "' is successfully updated.");
 	}
 

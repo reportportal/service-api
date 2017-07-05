@@ -31,7 +31,6 @@ import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.project.*;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
-import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -184,13 +183,11 @@ public class ProjectControllerTest extends BaseMvcTest {
 
 	@Test
 	public void updateProjectEmailConfig() throws Exception {
-		final UpdateProjectEmailRQ rq = new UpdateProjectEmailRQ();
 		final EmailSenderCaseDTO emailSenderCase = new EmailSenderCaseDTO(Arrays.asList("OWNER", "user1", "user1email@epam.com"),
 				SendCase.ALWAYS.name(), singletonList("launchName"), singletonList("tags"));
 		final ProjectEmailConfigDTO config = new ProjectEmailConfigDTO(true, "from@fake.org", Lists.newArrayList(emailSenderCase));
-		rq.setConfiguration(config);
 		this.mvcMock.perform(put("/project/project1/emailconfig").principal(authentication()).contentType(APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
+				.content(objectMapper.writeValueAsBytes(config))).andExpect(status().is(200));
 		final Project project = projectRepository.findOne("project1");
 		final ProjectEmailConfig emailConfig = project.getConfiguration().getEmailConfig();
 		assertThat(emailConfig).isNotNull();

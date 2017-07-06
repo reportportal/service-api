@@ -20,6 +20,7 @@
  */
 package com.epam.ta.reportportal.demo_data;
 
+import com.epam.ta.reportportal.core.item.TestItemIdentifierGenerator;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchMetaInfoRepository;
@@ -63,6 +64,9 @@ public class DemoDataCommonService {
 
     @Autowired
     DemoLogsService logDemoDataService;
+
+    @Autowired
+    private TestItemIdentifierGenerator identifierGenerator;
 
     @Autowired
     protected LaunchRepository launchRepository;
@@ -113,6 +117,7 @@ public class DemoDataCommonService {
         testItem.setHasChilds(true);
         testItem.setStatus(IN_PROGRESS);
         testItem.setType(type);
+        testItem.setIdentifier(identifierGenerator.generate(testItem));
         return testItemRepository.save(testItem);
     }
 
@@ -143,6 +148,7 @@ public class DemoDataCommonService {
         testItem.setType(type);
         testItem.getPath().addAll(rootItemId.getPath());
         testItem.getPath().add(rootItemId.getId());
+        testItem.setIdentifier(identifierGenerator.generate(testItem));
         return testItemRepository.save(testItem);
     }
 

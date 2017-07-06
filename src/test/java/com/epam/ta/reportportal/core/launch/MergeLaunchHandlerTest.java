@@ -69,7 +69,7 @@ public class MergeLaunchHandlerTest extends BaseTest {
     private static final String MERGE_LAUNCH_1 = "51824cc1553de743b3e5bb2c";
     private static final String MERGE_LAUNCH_2 = "51824cc1553de743b3e5cc2c";
     private static final String MERGE_SUITE_1 = "44524cc1553de743b3e5bb30";
-    private static final String MERGE_SUITE_2 = "44524cc1553de743b3a5bb30";
+    private static final String MERGE_SUITE_2 = "595e4e7bb909d331fc392fc7";
     private static final String SAME_SUITE = "14524cc1553de743abc5bb30";
     private static final String IN_PROGRESS_ID = "51824cc1553de743b3e5aa2c";
     private static final String DIFF_PROJECT_LAUNCH_ID = "88624678053de743b3e5aa9e";

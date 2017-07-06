@@ -134,7 +134,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         Launch launch = createResultedLaunch(projectName, userName, rq);
 
         updateChildrenOfLaunches(launch.getId(), rq.getLaunches(),
-                rq.isExtendSuitesDescription(), isLaunchNameChanged(launch, launchesList.get(0)));
+                rq.isExtendSuitesDescription());
 
         MergeStrategyType type = MergeStrategyType.fromValue(rq.getMergeStrategyType());
         expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
@@ -202,14 +202,12 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
      * Update test-items of specified launches with new LaunchID
      */
     private void updateChildrenOfLaunches(String launchId, Set<String> launches,
-                                          boolean extendDescription, boolean updateIdentifier) {
+                                          boolean extendDescription) {
         List<TestItem> testItems = launches.stream().flatMap(id -> {
             Launch launch = launchRepository.findOne(id);
             return testItemRepository.findByLaunch(launch).stream().map(item -> {
                 item.setLaunchRef(launchId);
-                if (updateIdentifier) {
-                    item.setIdentifier(identifierGenerator.generate(item));
-                }
+                item.setIdentifier(identifierGenerator.generate(item));
                 if (item.getType().sameLevel(TestItemType.SUITE)) {
                     // Add launch reference description for top level items
                     Supplier<String> newDescription = Suppliers
@@ -241,9 +239,5 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         Launch launch = launchBuilder.get().addStartRQ(startRQ).addProject(projectName).addStatus(IN_PROGRESS).addUser(userName).build();
         launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
         return launchRepository.save(launch);
-    }
-
-    private boolean isLaunchNameChanged(Launch newLaunch, Launch old) {
-        return newLaunch.getName().equals(old.getName());
     }
 }

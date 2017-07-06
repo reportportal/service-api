@@ -1100,6 +1100,7 @@
 		<property name="startTime" value="05/02/2013 14:23 +0300" />
 		<property name="endTime" value="05/02/2013 14:23 +0300" />
 		<property name="status" value="IN_PROGRESS" />
+		<property name="launchRef" value="51824cc1553de743b3e5aa2c"/>
 		<property name="path">
 			<util:list>
 				<value>44524cc1553de753b3e5aa2f</value>
@@ -3020,7 +3021,7 @@
 		/>
 	</bean>
     <bean id="mergeTest1" class="com.epam.ta.reportportal.database.entity.item.TestItem">
-		<property name="id" value="44524cc15123de743b3e5bb30" />
+		<property name="id" value="44524cc15123de743b3e5bb3" />
 		<property name="name" value="testItem1" />
 		<property name="itemDescription" value="test for history validation 1" />
         <property name="status" value="FAILED"/>
@@ -3045,12 +3046,12 @@
 		<property name="type"
 				  value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).STEP}"
 		/>
-        <property name="parent" value="44524cc15123de743b3e5bb30" />
+        <property name="parent" value="44524cc15123de743b3e5bb3" />
         <property name="hasChilds" value="false"/>
         <property name="path">
             <util:list>
                 <value>44524cc1553de743b3e5bb30</value>
-                <value>44524cc15123de743b3e5bb30</value>
+                <value>44524cc15123de743b3e5bb3</value>
             </util:list>
         </property>
         <property name="issue">
@@ -3073,7 +3074,7 @@
 
 
 	<bean id="mergeSuite2" class="com.epam.ta.reportportal.database.entity.item.TestItem">
-        <property name="id" value="44524cc1553de743b3a5bb30" />
+        <property name="id" value="595e4e7bb909d331fc392fc7" />
         <property name="name" value="suiteItem2" />
         <property name="itemDescription" value="suite for history validation" />
         <property name="launchRef" value="51824cc1553de743b3e5cc2c" />
@@ -3086,7 +3087,7 @@
         />
     </bean>
 	<bean id="mergeTest2" class="com.epam.ta.reportportal.database.entity.item.TestItem">
-        <property name="id" value="44524cc15123cc743b3e5bb30" />
+        <property name="id" value="44524cc15123cc743b3e5bb3" />
         <property name="name" value="testItem2" />
         <property name="itemDescription" value="test for history validation 1" />
         <property name="launchRef" value="51824cc1553de743b3e5cc2c" />
@@ -3094,11 +3095,11 @@
         <property name="type"
                   value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).TEST}"
         />
-        <property name="parent" value="44524cc1553de743b3a5bb30" />
+        <property name="parent" value="595e4e7bb909d331fc392fc7" />
         <property name="hasChilds" value="true"/>
         <property name="path">
             <util:list>
-                <value>44524cc1553de743b3a5bb30</value>
+                <value>595e4e7bb909d331fc392fc7</value>
             </util:list>
         </property>
     </bean>
@@ -3110,12 +3111,12 @@
         <property name="launchRef" value="51824cc1553de743b3e5cc2c" />
         <property name="type"
                   value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).STEP}" />
-        <property name="parent" value="44524cc15123cc743b3e5bb30" />
+        <property name="parent" value="44524cc15123cc743b3e5bb3" />
         <property name="hasChilds" value="false"/>
         <property name="path">
             <util:list>
-                <value>44524cc1553de743b3a5bb30</value>
-                <value>44524cc15123cc743b3e5bb30</value>
+                <value>595e4e7bb909d331fc392fc7</value>
+                <value>44524cc15123cc743b3e5bb3</value>
             </util:list>
         </property>
     </bean>
@@ -3140,7 +3141,7 @@
 	</bean>
 
 	<bean id="sameTest" class="com.epam.ta.reportportal.database.entity.item.TestItem">
-		<property name="id" value="24524cc15123ec743b3e5bb30" />
+		<property name="id" value="24524cc15123ec743b3e5bb3" />
 		<property name="name" value="sameTest" />
 		<property name="itemDescription" value="test for history validation 1" />
 		<property name="launchRef" value="51824cc1553de743b3e5cc2c" />
@@ -3164,12 +3165,12 @@
 		<property name="launchRef" value="51824cc1553de743b3e5cc2c" />
 		<property name="type"
 				  value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).STEP}" />
-		<property name="parent" value="24524cc15123ec743b3e5bb30" />
+		<property name="parent" value="24524cc15123ec743b3e5bb3" />
 		<property name="hasChilds" value="false"/>
 		<property name="path">
 			<util:list>
 				<value>14524cc1553de743abc5bb30</value>
-				<value>24524cc15123ec743b3e5bb30</value>
+				<value>24524cc15123ec743b3e5bb3</value>
 			</util:list>
 		</property>
 	</bean>

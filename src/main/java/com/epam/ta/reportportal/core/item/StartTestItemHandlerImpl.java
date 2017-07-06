@@ -21,16 +21,8 @@
 
 package com.epam.ta.reportportal.core.item;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-
-import com.epam.ta.reportportal.commons.validation.Suppliers;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.Preconditions;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -40,8 +32,15 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Start Launch operation default implementation
@@ -56,6 +55,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	private LaunchRepository launchRepository;
 	private Provider<TestItemBuilder> testItemBuilder;
 	private LogRepository logRepository;
+
+	@Autowired
+	private TestItemIdentifierGenerator identifierGenerator;
 
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
@@ -85,6 +87,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		Launch launch = launchRepository.loadStatusProjectRefAndStartTime(rq.getLaunchId());
 		validate(projectName, rq, launch);
 		TestItem item = testItemBuilder.get().addStartItemRequest(rq).addStatus(Status.IN_PROGRESS).addLaunch(launch).build();
+		item.setIdentifier(identifierGenerator.generate(item));
 		testItemRepository.save(item);
 		return new EntryCreatedRS(item.getId());
 	}
@@ -101,6 +104,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 		TestItem item = testItemBuilder.get().addStartItemRequest(rq).addParent(parentItem).addPath(parentItem)
 				.addStatus(Status.IN_PROGRESS).build();
+		item.setIdentifier(identifierGenerator.generate(item));
 		testItemRepository.save(item);
 
 		if (!parentItem.hasChilds()){

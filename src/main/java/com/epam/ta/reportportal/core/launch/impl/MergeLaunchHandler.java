@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.item.TestItemIdentifierGenerator;
 import com.epam.ta.reportportal.core.item.merge.strategy.MergeStrategy;
 import com.epam.ta.reportportal.core.item.merge.strategy.MergeStrategyFactory;
 import com.epam.ta.reportportal.core.item.merge.strategy.MergeStrategyType;
@@ -97,6 +98,9 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
     private LaunchResourceAssembler launchResourceAssembler;
 
     @Autowired
+    private TestItemIdentifierGenerator identifierGenerator;
+
+    @Autowired
     public void setProjectRepository(ProjectRepository projectRepository) {
         this.projectRepository = projectRepository;
     }
@@ -130,7 +134,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         Launch launch = createResultedLaunch(projectName, userName, rq);
 
         updateChildrenOfLaunches(launch.getId(), rq.getLaunches(),
-                rq.isExtendSuitesDescription());
+                rq.isExtendSuitesDescription(), isLaunchNameChanged(launch, launchesList.get(0)));
 
         MergeStrategyType type = MergeStrategyType.fromValue(rq.getMergeStrategyType());
         expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
@@ -197,11 +201,15 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
     /**
      * Update test-items of specified launches with new LaunchID
      */
-    private void updateChildrenOfLaunches(String launchId, Set<String> launches, boolean extendDescription) {
+    private void updateChildrenOfLaunches(String launchId, Set<String> launches,
+                                          boolean extendDescription, boolean updateIdentifier) {
         List<TestItem> testItems = launches.stream().flatMap(id -> {
             Launch launch = launchRepository.findOne(id);
             return testItemRepository.findByLaunch(launch).stream().map(item -> {
                 item.setLaunchRef(launchId);
+                if (updateIdentifier) {
+                    item.setIdentifier(identifierGenerator.generate(item));
+                }
                 if (item.getType().sameLevel(TestItemType.SUITE)) {
                     // Add launch reference description for top level items
                     Supplier<String> newDescription = Suppliers
@@ -233,5 +241,9 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         Launch launch = launchBuilder.get().addStartRQ(startRQ).addProject(projectName).addStatus(IN_PROGRESS).addUser(userName).build();
         launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
         return launchRepository.save(launch);
+    }
+
+    private boolean isLaunchNameChanged(Launch newLaunch, Launch old) {
+        return newLaunch.getName().equals(old.getName());
     }
 }

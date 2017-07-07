@@ -23,13 +23,13 @@ package com.epam.ta.reportportal.migration;
 
 import com.github.mongobee.changeset.ChangeLog;
 import com.github.mongobee.changeset.ChangeSet;
-import com.google.common.base.Charsets;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 
 import java.io.IOException;
-
-import static com.google.common.io.Resources.asCharSource;
-import static com.google.common.io.Resources.getResource;
+import java.util.UUID;
 
 /**
  * v.3.1 Migration scripts
@@ -39,7 +39,13 @@ public class ChangeSets_3_1 {
 
 	@ChangeSet(order = "3.1.0-1", id = "v3.1.0-Remove debug from email settings", author = "avarabyeu")
 	public void removeDebugField(MongoTemplate mongoTemplate) throws IOException {
-		mongoTemplate.getDb().doEval(asCharSource(getResource("migration/v3_1_0_1.js"), Charsets.UTF_8).read());
+		mongoTemplate.updateFirst(Query.query(new Criteria()), new Update().unset("serverEmailDetails.debug"), "serverSettings");
+	}
+
+	@ChangeSet(order = "3.1.0-2", id = "v3.1.2-Add instance ID", author = "avarabyeu")
+	public void addInstanceID(MongoTemplate mongoTemplate) throws IOException {
+		mongoTemplate.updateFirst(Query.query(Criteria.where("instanceId").exists(false)),
+				new Update().set("instanceId", UUID.randomUUID().toString()), "serverSettings");
 	}
 
 }

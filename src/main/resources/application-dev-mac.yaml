@@ -1,0 +1,11 @@
+spring:
+  cloud:
+    consul:
+      discovery:
+        hostname: docker.for.mac.localhost
+      host: localhost
+  redis:
+    host: localhost
+rp:
+  mongo:
+    host: localhost

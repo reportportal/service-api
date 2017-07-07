@@ -101,6 +101,7 @@
 * EPMRPP-25456 - Reduced memory usage by scheduled jobs
 * EPMRPP-12090 - Implemented deep launches merge
 * EPMRPP-26010 - Implemented Passing rate widget
+* EPMRPP-26021 - Hash for unique instance generating by server
 
 ### Bugfixes
 

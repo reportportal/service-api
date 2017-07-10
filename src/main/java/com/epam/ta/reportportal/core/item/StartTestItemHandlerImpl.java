@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.item;
 
@@ -44,10 +44,10 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Start Launch operation default implementation
- * 
+ *
  * @author Andrei Varabyeu
  * @author Andrei_Ramanchuk
- * 
+ *
  */
 @Service
 class StartTestItemHandlerImpl implements StartTestItemHandler {
@@ -57,7 +57,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	private LogRepository logRepository;
 
 	@Autowired
-	private TestItemIdentifierGenerator identifierGenerator;
+	private UniqueIdGenerator identifierGenerator;
 
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
@@ -87,7 +87,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		Launch launch = launchRepository.loadStatusProjectRefAndStartTime(rq.getLaunchId());
 		validate(projectName, rq, launch);
 		TestItem item = testItemBuilder.get().addStartItemRequest(rq).addStatus(Status.IN_PROGRESS).addLaunch(launch).build();
-		item.setIdentifier(identifierGenerator.generate(item));
+		if (null == item.getUniqueId()) {
+			item.setUniqueId(identifierGenerator.generate(item));
+		}
 		testItemRepository.save(item);
 		return new EntryCreatedRS(item.getId());
 	}
@@ -104,10 +106,12 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 		TestItem item = testItemBuilder.get().addStartItemRequest(rq).addParent(parentItem).addPath(parentItem)
 				.addStatus(Status.IN_PROGRESS).build();
-		item.setIdentifier(identifierGenerator.generate(item));
+		if (null == item.getUniqueId()) {
+			item.setUniqueId(identifierGenerator.generate(item));
+		}
 		testItemRepository.save(item);
 
-		if (!parentItem.hasChilds()){
+		if (!parentItem.hasChilds()) {
 			testItemRepository.updateHasChilds(parentItem.getId(), true);
 		}
 		return new EntryCreatedRS(item.getId());

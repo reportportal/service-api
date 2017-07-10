@@ -16,7 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Pavel_Bortnik
  */
 @SpringFixture("triggerTests")
-public class IdentifierGeneratorTest extends BaseTest {
+public class UniqueIdGeneratorTest extends BaseTest {
 
     @Rule
     @Autowired
@@ -31,7 +31,7 @@ public class IdentifierGeneratorTest extends BaseTest {
     private static final String ITEM = "44524cc1553de753b3e5ab2f";
 
     @Test
-    public void generateUniqueHash() throws Exception {
+    public void generateUniqueId() throws Exception {
         TestItem item = testItemRepository.findOne(ITEM);
         String s1 = identifierGenerator.generate(item);
         String s2 = identifierGenerator.generate(item);

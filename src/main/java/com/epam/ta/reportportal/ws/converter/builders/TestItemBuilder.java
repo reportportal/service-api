@@ -44,6 +44,7 @@ public class TestItemBuilder extends Builder<TestItem> {
 	public TestItemBuilder addStartItemRequest(StartTestItemRQ rq) {
 		getObject().setStartTime(rq.getStartTime());
 		getObject().setName(rq.getName().trim());
+		getObject().setUniqueId(rq.getUniqueId());
 		if (null != rq.getDescription())
 			getObject().setItemDescription(rq.getDescription().trim());
 		Set<String> tags = rq.getTags();

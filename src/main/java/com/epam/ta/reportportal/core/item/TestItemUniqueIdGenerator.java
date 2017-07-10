@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  * @author Pavel_Bortnik
  */
 @Service
-public class TestItemIdentifierGenerator {
+public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 
     private static final Base64.Encoder encoder = Base64.getEncoder();
 
@@ -60,17 +60,13 @@ public class TestItemIdentifierGenerator {
         List<String> pathNames = getPathNames(testItem.getPath());
         String itemName = testItem.getName();
         List<String> parameters = Optional.ofNullable(testItem.getParameters()).orElse(Collections.emptyList());
-        String result = new StringJoiner("").add(launchName).add(pathNames.stream().collect(Collectors.joining())).add(itemName)
+        String result = new StringJoiner(",").add(launchName).add(pathNames.stream().collect(Collectors.joining())).add(itemName)
                 .add(parameters.stream().collect(Collectors.joining())).toString();
         return result.replaceAll("\\s", "");
     }
 
     private List<String> getPathNames(List<String> path) {
         Map<String, String> names = testItemRepository.findPathNames(path);
-        List<String> result = new ArrayList<>();
-        for (String id: path) {
-            result.add(names.get(id));
-        }
-        return result;
+        return path.stream().map(names::get).collect(Collectors.toList());
     }
 }

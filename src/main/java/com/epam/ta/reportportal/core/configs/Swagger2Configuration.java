@@ -24,7 +24,7 @@ package com.epam.ta.reportportal.core.configs;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.search.CriteriaMap;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
-import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.database.search.Queryable;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.fasterxml.classmate.ResolvedType;
 import com.fasterxml.classmate.TypeResolver;
@@ -191,7 +191,7 @@ public class Swagger2Configuration {
 
 					//@formatter:on
 					context.getOperationContext().operationBuilder().parameters(parameters);
-				} else if (Filter.class.isAssignableFrom(type)) {
+				} else if (Queryable.class.isAssignableFrom(type) && parameter.hasParameterAnnotation(FilterFor.class)) {
 					FilterFor filterClass = parameter.findAnnotation(FilterFor.class).get();
 					CriteriaMap<?> criteriaMap = CriteriaMapFactory.DEFAULT_INSTANCE_SUPPLIER.get().getCriteriaMap(filterClass.value());
 

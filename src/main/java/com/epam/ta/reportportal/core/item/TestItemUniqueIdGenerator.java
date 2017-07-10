@@ -44,15 +44,25 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 
     private static final Base64.Encoder encoder = Base64.getEncoder();
 
+    private static final Base64.Decoder decoder = Base64.getDecoder();
+
+    private static final String SECRET = "auto:";
+
     @Autowired
     private TestItemRepository testItemRepository;
 
     @Autowired
     private LaunchRepository launchRepository;
 
+    @Override
     public String generate(TestItem testItem, String projectName) {
         String forEncoding = prepareForEncoding(testItem, projectName);
         return encoder.encodeToString(forEncoding.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Override
+    public boolean validate(String encoded) {
+        return Arrays.toString(decoder.decode(encoded)).startsWith(SECRET);
     }
 
     private String prepareForEncoding(TestItem testItem, String projectName) {
@@ -60,7 +70,8 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
         List<String> pathNames = getPathNames(testItem.getPath());
         String itemName = testItem.getName();
         List<String> parameters = Optional.ofNullable(testItem.getParameters()).orElse(Collections.emptyList());
-        return new StringJoiner("; ").add(projectName).add(launchName).add(pathNames.stream().collect(Collectors.joining())).add(itemName)
+        return new StringJoiner("; ").add(SECRET).add(projectName).add(launchName)
+                .add(pathNames.stream().collect(Collectors.joining())).add(itemName)
                 .add(parameters.stream().collect(Collectors.joining())).toString();
     }
 

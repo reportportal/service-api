@@ -36,4 +36,11 @@ public interface UniqueIdGenerator {
      */
     String generate(TestItem testItem, String projectName);
 
+    /**
+     * Validate if string has been generated.
+     * @param encoded
+     * @return
+     */
+    boolean validate(String encoded);
+
 }

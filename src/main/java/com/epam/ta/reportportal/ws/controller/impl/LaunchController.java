@@ -349,7 +349,7 @@ public class LaunchController implements ILaunchController {
 	}
 
 	@Override
-	@RequestMapping(value = "/import", method = RequestMethod.POST)
+	@RequestMapping(value = "/import/{mode}", method = RequestMethod.POST)
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip.")

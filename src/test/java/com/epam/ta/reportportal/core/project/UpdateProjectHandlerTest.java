@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
+import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -43,6 +44,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collections;
+
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.containsString;
 
@@ -80,7 +84,14 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		configuration.setEntry("INTERNAL");
 		configuration.setStatisticCalculationStrategy("TEST_BASED");
 		configuration.setProjectSpecific("DEFAULT");
-		configuration.setEmailConfig(new ProjectEmailConfigDTO());
+
+		ProjectEmailConfigDTO emailConfig = new ProjectEmailConfigDTO();
+		final EmailSenderCaseDTO emailSenderCase = new EmailSenderCaseDTO();
+		emailSenderCase.setSendCase("ALWAYS");
+		emailSenderCase.setRecipients(Collections.singletonList("demo@demo.com"));
+		emailConfig.setEmailCases(singletonList(emailSenderCase));
+
+		configuration.setEmailConfig(emailConfig);
 		updateProjectRQ.setConfiguration(configuration);
 		String project1 = "project1";
 		updateProjectHandler.updateProject(project1, updateProjectRQ, userName);

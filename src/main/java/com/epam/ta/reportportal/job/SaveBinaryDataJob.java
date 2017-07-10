@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.job;
 
@@ -28,144 +28,136 @@ import com.epam.ta.reportportal.database.DataStorage;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.entity.BinaryContent;
 import com.epam.ta.reportportal.database.entity.Log;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.io.ByteStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Map;
 
+
 /**
  * Save binary data job. Expected to be executed asynchronously. Statefull, so
  * cannot be a singleton bean. Saves binary data, then updates related log entry
  * with saved data id
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class SaveBinaryDataJob implements Runnable {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(SaveBinaryDataJob.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SaveBinaryDataJob.class);
 
-	@Autowired
-	private LogRepository logRepository;
+    @Autowired
+    private LogRepository logRepository;
 
-	@Autowired
-	private DataStorage dataStorageService;
+    @Autowired
+    private DataStorage dataStorageService;
 
-	@Autowired
-	private Thumbnailator thumbnailator;
+    @Autowired
+    private Thumbnailator thumbnailator;
 
-	@Autowired
-	private ContentTypeResolver contentTypeResolver;
+    @Autowired
+    private ContentTypeResolver contentTypeResolver;
 
-	/**
-	 * Name of file to be saved
-	 */
-	private String filename;
+    /**
+     * Binary data representation
+     */
+    private MultipartFile file;
 
-	/**
-	 * Binary data representation
-	 */
-	private BinaryData binaryData;
-	
-	private String project;
+    private String project;
 
-	/**
-	 * {@link Log} entry related to this binary data
-	 */
-	private Log log;
+    /**
+     * {@link Log} entry related to this binary data
+     */
+    private Log log;
 
-	@Override
-	public void run() {
+    @Override
+    public void run() {
+        try {
+            BinaryData binaryData;
+            if (!Strings.isNullOrEmpty(file.getContentType()) && !MediaType.APPLICATION_OCTET_STREAM_VALUE
+                    .equals(file.getContentType())) {
+                binaryData = new BinaryData(file.getContentType(), file.getSize(), file.getInputStream());
+            } else {
+                binaryData = new BinaryData(contentTypeResolver.detectContentType(file.getInputStream()),
+                        file.getSize(),
+                        file.getInputStream());
+            }
 
-		BinaryData toSave;
-		if (!Strings.isNullOrEmpty(binaryData.getContentType()) && !MediaType.APPLICATION_OCTET_STREAM_VALUE
-				.equals(binaryData.getContentType())) {
-			toSave = binaryData;
-		} else {
-			try {
-				byte[] consumedData = ByteStreams.toByteArray(binaryData.getInputStream());
-				toSave = new BinaryData(contentTypeResolver.detectContentType(consumedData), binaryData.getLength(),
-						new ByteArrayInputStream(consumedData));
-			} catch (IOException e) {
-				throw new ReportPortalException(ErrorType.BAD_SAVE_LOG_REQUEST, "Unable to read binary data");
-			}
-		}
+            String thumbnailId = null;
+            Map<String, String> metadata = Collections.singletonMap("project", project);
 
-		String thumbnailId = null;
-		Map<String, String> metadata = Collections.singletonMap("project", project);
-
-		if (isImage(toSave)) {
-			try {
-				byte[] image = ByteStreams.toByteArray(toSave.getInputStream());
-				InputStream thumbnailStream = thumbnailator.createThumbnail(new ByteArrayInputStream(image));
-				thumbnailId = dataStorageService.saveData(new BinaryData(toSave.getContentType(), -1L,
-						thumbnailStream), "thumbnail-".concat(filename), metadata);
-				toSave = new BinaryData(toSave.getContentType(), toSave.getLength(), new ByteArrayInputStream(image));
-			} catch (IOException e) {
-				// do not propogate. Thumbnail is not so critical
-				LOGGER.error("Thumbnail is not created for log [{}]. Error:\n{}", log.getId(), e);
-			}
-		}
+            if (isImage(binaryData.getContentType())) {
+                try {
+                    InputStream thumbnailStream = thumbnailator.createThumbnail(file.getInputStream());
+                    thumbnailId = dataStorageService.saveData(new BinaryData(binaryData.getContentType(), -1L,
+                            thumbnailStream), "thumbnail-".concat(file.getName()), metadata);
+                    binaryData = new BinaryData(binaryData.getContentType(), binaryData.getLength(),
+                            file.getInputStream());
+                } catch (IOException e) {
+                    // do not propogate. Thumbnail is not so critical
+                    LOGGER.error("Thumbnail is not created for log [{}]. Error:\n{}", log.getId(), e);
+                }
+            }
 
 		/*
-		 * Saves binary data into storage
+         * Saves binary data into storage
 		 */
-		//String dataId = dataStorageService.saveData(binaryData, filename);
-		String dataId = dataStorageService.saveData(toSave, filename, metadata);
+            //String dataId = dataStorageService.saveData(binaryData, filename);
+            String dataId = dataStorageService.saveData(binaryData, file.getName(), metadata);
 
 		/*
-		 * Then updates log with just created binary data id
+         * Then updates log with just created binary data id
 		 */
-		BinaryContent content = new BinaryContent();
-		content.setBinaryDataId(dataId);
-		content.setContentType(toSave.getContentType());
-		if (null != thumbnailId) {
-			content.setThumbnailId(thumbnailId);
-		}
+            BinaryContent content = new BinaryContent();
+            content.setBinaryDataId(dataId);
+            content.setContentType(binaryData.getContentType());
+            if (null != thumbnailId) {
+                content.setThumbnailId(thumbnailId);
+            }
 
 		/*
-		 * Adds thumbnail if created
+         * Adds thumbnail if created
 		 */
-		log.setBinaryContent(content);
-		logRepository.save(log);
-	}
+            log.setBinaryContent(content);
+            logRepository.save(log);
 
-	public SaveBinaryDataJob withBinaryData(BinaryData binaryData) {
-		Preconditions.checkNotNull(binaryData, "Binary data shouldn't be null");
-		this.binaryData = binaryData;
-		return this;
-	}
+        } catch (IOException e) {
+            LOGGER.error("Unable to save binary data", e);
+        } finally {
+            if (file instanceof CommonsMultipartFile){
+                ((CommonsMultipartFile) file).getFileItem().delete();
+            }
+        }
+    }
 
-	public SaveBinaryDataJob withLog(Log log) {
-		Preconditions.checkNotNull(log, "Log shouldn't be null");
-		this.log = log;
-		return this;
-	}
+    public SaveBinaryDataJob withFile(MultipartFile file) {
+        Preconditions.checkNotNull(file, "Binary data shouldn't be null");
+        this.file = file;
+        return this;
+    }
 
-	public SaveBinaryDataJob withFilename(String filename) {
-		Preconditions.checkNotNull(filename, "Filename shouldn't be null");
-		this.filename = filename;
-		return this;
-	}
-	
-	public SaveBinaryDataJob withProject(String projectName) {
-		Preconditions.checkNotNull(projectName, "Project name shouldn't be null");
-		this.project = projectName;
-		return this;
-	}
 
-	private boolean isImage(BinaryData binaryData) {
-		return binaryData.getContentType() != null && binaryData.getContentType().contains("image");
-	}
+    public SaveBinaryDataJob withLog(Log log) {
+        Preconditions.checkNotNull(log, "Log shouldn't be null");
+        this.log = log;
+        return this;
+    }
+
+    public SaveBinaryDataJob withProject(String projectName) {
+        Preconditions.checkNotNull(projectName, "Project name shouldn't be null");
+        this.project = projectName;
+        return this;
+    }
+
+    private boolean isImage(String contentType) {
+        return contentType != null && contentType.contains("image");
+    }
 }

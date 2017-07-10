@@ -22,8 +22,6 @@ package com.epam.ta.reportportal.core.imprt.impl.junit;
 
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
-import com.epam.ta.reportportal.core.launch.IFinishLaunchHandler;
-import com.epam.ta.reportportal.core.launch.IStartLaunchHandler;
 import com.epam.ta.reportportal.core.log.ICreateLogHandler;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.Status;
@@ -46,12 +44,6 @@ import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toDate;
 import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toMillis;
 
 public class JunitImportHandler extends DefaultHandler {
-
-    @Autowired
-    private IStartLaunchHandler startLaunchHandler;
-
-    @Autowired
-    private IFinishLaunchHandler finishLaunchHandler;
 
     @Autowired
     private StartTestItemHandler startTestItemHandler;
@@ -202,7 +194,7 @@ public class JunitImportHandler extends DefaultHandler {
             saveLogRQ.setLogTime(toDate(startItemTime));
             saveLogRQ.setMessage(message.toString());
             saveLogRQ.setTestItemId(currentId);
-            createLogHandler.createLog(saveLogRQ, null, null, projectId);
+            createLogHandler.createLog(saveLogRQ, null, projectId);
         }
     }
 
@@ -213,7 +205,7 @@ public class JunitImportHandler extends DefaultHandler {
             saveLogRQ.setLogTime(toDate(startItemTime));
             saveLogRQ.setMessage(message.toString());
             saveLogRQ.setTestItemId(itemsIds.getFirst());
-            createLogHandler.createLog(saveLogRQ, null, null, projectId);
+            createLogHandler.createLog(saveLogRQ, null, projectId);
         }
     }
 

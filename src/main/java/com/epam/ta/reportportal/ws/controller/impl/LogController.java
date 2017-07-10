@@ -28,13 +28,17 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.log.ICreateLogHandler;
 import com.epam.ta.reportportal.core.log.IDeleteLogHandler;
 import com.epam.ta.reportportal.core.log.IGetLogHandler;
-import com.epam.ta.reportportal.database.BinaryData;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.controller.ILogController;
-import com.epam.ta.reportportal.ws.model.*;
+import com.epam.ta.reportportal.ws.model.BatchElementCreatedRS;
+import com.epam.ta.reportportal.ws.model.BatchSaveOperatingRS;
+import com.epam.ta.reportportal.ws.model.Constants;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
@@ -50,10 +54,18 @@ import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import springfox.documentation.annotations.ApiIgnore;
@@ -64,7 +76,11 @@ import javax.validation.Path.Node;
 import javax.validation.Validator;
 import java.io.Serializable;
 import java.security.Principal;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -102,7 +118,7 @@ public class LogController implements ILogController {
             Principal principal) {
         validateSaveRQ(createLogRQ);
         return createLogMessageHandler
-                .createLog(createLogRQ, null, null, EntityUtils.normalizeId(projectName));
+                .createLog(createLogRQ, null, EntityUtils.normalizeId(projectName));
     }
 
     @Override
@@ -112,6 +128,7 @@ public class LogController implements ILogController {
     // Specific handler should be added for springfox in case of similar POST
     // request mappings
     @ApiIgnore
+    @Async
     public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectName,
             @RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs, HttpServletRequest request,
             Principal principal) {
@@ -124,7 +141,7 @@ public class LogController implements ILogController {
         Map<String, MultipartFile> uploadedFiles = getUploadedFiles(request);
         BatchSaveOperatingRS response = new BatchSaveOperatingRS();
         EntryCreatedRS responseItem;
-		/* Go through all provided save log request items */
+        /* Go through all provided save log request items */
         for (SaveLogRQ createLogRq : createLogRQs) {
             try {
                 validateSaveRQ(createLogRq);
@@ -147,10 +164,9 @@ public class LogController implements ILogController {
 					 * data
 					 */
                     //noinspection ConstantConditions
-                    responseItem =  createLogMessageHandler
+                    responseItem = createLogMessageHandler
                             .createLog(createLogRq,
-                                    new BinaryData(data.getContentType(), data.getSize(), data.getInputStream()),
-                                    data.getOriginalFilename(), prjName);
+                                    data, prjName);
                 }
                 response.addResponse(new BatchElementCreatedRS(responseItem.getId()));
             } catch (Exception e) {
@@ -178,7 +194,7 @@ public class LogController implements ILogController {
     public Iterable<LogResource> getLogs(@PathVariable String projectName,
             @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ
                     + Log.TEST_ITEM_ID) String testStepId, @FilterFor(Log.class) Filter filter,
-           @SortDefault({"time"}) @SortFor(Log.class) Pageable pageable, Principal principal) {
+            @SortDefault({ "time" }) @SortFor(Log.class) Pageable pageable, Principal principal) {
         return getLogHandler.getLogs(testStepId, EntityUtils.normalizeId(projectName), filter, pageable);
     }
 
@@ -186,12 +202,12 @@ public class LogController implements ILogController {
     @RequestMapping(value = "/{logId}/page", method = RequestMethod.GET)
     @ResponseBody
     @ApiOperation("Get logs by filter")
-    public Map<String,Serializable> getPageNumber(@PathVariable String projectName, @PathVariable String logId,
+    public Map<String, Serializable> getPageNumber(@PathVariable String projectName, @PathVariable String logId,
             @FilterFor(Log.class) Filter filter,
             @SortFor(Log.class) Pageable pageable, Principal principal) {
         return ImmutableMap.<String, Serializable>builder().put("number", getLogHandler
-				.getPageNumber(logId, EntityUtils.normalizeId(projectName), filter, pageable))
-				.build();
+                .getPageNumber(logId, EntityUtils.normalizeId(projectName), filter, pageable))
+                .build();
     }
 
     @Override
@@ -207,7 +223,7 @@ public class LogController implements ILogController {
      * map.
      *
      * @param filename File name
-     * @param files Files map
+     * @param files    Files map
      * @return Found file
      */
     private MultipartFile findByFileName(String filename, Map<String, MultipartFile> files) {

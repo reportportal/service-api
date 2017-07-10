@@ -21,23 +21,23 @@
 package com.epam.ta.reportportal.events;
 
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 
 /**
  * @author Andrei Varabyeu
  */
 public class EmailConfigUpdatedEvent extends BeforeEvent<Project> {
 
-	private final UpdateProjectEmailRQ updateProjectEmailRQ;
+	private final ProjectEmailConfigDTO updateProjectEmailRQ;
 	private final String updatedBy;
 
-	public EmailConfigUpdatedEvent(Project before, UpdateProjectEmailRQ updateProjectEmailRQ, String updatedBy) {
+	public EmailConfigUpdatedEvent(Project before, ProjectEmailConfigDTO updateProjectEmailRQ, String updatedBy) {
 		super(before);
 		this.updateProjectEmailRQ = updateProjectEmailRQ;
 		this.updatedBy = updatedBy;
 	}
 
-	public UpdateProjectEmailRQ getUpdateProjectEmailRQ() {
+	public ProjectEmailConfigDTO getUpdateProjectEmailRQ() {
 		return updateProjectEmailRQ;
 	}
 

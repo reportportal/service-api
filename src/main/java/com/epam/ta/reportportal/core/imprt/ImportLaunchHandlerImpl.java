@@ -46,7 +46,7 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
     private ProjectRepository projectRepository;
 
     @Override
-    public OperationCompletionRS importLaunch(String projectId, String userName, String format, MultipartFile file) {
+    public OperationCompletionRS importLaunch(String projectId, String userName, String mode, String format, MultipartFile file) {
         Project project = projectRepository.findOne(projectId);
         expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectId);
 
@@ -54,7 +54,7 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
                 "Incorrect importing file format: " + format));
 
         ImportStrategy strategy = factory.getImportLaunch(type);
-        String launch = strategy.importLaunch(projectId, userName, file);
+        String launch = strategy.importLaunch(projectId, userName, mode, file);
 
         return new OperationCompletionRS("Launch with id = " + launch + " is successfully imported.");
     }

@@ -36,5 +36,5 @@ public interface ImportStrategy {
      * @param file      zip file that contains xml test reports
      * @return launch id
      */
-    String importLaunch(String projectId, String userName, MultipartFile file);
+    String importLaunch(String projectId, String userName, String mode, MultipartFile file);
 }

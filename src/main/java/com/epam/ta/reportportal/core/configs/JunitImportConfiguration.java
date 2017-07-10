@@ -20,8 +20,8 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.core.imprt.impl.junit.JunitImportHandler;
-import com.epam.ta.reportportal.core.imprt.impl.junit.JunitParseJob;
+import com.epam.ta.reportportal.core.imprt.impl.junit.XunitImportHandler;
+import com.epam.ta.reportportal.core.imprt.impl.junit.XunitParseJob;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,13 +39,13 @@ public class JunitImportConfiguration {
 
     @Bean(name = "junitParseJob")
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public JunitParseJob junitParseJob() {
-        return new JunitParseJob();
+    public XunitParseJob junitParseJob() {
+        return new XunitParseJob();
     }
 
     @Bean(name = "junitImportHandler")
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public JunitImportHandler junitImportHandler() {
-        return new JunitImportHandler();
+    public XunitImportHandler junitImportHandler() {
+        return new XunitImportHandler();
     }
 }

@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public enum ImportType {
-    JUNIT;
+    XUNIT;
 
     public static Optional<ImportType> fromValue(String value) {
         return Arrays.stream(ImportType.values())

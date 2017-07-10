@@ -45,9 +45,9 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import java.util.Calendar;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
-
 
 /**
  * Initial deploy data
@@ -144,6 +144,7 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		settings.setServerEmailDetails(
 				new ServerEmailDetails(true, host, port, protocol, isEnable, false, false, username, password, "rp@epam.com"));
 		settings.setAnalyticsDetails(ImmutableMap.<String, AnalyticsDetails>builder().put("all", new AnalyticsDetails(true)).build());
+		settings.setInstanceId(UUID.randomUUID().toString());
 		return settings;
 	});
 

@@ -26,7 +26,7 @@ public class IdentifierGeneratorTest extends BaseTest {
     private TestItemRepository testItemRepository;
 
     @Autowired
-    private TestItemIdentifierGenerator identifierGenerator;
+    private TestItemUniqueIdGenerator identifierGenerator;
 
     private static final String ITEM = "44524cc1553de753b3e5ab2f";
 

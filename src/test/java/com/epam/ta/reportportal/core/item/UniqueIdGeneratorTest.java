@@ -29,23 +29,24 @@ public class UniqueIdGeneratorTest extends BaseTest {
     private TestItemUniqueIdGenerator identifierGenerator;
 
     private static final String ITEM = "44524cc1553de753b3e5ab2f";
+    private static final String PROJECT = "DEFAULT";
 
     @Test
     public void generateUniqueId() throws Exception {
         TestItem item = testItemRepository.findOne(ITEM);
-        String s1 = identifierGenerator.generate(item);
-        String s2 = identifierGenerator.generate(item);
+        String s1 = identifierGenerator.generate(item, PROJECT);
+        String s2 = identifierGenerator.generate(item, PROJECT);
         Assert.assertEquals(s1, s2);
 
         item.setParameters(ImmutableList.<String>builder().add("CardNumber=4444333322221111")
                 .add("Loyalty level=TrueBlue with Family Pooling").add("Stars=2 stars").build());
 
-        String s3 = identifierGenerator.generate(item);
+        String s3 = identifierGenerator.generate(item, PROJECT);
         Assert.assertNotEquals(s1, s3);
 
         item.setName("Different");
         item.setParameters(null);
-        String s4 = identifierGenerator.generate(item);
+        String s4 = identifierGenerator.generate(item, PROJECT);
         Assert.assertNotEquals(s3, s4);
     }
 }

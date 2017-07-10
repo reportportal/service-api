@@ -21,10 +21,8 @@
 
 package com.epam.ta.reportportal.core.item.merge.strategy;
 
-import com.epam.ta.reportportal.core.item.TestItemUniqueIdGenerator;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -35,8 +33,6 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
-    @Autowired
-    private TestItemUniqueIdGenerator identifierGenerator;
 
     protected final TestItemRepository testItemRepository;
 
@@ -116,9 +112,10 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
             target.setItemDescription(result);
         }
         List<String> parameters = mergeParameters(target.getParameters(), source.getParameters());
-        if (!parameters.isEmpty()) {
-            target.setParameters(parameters);
-            target.setUniqueId(identifierGenerator.generate(target));
+
+        //since merge based on unique id
+        if (parameters.equals(source.getParameters())) {
+            target.setUniqueId(source.getUniqueId());
         }
         testItemRepository.save(target);
     }

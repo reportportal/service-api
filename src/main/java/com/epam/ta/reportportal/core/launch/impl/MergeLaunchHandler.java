@@ -48,10 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
@@ -134,7 +131,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         Launch launch = createResultedLaunch(projectName, userName, rq);
 
         updateChildrenOfLaunches(launch.getId(), rq.getLaunches(),
-                rq.isExtendSuitesDescription());
+                rq.isExtendSuitesDescription(), projectName);
 
         MergeStrategyType type = MergeStrategyType.fromValue(rq.getMergeStrategyType());
         expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
@@ -202,12 +199,12 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
      * Update test-items of specified launches with new LaunchID
      */
     private void updateChildrenOfLaunches(String launchId, Set<String> launches,
-                                          boolean extendDescription) {
+                                          boolean extendDescription, String project) {
         List<TestItem> testItems = launches.stream().flatMap(id -> {
             Launch launch = launchRepository.findOne(id);
             return testItemRepository.findByLaunch(launch).stream().map(item -> {
                 item.setLaunchRef(launchId);
-                item.setUniqueId(identifierGenerator.generate(item));
+                item.setUniqueId(identifierGenerator.generate(item, project));
                 if (item.getType().sameLevel(TestItemType.SUITE)) {
                     // Add launch reference description for top level items
                     Supplier<String> newDescription = Suppliers

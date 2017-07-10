@@ -105,7 +105,7 @@ public class DemoDataCommonService {
         launchRepository.save(launch);
     }
 
-    TestItem startRootItem(String rootItemName, String launchId, TestItemType type) {
+    TestItem startRootItem(String rootItemName, String launchId, TestItemType type, String project) {
         TestItem testItem = new TestItem();
         testItem.setLaunchRef(launchId);
         if (type.sameLevel(SUITE) && ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
@@ -117,7 +117,7 @@ public class DemoDataCommonService {
         testItem.setHasChilds(true);
         testItem.setStatus(IN_PROGRESS);
         testItem.setType(type);
-        testItem.setUniqueId(identifierGenerator.generate(testItem));
+        testItem.setUniqueId(identifierGenerator.generate(testItem, project));
         return testItemRepository.save(testItem);
     }
 
@@ -128,7 +128,8 @@ public class DemoDataCommonService {
         testItemRepository.save(testItem);
     }
 
-    TestItem startTestItem(TestItem rootItemId, String launchId, String name, TestItemType type) {
+    TestItem startTestItem(TestItem rootItemId, String launchId, String name,
+                           TestItemType type, String project) {
         TestItem testItem = new TestItem();
         if (ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
             if (hasChildren(type)) {
@@ -148,7 +149,7 @@ public class DemoDataCommonService {
         testItem.setType(type);
         testItem.getPath().addAll(rootItemId.getPath());
         testItem.getPath().add(rootItemId.getId());
-        testItem.setUniqueId(identifierGenerator.generate(testItem));
+        testItem.setUniqueId(identifierGenerator.generate(testItem, project));
         return testItemRepository.save(testItem);
     }
 

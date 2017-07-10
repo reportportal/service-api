@@ -59,22 +59,22 @@ public class StepBasedDemoDataFacade extends DemoDataCommonService implements De
                                           String project, StatisticsCalculationStrategy statsStrategy) {
         return IntStream.range(0, rq.getLaunchesQuantity()).mapToObj(i -> {
             String launchId = startLaunch(NAME + "_" + rq.getPostfix(), i, project, user);
-            generateSuites(suitesStructure, i, launchId, statsStrategy);
+            generateSuites(suitesStructure, project, i, launchId, statsStrategy);
             finishLaunch(launchId);
             return launchId;
         }).collect(toList());
     }
 
-    private List<String> generateSuites(Map<String, Map<String, List<String>>> suitesStructure,
+    private List<String> generateSuites(Map<String, Map<String, List<String>>> suitesStructure, String project,
                                         int i, String launchId, StatisticsCalculationStrategy statsStrategy) {
         return suitesStructure.entrySet().stream().limit(i + 1).map(suites -> {
-            TestItem suiteItem = startRootItem(suites.getKey(), launchId, SUITE);
+            TestItem suiteItem = startRootItem(suites.getKey(), launchId, SUITE, project);
             suites.getValue().entrySet().forEach(tests -> {
-                TestItem testItem = startTestItem(suiteItem, launchId, tests.getKey(), TEST);
+                TestItem testItem = startTestItem(suiteItem, launchId, tests.getKey(), TEST, project);
                 String beforeClassStatus = "";
                 boolean isGenerateClass = ContentUtils.getWithProbability(STORY_PROBABILITY);
                 if (isGenerateClass) {
-                    TestItem beforeClass = startTestItem(testItem, launchId, "beforeClass", BEFORE_CLASS);
+                    TestItem beforeClass = startTestItem(testItem, launchId, "beforeClass", BEFORE_CLASS, project);
                     beforeClassStatus = status();
                     finishTestItem(beforeClass.getId(), beforeClassStatus, statsStrategy);
                 }
@@ -83,19 +83,20 @@ public class StepBasedDemoDataFacade extends DemoDataCommonService implements De
                 tests.getValue().stream().limit(i + 1).forEach(name -> {
                     if (isGenerateBeforeMethod) {
                         finishTestItem(
-                                startTestItem(testItem, launchId, "beforeMethod", BEFORE_METHOD).getId(), status(), statsStrategy);
+                                startTestItem(testItem, launchId, "beforeMethod", BEFORE_METHOD, project).getId(),
+                                status(), statsStrategy);
                     }
-                    TestItem stepId = startTestItem(testItem, launchId, name, STEP);
+                    TestItem stepId = startTestItem(testItem, launchId, name, STEP, project);
                     String status = status();
                     logDemoDataService.generateDemoLogs(stepId.getId(), status);
                     finishTestItem(stepId.getId(), status, statsStrategy);
                     if (isGenerateAfterMethod) {
                         finishTestItem(
-                                startTestItem(testItem, launchId, "afterMethod", AFTER_METHOD).getId(), status(), statsStrategy);
+                                startTestItem(testItem, launchId, "afterMethod", AFTER_METHOD, project).getId(), status(), statsStrategy);
                     }
                 });
                 if (isGenerateClass) {
-                    TestItem afterClass = startTestItem(testItem, launchId, "afterClass", AFTER_CLASS);
+                    TestItem afterClass = startTestItem(testItem, launchId, "afterClass", AFTER_CLASS, project);
                     finishTestItem(afterClass.getId(), status(), statsStrategy);
                 }
                 finishTestItem(testItem.getId(), !beforeClassStatus.isEmpty() ? beforeClassStatus : "FAILED", statsStrategy);

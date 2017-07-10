@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 
 /**
  * Generates the unique identifier for test item based
- * on Base64 encoding and includes information about
+ * on Base64 encoding and includes information about project,
  * name of item's launch, full path of item's parent names,
  * item name and parameters.
  *
@@ -50,19 +50,18 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
     @Autowired
     private LaunchRepository launchRepository;
 
-    public String generate(TestItem testItem) {
-        String forEncoding = prepareForEncoding(testItem);
+    public String generate(TestItem testItem, String projectName) {
+        String forEncoding = prepareForEncoding(testItem, projectName);
         return encoder.encodeToString(forEncoding.getBytes(StandardCharsets.UTF_8));
     }
 
-    private String prepareForEncoding(TestItem testItem) {
+    private String prepareForEncoding(TestItem testItem, String projectName) {
         String launchName = launchRepository.findNameNumberAndModeById(testItem.getLaunchRef()).getName();
         List<String> pathNames = getPathNames(testItem.getPath());
         String itemName = testItem.getName();
         List<String> parameters = Optional.ofNullable(testItem.getParameters()).orElse(Collections.emptyList());
-        String result = new StringJoiner(",").add(launchName).add(pathNames.stream().collect(Collectors.joining())).add(itemName)
+        return new StringJoiner("; ").add(projectName).add(launchName).add(pathNames.stream().collect(Collectors.joining())).add(itemName)
                 .add(parameters.stream().collect(Collectors.joining())).toString();
-        return result.replaceAll("\\s", "");
     }
 
     private List<String> getPathNames(List<String> path) {

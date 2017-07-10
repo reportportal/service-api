@@ -55,6 +55,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	private LaunchRepository launchRepository;
 	private Provider<TestItemBuilder> testItemBuilder;
 	private LogRepository logRepository;
+	private String projectName;
 
 	@Autowired
 	private UniqueIdGenerator identifierGenerator;
@@ -84,11 +85,12 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 */
 	@Override
 	public EntryCreatedRS startRootItem(String projectName, StartTestItemRQ rq) {
+		this.projectName = projectName;
 		Launch launch = launchRepository.loadStatusProjectRefAndStartTime(rq.getLaunchId());
 		validate(projectName, rq, launch);
 		TestItem item = testItemBuilder.get().addStartItemRequest(rq).addStatus(Status.IN_PROGRESS).addLaunch(launch).build();
 		if (null == item.getUniqueId()) {
-			item.setUniqueId(identifierGenerator.generate(item));
+			item.setUniqueId(identifierGenerator.generate(item, projectName));
 		}
 		testItemRepository.save(item);
 		return new EntryCreatedRS(item.getId());
@@ -107,7 +109,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		TestItem item = testItemBuilder.get().addStartItemRequest(rq).addParent(parentItem).addPath(parentItem)
 				.addStatus(Status.IN_PROGRESS).build();
 		if (null == item.getUniqueId()) {
-			item.setUniqueId(identifierGenerator.generate(item));
+			item.setUniqueId(identifierGenerator.generate(item, projectName));
 		}
 		testItemRepository.save(item);
 

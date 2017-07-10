@@ -62,7 +62,10 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 
     @Override
     public boolean validate(String encoded) {
-        return Arrays.toString(decoder.decode(encoded)).startsWith(SECRET);
+        if (encoded != null) {
+            return Arrays.toString(decoder.decode(encoded)).startsWith(SECRET);
+        }
+        return false;
     }
 
     private String prepareForEncoding(TestItem testItem, String projectName) {

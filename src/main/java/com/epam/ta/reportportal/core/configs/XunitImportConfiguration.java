@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Scope;
  * @author Pavel_Bortnik
  */
 @Configuration
-public class JunitImportConfiguration {
+public class XunitImportConfiguration {
 
     @Bean(name = "junitParseJob")
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)

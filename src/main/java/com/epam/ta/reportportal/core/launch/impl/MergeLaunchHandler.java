@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.item.TestItemUniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.merge.strategy.MergeStrategy;
 import com.epam.ta.reportportal.core.item.merge.strategy.MergeStrategyFactory;
 import com.epam.ta.reportportal.core.item.merge.strategy.MergeStrategyType;
@@ -47,10 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
@@ -97,6 +95,9 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
     private LaunchResourceAssembler launchResourceAssembler;
 
     @Autowired
+    private TestItemUniqueIdGenerator identifierGenerator;
+
+    @Autowired
     public void setProjectRepository(ProjectRepository projectRepository) {
         this.projectRepository = projectRepository;
     }
@@ -128,9 +129,9 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         validateMergingLaunches(launchesList, user, project);
 
         Launch launch = createResultedLaunch(projectName, userName, rq);
-
+        boolean isNameChanged = !launch.getName().equals(launchesList.get(0).getName());
         updateChildrenOfLaunches(launch.getId(), rq.getLaunches(),
-                rq.isExtendSuitesDescription());
+                rq.isExtendSuitesDescription(), isNameChanged, projectName);
 
         MergeStrategyType type = MergeStrategyType.fromValue(rq.getMergeStrategyType());
         expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
@@ -197,11 +198,15 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
     /**
      * Update test-items of specified launches with new LaunchID
      */
-    private void updateChildrenOfLaunches(String launchId, Set<String> launches, boolean extendDescription) {
+    private void updateChildrenOfLaunches(String launchId, Set<String> launches, boolean extendDescription,
+                                          boolean isNameChanged, String project) {
         List<TestItem> testItems = launches.stream().flatMap(id -> {
             Launch launch = launchRepository.findOne(id);
             return testItemRepository.findByLaunch(launch).stream().map(item -> {
                 item.setLaunchRef(launchId);
+                if (isNameChanged && identifierGenerator.validate(item.getUniqueId())) {
+                    item.setUniqueId(identifierGenerator.generate(item, project));
+                }
                 if (item.getType().sameLevel(TestItemType.SUITE)) {
                     // Add launch reference description for top level items
                     Supplier<String> newDescription = Suppliers

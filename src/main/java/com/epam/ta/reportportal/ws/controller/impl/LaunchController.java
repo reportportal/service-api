@@ -349,11 +349,12 @@ public class LaunchController implements ILaunchController {
 	}
 
 	@Override
-	@RequestMapping(value = "/import", method = RequestMethod.POST)
+	@RequestMapping(value = "/import/{mode}", method = RequestMethod.POST)
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip.")
-	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file, Principal principal) {
-		return importLaunchHandler.importLaunch(normalizeId(projectName), principal.getName(), "JUNIT", file);
+	public OperationCompletionRS importLaunch(@PathVariable String projectName, @PathVariable @ApiParam("DEFAULT, DEBUG") String mode,
+											  @RequestParam("file") MultipartFile file, Principal principal) {
+		return importLaunchHandler.importLaunch(normalizeId(projectName), principal.getName(), mode, "XUNIT", file);
 	}
 }

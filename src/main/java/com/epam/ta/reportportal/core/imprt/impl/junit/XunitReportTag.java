@@ -22,7 +22,7 @@ package com.epam.ta.reportportal.core.imprt.impl.junit;
 
 import java.util.Arrays;
 
-public enum JunitReportTag {
+public enum XunitReportTag {
     // the testsuites element for the aggregate document
     TESTSUITES("testsuites"),
 
@@ -72,7 +72,7 @@ public enum JunitReportTag {
 
     private String value;
 
-    JunitReportTag(String value) {
+    XunitReportTag(String value) {
         this.value = value;
     }
 
@@ -80,7 +80,7 @@ public enum JunitReportTag {
         return value;
     }
 
-    static JunitReportTag fromString(String type) {
+    static XunitReportTag fromString(String type) {
         return Arrays.stream(values()).filter(it -> it.getValue().equalsIgnoreCase(type)).findAny().orElse(null);
     }
 }

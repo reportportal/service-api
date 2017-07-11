@@ -20,7 +20,7 @@
  */
 package com.epam.ta.reportportal.core.imprt.impl;
 
-import com.epam.ta.reportportal.core.imprt.impl.junit.AsyncJunitImportStrategy;
+import com.epam.ta.reportportal.core.imprt.impl.junit.AsyncXunitImportStrategy;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,9 +33,9 @@ public class ImportStrategyFactoryImpl implements ImportStrategyFactory {
     private final Map<ImportType, ImportStrategy> MAPPING;
 
     @Autowired
-    public ImportStrategyFactoryImpl(AsyncJunitImportStrategy asyncJunitImportStrategy) {
+    public ImportStrategyFactoryImpl(AsyncXunitImportStrategy asyncXunitImportStrategy) {
         MAPPING = ImmutableMap.<ImportType, ImportStrategy>builder()
-                .put(ImportType.JUNIT, asyncJunitImportStrategy).build();
+                .put(ImportType.XUNIT, asyncXunitImportStrategy).build();
     }
 
     @Override

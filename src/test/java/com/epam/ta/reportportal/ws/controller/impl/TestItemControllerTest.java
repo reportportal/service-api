@@ -21,19 +21,6 @@
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static org.junit.Assert.*;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-
 import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -47,7 +34,21 @@ import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.model.item.AddExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.Assert.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author Dzmitry_Kavalets
@@ -70,6 +71,8 @@ public class TestItemControllerTest extends BaseMvcTest {
 		rq.setLaunchId("51824cc1553de743b3e5aa2c");
 		rq.setName("RootItem");
 		rq.setType("SUITE");
+		rq.setParameters(ImmutableList.<String>builder().add("Param=value").build());
+		rq.setUniqueId(UUID.randomUUID().toString());
 		rq.setStartTime(new Date(2014, 5, 5));
 		this.mvcMock.perform(post(PROJECT_BASE_URL + "/item").contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq))
 				.principal(authentication())).andExpect(status().isCreated());
@@ -82,6 +85,7 @@ public class TestItemControllerTest extends BaseMvcTest {
 		rq.setLaunchId("51824cc1553de743b3e5aa2c");
 		rq.setName("ChildItem");
 		rq.setType("TEST");
+		rq.setParameters(ImmutableList.<String>builder().add("Parameter=value").build());
 		rq.setStartTime(new Date(2014, 5, 6));
 		this.mvcMock.perform(post(PROJECT_BASE_URL + "/item/44524cc1553de743b3e5aa30").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON).principal(authentication())).andExpect(status().isCreated());

@@ -23,8 +23,8 @@ package com.epam.ta.reportportal.core.item.merge.strategy;
 
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.google.common.collect.Sets;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,9 +33,10 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
+
     protected final TestItemRepository testItemRepository;
 
-    public AbstractSuiteMergeStrategy(TestItemRepository testItemRepository) {
+    AbstractSuiteMergeStrategy(TestItemRepository testItemRepository) {
         this.testItemRepository = testItemRepository;
     }
 
@@ -95,35 +96,54 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
     }
 
     /**
-     * Collects tags and descriptions from source and add them to target. Same tags
-     * are added only once. Updates start and end times of target.
+     * Collects tags, parameters and descriptions from source and add them to target. Same tags
+     * are added only once. Updates start and end times of target. Updates item identifier.
      * @param target item to be merged
      * @param source item to merge
      */
     private void updateTargetItemInfo(TestItem target, TestItem source) {
+        target = updateTime(target, source);
+        Set<String> tags = mergeTags(target.getTags(), source.getTags());
+        if (!tags.isEmpty()){
+            target.setTags(tags);
+        }
+        String result = mergeDescriptions(target.getItemDescription(), source.getItemDescription());
+        if (!result.isEmpty()) {
+            target.setItemDescription(result);
+        }
+        List<String> parameters = mergeParameters(target.getParameters(), source.getParameters());
 
+        //since merge based on unique id
+        if (parameters.equals(source.getParameters())) {
+            target.setUniqueId(source.getUniqueId());
+        }
+        testItemRepository.save(target);
+    }
+
+    /**
+     * Defines start time as the earliest and the end time as latest
+     */
+    private TestItem updateTime(TestItem target, TestItem source) {
         target.setStartTime(target.getStartTime().compareTo(source.getStartTime()) < 0 ?
                 target.getStartTime() : source.getStartTime());
         target.setEndTime(target.getEndTime().compareTo(source.getEndTime()) > 0 ?
                 target.getEndTime() : source.getEndTime());
+        return target;
+    }
 
-        Set<String> tags = Stream.concat(
-                Optional.ofNullable(target.getTags()).orElse(Sets.newHashSet()).stream(),
-                Optional.ofNullable(source.getTags()).orElse(Sets.newHashSet()).stream())
-                .collect(toSet());
-        if (!tags.isEmpty()){
-            target.setTags(tags);
-        }
+    private Set<String> mergeTags(@Nullable Set<String> first, @Nullable Set<String> second) {
+        return Stream.concat(Optional.ofNullable(first).orElse(Collections.emptySet()).stream(),
+                Optional.ofNullable(second).orElse(Collections.emptySet()).stream()).collect(toSet());
+    }
 
-        String result = new StringJoiner("\r\n")
-                .add(Optional.ofNullable(target.getItemDescription()).orElse(""))
-                .add(Optional.ofNullable(source.getItemDescription()).orElse(""))
-                .toString();
+    private String mergeDescriptions(@Nullable String first, @Nullable String second) {
+        return new StringJoiner("\r\n").add(Optional.ofNullable(first).orElse(""))
+                .add(Optional.ofNullable(second).orElse("")).toString();
+    }
 
-        if (!result.isEmpty()) {
-            target.setItemDescription(result);
-        }
-
-        testItemRepository.save(target);
+    private List<String> mergeParameters(@Nullable List<String> first, @Nullable List<String> second) {
+        return Stream.concat(Optional.ofNullable(first).orElse(Collections.emptyList()).stream(),
+                Optional.ofNullable(second).orElse(Collections.emptyList()).stream())
+                .collect(Collectors.toList());
     }
 }

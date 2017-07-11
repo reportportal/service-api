@@ -322,7 +322,7 @@ public class LaunchController implements ILaunchController {
 	@RequestMapping(value = "/{launchId}/report", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(OK)
-	@ApiOperation(value = "Export specified launch", notes = "Only following formats are supported: pdf (by default), xml, xls, html.")
+	@ApiOperation(value = "Export specified launch", notes = "Only following formats are supported: pdf (by default), xls, html.")
 	public void getLaunchReport(@PathVariable String projectName, @PathVariable String launchId,
 			@ApiParam(allowableValues = "pdf, xml, xls, html") @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,
             Principal principal, HttpServletResponse response) throws IOException {

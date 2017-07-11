@@ -21,10 +21,16 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
-import static com.epam.ta.reportportal.database.entity.project.info.ProjectInfoGroup.BY_DAY;
-import static com.epam.ta.reportportal.database.entity.project.info.ProjectInfoGroup.BY_NAME;
-import static java.time.temporal.ChronoUnit.DAYS;
-import static java.time.temporal.ChronoUnit.WEEKS;
+import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.project.info.InfoInterval;
+import com.epam.ta.reportportal.database.entity.project.info.ProjectInfoGroup;
+import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import com.google.common.collect.Lists;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
@@ -35,17 +41,10 @@ import java.time.temporal.IsoFields;
 import java.util.*;
 import java.util.Map.Entry;
 
-import javax.annotation.Resource;
-
-import com.epam.ta.reportportal.database.entity.project.info.InfoInterval;
-import com.epam.ta.reportportal.database.entity.project.info.ProjectInfoGroup;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
-import org.springframework.stereotype.Service;
-
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.ws.model.widget.ChartObject;
-import com.google.common.collect.Lists;
+import static com.epam.ta.reportportal.database.entity.project.info.ProjectInfoGroup.BY_DAY;
+import static com.epam.ta.reportportal.database.entity.project.info.ProjectInfoGroup.BY_NAME;
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.WEEKS;
 
 /**
  * Data converter for Report Portal common UI graphics
@@ -55,7 +54,8 @@ import com.google.common.collect.Lists;
 @Service("projectInfoDataConverter")
 public class ProjectInfoWidgetDataConverter {
 
-	@Resource(name = "groupingStrategy")
+	@Autowired
+	@Qualifier("groupingStrategy")
 	private Map<InfoInterval, ProjectInfoGroup> grouping;
 
 	private static DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendValue(IsoFields.WEEK_BASED_YEAR, 4)

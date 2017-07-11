@@ -4,7 +4,7 @@ MAINTAINER Andrei Varabyeu <andrei_varabyeu@epam.com>
 LABEL version="@version@"
 LABEL description="@description@"
 
-ENV JAVA_OPTS="-Xmx1g"
+ENV JAVA_OPTS="-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp"
 
 RUN apt-get update && \
     apt-get install -y fonts-droid && \

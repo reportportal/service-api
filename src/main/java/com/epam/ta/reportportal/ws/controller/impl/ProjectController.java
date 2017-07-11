@@ -38,7 +38,7 @@ import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
 import com.epam.ta.reportportal.ws.model.preference.UpdatePreferenceRQ;
 import com.epam.ta.reportportal.ws.model.project.*;
-import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
@@ -129,7 +129,7 @@ public class ProjectController implements IProjectController {
 	@PreAuthorize(PROJECT_LEAD)
 	@ApiOperation("Update project email configuration")
 	public OperationCompletionRS updateProjectEmailConfig(@PathVariable String projectName,
-			@RequestBody @Validated UpdateProjectEmailRQ updateProjectRQ, Principal principal) {
+			@RequestBody @Validated ProjectEmailConfigDTO updateProjectRQ, Principal principal) {
 		return updateProjectHandler.updateProjectEmailConfig(normalizeId(projectName), principal.getName(),
 				updateProjectRQ);
 	}

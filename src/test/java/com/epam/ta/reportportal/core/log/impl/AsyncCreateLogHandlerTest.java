@@ -17,48 +17,47 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.core.log.impl;
 
-import java.util.Calendar;
-
 import com.epam.ta.BaseTest;
-import org.junit.Rule;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.epam.ta.reportportal.core.log.ICreateLogHandler;
 import com.epam.ta.reportportal.database.fixture.SpringFixture;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import org.junit.Rule;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Calendar;
 
 @SpringFixture("itemsUnitTestsSorting")
-public class AsyncCreateLogHandlerTest extends BaseTest{
-	
-	public static final String ITEM_ID = "44524cc1524de753b3e5aa2f";
-	
-	@Rule
-	@Autowired
-	public SpringFixtureRule dfRule;
-	
-	@Autowired
-	private ICreateLogHandler logHandler;
-	
-	/**
-	 * Added for for covering EPMCDP-700 bug fixes.
-	 * Start time of log shouldn't be earlier than 
-	 * start time of testItem
-	 */
-	@Test(expected = ReportPortalException.class)
-	public void testCreateLogIncorrectTime() {
-		SaveLogRQ saveLogRQ = new SaveLogRQ();
-		Calendar calendar = Calendar.getInstance();
-		calendar.set(1980, 2, 3);
-		saveLogRQ.setLogTime(calendar.getTime());
-		saveLogRQ.setMessage("Log message");
-		saveLogRQ.setTestItemId(ITEM_ID);
-		logHandler.createLog(saveLogRQ, null, null, null);
-	}
+public class AsyncCreateLogHandlerTest extends BaseTest {
+
+    public static final String ITEM_ID = "44524cc1524de753b3e5aa2f";
+
+    @Rule
+    @Autowired
+    public SpringFixtureRule dfRule;
+
+    @Autowired
+    private ICreateLogHandler logHandler;
+
+    /**
+     * Added for for covering EPMCDP-700 bug fixes.
+     * Start time of log shouldn't be earlier than
+     * start time of testItem
+     */
+    @Test(expected = ReportPortalException.class)
+    public void testCreateLogIncorrectTime() {
+        SaveLogRQ saveLogRQ = new SaveLogRQ();
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(1980, 2, 3);
+        saveLogRQ.setLogTime(calendar.getTime());
+        saveLogRQ.setMessage("Log message");
+        saveLogRQ.setTestItemId(ITEM_ID);
+        logHandler.createLog(saveLogRQ, null, null);
+    }
 }

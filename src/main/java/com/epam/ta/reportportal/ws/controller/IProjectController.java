@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
@@ -32,7 +31,6 @@ import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
 import com.epam.ta.reportportal.ws.model.preference.UpdatePreferenceRQ;
 import com.epam.ta.reportportal.ws.model.project.*;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
-import com.epam.ta.reportportal.ws.model.project.email.UpdateProjectEmailRQ;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.springframework.data.domain.Pageable;
@@ -79,7 +77,7 @@ public interface IProjectController {
 	 * @return
 	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS updateProjectEmailConfig(String projectName, UpdateProjectEmailRQ updateProjectRQ, Principal principal);
+	OperationCompletionRS updateProjectEmailConfig(String projectName, ProjectEmailConfigDTO updateProjectRQ, Principal principal);
 
 	/**
 	 * Delete {@link Project} instance

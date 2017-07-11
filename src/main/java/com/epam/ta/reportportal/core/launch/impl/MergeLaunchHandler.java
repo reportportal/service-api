@@ -129,7 +129,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         validateMergingLaunches(launchesList, user, project);
 
         Launch launch = createResultedLaunch(projectName, userName, rq);
-        boolean isNameChanged = launch.getName().equals(launchesList.get(0).getName());
+        boolean isNameChanged = !launch.getName().equals(launchesList.get(0).getName());
         updateChildrenOfLaunches(launch.getId(), rq.getLaunches(),
                 rq.isExtendSuitesDescription(), isNameChanged, projectName);
 

@@ -24,7 +24,7 @@ package com.epam.ta.reportportal.core.configs;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.search.CriteriaMap;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
-import com.epam.ta.reportportal.database.search.Queryable;
+import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.fasterxml.classmate.ResolvedType;
 import com.fasterxml.classmate.TypeResolver;
@@ -34,10 +34,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.stereotype.Component;
 import springfox.documentation.PathProvider;
+import springfox.documentation.builders.ParameterBuilder;
 import springfox.documentation.schema.ModelReference;
+import springfox.documentation.schema.ResolvedTypes;
 import springfox.documentation.schema.TypeNameExtractor;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
@@ -45,7 +49,8 @@ import springfox.documentation.service.Parameter;
 import springfox.documentation.service.ResolvedMethodParameter;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spi.schema.contexts.ModelContext;
-import springfox.documentation.spi.service.ParameterBuilderPlugin;
+import springfox.documentation.spi.service.OperationBuilderPlugin;
+import springfox.documentation.spi.service.contexts.OperationContext;
 import springfox.documentation.spi.service.contexts.ParameterContext;
 import springfox.documentation.spring.web.paths.RelativePathProvider;
 import springfox.documentation.spring.web.plugins.Docket;
@@ -63,7 +68,6 @@ import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Predicates.or;
 import static com.google.common.collect.Lists.newArrayList;
 import static springfox.documentation.builders.RequestHandlerSelectors.basePackage;
-import static springfox.documentation.schema.ResolvedTypes.modelRefFactory;
 import static springfox.documentation.spi.schema.contexts.ModelContext.inputParam;
 
 /**
@@ -99,7 +103,7 @@ public class Swagger2Configuration {
 
 		// @formatter:off
         Docket rpDocket = new Docket(DocumentationType.SWAGGER_2)
-                .ignoredParameterTypes(Principal.class)
+                .ignoredParameterTypes(Principal.class, Filter.class, Pageable.class)
                 .pathProvider(rpPathProvider())
                 .useDefaultResponseMessages(false)
 				.ignoredParameterTypes(UserRole.class)
@@ -120,8 +124,8 @@ public class Swagger2Configuration {
 	}
 
 	@Bean
-	PageableParameterBuilderPlugin pageableParameterBuilderPlugin(TypeNameExtractor nameExtractor, TypeResolver resolver) {
-		return new PageableParameterBuilderPlugin(nameExtractor, resolver);
+	OperationPageableParameterReader pageableParameterBuilderPlugin(TypeNameExtractor nameExtractor, TypeResolver resolver) {
+		return new OperationPageableParameterReader(nameExtractor, resolver);
 	}
 
 	@Bean
@@ -129,70 +133,69 @@ public class Swagger2Configuration {
 		return new UiConfiguration(null);
 	}
 
-	public static class PageableParameterBuilderPlugin implements ParameterBuilderPlugin {
-
+	@Component
+	public class OperationPageableParameterReader implements OperationBuilderPlugin {
 		private final TypeNameExtractor nameExtractor;
 		private final TypeResolver resolver;
 
-		PageableParameterBuilderPlugin(TypeNameExtractor nameExtractor, TypeResolver resolver) {
+		private final ResolvedType pageableType;
+		private final ResolvedType filterType;
+
+		@Autowired
+		public OperationPageableParameterReader(TypeNameExtractor nameExtractor, TypeResolver resolver) {
 			this.nameExtractor = nameExtractor;
 			this.resolver = resolver;
+			this.pageableType = resolver.resolve(Pageable.class);
+			this.filterType = resolver.resolve(Filter.class);
 		}
 
 		@Override
-		public boolean supports(DocumentationType delimiter) {
-			return true;
-		}
+		public void apply(OperationContext context) {
+			List<ResolvedMethodParameter> methodParameters = context.getParameters();
+			List<Parameter> parameters = newArrayList();
 
-		private Function<ResolvedType, ? extends ModelReference> createModelRefFactory(ParameterContext context) {
-			ModelContext modelContext = inputParam(context.getGroupName(),
-					resolver.resolve(context.resolvedMethodParameter().getParameterType()),
-					context.getDocumentationType(), context.getAlternateTypeProvider(),
-					context.getGenericNamingStrategy(), context.getIgnorableParameterTypes());
-			return modelRefFactory(modelContext, nameExtractor);
-		}
+			for (ResolvedMethodParameter methodParameter : methodParameters) {
+				ResolvedType resolvedType = methodParameter.getParameterType();
+				ParameterContext parameterContext = new ParameterContext(methodParameter, new ParameterBuilder(),
+						context.getDocumentationContext(), context.getGenericsNamingStrategy(), context);
+				Function<ResolvedType, ? extends ModelReference> factory = createModelRefFactory(parameterContext);
 
-		@Override
-		public void apply(ParameterContext context) {
-			ResolvedMethodParameter parameter = context.resolvedMethodParameter();
-			Class<?> type = parameter.getParameterType().getErasedType();
-			if (type != null) {
-				Function<ResolvedType, ? extends ModelReference> factory = createModelRefFactory(context);
-				if (Pageable.class.isAssignableFrom(type)) {
+
+				if (pageableType.equals(resolvedType)) {
 
 					ModelReference intModel = factory.apply(resolver.resolve(Integer.TYPE));
 					ModelReference stringModel = factory.apply(resolver.resolve(List.class, String.class));
-
 					//@formatter:off
-					List<Parameter> parameters = newArrayList(
-							context.parameterBuilder()
-									.parameterType("query")
-									.name("page")
-									.modelRef(intModel)
-									.description("Page number of the requested page").build(),
-							context.parameterBuilder()
-									.parameterType("query")
-									.name("size")
-									.modelRef(intModel)
-									.description("Size of a page")
-									.build(),
-							context.parameterBuilder()
-									.parameterType("query")
-									.name("sort")
-									.modelRef(stringModel).allowMultiple(true)
-									.description(
-											"Sorting criteria in the format: property(,asc|desc). " + "Default sort order is ascending. "
-													+ "Multiple sort criteria are supported.").build());
 
+					parameters.add(new ParameterBuilder()
+							.parameterType("query")
+							.name("page")
+							.modelRef(intModel)
+							.description("Results page you want to retrieve (0..N)").build());
+					parameters.add(new ParameterBuilder()
+							.parameterType("query")
+							.name("size")
+							.modelRef(intModel)
+							.description("Number of records per page").build());
+					parameters.add(new ParameterBuilder()
+							.parameterType("query")
+							.name("sort")
+							.modelRef(stringModel)
+							.allowMultiple(true)
+							.description("Sorting criteria in the format: property(,asc|desc). "
+									+ "Default sort order is ascending. "
+									+ "Multiple sort criteria are supported.")
+							.build());
+					context.operationBuilder().parameters(parameters);
 					//@formatter:on
-					context.getOperationContext().operationBuilder().parameters(parameters);
-				} else if (Queryable.class.isAssignableFrom(type) && parameter.hasParameterAnnotation(FilterFor.class)) {
-					FilterFor filterClass = parameter.findAnnotation(FilterFor.class).get();
+
+				} else if (filterType.equals(resolvedType)) {
+					FilterFor filterClass = methodParameter.findAnnotation(FilterFor.class).get();
 					CriteriaMap<?> criteriaMap = CriteriaMapFactory.DEFAULT_INSTANCE_SUPPLIER.get().getCriteriaMap(filterClass.value());
 
 					//@formatter:off
 					List<Parameter> params = criteriaMap.getAllowedSearchCriterias().stream()
-							.map(searchCriteria -> context
+							.map(searchCriteria -> parameterContext
 									.parameterBuilder()
 										.parameterType("query")
 										.name(searchCriteria)
@@ -204,10 +207,21 @@ public class Swagger2Configuration {
 							.collect(Collectors.toList());
 					//@formatter:on
 
-					context.getOperationContext().operationBuilder().parameters(params);
-
+					context.operationBuilder().parameters(params);
 				}
 			}
+		}
+
+		@Override
+		public boolean supports(DocumentationType delimiter) {
+			return true;
+		}
+
+		private Function<ResolvedType, ? extends ModelReference> createModelRefFactory(ParameterContext context) {
+			ModelContext modelContext = inputParam(Docket.DEFAULT_GROUP_NAME,
+					context.resolvedMethodParameter().getParameterType().getErasedType(), context.getDocumentationType(),
+					context.getAlternateTypeProvider(), context.getGenericNamingStrategy(), context.getIgnorableParameterTypes());
+			return ResolvedTypes.modelRefFactory(modelContext, nameExtractor);
 		}
 	}
 

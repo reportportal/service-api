@@ -9,3 +9,5 @@ spring:
 rp:
   mongo:
     host: localhost
+  uat:
+    serviceUrl: http://localhost:8080/uat

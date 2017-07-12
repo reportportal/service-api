@@ -271,25 +271,10 @@ public class LaunchController implements ILaunchController {
 		return getLaunchMessageHandler.getLaunchesComparisonInfo(normalizeId(projectName), ids);
 	}
 
-/*	@Override
-	@PostMapping("/merge")
-	@ResponseBody
-	@ResponseStatus(OK)
-	// Owner and project LEAD+ permissions validated inside cause no information
-	// on top resource level
-	@ApiOperation("Merge set of specified launches in common one")
-	public LaunchResource mergeLaunches(
-			@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,
-			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
-			Principal principal) {
-		return mergeLaunchesHandler.mergeLaunches(normalizeId(projectName), principal.getName(), mergeLaunchesRQ);
-	}*/
-
 	@Override
 	@PostMapping("/merge")
 	@ResponseBody
 	@ResponseStatus(OK)
-	//@ApiIgnore
 	@ApiOperation("Merge set of specified launches in common one")
 	public LaunchResource mergeLaunches(
 			@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,

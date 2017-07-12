@@ -43,7 +43,7 @@ import java.util.Optional;
 import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toDate;
 import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toMillis;
 
-public class JunitImportHandler extends DefaultHandler {
+public class XunitImportHandler extends DefaultHandler {
 
     @Autowired
     private StartTestItemHandler startTestItemHandler;
@@ -86,14 +86,14 @@ public class JunitImportHandler extends DefaultHandler {
 
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-        switch (JunitReportTag.fromString(qName)) {
+        switch (XunitReportTag.fromString(qName)) {
             case TESTSUITE:
-                startRootItem(attributes.getValue(JunitReportTag.ATTR_NAME.getValue()),
-                        attributes.getValue(JunitReportTag.TIMESTAMP.getValue()));
+                startRootItem(attributes.getValue(XunitReportTag.ATTR_NAME.getValue()),
+                        attributes.getValue(XunitReportTag.TIMESTAMP.getValue()));
                 break;
             case TESTCASE:
-                startTestItem(attributes.getValue(JunitReportTag.ATTR_NAME.getValue()),
-                        attributes.getValue(JunitReportTag.ATTR_TIME.getValue()));
+                startTestItem(attributes.getValue(XunitReportTag.ATTR_NAME.getValue()),
+                        attributes.getValue(XunitReportTag.ATTR_TIME.getValue()));
                 break;
             case FAILURE:
                 message = new StringBuilder();
@@ -111,7 +111,7 @@ public class JunitImportHandler extends DefaultHandler {
 
     @Override
     public void endElement(String uri, String localName, String qName) throws SAXException {
-        switch (JunitReportTag.fromString(qName)) {
+        switch (XunitReportTag.fromString(qName)) {
             case TESTSUITE:
                 finishRootItem();
                 break;
@@ -209,7 +209,7 @@ public class JunitImportHandler extends DefaultHandler {
         }
     }
 
-    JunitImportHandler withParameters(String projectId, String launchId, String user) {
+    XunitImportHandler withParameters(String projectId, String launchId, String user) {
         this.projectId = projectId;
         this.launchId = launchId;
         this.userName = user;

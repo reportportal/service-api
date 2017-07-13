@@ -102,6 +102,8 @@
 * EPMRPP-12090 - Implemented deep launches merge
 * EPMRPP-26010 - Implemented Passing rate widget
 * EPMRPP-26021 - Hash for unique instance generating by server
+* reportportal#176/EPMRPP-26045 - Split Test Description and test parameters
+* EPMRPP-26131 - Unique id for test item based on items' names, parameters, launch name, project name
 
 ### Bugfixes
 

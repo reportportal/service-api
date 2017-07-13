@@ -116,6 +116,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		if (null != finishExecutionRQ.getDescription() && !finishExecutionRQ.getDescription().isEmpty()) {
 			testItem.setItemDescription(finishExecutionRQ.getDescription());
 		}
+		if (null != finishExecutionRQ.getTags() && !finishExecutionRQ.getTags().isEmpty()) {
+			testItem.setTags(finishExecutionRQ.getTags());
+		}
 
 		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
 		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, testItem.getLaunchRef());

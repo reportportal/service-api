@@ -113,6 +113,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	public OperationCompletionRS finishTestItem(String testItemId, FinishTestItemRQ finishExecutionRQ, String username) {
 		TestItem testItem = verifyTestItem(testItemId, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()));
 		testItem.setEndTime(finishExecutionRQ.getEndTime());
+		if (null != finishExecutionRQ.getDescription() && !finishExecutionRQ.getDescription().isEmpty()) {
+			testItem.setItemDescription(finishExecutionRQ.getDescription());
+		}
 
 		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
 		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, testItem.getLaunchRef());

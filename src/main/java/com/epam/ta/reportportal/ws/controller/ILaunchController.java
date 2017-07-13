@@ -236,5 +236,5 @@ public interface ILaunchController {
 
 	OperationCompletionRS deleteLaunches(String projectName, String[] ids, Principal principal);
 
-	OperationCompletionRS importLaunch(String projectId, MultipartFile file, Principal principal) throws IOException;
+	OperationCompletionRS importLaunch(String projectId, String mode, MultipartFile file, Principal principal) throws IOException;
 }

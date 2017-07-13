@@ -28,12 +28,15 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.launch.Mode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 
 @Service
@@ -46,15 +49,16 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
     private ProjectRepository projectRepository;
 
     @Override
-    public OperationCompletionRS importLaunch(String projectId, String userName, String format, MultipartFile file) {
+    public OperationCompletionRS importLaunch(String projectId, String userName, String mode, String format, MultipartFile file) {
         Project project = projectRepository.findOne(projectId);
         expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectId);
+        expect(Mode.isExists(mode), equalTo(true)).verify(BAD_REQUEST_ERROR, mode);
 
         ImportType type = ImportType.fromValue(format).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
                 "Incorrect importing file format: " + format));
 
         ImportStrategy strategy = factory.getImportLaunch(type);
-        String launch = strategy.importLaunch(projectId, userName, file);
+        String launch = strategy.importLaunch(projectId, userName, Mode.valueOf(mode), file);
 
         return new OperationCompletionRS("Launch with id = " + launch + " is successfully imported.");
     }

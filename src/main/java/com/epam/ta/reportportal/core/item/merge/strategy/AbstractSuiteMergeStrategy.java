@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.item.merge.strategy;
 
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.entity.item.Parameters;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 
 import javax.annotation.Nullable;
@@ -111,7 +112,7 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
         if (!result.isEmpty()) {
             target.setItemDescription(result);
         }
-        List<String> parameters = mergeParameters(target.getParameters(), source.getParameters());
+        List<Parameters> parameters = mergeParameters(target.getParameters(), source.getParameters());
 
         //since merge based on unique id
         if (parameters.equals(source.getParameters())) {
@@ -141,7 +142,7 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
                 .add(Optional.ofNullable(second).orElse("")).toString();
     }
 
-    private List<String> mergeParameters(@Nullable List<String> first, @Nullable List<String> second) {
+    private List<Parameters> mergeParameters(@Nullable List<Parameters> first, @Nullable List<Parameters> second) {
         return Stream.concat(Optional.ofNullable(first).orElse(Collections.emptyList()).stream(),
                 Optional.ofNullable(second).orElse(Collections.emptyList()).stream())
                 .collect(Collectors.toList());

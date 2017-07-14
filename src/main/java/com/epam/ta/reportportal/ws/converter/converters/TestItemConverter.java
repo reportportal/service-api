@@ -51,8 +51,10 @@ public final class TestItemConverter {
         resource.setTags(item.getTags());
         resource.setEndTime(item.getEndTime());
         resource.setItemId(item.getId());
-        resource.setParameters(item.getParameters());
-
+        if (null != item.getParameters()) {
+            resource.setParameters(item.getParameters().stream().map(ParametersConverter.TO_RESOURCE)
+                    .collect(Collectors.toList()));
+        }
         TestItemIssue testItemIssue = item.getIssue();
         if (null != testItemIssue) {
             Issue issue = new Issue();

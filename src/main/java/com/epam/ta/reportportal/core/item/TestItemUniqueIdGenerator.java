@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.entity.item.Parameters;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -62,20 +63,24 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 
     @Override
     public boolean validate(String encoded) {
-        if (encoded != null) {
-            return Arrays.toString(decoder.decode(encoded)).startsWith(SECRET);
-        }
-        return false;
+        return encoded != null && Arrays.toString(decoder.decode(encoded)).startsWith(SECRET);
     }
 
     private String prepareForEncoding(TestItem testItem, String projectName) {
         String launchName = launchRepository.findNameNumberAndModeById(testItem.getLaunchRef()).getName();
         List<String> pathNames = getPathNames(testItem.getPath());
         String itemName = testItem.getName();
-        List<String> parameters = Optional.ofNullable(testItem.getParameters()).orElse(Collections.emptyList());
-        return new StringJoiner("; ").add(SECRET).add(projectName).add(launchName)
-                .add(pathNames.stream().collect(Collectors.joining())).add(itemName)
-                .add(parameters.stream().collect(Collectors.joining())).toString();
+        List<Parameters> parameters = Optional.ofNullable(testItem.getParameters()).orElse(Collections.emptyList());
+        StringJoiner joiner = new StringJoiner(";");
+        joiner.add(SECRET).add(projectName).add(launchName);
+        if (null != pathNames && !pathNames.isEmpty()) {
+            joiner.add(pathNames.stream().collect(Collectors.joining(",")));
+        }
+        joiner.add(itemName);
+        if (!parameters.isEmpty()) {
+            joiner.add(parameters.stream().map(Parameters::toString).collect(Collectors.joining(",")));
+        }
+        return joiner.toString();
     }
 
     private List<String> getPathNames(List<String> path) {

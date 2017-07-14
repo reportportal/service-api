@@ -59,14 +59,14 @@ public class StepBasedDemoDataFacade extends DemoDataCommonService implements De
                                           String project, StatisticsCalculationStrategy statsStrategy) {
         return IntStream.range(0, rq.getLaunchesQuantity()).mapToObj(i -> {
             String launchId = startLaunch(NAME + "_" + rq.getPostfix(), i, project, user);
-            generateSuites(suitesStructure, i, launchId, statsStrategy);
+            generateSuites(suitesStructure, i, launchId, statsStrategy, project);
             finishLaunch(launchId);
             return launchId;
         }).collect(toList());
     }
 
-    private List<String> generateSuites(Map<String, Map<String, List<String>>> suitesStructure,
-                                        int i, String launchId, StatisticsCalculationStrategy statsStrategy) {
+    private List<String> generateSuites(Map<String, Map<String, List<String>>> suitesStructure, int i,
+                                        String launchId, StatisticsCalculationStrategy statsStrategy, String project) {
         return suitesStructure.entrySet().stream().limit(i + 1).map(suites -> {
             TestItem suiteItem = startRootItem(suites.getKey(), launchId, SUITE);
             suites.getValue().entrySet().forEach(tests -> {
@@ -87,7 +87,7 @@ public class StepBasedDemoDataFacade extends DemoDataCommonService implements De
                     }
                     TestItem stepId = startTestItem(testItem, launchId, name, STEP);
                     String status = status();
-                    logDemoDataService.generateDemoLogs(stepId.getId(), status);
+                    logDemoDataService.generateDemoLogs(stepId.getId(), status, project);
                     finishTestItem(stepId.getId(), status, statsStrategy);
                     if (isGenerateAfterMethod) {
                         finishTestItem(

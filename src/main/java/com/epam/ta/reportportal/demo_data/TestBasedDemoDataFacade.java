@@ -67,7 +67,7 @@ public class TestBasedDemoDataFacade extends DemoDataCommonService implements De
                 finishRootItem(
                         startRootItem("BeforeStories", launchId, STORY).getId());
             }
-            generateStories(storiesStructure, i, launchId);
+            generateStories(storiesStructure, i, launchId, project);
             if (hasBeforeAfterStories) {
                 finishRootItem(
                         startRootItem("AfterStories", launchId, STORY).getId());
@@ -77,7 +77,8 @@ public class TestBasedDemoDataFacade extends DemoDataCommonService implements De
         }).collect(toList());
     }
 
-    private List<String> generateStories(Map<String, Map<String, List<String>>> storiesStructure, int i, String launchId) {
+    private List<String> generateStories(Map<String, Map<String, List<String>>> storiesStructure, int i,
+                                         String launchId, String project) {
         List<String> stories = storiesStructure.entrySet().stream().limit(i + 1).map(story -> {
             TestItem storyItem = startRootItem(story.getKey(), launchId, STORY);
             story.getValue().entrySet().forEach(scenario -> {
@@ -98,7 +99,7 @@ public class TestBasedDemoDataFacade extends DemoDataCommonService implements De
                             isFailed = true;
                         }
                     }
-                    logDemoDataService.generateDemoLogs(stepItem.getId(), status);
+                    logDemoDataService.generateDemoLogs(stepItem.getId(), status, project);
                     finishTestItem(stepItem.getId(), status, strategy);
                 }
                 finishTestItem(scenarioItem.getId(), isFailed ? FAILED.name() : PASSED.name(), strategy);
@@ -111,7 +112,7 @@ public class TestBasedDemoDataFacade extends DemoDataCommonService implements De
             return storyItem.getId();
         }).collect(toList());
         if (ContentUtils.getWithProbability(STORY_PROBABILITY)) {
-            stories.add(generateCustomStory(launchId));
+            stories.add(generateCustomStory(launchId, project));
         }
         return stories;
     }
@@ -122,15 +123,15 @@ public class TestBasedDemoDataFacade extends DemoDataCommonService implements De
      * @param launchId
      * @return story id
      */
-    private String generateCustomStory(String launchId) {
+    private String generateCustomStory(String launchId, String project) {
         TestItem outerStory = startRootItem("Complex story with given inner story", launchId, STORY);
         TestItem innerStory = startTestItem(outerStory, launchId, "Given Story", STORY);
         TestItem innerScenario = startTestItem(innerStory, launchId, "A given story scenario", SCENARIO);
         TestItem innerStep = startTestItem(innerScenario, launchId, "Today has 'a' and 'y' in its name", STEP);
         TestItem outerScenario = startTestItem(outerStory, launchId, "Simple Scenario", SCENARIO);
         TestItem outerStep = startTestItem(outerScenario, launchId, "Simple Step", STEP);
-        logDemoDataService.generateDemoLogs(innerStep.getId(), PASSED.name());
-        logDemoDataService.generateDemoLogs(outerStep.getId(), FAILED.name());
+        logDemoDataService.generateDemoLogs(innerStep.getId(), PASSED.name(), project);
+        logDemoDataService.generateDemoLogs(outerStep.getId(), FAILED.name(), project);
         finishTestItem(outerStep.getId(), FAILED.name(), strategy);
         finishTestItem(outerScenario.getId(), FAILED.name(), strategy);
         finishTestItem(innerStep.getId(), PASSED.name(), strategy);

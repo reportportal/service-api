@@ -30,7 +30,7 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.ws.converter.converters.ParametersConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.ParametersResource;
+import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.google.common.collect.Sets;
 import org.springframework.context.annotation.Scope;
@@ -55,7 +55,7 @@ public class TestItemBuilder extends Builder<TestItem> {
 		if (null != tags) {
 			tags = Sets.newHashSet(EntityUtils.trimStrings(EntityUtils.update(tags)));
 		}
-		List<ParametersResource> parameters = rq.getParameters();
+		List<ParameterResource> parameters = rq.getParameters();
 		if (null != parameters) {
 			getObject().setParameters(parameters.stream().map(ParametersConverter.TO_MODEL).collect(toList()));
 		}

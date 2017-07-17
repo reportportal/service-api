@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
-import com.epam.ta.reportportal.ws.model.ParametersResource;
+import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -216,13 +216,13 @@ public class TestItemControllerTest extends BaseMvcTest {
 						&& it.getValue().getOldValue().equals(oldValue) && it.getValue().getNewValue().equals(newValue));
 	}
 
-	private List<ParametersResource> getParameters() {
-		ParametersResource parameters = new ParametersResource();
+	private List<ParameterResource> getParameters() {
+		ParameterResource parameters = new ParameterResource();
 		parameters.setKey("CardNumber");
 		parameters.setValue("4444333322221111");
-		ParametersResource parameters1 = new ParametersResource();
+		ParameterResource parameters1 = new ParameterResource();
 		parameters1.setKey("Stars");
 		parameters1.setValue("2 stars");
-		return ImmutableList.<ParametersResource>builder().add(parameters).add(parameters1).build();
+		return ImmutableList.<ParameterResource>builder().add(parameters).add(parameters1).build();
 	}
 }

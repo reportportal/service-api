@@ -56,7 +56,7 @@ public class UniqueIdGeneratorTest extends BaseTest {
     private static final String PROJECT = "DEFAULT";
 
     @Test
-    public void generateUniqueId() throws Exception {
+    public void generateUniqueId() {
         TestItem item = testItemRepository.findOne(ITEM);
         String s1 = identifierGenerator.generate(item, PROJECT);
         String s2 = identifierGenerator.generate(item, PROJECT);
@@ -69,6 +69,14 @@ public class UniqueIdGeneratorTest extends BaseTest {
         item.setParameters(null);
         String s4 = identifierGenerator.generate(item, PROJECT);
         Assert.assertNotEquals(s3, s4);
+    }
+
+    @Test
+    public void validate() {
+        TestItem item = testItemRepository.findOne(ITEM);
+        String s1 = identifierGenerator.generate(item, PROJECT);
+        Assert.assertTrue(identifierGenerator.validate(s1));
+        Assert.assertFalse(identifierGenerator.validate("customId"));
     }
 
     private List<Parameter> getParameters() {

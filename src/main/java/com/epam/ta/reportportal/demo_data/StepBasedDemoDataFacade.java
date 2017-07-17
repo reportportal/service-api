@@ -57,17 +57,17 @@ public class StepBasedDemoDataFacade extends DemoDataCommonService implements De
 
     private List<String> generateLaunches(DemoDataRq rq, Map<String, Map<String, List<String>>> suitesStructure, String user,
                                           String project, StatisticsCalculationStrategy statsStrategy) {
-        return IntStream.range(0, rq.getLaunchesQuantity()).mapToObj(i -> {
-            String launchId = startLaunch(NAME + "_" + rq.getPostfix(), i, project, user);
-            generateSuites(suitesStructure, i, launchId, statsStrategy, project);
+        return IntStream.range(0, rq.getLaunchesQuantity()).mapToObj(launchRunCount -> {
+            String launchId = startLaunch(NAME + "_" + rq.getPostfix(), launchRunCount, project, user);
+            generateSuites(suitesStructure, launchRunCount, launchId, statsStrategy, project);
             finishLaunch(launchId);
             return launchId;
         }).collect(toList());
     }
 
-    private List<String> generateSuites(Map<String, Map<String, List<String>>> suitesStructure, int i,
+    private List<String> generateSuites(Map<String, Map<String, List<String>>> suitesStructure, int launchRunCount,
                                         String launchId, StatisticsCalculationStrategy statsStrategy, String project) {
-        return suitesStructure.entrySet().stream().limit(i + 1).map(suites -> {
+        return suitesStructure.entrySet().stream().limit(launchRunCount + 1).map(suites -> {
             TestItem suiteItem = startRootItem(suites.getKey(), launchId, SUITE);
             suites.getValue().entrySet().forEach(tests -> {
                 TestItem testItem = startTestItem(suiteItem, launchId, tests.getKey(), TEST);
@@ -80,7 +80,7 @@ public class StepBasedDemoDataFacade extends DemoDataCommonService implements De
                 }
                 boolean isGenerateBeforeMethod = ContentUtils.getWithProbability(STORY_PROBABILITY);
                 boolean isGenerateAfterMethod = ContentUtils.getWithProbability(STORY_PROBABILITY);
-                tests.getValue().stream().limit(i + 1).forEach(name -> {
+                tests.getValue().stream().limit(launchRunCount + 1).forEach(name -> {
                     if (isGenerateBeforeMethod) {
                         finishTestItem(
                                 startTestItem(testItem, launchId, "beforeMethod", BEFORE_METHOD).getId(), status(), statsStrategy);

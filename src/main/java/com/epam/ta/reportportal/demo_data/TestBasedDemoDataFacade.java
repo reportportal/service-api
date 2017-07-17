@@ -59,15 +59,15 @@ public class TestBasedDemoDataFacade extends DemoDataCommonService implements De
 
     private List<String> generateLaunches(DemoDataRq rq, Map<String, Map<String, List<String>>> storiesStructure,
                                           String user, String project) {
-        return IntStream.range(0, rq.getLaunchesQuantity()).mapToObj(i -> {
-            String launchId = startLaunch(NAME + "_" + rq.getPostfix(), i, project, user);
+        return IntStream.range(0, rq.getLaunchesQuantity()).mapToObj(launchRunCount -> {
+            String launchId = startLaunch(NAME + "_" + rq.getPostfix(), launchRunCount, project, user);
 
             boolean hasBeforeAfterStories = ContentUtils.getWithProbability(STORY_PROBABILITY);
             if (hasBeforeAfterStories) {
                 finishRootItem(
                         startRootItem("BeforeStories", launchId, STORY).getId());
             }
-            generateStories(storiesStructure, i, launchId, project);
+            generateStories(storiesStructure, launchRunCount, launchId, project);
             if (hasBeforeAfterStories) {
                 finishRootItem(
                         startRootItem("AfterStories", launchId, STORY).getId());
@@ -77,9 +77,9 @@ public class TestBasedDemoDataFacade extends DemoDataCommonService implements De
         }).collect(toList());
     }
 
-    private List<String> generateStories(Map<String, Map<String, List<String>>> storiesStructure, int i,
+    private List<String> generateStories(Map<String, Map<String, List<String>>> storiesStructure, int launchRunCount,
                                          String launchId, String project) {
-        List<String> stories = storiesStructure.entrySet().stream().limit(i + 1).map(story -> {
+        List<String> stories = storiesStructure.entrySet().stream().limit(launchRunCount + 1).map(story -> {
             TestItem storyItem = startRootItem(story.getKey(), launchId, STORY);
             story.getValue().entrySet().forEach(scenario -> {
                 if (ContentUtils.getWithProbability(STORY_PROBABILITY)) {

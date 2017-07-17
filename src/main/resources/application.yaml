@@ -4,6 +4,8 @@ rp:
     maxFileSize: 32MB
   analytics:
     enableByDefault: true
+  analyzer:
+    url: http://analyzer:8080
 
 spring:
   cloud:

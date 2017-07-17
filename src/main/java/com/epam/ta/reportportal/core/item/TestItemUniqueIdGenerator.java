@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.item.Parameter;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.google.common.base.Strings;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -64,7 +65,7 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 
     @Override
     public boolean validate(String encoded) {
-        return encoded != null && Arrays.toString(decoder.decode(encoded)).startsWith(SECRET);
+        return !Strings.isNullOrEmpty(encoded) && Arrays.toString(decoder.decode(encoded)).startsWith(SECRET);
     }
 
     private String prepareForEncoding(TestItem testItem, String projectName) {

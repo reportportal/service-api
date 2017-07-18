@@ -80,7 +80,9 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
         }
         joiner.add(itemName);
         if (!parameters.isEmpty()) {
-            joiner.add(parameters.stream().map(Parameter::toString).collect(Collectors.joining(",")));
+            joiner.add(parameters.stream().map(parameter -> {
+                return (!Strings.isNullOrEmpty(parameter.getKey()) ? parameter.getKey() + "=" : "") + parameter.getValue();
+            }).collect(Collectors.joining(",")));
         }
         return joiner.toString();
     }

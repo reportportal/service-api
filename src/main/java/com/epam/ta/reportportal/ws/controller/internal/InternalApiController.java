@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
-import com.epam.ta.reportportal.ws.converter.ExternalSystemResourceAssembler;
+import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +34,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
-
-import javax.inject.Provider;
 
 /**
  * Allowed for internal (other services) clients ONLY
@@ -48,11 +46,12 @@ import javax.inject.Provider;
 @PreAuthorize("hasRole('COMPONENT')")
 public class InternalApiController {
 
-	@Autowired
-	private ExternalSystemRepository externalSystemRepository;
+	private final ExternalSystemRepository externalSystemRepository;
 
 	@Autowired
-	private Provider<ExternalSystemResourceAssembler> externalSystemResourceAssembler;
+	public InternalApiController(ExternalSystemRepository externalSystemRepository) {
+		this.externalSystemRepository = externalSystemRepository;
+	}
 
 	@RequestMapping(value = "/external-system/{systemId}", method = RequestMethod.GET)
 	@ResponseBody
@@ -61,6 +60,6 @@ public class InternalApiController {
 	public ExternalSystemResource getExternalSystem(@PathVariable String systemId) {
 		ExternalSystem externalSystem = externalSystemRepository.findOne(systemId);
 		BusinessRule.expect(externalSystem, Predicates.notNull()).verify(ErrorType.EXTERNAL_SYSTEM_NOT_FOUND, systemId);
-		return externalSystemResourceAssembler.get().toResource(externalSystem);
+		return ExternalSystemConverter.TO_RESOURCE.apply(externalSystem);
 	}
 }

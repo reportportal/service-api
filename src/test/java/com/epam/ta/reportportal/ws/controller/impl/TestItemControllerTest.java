@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
+import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -71,7 +72,7 @@ public class TestItemControllerTest extends BaseMvcTest {
 		rq.setLaunchId("51824cc1553de743b3e5aa2c");
 		rq.setName("RootItem");
 		rq.setType("SUITE");
-		rq.setParameters(ImmutableList.<String>builder().add("Param=value").build());
+		rq.setParameters(getParameters());
 		rq.setUniqueId(UUID.randomUUID().toString());
 		rq.setStartTime(new Date(2014, 5, 5));
 		this.mvcMock.perform(post(PROJECT_BASE_URL + "/item").contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq))
@@ -85,7 +86,7 @@ public class TestItemControllerTest extends BaseMvcTest {
 		rq.setLaunchId("51824cc1553de743b3e5aa2c");
 		rq.setName("ChildItem");
 		rq.setType("TEST");
-		rq.setParameters(ImmutableList.<String>builder().add("Parameter=value").build());
+		rq.setParameters(getParameters());
 		rq.setStartTime(new Date(2014, 5, 6));
 		this.mvcMock.perform(post(PROJECT_BASE_URL + "/item/44524cc1553de743b3e5aa30").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON).principal(authentication())).andExpect(status().isCreated());
@@ -211,8 +212,17 @@ public class TestItemControllerTest extends BaseMvcTest {
 
 	private boolean isHistoryPresent(List<Activity> activities, String oldValue, String newValue) {
 		return activities.stream().map(Activity::getHistory)
-				.flatMap(it -> it.entrySet().stream()).filter(it -> it.getKey().equals("issueType")
-						&& it.getValue().getOldValue().equals(oldValue) && it.getValue().getNewValue().equals(newValue))
-				.findFirst().isPresent();
+				.flatMap(it -> it.entrySet().stream()).anyMatch(it -> it.getKey().equals("issueType")
+						&& it.getValue().getOldValue().equals(oldValue) && it.getValue().getNewValue().equals(newValue));
+	}
+
+	private List<ParameterResource> getParameters() {
+		ParameterResource parameters = new ParameterResource();
+		parameters.setKey("CardNumber");
+		parameters.setValue("4444333322221111");
+		ParameterResource parameters1 = new ParameterResource();
+		parameters1.setKey("Stars");
+		parameters1.setValue("2 stars");
+		return ImmutableList.<ParameterResource>builder().add(parameters).add(parameters1).build();
 	}
 }

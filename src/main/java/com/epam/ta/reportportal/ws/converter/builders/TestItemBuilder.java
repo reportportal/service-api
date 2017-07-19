@@ -28,14 +28,18 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.TestItemType;
+import com.epam.ta.reportportal.ws.converter.converters.ParametersConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.google.common.collect.Sets;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
 import java.util.Set;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @Scope("prototype")
@@ -51,8 +55,10 @@ public class TestItemBuilder extends Builder<TestItem> {
 		if (null != tags) {
 			tags = Sets.newHashSet(EntityUtils.trimStrings(EntityUtils.update(tags)));
 		}
-		Optional.ofNullable(rq.getParameters())
-				.ifPresent(params -> getObject().setParameters(params));
+		List<ParameterResource> parameters = rq.getParameters();
+		if (null != parameters) {
+			getObject().setParameters(parameters.stream().map(ParametersConverter.TO_MODEL).collect(toList()));
+		}
 		getObject().setTags(tags);
 		TestItemType type = TestItemType.fromValue(rq.getType());
 		BusinessRule.expect(type, Predicates.notNull()).verify(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE, rq.getType());

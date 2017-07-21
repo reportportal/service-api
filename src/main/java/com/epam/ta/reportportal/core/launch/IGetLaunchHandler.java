@@ -95,6 +95,26 @@ public interface IGetLaunchHandler {
 	Iterable<LaunchResource> getDebugLaunches(String projectName, String userName, Filter filter, Pageable pageable);
 
 	/**
+	 * Get list of latest unique Launch resources for specified project
+	 *
+	 * @param projectName
+	 * @param filter
+	 * @param pageable
+	 * @return
+	 */
+	Iterable<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable);
+
+	/**
+	 * Get list of latest unique Launch resources in debug mode for specified project
+	 *
+	 * @param projectName
+	 * @param filter
+	 * @param pageable
+	 * @return
+	 */
+	Iterable<LaunchResource> getLatestDebugLaunches(String projectName, Filter filter, Pageable pageable);
+
+	/**
 	 * Get specified launch tags (auto-complete functionality)
 	 *
 	 * @param project
@@ -152,5 +172,4 @@ public interface IGetLaunchHandler {
 	 * @return Response Data
 	 */
 	Map<String, String> getStatuses(String projectName, String[] ids);
-
 }

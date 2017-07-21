@@ -24,9 +24,21 @@ package com.epam.ta.reportportal.core.launch;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
+import com.epam.ta.BaseTest;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.database.dao.LaunchMetaInfoRepository;
+import com.epam.ta.reportportal.database.fixture.SpringFixture;
+import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
+import com.epam.ta.reportportal.database.search.Condition;
+import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.database.search.Queryable;
+import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -41,16 +53,49 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.LaunchResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 /**
  * @author Dzmitry_Kavalets
  */
-public class GetLaunchHandlerTest {
+@SpringFixture("triggerTests")
+public class GetLaunchHandlerTest extends BaseTest {
+
+    @Rule
+    @Autowired
+    public SpringFixtureRule dfRule;
+
+    @Autowired
+    private LaunchRepository launchRepository;
+
+    @Autowired
+    private LaunchMetaInfoRepository launchCounter;
+
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
+    private IGetLaunchHandler getLaunchHandler;
 
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
 
+	/* fakemongo issue with $replaceRoot and $project*/
 	@Test
+    @Ignore
+    public void getLatestLaunches() {
+        initLaunches();
+        Filter filter = new Filter(Launch.class, Condition.CONTAINS, false, "launch", "name");
+        Pageable pageable = new PageRequest(1, 2, new Sort(Sort.Direction.ASC, "number"));
+        List<LaunchResource> result = new ArrayList<>();
+        getLaunchHandler.getLatestLaunches("project", filter, pageable).forEach(result::add);
+        Assert.assertEquals(2, result.size());
+    }
+
+    @Test
 	public void getDebugLaunchByCustomer() {
 		String fromDebug = "fromDebug";
 		String projectName = "project";
@@ -72,6 +117,26 @@ public class GetLaunchHandlerTest {
 		getLaunchHandler.getLaunch(fromDebug, user, projectName);
 	}
 
+    private void initLaunches() {
+        String projectName = "project";
+        String launchName = "launch";
+        Project project = new Project();
+        project.setName(projectName);
+        projectRepository.save(project);
+
+        Launch launch = buildDefaultLaunch(launchName, projectName);
+        launch.setNumber(launchCounter.getLaunchNumber(launchName, projectName));
+        launchRepository.save(launch);
+
+        launch = buildDefaultLaunch(launchName, projectName);
+        launch.setNumber(launchCounter.getLaunchNumber(launchName, projectName));
+        launchRepository.save(launch);
+
+        launch = buildDefaultLaunch("anotherLaunch", projectName);
+        launch.setNumber(launchCounter.getLaunchNumber(launchName, projectName));
+        launchRepository.save(launch);
+    }
+
 	private Project buildProject(String user) {
 		Project project = new Project();
 		HashMap<String, Project.UserConfig> users = new HashMap<>();
@@ -81,6 +146,14 @@ public class GetLaunchHandlerTest {
 		project.setUsers(users);
 		return project;
 	}
+
+	private Launch buildDefaultLaunch(String name, String projectName) {
+	    Launch launch = new Launch();
+	    launch.setName(name);
+	    launch.setMode(Mode.DEFAULT);
+	    launch.setProjectRef(projectName);
+	    return launch;
+    }
 
 	private Launch buildLaunch(String fromDebug, String projectName) {
 		Launch launch = new Launch();

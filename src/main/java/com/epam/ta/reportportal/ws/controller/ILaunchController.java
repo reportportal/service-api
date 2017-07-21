@@ -145,6 +145,26 @@ public interface ILaunchController {
 	Iterable<LaunchResource> getDebugLaunches(String login, Filter filter, Pageable pageble, Principal principal);
 
 	/**
+	 * Get all last unique launches for specified project by filter
+	 *
+	 * @param projectName
+	 * @param filter
+	 * @param pageable
+	 * @return
+	 */
+	Iterable<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable);
+
+	/**
+	 * Get all last unique launches in debuge mode for specified project by filter
+	 *
+	 * @param projectName
+	 * @param filter
+	 * @param pageable
+	 * @return
+	 */
+	Iterable<LaunchResource> getDebugLatestLaunches(String projectName, Filter filter, Pageable pageable);
+
+	/**
 	 * Get launch tags of specified project by value (auto-complete)
 	 *
 	 * @param project

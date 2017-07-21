@@ -130,6 +130,24 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 	}
 
 	@Override
+	public Iterable<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable) {
+		validateModeConditions(filter);
+        expect(pageable.getSort(), notNull()).verify(INCORRECT_REQUEST, "Sort should not be null");
+		// add condition for loading only launches with default mode
+		filter.addCondition(new FilterCondition(EQUALS, false, DEFAULT.toString(), Launch.MODE_CRITERIA));
+        List<Launch> latestLaunches = launchRepository.findLatestLaunches(projectName, filter, pageable);
+        return latestLaunches.stream().map(launchResourceAssembler::toResource).collect(Collectors.toList());
+    }
+
+	@Override
+	public Iterable<LaunchResource> getLatestDebugLaunches(String projectName, Filter filter, Pageable pageable) {
+        expect(pageable.getSort(), notNull()).verify(INCORRECT_REQUEST, "Sort should not be null");
+		filter.addCondition(new FilterCondition(EQUALS, false, DEBUG.toString(), Launch.MODE_CRITERIA));
+        List<Launch> latestLaunches = launchRepository.findLatestLaunches(projectName, filter, pageable);
+        return latestLaunches.stream().map(launchResourceAssembler::toResource).collect(Collectors.toList());
+	}
+
+	@Override
 	public List<String> getTags(String project, String value) {
 		return launchRepository.findDistinctValues(project, value, "tags");
 	}

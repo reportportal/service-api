@@ -78,10 +78,10 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:3.0.1'
         compile 'com.epam.reportportal:commons:3.0.1'
     } else {
-        compile('com.github.reportportal:commons-dao:e712ac4')
+        compile('com.github.reportportal:commons-dao:836f0af')
         compile('com.github.reportportal:commons-rules:3.0.1')
         compile 'com.github.reportportal:commons-model:c0cf8de'
-        compile ('com.github.reportportal:commons:6dbe5c6')
+        compile ('com.github.reportportal:commons:1c334ae')
     }
 
     compile 'org.jasypt:jasypt:1.9.2'

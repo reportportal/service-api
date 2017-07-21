@@ -229,6 +229,27 @@ public class LaunchController implements ILaunchController {
 	}
 
 	@Override
+	@RequestMapping(value = "/latest", method = GET)
+    @ResponseBody
+    @ResponseStatus(OK)
+    @ApiOperation("Get latest unique launches for specified project by filter")
+	public Iterable<LaunchResource> getLatestLaunches(@PathVariable  String projectName, @FilterFor(Launch.class) Filter filter,
+            @SortFor(Launch.class) Pageable pageable) {
+		return getLaunchMessageHandler.getLatestLaunches(normalizeId(projectName), filter, pageable);
+	}
+
+	@Override
+    @RequestMapping(value = "/latest/mode", method = GET)
+    @ResponseBody
+    @ResponseStatus(OK)
+    @PreAuthorize(PROJECT_MEMBER)
+    @ApiOperation("Get latest unique launches in debug mode for specified project by filter")
+	public Iterable<LaunchResource> getDebugLatestLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
+            @SortFor(Launch.class) Pageable pageable) {
+		return getLaunchMessageHandler.getLatestDebugLaunches(normalizeId(projectName), filter, pageable);
+	}
+
+	@Override
 	@RequestMapping(value = "/tags", method = GET)
 	@ResponseBody
 	@ResponseStatus(OK)

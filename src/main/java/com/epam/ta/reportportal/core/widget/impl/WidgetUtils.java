@@ -69,7 +69,7 @@ public class WidgetUtils {
 	public static void validateWidgetDataType(String type, ErrorType errorType) {
 		expect(WidgetDataTypes.findByName(type).isPresent(), equalTo(true)).verify(errorType,
 				formattedSupplier(
-						"Unknown widget data type: '{}'. " + "Possible data types: line_chart, bar_chart, column_chart, pie_chart, table",
+						"Unknown widget data type: '{}'. " + "Possible data types: line_chart, bar_chart, column_chart, combine_pie_chart, table",
 						type));
 	}
 

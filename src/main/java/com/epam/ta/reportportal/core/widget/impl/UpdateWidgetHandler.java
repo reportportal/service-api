@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.dao.WidgetRepository;
+import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
@@ -172,7 +173,8 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 
 		if ((null == contentOptions)
 				|| (findByName(contentOptions.getGadgetType()).isPresent() && (findByName(contentOptions.getGadgetType()).get() != ACTIVITY)
-						&& (findByName(contentOptions.getGadgetType()).get() != MOST_FAILED_TEST_CASES))) {
+				&& (findByName(contentOptions.getGadgetType()).get() != MOST_FAILED_TEST_CASES)
+				&& (findByName(contentOptions.getGadgetType()).get() != PASSING_RATE_PER_LAUNCH))) {
 			if (newFilter == null) {
 				UserFilter currentFilter = filterRepository.findOneLoadACLAndType(userName, widget.getApplyingFilterId(), projectName);
 				expect(currentFilter, notNull()).verify(BAD_UPDATE_WIDGET_REQUEST,
@@ -201,6 +203,10 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 
 			if (findByName(contentOptions.getGadgetType()).get() == MOST_FAILED_TEST_CASES) {
 				target = TestItem.class;
+			}
+
+			if (findByName(contentOptions.getGadgetType()).get() == PASSING_RATE_PER_LAUNCH) {
+				target = Launch.class;
 			}
 
 			CriteriaMap<?> criteriaMap = criteriaMapFactory.getCriteriaMap(target);

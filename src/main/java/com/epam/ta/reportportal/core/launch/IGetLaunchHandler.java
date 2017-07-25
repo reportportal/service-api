@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.core.launch;
 import java.util.List;
 import java.util.Map;
 
+import com.epam.ta.reportportal.ws.model.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.epam.ta.reportportal.database.search.Filter;
@@ -153,4 +154,5 @@ public interface IGetLaunchHandler {
 	 */
 	Map<String, String> getStatuses(String projectName, String[] ids);
 
+    Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable);
 }

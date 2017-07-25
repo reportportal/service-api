@@ -31,5 +31,5 @@ spring:
     consul:
       host: registry
       discovery:
-        hostname: api
+        hostname: ${HOSTNAME:api}
         prefer-ip-address: false

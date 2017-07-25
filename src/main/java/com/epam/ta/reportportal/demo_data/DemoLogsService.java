@@ -32,6 +32,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.SplittableRandom;
@@ -62,14 +63,14 @@ class DemoLogsService {
         this.random = new SplittableRandom();
     }
 
-    List<Log> generateDemoLogs(String itemId, String status) {
+    List<Log> generateDemoLogs(String itemId, String status, String projectName) {
         int logsCount = random.nextInt(MIN_LOGS_COUNT, MAX_LOGS_COUNT);
         List<Log> logs = IntStream.range(1, logsCount).mapToObj(it -> {
             Log log = new Log();
             log.setLevel(logLevel());
             log.setLogTime(new Date());
             if (ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
-                log.setBinaryContent(attachBinaryContent());
+                log.setBinaryContent(attachBinaryContent(projectName));
             }
             log.setTestItemRef(itemId);
             log.setLogMsg(ContentUtils.getLogMessage());
@@ -83,7 +84,7 @@ class DemoLogsService {
                 log.setLogTime(new Date());
                 log.setTestItemRef(itemId);
                 log.setLogMsg(msg);
-                BinaryContent binaryContent = attachBinaryContent();
+                BinaryContent binaryContent = attachBinaryContent(projectName);
                 log.setBinaryContent(binaryContent);
                 return log;
             }).collect(toList()));
@@ -91,13 +92,13 @@ class DemoLogsService {
         return logRepository.save(logs);
     }
 
-    private BinaryContent attachBinaryContent() {
+    private BinaryContent attachBinaryContent(String projectName) {
         try {
             Attachment attachment = randomAttachment();
-            String file = saveResource(attachment.getContentType(), attachment.getResource());
+            String file = saveResource(attachment.getContentType(), attachment.getResource(), projectName);
             if (attachment.equals(Attachment.PNG)) {
                 String thumbnail = saveResource(attachment.getContentType(),
-                        new ClassPathResource("demo/attachments/img_tn.png"));
+                        new ClassPathResource("demo/attachments/img_tn.png"), projectName);
                 return new BinaryContent(file, thumbnail, attachment.getContentType());
             }
             return new BinaryContent(file, file, attachment.getContentType());
@@ -106,9 +107,10 @@ class DemoLogsService {
         }
     }
 
-    private String saveResource(String contentType, ClassPathResource resource) throws IOException {
+    private String saveResource(String contentType, ClassPathResource resource, String projectName) throws IOException {
         return dataStorage.saveData(new BinaryData(contentType,
-                resource.contentLength(), resource.getInputStream()), resource.getFilename());
+                resource.contentLength(), resource.getInputStream()),
+                resource.getFilename(), Collections.singletonMap("project", projectName));
     }
 
     private Attachment randomAttachment() {

@@ -169,17 +169,17 @@ public class Swagger2Configuration {
 
 					parameters.add(new ParameterBuilder()
 							.parameterType("query")
-							.name("page")
+							.name("page.page")
 							.modelRef(intModel)
 							.description("Results page you want to retrieve (0..N)").build());
 					parameters.add(new ParameterBuilder()
 							.parameterType("query")
-							.name("size")
+							.name("page.size")
 							.modelRef(intModel)
 							.description("Number of records per page").build());
 					parameters.add(new ParameterBuilder()
 							.parameterType("query")
-							.name("sort")
+							.name("page.sort")
 							.modelRef(stringModel)
 							.allowMultiple(true)
 							.description("Sorting criteria in the format: property(,asc|desc). "
@@ -198,7 +198,7 @@ public class Swagger2Configuration {
 							.map(searchCriteria -> parameterContext
 									.parameterBuilder()
 										.parameterType("query")
-										.name(searchCriteria)
+										.name("filter.eq." + searchCriteria)
 										.modelRef(factory.apply(resolver.resolve(criteriaMap.getCriteriaHolder(searchCriteria).getDataType())))
 									.description("Filters by '" + searchCriteria + "'")
 									.build())

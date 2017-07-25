@@ -21,18 +21,14 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.reportportal.commons.template.FreemarkerTemplateEngine;
 import com.epam.reportportal.commons.template.TemplateEngine;
+import com.epam.reportportal.commons.template.TemplateEngineProvider;
 import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.google.common.base.Charsets;
-import freemarker.template.TemplateExceptionHandler;
-import freemarker.template.Version;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Locale;
+import org.springframework.context.annotation.Primary;
 
 /**
  * Global Email Configuration<br>
@@ -49,20 +45,10 @@ public class EmailConfiguration {
 		return new MailServiceFactory(templateEngine, encryptor, settingsRepository);
 	}
 
-
 	@Bean
+	@Primary
 	public TemplateEngine getTemplateEngine() {
-
-		Version version = new Version(2, 3, 25);
-		freemarker.template.Configuration cfg = new freemarker.template.Configuration(version);
-
-		cfg.setClassForTemplateLoading(EmailConfiguration.class, "/templates/email");
-
-		cfg.setIncompatibleImprovements(version);
-		cfg.setDefaultEncoding(Charsets.UTF_8.toString());
-		cfg.setLocale(Locale.US);
-		cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-
-		return new FreemarkerTemplateEngine(cfg);
+		return new TemplateEngineProvider("/templates/email").get();
 	}
+
 }

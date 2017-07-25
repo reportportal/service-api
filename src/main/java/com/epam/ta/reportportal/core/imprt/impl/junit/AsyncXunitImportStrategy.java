@@ -103,7 +103,7 @@ public class AsyncXunitImportStrategy implements ImportStrategy {
             CompletableFuture.allOf(futures).get(5, TimeUnit.MINUTES);
             finishLaunch(launchId, projectId, userName, processResults(futures));
             return launchId;
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+        } catch (InterruptedException | ExecutionException | TimeoutException | IllegalArgumentException e) {
             throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, "There are invalid xml files inside.", e);
         }
     }

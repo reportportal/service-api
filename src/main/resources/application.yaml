@@ -17,16 +17,16 @@ spring:
           - statusPageUrlPath=${server.contextPath}${management.contextPath}/info
           - healthCheckUrlPath=${server.contextPath}${management.contextPath}/info
         healthCheckPath: ${server.contextPath}/admin/health
-        register: false
-      enabled: false
+        register: true
+      enabled: true
 eureka:
   instance:
     hostname: ${HOSTNAME:localhost}
     status-page-url-path: ${server.contextPath}${management.contextPath}/info
     health-check-url-path: ${server.contextPath}${management.contextPath}/health
   client:
-    register-with-eureka: true
-    enabled: true
+    register-with-eureka: false
+    enabled: false
 logging:
   level:
     org.springframework.data.mongodb.core.mapping: error
@@ -46,6 +46,20 @@ eureka:
   client:
     register-with-eureka: false
     enabled: false
+
+## Eureka as service registry
+---
+spring:
+  profiles: eureka
+  cloud:
+    consul:
+      enabled: false
+      discovery:
+        register: false
+eureka:
+  client:
+    register-with-eureka: true
+    enabled: true
 ---
 
 springfox:

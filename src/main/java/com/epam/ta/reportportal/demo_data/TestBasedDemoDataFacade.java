@@ -100,7 +100,7 @@ public class TestBasedDemoDataFacade extends DemoDataCommonService implements De
                             isFailed = true;
                         }
                     }
-                    logDemoDataService.generateDemoLogs(stepItem.getId(), status, project);
+                    logDemoDataService.generateDemoLogs(stepItem.getId(), status);
                     finishTestItem(stepItem.getId(), status, strategy);
                 }
                 finishTestItem(scenarioItem.getId(), isFailed ? FAILED.name() : PASSED.name(), strategy);

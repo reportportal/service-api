@@ -88,7 +88,7 @@ public class StepBasedDemoDataFacade extends DemoDataCommonService implements De
                     }
                     TestItem stepId = startTestItem(testItem, launchId, name, STEP, project);
                     String status = status();
-                    logDemoDataService.generateDemoLogs(stepId.getId(), status, project);
+                    logDemoDataService.generateDemoLogs(stepId.getId(), status);
                     finishTestItem(stepId.getId(), status, statsStrategy);
                     if (isGenerateAfterMethod) {
                         finishTestItem(

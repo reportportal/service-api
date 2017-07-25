@@ -44,10 +44,7 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.controller.ILaunchController;
-import com.epam.ta.reportportal.ws.model.BulkRQ;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
@@ -217,7 +214,17 @@ public class LaunchController implements ILaunchController {
 		return getLaunchMessageHandler.getProjectLaunches(normalizeId(projectName), filter, pageable, principal.getName());
 	}
 
-	@Override
+    @Override
+    @RequestMapping(value = "/latest", method = GET)
+    @ResponseBody
+    @ResponseStatus(OK)
+    @ApiOperation("Get list of latest project launches by filter")
+    public Page<LaunchResource> getLatestLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
+                                                  @SortFor(Launch.class) Pageable pageable) {
+        return getLaunchMessageHandler.getLatestLaunches(normalizeId(projectName), filter, pageable);
+    }
+
+    @Override
 	@RequestMapping(value = "/mode", method = GET)
 	@ResponseBody
 	@ResponseStatus(OK)

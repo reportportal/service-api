@@ -131,8 +131,8 @@ public class TestBasedDemoDataFacade extends DemoDataCommonService implements De
         TestItem innerStep = startTestItem(innerScenario, launchId, "Today has 'a' and 'y' in its name", STEP, project);
         TestItem outerScenario = startTestItem(outerStory, launchId, "Simple Scenario", SCENARIO, project);
         TestItem outerStep = startTestItem(outerScenario, launchId, "Simple Step", STEP, project);
-        logDemoDataService.generateDemoLogs(innerStep.getId(), PASSED.name());
-        logDemoDataService.generateDemoLogs(outerStep.getId(), FAILED.name());
+        logDemoDataService.generateDemoLogs(innerStep.getId(), PASSED.name(), project);
+        logDemoDataService.generateDemoLogs(outerStep.getId(), FAILED.name(), project);
         finishTestItem(outerStep.getId(), FAILED.name(), strategy);
         finishTestItem(outerScenario.getId(), FAILED.name(), strategy);
         finishTestItem(innerStep.getId(), PASSED.name(), strategy);

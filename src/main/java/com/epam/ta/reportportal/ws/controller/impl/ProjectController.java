@@ -116,7 +116,7 @@ public class ProjectController implements IProjectController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_LEAD_OR_ADMIN)
-	@ApiOperation(value = "Update project", notes = "'Email Configuration' block is ignored at this model, please use PUT /{projectName}/emailconfig resource instead.")
+	@ApiOperation(value = "Update project", notes = "'Email Configuration' can be also update via PUT to /{projectName}/emailconfig resource.")
 	public OperationCompletionRS updateProject(@PathVariable String projectName, @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
 			Principal principal) {
 		return updateProjectHandler.updateProject(normalizeId(projectName), updateProjectRQ, principal.getName());

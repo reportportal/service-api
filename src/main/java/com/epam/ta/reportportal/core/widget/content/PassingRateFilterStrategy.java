@@ -58,7 +58,7 @@ public class PassingRateFilterStrategy implements BuildFilterStrategy {
         Map<String, List<ChartObject>> emptyResult = Collections.emptyMap();
         if (contentOptions.getWidgetOptions() == null || contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD) == null)
             return emptyResult;
-        Launch lastLaunchForProject = launchRepository.findLastLaunch(projectName,
+        Launch lastLaunchForProject = launchRepository.findLatestLaunch(projectName,
                 contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD).get(0), Mode.DEFAULT.name()).orElse(null);
         if (null == lastLaunchForProject) {
             return emptyResult;

@@ -7,7 +7,7 @@ LABEL description="@description@"
 ENV JAVA_OPTS="-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp"
 
 RUN apt-get update && \
-    apt-get install -y fonts-droid && \
+    apt-get install -y fonts-droid-fallback && \
     rm -rf /var/lib/apt/lists/*
 
 VOLUME /tmp

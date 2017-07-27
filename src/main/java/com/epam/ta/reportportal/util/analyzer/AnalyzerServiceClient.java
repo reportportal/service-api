@@ -29,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -43,12 +44,14 @@ public class AnalyzerServiceClient {
     private static final String INDEX_PATH = "/_index";
     private static final String ANALYZE_PATH = "/_analyze";
 
+    private final RestTemplate restTemplate;
+    private final String serviceUrl;
 
     @Autowired
-    private RestTemplate restTemplate;
-
-    @Value("${rp.analyzer.url}")
-    private String serviceUrl;
+    public AnalyzerServiceClient(RestTemplate restTemplate, @Value("${rp.analyzer.url}") String serviceUrl) {
+        this.restTemplate = restTemplate;
+        this.serviceUrl = serviceUrl;
+    }
 
     public IndexRs index(List<IndexLaunch> rq) {
         ResponseEntity<IndexRs> rsEntity = restTemplate.postForEntity(serviceUrl + INDEX_PATH, rq, IndexRs.class);
@@ -57,7 +60,8 @@ public class AnalyzerServiceClient {
 
     public IndexLaunch analyze(IndexLaunch rq) {
         ResponseEntity<IndexLaunch[]> rsEntity =
-                restTemplate.postForEntity(serviceUrl + ANALYZE_PATH, rq, IndexLaunch[].class);
+                restTemplate.postForEntity(
+                        serviceUrl + ANALYZE_PATH, Collections.singletonList(rq), IndexLaunch[].class);
         IndexLaunch[] rs = rsEntity.getBody();
         return rs.length > 0 ? rs[0] : null;
     }

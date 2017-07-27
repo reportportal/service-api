@@ -47,7 +47,7 @@ public class AnalyzerServiceClient {
     @Autowired
     private RestTemplate restTemplate;
 
-    @Value("rp.analyzer.url")
+    @Value("${rp.analyzer.url}")
     private String serviceUrl;
 
     public IndexRs index(List<IndexLaunch> rq) {

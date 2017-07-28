@@ -73,7 +73,9 @@ public class NewIssuesAnalyzerService implements INewIssuesAnalyzer {
 
         for (TestItem testItem : testItems) {
             List<Log> logs = logRepository.findByTestItemRef(testItem.getId());
-            rqTestItems.add(IndexTestItem.fromTestItem(testItem, logs));
+            if (!logs.isEmpty()) {
+                rqTestItems.add(IndexTestItem.fromTestItem(testItem, logs));
+            }
         }
 
         if (!rqTestItems.isEmpty()) {

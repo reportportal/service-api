@@ -85,13 +85,20 @@ public class LogIndexerService implements ILogIndexer {
     public void indexLogs(String launchId, List<TestItem> testItems) {
         Launch launch = launchRepository.findEntryById(launchId);
         if (launch != null) {
-            IndexLaunch rqLaunch = new IndexLaunch();
-            rqLaunch.setLaunchId(launchId);
-            rqLaunch.setLaunchName(launch.getName());
             List<IndexTestItem> rqTestItems = new ArrayList<>(testItems.size());
             for (TestItem testItem : testItems) {
                 List<Log> logs = logRepository.findByTestItemRef(testItem.getId());
-                rqTestItems.add(IndexTestItem.fromTestItem(testItem, logs));
+                if (!logs.isEmpty()) {
+                    rqTestItems.add(IndexTestItem.fromTestItem(testItem, logs));
+                }
+            }
+            if (!rqTestItems.isEmpty()) {
+                IndexLaunch rqLaunch = new IndexLaunch();
+                rqLaunch.setLaunchId(launchId);
+                rqLaunch.setLaunchName(launch.getName());
+                rqLaunch.setTestItems(rqTestItems);
+                IndexRs rs = analyzerServiceClient.index(Collections.singletonList(rqLaunch));
+                retryFailed(rs);
             }
         }
     }
@@ -114,10 +121,7 @@ public class LogIndexerService implements ILogIndexer {
 
                         IndexRs rs = analyzerServiceClient.index(rq);
 
-                        List<IndexRsItem> failedItems =
-                                rs.getItems().stream().filter(i -> i.failed()).collect(Collectors.toList());
-
-                        // TODO: Retry failed items!
+                        retryFailed(rs);
 
                         rq = new ArrayList<>(BATCH_SIZE);
                         checkpoint = null;
@@ -156,6 +160,12 @@ public class LogIndexerService implements ILogIndexer {
             }
         }
         return rqLaunch;
+    }
+
+    private void retryFailed(IndexRs rs) {
+        // TODO: Retry failed items!
+//        List<IndexRsItem> failedItems =
+//                rs.getItems().stream().filter(i -> i.failed()).collect(Collectors.toList());
     }
 
     private DBCollection getCheckpointCollection() {

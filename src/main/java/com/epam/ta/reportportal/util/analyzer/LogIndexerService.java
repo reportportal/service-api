@@ -29,14 +29,11 @@ import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.util.analyzer.model.IndexRs;
-import com.epam.ta.reportportal.util.analyzer.model.IndexRsItem;
 import com.epam.ta.reportportal.util.analyzer.model.IndexTestItem;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import org.bson.types.ObjectId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -48,7 +45,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Default implementation of {@link ILogIndexer}.
@@ -58,8 +54,6 @@ import java.util.stream.Collectors;
  */
 @Service("indexerService")
 public class LogIndexerService implements ILogIndexer {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(LogIndexerService.class);
 
     private static final int BATCH_SIZE = 1000;
 

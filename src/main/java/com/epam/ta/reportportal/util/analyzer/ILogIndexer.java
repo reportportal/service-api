@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.util.analyzer;
 
+import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 
 import java.util.List;
@@ -32,6 +33,14 @@ import java.util.List;
  *
  */
 public interface ILogIndexer {
+
+    /**
+     * Index single log
+     *
+     * @param log
+     *            - log
+     */
+    void indexLog(Log log);
 
     /**
      * Index logs for all given test items within launch

@@ -76,8 +76,18 @@ public class LogIndexerService implements ILogIndexer {
     @Autowired
     private LogRepository logRepository;
 
+    @Override
+    public void indexLog(Log log) {
+        IndexLaunch rq = createRqLaunch(log);
+        if (rq != null) {
+            IndexRs rs = analyzerServiceClient.index(Collections.singletonList(rq));
+            retryFailed(rs);
+        }
+    }
+
+    @Override
     public void indexLogs(String launchId, List<TestItem> testItems) {
-        Launch launch = launchRepository.findEntryById(launchId);
+        Launch launch = launchRepository.findOne(launchId);
         if (launch != null) {
             List<IndexTestItem> rqTestItems = new ArrayList<>(testItems.size());
             for (TestItem testItem : testItems) {
@@ -97,6 +107,7 @@ public class LogIndexerService implements ILogIndexer {
         }
     }
 
+    @Override
     public void indexAllLogs() {
         String checkpoint = getLastCheckpoint();
 

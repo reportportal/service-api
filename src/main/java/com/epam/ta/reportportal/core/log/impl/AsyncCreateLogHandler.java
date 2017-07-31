@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  * 
  * 
  * This file is part of EPAM Report Portal.
@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.job.SaveBinaryDataJob;
+import com.epam.ta.reportportal.util.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +61,9 @@ public class AsyncCreateLogHandler extends CreateLogHandler implements ICreateLo
     @Qualifier("saveLogsTaskExecutor")
     private TaskExecutor taskExecutor;
 
+    @Autowired
+    private ILogIndexer logIndexer;
+
     @Override
     @Nonnull
     public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, String projectName) {
@@ -70,6 +74,7 @@ public class AsyncCreateLogHandler extends CreateLogHandler implements ICreateLo
 
         try {
             logRepository.save(log);
+            logIndexer.indexLog(log);
         } catch (Exception exc) {
             throw new ReportPortalException("Error while Log instance creating.", exc);
         }

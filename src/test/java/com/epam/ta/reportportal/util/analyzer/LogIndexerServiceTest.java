@@ -77,25 +77,60 @@ public class LogIndexerServiceTest {
     }
 
     @Test
-    public void testIndexWithNonExistentLaunchId() {
+    public void testIndexLogWithoutTestItem() {
+        Log log = createLog("1");
+        when(testItemRepository.findOne(anyString())).thenReturn(null);
+        logIndexerService.indexLog(log);
+        verify(testItemRepository).findOne(eq(log.getTestItemRef()));
+        verifyZeroInteractions(mongoOperations, launchRepository, logRepository, analyzerServiceClient);
+    }
+
+    @Test
+    public void testIndexLogWithoutLaunch() {
+        Log log = createLog("2");
+        TestItem ti = createTestItem("2");
+        when(testItemRepository.findOne(eq(log.getTestItemRef()))).thenReturn(ti);
+        when(launchRepository.findOne(eq(ti.getLaunchRef()))).thenReturn(null);
+        logIndexerService.indexLog(log);
+        verify(testItemRepository).findOne(eq(log.getTestItemRef()));
+        verify(launchRepository).findOne(eq(ti.getLaunchRef()));
+        verifyZeroInteractions(mongoOperations, logRepository, analyzerServiceClient);
+    }
+
+    @Test
+    public void testIndexLog() {
+        Log log = createLog("3");
+        TestItem ti = createTestItem("3");
+        Launch launch = createLaunch("3");
+        when(testItemRepository.findOne(eq(log.getTestItemRef()))).thenReturn(ti);
+        when(launchRepository.findOne(eq(ti.getLaunchRef()))).thenReturn(launch);
+        logIndexerService.indexLog(log);
+        verify(testItemRepository).findOne(eq(log.getTestItemRef()));
+        verify(launchRepository).findOne(eq(ti.getLaunchRef()));
+        verify(analyzerServiceClient).index(anyListOf(IndexLaunch.class));
+        verifyZeroInteractions(mongoOperations, logRepository);
+    }
+
+    @Test
+    public void testIndexLogsWithNonExistentLaunchId() {
         String launchId = "1";
-        when(launchRepository.findEntryById(eq(launchId))).thenReturn(null);
+        when(launchRepository.findOne(eq(launchId))).thenReturn(null);
         logIndexerService.indexLogs(launchId, createTestItems(1));
         verifyZeroInteractions(mongoOperations, testItemRepository, logRepository, analyzerServiceClient);
     }
 
     @Test
-    public void testIndexWithoutTestItems() {
+    public void testIndexLogsWithoutTestItems() {
         String launchId = "2";
-        when(launchRepository.findEntryById(eq(launchId))).thenReturn(createLaunch(launchId));
+        when(launchRepository.findOne(eq(launchId))).thenReturn(createLaunch(launchId));
         logIndexerService.indexLogs(launchId, Collections.emptyList());
         verifyZeroInteractions(mongoOperations, testItemRepository, logRepository, analyzerServiceClient);
     }
 
     @Test
-    public void testIndexTestItemsWithoutLogs() {
+    public void testIndexLogsTestItemsWithoutLogs() {
         String launchId = "3";
-        when(launchRepository.findEntryById(eq(launchId))).thenReturn(createLaunch(launchId));
+        when(launchRepository.findOne(eq(launchId))).thenReturn(createLaunch(launchId));
         when(logRepository.findByTestItemRef(anyString())).thenReturn(Collections.emptyList());
         int testItemCount = 10;
         logIndexerService.indexLogs(launchId, createTestItems(testItemCount));
@@ -104,15 +139,16 @@ public class LogIndexerServiceTest {
     }
 
     @Test
-    public void testIndex() {
+    public void testIndexLogs() {
         String launchId = "4";
-        when(launchRepository.findEntryById(eq(launchId))).thenReturn(createLaunch(launchId));
+        when(launchRepository.findOne(eq(launchId))).thenReturn(createLaunch(launchId));
         when(logRepository.findByTestItemRef(anyString())).thenReturn(Collections.singletonList(new Log()));
         int testItemCount = 2;
         when(analyzerServiceClient.index(anyListOf(IndexLaunch.class))).thenReturn(createIndexRs(testItemCount));
         logIndexerService.indexLogs(launchId, createTestItems(testItemCount));
         verify(logRepository, times(testItemCount)).findByTestItemRef(anyString());
         verify(analyzerServiceClient).index(anyListOf(IndexLaunch.class));
+        verifyZeroInteractions(mongoOperations);
     }
 
     @Test
@@ -175,6 +211,13 @@ public class LogIndexerServiceTest {
         ti.setId(id);
         ti.setLaunchRef("launch" + id);
         return ti;
+    }
+
+    private Log createLog(String id) {
+        Log l = new Log();
+        l.setId(id);
+        l.setTestItemRef("testItem" + id);
+        return l;
     }
 
     private List<TestItem> createTestItems(int count) {

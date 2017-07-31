@@ -24,6 +24,7 @@ package com.epam.ta;
 import com.epam.ta.reportportal.auth.UatClient;
 import com.epam.ta.reportportal.database.fixture.MongoFixtureImporter;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
+import com.epam.ta.reportportal.util.analyzer.AnalyzerServiceClient;
 import com.github.fakemongo.Fongo;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
@@ -94,6 +95,12 @@ public class TestConfig {
 			Mockito.when(factory.getConnection()).thenReturn(connection);
 
 			return factory;
+		}
+
+		@Bean
+		public AnalyzerServiceClient analyzerServiceClient()
+		{
+			return mock(AnalyzerServiceClient.class);
 		}
 	}
 

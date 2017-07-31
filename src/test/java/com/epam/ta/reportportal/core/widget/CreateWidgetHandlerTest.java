@@ -21,21 +21,7 @@
 
 package com.epam.ta.reportportal.core.widget;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
 import com.epam.ta.reportportal.core.widget.content.GadgetTypes;
 import com.epam.ta.reportportal.core.widget.content.WidgetDataTypes;
 import com.epam.ta.reportportal.core.widget.impl.CreateWidgetHandler;
@@ -55,8 +41,20 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import javax.inject.Provider;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Dzmitry_Kavalets
@@ -123,7 +121,7 @@ public class CreateWidgetHandlerTest {
 		createWidgetHandler.setUserFilterRepository(userFilterRepository);
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage(Suppliers.formattedSupplier(
-				"Unknown widget data type: '{}'. " + "Possible data types: line_chart, bar_chart, column_chart, pie_chart, table", type)
+				"Unknown widget data type: '{}'. " + "Possible data types: line_chart, bar_chart, column_chart, combine_pie_chart, table", type)
 				.get());
 		createWidgetHandler.createWidget(widgetRQ, DEFAULT_PROJECT, DEFAULT_USER);
 	}

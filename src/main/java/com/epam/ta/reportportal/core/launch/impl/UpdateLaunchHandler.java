@@ -148,7 +148,8 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		String launchOwner = launch.getUserRef();
 		User principal = userRepository.findOne(userName);
 		Project project = projectRepository.findOne(projectName);
-		if ((project.getUsers().get(userName).getProjectRole() == CUSTOMER) && (null != mode)) {
+		if ((project.getUsers
+				().get(userName).getProjectRole() == CUSTOMER) && (null != mode)) {
 			expect(mode, equalTo(DEFAULT)).verify(ACCESS_DENIED);
 		}
 		if (principal.getRole() != ADMINISTRATOR) {
@@ -156,7 +157,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 			if ((null == launchOwner) || (!launchOwner.equalsIgnoreCase(userName))) {
 				/*
 				 * Only LEAD and PROJECT_MANAGER roles could move launches
-				 * to/from DEBUG mode
+				 * to/from DEBUG modez
 				 */
 				UserConfig userConfig = project.getUsers().get(userName);
 				expect(userConfig, Preconditions.hasProjectRoles(Lists.newArrayList(PROJECT_MANAGER, LEAD))).verify(ACCESS_DENIED);

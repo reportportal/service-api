@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  * 
  * 
  * This file is part of EPAM Report Portal.
@@ -35,7 +35,8 @@ import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
 import com.epam.ta.reportportal.events.TicketAttachedEvent;
-import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
+import com.epam.ta.reportportal.util.analyzer.LogIndexerService;
+import com.epam.ta.reportportal.util.analyzer.NewIssuesAnalyzerService;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -72,7 +73,6 @@ import static java.util.stream.Collectors.toSet;
 @Service
 public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
-	private final IIssuesAnalyzer analyzerService;
 	private final ApplicationEventPublisher eventPublisher;
 	private final TestItemRepository testItemRepository;
 	private final StatisticsFacadeFactory statisticsFacadeFactory;
@@ -80,13 +80,13 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	private final ProjectRepository projectRepository;
 	private final LaunchRepository launchRepository;
 	private final ExternalSystemRepository externalSystemRepository;
+	private final LogIndexerService logIndexer;
 
 	@Autowired
-	public UpdateTestItemHandlerImpl(IIssuesAnalyzer analyzerService,
-			TestItemRepository testItemRepository, StatisticsFacadeFactory statisticsFacadeFactory, UserRepository userRepository,
+	public UpdateTestItemHandlerImpl(TestItemRepository testItemRepository,
+			StatisticsFacadeFactory statisticsFacadeFactory, UserRepository userRepository,
 			ProjectRepository projectRepository, LaunchRepository launchRepository, ExternalSystemRepository externalSystemRepository,
-			ApplicationEventPublisher eventPublisher) {
-		this.analyzerService = analyzerService;
+			ApplicationEventPublisher eventPublisher, LogIndexerService logIndexer) {
 		this.eventPublisher = eventPublisher;
 		this.testItemRepository = testItemRepository;
 		this.statisticsFacadeFactory = statisticsFacadeFactory;
@@ -94,6 +94,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		this.projectRepository = projectRepository;
 		this.launchRepository = launchRepository;
 		this.externalSystemRepository = externalSystemRepository;
+		this.logIndexer = logIndexer;
 	}
 
 	@Override
@@ -113,9 +114,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				eventData.put(issueDefinition, testItem);
 
 				final Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-				expect(analyzerService.isPossible(launch.getId()), equalTo(true)).verify(FORBIDDEN_OPERATION, Suppliers
-						.formattedSupplier("Cannot update specified '{}' Test Item cause target Launch '{}' is processing by Auto-Analyze",
-								testItem.getId(), launch.getId()));
 
 				final Project project = projectRepository.findOne(launch.getProjectRef());
 
@@ -165,6 +163,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				testItem.setIssue(testItemIssue);
 
 				testItemRepository.save(testItem);
+
+				logIndexer.indexLogs(launch.getId(), Collections.singletonList(testItem));
+
 				testItem = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.updateIssueStatistics(testItem);
 				updated.add(TestItemUtils.ISSUE_CONVERTER.apply(testItem.getIssue()));

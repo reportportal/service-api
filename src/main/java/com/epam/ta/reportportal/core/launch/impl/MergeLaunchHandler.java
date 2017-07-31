@@ -36,7 +36,6 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.ws.converter.LaunchResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
@@ -80,9 +79,6 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
     @Autowired
     private MergeStrategyFactory mergeStrategyFactory;
-
-    @Autowired
-    private IIssuesAnalyzer analyzerService;
 
     @Autowired
     private StatisticsFacadeFactory statisticsFacadeFactory;
@@ -177,9 +173,6 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
                 || project.getUsers().get(user.getId()).getProjectRole().getRoleLevel() >= LEAD.getRoleLevel());
         launches.forEach(launch -> {
             expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launch);
-
-            expect(analyzerService.isPossible(launch.getId()), equalTo(true)).verify(FORBIDDEN_OPERATION,
-                    "Impossible to merge launch which under AA processing");
 
             expect(launch.getStatus(), not(Preconditions.statusIn(IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
                     Suppliers.formattedSupplier("Cannot merge launch '{}' with status '{}'", launch.getId(), launch.getStatus()));

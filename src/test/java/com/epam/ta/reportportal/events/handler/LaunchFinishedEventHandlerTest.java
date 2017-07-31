@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  *
  *
  * This file is part of EPAM Report Portal.
@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.entity.statistics.Statistics;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
+import com.epam.ta.reportportal.util.analyzer.INewIssuesAnalyzer;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.controller.impl.TestItemController;
@@ -77,13 +78,13 @@ public class LaunchFinishedEventHandlerTest {
 		final Provider provider = mock(Provider.class);
 		when(provider.get()).thenReturn(new MockHttpServletRequest(HttpMethod.PUT.name(), "https://localhost:8443"));
 		emailService = mock(EmailService.class);
-		launchFinishedEventHandler = new LaunchFinishedEventHandler(mock(IIssuesAnalyzer.class), userRepository,
+		launchFinishedEventHandler = new LaunchFinishedEventHandler(mock(INewIssuesAnalyzer.class), userRepository,
 				mock(TestItemRepository.class), provider, mock(LaunchRepository.class), new MailServiceFactory(null, null, null) {
 			@Override
 			public Optional<EmailService> getDefaultEmailService() {
 				return Optional.of(emailService);
 			}
-		}, mock(FailReferenceResourceRepository.class), Integer.valueOf(TestItemController.DEFAULT_HISTORY_DEPTH));
+		}, mock(FailReferenceResourceRepository.class));
 	}
 
 	@Test

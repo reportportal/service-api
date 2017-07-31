@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  *
  *
  * This file is part of EPAM Report Portal.
@@ -35,7 +35,7 @@ import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.events.LaunchFinishedEvent;
-import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
+import com.epam.ta.reportportal.util.analyzer.INewIssuesAnalyzer;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
@@ -44,7 +44,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -71,7 +70,7 @@ public class LaunchFinishedEventHandler {
 
 	private final LaunchRepository launchRepository;
 
-	private final IIssuesAnalyzer analyzerService;
+	private final INewIssuesAnalyzer analyzerService;
 
 	private final MailServiceFactory emailServiceFactory;
 
@@ -79,12 +78,10 @@ public class LaunchFinishedEventHandler {
 
 	private final Provider<HttpServletRequest> currentRequest;
 
-	private final Integer autoAnalysisDepth;
-
 	@Autowired
-	public LaunchFinishedEventHandler(IIssuesAnalyzer analyzerService, UserRepository userRepository, TestItemRepository testItemRepository,
+	public LaunchFinishedEventHandler(INewIssuesAnalyzer analyzerService, UserRepository userRepository, TestItemRepository testItemRepository,
 			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory,
-			FailReferenceResourceRepository issuesRepository, @Value("${rp.issue.analyzer.depth}") Integer autoAnalysisDepth) {
+			FailReferenceResourceRepository issuesRepository) {
 		this.analyzerService = analyzerService;
 		this.userRepository = userRepository;
 		this.testItemRepository = testItemRepository;
@@ -92,7 +89,6 @@ public class LaunchFinishedEventHandler {
 		this.launchRepository = launchRepository;
 		this.emailServiceFactory = emailServiceFactory;
 		this.issuesRepository = issuesRepository;
-		this.autoAnalysisDepth = autoAnalysisDepth;
 	}
 
 	@EventListener
@@ -127,10 +123,12 @@ public class LaunchFinishedEventHandler {
 			this.clearInvestigatedIssues(resources);
 			return;
 		}
-		List<TestItem> previous = analyzerService.collectPreviousIssues(autoAnalysisDepth, launch.getId(), project.getName());
 		List<TestItem> converted = resources.stream().map(resource -> testItemRepository.findOne(resource.getTestItemRef()))
 				.collect(Collectors.toList());
-		analyzerService.analyze(launch.getId(), converted, previous);
+
+		List<TestItem> testItems = analyzerService.analyze(launch.getId(), converted);
+
+		// TODO: Update test items in DB!?
 
 		// Remove already processed items from repository
 		this.clearInvestigatedIssues(resources);

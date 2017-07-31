@@ -9,7 +9,7 @@ ENV APP_DOWNLOAD_URL https://dl.bintray.com/epam/reportportal/com/epam/reportpor
 ENV JAVA_OPTS="-Xmx1g"
 
 RUN apt-get update && \
-    apt-get install -y fonts-droid-fallback && \
+    apt-get install -y fonts-noto && \
     rm -rf /var/lib/apt/lists/*
 
 VOLUME /tmp

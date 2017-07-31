@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.launch.AutoAnalyzeStrategy;
 import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.util.analyzer.AnalyzerConfig;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -88,8 +89,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	private TaskExecutor taskExecutor;
 
 	@Autowired
-	@Value("${rp.issue.analyzer.depth}")
-	private Integer autoAnalysisDepth;
+	private AnalyzerConfig analyzerConfig;
 
 	@Autowired
 	public void setLaunchRepository(LaunchRepository launchRepository) {
@@ -166,7 +166,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 			got = analyzerService.collectPreviousIssues(1, launchId, projectName);
 		} else {
 			/* General AA flow */
-			got = analyzerService.collectPreviousIssues(autoAnalysisDepth, launchId, projectName);
+			got = analyzerService.collectPreviousIssues(analyzerConfig.getDepth(), launchId, projectName);
 		}
 
 		if (analyzerService.analyzeStarted(launchId)) {

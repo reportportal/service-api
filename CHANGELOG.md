@@ -123,3 +123,4 @@
 * EPMRPP-26020 - 500 error on attempt to delete not existed widget
 * EPMRPP-23553 - Verify API methods against last updates/changes
 * EPMRPP-26393 - Launches are not filtered by start time correctly
+* reportportal#201 - Avoid CPU consumption on huge logs during auto-analysis

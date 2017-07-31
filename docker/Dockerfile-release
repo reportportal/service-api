@@ -1,6 +1,6 @@
 FROM openjdk:8-jre
 
-LABEL maintainer "Andrei Varabyeu <andrei_varabyeu@epam.com>"
+LABEL maintainer="Andrei Varabyeu <andrei_varabyeu@epam.com>"
 LABEL version="@version@"
 LABEL description="@description@"
 

@@ -124,3 +124,4 @@
 * EPMRPP-23553 - Verify API methods against last updates/changes
 * EPMRPP-26393 - Launches are not filtered by start time correctly
 * reportportal/reportportal#200 - Droid Sans fonts no longer supported by debian
+* reportportal/reportportal#201 - Avoid CPU consumption on huge logs during auto-analysis

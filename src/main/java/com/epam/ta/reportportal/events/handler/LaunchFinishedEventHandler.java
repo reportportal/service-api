@@ -35,7 +35,7 @@ import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.events.LaunchFinishedEvent;
-import com.epam.ta.reportportal.util.analyzer.INewIssuesAnalyzer;
+import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
@@ -70,7 +70,7 @@ public class LaunchFinishedEventHandler {
 
 	private final LaunchRepository launchRepository;
 
-	private final INewIssuesAnalyzer analyzerService;
+	private final IIssuesAnalyzer analyzerService;
 
 	private final MailServiceFactory emailServiceFactory;
 
@@ -79,9 +79,9 @@ public class LaunchFinishedEventHandler {
 	private final Provider<HttpServletRequest> currentRequest;
 
 	@Autowired
-	public LaunchFinishedEventHandler(INewIssuesAnalyzer analyzerService, UserRepository userRepository, TestItemRepository testItemRepository,
-			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory,
-			FailReferenceResourceRepository issuesRepository) {
+	public LaunchFinishedEventHandler(IIssuesAnalyzer analyzerService, UserRepository userRepository, TestItemRepository testItemRepository,
+									  Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory,
+									  FailReferenceResourceRepository issuesRepository) {
 		this.analyzerService = analyzerService;
 		this.userRepository = userRepository;
 		this.testItemRepository = testItemRepository;

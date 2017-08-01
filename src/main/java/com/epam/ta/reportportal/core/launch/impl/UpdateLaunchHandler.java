@@ -35,7 +35,7 @@ import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.util.analyzer.INewIssuesAnalyzer;
+import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
@@ -75,7 +75,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
     private UserRepository userRepository;
 
 	@Autowired
-	private INewIssuesAnalyzer analyzerService;
+	private IIssuesAnalyzer analyzerService;
 
 	@Autowired
 	public void setLaunchRepository(LaunchRepository launchRepository) {

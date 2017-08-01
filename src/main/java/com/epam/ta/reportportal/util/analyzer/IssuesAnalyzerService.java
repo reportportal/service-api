@@ -40,8 +40,8 @@ import java.util.List;
  *
  * @author Ivan Sharamet
  */
-@Service("newAnalyzerService")
-public class NewIssuesAnalyzerService implements IIssuesAnalyzer {
+@Service("analyzerService")
+public class IssuesAnalyzerService implements IIssuesAnalyzer {
 
     private static final String DEFAULT_ISSUE_DESCRIPTION = "";
 

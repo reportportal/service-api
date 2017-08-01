@@ -31,7 +31,7 @@ import java.util.List;
  * @author Ivan Sharamet
  *
  */
-public interface INewIssuesAnalyzer {
+public interface IIssuesAnalyzer {
 
     /**
      * Analyze history to find similar issues

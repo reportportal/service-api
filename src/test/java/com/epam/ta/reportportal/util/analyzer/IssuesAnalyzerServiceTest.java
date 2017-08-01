@@ -48,7 +48,7 @@ import static org.mockito.Mockito.*;
  * @author Ivan Sharamet
  *
  */
-public class NewIssuesAnalyzerServiceTest {
+public class IssuesAnalyzerServiceTest {
 
     @Mock
     private AnalyzerServiceClient analyzerServiceClient;

@@ -5,7 +5,7 @@ rp:
   analytics:
     enableByDefault: true
   analyzer:
-    url: http://analyzer:8080
+    url: http://analyzer:7777
 
 spring:
   cloud:

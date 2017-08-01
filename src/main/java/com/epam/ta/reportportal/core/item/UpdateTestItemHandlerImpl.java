@@ -36,7 +36,6 @@ import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
 import com.epam.ta.reportportal.events.TicketAttachedEvent;
 import com.epam.ta.reportportal.util.analyzer.LogIndexerService;
-import com.epam.ta.reportportal.util.analyzer.NewIssuesAnalyzerService;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;

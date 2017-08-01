@@ -47,6 +47,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 /**
  * Default implementation of {@link ILogIndexer}.
@@ -81,7 +82,7 @@ public class LogIndexerService implements ILogIndexer {
     @EventListener
     public void onApplicationEvent(ContextRefreshedEvent event) {
         if (mongoOperations.collectionExists(CHECKPOINT_COLL)) {
-            indexAllLogs();
+            Executors.newSingleThreadExecutor().execute(this::indexAllLogs);
         }
     }
 

@@ -37,6 +37,8 @@ public class IndexLaunch {
     private String launchId;
     @JsonProperty("launchName")
     private String launchName;
+    @JsonProperty("project")
+    private String project;
     @JsonProperty("testItems")
     private List<IndexTestItem> testItems;
 
@@ -56,6 +58,14 @@ public class IndexLaunch {
 
     public void setLaunchName(String launchName) {
         this.launchName = launchName;
+    }
+
+    public String getProject() {
+        return project;
+    }
+
+    public void setProject(String project) {
+        this.project = project;
     }
 
     public List<IndexTestItem> getTestItems() {

@@ -35,6 +35,8 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -76,6 +78,13 @@ public class LogIndexerService implements ILogIndexer {
     @Autowired
     private LogRepository logRepository;
 
+    @EventListener
+    public void onApplicationEvent(ContextRefreshedEvent event) {
+        if (mongoOperations.collectionExists(CHECKPOINT_COLL)) {
+            indexAllLogs();
+        }
+    }
+
     @Override
     public void indexLog(Log log) {
         IndexLaunch rq = createRqLaunch(log);
@@ -100,6 +109,7 @@ public class LogIndexerService implements ILogIndexer {
                 IndexLaunch rqLaunch = new IndexLaunch();
                 rqLaunch.setLaunchId(launchId);
                 rqLaunch.setLaunchName(launch.getName());
+                rqLaunch.setProject(launch.getProjectRef());
                 rqLaunch.setTestItems(rqTestItems);
                 IndexRs rs = analyzerServiceClient.index(Collections.singletonList(rqLaunch));
                 retryFailed(rs);
@@ -158,6 +168,7 @@ public class LogIndexerService implements ILogIndexer {
                 rqLaunch = new IndexLaunch();
                 rqLaunch.setLaunchId(launch.getId());
                 rqLaunch.setLaunchName(launch.getName());
+                rqLaunch.setProject(launch.getProjectRef());
                 rqLaunch.setTestItems(
                         Collections.singletonList(
                                 IndexTestItem.fromTestItem(

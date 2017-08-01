@@ -82,6 +82,7 @@ public class NewIssuesAnalyzerService implements INewIssuesAnalyzer {
             IndexLaunch rqLaunch = new IndexLaunch();
             rqLaunch.setLaunchId(launch.getId());
             rqLaunch.setLaunchName(launch.getName());
+            rqLaunch.setProject(launch.getProjectRef());
             rqLaunch.setTestItems(rqTestItems);
 
             rs = analyzerServiceClient.analyze(rqLaunch);

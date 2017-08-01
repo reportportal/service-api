@@ -36,12 +36,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Default implementation of {@link INewIssuesAnalyzer}.
+ * Default implementation of {@link IIssuesAnalyzer}.
  *
  * @author Ivan Sharamet
  */
 @Service("newAnalyzerService")
-public class NewIssuesAnalyzerService implements INewIssuesAnalyzer {
+public class NewIssuesAnalyzerService implements IIssuesAnalyzer {
 
     private static final String DEFAULT_ISSUE_DESCRIPTION = "";
 

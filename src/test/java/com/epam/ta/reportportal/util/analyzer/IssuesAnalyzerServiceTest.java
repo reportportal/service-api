@@ -43,7 +43,7 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 
 /**
- * Tests for {@link NewIssuesAnalyzerService}
+ * Tests for {@link IssuesAnalyzerService}
  *
  * @author Ivan Sharamet
  *
@@ -58,11 +58,11 @@ public class NewIssuesAnalyzerServiceTest {
     private LogRepository logRepository;
 
     @InjectMocks
-    private NewIssuesAnalyzerService analyzerService;
+    private IssuesAnalyzerService analyzerService;
 
     @Before
     public void setup() {
-        analyzerService = new NewIssuesAnalyzerService();
+        analyzerService = new IssuesAnalyzerService();
         MockitoAnnotations.initMocks(this);
     }
 

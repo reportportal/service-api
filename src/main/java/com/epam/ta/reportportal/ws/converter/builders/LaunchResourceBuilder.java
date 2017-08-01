@@ -51,7 +51,7 @@ public class LaunchResourceBuilder extends Builder<LaunchResource> {
         resource.setTags(launch.getTags());
         resource.setMode(launch.getMode());
         resource.setApproximateDuration(launch.getApproximateDuration());
-        resource.setIsProcessing(true);
+        resource.setIsProcessing(false);
         resource.setOwner(launch.getUserRef());
         Statistics statistics = launch.getStatistics();
         if (statistics != null) {

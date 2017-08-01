@@ -127,8 +127,7 @@ public class LaunchFinishedEventHandler {
 				.collect(Collectors.toList());
 
 		List<TestItem> testItems = analyzerService.analyze(launch.getId(), converted);
-
-		// TODO: Update test items in DB!?
+		testItemRepository.save(testItems);
 
 		// Remove already processed items from repository
 		this.clearInvestigatedIssues(resources);

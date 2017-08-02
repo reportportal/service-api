@@ -170,6 +170,16 @@ public class ExternalSystemController implements IExternalSystemController {
 		return getTicketHandler.getSubmitTicketFields(issuetype, EntityUtils.normalizeId(projectName), systemId);
 	}
 
+    @Override
+    @RequestMapping(value = "/{systemId}/issue_types", method = RequestMethod.GET)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize(PROJECT_LEAD)
+    @ApiOperation("Get list of fields required for posting ticket")
+    public List<String> getAllowableIssueTypes(@PathVariable String projectName, @PathVariable String systemId) {
+        return getTicketHandler.getAllowableIssueTypes(EntityUtils.normalizeId(projectName), systemId);
+    }
+
 	// ===================
 	// TICKETS BLOCK
 	// ===================

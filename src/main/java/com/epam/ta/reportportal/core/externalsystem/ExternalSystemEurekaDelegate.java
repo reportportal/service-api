@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
@@ -89,7 +90,15 @@ public class ExternalSystemEurekaDelegate implements ExternalSystemStrategy {
 						}, system.getId(), issueType).getBody();
 	}
 
-	private ServiceInstance getServiceInstance(ExternalSystemType externalSystem) {
+    @Override
+    public List<String> getIssueTypes(ExternalSystem system) {
+        return eurekaTemplate
+                .exchange(getServiceInstance(system.getExternalSystemType()).getUri().toString() + "/{systemId}/ticket/types",
+                        HttpMethod.GET, null, new ParameterizedTypeReference<List<String>>() {
+                        }, system.getId()).getBody();
+    }
+
+    private ServiceInstance getServiceInstance(ExternalSystemType externalSystem) {
 		String externalSystemType = externalSystem.name().toLowerCase();
 
 		Optional<ServiceInstance> delegate = discoveryClient.getServices().stream()

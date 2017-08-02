@@ -62,8 +62,8 @@ public class  OverallStatisticsContentLoader extends StatisticBasedContentLoader
 		OverallStatisticsDocumentHandler overallStatisticsContentLoader = new OverallStatisticsDocumentHandler(contentFields);
 		if (options.containsKey(LATEST_VIEW)) {
             String projectName = ejectProjectName(filter);
-            Filter optimizeFilter = optimizeFilter(filter);
-            launchRepository.findLatestWithCallback(projectName, optimizeFilter, sorting,
+            Filter preparedFilter = prepareFilterForLatestLaunches(filter);
+            launchRepository.findLatestWithCallback(projectName, preparedFilter, sorting,
                     contentFields, quantity, overallStatisticsContentLoader);
         } else {
 		    launchRepository.loadWithCallback(filter, sorting, quantity, contentFields,
@@ -103,7 +103,7 @@ public class  OverallStatisticsContentLoader extends StatisticBasedContentLoader
      * @param filter filter
      * @return optimized filter
      */
-    private Filter optimizeFilter(Filter filter) {
+    private Filter prepareFilterForLatestLaunches(Filter filter) {
         Set<FilterCondition> filterConditions = filter.getFilterConditions().stream().filter(filterCondition ->
                 !filterCondition.getSearchCriteria().equalsIgnoreCase("status") &&
                         !filterCondition.getSearchCriteria().equalsIgnoreCase("project")).collect(Collectors.toSet());

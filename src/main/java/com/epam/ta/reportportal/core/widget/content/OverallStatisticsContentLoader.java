@@ -24,16 +24,14 @@ package com.epam.ta.reportportal.core.widget.content;
 import com.epam.ta.reportportal.database.OverallStatisticsDocumentHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.search.Filter;
-import com.epam.ta.reportportal.database.search.FilterCondition;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -53,17 +51,14 @@ public class  OverallStatisticsContentLoader extends StatisticBasedContentLoader
 	// data must be collected from launch collection
 	private static final String COLLECTION_NAME = "launch";
 
-	private static final String LATEST_VIEW = "latest";
 
 	@Override
-	public Map<String, List<ChartObject>> loadContent(Filter filter, Sort sorting, int quantity, List<String> contentFields,
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
 			List<String> metaDataFields, Map<String, List<String>> options) {
 
 		OverallStatisticsDocumentHandler overallStatisticsContentLoader = new OverallStatisticsDocumentHandler(contentFields);
-		if (options.containsKey(LATEST_VIEW)) {
-            String projectName = ejectProjectName(filter);
-            Filter preparedFilter = prepareFilterForLatestLaunches(filter);
-            launchRepository.findLatestWithCallback(projectName, preparedFilter, sorting,
+		if (options.containsKey(LATEST_MODE)) {
+            launchRepository.findLatestWithCallback(projectName, filter, sorting,
                     contentFields, quantity, overallStatisticsContentLoader);
         } else {
 		    launchRepository.loadWithCallback(filter, sorting, quantity, contentFields,
@@ -96,34 +91,5 @@ public class  OverallStatisticsContentLoader extends StatisticBasedContentLoader
 		String[] split = fieldName.split("\\.");
 		return split[split.length - 1];
 	}
-
-    /**
-     * Excludes unwanted filter conditions for latest launches mode.
-     *
-     * @param filter filter
-     * @return optimized filter
-     */
-    private Filter prepareFilterForLatestLaunches(Filter filter) {
-        Set<FilterCondition> filterConditions = filter.getFilterConditions().stream().filter(filterCondition ->
-                !filterCondition.getSearchCriteria().equalsIgnoreCase("status") &&
-                        !filterCondition.getSearchCriteria().equalsIgnoreCase("project")).collect(Collectors.toSet());
-        return new Filter(filter.getTarget(), filterConditions);
-    }
-
-    /**
-     * Ejects project name from filter criteria for using it in
-     * latest launches aggregations.
-     *
-     * @param filter filter with project
-     * @return projectName
-     */
-    private String ejectProjectName(Filter filter) {
-        final String projectKey = "projectRef";
-        return (String) filter.toCriteria().stream()
-                .filter(criteria -> criteria.getKey().equalsIgnoreCase(projectKey))
-                .map(Criteria::getCriteriaObject)
-                .map(dbObject -> dbObject.get(projectKey))
-                .findFirst().orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND));
-    }
 
 }

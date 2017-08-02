@@ -75,4 +75,9 @@ public class PassingRateFilterStrategy implements BuildFilterStrategy {
         .build());
         return chartObject;
     }
+
+    @Override
+    public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+        throw new UnsupportedOperationException("Operation is supported only for statistics based widgets.");
+    }
 }

@@ -21,12 +21,12 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import java.util.List;
-import java.util.Map;
-
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Strategy definition interface for building widget specific filters
@@ -45,4 +45,6 @@ public interface BuildFilterStrategy {
 	 * @return
 	 */
 	Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName);
+
+	Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName);
 }

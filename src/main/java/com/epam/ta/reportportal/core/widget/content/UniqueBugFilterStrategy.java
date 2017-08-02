@@ -21,14 +21,6 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
@@ -37,6 +29,13 @@ import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.search.*;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.Sets;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of
@@ -79,6 +78,11 @@ public class UniqueBugFilterStrategy implements BuildFilterStrategy {
 		}
 		filter.addCondition(new FilterCondition(Condition.EXISTS, false, "true", TestItem.EXTERNAL_SYSTEM_ISSUES));
 
-		return widgetContentProvider.getChartContent(filter, userFilter.getSelectionOptions(), contentOptions);
+		return widgetContentProvider.getChartContent(projectName, filter, userFilter.getSelectionOptions(), contentOptions);
 	}
+
+    @Override
+    public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+        throw new UnsupportedOperationException("Operation is supported only for statistics based widgets.");
+    }
 }

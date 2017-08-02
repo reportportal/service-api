@@ -52,7 +52,7 @@ public class LineChartContentLoader extends StatisticBasedContentLoader implemen
 
 	@SuppressFBWarnings("NP_NULL_PARAM_DEREF")
 	@Override
-	public Map<String, List<ChartObject>> loadContent(Filter filter, Sort sorting, int quantity, List<String> contentFields,
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
 			List<String> metaDataFields, Map<String, List<String>> options) {
 
 		BusinessRule.expect(metaDataFields == null || metaDataFields.isEmpty(), Predicates.equalTo(Boolean.FALSE))
@@ -63,7 +63,11 @@ public class LineChartContentLoader extends StatisticBasedContentLoader implemen
 		String collectionName = getCollectionName(filter.getTarget());
 
 		// here can be used any repository which extends ReportPortalRepository
-		launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, collectionName);
+        if (options.containsKey(LATEST_MODE)) {
+            launchRepository.findLatestWithCallback(projectName, filter, sorting, allFields, quantity, handler);
+        } else {
+            launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, collectionName);
+        }
 		if ((options.get(TIMELINE) != null) && (Period.findByName(options.get(TIMELINE).get(0)) != null)) {
 			return groupByDate(handler.getResult(), Period.findByName(options.get(TIMELINE).get(0)));
 		}

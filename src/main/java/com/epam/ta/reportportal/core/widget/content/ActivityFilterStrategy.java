@@ -21,13 +21,6 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.entity.filter.SelectionOptions;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.item.Activity;
@@ -36,6 +29,12 @@ import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Implementation of
@@ -75,10 +74,15 @@ public class ActivityFilterStrategy implements BuildFilterStrategy {
 		selectionOptions.setIsAsc(false);
 		selectionOptions.setSortingColumnName(LAST_MODIFIED);
 		selectionOptions.setPageNumber(PAGE_NUMBER);
-		return widgetContentProvider.getChartContent(searchFilter, selectionOptions, contentOptions);
+		return widgetContentProvider.getChartContent(projectName, searchFilter, selectionOptions, contentOptions);
 	}
 
-	private FilterCondition buildFilterCondition(String searchCriteria, List<String> values) {
+    @Override
+    public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+        throw new UnsupportedOperationException("Operation is supported only for statistics based widgets.");
+    }
+
+    private FilterCondition buildFilterCondition(String searchCriteria, List<String> values) {
 		Condition condition;
 		if (null != values && values.size() > 1) {
 			condition = Condition.IN;

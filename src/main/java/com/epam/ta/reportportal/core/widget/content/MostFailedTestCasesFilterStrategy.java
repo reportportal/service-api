@@ -110,6 +110,11 @@ public class MostFailedTestCasesFilterStrategy implements BuildFilterStrategy {
 		return databaseDataConverter(sortByValue(dbProcessed), contentOptions.getItemsCount(), launchHistory.get(0));
 	}
 
+    @Override
+    public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+        throw new UnsupportedOperationException("Operation is supported only for statistics based widgets.");
+    }
+
 	/**
 	 * Returned data from database converter in UI style charts
 	 * 

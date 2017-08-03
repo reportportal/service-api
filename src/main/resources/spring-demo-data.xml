@@ -45,6 +45,11 @@
 		<ref bean="child5" />
 	</util:list>
 
+    <util:list id="statistics">
+        <ref bean="launch2" />
+        <ref bean="child2"/>
+    </util:list>
+
 	<util:list id="widgets">
 		<ref bean="launch1_with_stat"/>
 		<ref bean="launch2_with_stat"/>

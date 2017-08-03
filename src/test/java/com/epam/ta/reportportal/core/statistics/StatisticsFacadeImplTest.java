@@ -12,10 +12,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.test.annotation.DirtiesContext;
 
-import static org.junit.Assert.*;
-
-@SpringFixture(value = "unitTestsProjectTriggers")
+@SpringFixture(value = "statistics")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class StatisticsFacadeImplTest extends BaseTest {
 
     @Rule

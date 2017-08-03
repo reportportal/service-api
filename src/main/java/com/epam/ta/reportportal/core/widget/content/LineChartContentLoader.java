@@ -63,11 +63,7 @@ public class LineChartContentLoader extends StatisticBasedContentLoader implemen
 		String collectionName = getCollectionName(filter.getTarget());
 
 		// here can be used any repository which extends ReportPortalRepository
-        if (options.containsKey(LATEST_MODE)) {
-            launchRepository.findLatestWithCallback(projectName, filter, sorting, allFields, quantity, handler);
-        } else {
-            launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, collectionName);
-        }
+        launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, collectionName);
 		if ((options.get(TIMELINE) != null) && (Period.findByName(options.get(TIMELINE).get(0)) != null)) {
 			return groupByDate(handler.getResult(), Period.findByName(options.get(TIMELINE).get(0)));
 		}

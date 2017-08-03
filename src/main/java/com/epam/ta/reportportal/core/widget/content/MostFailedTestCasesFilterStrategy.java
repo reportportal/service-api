@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.Lists;
@@ -112,7 +113,7 @@ public class MostFailedTestCasesFilterStrategy implements BuildFilterStrategy {
 
     @Override
     public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
-        throw new UnsupportedOperationException("Operation is supported only for statistics based widgets.");
+        throw new ReportPortalException("Operation is not supported for this strategy");
     }
 
 	/**

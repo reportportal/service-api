@@ -61,6 +61,6 @@ public class CompareLaunchesFilterStrategy implements BuildFilterStrategy {
 
     @Override
     public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
-        throw new UnsupportedOperationException("Operation is supported only for statistics based widgets.");
+        return widgetContentProvider.getChartContent(projectName, userFilter.getFilter(), userFilter.getSelectionOptions(), contentOptions);
     }
 }

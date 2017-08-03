@@ -80,11 +80,7 @@ public class CasesTrendContentLoader extends StatisticBasedContentLoader impleme
 		if (!field.equalsIgnoreCase(SORT_FIELD)) {
 			sorting = new Sort(Sort.Direction.DESC, SORT_FIELD);
 		}
-		if (options.containsKey(LATEST_MODE)) {
-		    launchRepository.findLatestWithCallback(projectName, filter, sorting, allFields, quantity, handler);
-        } else {
-            launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, COLLECTION);
-        }
+        launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, COLLECTION);
 		List<ChartObject> rawData = handler.getResult();
 
 		Map<String, List<ChartObject>> result = new LinkedHashMap<>();

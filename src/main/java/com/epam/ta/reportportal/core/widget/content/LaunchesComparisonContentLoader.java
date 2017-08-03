@@ -64,12 +64,7 @@ public class LaunchesComparisonContentLoader extends StatisticBasedContentLoader
 		List<String> allFields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
 
 		String collectionName = getCollectionName(filter.getTarget());
-        if (options.containsKey(LATEST_MODE)) {
-            launchRepository.findLatestWithCallback(projectName, filter, sorting, allFields, quantity, documentHandler);
-        } else {
-            launchRepository.loadWithCallback(filter, sorting, QUANTITY, allFields, documentHandler, collectionName);
-        }
-
+        launchRepository.loadWithCallback(filter, sorting, QUANTITY, allFields, documentHandler, collectionName);
 		return convertResult(documentHandler.getResult());
 	}
 

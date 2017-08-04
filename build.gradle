@@ -156,7 +156,7 @@ task staticResources(type: Copy) {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.0'
+    gradleVersion = '4.0.2'
 }
 
 //Start section for external jacoco test report

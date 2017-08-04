@@ -1,6 +1,10 @@
 language: java
 
-script: ./gradlew build --stacktrace
+script: ./gradlew build --no-daemon --stacktrace
+
+env:
+  global:
+    - GRADLE_OPTS="-Xms128m -Xmx2g"
 
 jdk:
   - oraclejdk8

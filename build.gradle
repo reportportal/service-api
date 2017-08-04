@@ -156,7 +156,7 @@ task staticResources(type: Copy) {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.0'
+    gradleVersion = '4.0.2'
 }
 
 //Start section for external jacoco test report
@@ -240,5 +240,11 @@ test {
                 logger.quiet("Passed Code Coverage Checks")
             }
         }
+    }
+
+    if (System.env.TRAVIS == 'true') {
+            maxParallelForks = 2
+            minHeapSize = "128m"
+            maxHeapSize = "1g"
     }
 }

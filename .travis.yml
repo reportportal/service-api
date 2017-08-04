@@ -1,6 +1,6 @@
 language: java
 
-script: ./gradlew build --stacktrace
+script: ./gradlew build --no-daemon --stacktrace
 
 jdk:
   - oraclejdk8

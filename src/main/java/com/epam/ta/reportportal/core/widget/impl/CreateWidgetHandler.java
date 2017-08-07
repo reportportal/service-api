@@ -34,11 +34,13 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.database.search.CriteriaMap;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
+import com.epam.ta.reportportal.events.WidgetCreatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
@@ -68,6 +70,9 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 	private CriteriaMapFactory criteriaMapFactory;
 
 	private SharingService sharingService;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	public void setWidgetRepository(WidgetRepository widgetRepository) {
@@ -159,6 +164,7 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 		shareIfRequired(createWidgetRQ.getShare(), widget, userName, projectName, filter);
 
 		widgetRepository.save(widget);
+		eventPublisher.publishEvent(new WidgetCreatedEvent(createWidgetRQ, userName, projectName, widget.getId()));
 		return new EntryCreatedRS(widget.getId());
 	}
 

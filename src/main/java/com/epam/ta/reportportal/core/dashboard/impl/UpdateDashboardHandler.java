@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.events.DashboardUpdatedEvent;
+import com.epam.ta.reportportal.events.WidgetDeletedEvent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
@@ -161,6 +162,7 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
             if (null != widget && AclUtils.isAllowedToDeleteWidget(dashboard.getAcl(), widget.getAcl(),
                     userName, projectRoles.get(projectName), userRole)) {
                 widgetRepository.delete(it);
+                eventPublisher.publishEvent(new WidgetDeletedEvent(widget, userName));
             }
 		});
 

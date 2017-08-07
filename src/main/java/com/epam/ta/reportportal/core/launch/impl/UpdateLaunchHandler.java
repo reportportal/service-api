@@ -196,7 +196,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 			expect(launch.getProjectRef(), equalTo(projectName)).verify(ACCESS_DENIED);
 			if ((null == launchOwner) || (!launchOwner.equalsIgnoreCase(userName))) {
 				/*
-				 * Only LEAD and PROJECT_MANAGER roles could move launches
+				 * Only PROJECT_MANAGER roles could move launches
 				 * to/from DEBUG mode
 				 */
 				UserConfig userConfig = project.getUsers().get(userName);

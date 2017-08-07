@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
@@ -238,7 +239,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		String launchOwner = launch.getUserRef();
 		if (userRepository.findOne(userName).getRole() != UserRole.ADMINISTRATOR) {
 			expect(projectName, equalTo(project.getName())).verify(ACCESS_DENIED);
-			if (project.getUsers().containsKey(userName) && project.getUsers().get(userName).getProjectRole().getRoleLevel() < 2) {
+			if (project.getUsers().containsKey(userName) && project.getUsers().get(userName).getProjectRole().sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
 				expect(userName, equalTo(launchOwner)).verify(ACCESS_DENIED);
 			}
 		}

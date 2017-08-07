@@ -49,8 +49,8 @@ repositories {
     mavenCentral()
     mavenLocal()
     maven { url "http://dl.bintray.com/epam/reportportal" }
-    maven { url "http://jasperreports.sourceforge.net/maven2" }
-    maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
+//    maven { url "http://jasperreports.sourceforge.net/maven2" }
+//    maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
     if (!releaseMode) {
         maven { url 'https://jitpack.io' }
     }
@@ -74,7 +74,7 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:3.1.1'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile('com.github.reportportal:commons-dao:5874ad6')
+        compile('com.github.reportportal:commons-dao:36aa1dc')
         compile('com.github.reportportal:commons-rules:3.1.0')
         compile 'com.github.reportportal:commons-model:3.1.1'
         compile ('com.github.reportportal:commons:3.1.0')

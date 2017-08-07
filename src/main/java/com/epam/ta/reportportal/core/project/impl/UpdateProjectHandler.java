@@ -131,13 +131,13 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 				expect(role, IS_PRESENT).verify(ROLE_NOT_FOUND, user.getValue());
 				ProjectRole projectRole = role.get();
 				if (UserRole.ADMINISTRATOR != principal.getRole()) {
-					int principalRoleLevel = project.getUsers().get(principalName).getProjectRole().getRoleLevel();
-					int userRoleLevel = project.getUsers().get(user.getKey()).getProjectRole().getRoleLevel();
+					ProjectRole principalRoleLevel = project.getUsers().get(principalName).getProjectRole();
+					ProjectRole userRoleLevel = project.getUsers().get(user.getKey()).getProjectRole();
 					/*
 					 * Validate principal role level is high enough
 					 */
-					if (principalRoleLevel >= userRoleLevel) {
-						expect(projectRole.getRoleLevel(), isLevelEnough(principalRoleLevel)).verify(ACCESS_DENIED);
+					if (principalRoleLevel.sameOrHigherThan(userRoleLevel)) {
+						expect(projectRole, isLevelEnough(principalRoleLevel)).verify(ACCESS_DENIED);
 					} else {
 						expect(userRoleLevel, isLevelEnough(principalRoleLevel)).verify(ACCESS_DENIED);
 					}
@@ -291,8 +291,8 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 
 			if (UserRole.ADMINISTRATOR != principal.getRole()) {
 				/* Modifier cannot un-assign users with higher roles */
-				expect(users.get(singleUser.getId()).getProjectRole().getRoleLevel(),
-						isLevelEnough(users.get(modifier).getProjectRole().getRoleLevel())).verify(ACCESS_DENIED);
+				expect(users.get(singleUser.getId()).getProjectRole(),
+						isLevelEnough(users.get(modifier).getProjectRole())).verify(ACCESS_DENIED);
 			}
 			candidatesForUnassign.add(singleUser.getId());
 			/*
@@ -357,9 +357,9 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 				ProjectRole proposedRole = proposedRoleOptional.get();
 
 				if (principal.getRole() != UserRole.ADMINISTRATOR) {
-					int creatorProjectRoleLevel = principalRoles.getProjectRole().getRoleLevel();
-					int newUserProjectRoleLevel = proposedRole.getRoleLevel();
-					expect(creatorProjectRoleLevel >= newUserProjectRoleLevel, equalTo(Boolean.TRUE)).verify(ACCESS_DENIED);
+					ProjectRole creatorProjectRoleLevel = principalRoles.getProjectRole();
+					ProjectRole newUserProjectRoleLevel = proposedRole;
+					expect(creatorProjectRoleLevel.sameOrHigherThan(newUserProjectRoleLevel), equalTo(Boolean.TRUE)).verify(ACCESS_DENIED);
 					config.setProjectRole(proposedRole);
 					config.setProposedRole(proposedRole);
 				} else {

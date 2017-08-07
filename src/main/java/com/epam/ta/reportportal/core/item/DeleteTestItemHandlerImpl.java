@@ -143,7 +143,7 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
 			/*
-			 * Only LEAD and PROJECT_MANAGER roles could delete testItems
+			 * Only PROJECT_MANAGER roles could delete testItems
 			 */
 			UserConfig userConfig = project.getUsers().get(user.getId());
 			expect(userConfig, hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);

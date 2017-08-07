@@ -60,7 +60,7 @@ public class BugTrendChartContentLoader extends StatisticBasedContentLoader impl
 			return Collections.emptyMap();
 		}
 		List<String> allFields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
-		if (options.containsKey("latest")){
+		if (options.containsKey(LATEST_MODE)){
 		    launchRepository.findLatestWithCallback(projectName, filter, sorting, allFields, quantity, statisticsDocumentHandler);
         } else {
             launchRepository.loadWithCallback(filter, sorting, quantity, allFields, statisticsDocumentHandler, COLLECTION_NAME);

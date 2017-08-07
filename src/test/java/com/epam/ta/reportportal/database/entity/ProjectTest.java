@@ -52,7 +52,7 @@ public class ProjectTest {
 
 	@Test
 	public void validateProjectManagerRole() {
-		Assert.assertThat(ProjectRole.PROJECT_MANAGER, greaterThan(ProjectRole.PROJECT_MANAGER));
+		Assert.assertThat(ProjectRole.PROJECT_MANAGER, greaterThan(ProjectRole.OPERATOR));
 	}
 
 	@Test

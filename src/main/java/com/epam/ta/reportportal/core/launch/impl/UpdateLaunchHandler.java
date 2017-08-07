@@ -50,6 +50,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -61,6 +62,7 @@ import static com.epam.ta.reportportal.database.entity.Status.IN_PROGRESS;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -198,7 +200,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 				 * to/from DEBUG mode
 				 */
 				UserConfig userConfig = project.getUsers().get(userName);
-				expect(userConfig, Preconditions.hasProjectRoles(Lists.newArrayList(PROJECT_MANAGER, LEAD))).verify(ACCESS_DENIED);
+				expect(userConfig, Preconditions.hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
 			} else {
 				/*
 				 * Only owner could change launch mode

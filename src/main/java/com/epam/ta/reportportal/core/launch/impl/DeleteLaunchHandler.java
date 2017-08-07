@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.epam.ta.reportportal.commons.Preconditions.IN_PROGRESS;
@@ -43,7 +44,6 @@ import static com.epam.ta.reportportal.commons.Preconditions.hasProjectRoles;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.LEAD;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -114,7 +114,7 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
 			/* Only LEAD and PROJECT_MANAGER roles could delete launches */
 			UserConfig userConfig = project.getUsers().get(user.getId());
-			expect(userConfig, hasProjectRoles(asList(PROJECT_MANAGER, LEAD))).verify(ACCESS_DENIED);
+			expect(userConfig, hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
 		}
 	}
 }

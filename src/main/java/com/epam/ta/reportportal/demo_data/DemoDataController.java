@@ -29,7 +29,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import java.security.Principal;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_LEAD;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 
 
 @RestController
@@ -44,7 +44,7 @@ class DemoDataController {
     }
 
     @PostMapping
-    @PreAuthorize(PROJECT_LEAD)
+    @PreAuthorize(PROJECT_MANAGER)
     @ApiOperation(value = "generate")
     @ApiIgnore
     DemoDataRs generate(@PathVariable String projectName, @Validated @RequestBody DemoDataRq demoDataRq, Principal principal) {

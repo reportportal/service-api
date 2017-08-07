@@ -30,22 +30,22 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
 
 /**
- * Validates this is {@link ProjectRole#LEAD} or higher authority in the
+ * Validates this is {@link ProjectRole#PROJECT_MANAGER} or higher authority in the
  * authentication context
  * 
  * @author Andrei Varabyeu
  * 
  */
 @Component
-@LookupPermission({ "projectLeadPermission" })
-public class ProjectLeadPermission extends BaseProjectPermission {
+@LookupPermission({ "projectManagerPermission" })
+public class ProjectManagerPermission extends BaseProjectPermission {
 
 	/**
-	 * Validates this is {@link ProjectRole#LEAD} or higher authority in the
+	 * Validates this is {@link ProjectRole#PROJECT_MANAGER} or higher authority in the
 	 * authentication context
 	 */
 	@Override
 	protected boolean checkAllowed(@NotNull Authentication authentication, @NotNull Project project) {
-		return project.getUsers().get(authentication.getName()).getProjectRole().compareTo(ProjectRole.LEAD) >= 0;
+		return project.getUsers().get(authentication.getName()).getProjectRole().sameOrHigherThan(ProjectRole.PROJECT_MANAGER);
 	}
 }

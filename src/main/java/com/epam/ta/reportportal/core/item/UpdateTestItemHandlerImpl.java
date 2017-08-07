@@ -239,7 +239,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		String launchOwner = launch.getUserRef();
 		if (userRepository.findOne(userName).getRole() != UserRole.ADMINISTRATOR) {
 			expect(projectName, equalTo(project.getName())).verify(ACCESS_DENIED);
-			if (project.getUsers().containsKey(userName) && project.getUsers().get(userName).getProjectRole().sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
+			if (project.getUsers().containsKey(userName) && project.getUsers().get(userName).getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
 				expect(userName, equalTo(launchOwner)).verify(ACCESS_DENIED);
 			}
 		}

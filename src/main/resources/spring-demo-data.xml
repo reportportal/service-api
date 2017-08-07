@@ -441,9 +441,9 @@
 				<entry key="user4">
 					<bean class="com.epam.ta.reportportal.database.entity.Project.UserConfig">
 						<property name="projectRole"
-								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).LEAD}" />
+								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}" />
 						<property name="proposedRole"
-								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).LEAD}" />
+								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}" />
 					</bean>
 				</entry>
 			</util:map>
@@ -631,9 +631,9 @@
 				<entry key="user1">
 					<bean class="com.epam.ta.reportportal.database.entity.Project.UserConfig">
 						<property name="projectRole"
-								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).LEAD}" />
+								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}" />
 						<property name="proposedRole"
-								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).LEAD}" />
+								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}" />
 					</bean>
 				</entry>
 			</util:map>
@@ -693,9 +693,9 @@
 				<entry key="user1">
 					<bean class="com.epam.ta.reportportal.database.entity.Project.UserConfig">
 						<property name="projectRole"
-								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).LEAD}" />
+								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}" />
 						<property name="proposedRole"
-								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).LEAD}" />
+								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}" />
 					</bean>
 				</entry>
 			</util:map>

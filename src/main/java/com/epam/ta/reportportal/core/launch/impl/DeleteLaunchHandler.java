@@ -112,7 +112,7 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId()));
 
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
-			/* Only LEAD and PROJECT_MANAGER roles could delete launches */
+			/* Only PROJECT_MANAGER roles could delete launches */
 			UserConfig userConfig = project.getUsers().get(user.getId());
 			expect(userConfig, hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
 		}

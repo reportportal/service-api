@@ -170,7 +170,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         expect(launches.size(), not(equalTo(0))).verify(BAD_REQUEST_ERROR, launches);
 
 		/*
-         * ADMINISTRATOR and LEAD+ users have permission to merge not-only-own
+         * ADMINISTRATOR and PROJECT_MANAGER+ users have permission to merge not-only-own
 		 * launches
 		 */
         boolean isUserValidate = !(user.getRole().equals(ADMINISTRATOR)
@@ -189,7 +189,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
             if (isUserValidate) {
                 expect(launch.getUserRef(), equalTo(user.getId())).verify(ACCESS_DENIED,
-                        "You are not an owner of launches or have less than LEAD project role.");
+                        "You are not an owner of launches or have less than PROJECT_MANAGER project role.");
             }
         });
     }

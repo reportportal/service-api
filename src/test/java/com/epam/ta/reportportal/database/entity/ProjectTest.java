@@ -34,15 +34,15 @@ import org.junit.Test;
 public class ProjectTest {
 
 	@Test
-	public void validateLeadRole() {
-		Assert.assertThat(ProjectRole.LEAD, greaterThan(ProjectRole.CUSTOMER));
-		Assert.assertThat(ProjectRole.LEAD, lessThan(ProjectRole.PROJECT_MANAGER));
+	public void validatePMRole() {
+		Assert.assertThat(ProjectRole.PROJECT_MANAGER, greaterThan(ProjectRole.CUSTOMER));
+		Assert.assertThat(ProjectRole.PROJECT_MANAGER, lessThan(ProjectRole.PROJECT_MANAGER));
 	}
 
 	@Test
 	public void validateWorkerRole() {
 		Assert.assertThat(ProjectRole.MEMBER, greaterThan(ProjectRole.CUSTOMER));
-		Assert.assertThat(ProjectRole.MEMBER, lessThan(ProjectRole.LEAD));
+		Assert.assertThat(ProjectRole.MEMBER, lessThan(ProjectRole.PROJECT_MANAGER));
 	}
 
 	@Test
@@ -52,7 +52,7 @@ public class ProjectTest {
 
 	@Test
 	public void validateProjectManagerRole() {
-		Assert.assertThat(ProjectRole.PROJECT_MANAGER, greaterThan(ProjectRole.LEAD));
+		Assert.assertThat(ProjectRole.PROJECT_MANAGER, greaterThan(ProjectRole.PROJECT_MANAGER));
 	}
 
 	@Test

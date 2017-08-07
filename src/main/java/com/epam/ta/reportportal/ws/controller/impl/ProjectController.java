@@ -192,7 +192,7 @@ public class ProjectController implements IProjectController {
 	@ResponseStatus(OK)
 	@ResponseView(ModelViews.DefaultView.class)
 	@PreAuthorize(PROJECT_MANAGER)
-	@ApiOperation(value = "Load users which can be assigned to specified project", notes = "Only for users with project lead permissions")
+	@ApiOperation(value = "Load users which can be assigned to specified project", notes = "Only for users with project manager permissions")
 	public Iterable<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
 			@PathVariable String projectName, Principal principal) {
 		return userHandler.getUsers(filter, pageable, normalizeId(projectName));

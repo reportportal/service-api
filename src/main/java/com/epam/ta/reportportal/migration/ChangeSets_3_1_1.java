@@ -43,7 +43,9 @@ public class ChangeSets_3_1_1 {
 
 	@ChangeSet(order = "3.1.1-1", id = "v3.1.1-Remove LEAD project role", author = "avarabyeu")
 	public void removeLeadRole(MongoTemplate mongoTemplate) throws IOException {
-		mongoTemplate.stream(new Query(), DBObject.class, "project").forEachRemaining(dbo -> {
+		final Query q = new Query();
+		q.fields().include("_id").include("users");
+		mongoTemplate.stream(q, DBObject.class, "project").forEachRemaining(dbo -> {
 			if (null != dbo.get("users")) {
 				DBObject users = (DBObject) dbo.get("users");
 				users.keySet().forEach(username -> {

@@ -42,6 +42,8 @@ import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
+import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 
 import java.util.concurrent.TimeUnit;
@@ -130,6 +132,12 @@ public class TestConfig {
 	@Bean
 	public MongoFixtureImporter mongoFixtureImporter() {
 		return new MongoFixtureImporter();
+	}
+
+	@Bean
+	@Scope(scopeName = "prototype")
+	public OAuth2ClientContext oAuth2ClientContext(){
+		return new DefaultOAuth2ClientContext();
 	}
 
 	@Bean

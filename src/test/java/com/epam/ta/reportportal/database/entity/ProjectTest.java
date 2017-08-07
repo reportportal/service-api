@@ -36,7 +36,7 @@ public class ProjectTest {
 	@Test
 	public void validatePMRole() {
 		Assert.assertThat(ProjectRole.PROJECT_MANAGER, greaterThan(ProjectRole.CUSTOMER));
-		Assert.assertThat(ProjectRole.PROJECT_MANAGER, lessThan(ProjectRole.PROJECT_MANAGER));
+		Assert.assertThat(ProjectRole.PROJECT_MANAGER, lessThan(ProjectRole.MEMBER));
 	}
 
 	@Test

@@ -203,11 +203,4 @@ public interface IProjectController {
 	 */
 	Iterable<String> getAllProjectNames(Principal principal);
 
-
-	/**
-	 * Get allowed project roles
-	 *
-	 * @return List of project roles
-	 */
-	Iterable<String> getAllowedProjectRoles();
 }

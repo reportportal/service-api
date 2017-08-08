@@ -293,12 +293,4 @@ public class ProjectController implements IProjectController {
 		return getProjectHandler.getAllProjectNames();
 	}
 
-	@Override
-	@RequestMapping(value = "/project-roles", method = RequestMethod.GET)
-	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
-	@ApiIgnore
-	public Iterable<String> getAllowedProjectRoles() {
-		return Arrays.stream(ProjectRole.values()).map(Enum::toString).collect(toList());
-	}
 }

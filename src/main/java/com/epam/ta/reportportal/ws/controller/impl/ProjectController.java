@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.core.preference.IUpdatePreferenceHandler;
 import com.epam.ta.reportportal.core.project.*;
 import com.epam.ta.reportportal.core.user.IGetUserHandler;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
@@ -57,11 +58,15 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -286,5 +291,15 @@ public class ProjectController implements IProjectController {
 	@ApiIgnore
 	public Iterable<String> getAllProjectNames(Principal principal) {
 		return getProjectHandler.getAllProjectNames();
+	}
+
+	@Override
+	@PreAuthorize(ADMIN_ONLY)
+	@RequestMapping(value = "/project-roles", method = RequestMethod.GET)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	@ApiIgnore
+	public Iterable<String> getAllowedProjectRoles() {
+		return Arrays.stream(ProjectRole.values()).map(Enum::toString).collect(toList());
 	}
 }

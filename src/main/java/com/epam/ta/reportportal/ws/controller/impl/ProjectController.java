@@ -294,7 +294,6 @@ public class ProjectController implements IProjectController {
 	}
 
 	@Override
-	@PreAuthorize(ADMIN_ONLY)
 	@RequestMapping(value = "/project-roles", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)

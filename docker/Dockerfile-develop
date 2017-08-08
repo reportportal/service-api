@@ -4,21 +4,22 @@ LABEL maintainer="Andrei Varabyeu <andrei_varabyeu@epam.com>"
 LABEL version="@version@"
 LABEL description="@description@"
 
-ENV JAVA_OPTS="-Djava.security.egd=file:/dev/./urandom -Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp"
+ENV JAVA_OPTS="-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp"
 
 RUN apt-get update && \
     apt-get install -y fonts-noto && \
     rm -rf /var/lib/apt/lists/*
 
-VOLUME /tmp
+RUN wget https://raw.githubusercontent.com/reportportal/reportportal/master/scripts/start.sh /start.sh && \
+    chmod +x /start.sh
 
-RUN sh -c "echo '#!/bin/bash \n\
-exec java $JAVA_OPTS -jar /app.jar' > /run.sh && chmod +x /run.sh"
+VOLUME /tmp
+ENV JAVA_APP=/app.jar
 
 ADD @name@-@version@.jar app.jar
-
 RUN sh -c 'touch /app.jar'
+
 EXPOSE 8080
 
-ENTRYPOINT ["/run.sh"]
+ENTRYPOINT ["/start.sh"]
 

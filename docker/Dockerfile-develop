@@ -16,7 +16,7 @@ RUN sh -c 'touch /app.jar'
 
 ENV JAVA_APP=/app.jar
 
-ADD https://raw.githubusercontent.com/reportportal/reportportal/master/scripts/start.sh
+ADD https://raw.githubusercontent.com/reportportal/reportportal/master/scripts/start.sh /start.sh
 RUN sh -c 'chmod +x start.sh'
 
 EXPOSE 8080

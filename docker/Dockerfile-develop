@@ -12,15 +12,14 @@ RUN apt-get update && \
 
 VOLUME /tmp
 ADD @name@-@version@.jar app.jar
-
 RUN sh -c 'touch /app.jar'
+
+ENV JAVA_APP=/app.jar
+
+ADD https://raw.githubusercontent.com/reportportal/reportportal/master/scripts/start.sh
+RUN sh -c 'chmod +x start.sh'
+
 EXPOSE 8080
-
-RUN sh -c "echo '#!/bin/bash \n\
-exec java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app.jar' > /run.sh"
-
-RUN chmod +x /run.sh
-RUN cat /run.sh
 
 ENTRYPOINT ["/run.sh"]
 

@@ -37,6 +37,8 @@ public final class Permissions {
 
 	public static final String ADMIN_ONLY = "hasRole('ADMINISTRATOR')";
 
+	public static final String ALLOWED_TO_REPORT = "hasPermission(#projectName.toLowerCase(), 'reporterPermission')";
+
 	public static final String PROJECT_MANAGER = "hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')";
 
 	public static final String PROJECT_MEMBER = "hasPermission(#projectName.toLowerCase(), 'projectMemberPermission')";

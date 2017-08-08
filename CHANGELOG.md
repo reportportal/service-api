@@ -105,6 +105,7 @@
 * reportportal#176/EPMRPP-26045 - Split Test Description and test parameters
 * EPMRPP-26131 - Unique id for test item based on items' names, parameters, launch name, project name
 * EPMRPP-26263 - Implemented latest launches view
+* EPMRPP-26394 - JIRA issue with empty set of fields for post bug form
 
 ### Bugfixes
 
@@ -126,3 +127,4 @@
 * EPMRPP-26020 - 500 error on attempt to delete not existed widget
 * EPMRPP-23553 - Verify API methods against last updates/changes
 * EPMRPP-26393 - Launches are not filtered by start time correctly
+* EPMRPP-29167 - Statistics for deleted elements with custom defect types are still present

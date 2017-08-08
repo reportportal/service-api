@@ -73,11 +73,29 @@ public class GetTicketHandler implements IGetTicketHandler {
 
 	@Override
 	public List<PostFormField> getSubmitTicketFields(String ticketType, String projectName, String systemId) {
-		Project project = projectRepository.findOne(projectName);
-		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
-		ExternalSystem system = externalSystemRepository.findOne(systemId);
-		expect(system, notNull()).verify(EXTERNAL_SYSTEM_NOT_FOUND, systemId);
+		validateProject(projectName);
+        ExternalSystem system = validateExternalSystem(systemId);
 		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name());
 		return externalSystemStrategy.getTicketFields(ticketType, system);
 	}
+
+    @Override
+    public List<String> getAllowableIssueTypes(String projectName, String systemId) {
+        validateProject(projectName);
+        ExternalSystem system = validateExternalSystem(systemId);
+        ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name());
+        return externalSystemStrategy.getIssueTypes(system);
+    }
+
+    private Project validateProject(String projectName) {
+        Project project = projectRepository.findOne(projectName);
+        expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
+        return project;
+    }
+
+    private ExternalSystem validateExternalSystem(String systemId) {
+        ExternalSystem system = externalSystemRepository.findOne(systemId);
+        expect(system, notNull()).verify(EXTERNAL_SYSTEM_NOT_FOUND, systemId);
+        return system;
+    }
 }

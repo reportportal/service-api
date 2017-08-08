@@ -57,7 +57,7 @@ public class CasesTrendContentLoader extends StatisticBasedContentLoader impleme
 	private LaunchRepository launchRepository;
 
 	@Override
-	public Map<String, List<ChartObject>> loadContent(Filter filter, Sort sorting, int quantity, List<String> contentFields,
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
 			List<String> metaDataFields, Map<String, List<String>> options) {
 		expect(metaDataFields == null || metaDataFields.isEmpty(), equalTo(false)).verify(UNABLE_LOAD_WIDGET_CONTENT,
 				"Metadata fields should exist for providing content.");
@@ -80,7 +80,7 @@ public class CasesTrendContentLoader extends StatisticBasedContentLoader impleme
 		if (!field.equalsIgnoreCase(SORT_FIELD)) {
 			sorting = new Sort(Sort.Direction.DESC, SORT_FIELD);
 		}
-		launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, COLLECTION);
+        launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, COLLECTION);
 		List<ChartObject> rawData = handler.getResult();
 
 		Map<String, List<ChartObject>> result = new LinkedHashMap<>();

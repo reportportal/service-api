@@ -11,7 +11,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 VOLUME /tmp
-ADD @name@-@version@.jar app.jar
+ADD build/libs/service-api-3.1.1-SNAPSHOT.jar app.jar
 
 RUN sh -c 'touch /app.jar'
 EXPOSE 8080

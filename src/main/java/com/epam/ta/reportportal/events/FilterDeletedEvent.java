@@ -21,38 +21,21 @@
 
 package com.epam.ta.reportportal.events;
 
-import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 
 /**
  * @author pavel_bortnik
  */
-public class WidgetCreatedEvent {
+public class FilterDeletedEvent extends BeforeEvent<UserFilter> {
 
-    private final WidgetRQ widgetRQ;
-    private final String createdBy;
-    private final String projectRef;
-    private final String widgetId;
+    private final String removedBy;
 
-    public WidgetCreatedEvent(WidgetRQ widgetRQ, String createdBy, String projectRef, String widgetId) {
-        this.widgetRQ = widgetRQ;
-        this.createdBy = createdBy;
-        this.projectRef = projectRef;
-        this.widgetId = widgetId;
+    public FilterDeletedEvent(UserFilter before, String removedBy) {
+        super(before);
+        this.removedBy = removedBy;
     }
 
-    public String getWidgetId() {
-        return widgetId;
-    }
-
-    public WidgetRQ getWidgetRQ() {
-        return widgetRQ;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public String getProjectRef() {
-        return projectRef;
+    public String getRemovedBy() {
+        return removedBy;
     }
 }

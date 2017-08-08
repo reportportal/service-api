@@ -21,31 +21,27 @@
 
 package com.epam.ta.reportportal.events;
 
-import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 
 /**
  * @author pavel_bortnik
  */
-public class WidgetCreatedEvent {
+public class FilterCreatedEvent {
 
-    private final WidgetRQ widgetRQ;
+    private final CreateUserFilterRQ filterRQ;
     private final String createdBy;
     private final String projectRef;
-    private final String widgetId;
+    private final String filterId;
 
-    public WidgetCreatedEvent(WidgetRQ widgetRQ, String createdBy, String projectRef, String widgetId) {
-        this.widgetRQ = widgetRQ;
+    public FilterCreatedEvent(CreateUserFilterRQ filterRQ, String createdBy, String projectRef, String filterId) {
+        this.filterRQ = filterRQ;
         this.createdBy = createdBy;
         this.projectRef = projectRef;
-        this.widgetId = widgetId;
+        this.filterId = filterId;
     }
 
-    public String getWidgetId() {
-        return widgetId;
-    }
-
-    public WidgetRQ getWidgetRQ() {
-        return widgetRQ;
+    public CreateUserFilterRQ getFilterRQ() {
+        return filterRQ;
     }
 
     public String getCreatedBy() {
@@ -54,5 +50,9 @@ public class WidgetCreatedEvent {
 
     public String getProjectRef() {
         return projectRef;
+    }
+
+    public String getFilterId() {
+        return filterId;
     }
 }

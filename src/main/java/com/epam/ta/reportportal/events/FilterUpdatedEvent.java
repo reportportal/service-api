@@ -21,38 +21,33 @@
 
 package com.epam.ta.reportportal.events;
 
-import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import com.epam.ta.reportportal.database.entity.filter.UserFilter;
+import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
 
 /**
  * @author pavel_bortnik
  */
-public class WidgetCreatedEvent {
+public class FilterUpdatedEvent {
 
-    private final WidgetRQ widgetRQ;
-    private final String createdBy;
-    private final String projectRef;
-    private final String widgetId;
+    private final UserFilter userFilter;
+    private final UpdateUserFilterRQ updateUserFilterRQ;
+    private final String updatedBy;
 
-    public WidgetCreatedEvent(WidgetRQ widgetRQ, String createdBy, String projectRef, String widgetId) {
-        this.widgetRQ = widgetRQ;
-        this.createdBy = createdBy;
-        this.projectRef = projectRef;
-        this.widgetId = widgetId;
+    public FilterUpdatedEvent(UserFilter userFilter, UpdateUserFilterRQ updateUserFilterRQ, String updatedBy) {
+        this.userFilter = userFilter;
+        this.updateUserFilterRQ = updateUserFilterRQ;
+        this.updatedBy = updatedBy;
     }
 
-    public String getWidgetId() {
-        return widgetId;
+    public UserFilter getUserFilter() {
+        return userFilter;
     }
 
-    public WidgetRQ getWidgetRQ() {
-        return widgetRQ;
+    public UpdateUserFilterRQ getUpdateUserFilterRQ() {
+        return updateUserFilterRQ;
     }
 
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public String getProjectRef() {
-        return projectRef;
+    public String getUpdatedBy() {
+        return updatedBy;
     }
 }

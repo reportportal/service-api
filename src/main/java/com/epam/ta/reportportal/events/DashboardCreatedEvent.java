@@ -18,34 +18,29 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.epam.ta.reportportal.events;
 
-import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 
 /**
  * @author pavel_bortnik
  */
-public class WidgetCreatedEvent {
+public class DashboardCreatedEvent {
 
-    private final WidgetRQ widgetRQ;
+    private final CreateDashboardRQ createDashboardRQ;
     private final String createdBy;
     private final String projectRef;
-    private final String widgetId;
+    private final String dashboardId;
 
-    public WidgetCreatedEvent(WidgetRQ widgetRQ, String createdBy, String projectRef, String widgetId) {
-        this.widgetRQ = widgetRQ;
+    public DashboardCreatedEvent(CreateDashboardRQ createDashboardRQ, String createdBy, String projectRef, String dashboardId) {
+        this.createDashboardRQ = createDashboardRQ;
         this.createdBy = createdBy;
         this.projectRef = projectRef;
-        this.widgetId = widgetId;
+        this.dashboardId = dashboardId;
     }
 
-    public String getWidgetId() {
-        return widgetId;
-    }
-
-    public WidgetRQ getWidgetRQ() {
-        return widgetRQ;
+    public CreateDashboardRQ getCreateDashboardRQ() {
+        return createDashboardRQ;
     }
 
     public String getCreatedBy() {
@@ -54,5 +49,9 @@ public class WidgetCreatedEvent {
 
     public String getProjectRef() {
         return projectRef;
+    }
+
+    public String getDashboardId() {
+        return dashboardId;
     }
 }

@@ -18,41 +18,34 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package com.epam.ta.reportportal.events;
-
-import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+package com.epam.ta.reportportal.events.handler;
 
 /**
  * @author pavel_bortnik
  */
-public class WidgetCreatedEvent {
+public enum EventType {
 
-    private final WidgetRQ widgetRQ;
-    private final String createdBy;
-    private final String projectRef;
-    private final String widgetId;
+    CREATE_DASHBOARD,
+    UPDATE_DASHBOARD,
+    DELETE_DASHBOARD,
+    CREATE_WIDGET,
+    UPDATE_WIDGET,
+    DELETE_WIDGET,
+    CREATE_FILTER,
+    UPDATE_FILTER,
+    DELETE_FILTER,
+    UPDATE_DEFECT,
+    DELETE_DEFECT,
+    CREATE_BTS,
+    UPDATE_BTS,
+    DELETE_BTS,
+    START_LAUNCH,
+    FINISH_LAUNCH,
+    DELETE_LAUNCH,
+    UPDATE_PROJECT,
+    POST_ISSUE,
+    ATTACH_ISSUE,
+    UPDATE_ITEM,
+    CREATE_USER
 
-    public WidgetCreatedEvent(WidgetRQ widgetRQ, String createdBy, String projectRef, String widgetId) {
-        this.widgetRQ = widgetRQ;
-        this.createdBy = createdBy;
-        this.projectRef = projectRef;
-        this.widgetId = widgetId;
-    }
-
-    public String getWidgetId() {
-        return widgetId;
-    }
-
-    public WidgetRQ getWidgetRQ() {
-        return widgetRQ;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public String getProjectRef() {
-        return projectRef;
-    }
 }

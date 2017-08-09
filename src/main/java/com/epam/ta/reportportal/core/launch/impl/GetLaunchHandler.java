@@ -136,8 +136,9 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
         filter.addCondition(new FilterCondition(EQUALS, false, DEFAULT.toString(), Launch.MODE_CRITERIA));
         Page<LaunchResource> resources = launchRepository.findLatestLaunches(projectName, filter, pageable)
                 .map(launchResourceAssembler::toResource);
+        //ui side counts from 1
         return new com.epam.ta.reportportal.ws.model.Page<>(resources.getContent(), resources.getSize(),
-                resources.getNumberOfElements(), resources.getTotalElements(), resources.getTotalPages());
+                resources.getNumber() + 1, resources.getTotalElements(), resources.getTotalPages());
     }
 
 	@Override

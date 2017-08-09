@@ -82,6 +82,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static org.springframework.http.HttpStatus.CREATED;
 
@@ -114,6 +115,7 @@ public class LogController implements ILogController {
     @ResponseBody
     @ResponseStatus(CREATED)
     @ApiOperation("Create log")
+    @PreAuthorize(ALLOWED_TO_REPORT)
     public EntryCreatedRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
             Principal principal) {
         validateSaveRQ(createLogRQ);
@@ -129,6 +131,7 @@ public class LogController implements ILogController {
     // request mappings
     @ApiIgnore
     @Async
+    @PreAuthorize(ALLOWED_TO_REPORT)
     public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectName,
             @RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs, HttpServletRequest request,
             Principal principal) {

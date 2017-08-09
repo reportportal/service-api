@@ -57,7 +57,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_LEAD;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -89,7 +89,7 @@ public class ProjectSettingsController implements IProjectSettingsController {
 	@RequestMapping(value = "/sub-type", method = RequestMethod.POST)
 	@ResponseBody
 	@ResponseStatus(CREATED)
-	@PreAuthorize(PROJECT_LEAD)
+	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Creation of custom project specific issue sub-type")
 	public EntryCreatedRS createProjectIssueSubType(@PathVariable String projectName, @RequestBody @Validated CreateIssueSubTypeRQ request,
 			Principal principal) {
@@ -100,7 +100,7 @@ public class ProjectSettingsController implements IProjectSettingsController {
 	@RequestMapping(value = "/sub-type", method = RequestMethod.PUT)
 	@ResponseBody
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_LEAD)
+	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Update of custom project specific issue sub-type")
 	public OperationCompletionRS updateProjectIssueSubType(@PathVariable String projectName,
 			@RequestBody @Validated UpdateIssueSubTypeRQ request, Principal principal) {
@@ -111,7 +111,7 @@ public class ProjectSettingsController implements IProjectSettingsController {
 	@RequestMapping(value = "/sub-type/{id}", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_LEAD)
+	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Delete custom project specific issue sub-type")
 	public OperationCompletionRS deleteProjectIssueSubType(@PathVariable String projectName, @PathVariable String id, Principal principal) {
 		return deleteSettings.deleteProjectIssueSubType(EntityUtils.normalizeId(projectName), principal.getName(), id);

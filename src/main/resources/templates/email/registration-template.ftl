@@ -109,7 +109,7 @@
                                 <td><a href="http://twitter.com/ReportPortal_io" target="_blank"><img src="cid:ic-twitter.png" border="0" width="20" height="16" alt="twitter"></a></td>
                                 <td><a href="http://youtube.com/c/ReportPortalCommunity" target="_blank"><img src="cid:ic-youtube.png" border="0" width="20" height="15" alt="youtube"></a></td>
                                 <td><a href="https://vk.com/reportportal_io" target="_blank"><img src="cid:ic-vk.png" border="0" width="21" height="12" alt="vk"></a></td>
-                                <td><a href="https://reportportal.slack.com" target="_blank"><img src="cid:ic-slack.png" border="0" width="18" height="18" alt="slack"></a></td>
+                                <td><a href="https://reportportal-slack-auto.herokuapp.com" target="_blank"><img src="cid:ic-slack.png" border="0" width="18" height="18" alt="slack"></a></td>
                             </tr>
                             </tbody>
                         </table>

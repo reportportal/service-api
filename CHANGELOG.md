@@ -127,7 +127,7 @@
 * reportportal/reportportal#201 - Avoid CPU consumption on huge logs during auto-analysis
 
 
-## 3.x.0
+## 3.x.x
 ##### Released: Aug XXX, 2017
 
 ### New Features
@@ -138,4 +138,6 @@
 * EPMRPP-26131 - Unique id for test item based on items' names, parameters, launch name, project name
 * EPMRPP-26263 - Implemented latest launches view
 * EPMRPP-26394 - JIRA issue with empty set of fields for post bug form
+
+### Bugfixes
 * EPMRPP-29167 - Statistics for deleted elements with custom defect types are still present

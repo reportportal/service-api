@@ -202,4 +202,5 @@ public interface IProjectController {
 	 * @return
 	 */
 	Iterable<String> getAllProjectNames(Principal principal);
+
 }

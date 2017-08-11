@@ -22,7 +22,7 @@
 package com.epam.ta.reportportal.ws.controller.impl;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_LEAD;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.security.Principal;
@@ -95,7 +95,7 @@ public class ExternalSystemController implements IExternalSystemController {
 	@Override
 	@RequestMapping(method = RequestMethod.POST, consumes = { APPLICATION_JSON_VALUE })
 	@ResponseBody
-	@PreAuthorize(PROJECT_LEAD)
+	@PreAuthorize(PROJECT_MANAGER)
 	@ResponseStatus(HttpStatus.CREATED)
 	@ApiOperation("Register external system instance")
 	public EntryCreatedRS createExternalSystemInstance(@Validated @RequestBody CreateExternalSystemRQ createRQ,
@@ -116,7 +116,7 @@ public class ExternalSystemController implements IExternalSystemController {
 	@Override
 	@RequestMapping(value = "/{systemId}", method = RequestMethod.DELETE)
 	@ResponseBody
-	@PreAuthorize(PROJECT_LEAD)
+	@PreAuthorize(PROJECT_MANAGER)
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Delete registered external system instance")
 	public OperationCompletionRS deleteExternalSystem(@PathVariable String projectName, @PathVariable String systemId,
@@ -128,7 +128,7 @@ public class ExternalSystemController implements IExternalSystemController {
 	@Override
 	@RequestMapping(value = "/clear", method = RequestMethod.DELETE)
 	@ResponseBody
-	@PreAuthorize(PROJECT_LEAD)
+	@PreAuthorize(PROJECT_MANAGER)
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Delete all external system assigned to specified project")
 	public OperationCompletionRS deleteAllExternalSystems(@PathVariable String projectName, Principal principal) {
@@ -138,7 +138,7 @@ public class ExternalSystemController implements IExternalSystemController {
 	@Override
 	@RequestMapping(value = "/{systemId}", method = RequestMethod.PUT, consumes = { APPLICATION_JSON_VALUE })
 	@ResponseBody
-	@PreAuthorize(PROJECT_LEAD)
+	@PreAuthorize(PROJECT_MANAGER)
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Update registered external system instance")
 	public OperationCompletionRS updateExternalSystem(@Validated @RequestBody UpdateExternalSystemRQ request,
@@ -151,7 +151,7 @@ public class ExternalSystemController implements IExternalSystemController {
 	@RequestMapping(value = "/{systemId}/connect", method = RequestMethod.PUT, consumes = { APPLICATION_JSON_VALUE })
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	@PreAuthorize(PROJECT_LEAD)
+	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Check connection to external system instance")
 	public OperationCompletionRS jiraConnection(@PathVariable String projectName, @PathVariable String systemId,
 			@RequestBody @Validated UpdateExternalSystemRQ updateRQ, Principal principal) {
@@ -163,7 +163,7 @@ public class ExternalSystemController implements IExternalSystemController {
 	@RequestMapping(value = "/{systemId}/fields-set", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	@PreAuthorize(PROJECT_LEAD)
+	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Get list of fields required for posting ticket")
 	public List<PostFormField> getSetOfExternalSystemFields(@RequestParam(value = "issuetype") String issuetype,
 			@PathVariable String projectName, @PathVariable String systemId) {

@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.events.LaunchFinishedEvent;
+import com.epam.ta.reportportal.util.analyzer.AnalyzerConfig;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
@@ -84,7 +85,7 @@ public class LaunchFinishedEventHandler {
 	@Autowired
 	public LaunchFinishedEventHandler(IIssuesAnalyzer analyzerService, UserRepository userRepository, TestItemRepository testItemRepository,
 			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory,
-			FailReferenceResourceRepository issuesRepository, @Value("${rp.issue.analyzer.depth}") Integer autoAnalysisDepth) {
+			FailReferenceResourceRepository issuesRepository, AnalyzerConfig analyzerConfig) {
 		this.analyzerService = analyzerService;
 		this.userRepository = userRepository;
 		this.testItemRepository = testItemRepository;
@@ -92,7 +93,7 @@ public class LaunchFinishedEventHandler {
 		this.launchRepository = launchRepository;
 		this.emailServiceFactory = emailServiceFactory;
 		this.issuesRepository = issuesRepository;
-		this.autoAnalysisDepth = autoAnalysisDepth;
+		this.autoAnalysisDepth = analyzerConfig.getDepth();
 	}
 
 	@EventListener

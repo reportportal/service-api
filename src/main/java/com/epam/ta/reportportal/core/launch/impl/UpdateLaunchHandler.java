@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.launch.AutoAnalyzeStrategy;
 import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.util.analyzer.AnalyzerConfig;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -49,6 +50,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -60,6 +62,7 @@ import static com.epam.ta.reportportal.database.entity.Status.IN_PROGRESS;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -88,8 +91,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	private TaskExecutor taskExecutor;
 
 	@Autowired
-	@Value("${rp.issue.analyzer.depth}")
-	private Integer autoAnalysisDepth;
+	private AnalyzerConfig analyzerConfig;
 
 	@Autowired
 	public void setLaunchRepository(LaunchRepository launchRepository) {
@@ -166,7 +168,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 			got = analyzerService.collectPreviousIssues(1, launchId, projectName);
 		} else {
 			/* General AA flow */
-			got = analyzerService.collectPreviousIssues(autoAnalysisDepth, launchId, projectName);
+			got = analyzerService.collectPreviousIssues(analyzerConfig.getDepth(), launchId, projectName);
 		}
 
 		if (analyzerService.analyzeStarted(launchId)) {
@@ -194,11 +196,11 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 			expect(launch.getProjectRef(), equalTo(projectName)).verify(ACCESS_DENIED);
 			if ((null == launchOwner) || (!launchOwner.equalsIgnoreCase(userName))) {
 				/*
-				 * Only LEAD and PROJECT_MANAGER roles could move launches
+				 * Only PROJECT_MANAGER roles could move launches
 				 * to/from DEBUG mode
 				 */
 				UserConfig userConfig = project.getUsers().get(userName);
-				expect(userConfig, Preconditions.hasProjectRoles(Lists.newArrayList(PROJECT_MANAGER, LEAD))).verify(ACCESS_DENIED);
+				expect(userConfig, Preconditions.hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
 			} else {
 				/*
 				 * Only owner could change launch mode

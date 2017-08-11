@@ -204,10 +204,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 		// FIXME move to controller level
 		if (creator.getRole() != UserRole.ADMINISTRATOR) {
-			int creatorProjectRoleLevel = userConfig.getProjectRole().getRoleLevel();
-			//noinspection ConstantConditions
-			int newUserProjectRoleLevel = role.get().getRoleLevel();
-			expect(creatorProjectRoleLevel >= newUserProjectRoleLevel, equalTo(Boolean.TRUE)).verify(ACCESS_DENIED);
+			expect(userConfig.getProjectRole().sameOrHigherThan(role.get()), equalTo(Boolean.TRUE)).verify(ACCESS_DENIED);
 		}
 
 		UserCreationBid bid = UserCreationBidConverter.TO_USER.apply(request);

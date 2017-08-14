@@ -55,10 +55,12 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	private LaunchRepository launchRepository;
 	private Provider<TestItemBuilder> testItemBuilder;
 	private LogRepository logRepository;
-	private String projectName;
+	private UniqueIdGenerator identifierGenerator;
 
 	@Autowired
-	private UniqueIdGenerator identifierGenerator;
+	public void setIdentifierGenerator(UniqueIdGenerator identifierGenerator) {
+		this.identifierGenerator = identifierGenerator;
+	}
 
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
@@ -85,7 +87,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 */
 	@Override
 	public EntryCreatedRS startRootItem(String projectName, StartTestItemRQ rq) {
-		this.projectName = projectName;
 		Launch launch = launchRepository.loadStatusProjectRefAndStartTime(rq.getLaunchId());
 		validate(projectName, rq, launch);
 		TestItem item = testItemBuilder.get().addStartItemRequest(rq).addStatus(Status.IN_PROGRESS).addLaunch(launch).build();
@@ -100,7 +101,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 * Starts children item and building it's path from parent with parant's
 	 */
 	@Override
-	public EntryCreatedRS startChildItem(StartTestItemRQ rq, String parent) {
+	public EntryCreatedRS startChildItem(String projectName, StartTestItemRQ rq, String parent) {
 		TestItem parentItem = testItemRepository.findOne(parent);
 
 		validate(parentItem, parent);

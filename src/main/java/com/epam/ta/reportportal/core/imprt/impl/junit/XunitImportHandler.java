@@ -163,7 +163,7 @@ public class XunitImportHandler extends DefaultHandler {
         rq.setStartTime(toDate(startItemTime));
         rq.setType(TestItemType.STEP.name());
         rq.setName(name);
-        String id = startTestItemHandler.startChildItem(rq, itemsIds.peekLast()).getId();
+        String id = startTestItemHandler.startChildItem(projectId, rq, itemsIds.peekLast()).getId();
         currentDuration = toMillis(duration);
         itemsIds.push(id);
     }

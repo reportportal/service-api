@@ -45,9 +45,9 @@ import java.util.stream.Collectors;
 @Service
 public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 
-    private static final Base64.Encoder encoder = Base64.getEncoder();
+    private static final Base64.Encoder ENCODER = Base64.getEncoder();
 
-    private static final Base64.Decoder decoder = Base64.getDecoder();
+    private static final Base64.Decoder DECODER = Base64.getDecoder();
 
     private static final String SECRET = "auto:";
 
@@ -60,12 +60,12 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
     @Override
     public String generate(TestItem testItem, String projectName) {
         String forEncoding = prepareForEncoding(testItem, projectName);
-        return encoder.encodeToString(forEncoding.getBytes(StandardCharsets.UTF_8));
+        return ENCODER.encodeToString(forEncoding.getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
     public boolean validate(String encoded) {
-        return !Strings.isNullOrEmpty(encoded) && new String(decoder.decode(encoded), StandardCharsets.UTF_8).startsWith(SECRET);
+        return !Strings.isNullOrEmpty(encoded) && new String(DECODER.decode(encoded), StandardCharsets.UTF_8).startsWith(SECRET);
     }
 
     private String prepareForEncoding(TestItem testItem, String projectName) {
@@ -75,14 +75,14 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
         List<Parameter> parameters = Optional.ofNullable(testItem.getParameters()).orElse(Collections.emptyList());
         StringJoiner joiner = new StringJoiner(";");
         joiner.add(SECRET).add(projectName).add(launchName);
-        if (CollectionUtils.isEmpty(pathNames)) {
+        if (!CollectionUtils.isEmpty(pathNames)) {
             joiner.add(pathNames.stream().collect(Collectors.joining(",")));
         }
         joiner.add(itemName);
         if (!parameters.isEmpty()) {
-            joiner.add(parameters.stream().map(parameter -> {
-                return (!Strings.isNullOrEmpty(parameter.getKey()) ? parameter.getKey() + "=" : "") + parameter.getValue();
-            }).collect(Collectors.joining(",")));
+            joiner.add(parameters.stream().map(parameter ->
+                    (!Strings.isNullOrEmpty(parameter.getKey()) ?
+                            parameter.getKey() + "=" : "") + parameter.getValue()).collect(Collectors.joining(",")));
         }
         return joiner.toString();
     }

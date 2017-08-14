@@ -103,7 +103,7 @@ public class TestItemController implements ITestItemController {
     @ApiOperation("Start a child test item")
     public EntryCreatedRS startChildItem(@PathVariable String projectName, @PathVariable String parentItem,
                                          @RequestBody @Validated StartTestItemRQ startTestItemRQ, Principal principal) {
-        return startTestItemHandler.startChildItem(startTestItemRQ, parentItem);
+        return startTestItemHandler.startChildItem(projectName, startTestItemRQ, parentItem);
     }
 
     @Override

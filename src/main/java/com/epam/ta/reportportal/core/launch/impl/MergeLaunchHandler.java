@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.database.entity.user.User;
@@ -53,7 +54,6 @@ import java.util.function.Supplier;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.LEAD;
 import static com.epam.ta.reportportal.database.entity.Status.IN_PROGRESS;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -171,11 +171,11 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         expect(launches.size(), not(equalTo(0))).verify(BAD_REQUEST_ERROR, launches);
 
 		/*
-         * ADMINISTRATOR and LEAD+ users have permission to merge not-only-own
+         * ADMINISTRATOR and PROJECT_MANAGER+ users have permission to merge not-only-own
 		 * launches
 		 */
         boolean isUserValidate = !(user.getRole().equals(ADMINISTRATOR)
-                || project.getUsers().get(user.getId()).getProjectRole().getRoleLevel() >= LEAD.getRoleLevel());
+                || project.getUsers().get(user.getId()).getProjectRole().sameOrHigherThan(ProjectRole.PROJECT_MANAGER));
         launches.forEach(launch -> {
             expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launch);
 
@@ -190,7 +190,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
             if (isUserValidate) {
                 expect(launch.getUserRef(), equalTo(user.getId())).verify(ACCESS_DENIED,
-                        "You are not an owner of launches or have less than LEAD project role.");
+                        "You are not an owner of launches or have less than PROJECT_MANAGER project role.");
             }
         });
     }

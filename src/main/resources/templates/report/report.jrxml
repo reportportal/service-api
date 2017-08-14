@@ -118,56 +118,56 @@
 			<textField isBlankWhenNull="true">
 				<reportElement x="82" y="60" width="140" height="20" uuid="f4f1aa0a-7460-4ec1-9568-6c2101c918de"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Droid Sans"/>
+					<font fontName="Noto Sans"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{LAUNCH_DURATION}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement x="0" y="40" width="82" height="20" uuid="bf3f95f3-b14a-492b-8b8b-fd8d9ba6d088"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Droid Sans" isBold="true"/>
+					<font fontName="Noto Sans" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Owner:]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="0" y="60" width="82" height="20" uuid="813174c3-f36a-4c64-b0d3-60726c2ea891"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Droid Sans" isBold="true"/>
+					<font fontName="Noto Sans" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Duration:]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="82" y="40" width="388" height="20" uuid="bafe2045-04c0-40b6-803e-03941dd6f77a"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Droid Sans"/>
+					<font fontName="Noto Sans"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{LAUNCH_OWNER}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement x="0" y="0" width="82" height="20" uuid="e15dcb90-a675-4b87-9a32-eaac213feea1"/>
 				<textElement>
-					<font fontName="Droid Sans" isBold="true"/>
+					<font fontName="Noto Sans" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Launch name:]]></text>
 			</staticText>
 			<textField>
 				<reportElement x="82" y="0" width="388" height="20" uuid="7661c90b-7b58-4292-8333-154705ff0701"/>
 				<textElement>
-					<font fontName="Droid Sans" isBold="true"/>
+					<font fontName="Noto Sans" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{LAUNCH_NAME}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement x="0" y="20" width="82" height="20" uuid="e4b2bcf3-cc0a-4156-a4aa-cddf2a16d5c0"/>
 				<textElement>
-					<font fontName="Droid Sans" isBold="true"/>
+					<font fontName="Noto Sans" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Description:]]></text>
 			</staticText>
 			<textField>
 				<reportElement x="82" y="20" width="388" height="20" uuid="b0b0090b-1fe2-4349-afd2-5f08bfa31187"/>
 				<textElement>
-					<font fontName="Droid Sans"/>
+					<font fontName="Noto Sans"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{LAUNCH_DESCRIPTION}]]></textFieldExpression>
 			</textField>
@@ -180,7 +180,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" isBold="true"/>
+					<font fontName="Noto Sans" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Launch statistic]]></text>
 			</staticText>
@@ -193,7 +193,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" isBold="true"/>
+					<font fontName="Noto Sans" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Execution statistic]]></text>
 			</staticText>
@@ -206,7 +206,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" isBold="true"/>
+					<font fontName="Noto Sans" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Issue statistic]]></text>
 			</staticText>
@@ -219,7 +219,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" size="9" isBold="true"/>
+					<font fontName="Noto Sans" size="9" isBold="true"/>
 					<paragraph lineSpacing="AtLeast"/>
 				</textElement>
 				<text><![CDATA[Total]]></text>
@@ -233,7 +233,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" size="9" isBold="true"/>
+					<font fontName="Noto Sans" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Passed]]></text>
 			</staticText>
@@ -246,7 +246,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" size="9" isBold="true"/>
+					<font fontName="Noto Sans" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Failed]]></text>
 			</staticText>
@@ -259,7 +259,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" size="9" isBold="true"/>
+					<font fontName="Noto Sans" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Skipped]]></text>
 			</staticText>
@@ -272,7 +272,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" size="9"/>
+					<font fontName="Noto Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{TOTAL}]]></textFieldExpression>
 			</textField>
@@ -285,7 +285,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" size="9"/>
+					<font fontName="Noto Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{PASSED}]]></textFieldExpression>
 			</textField>
@@ -298,7 +298,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" size="9"/>
+					<font fontName="Noto Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{FAILED}]]></textFieldExpression>
 			</textField>
@@ -311,7 +311,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" size="9"/>
+					<font fontName="Noto Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{SKIPPED}]]></textFieldExpression>
 			</textField>
@@ -324,7 +324,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" size="9" isBold="true"/>
+					<font fontName="Noto Sans" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[AB]]></text>
 			</staticText>
@@ -337,7 +337,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" size="9" isBold="true"/>
+					<font fontName="Noto Sans" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[PB]]></text>
 			</staticText>
@@ -350,7 +350,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" size="9" isBold="true"/>
+					<font fontName="Noto Sans" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[SI]]></text>
 			</staticText>
@@ -363,7 +363,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" size="9" isBold="true"/>
+					<font fontName="Noto Sans" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[ND]]></text>
 			</staticText>
@@ -376,7 +376,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" size="9" isBold="true"/>
+					<font fontName="Noto Sans" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[TI]]></text>
 			</staticText>
@@ -389,7 +389,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" size="9"/>
+					<font fontName="Noto Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{AB}]]></textFieldExpression>
 			</textField>
@@ -402,7 +402,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" size="9"/>
+					<font fontName="Noto Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{PB}]]></textFieldExpression>
 			</textField>
@@ -415,7 +415,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" size="9"/>
+					<font fontName="Noto Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{SI}]]></textFieldExpression>
 			</textField>
@@ -428,7 +428,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" size="9"/>
+					<font fontName="Noto Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{ND}]]></textFieldExpression>
 			</textField>
@@ -441,7 +441,7 @@
 					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Droid Sans" size="9"/>
+					<font fontName="Noto Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{TI}]]></textFieldExpression>
 			</textField>
@@ -467,7 +467,7 @@
 							<staticText>
 								<reportElement x="0" y="0" width="90" height="30" uuid="6ac25c5d-aa07-4c0d-a578-53d2e0f96d42"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9" isBold="true"/>
+									<font fontName="Noto Sans" size="9" isBold="true"/>
 								</textElement>
 								<text><![CDATA[Type]]></text>
 							</staticText>
@@ -477,7 +477,7 @@
 							<textField>
 								<reportElement x="0" y="0" width="90" height="20" uuid="113268f0-68f2-4c5e-b580-ff200e7b853c"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9"/>
+									<font fontName="Noto Sans" size="9"/>
 								</textElement>
 								<textFieldExpression><![CDATA[$F{type}]]></textFieldExpression>
 							</textField>
@@ -489,7 +489,7 @@
 							<staticText>
 								<reportElement x="0" y="0" width="259" height="30" uuid="ca534fe2-78f2-44f6-9b03-9bc32970c178"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9" isBold="true"/>
+									<font fontName="Noto Sans" size="9" isBold="true"/>
 								</textElement>
 								<text><![CDATA[Name]]></text>
 							</staticText>
@@ -498,7 +498,7 @@
 							<textField isStretchWithOverflow="true">
 								<reportElement x="0" y="0" width="259" height="20" uuid="1ed705a6-1478-4fa5-82d0-f626e5aa6f7e"/>
 								<textElement verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9"/>
+									<font fontName="Noto Sans" size="9"/>
 								</textElement>
 								<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
 							</textField>
@@ -510,7 +510,7 @@
 							<staticText>
 								<reportElement x="0" y="0" width="70" height="30" uuid="3fe70789-6869-4b8d-bf21-be0fc66b619e"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9" isBold="true"/>
+									<font fontName="Noto Sans" size="9" isBold="true"/>
 								</textElement>
 								<text><![CDATA[Status]]></text>
 							</staticText>
@@ -519,7 +519,7 @@
 							<textField>
 								<reportElement x="0" y="0" width="70" height="20" uuid="ba201ea1-3041-4d50-b546-d3b9a4ce5433"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9"/>
+									<font fontName="Noto Sans" size="9"/>
 								</textElement>
 								<textFieldExpression><![CDATA[$F{status}]]></textFieldExpression>
 							</textField>
@@ -531,7 +531,7 @@
 							<staticText>
 								<reportElement x="0" y="0" width="40" height="30" uuid="c4fef87b-707e-4406-8821-a3690eaf04a9"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9" isBold="true"/>
+									<font fontName="Noto Sans" size="9" isBold="true"/>
 								</textElement>
 								<text><![CDATA[Total]]></text>
 							</staticText>
@@ -540,7 +540,7 @@
 							<textField>
 								<reportElement x="0" y="0" width="40" height="20" uuid="ba96f816-5077-44a1-b820-76375d356550"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9"/>
+									<font fontName="Noto Sans" size="9"/>
 								</textElement>
 								<textFieldExpression><![CDATA[$F{total}.toString()]]></textFieldExpression>
 							</textField>
@@ -552,7 +552,7 @@
 							<staticText>
 								<reportElement x="0" y="0" width="51" height="30" uuid="a5bfbd41-ceb3-4cc0-a823-dbccdc163799"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9" isBold="true"/>
+									<font fontName="Noto Sans" size="9" isBold="true"/>
 								</textElement>
 								<text><![CDATA[Passed]]></text>
 							</staticText>
@@ -561,7 +561,7 @@
 							<textField>
 								<reportElement x="0" y="0" width="51" height="20" uuid="c714fea4-aa63-4704-a36d-148cc6720185"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9"/>
+									<font fontName="Noto Sans" size="9"/>
 								</textElement>
 								<textFieldExpression><![CDATA[$F{passed}.toString()]]></textFieldExpression>
 							</textField>
@@ -573,7 +573,7 @@
 							<staticText>
 								<reportElement x="0" y="0" width="40" height="30" uuid="e705346a-5e09-4d83-addd-1f514ec17b6d"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9" isBold="true"/>
+									<font fontName="Noto Sans" size="9" isBold="true"/>
 								</textElement>
 								<text><![CDATA[Failed]]></text>
 							</staticText>
@@ -582,7 +582,7 @@
 							<textField>
 								<reportElement x="0" y="0" width="40" height="20" uuid="258d73ee-ddef-4902-bbce-a424d2c4f130"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9"/>
+									<font fontName="Noto Sans" size="9"/>
 								</textElement>
 								<textFieldExpression><![CDATA[$F{failed}.toString()]]></textFieldExpression>
 							</textField>
@@ -594,7 +594,7 @@
 							<staticText>
 								<reportElement x="0" y="0" width="50" height="30" uuid="1ae2a81b-db01-49f0-b25c-89cfc989eb41"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9" isBold="true"/>
+									<font fontName="Noto Sans" size="9" isBold="true"/>
 								</textElement>
 								<text><![CDATA[Skipped]]></text>
 							</staticText>
@@ -603,7 +603,7 @@
 							<textField>
 								<reportElement x="0" y="0" width="50" height="20" uuid="508d7d97-04ff-4734-b0e9-826fdc2b30f6"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9"/>
+									<font fontName="Noto Sans" size="9"/>
 								</textElement>
 								<textFieldExpression><![CDATA[$F{skipped}.toString()]]></textFieldExpression>
 							</textField>
@@ -615,7 +615,7 @@
 							<staticText>
 								<reportElement x="0" y="0" width="40" height="30" uuid="ed1bfe30-4c47-4fc2-9902-7e98261b56b0"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9" isBold="true"/>
+									<font fontName="Noto Sans" size="9" isBold="true"/>
 								</textElement>
 								<text><![CDATA[AB]]></text>
 							</staticText>
@@ -624,7 +624,7 @@
 							<textField>
 								<reportElement x="0" y="0" width="40" height="20" uuid="568bf98d-a032-4242-8ea5-c509d07952a5"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9"/>
+									<font fontName="Noto Sans" size="9"/>
 								</textElement>
 								<textFieldExpression><![CDATA[$F{automationBug}.toString()]]></textFieldExpression>
 							</textField>
@@ -636,7 +636,7 @@
 							<staticText>
 								<reportElement x="0" y="0" width="40" height="30" uuid="3e6f717a-5f91-4db4-a849-4aeeac81ecb2"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9" isBold="true"/>
+									<font fontName="Noto Sans" size="9" isBold="true"/>
 								</textElement>
 								<text><![CDATA[PB]]></text>
 							</staticText>
@@ -645,7 +645,7 @@
 							<textField>
 								<reportElement x="0" y="0" width="40" height="20" uuid="65fe9d6e-8e44-46d6-a795-3298db9b40b2"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9"/>
+									<font fontName="Noto Sans" size="9"/>
 								</textElement>
 								<textFieldExpression><![CDATA[$F{productBug}.toString()]]></textFieldExpression>
 							</textField>
@@ -657,7 +657,7 @@
 							<staticText>
 								<reportElement x="0" y="0" width="40" height="30" uuid="9175f909-a932-455c-8719-00c20d39fd21"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9" isBold="true"/>
+									<font fontName="Noto Sans" size="9" isBold="true"/>
 								</textElement>
 								<text><![CDATA[SI]]></text>
 							</staticText>
@@ -666,7 +666,7 @@
 							<textField>
 								<reportElement x="0" y="0" width="40" height="20" uuid="f917ddc4-503b-4911-89ca-a8c1b63ce588"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9"/>
+									<font fontName="Noto Sans" size="9"/>
 								</textElement>
 								<textFieldExpression><![CDATA[$F{systemIssue}.toString()]]></textFieldExpression>
 							</textField>
@@ -678,7 +678,7 @@
 							<staticText>
 								<reportElement x="0" y="0" width="40" height="30" uuid="b1c0a90a-1757-45fc-95cb-370a7d20b262"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9" isBold="true"/>
+									<font fontName="Noto Sans" size="9" isBold="true"/>
 								</textElement>
 								<text><![CDATA[ND]]></text>
 							</staticText>
@@ -687,7 +687,7 @@
 							<textField>
 								<reportElement x="0" y="0" width="40" height="20" uuid="d18e6732-4b1b-4dbe-af93-53af34f8a530"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9"/>
+									<font fontName="Noto Sans" size="9"/>
 								</textElement>
 								<textFieldExpression><![CDATA[$F{noDefect}.toString()]]></textFieldExpression>
 							</textField>
@@ -699,7 +699,7 @@
 							<staticText>
 								<reportElement x="0" y="0" width="40" height="30" uuid="03c2d2fb-cb4a-48fc-b18d-4a6b3ba2fabc"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9" isBold="true"/>
+									<font fontName="Noto Sans" size="9" isBold="true"/>
 								</textElement>
 								<text><![CDATA[TI]]></text>
 							</staticText>
@@ -708,7 +708,7 @@
 							<textField>
 								<reportElement x="0" y="0" width="40" height="20" uuid="798423a0-99ec-4bc6-a82a-e95235ffbdd7"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle">
-									<font fontName="Droid Sans" size="9"/>
+									<font fontName="Noto Sans" size="9"/>
 								</textElement>
 								<textFieldExpression><![CDATA[$F{toInvestigate}.toString()]]></textFieldExpression>
 							</textField>

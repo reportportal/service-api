@@ -92,8 +92,8 @@
 * EPMRPP-25255 - Personal projects have TEST_BASES calculation strategy (BDD) instead of STEP_BASED (regular)
 
 
-## 3.1.x
-##### Released: Apr XXX, 2017
+## 3.1.0
+##### Released: Aug 5, 2017
 
 ### New Features
 
@@ -127,4 +127,8 @@
 * EPMRPP-26020 - 500 error on attempt to delete not existed widget
 * EPMRPP-23553 - Verify API methods against last updates/changes
 * EPMRPP-26393 - Launches are not filtered by start time correctly
+* reportportal/reportportal#200 - Droid Sans fonts no longer supported by debian
+* reportportal/reportportal#201 - Avoid CPU consumption on huge logs during auto-analysis
+* reportportal/reportportal#12, reportportal/reportportal#65 - LDAP Authorization
+* reportportal/reportportal#208 - Introduce new project role that is not allowed to report
 * EPMRPP-29167 - Statistics for deleted elements with custom defect types are still present

@@ -98,8 +98,8 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	@Autowired
 	private StatisticsFacadeFactory statisticsFacadeFactory;
 
-	@Value("${rp.issue.analyzer.rate}")
-	private double acceptRate;
+	@Autowired
+    private AnalyzerConfig analyzerConfig;
 
 	/**
 	 * Cache for processing launches with Auto-Analyzer
@@ -120,8 +120,8 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	public List<TestItem> collectPreviousIssues(int depth, String launchId, String projectName) {
 		processingIds.put(launchId, CacheElementEnum.STARTED.name());
 		List<Launch> launchHistory = historyServiceStrategy.loadLaunches(depth, launchId, projectName, false);
-		return launchHistory.stream().flatMap(launch -> testItemRepository.findTestItemWithInvestigated(launch.getId()).stream())
-				.collect(Collectors.toList());
+		return launchHistory.stream().flatMap(launch -> testItemRepository
+                .findTestItemWithInvestigated(launch.getId(), analyzerConfig.getItemsLimit()).stream()).collect(Collectors.toList());
 	}
 
 	@Override
@@ -131,7 +131,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 				List<Double> curRate = new ArrayList<>();
 				TestItemIssue issue = null;
 				boolean isInvestigated = false;
-				List<Log> curItemErr = logRepository.findTestItemErrorLogs(current.getId());
+				List<Log> curItemErr = logRepository.findTestItemErrorLogs(current.getId(), analyzerConfig.getLogsLimit());
 
 				Launch launch = launchRepository.findOne(current.getLaunchRef());
 				Project project = projectRepository.findOne(launch.getProjectRef());
@@ -145,24 +145,28 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 					if (item.getId().equalsIgnoreCase(current.getId()))
 						continue;
 
-					List<Log> errors = logRepository.findTestItemErrorLogs(item.getId());
+					List<Log> errors = logRepository.findTestItemErrorLogs(item.getId(), analyzerConfig.getLogsLimit());
 					if (errors.size() == curItemErr.size()) {
 						for (int i = 0; i < curItemErr.size(); i++) {
-							String curMsg = curItemErr.get(i).getLogMsg().replaceAll("\\d+", "").replaceAll("\\s(at)\\s", "");
-							String scopeMsg = errors.get(i).getLogMsg().replaceAll("\\d+", "").replaceAll("\\s(at)\\s", "");
-						/*
-						 * Get Levenshtein distance for two comparing log
-						 * strings
-						 */
-							int maxString = Math.max(curMsg.length(), scopeMsg.length());
-							int diff = StringUtils.getLevenshteinDistance(curMsg, scopeMsg);
-						/*
-						 * Store percentage of equality
-						 */
-							curRate.add(((double) (maxString - diff)) / maxString * 100);
+						    if (curItemErr.get(i).getLogMsg().length() <= analyzerConfig.getLogSizeLimit() &&
+                                    errors.get(i).getLogMsg().length() <= analyzerConfig.getLogSizeLimit())
+						    {
+                                String curMsg = curItemErr.get(i).getLogMsg().replaceAll("\\d+", "").replaceAll("\\s(at)\\s", "");
+                                String scopeMsg = errors.get(i).getLogMsg().replaceAll("\\d+", "").replaceAll("\\s(at)\\s", "");
+                            /*
+                             * Get Levenshtein distance for two comparing log
+                             * strings
+                             */
+                                int maxString = Math.max(curMsg.length(), scopeMsg.length());
+                                int diff = StringUtils.getLevenshteinDistance(curMsg, scopeMsg);
+                            /*
+                             * Store percentage of equality
+                             */
+                                curRate.add(((double) (maxString - diff)) / maxString * 100);
+                            }
 						}
 					}
-					if (!curRate.isEmpty() && (this.mathMiddle(curRate) >= acceptRate)) {
+					if (!curRate.isEmpty() && (this.mathMiddle(curRate) >= analyzerConfig.getRate())) {
 						isInvestigated = true;
 						issue = item.getIssue();
 					/* Stop looping cause acceptable item found already. */

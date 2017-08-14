@@ -98,7 +98,7 @@ public class UserController implements IUserController {
 	@RequestMapping(value = "/bid", method = POST)
 	@ResponseBody
 	@ResponseStatus(CREATED)
-	@PreAuthorize("hasPermission(#createUserRQ.getDefaultProject(), 'projectLeadPermission')")
+	@PreAuthorize("hasPermission(#createUserRQ.getDefaultProject(), 'projectManagerPermission')")
 	@ApiOperation("Register invitation for user who will be created")
 	public CreateUserBidRS createUserBid(@RequestBody @Validated CreateUserRQ createUserRQ, Principal principal,
 			HttpServletRequest request) {

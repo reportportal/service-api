@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.core.preference.IUpdatePreferenceHandler;
 import com.epam.ta.reportportal.core.project.*;
 import com.epam.ta.reportportal.core.user.IGetUserHandler;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
@@ -57,11 +58,15 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -115,7 +120,7 @@ public class ProjectController implements IProjectController {
 	@RequestMapping(value = "/{projectName}", method = PUT, consumes = { APPLICATION_JSON_VALUE })
 	@ResponseBody
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_LEAD_OR_ADMIN)
+	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
 	@ApiOperation(value = "Update project", notes = "'Email Configuration' can be also update via PUT to /{projectName}/emailconfig resource.")
 	public OperationCompletionRS updateProject(@PathVariable String projectName, @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
 			Principal principal) {
@@ -126,7 +131,7 @@ public class ProjectController implements IProjectController {
 	@RequestMapping(value = "/{projectName}/emailconfig", method = PUT, consumes = { APPLICATION_JSON_VALUE })
 	@ResponseBody
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_LEAD)
+	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Update project email configuration")
 	public OperationCompletionRS updateProjectEmailConfig(@PathVariable String projectName,
 			@RequestBody @Validated ProjectEmailConfigDTO updateProjectRQ, Principal principal) {
@@ -148,7 +153,7 @@ public class ProjectController implements IProjectController {
 	@RequestMapping(value = "/{projectName}/users", method = GET)
 	@ResponseBody
 	@ResponseView(ModelViews.DefaultView.class)
-	@PreAuthorize(PROJECT_MEMBER)
+	@PreAuthorize(NOT_CUSTOMER)
 	@ApiOperation("Get users from project")
 	public Iterable<UserResource> getProjectUsers(@PathVariable String projectName, @FilterFor(User.class) Filter filter,
 			@SortFor(User.class) Pageable pageable, Principal principal) {
@@ -168,7 +173,7 @@ public class ProjectController implements IProjectController {
 	@RequestMapping(value = "/{projectName}/unassign", method = PUT, consumes = { APPLICATION_JSON_VALUE })
 	@ResponseBody
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_LEAD)
+	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Un assign users")
 	public OperationCompletionRS unassignProjectUsers(@PathVariable String projectName,
 			@RequestBody @Validated UnassignUsersRQ unassignUsersRQ, Principal principal) {
@@ -179,7 +184,7 @@ public class ProjectController implements IProjectController {
 	@RequestMapping(value = "/{projectName}/assign", method = PUT, consumes = { APPLICATION_JSON_VALUE })
 	@ResponseBody
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_LEAD)
+	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Assign users")
 	public OperationCompletionRS assignProjectUsers(@PathVariable String projectName, @RequestBody @Validated AssignUsersRQ assignUsersRQ,
 			Principal principal) {
@@ -191,8 +196,8 @@ public class ProjectController implements IProjectController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ResponseView(ModelViews.DefaultView.class)
-	@PreAuthorize(PROJECT_LEAD)
-	@ApiOperation(value = "Load users which can be assigned to specified project", notes = "Only for users with project lead permissions")
+	@PreAuthorize(PROJECT_MANAGER)
+	@ApiOperation(value = "Load users which can be assigned to specified project", notes = "Only for users with project manager permissions")
 	public Iterable<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
 			@PathVariable String projectName, Principal principal) {
 		return userHandler.getUsers(filter, pageable, normalizeId(projectName));
@@ -202,7 +207,7 @@ public class ProjectController implements IProjectController {
 	@RequestMapping(value = "/{projectName}/usernames", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	@PreAuthorize(PROJECT_MEMBER)
+	@PreAuthorize(NOT_CUSTOMER)
 	@ApiOperation(value = "Load project users by filter", notes = "Only for users that are members of the project")
 	public List<String> getProjectUsers(@PathVariable String projectName,
 			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + Project.USERS) String value,
@@ -214,7 +219,7 @@ public class ProjectController implements IProjectController {
 	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiIgnore
-	@PreAuthorize(PROJECT_LEAD)
+	@PreAuthorize(PROJECT_MANAGER)
 	public Page<UserResource> searchForUser(@SuppressWarnings("unused") @PathVariable String projectName, @PathVariable String term, Pageable pageable) {
 		return getProjectHandler.getUserNames(term, pageable);
 	}
@@ -287,4 +292,5 @@ public class ProjectController implements IProjectController {
 	public Iterable<String> getAllProjectNames(Principal principal) {
 		return getProjectHandler.getAllProjectNames();
 	}
+
 }

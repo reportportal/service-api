@@ -21,31 +21,28 @@
 
 package com.epam.ta.reportportal.auth.permissions;
 
-import javax.validation.constraints.NotNull;
-
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.ProjectRole;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectRole;
+import javax.validation.constraints.NotNull;
 
 /**
- * Validates this is {@link ProjectRole#LEAD} or higher authority in the
- * authentication context
+ * Validates that user is allowed to report (start/finish, launch, start/finish item, log)
  * 
  * @author Andrei Varabyeu
  * 
  */
 @Component
-@LookupPermission({ "projectLeadPermission" })
-public class ProjectLeadPermission extends BaseProjectPermission {
+@LookupPermission({ "reporterPermission" })
+public class ReporterPermission extends BaseProjectPermission {
 
 	/**
-	 * Validates this is {@link ProjectRole#LEAD} or higher authority in the
-	 * authentication context
+	 * Validates that user is allowed to report (start/finish, launch, start/finish item, log)
 	 */
 	@Override
 	protected boolean checkAllowed(@NotNull Authentication authentication, @NotNull Project project) {
-		return project.getUsers().get(authentication.getName()).getProjectRole().compareTo(ProjectRole.LEAD) >= 0;
+		return project.getUsers().get(authentication.getName()).getProjectRole().sameOrHigherThan(ProjectRole.CUSTOMER);
 	}
 }

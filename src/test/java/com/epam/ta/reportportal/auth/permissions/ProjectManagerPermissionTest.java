@@ -44,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Andrei Varabyeu
  *
  */
-public class ProjectLeadPermissionTest extends BaseMvcTest {
+public class ProjectManagerPermissionTest extends BaseMvcTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;

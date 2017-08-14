@@ -7,9 +7,9 @@ buildscript {
         }
     }
     dependencies {
-        classpath "io.spring.gradle:dependency-management-plugin:1.0.0.RELEASE"
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE")
-        classpath 'com.bmuschko:gradle-docker-plugin:3.0.4'
+        classpath "io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE"
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.6.RELEASE")
+        classpath 'com.bmuschko:gradle-docker-plugin:3.0.12'
     }
 }
 
@@ -58,8 +58,8 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Dalston.SR1"
-        mavenBom "org.springframework.boot:spring-boot-dependencies:1.5.4.RELEASE"
+        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Dalston.SR2"
+        mavenBom "org.springframework.boot:spring-boot-dependencies:1.5.6.RELEASE"
     }
 }
 
@@ -67,21 +67,17 @@ configurations {
     api
 }
 
-configurations.all {
-    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-}
-
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:3.0.1'
-        compile 'com.epam.reportportal:commons-rules:3.0.1'
-        compile 'com.epam.reportportal:commons-model:3.0.1'
-        compile 'com.epam.reportportal:commons:3.0.1'
+        compile 'com.epam.reportportal:commons-dao:3.1.1'
+        compile 'com.epam.reportportal:commons-rules:3.1.1'
+        compile 'com.epam.reportportal:commons-model:3.1.1'
+        compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile('com.github.reportportal:commons-dao:5edb473')
-        compile('com.github.reportportal:commons-rules:3.0.1')
-        compile 'com.github.reportportal:commons-model:2c061fc'
-        compile ('com.github.reportportal:commons:1d4323c')
+        compile('com.github.reportportal:commons-dao:8eaebb2')
+        compile('com.github.reportportal:commons-rules:3.1.1')
+        compile 'com.github.reportportal:commons-model:1f903fa'
+        compile ('com.github.reportportal:commons:3.1.0')
     }
 
     compile 'org.jasypt:jasypt:1.9.2'

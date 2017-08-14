@@ -41,7 +41,7 @@ public final class Permissions {
 
 	public static final String PROJECT_MANAGER = "hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')";
 
-	public static final String PROJECT_MEMBER = "hasPermission(#projectName.toLowerCase(), 'projectMemberPermission')";
+	public static final String NOT_CUSTOMER = "hasPermission(#projectName.toLowerCase(), 'notCustomerPermission')";
 
 	public static final String PROJECT_MANAGER_OR_ADMIN = "hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')" + "||" + ADMIN_ONLY;
 

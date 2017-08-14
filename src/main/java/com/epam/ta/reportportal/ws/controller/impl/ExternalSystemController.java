@@ -21,44 +21,26 @@
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-
-import java.security.Principal;
-import java.util.List;
-
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.core.externalsystem.handler.*;
+import com.epam.ta.reportportal.ws.controller.IExternalSystemController;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.externalsystem.*;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
-import com.epam.ta.reportportal.core.externalsystem.handler.ICreateExternalSystemHandler;
-import com.epam.ta.reportportal.core.externalsystem.handler.ICreateTicketHandler;
-import com.epam.ta.reportportal.core.externalsystem.handler.IDeleteExternalSystemHandler;
-import com.epam.ta.reportportal.core.externalsystem.handler.IGetExternalSystemHandler;
-import com.epam.ta.reportportal.core.externalsystem.handler.IGetTicketHandler;
-import com.epam.ta.reportportal.core.externalsystem.handler.IUpdateExternalSystemHandler;
-import com.epam.ta.reportportal.ws.controller.IExternalSystemController;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
-import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
-import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
-import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
-import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
-import com.epam.ta.reportportal.ws.model.externalsystem.UpdateExternalSystemRQ;
+import java.security.Principal;
+import java.util.List;
 
-import io.swagger.annotations.ApiOperation;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * Controller implementation for working with external systems.
@@ -174,7 +156,7 @@ public class ExternalSystemController implements IExternalSystemController {
     @RequestMapping(value = "/{systemId}/issue_types", method = RequestMethod.GET)
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize(PROJECT_LEAD)
+    @PreAuthorize(PROJECT_MANAGER)
     @ApiOperation("Get list of fields required for posting ticket")
     public List<String> getAllowableIssueTypes(@PathVariable String projectName, @PathVariable String systemId) {
         return getTicketHandler.getAllowableIssueTypes(EntityUtils.normalizeId(projectName), systemId);

@@ -127,8 +127,21 @@
 * EPMRPP-26020 - 500 error on attempt to delete not existed widget
 * EPMRPP-23553 - Verify API methods against last updates/changes
 * EPMRPP-26393 - Launches are not filtered by start time correctly
+* EPMRPP-29167 - Statistics for deleted elements with custom defect types are still present
 * reportportal/reportportal#200 - Droid Sans fonts no longer supported by debian
 * reportportal/reportportal#201 - Avoid CPU consumption on huge logs during auto-analysis
 * reportportal/reportportal#12, reportportal/reportportal#65 - LDAP Authorization
 * reportportal/reportportal#208 - Introduce new project role that is not allowed to report
+
+
+## 3.2
+##### Released: Aug XXX, 2017
+
+### New Features
+
+### Bugfixes
 * EPMRPP-29167 - Statistics for deleted elements with custom defect types are still present
+* reportportal#176/EPMRPP-26045 - Split Test Description and test parameters
+* EPMRPP-26131 - Unique id for test item based on items' names, parameters, launch name, project name
+* EPMRPP-26263 - Implemented latest launches view
+* EPMRPP-26394 - JIRA issue with empty set of fields for post bug form

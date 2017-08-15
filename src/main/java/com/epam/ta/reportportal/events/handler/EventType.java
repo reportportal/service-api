@@ -21,31 +21,40 @@
 package com.epam.ta.reportportal.events.handler;
 
 /**
- * @author pavel_bortnik
+ * @author Pavel Bortnik
  */
 public enum EventType {
 
-    CREATE_DASHBOARD,
-    UPDATE_DASHBOARD,
-    DELETE_DASHBOARD,
-    CREATE_WIDGET,
-    UPDATE_WIDGET,
-    DELETE_WIDGET,
-    CREATE_FILTER,
-    UPDATE_FILTER,
-    DELETE_FILTER,
-    UPDATE_DEFECT,
-    DELETE_DEFECT,
-    CREATE_BTS,
-    UPDATE_BTS,
-    DELETE_BTS,
-    START_LAUNCH,
-    FINISH_LAUNCH,
-    DELETE_LAUNCH,
-    UPDATE_PROJECT,
-    POST_ISSUE,
-    ATTACH_ISSUE,
-    UPDATE_ITEM,
-    CREATE_USER
+    CREATE_DASHBOARD("create_dashboard"),
+    UPDATE_DASHBOARD("update_dashboard"),
+    DELETE_DASHBOARD("delete_dashboard"),
+    CREATE_WIDGET("create_widget"),
+    UPDATE_WIDGET("update_widget"),
+    DELETE_WIDGET("delete_widget"),
+    CREATE_FILTER("create_filter"),
+    UPDATE_FILTER("update_filter"),
+    DELETE_FILTER("delete_filter"),
+    UPDATE_DEFECT("update_defect"),
+    DELETE_DEFECT("delete_defect"),
+    CREATE_BTS("create_bts"),
+    UPDATE_BTS("update_bts"),
+    DELETE_BTS("delete_bts"),
+    START_LAUNCH("start_launch"),
+    FINISH_LAUNCH("finish_launch"),
+    DELETE_LAUNCH("delete_launch"),
+    UPDATE_PROJECT("update_project"),
+    POST_ISSUE("post_issue"),
+    ATTACH_ISSUE("attach_issue"),
+    UPDATE_ITEM("update_item"),
+    CREATE_USER("create_user");
 
+    private String value;
+
+    EventType(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
 }

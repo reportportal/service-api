@@ -34,6 +34,8 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.epam.ta.reportportal.events.handler.EventType.UPDATE_PROJECT;
+
 /**
  * Handles {@link com.epam.ta.reportportal.events.ProjectUpdatedEvent}
  *
@@ -42,7 +44,6 @@ import java.util.Map;
 @Component
 public class ProjectEmailUpdatedHandler {
 
-	private static final String UPDATE_PROJECT = "update_project";
 	private static final String EMAIL_STATUS = "emailEnabled";
 	private static final String EMAIL_CASES = "emailCases";
 	private static final String EMAIL_FROM = "from";
@@ -63,7 +64,7 @@ public class ProjectEmailUpdatedHandler {
 		}
 		if (!history.isEmpty()) {
 			Activity activityLog = new ActivityBuilder().addProjectRef(event.getBefore().getName()).addObjectType(Project.PROJECT)
-					.addActionType(UPDATE_PROJECT).addUserRef(event.getUpdatedBy()).build();
+					.addActionType(UPDATE_PROJECT.getValue()).addUserRef(event.getUpdatedBy()).build();
 			activityLog.setHistory(history);
 			activityRepository.save(activityLog);
 		}

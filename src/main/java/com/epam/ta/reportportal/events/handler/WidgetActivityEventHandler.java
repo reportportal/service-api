@@ -64,7 +64,7 @@ public class WidgetActivityEventHandler {
                 Activity activityLog = new ActivityBuilder()
                         .addProjectRef(widget.getProjectName())
                         .addObjectType(Widget.WIDGET)
-                        .addActionType(UPDATE_WIDGET.name())
+                        .addActionType(UPDATE_WIDGET.getValue())
                         .addLoggedObjectRef(widget.getId())
                         .addUserRef(event.getUpdatedBy())
                         .build();
@@ -78,7 +78,7 @@ public class WidgetActivityEventHandler {
     public void onCreateWidget(WidgetCreatedEvent event) {
         WidgetRQ widgetRQ = event.getWidgetRQ();
         Activity activityLog = new ActivityBuilder()
-                .addActionType(CREATE_WIDGET.name())
+                .addActionType(CREATE_WIDGET.getValue())
                 .addObjectType(Widget.WIDGET)
                 .addObjectName(widgetRQ.getName())
                 .addProjectRef(event.getProjectRef())
@@ -95,7 +95,7 @@ public class WidgetActivityEventHandler {
     public void onDeleteWidget(WidgetDeletedEvent event) {
         Widget widget = event.getBefore();
         Activity activityLog = new ActivityBuilder()
-                .addActionType(DELETE_WIDGET.name())
+                .addActionType(DELETE_WIDGET.getValue())
                 .addObjectType(Widget.WIDGET)
                 .addObjectName(widget.getName())
                 .addProjectRef(widget.getProjectName())

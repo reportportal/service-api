@@ -58,7 +58,7 @@ public class UserFilterActivityHandler {
     public void onFilterCreate(FilterCreatedEvent event) {
         CreateUserFilterRQ userFilterRQ = event.getFilterRQ();
         Activity activityLog = new ActivityBuilder()
-                .addActionType(CREATE_FILTER.name())
+                .addActionType(CREATE_FILTER.getValue())
                 .addObjectType(USER_FILTER)
                 .addObjectName(userFilterRQ.getName())
                 .addProjectRef(event.getProjectRef())
@@ -83,7 +83,7 @@ public class UserFilterActivityHandler {
                 Activity activityLog = new ActivityBuilder()
                         .addProjectRef(userFilter.getProjectName())
                         .addObjectType(USER_FILTER)
-                        .addActionType(UPDATE_FILTER.name())
+                        .addActionType(UPDATE_FILTER.getValue())
                         .addLoggedObjectRef(userFilter.getId())
                         .addUserRef(event.getUpdatedBy())
                         .addHistory(history)
@@ -97,7 +97,7 @@ public class UserFilterActivityHandler {
     public void onFilterDelete(FilterDeletedEvent event) {
         UserFilter before = event.getBefore();
         Activity activityLog = new ActivityBuilder()
-                .addActionType(DELETE_FILTER.name())
+                .addActionType(DELETE_FILTER.getValue())
                 .addObjectType(USER_FILTER)
                 .addObjectName(before.getName())
                 .addProjectRef(before.getProjectName())

@@ -32,6 +32,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 
+import static com.epam.ta.reportportal.events.handler.EventType.UPDATE_PROJECT;
+
 /**
  * Saves new project activity
  *
@@ -40,7 +42,6 @@ import java.util.HashMap;
 @Component
 public class ProjectActivityHandler {
 
-	public static final String UPDATE_PROJECT = "update_project";
 	public static final String KEEP_SCREENSHOTS = "keepScreenshots";
 	public static final String KEEP_LOGS = "keepLogs";
 	public static final String LAUNCH_INACTIVITY = "launchInactivity";
@@ -69,8 +70,13 @@ public class ProjectActivityHandler {
 		}
 
 		if (!history.isEmpty()) {
+<<<<<<< Updated upstream
 			Activity activityLog = new ActivityBuilder().addProjectRef(project.getName()).addObjectType(Project.PROJECT)
 					.addActionType(UPDATE_PROJECT).addUserRef(event.getUpdatedBy()).build();
+=======
+			Activity activityLog = activityBuilder.get().addProjectRef(project.getName()).addObjectType(Project.PROJECT)
+					.addActionType(UPDATE_PROJECT.getValue()).addUserRef(event.getUpdatedBy()).build();
+>>>>>>> Stashed changes
 			activityLog.setHistory(history);
 			activityRepository.save(activityLog);
 		}

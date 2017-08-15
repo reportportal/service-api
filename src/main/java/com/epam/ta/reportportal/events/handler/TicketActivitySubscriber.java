@@ -42,6 +42,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static com.epam.ta.reportportal.events.handler.EventType.*;
+
 /**
  * @author Andrei Varabyeu
  */
@@ -49,10 +51,6 @@ import java.util.stream.StreamSupport;
 public class TicketActivitySubscriber {
 
 	public static final String TICKET_ID = "ticketId";
-	public static final String POST_ISSUE = "post_issue";
-	public static final String ATTACH_ISSUE = "attach_issue";
-
-	public static final String UPDATE_ITEM = "update_item";
 	public static final String ISSUE_TYPE = "issueType";
 	public static final String COMMENT = "comment";
 
@@ -88,7 +86,7 @@ public class TicketActivitySubscriber {
 		Activity.FieldValues fieldValues = Activity.FieldValues.newOne().withOldValue(oldValue).withNewValue(newValue);
 		HashMap<String, Activity.FieldValues> history = new HashMap<>();
 		history.put(TICKET_ID, fieldValues);
-		Activity activity = new ActivityBuilder().addProjectRef(event.getProject()).addActionType(POST_ISSUE)
+		Activity activity = new ActivityBuilder().addProjectRef(event.getProject()).addActionType(POST_ISSUE.getValue())
 				.addLoggedObjectRef(event.getTestItemId()).addObjectType(TestItem.TEST_ITEM).addUserRef(event.getPostedBy())
 				.addHistory(history).build();
 		activityRepository.save(activity);
@@ -110,8 +108,7 @@ public class TicketActivitySubscriber {
 				continue;
 			Activity.FieldValues fieldValues = results.get(testItem.getId());
 			fieldValues.withNewValue(issuesIdsToString(testItem.getIssue().getExternalSystemIssues(), separator));
-
-			Activity activity = new ActivityBuilder().addProjectRef(event.getProject()).addActionType(ATTACH_ISSUE)
+			Activity activity = new ActivityBuilder().addProjectRef(event.getProject()).addActionType(ATTACH_ISSUE.getValue())
 					.addLoggedObjectRef(testItem.getId()).addObjectType(TestItem.TEST_ITEM).addUserRef(event.getPostedBy())
 					.addHistory(ImmutableMap.<String, Activity.FieldValues> builder().put(TICKET_ID, fieldValues).build()).build();
 			activities.add(activity);
@@ -155,7 +152,7 @@ public class TicketActivitySubscriber {
 				oldIssueDescription = emptyString;
 			}
 			Activity activity = new ActivityBuilder().addProjectRef(projectName).addLoggedObjectRef(issueDefinition.getId())
-					.addObjectType(TestItem.TEST_ITEM).addActionType(UPDATE_ITEM).addUserRef(principal).build();
+					.addObjectType(TestItem.TEST_ITEM).addActionType(UPDATE_ITEM.getValue()).addUserRef(principal).build();
 			HashMap<String, Activity.FieldValues> history = new HashMap<>();
 			if (!oldIssueDescription.equals(comment)) {
 

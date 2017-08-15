@@ -89,7 +89,15 @@ public class ExternalSystemEurekaDelegate implements ExternalSystemStrategy {
 						}, system.getId(), issueType).getBody();
 	}
 
-	private ServiceInstance getServiceInstance(ExternalSystemType externalSystem) {
+    @Override
+    public List<String> getIssueTypes(ExternalSystem system) {
+        return eurekaTemplate
+                .exchange(getServiceInstance(system.getExternalSystemType()).getUri().toString() + "/{systemId}/ticket/types",
+                        HttpMethod.GET, null, new ParameterizedTypeReference<List<String>>() {
+                        }, system.getId()).getBody();
+    }
+
+    private ServiceInstance getServiceInstance(ExternalSystemType externalSystem) {
 		String externalSystemType = externalSystem.name().toLowerCase();
 
 		Optional<ServiceInstance> delegate = discoveryClient.getServices().stream()

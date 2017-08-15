@@ -18,17 +18,29 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.epam.ta.reportportal.core.imprt.impl;
 
-import java.util.Arrays;
-import java.util.Optional;
+package com.epam.ta.reportportal.core.item;
 
-public enum ImportType {
-    XUNIT;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
 
-    public static Optional<ImportType> fromValue(String value) {
-        return Arrays.stream(ImportType.values())
-                .filter(type -> type.name().equalsIgnoreCase(value))
-                .findFirst();
-    }
+/**
+ * @author Pavel_Bortnik
+ */
+public interface UniqueIdGenerator {
+
+    /**
+     * Generates the unique identifier for test item
+     * @param testItem source for id
+     * @param projectName project
+     * @return unique id
+     */
+    String generate(TestItem testItem, String projectName);
+
+    /**
+     * Validate if string has been generated.
+     * @param encoded
+     * @return
+     */
+    boolean validate(String encoded);
+
 }

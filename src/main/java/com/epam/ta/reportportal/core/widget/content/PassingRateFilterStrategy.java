@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.ImmutableMap;
@@ -58,7 +59,7 @@ public class PassingRateFilterStrategy implements BuildFilterStrategy {
         Map<String, List<ChartObject>> emptyResult = Collections.emptyMap();
         if (contentOptions.getWidgetOptions() == null || contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD) == null)
             return emptyResult;
-        Launch lastLaunchForProject = launchRepository.findLastLaunch(projectName,
+        Launch lastLaunchForProject = launchRepository.findLatestLaunch(projectName,
                 contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD).get(0), Mode.DEFAULT.name()).orElse(null);
         if (null == lastLaunchForProject) {
             return emptyResult;
@@ -74,5 +75,10 @@ public class PassingRateFilterStrategy implements BuildFilterStrategy {
                 .put(PASSED_FIELD, String.valueOf(lastLaunch.getStatistics().getExecutionCounter().getPassed()))
         .build());
         return chartObject;
+    }
+
+    @Override
+    public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+        throw new ReportPortalException("Operation is not supported for this strategy");
     }
 }

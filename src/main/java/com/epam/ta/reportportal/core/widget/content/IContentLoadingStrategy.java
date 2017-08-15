@@ -49,7 +49,7 @@ public interface IContentLoadingStrategy {
 	 * @param options        Options
 	 * @return Chart Data
 	 */
-	Map<String, List<ChartObject>> loadContent(Filter filter, Sort sorting, int quantity, List<String> contentFields,
+	Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
 			List<String> metaDataFields, Map<String, List<String>> options);
 
 }

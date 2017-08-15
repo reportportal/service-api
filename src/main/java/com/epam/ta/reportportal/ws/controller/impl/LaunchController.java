@@ -44,10 +44,7 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.controller.ILaunchController;
-import com.epam.ta.reportportal.ws.model.BulkRQ;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
@@ -218,7 +215,17 @@ public class LaunchController implements ILaunchController {
 		return getLaunchMessageHandler.getProjectLaunches(normalizeId(projectName), filter, pageable, principal.getName());
 	}
 
-	@Override
+    @Override
+    @RequestMapping(value = "/latest", method = GET)
+    @ResponseBody
+    @ResponseStatus(OK)
+    @ApiOperation("Get list of latest project launches by filter")
+    public Page<LaunchResource> getLatestLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
+                                                  @SortFor(Launch.class) Pageable pageable) {
+        return getLaunchMessageHandler.getLatestLaunches(normalizeId(projectName), filter, pageable);
+    }
+
+    @Override
 	@RequestMapping(value = "/mode", method = GET)
 	@ResponseBody
 	@ResponseStatus(OK)
@@ -272,25 +279,10 @@ public class LaunchController implements ILaunchController {
 		return getLaunchMessageHandler.getLaunchesComparisonInfo(normalizeId(projectName), ids);
 	}
 
-/*	@Override
-	@PostMapping("/merge")
-	@ResponseBody
-	@ResponseStatus(OK)
-	// Owner and project LEAD+ permissions validated inside cause no information
-	// on top resource level
-	@ApiOperation("Merge set of specified launches in common one")
-	public LaunchResource mergeLaunches(
-			@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,
-			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
-			Principal principal) {
-		return mergeLaunchesHandler.mergeLaunches(normalizeId(projectName), principal.getName(), mergeLaunchesRQ);
-	}*/
-
 	@Override
 	@PostMapping("/merge")
 	@ResponseBody
 	@ResponseStatus(OK)
-	//@ApiIgnore
 	@ApiOperation("Merge set of specified launches in common one")
 	public LaunchResource mergeLaunches(
 			@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,
@@ -350,11 +342,12 @@ public class LaunchController implements ILaunchController {
 	}
 
 	@Override
-	@RequestMapping(value = "/import", method = RequestMethod.POST)
+	@RequestMapping(value = "/import/{mode}", method = RequestMethod.POST)
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip.")
-	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file, Principal principal) {
-		return importLaunchHandler.importLaunch(normalizeId(projectName), principal.getName(), "JUNIT", file);
+	public OperationCompletionRS importLaunch(@PathVariable String projectName, @PathVariable @ApiParam("DEFAULT, DEBUG") String mode,
+											  @RequestParam("file") MultipartFile file, Principal principal) {
+		return importLaunchHandler.importLaunch(normalizeId(projectName), principal.getName(), mode, "XUNIT", file);
 	}
 }

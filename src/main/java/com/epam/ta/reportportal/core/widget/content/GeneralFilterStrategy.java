@@ -77,10 +77,15 @@ public class GeneralFilterStrategy implements BuildFilterStrategy {
 		// all widget content should be selected per project, so added
 		// additional condition to filter
 		searchFilter.addConditions(getAdditionalConditions(searchFilter.getTarget(), projectName));
-		return widgetContentProvider.getChartContent(searchFilter, userFilter.getSelectionOptions(), contentOptions);
+		return widgetContentProvider.getChartContent(projectName, searchFilter, userFilter.getSelectionOptions(), contentOptions);
 	}
 
-	/**
+    @Override
+    public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+        return widgetContentProvider.getChartContent(projectName, userFilter.getFilter(), userFilter.getSelectionOptions(), contentOptions);
+    }
+
+    /**
 	 * Get {@link com.epam.ta.reportportal.database.search.FilterCondition}s for
 	 * selecting data foe widget Additional conditions:
 	 * <li>data only from current project;

@@ -21,18 +21,17 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.UniqueBugDocumentHandler;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Implementation of
@@ -51,7 +50,7 @@ public class UniqueBugContentLoader implements IContentLoadingStrategy {
 	private TestItemRepository testItemRepository;
 
 	@Override
-	public Map<String, List<ChartObject>> loadContent(Filter filter, Sort sorting, int quantity, List<String> contentFields,
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
 			List<String> metaDataFields, Map<String, List<String>> options) {
 
 		UniqueBugDocumentHandler uniqueBugDocumentHandler = new UniqueBugDocumentHandler();

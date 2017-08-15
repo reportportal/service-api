@@ -45,6 +45,11 @@
 		<ref bean="child5" />
 	</util:list>
 
+    <util:list id="statistics">
+        <ref bean="launch2" />
+        <ref bean="child2"/>
+    </util:list>
+
 	<util:list id="widgets">
 		<ref bean="launch1_with_stat"/>
 		<ref bean="launch2_with_stat"/>
@@ -293,9 +298,44 @@
 					</bean>
 				</constructor-arg>
 				<constructor-arg name="issueCounter">
-					<bean
-							class="com.epam.ta.reportportal.database.entity.statistics.IssueCounter"
-					/>
+                    <bean class="com.epam.ta.reportportal.database.entity.statistics.IssueCounter">
+                        <property name="productBug">
+                            <util:map key-type="java.lang.String" value-type="java.lang.Integer">
+                                <entry key="PB001" value="1" />
+                                <entry key="PB002" value="1" />
+                                <entry key="PB003" value="1" />
+                                <entry key="total" value="3" />
+                            </util:map>
+                        </property>
+                        <property name="toInvestigate">
+                            <util:map key-type="java.lang.String" value-type="java.lang.Integer">
+                                <entry key="TI001" value="1" />
+                                <entry key="TI002" value="1" />
+                                <entry key="total" value="2" />
+                            </util:map>
+                        </property>
+                        <property name="automationBug">
+                            <util:map key-type="java.lang.String" value-type="java.lang.Integer">
+                                <entry key="AB001" value="2" />
+                                <entry key="AB002" value="2" />
+                                <entry key="total" value="4" />
+                            </util:map>
+                        </property>
+                        <property name="systemIssue">
+                            <util:map key-type="java.lang.String" value-type="java.lang.Integer">
+                                <entry key="SI001" value="4" />
+                                <entry key="SI002" value="4" />
+                                <entry key="total" value="8" />
+                            </util:map>
+                        </property>
+                        <property name="noDefect">
+                            <util:map key-type="java.lang.String" value-type="java.lang.Integer">
+                                <entry key="ND001" value="3" />
+                                <entry key="ND002" value="3" />
+                                <entry key="total" value="6" />
+                            </util:map>
+                        </property>
+                    </bean>
 				</constructor-arg>
 			</bean>
 		</property>
@@ -1100,6 +1140,7 @@
 		<property name="startTime" value="05/02/2013 14:23 +0300" />
 		<property name="endTime" value="05/02/2013 14:23 +0300" />
 		<property name="status" value="IN_PROGRESS" />
+		<property name="launchRef" value="51824cc1553de743b3e5aa2c"/>
 		<property name="path">
 			<util:list>
 				<value>44524cc1553de753b3e5aa2f</value>
@@ -2631,6 +2672,59 @@
 		<property name="type"
 			value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).TEST}"
 			/>
+        <property name="statistics">
+            <bean
+                    class="com.epam.ta.reportportal.database.entity.statistics.Statistics">
+                <constructor-arg name="executionCounter">
+                    <bean
+                            class="com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter">
+                        <property name="total" value="4" />
+                        <property name="passed" value="3"/>
+                        <property name="failed" value="1" />
+                    </bean>
+                </constructor-arg>
+                <constructor-arg name="issueCounter">
+                    <bean class="com.epam.ta.reportportal.database.entity.statistics.IssueCounter">
+                        <property name="productBug">
+                            <util:map key-type="java.lang.String" value-type="java.lang.Integer">
+                                <entry key="total" value="3" />
+                                <entry key="PB001" value="1" />
+                                <entry key="PB002" value="1" />
+                                <entry key="PB003" value="1" />
+                            </util:map>
+                        </property>
+                        <property name="toInvestigate">
+                            <util:map key-type="java.lang.String" value-type="java.lang.Integer">
+                                <entry key="total" value="2" />
+                                <entry key="TI001" value="1" />
+                                <entry key="TI002" value="1" />
+                            </util:map>
+                        </property>
+                        <property name="automationBug">
+                            <util:map key-type="java.lang.String" value-type="java.lang.Integer">
+                                <entry key="total" value="4" />
+                                <entry key="AB001" value="2" />
+                                <entry key="AB002" value="2" />
+                            </util:map>
+                        </property>
+                        <property name="systemIssue">
+                            <util:map key-type="java.lang.String" value-type="java.lang.Integer">
+                                <entry key="total" value="8" />
+                                <entry key="SI001" value="4" />
+                                <entry key="SI002" value="4" />
+                            </util:map>
+                        </property>
+                        <property name="noDefect">
+                            <util:map key-type="java.lang.String" value-type="java.lang.Integer">
+                                <entry key="total" value="6" />
+                                <entry key="ND001" value="3" />
+                                <entry key="ND002" value="3" />
+                            </util:map>
+                        </property>
+                    </bean>
+                </constructor-arg>
+            </bean>
+        </property>
 	</bean>
 
 	<bean id="child3" class="com.epam.ta.reportportal.database.entity.item.TestItem">
@@ -3020,7 +3114,7 @@
 		/>
 	</bean>
     <bean id="mergeTest1" class="com.epam.ta.reportportal.database.entity.item.TestItem">
-		<property name="id" value="44524cc15123de743b3e5bb30" />
+		<property name="id" value="44524cc15123de743b3e5bb3" />
 		<property name="name" value="testItem1" />
 		<property name="itemDescription" value="test for history validation 1" />
         <property name="status" value="FAILED"/>
@@ -3045,12 +3139,12 @@
 		<property name="type"
 				  value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).STEP}"
 		/>
-        <property name="parent" value="44524cc15123de743b3e5bb30" />
+        <property name="parent" value="44524cc15123de743b3e5bb3" />
         <property name="hasChilds" value="false"/>
         <property name="path">
             <util:list>
                 <value>44524cc1553de743b3e5bb30</value>
-                <value>44524cc15123de743b3e5bb30</value>
+                <value>44524cc15123de743b3e5bb3</value>
             </util:list>
         </property>
         <property name="issue">
@@ -3073,7 +3167,7 @@
 
 
 	<bean id="mergeSuite2" class="com.epam.ta.reportportal.database.entity.item.TestItem">
-        <property name="id" value="44524cc1553de743b3a5bb30" />
+        <property name="id" value="595e4e7bb909d331fc392fc7" />
         <property name="name" value="suiteItem2" />
         <property name="itemDescription" value="suite for history validation" />
         <property name="launchRef" value="51824cc1553de743b3e5cc2c" />
@@ -3086,7 +3180,7 @@
         />
     </bean>
 	<bean id="mergeTest2" class="com.epam.ta.reportportal.database.entity.item.TestItem">
-        <property name="id" value="44524cc15123cc743b3e5bb30" />
+        <property name="id" value="44524cc15123cc743b3e5bb3" />
         <property name="name" value="testItem2" />
         <property name="itemDescription" value="test for history validation 1" />
         <property name="launchRef" value="51824cc1553de743b3e5cc2c" />
@@ -3094,11 +3188,11 @@
         <property name="type"
                   value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).TEST}"
         />
-        <property name="parent" value="44524cc1553de743b3a5bb30" />
+        <property name="parent" value="595e4e7bb909d331fc392fc7" />
         <property name="hasChilds" value="true"/>
         <property name="path">
             <util:list>
-                <value>44524cc1553de743b3a5bb30</value>
+                <value>595e4e7bb909d331fc392fc7</value>
             </util:list>
         </property>
     </bean>
@@ -3110,12 +3204,12 @@
         <property name="launchRef" value="51824cc1553de743b3e5cc2c" />
         <property name="type"
                   value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).STEP}" />
-        <property name="parent" value="44524cc15123cc743b3e5bb30" />
+        <property name="parent" value="44524cc15123cc743b3e5bb3" />
         <property name="hasChilds" value="false"/>
         <property name="path">
             <util:list>
-                <value>44524cc1553de743b3a5bb30</value>
-                <value>44524cc15123cc743b3e5bb30</value>
+                <value>595e4e7bb909d331fc392fc7</value>
+                <value>44524cc15123cc743b3e5bb3</value>
             </util:list>
         </property>
     </bean>
@@ -3140,7 +3234,7 @@
 	</bean>
 
 	<bean id="sameTest" class="com.epam.ta.reportportal.database.entity.item.TestItem">
-		<property name="id" value="24524cc15123ec743b3e5bb30" />
+		<property name="id" value="24524cc15123ec743b3e5bb3" />
 		<property name="name" value="sameTest" />
 		<property name="itemDescription" value="test for history validation 1" />
 		<property name="launchRef" value="51824cc1553de743b3e5cc2c" />
@@ -3164,12 +3258,12 @@
 		<property name="launchRef" value="51824cc1553de743b3e5cc2c" />
 		<property name="type"
 				  value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).STEP}" />
-		<property name="parent" value="24524cc15123ec743b3e5bb30" />
+		<property name="parent" value="24524cc15123ec743b3e5bb3" />
 		<property name="hasChilds" value="false"/>
 		<property name="path">
 			<util:list>
 				<value>14524cc1553de743abc5bb30</value>
-				<value>24524cc15123ec743b3e5bb30</value>
+				<value>24524cc15123ec743b3e5bb3</value>
 			</util:list>
 		</property>
 	</bean>

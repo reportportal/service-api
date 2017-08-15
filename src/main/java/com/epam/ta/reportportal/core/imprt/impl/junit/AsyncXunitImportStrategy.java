@@ -47,10 +47,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 @Service
-public class AsyncJunitImportStrategy implements ImportStrategy {
+public class AsyncXunitImportStrategy implements ImportStrategy {
 
     @Autowired
-    private Provider<JunitParseJob> xmlParseJobProvider;
+    private Provider<XunitParseJob> xmlParseJobProvider;
 
     @Autowired
     private IStartLaunchHandler startLaunchHandler;
@@ -74,26 +74,26 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
     private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName().matches(XML_REGEX);
 
     @Override
-    public String importLaunch(String projectId, String userName, MultipartFile file) {
+    public String importLaunch(String projectId, String userName, Mode mode, MultipartFile file) {
         try {
             BusinessRule.expect(file.getOriginalFilename(), it -> it.matches(ZIP_REGEX))
                     .verify(ErrorType.BAD_IMPORT_FILE_TYPE, file.getOriginalFilename());
             File tmp = File.createTempFile(file.getOriginalFilename(), ".zip");
             file.transferTo(tmp);
-            return processZipFile(tmp, projectId, userName);
+            return processZipFile(tmp, projectId, mode, userName);
         } catch (IOException e) {
             throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, file.getOriginalFilename(), e);
         }
     }
 
-    private String processZipFile(File zip, String projectId, String userName) throws IOException {
+    private String processZipFile(File zip, String projectId, Mode mode, String userName) throws IOException {
         try (ZipFile zipFile = new ZipFile(zip)) {
-            String launchId = startLaunch(projectId, userName, zip.getName().substring(0, zip.getName().indexOf(".zip")));
+            String launchId = startLaunch(projectId, userName, mode, zip.getName().substring(0, zip.getName().indexOf(".zip")));
             CompletableFuture[] futures = zipFile.stream()
                     .filter(isFile.and(isXml))
                     .map(zipEntry -> {
                         try {
-                            JunitParseJob job = xmlParseJobProvider.get()
+                            XunitParseJob job = xmlParseJobProvider.get()
                                     .withParameters(projectId, launchId, userName, zipFile.getInputStream(zipEntry));
                             return CompletableFuture.supplyAsync(job::call, service);
                         } catch (IOException e) {
@@ -117,11 +117,11 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
         return results;
     }
 
-    private String startLaunch(String projectId, String userName, String launchName) {
+    private String startLaunch(String projectId, String userName, Mode mode, String launchName) {
         StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
         startLaunchRQ.setStartTime(initialStartTime);
         startLaunchRQ.setName(launchName);
-        startLaunchRQ.setMode(Mode.DEFAULT);
+        startLaunchRQ.setMode(mode);
         return startLaunchHandler.startLaunch(userName, projectId, startLaunchRQ).getId();
     }
 

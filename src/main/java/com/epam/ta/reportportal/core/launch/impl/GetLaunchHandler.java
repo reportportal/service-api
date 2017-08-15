@@ -129,6 +129,17 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 		return launchResourceAssembler.toPagedResources(launches);
 	}
 
+    @Override
+    public com.epam.ta.reportportal.ws.model.Page<LaunchResource> getLatestLaunches(String projectName, Filter filter,
+                                                                                    Pageable pageable) {
+        validateModeConditions(filter);
+        filter.addCondition(new FilterCondition(EQUALS, false, DEFAULT.toString(), Launch.MODE_CRITERIA));
+        Page<LaunchResource> resources = launchRepository.findLatestLaunches(projectName, filter, pageable)
+                .map(launchResourceAssembler::toResource);
+        return new com.epam.ta.reportportal.ws.model.Page<>(resources.getContent(), resources.getSize(),
+                resources.getNumber() + 1, resources.getTotalElements(), resources.getTotalPages());
+    }
+
 	@Override
 	public List<String> getTags(String project, String value) {
 		return launchRepository.findDistinctValues(project, value, "tags");
@@ -188,7 +199,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 				.collect(Collectors.toMap(Launch::getId, launch -> launch.getStatus().toString()));
 	}
 
-	private Map<String, String> computeFraction(Map<String, Integer> data) {
+    private Map<String, String> computeFraction(Map<String, Integer> data) {
 		Map<String, String> result = new HashMap<>();
 		DecimalFormat formatter = new DecimalFormat("###.##");
 		int total = data.values().stream().mapToInt(Integer::intValue).sum();

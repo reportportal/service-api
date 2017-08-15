@@ -17,20 +17,12 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.item;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-
-import com.epam.ta.reportportal.commons.validation.Suppliers;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.Preconditions;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -40,15 +32,22 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+
 /**
  * Start Launch operation default implementation
- * 
+ *
  * @author Andrei Varabyeu
  * @author Andrei_Ramanchuk
- * 
+ *
  */
 @Service
 class StartTestItemHandlerImpl implements StartTestItemHandler {
@@ -56,6 +55,12 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	private LaunchRepository launchRepository;
 	private Provider<TestItemBuilder> testItemBuilder;
 	private LogRepository logRepository;
+	private UniqueIdGenerator identifierGenerator;
+
+	@Autowired
+	public void setIdentifierGenerator(UniqueIdGenerator identifierGenerator) {
+		this.identifierGenerator = identifierGenerator;
+	}
 
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
@@ -85,6 +90,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		Launch launch = launchRepository.loadStatusProjectRefAndStartTime(rq.getLaunchId());
 		validate(projectName, rq, launch);
 		TestItem item = testItemBuilder.get().addStartItemRequest(rq).addStatus(Status.IN_PROGRESS).addLaunch(launch).build();
+		if (null == item.getUniqueId()) {
+			item.setUniqueId(identifierGenerator.generate(item, projectName));
+		}
 		testItemRepository.save(item);
 		return new EntryCreatedRS(item.getId());
 	}
@@ -93,7 +101,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 * Starts children item and building it's path from parent with parant's
 	 */
 	@Override
-	public EntryCreatedRS startChildItem(StartTestItemRQ rq, String parent) {
+	public EntryCreatedRS startChildItem(String projectName, StartTestItemRQ rq, String parent) {
 		TestItem parentItem = testItemRepository.findOne(parent);
 
 		validate(parentItem, parent);
@@ -101,9 +109,12 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 		TestItem item = testItemBuilder.get().addStartItemRequest(rq).addParent(parentItem).addPath(parentItem)
 				.addStatus(Status.IN_PROGRESS).build();
+		if (null == item.getUniqueId()) {
+			item.setUniqueId(identifierGenerator.generate(item, projectName));
+		}
 		testItemRepository.save(item);
 
-		if (!parentItem.hasChilds()){
+		if (!parentItem.hasChilds()) {
 			testItemRepository.updateHasChilds(parentItem.getId(), true);
 		}
 		return new EntryCreatedRS(item.getId());

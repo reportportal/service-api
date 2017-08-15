@@ -69,7 +69,7 @@ public class WidgetContentProvider {
 	 * @param selectionOptions
 	 * @param options
 	 */
-	public Map<String, List<ChartObject>> getChartContent(Filter filter, SelectionOptions selectionOptions, ContentOptions options) {
+	public Map<String, List<ChartObject>> getChartContent(String projectName, Filter filter, SelectionOptions selectionOptions, ContentOptions options) {
 
 		boolean revertResult = false;
 
@@ -103,8 +103,7 @@ public class WidgetContentProvider {
 		expect(loadingStrategy, notNull()).verify(UNABLE_LOAD_WIDGET_CONTENT,
 				Suppliers.formattedSupplier("Unknown gadget type: '{}'.", options.getGadgetType()));
 		Map<String, List<String>> widgetOptions = null == options.getWidgetOptions() ? new HashMap<>() : options.getWidgetOptions();
-		result = loadingStrategy.loadContent(filter, sort, options.getItemsCount(), contentFields, metaDataFields, widgetOptions);
-
+        result = loadingStrategy.loadContent(projectName, filter, sort, options.getItemsCount(), contentFields, metaDataFields, widgetOptions);
 		if (null != options.getContentFields()) {
 			result = transformToFilterStyle(criteriaMap, result, options.getContentFields());
 			result = transformNamesForUI(result);

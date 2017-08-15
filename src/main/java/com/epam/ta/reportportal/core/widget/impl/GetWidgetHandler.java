@@ -112,7 +112,7 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 			if (!isRequireUserFilter(gadgetType, userFilter) || isFilterUnShared(userName, project, userFilter)) {
 				widgetResource.setContent(new HashMap<>());
 			} else {
-				widgetResource.setContent(loadContentByFilterType(userFilter, project, widget.getContentOptions()));
+			    widgetResource.setContent(loadContentByFilterType(userFilter, project, widget.getContentOptions()));
 			}
 		}
 		return widgetResource;
@@ -189,7 +189,11 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 			expect(filterStrategy, notNull()).verify(UNABLE_LOAD_WIDGET_CONTENT,
 					Suppliers.formattedSupplier("Unknown gadget type: '{}'.",
 							contentOptions.getGadgetType()));
-			content = filterStrategy.buildFilterAndLoadContent(userFilter.orElse(null), contentOptions, projectName);
+			if (contentOptions.getWidgetOptions() != null && contentOptions.getWidgetOptions().containsKey("latest")) {
+			    content = filterStrategy.loadContentOfLatestLaunches(userFilter.orElse(null), contentOptions, projectName);
+            }else {
+                content = filterStrategy.buildFilterAndLoadContent(userFilter.orElse(null), contentOptions, projectName);
+            }
 		}
 		return content;
 	}

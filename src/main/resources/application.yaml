@@ -1,7 +1,7 @@
 rp:
   upload:
     maxUploadSize: 128MB
-    maxFileSize: 32MB
+    maxFileSize: 64MB
   analytics:
     enableByDefault: true
 

@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.*;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.security.Principal;
 import java.util.List;
@@ -107,7 +108,16 @@ public interface IExternalSystemController {
 	 */
 	List<PostFormField> getSetOfExternalSystemFields(String issuetype, String projectName, String id);
 
-	/**
+    /**
+     * Get list of external system fields for UI representation
+     *
+     * @param projectName Name of Project
+     * @param systemId    System ID
+     * @return Found fields
+     */
+    List<String> getAllowableIssueTypes(String projectName, String systemId);
+
+    /**
 	 * Post issue to bug tracking system.
 	 *
 	 * @param ticketRQ    Ticket details

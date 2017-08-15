@@ -21,12 +21,11 @@
  
 package com.epam.ta.reportportal.core.activity;
 
-import java.util.List;
-
-import org.springframework.data.domain.Pageable;
-
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 /**
  * Define operations for loading activities
@@ -69,4 +68,17 @@ public interface IActivityHandler {
 	 */
 	List<ActivityResource> getItemActivities(String projectName, String itemId, Filter filter, Pageable pageable);
 
+    /**
+     * Load list of {@link com.epam.ta.reportportal.events.handler.ActivityEventType}
+     * names
+     * @return List of names
+     */
+    List<String> getActivityTypeNames();
+
+    /**
+     * Load list of {@link com.epam.ta.reportportal.events.handler.ActivityObjectType}
+     * names
+     * @return List of names
+     */
+    List<String> getActivityObjectTypeNames();
 }

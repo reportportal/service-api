@@ -21,27 +21,26 @@
 
 package com.epam.ta.reportportal.core.activity.impl;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-
-import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.activity.IActivityHandler;
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.events.handler.ActivityEventType;
+import com.epam.ta.reportportal.events.handler.ActivityObjectType;
 import com.epam.ta.reportportal.ws.converter.ActivityResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
@@ -93,4 +92,14 @@ public class ActivityHandler implements IActivityHandler {
 		return activityRepository.findActivitiesByTestItemId(itemId, filter, pageable).stream()
 				.map(activity -> activityResourceAssembler.toResource(activity)).collect(Collectors.toList());
 	}
+
+    @Override
+    public List<String> getActivityTypeNames() {
+        return Arrays.stream(ActivityEventType.values()).map(ActivityEventType::getValue).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> getActivityObjectTypeNames() {
+        return Arrays.stream(ActivityObjectType.values()).map(ActivityObjectType::getValue).collect(Collectors.toList());
+    }
 }

@@ -30,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Provider;
 import java.util.HashMap;
 
 /**
@@ -49,11 +48,9 @@ public class ProjectActivityHandler {
 	public static final String AUTO_ANALYZE = "auto_analyze";
 
 	private final ActivityRepository activityRepository;
-	private final Provider<ActivityBuilder> activityBuilder;
 
 	@Autowired
-	public ProjectActivityHandler(Provider<ActivityBuilder> activityBuilder, ActivityRepository activityRepository) {
-		this.activityBuilder = activityBuilder;
+	public ProjectActivityHandler(ActivityRepository activityRepository) {
 		this.activityRepository = activityRepository;
 	}
 
@@ -72,7 +69,7 @@ public class ProjectActivityHandler {
 		}
 
 		if (!history.isEmpty()) {
-			Activity activityLog = activityBuilder.get().addProjectRef(project.getName()).addObjectType(Project.PROJECT)
+			Activity activityLog = new ActivityBuilder().addProjectRef(project.getName()).addObjectType(Project.PROJECT)
 					.addActionType(UPDATE_PROJECT).addUserRef(event.getUpdatedBy()).build();
 			activityLog.setHistory(history);
 			activityRepository.save(activityLog);

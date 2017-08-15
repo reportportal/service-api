@@ -33,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Provider;
 import java.util.HashMap;
 
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
@@ -45,13 +44,14 @@ import static com.epam.ta.reportportal.events.handler.EventType.*;
 @Component
 public class WidgetActivityEventHandler {
 
-    @Autowired
 	private ActivityRepository activityRepository;
 
 	@Autowired
-	private Provider<ActivityBuilder> activityBuilder;
+    public WidgetActivityEventHandler(ActivityRepository activityRepository) {
+        this.activityRepository = activityRepository;
+    }
 
-	@EventListener
+    @EventListener
 	public void onWidgetUpdated(WidgetUpdatedEvent event) {
 		Widget widget = event.getBefore();
 		WidgetRQ widgetRQ = event.getWidgetRQ();
@@ -61,7 +61,7 @@ public class WidgetActivityEventHandler {
             processName(history, widget.getName(), widgetRQ.getName());
             processDescription(history, widget.getDescription(), widgetRQ.getDescription());
             if (!history.isEmpty()) {
-                Activity activityLog = activityBuilder.get()
+                Activity activityLog = new ActivityBuilder()
                         .addProjectRef(widget.getProjectName())
                         .addObjectType(Widget.WIDGET)
                         .addActionType(UPDATE_WIDGET.name())
@@ -77,7 +77,7 @@ public class WidgetActivityEventHandler {
 	@EventListener
     public void onCreateWidget(WidgetCreatedEvent event) {
         WidgetRQ widgetRQ = event.getWidgetRQ();
-        Activity activityLog = activityBuilder.get()
+        Activity activityLog = new ActivityBuilder()
                 .addActionType(CREATE_WIDGET.name())
                 .addObjectType(Widget.WIDGET)
                 .addObjectName(widgetRQ.getName())
@@ -94,7 +94,7 @@ public class WidgetActivityEventHandler {
     @EventListener
     public void onDeleteWidget(WidgetDeletedEvent event) {
         Widget widget = event.getBefore();
-        Activity activityLog = this.activityBuilder.get()
+        Activity activityLog = new ActivityBuilder()
                 .addActionType(DELETE_WIDGET.name())
                 .addObjectType(Widget.WIDGET)
                 .addObjectName(widget.getName())

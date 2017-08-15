@@ -34,8 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Provider;
-
 /**
  * @author Andrei Varabyeu
  */
@@ -47,13 +45,10 @@ public class LaunchActivityHandler {
 	public static final String FINISH = "finish";
 	public static final String DELETE = "delete";
 
-	private final Provider<ActivityBuilder> activityBuilder;
-
 	private final ActivityRepository activityRepository;
 
 	@Autowired
-	public LaunchActivityHandler(Provider<ActivityBuilder> activityBuilder, ActivityRepository activityRepository) {
-		this.activityBuilder = activityBuilder;
+	public LaunchActivityHandler(ActivityRepository activityRepository) {
 		this.activityRepository = activityRepository;
 	}
 
@@ -72,7 +67,7 @@ public class LaunchActivityHandler {
 		Launch launch = event.getLaunch();
 		if (Mode.DEBUG != event.getLaunch().getMode()) {
 			String name = launch.getName() + DELIMITER + launch.getNumber();
-			Activity activityLog = activityBuilder.get().addUserRef(launch.getUserRef()).addProjectRef(launch.getProjectRef().toLowerCase())
+			Activity activityLog = new ActivityBuilder().addUserRef(launch.getUserRef()).addProjectRef(launch.getProjectRef().toLowerCase())
 					.addActionType(START).addObjectType(Launch.LAUNCH).addLoggedObjectRef(launch.getId()).addObjectName(name).build();
 			activityRepository.save(activityLog);
 		}
@@ -83,7 +78,7 @@ public class LaunchActivityHandler {
 		Launch launch = event.getLaunch();
 		if (null != launch && launch.getMode() == Mode.DEFAULT) {
 			String name = launch.getName() + DELIMITER + launch.getNumber();
-			Activity activity = activityBuilder.get().addUserRef(event.getDeletedBy()).addProjectRef(event.getLaunch().getProjectRef())
+			Activity activity = new ActivityBuilder().addUserRef(event.getDeletedBy()).addProjectRef(event.getLaunch().getProjectRef())
 					.addActionType(DELETE).addObjectType(Launch.LAUNCH).addLoggedObjectRef(launch.getId()).addObjectName(name).build();
 			activityRepository.save(activity);
 		}
@@ -92,7 +87,7 @@ public class LaunchActivityHandler {
 	private void afterLaunchFinished(Launch launch, String finishedBy) {
 		if (launch.getMode() != Mode.DEBUG) {
 			String name = launch.getName() + DELIMITER + launch.getNumber();
-			Activity activityLog = activityBuilder.get().addUserRef(finishedBy).addProjectRef(launch.getProjectRef()).addActionType(FINISH)
+			Activity activityLog = new ActivityBuilder().addUserRef(finishedBy).addProjectRef(launch.getProjectRef()).addActionType(FINISH)
 					.addObjectType(Launch.LAUNCH).addLoggedObjectRef(launch.getId()).addObjectName(name).build();
 			activityRepository.save(activityLog);
 		}

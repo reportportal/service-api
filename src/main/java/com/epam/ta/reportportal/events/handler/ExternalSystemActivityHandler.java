@@ -32,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Provider;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -50,19 +49,16 @@ public class ExternalSystemActivityHandler {
 
 	private final ActivityRepository activityRepository;
 
-	private final Provider<ActivityBuilder> activityBuilder;
-
 	@Autowired
-	public ExternalSystemActivityHandler(ActivityRepository activityRepository, Provider<ActivityBuilder> activityBuilder) {
+	public ExternalSystemActivityHandler(ActivityRepository activityRepository) {
 		this.activityRepository = activityRepository;
-		this.activityBuilder = activityBuilder;
 	}
 
 	@EventListener
 	public void onExternalSystemCreated(ExternalSystemCreatedEvent event) {
 		ExternalSystem externalSystem = event.getExternalSystem();
 		String name = externalSystem.getExternalSystemType().name() + ":" + externalSystem.getProject();
-		Activity activity = activityBuilder.get().addObjectName(name).addObjectType(EXTERNAL_SYSTEM)
+		Activity activity = new ActivityBuilder().addObjectName(name).addObjectType(EXTERNAL_SYSTEM)
 				.addLoggedObjectRef(externalSystem.getId()).addUserRef(event.getCreatedBy()).addActionType(CREATE)
 				.addProjectRef(externalSystem.getProjectRef()).build();
 		activityRepository.save(activity);
@@ -73,7 +69,7 @@ public class ExternalSystemActivityHandler {
 		ExternalSystem externalSystem = event.getExternalSystem();
 		if (externalSystem != null) {
 			String name = externalSystem.getExternalSystemType().name() + ":" + externalSystem.getProject();
-			Activity activity = activityBuilder.get().addObjectName(name).addObjectType(EXTERNAL_SYSTEM)
+			Activity activity = new ActivityBuilder().addObjectName(name).addObjectType(EXTERNAL_SYSTEM)
 					.addLoggedObjectRef(externalSystem.getId()).addUserRef(event.getUpdatedBy()).addActionType(UPDATE)
 					.addProjectRef(externalSystem.getProjectRef()).build();
 			activityRepository.save(activity);
@@ -85,7 +81,7 @@ public class ExternalSystemActivityHandler {
 		ExternalSystem externalSystem = event.getExternalSystem();
 		if (externalSystem != null) {
 			String name = externalSystem.getExternalSystemType().name() + ":" + externalSystem.getProject();
-			Activity activity = activityBuilder.get().addObjectName(name).addObjectType(EXTERNAL_SYSTEM)
+			Activity activity = new ActivityBuilder().addObjectName(name).addObjectType(EXTERNAL_SYSTEM)
 					.addLoggedObjectRef(externalSystem.getId()).addUserRef(event.getDeletedBy()).addActionType(DELETE)
 					.addProjectRef(externalSystem.getProjectRef()).build();
 			activityRepository.save(activity);
@@ -98,7 +94,7 @@ public class ExternalSystemActivityHandler {
 		if (null != externalSystems) {
 			List<Activity> activities = StreamSupport.stream(externalSystems.spliterator(), false).map(externalSystem -> {
 				String name = externalSystem.getExternalSystemType().name() + ":" + externalSystem.getProject();
-				return activityBuilder.get().addObjectName(name).addObjectType(EXTERNAL_SYSTEM).addLoggedObjectRef(externalSystem.getId())
+				return new ActivityBuilder().addObjectName(name).addObjectType(EXTERNAL_SYSTEM).addLoggedObjectRef(externalSystem.getId())
 						.addUserRef(event.getDeletedBy()).addActionType(DELETE).addProjectRef(event.getProject()).build();
 			}).collect(Collectors.toList());
 			if (!activities.isEmpty())

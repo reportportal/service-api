@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Provider;
 import java.util.HashMap;
 
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
@@ -50,9 +49,6 @@ public class DashboardActivityEventHandler {
     @Autowired
     private ActivityRepository activityRepository;
 
-    @Autowired
-    private Provider<ActivityBuilder> activityBuilder;
-
     @EventListener
     public void onDashboardUpdate(DashboardUpdatedEvent event) {
         Dashboard dashboard = event.getDashboard();
@@ -63,7 +59,7 @@ public class DashboardActivityEventHandler {
             processName(history, dashboard.getName(), updateRQ.getName());
             processDescription(history, dashboard.getDescription(), updateRQ.getDescription());
             if (!history.isEmpty()) {
-                Activity activityLog = activityBuilder.get()
+                Activity activityLog = new ActivityBuilder()
                         .addProjectRef(dashboard.getProjectName())
                         .addObjectType(Dashboard.DASHBOARD)
                         .addActionType(UPDATE_DASHBOARD.name())
@@ -79,7 +75,7 @@ public class DashboardActivityEventHandler {
     @EventListener
     public void onDashboardCreate(DashboardCreatedEvent event) {
         CreateDashboardRQ createDashboardRQ = event.getCreateDashboardRQ();
-        Activity activityLog = activityBuilder.get()
+        Activity activityLog = new ActivityBuilder()
                 .addActionType(CREATE_DASHBOARD.name())
                 .addObjectType(Dashboard.DASHBOARD)
                 .addObjectName(createDashboardRQ.getName())
@@ -95,7 +91,7 @@ public class DashboardActivityEventHandler {
     @EventListener
     public void onDashboardDelete(DashboardDeletedEvent event) {
         Dashboard dashboard = event.getBefore();
-        Activity activityLog = activityBuilder.get()
+        Activity activityLog = new ActivityBuilder()
                 .addActionType(DELETE_DASHBOARD.name())
                 .addObjectType(Dashboard.DASHBOARD)
                 .addObjectName(dashboard.getName())

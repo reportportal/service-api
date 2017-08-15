@@ -24,14 +24,13 @@ import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.events.EmailConfigUpdatedEvent;
-import com.epam.ta.reportportal.ws.converter.converters.EmailConfigConverters;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.EmailConfigConverters;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Provider;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,12 +48,10 @@ public class ProjectEmailUpdatedHandler {
 	private static final String EMAIL_FROM = "from";
 
 	private final ActivityRepository activityRepository;
-	private final Provider<ActivityBuilder> activityBuilder;
 
 	@Autowired
-	public ProjectEmailUpdatedHandler(ActivityRepository activityRepository, Provider<ActivityBuilder> activityBuilder) {
+	public ProjectEmailUpdatedHandler(ActivityRepository activityRepository) {
 		this.activityRepository = activityRepository;
-		this.activityBuilder = activityBuilder;
 	}
 
 	@EventListener
@@ -65,7 +62,7 @@ public class ProjectEmailUpdatedHandler {
 			processEmailConfiguration(history, event.getBefore(), configuration);
 		}
 		if (!history.isEmpty()) {
-			Activity activityLog = activityBuilder.get().addProjectRef(event.getBefore().getName()).addObjectType(Project.PROJECT)
+			Activity activityLog = new ActivityBuilder().addProjectRef(event.getBefore().getName()).addObjectType(Project.PROJECT)
 					.addActionType(UPDATE_PROJECT).addUserRef(event.getUpdatedBy()).build();
 			activityLog.setHistory(history);
 			activityRepository.save(activityLog);

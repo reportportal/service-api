@@ -21,12 +21,10 @@
  
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import java.util.Map;
-
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.entity.item.Activity;
+import javafx.util.Builder;
+
+import java.util.Map;
 
 /**
  * Builder for {@link com.epam.ta.reportportal.database.entity.item.Activity}
@@ -34,47 +32,50 @@ import com.epam.ta.reportportal.database.entity.item.Activity;
  * 
  * @author Dzmitry_Kavalets
  */
-@Service
-@Scope("prototype")
-public class ActivityBuilder extends Builder<Activity> {
+public class ActivityBuilder implements Builder{
+    
+    private Activity activity;
 
-	public ActivityBuilder addUserRef(String userRef) {
-		getObject().setUserRef(userRef);
+    public ActivityBuilder() {
+        activity = new Activity();
+    }
+
+    public ActivityBuilder addUserRef(String userRef) {
+		activity.setUserRef(userRef);
 		return this;
 	}
 
 	public ActivityBuilder addProjectRef(String projectRef) {
-		getObject().setProjectRef(projectRef);
+		activity.setProjectRef(projectRef);
 		return this;
 	}
 
 	public ActivityBuilder addActionType(String actionType) {
-		getObject().setActionType(actionType);
+		activity.setActionType(actionType);
 		return this;
 	}
 
 	public ActivityBuilder addObjectType(String objectType) {
-		getObject().setObjectType(objectType);
+		activity.setObjectType(objectType);
 		return this;
 	}
 
 	public ActivityBuilder addLoggedObjectRef(String loggedObjectRef) {
-		getObject().setLoggedObjectRef(loggedObjectRef);
+		activity.setLoggedObjectRef(loggedObjectRef);
 		return this;
 	}
 
 	public ActivityBuilder addHistory(Map<String, Activity.FieldValues> history) {
-		getObject().setHistory(history);
+		activity.setHistory(history);
 		return this;
 	}
 
 	public ActivityBuilder addObjectName(String name) {
-		getObject().setName(name);
+		activity.setName(name);
 		return this;
 	}
 
-	@Override
-	protected Activity initObject() {
-		return new Activity();
-	}
+	public Activity build() {
+        return activity;
+    }
 }

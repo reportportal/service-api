@@ -34,29 +34,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Provider;
 import java.util.HashMap;
 
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
 import static com.epam.ta.reportportal.events.handler.EventType.*;
 
 /**
- * @author pavel_bortnik
+ * @author Pavel Bortnik
  */
 @Component
 public class UserFilterActivityHandler {
 
     private static final String USER_FILTER = "userFilter";
-    @Autowired
+
     private ActivityRepository activityRepository;
 
     @Autowired
-    private Provider<ActivityBuilder> activityBuilder;
+    public UserFilterActivityHandler(ActivityRepository activityRepository) {
+        this.activityRepository = activityRepository;
+    }
 
     @EventListener
     public void onFilterCreate(FilterCreatedEvent event) {
         CreateUserFilterRQ userFilterRQ = event.getFilterRQ();
-        Activity activityLog = activityBuilder.get()
+        Activity activityLog = new ActivityBuilder()
                 .addActionType(CREATE_FILTER.name())
                 .addObjectType(USER_FILTER)
                 .addObjectName(userFilterRQ.getName())
@@ -79,7 +80,7 @@ public class UserFilterActivityHandler {
             processName(history, userFilter.getName(), updateUserFilterRQ.getName());
             processDescription(history, userFilter.getDescription(), updateUserFilterRQ.getDescription());
             if (!history.isEmpty()) {
-                Activity activityLog = activityBuilder.get()
+                Activity activityLog = new ActivityBuilder()
                         .addProjectRef(userFilter.getProjectName())
                         .addObjectType(USER_FILTER)
                         .addActionType(UPDATE_FILTER.name())
@@ -95,7 +96,7 @@ public class UserFilterActivityHandler {
     @EventListener
     public void onFilterDelete(FilterDeletedEvent event) {
         UserFilter before = event.getBefore();
-        Activity activityLog = activityBuilder.get()
+        Activity activityLog = new ActivityBuilder()
                 .addActionType(DELETE_FILTER.name())
                 .addObjectType(USER_FILTER)
                 .addObjectName(before.getName())

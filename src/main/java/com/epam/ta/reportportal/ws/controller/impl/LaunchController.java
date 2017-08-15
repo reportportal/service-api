@@ -229,7 +229,7 @@ public class LaunchController implements ILaunchController {
 	@RequestMapping(value = "/mode", method = GET)
 	@ResponseBody
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_MEMBER)
+	@PreAuthorize(NOT_CUSTOMER)
 	@ApiOperation("Get launches of specified project from DEBUG mode")
 	public Iterable<LaunchResource> getDebugLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
 			@SortFor(Launch.class) Pageable pageable, Principal principal) {

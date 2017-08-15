@@ -74,9 +74,9 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:3.1.1'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile('com.github.reportportal:commons-dao:eba5abb')
+        compile('com.github.reportportal:commons-dao:8eaebb2')
         compile('com.github.reportportal:commons-rules:3.1.1')
-        compile 'com.github.reportportal:commons-model:19407ae'
+        compile 'com.github.reportportal:commons-model:1f903fa'
         compile ('com.github.reportportal:commons:3.1.0')
     }
 
@@ -237,9 +237,10 @@ test {
             }
         }
     }
+
     if (System.env.TRAVIS == 'true') {
-        maxParallelForks = 2
-        minHeapSize = "128m"
-        maxHeapSize = "1g"
+            maxParallelForks = 2
+            minHeapSize = "128m"
+            maxHeapSize = "1g"
     }
 }

@@ -71,7 +71,6 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
 
     private void setLaunchRefForChilds(TestItem testItemParent, String launchRef) {
         List<TestItem> childItems = testItemRepository.findAllDescendants(testItemParent.getId());
-
         for (TestItem child : childItems) {
             child.setLaunchRef(launchRef);
             List<String> path = new ArrayList<>(testItemParent.getPath());
@@ -90,10 +89,8 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
 
         suites.stream()
                 .collect(Collectors.groupingBy(TestItem::getName))
-                .entrySet().forEach(entry -> {
-            moveAllChildTestItems(entry.getValue().get(0),
-                    entry.getValue().subList(1, entry.getValue().size()));
-        });
+                .forEach((key, value) -> moveAllChildTestItems(value.get(0),
+                        value.subList(1, value.size())));
     }
 
     /**
@@ -125,26 +122,25 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
      * Defines start time as the earliest and the end time as latest
      */
     private TestItem updateTime(TestItem target, TestItem source) {
-        target.setStartTime(target.getStartTime().compareTo(source.getStartTime()) < 0 ?
+        target.setStartTime(target.getStartTime().before(source.getStartTime()) ?
                 target.getStartTime() : source.getStartTime());
-        target.setEndTime(target.getEndTime().compareTo(source.getEndTime()) > 0 ?
+        target.setEndTime(target.getEndTime().after(target.getStartTime()) ?
                 target.getEndTime() : source.getEndTime());
         return target;
     }
 
     private Set<String> mergeTags(@Nullable Set<String> first, @Nullable Set<String> second) {
-        return Stream.concat(Optional.ofNullable(first).orElse(Collections.emptySet()).stream(),
-                Optional.ofNullable(second).orElse(Collections.emptySet()).stream()).collect(toSet());
+        return Stream.concat(first != null ? first.stream() : Stream.empty(),
+                second != null ? second.stream() : Stream.empty()).collect(Collectors.toSet());
     }
 
     private String mergeDescriptions(@Nullable String first, @Nullable String second) {
-        return new StringJoiner("\r\n").add(Optional.ofNullable(first).orElse(""))
-                .add(Optional.ofNullable(second).orElse("")).toString();
+        return new StringJoiner("\r\n").add(first != null ? first : "")
+                .add(second != null ? second : "").toString();
     }
 
     private List<Parameter> mergeParameters(@Nullable List<Parameter> first, @Nullable List<Parameter> second) {
-        return Stream.concat(Optional.ofNullable(first).orElse(Collections.emptyList()).stream(),
-                Optional.ofNullable(second).orElse(Collections.emptyList()).stream())
-                .collect(Collectors.toList());
+        return Stream.concat(first != null ? first.stream() : Stream.empty(),
+                second != null ? second.stream() : Stream.empty()).collect(Collectors.toList());
     }
 }

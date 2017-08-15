@@ -148,7 +148,7 @@ public class ProjectController implements IProjectController {
 	@RequestMapping(value = "/{projectName}/users", method = GET)
 	@ResponseBody
 	@ResponseView(ModelViews.DefaultView.class)
-	@PreAuthorize(PROJECT_MEMBER)
+	@PreAuthorize(NOT_CUSTOMER)
 	@ApiOperation("Get users from project")
 	public Iterable<UserResource> getProjectUsers(@PathVariable String projectName, @FilterFor(User.class) Filter filter,
 			@SortFor(User.class) Pageable pageable, Principal principal) {
@@ -202,7 +202,7 @@ public class ProjectController implements IProjectController {
 	@RequestMapping(value = "/{projectName}/usernames", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	@PreAuthorize(PROJECT_MEMBER)
+	@PreAuthorize(NOT_CUSTOMER)
 	@ApiOperation(value = "Load project users by filter", notes = "Only for users that are members of the project")
 	public List<String> getProjectUsers(@PathVariable String projectName,
 			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + Project.USERS) String value,

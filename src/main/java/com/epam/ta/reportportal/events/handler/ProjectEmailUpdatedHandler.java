@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.events.handler.EventType.UPDATE_PROJECT;
+import static com.epam.ta.reportportal.events.handler.ActivityEventType.UPDATE_PROJECT;
 
 /**
  * Handles {@link com.epam.ta.reportportal.events.ProjectUpdatedEvent}

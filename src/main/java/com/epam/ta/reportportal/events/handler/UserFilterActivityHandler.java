@@ -36,16 +36,15 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 
+import static com.epam.ta.reportportal.events.handler.ActivityEventType.*;
+import static com.epam.ta.reportportal.events.handler.ActivityObjectType.USER_FILTER;
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
-import static com.epam.ta.reportportal.events.handler.EventType.*;
 
 /**
  * @author Pavel Bortnik
  */
 @Component
 public class UserFilterActivityHandler {
-
-    private static final String USER_FILTER = "userFilter";
 
     private ActivityRepository activityRepository;
 
@@ -59,7 +58,7 @@ public class UserFilterActivityHandler {
         CreateUserFilterRQ userFilterRQ = event.getFilterRQ();
         Activity activityLog = new ActivityBuilder()
                 .addActionType(CREATE_FILTER.getValue())
-                .addObjectType(USER_FILTER)
+                .addObjectType(USER_FILTER.getValue())
                 .addObjectName(userFilterRQ.getName())
                 .addProjectRef(event.getProjectRef())
                 .addUserRef(event.getCreatedBy())
@@ -82,7 +81,8 @@ public class UserFilterActivityHandler {
             if (!history.isEmpty()) {
                 Activity activityLog = new ActivityBuilder()
                         .addProjectRef(userFilter.getProjectName())
-                        .addObjectType(USER_FILTER)
+                        .addObjectName(userFilter.getName())
+                        .addObjectType(USER_FILTER.getValue())
                         .addActionType(UPDATE_FILTER.getValue())
                         .addLoggedObjectRef(userFilter.getId())
                         .addUserRef(event.getUpdatedBy())
@@ -98,7 +98,7 @@ public class UserFilterActivityHandler {
         UserFilter before = event.getBefore();
         Activity activityLog = new ActivityBuilder()
                 .addActionType(DELETE_FILTER.getValue())
-                .addObjectType(USER_FILTER)
+                .addObjectType(USER_FILTER.getValue())
                 .addObjectName(before.getName())
                 .addProjectRef(before.getProjectName())
                 .addUserRef(event.getRemovedBy())

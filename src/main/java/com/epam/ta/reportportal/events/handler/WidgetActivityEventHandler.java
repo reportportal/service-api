@@ -35,8 +35,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 
+import static com.epam.ta.reportportal.events.handler.ActivityEventType.*;
+import static com.epam.ta.reportportal.events.handler.ActivityObjectType.WIDGET;
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
-import static com.epam.ta.reportportal.events.handler.EventType.*;
 
 /**
  * @author Andrei Varabyeu
@@ -63,7 +64,8 @@ public class WidgetActivityEventHandler {
             if (!history.isEmpty()) {
                 Activity activityLog = new ActivityBuilder()
                         .addProjectRef(widget.getProjectName())
-                        .addObjectType(Widget.WIDGET)
+                        .addObjectName(widget.getName())
+                        .addObjectType(WIDGET.getValue())
                         .addActionType(UPDATE_WIDGET.getValue())
                         .addLoggedObjectRef(widget.getId())
                         .addUserRef(event.getUpdatedBy())
@@ -79,7 +81,7 @@ public class WidgetActivityEventHandler {
         WidgetRQ widgetRQ = event.getWidgetRQ();
         Activity activityLog = new ActivityBuilder()
                 .addActionType(CREATE_WIDGET.getValue())
-                .addObjectType(Widget.WIDGET)
+                .addObjectType(WIDGET.getValue())
                 .addObjectName(widgetRQ.getName())
                 .addProjectRef(event.getProjectRef())
                 .addUserRef(event.getCreatedBy())
@@ -96,7 +98,7 @@ public class WidgetActivityEventHandler {
         Widget widget = event.getBefore();
         Activity activityLog = new ActivityBuilder()
                 .addActionType(DELETE_WIDGET.getValue())
-                .addObjectType(Widget.WIDGET)
+                .addObjectType(WIDGET.getValue())
                 .addObjectName(widget.getName())
                 .addProjectRef(widget.getProjectName())
                 .addUserRef(event.getRemovedBy())

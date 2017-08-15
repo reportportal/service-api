@@ -33,7 +33,6 @@ import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
-import com.epam.ta.reportportal.events.handler.ExternalSystemActivityHandler;
 import com.epam.ta.reportportal.ws.converter.ProjectInfoResourceAssembler;
 import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.project.LaunchesPerUser;
@@ -55,13 +54,9 @@ import java.util.Map.Entry;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.database.search.Condition.*;
+import static com.epam.ta.reportportal.events.handler.ActivityEventType.*;
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.SHARE;
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.UNSHARE;
-import static com.epam.ta.reportportal.events.handler.ExternalSystemActivityHandler.UPDATE;
-import static com.epam.ta.reportportal.events.handler.LaunchActivityHandler.*;
-import static com.epam.ta.reportportal.events.handler.ProjectActivityHandler.UPDATE_PROJECT;
-import static com.epam.ta.reportportal.events.handler.TicketActivitySubscriber.POST_ISSUE;
-import static com.epam.ta.reportportal.events.handler.UserActivityHandler.CREATE_USER;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
@@ -185,9 +180,12 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 
 	@SuppressWarnings("serial")
 	private Map<String, List<ChartObject>> getActivities(String projectId, InfoInterval interval) {
-		String value = new StringJoiner(",").add(UPDATE_PROJECT).add(START).add(FINISH).add(DELETE).add(SHARE)
-				.add(UNSHARE).add(POST_ISSUE).add(CREATE_USER).add(UPDATE).add(ExternalSystemActivityHandler.CREATE)
-				.add(ExternalSystemActivityHandler.DELETE).toString();
+		String value = new StringJoiner(",").add(UPDATE_PROJECT.getValue()).add(START_LAUNCH.getValue())
+                .add(FINISH_LAUNCH.getValue()).add(DELETE_LAUNCH.getValue()).add(SHARE)
+				.add(UNSHARE).add(POST_ISSUE.getValue()).add(CREATE_USER.getValue()).add(UPDATE_BTS.getValue())
+                .add(CREATE_BTS.getValue())
+				.add(DELETE_BTS.getValue())
+                .toString();
 		int limit = 150;
 		Filter filter = new Filter(Activity.class, new HashSet<FilterCondition>() {
 			{

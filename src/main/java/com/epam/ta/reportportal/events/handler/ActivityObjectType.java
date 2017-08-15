@@ -18,39 +18,27 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.epam.ta.reportportal.events.handler;
 
 /**
  * @author Pavel Bortnik
  */
-public enum EventType {
+public enum ActivityObjectType {
 
-    CREATE_DASHBOARD("create_dashboard"),
-    UPDATE_DASHBOARD("update_dashboard"),
-    DELETE_DASHBOARD("delete_dashboard"),
-    CREATE_WIDGET("create_widget"),
-    UPDATE_WIDGET("update_widget"),
-    DELETE_WIDGET("delete_widget"),
-    CREATE_FILTER("create_filter"),
-    UPDATE_FILTER("update_filter"),
-    DELETE_FILTER("delete_filter"),
-    UPDATE_DEFECT("update_defect"),
-    DELETE_DEFECT("delete_defect"),
-    CREATE_BTS("create_bts"),
-    UPDATE_BTS("update_bts"),
-    DELETE_BTS("delete_bts"),
-    START_LAUNCH("start_launch"),
-    FINISH_LAUNCH("finish_launch"),
-    DELETE_LAUNCH("delete_launch"),
-    UPDATE_PROJECT("update_project"),
-    POST_ISSUE("post_issue"),
-    ATTACH_ISSUE("attach_issue"),
-    UPDATE_ITEM("update_item"),
-    CREATE_USER("create_user");
+    PROJECT("project"),
+    DEFECT_TYPE("defect_type"),
+    TEST_ITEM("testItem"),
+    LAUNCH("launch"),
+    EXTERNAL_SYSTEM("externalSystem"),
+    DASHBOARD("dashboard"),
+    USER("user"),
+    WIDGET("widget"),
+    USER_FILTER("userFilter");
 
     private String value;
 
-    EventType(String value) {
+    ActivityObjectType(String value) {
         this.value = value;
     }
 

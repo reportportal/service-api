@@ -36,8 +36,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 
+import static com.epam.ta.reportportal.events.handler.ActivityEventType.*;
+import static com.epam.ta.reportportal.events.handler.ActivityObjectType.DASHBOARD;
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
-import static com.epam.ta.reportportal.events.handler.EventType.*;
 
 /**
  * @author Andrei Varabyeu
@@ -60,9 +61,10 @@ public class DashboardActivityEventHandler {
             processDescription(history, dashboard.getDescription(), updateRQ.getDescription());
             if (!history.isEmpty()) {
                 Activity activityLog = new ActivityBuilder()
-                        .addProjectRef(dashboard.getProjectName())
-                        .addObjectType(Dashboard.DASHBOARD)
                         .addActionType(UPDATE_DASHBOARD.name())
+                        .addObjectType(DASHBOARD.getValue())
+                        .addObjectName(dashboard.getName())
+                        .addProjectRef(dashboard.getProjectName())
                         .addLoggedObjectRef(dashboard.getId())
                         .addUserRef(event.getUpdatedBy())
                         .addHistory(history)
@@ -77,7 +79,7 @@ public class DashboardActivityEventHandler {
         CreateDashboardRQ createDashboardRQ = event.getCreateDashboardRQ();
         Activity activityLog = new ActivityBuilder()
                 .addActionType(CREATE_DASHBOARD.name())
-                .addObjectType(Dashboard.DASHBOARD)
+                .addObjectType(DASHBOARD.getValue())
                 .addObjectName(createDashboardRQ.getName())
                 .addProjectRef(event.getProjectRef())
                 .addUserRef(event.getCreatedBy())
@@ -93,7 +95,7 @@ public class DashboardActivityEventHandler {
         Dashboard dashboard = event.getBefore();
         Activity activityLog = new ActivityBuilder()
                 .addActionType(DELETE_DASHBOARD.name())
-                .addObjectType(Dashboard.DASHBOARD)
+                .addObjectType(DASHBOARD.getValue())
                 .addObjectName(dashboard.getName())
                 .addProjectRef(dashboard.getProjectName())
                 .addUserRef(event.getRemovedBy())

@@ -49,15 +49,17 @@ import java.util.Map;
 public class DeleteDashboardHandler implements IDeleteDashboardHandler {
 
     private final DashboardRepository dashboardRepository;
+
     private final ProjectRepository projectRepository;
 
-    @Autowired
     private ApplicationEventPublisher eventPublisher;
 
     @Autowired
-    public DeleteDashboardHandler(DashboardRepository dashboardRepository, ProjectRepository projectRepository) {
+    public DeleteDashboardHandler(DashboardRepository dashboardRepository, ProjectRepository projectRepository,
+                                  ApplicationEventPublisher eventPublisher) {
         this.dashboardRepository = dashboardRepository;
         this.projectRepository = projectRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override

@@ -48,15 +48,17 @@ import org.springframework.stereotype.Service;
 public class DeleteUserFilterHandler implements IDeleteUserFilterHandler {
 
 	private final UserFilterRepository filterRepository;
+
 	private final ProjectRepository projectRepository;
 
-    @Autowired
     private ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	public DeleteUserFilterHandler(UserFilterRepository filterRepository, ProjectRepository projectRepository) {
+	public DeleteUserFilterHandler(UserFilterRepository filterRepository, ProjectRepository projectRepository,
+                                   ApplicationEventPublisher eventPublisher) {
 		this.filterRepository = filterRepository;
 		this.projectRepository = projectRepository;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Override

@@ -71,7 +71,6 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 
 	private SharingService sharingService;
 
-    @Autowired
     private ApplicationEventPublisher eventPublisher;
 
 	@Autowired
@@ -80,6 +79,11 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 	}
 
 	@Autowired
+    public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
+
+    @Autowired
 	public void setWidgetBuilder(Provider<WidgetBuilder> widgetBuilder) {
 		this.widgetBuilder = widgetBuilder;
 	}

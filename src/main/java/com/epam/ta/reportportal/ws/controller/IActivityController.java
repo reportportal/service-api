@@ -57,8 +57,31 @@ public interface IActivityController {
 	 */
 	List<ActivityResource> getTestItemActivities(String projectName, String itemId, Filter filter, Pageable pageable, Principal principal);
 
+    /**
+     * Get activity type names
+     *
+     * @param projectName
+     * @return
+     */
 	List<String> getActivityTypes(String projectName);
 
+    /**
+     * Get activity object type names
+     *
+     * @param projectName
+     * @return
+     */
 	List<String> getActivityObjectTypes(String projectName);
+
+    /**
+     * Get activities for specified project with filter
+     * and paging
+     *
+     * @param projectName
+     * @param filter
+     * @param pageable
+     * @return
+     */
+	List<ActivityResource> getActivities(String projectName, Filter filter, Pageable pageable);
 
 }

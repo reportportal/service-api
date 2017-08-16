@@ -91,4 +91,13 @@ public class ActivityController implements IActivityController {
         return activityHandler.getActivityObjectTypeNames();
     }
 
+    @Override
+    @RequestMapping(value = "/activities", method = RequestMethod.GET)
+    @ResponseStatus(OK)
+    @ResponseBody
+    @ApiOperation("Get activities history for specified project")
+    public List<ActivityResource> getActivities(String projectName, Filter filter, Pageable pageable) {
+        return activityHandler.getActivitiesHistory(projectName, filter, pageable);
+    }
+
 }

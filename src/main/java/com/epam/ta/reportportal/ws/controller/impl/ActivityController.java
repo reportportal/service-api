@@ -96,7 +96,8 @@ public class ActivityController implements IActivityController {
     @ResponseStatus(OK)
     @ResponseBody
     @ApiOperation("Get activities history for specified project")
-    public List<ActivityResource> getActivities(String projectName, Filter filter, Pageable pageable) {
+    public List<ActivityResource> getActivities(@PathVariable String projectName, @FilterFor(Activity.class) Filter filter,
+            @SortFor(Activity.class) Pageable pageable) {
         return activityHandler.getActivitiesHistory(projectName, filter, pageable);
     }
 

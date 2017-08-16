@@ -90,8 +90,18 @@ public class WidgetController implements IWidgetController {
 		return createHandler.createWidget(createWidgetRQ, normalizeId(projectName), principal.getName());
 	}
 
-	@Override
-	@RequestMapping(value = "/{widgetId}", method = RequestMethod.GET)
+    @Override
+    @RequestMapping(value = "/empty", method = RequestMethod.POST)
+    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseBody
+    @ApiOperation("Create empty widget")
+    public EntryCreatedRS createEmptyWidget(@PathVariable String projectName,
+                                            @RequestBody WidgetRQ createWidgetRq, Principal principal) {
+        return createHandler.createEmpty(createWidgetRq, normalizeId(projectName), principal.getName());
+    }
+
+    @Override
+    @RequestMapping(value = "/{widgetId}", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	@ApiOperation("Get widget by ID")

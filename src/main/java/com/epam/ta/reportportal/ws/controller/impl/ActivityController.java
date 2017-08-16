@@ -74,11 +74,19 @@ public class ActivityController implements IActivityController {
 	}
 
     @Override
+    @RequestMapping(value = "/events", method = RequestMethod.GET)
+    @ResponseStatus(OK)
+    @ResponseBody
+    @ApiOperation("Get activity event types")
     public List<String> getActivityTypes() {
         return activityHandler.getActivityTypeNames();
     }
 
     @Override
+    @RequestMapping(value = "/objects", method = RequestMethod.GET)
+    @ResponseStatus(OK)
+    @ResponseBody
+    @ApiOperation("Get activity object types")
     public List<String> getActivityObjectTypes() {
         return activityHandler.getActivityObjectTypeNames();
     }

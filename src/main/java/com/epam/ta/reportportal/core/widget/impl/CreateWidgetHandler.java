@@ -119,7 +119,7 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 
         if (gadget != ACTIVITY && gadget != MOST_FAILED_TEST_CASES && gadget != PASSING_RATE_PER_LAUNCH) {
             checkApplyingFilter(filter, createWidgetRQ.getApplyingFilter(), userName);
-		}
+        }
 
 		if ((null != createWidgetRQ.getContentParameters().getMetadataFields())
 				&& ((null == filter) || filter.getFilter().getTarget().equals(TestItem.class))) {

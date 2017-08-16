@@ -78,7 +78,7 @@ public class ActivityController implements IActivityController {
     @ResponseStatus(OK)
     @ResponseBody
     @ApiOperation("Get activity event types")
-    public List<String> getActivityTypes() {
+    public List<String> getActivityTypes(@PathVariable String projectName) {
         return activityHandler.getActivityTypeNames();
     }
 
@@ -87,7 +87,8 @@ public class ActivityController implements IActivityController {
     @ResponseStatus(OK)
     @ResponseBody
     @ApiOperation("Get activity object types")
-    public List<String> getActivityObjectTypes() {
+    public List<String> getActivityObjectTypes(@PathVariable String projectName) {
         return activityHandler.getActivityObjectTypeNames();
     }
+
 }

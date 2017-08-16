@@ -57,8 +57,8 @@ public interface IActivityController {
 	 */
 	List<ActivityResource> getTestItemActivities(String projectName, String itemId, Filter filter, Pageable pageable, Principal principal);
 
-	List<String> getActivityTypes();
+	List<String> getActivityTypes(String projectName);
 
-	List<String> getActivityObjectTypes();
+	List<String> getActivityObjectTypes(String projectName);
 
 }

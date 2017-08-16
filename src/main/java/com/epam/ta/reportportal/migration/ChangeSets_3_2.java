@@ -29,7 +29,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -42,6 +41,7 @@ import java.util.Map;
 public class ChangeSets_3_2 {
 
     private static final String HISTORY = "history";
+    private static final String CHANGES = "changes";
     private static final String ID = "_id";
     private static final String COLLECTION = "activity";
 
@@ -56,13 +56,13 @@ public class ChangeSets_3_2 {
             int i = 0;
             for (String key : history.keySet()) {
                 DBObject o = (DBObject) history.get(key);
-                Map<String, String> res = new HashMap<>(o.keySet().size() + 1);
+                Map res = new LinkedHashMap(o.keySet().size() + 1);
                 res.put("field", key);
                 res.putAll(o.toMap());
                 dbArray[i] = res;
                 i++;
             }
-            u.set(HISTORY, dbArray);
+            u.unset(HISTORY).set(CHANGES, dbArray);
             mongoTemplate.updateFirst(Query.query(Criteria.where(ID).is(dbo.get(ID))), u, COLLECTION);
         });
     }

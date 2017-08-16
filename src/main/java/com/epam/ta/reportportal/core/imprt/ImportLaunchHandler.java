@@ -37,6 +37,5 @@ public interface ImportLaunchHandler {
      * @param file      file with report
      * @return OperationCompletionRS
      */
-    OperationCompletionRS importLaunch(String projectId, String userName, String mode,
-                                       String format, MultipartFile file);
+    OperationCompletionRS importLaunch(String projectId, String userName, String format, MultipartFile file);
 }

@@ -36,7 +36,6 @@
  */
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.*;
@@ -231,10 +230,20 @@ public interface ILaunchController {
 	 */
 	Map<String, String> getStatuses(String projectName, String[] ids, Principal principal);
 
+    /**
+     * Imports test results of zip archive with xml reports inside
+     *
+     * @param projectId
+     * @param file
+     * @param principal
+     * @return
+     */
+	OperationCompletionRS importLaunch(String projectId, MultipartFile file, Principal principal);
+
 	void getLaunchReport(String projectName, String launchId, String view, Principal principal, HttpServletResponse response)
 			throws IOException;
 
 	OperationCompletionRS deleteLaunches(String projectName, String[] ids, Principal principal);
 
-	OperationCompletionRS importLaunch(String projectId, String mode, MultipartFile file, Principal principal) throws IOException;
+
 }

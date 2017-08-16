@@ -115,10 +115,10 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 		validateWidgetDataType(createWidgetRQ.getContentParameters().getType(), BAD_SAVE_WIDGET_REQUEST);
 		validateGadgetType(createWidgetRQ.getContentParameters().getGadget(), BAD_SAVE_WIDGET_REQUEST);
 
-		if ((findByName(createWidgetRQ.getContentParameters().getGadget()).get() != ACTIVITY)
-				&& (findByName(createWidgetRQ.getContentParameters().getGadget()).get() != MOST_FAILED_TEST_CASES)
-				&& (findByName(createWidgetRQ.getContentParameters().getGadget()).get() != PASSING_RATE_PER_LAUNCH)) {
-			checkApplyingFilter(filter, createWidgetRQ.getApplyingFilter(), userName);
+        GadgetTypes gadget = findByName(createWidgetRQ.getContentParameters().getGadget()).get();
+
+        if (gadget != ACTIVITY && gadget != MOST_FAILED_TEST_CASES && gadget != PASSING_RATE_PER_LAUNCH) {
+            checkApplyingFilter(filter, createWidgetRQ.getApplyingFilter(), userName);
 		}
 
 		if ((null != createWidgetRQ.getContentParameters().getMetadataFields())
@@ -137,7 +137,6 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 
 		Class<?> filterTarget;
 
-		GadgetTypes gadget = findByName(createWidgetRQ.getContentParameters().getGadget()).get();
 		if (gadget == UNIQUE_BUG_TABLE) {
 			filterTarget = TestItem.class;
 		} else if (gadget == ACTIVITY) {
@@ -190,4 +189,19 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 		expect(filter, notNull()).verify(USER_FILTER_NOT_FOUND, filterID, userName);
 		expect(filter.isLink(), equalTo(false)).verify(UNABLE_TO_CREATE_WIDGET, "Cannot create widget based on a link.");
 	}
+
+    @Override
+    public EntryCreatedRS createEmpty(WidgetRQ createWidgetRq, String project, String user) {
+        List<Widget> widgetList = widgetRepository.findByProjectAndUser(project, user);
+        checkUniqueName(createWidgetRq.getName(), widgetList);
+
+        validateGadgetType(createWidgetRq.getContentParameters().getGadget(), BAD_SAVE_WIDGET_REQUEST);
+
+        Widget widget = widgetBuilder.get().addWidgetRQ(createWidgetRq).addProject(project)
+                .addSharing(user, project, createWidgetRq.getDescription(), createWidgetRq.getShare() == null ? false : createWidgetRq.getShare()).build();
+        shareIfRequired(createWidgetRq.getShare(), widget, user, project, null);
+
+        widgetRepository.save(widget);
+        return new EntryCreatedRS(widget.getId());
+    }
 }

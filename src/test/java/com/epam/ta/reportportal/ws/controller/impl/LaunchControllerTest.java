@@ -107,7 +107,7 @@ public class LaunchControllerTest extends BaseMvcTest {
 		MockMultipartFile multipartFile = new MockMultipartFile("test-results.zip", "test-results.zip",
 				"application/zip", Files.readAllBytes(file));
 		OperationCompletionRS response = launchController
-				.importLaunch("project1", DEBUG.name(), multipartFile, authentication());
+				.importLaunch("project1", multipartFile, authentication());
 		String id = response.getResultMessage().substring(response.getResultMessage().indexOf("=") + 1,
 				response.getResultMessage().indexOf("is")).trim();
 		Launch launch = launchRepository.findOne(id);

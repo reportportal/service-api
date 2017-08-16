@@ -53,6 +53,14 @@ public interface IWidgetController {
 	 */
 	EntryCreatedRS createWidget(String projectName, WidgetRQ createWidgetRQ, Principal principal);
 
+    /**
+     * Temporary solution for creating empty widgets
+     *
+     * @param projectName
+     * @return EntryCreatedRS
+     */
+    EntryCreatedRS createEmptyWidget(String projectName, WidgetRQ createWidgetRq, Principal principal);
+
 	/**
 	 * Get widget by id
 	 * 

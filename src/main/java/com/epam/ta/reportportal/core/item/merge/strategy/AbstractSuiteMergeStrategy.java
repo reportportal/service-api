@@ -124,7 +124,7 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
     private TestItem updateTime(TestItem target, TestItem source) {
         target.setStartTime(target.getStartTime().before(source.getStartTime()) ?
                 target.getStartTime() : source.getStartTime());
-        target.setEndTime(target.getEndTime().after(target.getStartTime()) ?
+        target.setEndTime(target.getEndTime().after(source.getEndTime()) ?
                 target.getEndTime() : source.getEndTime());
         return target;
     }

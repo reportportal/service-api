@@ -131,7 +131,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 
     @Override
     public com.epam.ta.reportportal.ws.model.Page<LaunchResource> getLatestLaunches(String projectName, Filter filter,
-                                                                                    Pageable pageable) {
+                                              Pageable pageable) {
         validateModeConditions(filter);
         filter.addCondition(new FilterCondition(EQUALS, false, DEFAULT.toString(), Launch.MODE_CRITERIA));
         Page<LaunchResource> resources = launchRepository.findLatestLaunches(projectName, filter, pageable)

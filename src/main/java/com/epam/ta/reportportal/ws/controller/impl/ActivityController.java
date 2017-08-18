@@ -28,6 +28,7 @@ import java.security.Principal;
 import java.util.List;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.ws.model.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -51,6 +52,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * @author Dzmitry_Kavalets
+ * @author Andrei Varabyeu
  */
 @Controller
 @RequestMapping("/{projectName}/activity")
@@ -60,11 +62,11 @@ public class ActivityController implements IActivityController {
 	@Autowired
 	private IActivityHandler activityHandler;
 
-	@RequestMapping(value = "/item", method = RequestMethod.GET)
+	@RequestMapping(value = {"", "/"}, method = RequestMethod.GET)
 	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiOperation("Get activities for project")
-	public List<ActivityResource> getActivities(@PathVariable String projectName,
+	public Page<ActivityResource> getActivities(@PathVariable String projectName,
 			@FilterFor(Activity.class) Filter filter, @SortFor(Activity.class) Pageable pageable) {
 		return activityHandler.getItemActivities(EntityUtils.normalizeId(projectName), filter, pageable);
 	}

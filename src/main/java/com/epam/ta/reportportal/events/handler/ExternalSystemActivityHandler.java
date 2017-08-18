@@ -36,8 +36,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static com.epam.ta.reportportal.events.handler.ActivityEventType.*;
-import static com.epam.ta.reportportal.events.handler.ActivityObjectType.EXTERNAL_SYSTEM;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
+import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.*;
 
 /**
  * @author Andrei Varabyeu
@@ -58,10 +58,10 @@ public class ExternalSystemActivityHandler {
 		String name = externalSystem.getExternalSystemType().name() + ":" + externalSystem.getProject();
 		Activity activity = new ActivityBuilder()
                 .addObjectName(name)
-                .addObjectType(EXTERNAL_SYSTEM.getValue())
+                .addObjectType(EXTERNAL_SYSTEM)
 				.addLoggedObjectRef(externalSystem.getId())
                 .addUserRef(event.getCreatedBy())
-                .addActionType(CREATE_BTS.getValue())
+                .addActionType(CREATE_BTS)
 				.addProjectRef(externalSystem.getProjectRef())
                 .build();
 		activityRepository.save(activity);
@@ -74,10 +74,10 @@ public class ExternalSystemActivityHandler {
 			String name = externalSystem.getExternalSystemType().name() + ":" + externalSystem.getProject();
 			Activity activity = new ActivityBuilder()
                     .addObjectName(name)
-                    .addObjectType(EXTERNAL_SYSTEM.getValue())
+                    .addObjectType(EXTERNAL_SYSTEM)
 					.addLoggedObjectRef(externalSystem.getId())
                     .addUserRef(event.getUpdatedBy())
-                    .addActionType(UPDATE_BTS.getValue())
+                    .addActionType(UPDATE_BTS)
 					.addProjectRef(externalSystem.getProjectRef())
                     .build();
 			activityRepository.save(activity);
@@ -91,10 +91,10 @@ public class ExternalSystemActivityHandler {
 			String name = externalSystem.getExternalSystemType().name() + ":" + externalSystem.getProject();
 			Activity activity = new ActivityBuilder()
                     .addObjectName(name)
-                    .addObjectType(EXTERNAL_SYSTEM.getValue())
+                    .addObjectType(EXTERNAL_SYSTEM)
 					.addLoggedObjectRef(externalSystem.getId())
                     .addUserRef(event.getDeletedBy())
-                    .addActionType(DELETE_BTS.getValue())
+                    .addActionType(DELETE_BTS)
 					.addProjectRef(externalSystem.getProjectRef())
                     .build();
 			activityRepository.save(activity);
@@ -109,10 +109,10 @@ public class ExternalSystemActivityHandler {
 				String name = externalSystem.getExternalSystemType().name() + ":" + externalSystem.getProject();
 				return new ActivityBuilder()
                         .addObjectName(name)
-                        .addObjectType(EXTERNAL_SYSTEM.getValue())
+                        .addObjectType(EXTERNAL_SYSTEM)
                         .addLoggedObjectRef(externalSystem.getId())
 						.addUserRef(event.getDeletedBy())
-                        .addActionType(DELETE_BTS.getValue())
+                        .addActionType(DELETE_BTS)
                         .addProjectRef(event.getProject())
                         .build();
 			}).collect(Collectors.toList());

@@ -36,8 +36,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 
-import static com.epam.ta.reportportal.events.handler.ActivityEventType.*;
-import static com.epam.ta.reportportal.events.handler.ActivityObjectType.USER_FILTER;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
+import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.*;
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
 
 /**
@@ -57,8 +57,8 @@ public class UserFilterActivityHandler {
     public void onFilterCreate(FilterCreatedEvent event) {
         CreateUserFilterRQ userFilterRQ = event.getFilterRQ();
         Activity activityLog = new ActivityBuilder()
-                .addActionType(CREATE_FILTER.getValue())
-                .addObjectType(USER_FILTER.getValue())
+                .addActionType(CREATE_FILTER)
+                .addObjectType(USER_FILTER)
                 .addObjectName(userFilterRQ.getName())
                 .addProjectRef(event.getProjectRef())
                 .addUserRef(event.getCreatedBy())
@@ -82,8 +82,8 @@ public class UserFilterActivityHandler {
                 Activity activityLog = new ActivityBuilder()
                         .addProjectRef(userFilter.getProjectName())
                         .addObjectName(userFilter.getName())
-                        .addObjectType(USER_FILTER.getValue())
-                        .addActionType(UPDATE_FILTER.getValue())
+                        .addObjectType(USER_FILTER)
+                        .addActionType(UPDATE_FILTER)
                         .addLoggedObjectRef(userFilter.getId())
                         .addUserRef(event.getUpdatedBy())
                         .addHistory(history)
@@ -97,8 +97,8 @@ public class UserFilterActivityHandler {
     public void onFilterDelete(FilterDeletedEvent event) {
         UserFilter before = event.getBefore();
         Activity activityLog = new ActivityBuilder()
-                .addActionType(DELETE_FILTER.getValue())
-                .addObjectType(USER_FILTER.getValue())
+                .addActionType(DELETE_FILTER)
+                .addObjectType(USER_FILTER)
                 .addObjectName(before.getName())
                 .addProjectRef(before.getProjectName())
                 .addUserRef(event.getRemovedBy())

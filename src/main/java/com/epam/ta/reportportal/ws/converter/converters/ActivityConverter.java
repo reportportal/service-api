@@ -22,6 +22,8 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.database.entity.item.ActivityEventType;
+import com.epam.ta.reportportal.database.entity.item.ActivityObjectType;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.google.common.base.Preconditions;
 
@@ -30,6 +32,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * Converts internal DB model to DTO
@@ -50,10 +54,10 @@ public final class ActivityConverter {
         resource.setActivityId(activity.getId());
         resource.setLoggedObjectRef(activity.getLoggedObjectRef());
         resource.setLastModifiedDate(activity.getLastModified());
-        resource.setObjectType(activity.getObjectType());
-        resource.setActionType(activity.getActionType());
+        resource.setObjectType(ofNullable(activity.getObjectType()).map(ActivityObjectType::getValue).orElse(null));
+        resource.setActionType(ofNullable(activity.getActionType()).map(ActivityEventType::getValue).orElse(null));
         Map<String, ActivityResource.FieldValues> history =
-                Optional.ofNullable(activity.getHistory())
+                ofNullable(activity.getHistory())
                         .orElseGet(Collections::emptyMap)
                         .entrySet().stream()
                         .collect(Collectors.toMap(Map.Entry::getKey,

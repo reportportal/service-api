@@ -22,6 +22,8 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.database.entity.item.ActivityEventType;
+import com.epam.ta.reportportal.database.entity.item.ActivityObjectType;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
@@ -45,12 +47,12 @@ public class ActivityConverterTest {
     public void testConvert() {
         Activity activity = new Activity();
         activity.setId("id");
-        activity.setActionType("action");
+        activity.setActionType(ActivityEventType.ATTACH_ISSUE);
         activity.setLastModifiedDate(new Date(0));
         activity.setHistory(ImmutableMap.<String, Activity.FieldValues>builder()
                 .put(KEY , new Activity.FieldValues().withOldValue("old").withNewValue("new")).build());
         activity.setLoggedObjectRef("objectRef");
-        activity.setObjectType("objectType");
+        activity.setObjectType(ActivityObjectType.LAUNCH);
         activity.setProjectRef("project");
         activity.setUserRef("user");
         validate(activity, ActivityConverter.TO_RESOURCE.apply(activity));
@@ -59,9 +61,9 @@ public class ActivityConverterTest {
     private void validate(Activity db, ActivityResource resource) {
         Assert.assertEquals(db.getLastModified(), resource.getLastModifiedDate());
         Assert.assertEquals(db.getId(), resource.getActivityId());
-        Assert.assertEquals(db.getActionType(), resource.getActionType());
+        Assert.assertEquals(db.getActionType(), ActivityEventType.fromString(resource.getActionType()).get());
         Assert.assertEquals(db.getLoggedObjectRef(), resource.getLoggedObjectRef());
-        Assert.assertEquals(db.getObjectType(), resource.getObjectType());
+        Assert.assertEquals(db.getObjectType(), ActivityObjectType.fromString(resource.getObjectType()).get());
         Assert.assertEquals(db.getProjectRef(), resource.getProjectRef());
         Assert.assertEquals(db.getUserRef(), resource.getUserRef());
         Assert.assertEquals(db.getHistory().get(KEY).getNewValue(),

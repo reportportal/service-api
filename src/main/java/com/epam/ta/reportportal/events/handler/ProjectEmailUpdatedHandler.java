@@ -23,6 +23,8 @@ package com.epam.ta.reportportal.events.handler;
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.database.entity.item.ActivityEventType;
+import com.epam.ta.reportportal.database.entity.item.ActivityObjectType;
 import com.epam.ta.reportportal.events.EmailConfigUpdatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.EmailConfigConverters;
@@ -33,8 +35,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.epam.ta.reportportal.events.handler.ActivityEventType.UPDATE_PROJECT;
 
 /**
  * Handles {@link com.epam.ta.reportportal.events.ProjectUpdatedEvent}
@@ -63,8 +63,8 @@ public class ProjectEmailUpdatedHandler {
 			processEmailConfiguration(history, event.getBefore(), configuration);
 		}
 		if (!history.isEmpty()) {
-			Activity activityLog = new ActivityBuilder().addProjectRef(event.getBefore().getName()).addObjectType(Project.PROJECT)
-					.addActionType(UPDATE_PROJECT.getValue()).addUserRef(event.getUpdatedBy()).build();
+			Activity activityLog = new ActivityBuilder().addProjectRef(event.getBefore().getName()).addObjectType(ActivityObjectType.PROJECT)
+					.addActionType(ActivityEventType.UPDATE_PROJECT).addUserRef(event.getUpdatedBy()).build();
 			activityLog.setHistory(history);
 			activityRepository.save(activityLog);
 		}

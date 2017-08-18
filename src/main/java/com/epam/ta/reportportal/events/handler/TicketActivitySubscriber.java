@@ -42,8 +42,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static com.epam.ta.reportportal.events.handler.ActivityEventType.*;
-import static com.epam.ta.reportportal.events.handler.ActivityObjectType.TEST_ITEM;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
+import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.*;
 
 /**
  * @author Andrei Varabyeu
@@ -89,9 +89,9 @@ public class TicketActivitySubscriber {
 		history.put(TICKET_ID, fieldValues);
 		Activity activity = new ActivityBuilder()
                 .addProjectRef(event.getProject())
-                .addActionType(POST_ISSUE.getValue())
+                .addActionType(POST_ISSUE)
 				.addLoggedObjectRef(event.getTestItemId())
-                .addObjectType(TEST_ITEM.getValue())
+                .addObjectType(TEST_ITEM)
                 .addUserRef(event.getPostedBy())
 				.addHistory(history).build();
 		activityRepository.save(activity);
@@ -115,9 +115,9 @@ public class TicketActivitySubscriber {
 			fieldValues.withNewValue(issuesIdsToString(testItem.getIssue().getExternalSystemIssues(), separator));
 			Activity activity = new ActivityBuilder()
                     .addProjectRef(event.getProject())
-                    .addActionType(ATTACH_ISSUE.getValue())
+                    .addActionType(ATTACH_ISSUE)
 					.addLoggedObjectRef(testItem.getId())
-                    .addObjectType(TEST_ITEM.getValue())
+                    .addObjectType(TEST_ITEM)
                     .addUserRef(event.getPostedBy())
 					.addHistory(ImmutableMap.<String, Activity.FieldValues> builder().put(TICKET_ID, fieldValues).build())
                     .build();
@@ -164,8 +164,8 @@ public class TicketActivitySubscriber {
 			Activity activity = new ActivityBuilder()
                     .addProjectRef(projectName)
                     .addLoggedObjectRef(issueDefinition.getId())
-					.addObjectType(TEST_ITEM.getValue())
-                    .addActionType(UPDATE_ITEM.getValue())
+					.addObjectType(TEST_ITEM)
+                    .addActionType(UPDATE_ITEM)
                     .addUserRef(principal)
                     .build();
 			HashMap<String, Activity.FieldValues> history = new HashMap<>();

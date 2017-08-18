@@ -35,8 +35,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 
-import static com.epam.ta.reportportal.events.handler.ActivityEventType.*;
-import static com.epam.ta.reportportal.events.handler.ActivityObjectType.WIDGET;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.CREATE_WIDGET;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.DELETE_WIDGET;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.UPDATE_WIDGET;
+import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.WIDGET;
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
 
 /**
@@ -65,8 +67,8 @@ public class WidgetActivityEventHandler {
                 Activity activityLog = new ActivityBuilder()
                         .addProjectRef(widget.getProjectName())
                         .addObjectName(widget.getName())
-                        .addObjectType(WIDGET.getValue())
-                        .addActionType(UPDATE_WIDGET.getValue())
+                        .addObjectType(WIDGET)
+                        .addActionType(UPDATE_WIDGET)
                         .addLoggedObjectRef(widget.getId())
                         .addUserRef(event.getUpdatedBy())
                         .build();
@@ -80,8 +82,8 @@ public class WidgetActivityEventHandler {
     public void onCreateWidget(WidgetCreatedEvent event) {
         WidgetRQ widgetRQ = event.getWidgetRQ();
         Activity activityLog = new ActivityBuilder()
-                .addActionType(CREATE_WIDGET.getValue())
-                .addObjectType(WIDGET.getValue())
+                .addActionType(CREATE_WIDGET)
+                .addObjectType(WIDGET)
                 .addObjectName(widgetRQ.getName())
                 .addProjectRef(event.getProjectRef())
                 .addUserRef(event.getCreatedBy())
@@ -97,8 +99,8 @@ public class WidgetActivityEventHandler {
     public void onDeleteWidget(WidgetDeletedEvent event) {
         Widget widget = event.getBefore();
         Activity activityLog = new ActivityBuilder()
-                .addActionType(DELETE_WIDGET.getValue())
-                .addObjectType(WIDGET.getValue())
+                .addActionType(DELETE_WIDGET)
+                .addObjectType(WIDGET)
                 .addObjectName(widget.getName())
                 .addProjectRef(widget.getProjectName())
                 .addUserRef(event.getRemovedBy())

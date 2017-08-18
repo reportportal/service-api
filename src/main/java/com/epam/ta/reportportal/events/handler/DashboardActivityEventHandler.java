@@ -36,8 +36,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 
-import static com.epam.ta.reportportal.events.handler.ActivityEventType.*;
-import static com.epam.ta.reportportal.events.handler.ActivityObjectType.DASHBOARD;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
+import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.*;
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
 
 /**
@@ -61,8 +61,8 @@ public class DashboardActivityEventHandler {
             processDescription(history, dashboard.getDescription(), updateRQ.getDescription());
             if (!history.isEmpty()) {
                 Activity activityLog = new ActivityBuilder()
-                        .addActionType(UPDATE_DASHBOARD.name())
-                        .addObjectType(DASHBOARD.getValue())
+                        .addActionType(UPDATE_DASHBOARD)
+                        .addObjectType(DASHBOARD)
                         .addObjectName(dashboard.getName())
                         .addProjectRef(dashboard.getProjectName())
                         .addLoggedObjectRef(dashboard.getId())
@@ -78,8 +78,8 @@ public class DashboardActivityEventHandler {
     public void onDashboardCreate(DashboardCreatedEvent event) {
         CreateDashboardRQ createDashboardRQ = event.getCreateDashboardRQ();
         Activity activityLog = new ActivityBuilder()
-                .addActionType(CREATE_DASHBOARD.name())
-                .addObjectType(DASHBOARD.getValue())
+                .addActionType(CREATE_DASHBOARD)
+                .addObjectType(DASHBOARD)
                 .addObjectName(createDashboardRQ.getName())
                 .addProjectRef(event.getProjectRef())
                 .addUserRef(event.getCreatedBy())
@@ -94,8 +94,8 @@ public class DashboardActivityEventHandler {
     public void onDashboardDelete(DashboardDeletedEvent event) {
         Dashboard dashboard = event.getBefore();
         Activity activityLog = new ActivityBuilder()
-                .addActionType(DELETE_DASHBOARD.name())
-                .addObjectType(DASHBOARD.getValue())
+                .addActionType(DELETE_DASHBOARD)
+                .addObjectType(DASHBOARD)
                 .addObjectName(dashboard.getName())
                 .addProjectRef(dashboard.getProjectName())
                 .addUserRef(event.getRemovedBy())

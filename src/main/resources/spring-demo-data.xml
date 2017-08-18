@@ -2814,8 +2814,8 @@
 		<property name="projectRef" value="project1"/>
 		<property name="loggedObjectRef" value="44524cc1553de753b3e5bb2f"/>
 		<property name="lastModifiedDate" value="06/02/2013 14:23 +0300"/>
-		<property name="objectType" value="TEST_ITEM"/>
-		<property name="actionType" value="UPDATE"/>
+		<property name="objectType" value="#{T(com.epam.ta.reportportal.database.entity.item.ActivityObjectType).TEST_ITEM}"/>
+		<property name="actionType" value="#{T(com.epam.ta.reportportal.database.entity.item.ActivityEventType).UPDATE_ITEM}"/>
 		<property name="history">
 			<util:map>
 				<entry key="COMMENT">
@@ -2834,8 +2834,8 @@
 		<property name="projectRef" value="project1"/>
 		<property name="loggedObjectRef" value="44524cc1553de753b3e5bb2f"/>
 		<property name="lastModifiedDate" value="06/02/2013 14:23 +0300"/>
-		<property name="objectType" value="TEST_ITEM"/>
-		<property name="actionType" value="UPDATE"/>
+		<property name="objectType" value="#{T(com.epam.ta.reportportal.database.entity.item.ActivityObjectType).TEST_ITEM}"/>
+		<property name="actionType" value="#{T(com.epam.ta.reportportal.database.entity.item.ActivityEventType).UPDATE_ITEM}"/>
 		<property name="history">
 			<util:map>
 				<entry key="ISSUE_TYPE">
@@ -2854,8 +2854,8 @@
 		<property name="projectRef" value="project1"/>
 		<property name="loggedObjectRef" value="44524cc1553de753b3e5bb2f"/>
 		<property name="lastModifiedDate" value="09/02/2013 14:23 +0300"/>
-		<property name="objectType" value="TEST_ITEM"/>
-		<property name="actionType" value="UPDATE"/>
+		<property name="objectType" value="#{T(com.epam.ta.reportportal.database.entity.item.ActivityObjectType).TEST_ITEM}"/>
+		<property name="actionType" value="#{T(com.epam.ta.reportportal.database.entity.item.ActivityEventType).UPDATE_ITEM}"/>
 		<property name="history">
 			<util:map>
 				<entry key="ISSUE_TYPE">
@@ -2874,8 +2874,8 @@
 		<property name="projectRef" value="project1"/>
 		<property name="loggedObjectRef" value="44524cc1553de753b3e5bb2f"/>
 		<property name="lastModifiedDate" value="10/02/2013 14:23 +0300"/>
-		<property name="objectType" value="TEST_ITEM"/>
-		<property name="actionType" value="UPDATE"/>
+		<property name="objectType" value="#{T(com.epam.ta.reportportal.database.entity.item.ActivityObjectType).TEST_ITEM}"/>
+		<property name="actionType" value="#{T(com.epam.ta.reportportal.database.entity.item.ActivityEventType).UPDATE_ITEM}"/>
 		<property name="history">
 			<util:map>
 				<entry key="COMMENT">

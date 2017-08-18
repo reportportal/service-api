@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.database.entity.item.ActivityEventType;
 import com.epam.ta.reportportal.database.personal.PersonalProjectService;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
@@ -123,7 +124,7 @@ public class UserControllerTest extends BaseMvcTest {
 				.findByFilter(new Filter(Activity.class, Condition.EQUALS, false, "testlogin1", "userRef"));
 		Assert.assertFalse(activityList.isEmpty());
 		Assert.assertEquals(1, activityList.size());
-		Assert.assertEquals("create_user", activityList.get(0).getActionType());
+		Assert.assertEquals(ActivityEventType.CREATE_USER, activityList.get(0).getActionType());
 	}
 
 	@Test

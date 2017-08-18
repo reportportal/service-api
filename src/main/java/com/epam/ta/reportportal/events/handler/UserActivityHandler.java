@@ -28,8 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import static com.epam.ta.reportportal.events.handler.ActivityEventType.CREATE_USER;
-import static com.epam.ta.reportportal.events.handler.ActivityObjectType.USER;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
+import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.*;
 
 /**
  * @author Andrei Varabyeu
@@ -47,10 +47,10 @@ public class UserActivityHandler {
 	@EventListener
 	public void onUserCreated(UserCreatedEvent event) {
 		Activity activity = new ActivityBuilder()
-                .addActionType(CREATE_USER.getValue())
+                .addActionType(CREATE_USER)
                 .addLoggedObjectRef(event.getUser().getLogin())
 				.addObjectName(event.getUser().getLogin())
-                .addObjectType(USER.getValue())
+                .addObjectType(USER)
                 .addUserRef(event.getCreatedBy())
 				.addProjectRef(event.getUser().getDefaultProject().toLowerCase())
                 .build();

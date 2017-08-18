@@ -57,7 +57,7 @@ public class LaunchBuilder implements Builder<Launch> {
 	}
 
 	public LaunchBuilder addDescription(String description) {
-		if (Strings.isNullOrEmpty(description)) {
+		if (!Strings.isNullOrEmpty(description)) {
 			launch.setDescription(description.trim());
 		}
 		return this;

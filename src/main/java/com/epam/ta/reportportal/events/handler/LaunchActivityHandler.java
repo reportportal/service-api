@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.events.handler;
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.database.entity.item.ActivityObjectType;
 import com.epam.ta.reportportal.events.LaunchDeletedEvent;
 import com.epam.ta.reportportal.events.LaunchFinishForcedEvent;
 import com.epam.ta.reportportal.events.LaunchFinishedEvent;
@@ -34,7 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import static com.epam.ta.reportportal.events.handler.ActivityEventType.*;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
 
 /**
  * @author Andrei Varabyeu
@@ -67,7 +68,7 @@ public class LaunchActivityHandler {
 		if (Mode.DEBUG != event.getLaunch().getMode()) {
 			String name = launch.getName() + DELIMITER + launch.getNumber();
 			Activity activityLog = new ActivityBuilder().addUserRef(launch.getUserRef()).addProjectRef(launch.getProjectRef().toLowerCase())
-					.addActionType(START_LAUNCH.getValue()).addObjectType(Launch.LAUNCH).addLoggedObjectRef(launch.getId()).addObjectName(name).build();
+					.addActionType(START_LAUNCH).addObjectType(ActivityObjectType.LAUNCH).addLoggedObjectRef(launch.getId()).addObjectName(name).build();
 			activityRepository.save(activityLog);
 		}
 	}
@@ -78,7 +79,7 @@ public class LaunchActivityHandler {
 		if (null != launch && launch.getMode() == Mode.DEFAULT) {
 			String name = launch.getName() + DELIMITER + launch.getNumber();
 			Activity activity = new ActivityBuilder().addUserRef(event.getDeletedBy()).addProjectRef(event.getLaunch().getProjectRef())
-					.addActionType(DELETE_LAUNCH.getValue()).addObjectType(Launch.LAUNCH).addLoggedObjectRef(launch.getId()).addObjectName(name).build();
+					.addActionType(DELETE_LAUNCH).addObjectType(ActivityObjectType.LAUNCH).addLoggedObjectRef(launch.getId()).addObjectName(name).build();
 			activityRepository.save(activity);
 		}
 	}
@@ -86,8 +87,8 @@ public class LaunchActivityHandler {
 	private void afterLaunchFinished(Launch launch, String finishedBy) {
 		if (launch.getMode() != Mode.DEBUG) {
 			String name = launch.getName() + DELIMITER + launch.getNumber();
-			Activity activityLog = new ActivityBuilder().addUserRef(finishedBy).addProjectRef(launch.getProjectRef()).addActionType(FINISH_LAUNCH.getValue())
-					.addObjectType(Launch.LAUNCH).addLoggedObjectRef(launch.getId()).addObjectName(name).build();
+			Activity activityLog = new ActivityBuilder().addUserRef(finishedBy).addProjectRef(launch.getProjectRef()).addActionType(FINISH_LAUNCH)
+					.addObjectType(ActivityObjectType.LAUNCH).addLoggedObjectRef(launch.getId()).addObjectName(name).build();
 			activityRepository.save(activityLog);
 		}
 	}

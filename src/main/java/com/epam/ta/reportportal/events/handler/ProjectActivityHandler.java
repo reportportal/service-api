@@ -32,8 +32,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 
-import static com.epam.ta.reportportal.events.handler.ActivityEventType.UPDATE_PROJECT;
-import static com.epam.ta.reportportal.events.handler.ActivityObjectType.PROJECT;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
+import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.*;
 
 /**
  * Saves new project activity
@@ -73,8 +73,8 @@ public class ProjectActivityHandler {
 		if (!history.isEmpty()) {
 			Activity activityLog = new ActivityBuilder()
                     .addProjectRef(project.getName())
-                    .addObjectType(PROJECT.getValue())
-					.addActionType(UPDATE_PROJECT.getValue())
+                    .addObjectType(PROJECT)
+					.addActionType(UPDATE_PROJECT)
                     .addUserRef(event.getUpdatedBy())
                     .build();
 			activityLog.setHistory(history);

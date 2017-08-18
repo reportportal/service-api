@@ -22,6 +22,8 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.database.entity.item.ActivityEventType;
+import com.epam.ta.reportportal.database.entity.item.ActivityObjectType;
 import javafx.util.Builder;
 
 import java.util.Map;
@@ -50,12 +52,12 @@ public class ActivityBuilder implements Builder{
 		return this;
 	}
 
-	public ActivityBuilder addActionType(String actionType) {
+	public ActivityBuilder addActionType(ActivityEventType actionType) {
 		activity.setActionType(actionType);
 		return this;
 	}
 
-	public ActivityBuilder addObjectType(String objectType) {
+	public ActivityBuilder addObjectType(ActivityObjectType objectType) {
 		activity.setObjectType(objectType);
 		return this;
 	}

@@ -102,7 +102,7 @@ public class WidgetController implements IWidgetController {
 
     @Override
     @RequestMapping(value = "/{widgetId}", method = RequestMethod.GET)
-	@ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	@ApiOperation("Get widget by ID")
 	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable String widgetId, Principal principal) {

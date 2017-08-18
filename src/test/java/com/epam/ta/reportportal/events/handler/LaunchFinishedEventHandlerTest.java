@@ -37,7 +37,6 @@ import com.epam.ta.reportportal.util.analyzer.AnalyzerConfig;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.ws.controller.impl.TestItemController;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpMethod;

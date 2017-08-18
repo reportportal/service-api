@@ -21,13 +21,12 @@
 
 package com.epam.ta.reportportal.auth.permissions;
 
-import javax.validation.constraints.NotNull;
-
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.ProjectRole;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectRole;
+import javax.validation.constraints.NotNull;
 
 /**
  * Validates this is {@link ProjectRole#PROJECT_MANAGER} or higher authority in the

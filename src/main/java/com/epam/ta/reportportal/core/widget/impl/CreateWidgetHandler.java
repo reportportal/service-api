@@ -34,11 +34,13 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.database.search.CriteriaMap;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
+import com.epam.ta.reportportal.events.WidgetCreatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
@@ -69,12 +71,19 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 
 	private SharingService sharingService;
 
+    private ApplicationEventPublisher eventPublisher;
+
 	@Autowired
 	public void setWidgetRepository(WidgetRepository widgetRepository) {
 		this.widgetRepository = widgetRepository;
 	}
 
 	@Autowired
+    public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
+
+    @Autowired
 	public void setWidgetBuilder(Provider<WidgetBuilder> widgetBuilder) {
 		this.widgetBuilder = widgetBuilder;
 	}
@@ -110,7 +119,7 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 
         if (gadget != ACTIVITY && gadget != MOST_FAILED_TEST_CASES && gadget != PASSING_RATE_PER_LAUNCH) {
             checkApplyingFilter(filter, createWidgetRQ.getApplyingFilter(), userName);
-		}
+        }
 
 		if ((null != createWidgetRQ.getContentParameters().getMetadataFields())
 				&& ((null == filter) || filter.getFilter().getTarget().equals(TestItem.class))) {
@@ -158,6 +167,7 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 		shareIfRequired(createWidgetRQ.getShare(), widget, userName, projectName, filter);
 
 		widgetRepository.save(widget);
+		eventPublisher.publishEvent(new WidgetCreatedEvent(createWidgetRQ, userName, projectName, widget.getId()));
 		return new EntryCreatedRS(widget.getId());
 	}
 

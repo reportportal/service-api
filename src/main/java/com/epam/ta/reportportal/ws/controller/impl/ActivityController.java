@@ -60,6 +60,15 @@ public class ActivityController implements IActivityController {
 	@Autowired
 	private IActivityHandler activityHandler;
 
+	@RequestMapping(value = "/item", method = RequestMethod.GET)
+	@ResponseStatus(OK)
+	@ResponseBody
+	@ApiOperation("Get activities for project")
+	public List<ActivityResource> getActivities(@PathVariable String projectName,
+			@FilterFor(Activity.class) Filter filter, @SortFor(Activity.class) Pageable pageable) {
+		return activityHandler.getItemActivities(EntityUtils.normalizeId(projectName), filter, pageable);
+	}
+
 	@Override
 	@RequestMapping(value = "/{activityId}", method = RequestMethod.GET)
 	@ResponseStatus(OK)
@@ -73,7 +82,7 @@ public class ActivityController implements IActivityController {
 	@RequestMapping(value = "/item/{itemId}", method = RequestMethod.GET)
 	@ResponseStatus(OK)
 	@ResponseBody
-	@ApiOperation("Get activities by filter")
+	@ApiOperation("Get activities for test item")
 	public List<ActivityResource> getTestItemActivities(@PathVariable String projectName, @PathVariable String itemId,
 			@FilterFor(Activity.class) Filter filter, @SortFor(Activity.class) Pageable pageable, Principal principal) {
 		return activityHandler.getItemActivities(EntityUtils.normalizeId(projectName), itemId, filter, pageable);

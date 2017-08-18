@@ -21,27 +21,24 @@
 
 package com.epam.ta.reportportal.core.activity.impl;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-
-import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.activity.IActivityHandler;
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.converter.ActivityResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
@@ -49,30 +46,32 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 /**
  * @author Dzmitry_Kavalets
+ * @author Andrei Varabyeu
  */
 @Service
 public class ActivityHandler implements IActivityHandler {
 
-	@Autowired
-	private ActivityRepository activityRepository;
+	private final ActivityRepository activityRepository;
+	private final TestItemRepository testItemRepository;
+	private final LaunchRepository launchRepository;
+	private final ProjectRepository projectRepository;
+	private final ActivityResourceAssembler activityResourceAssembler;
 
 	@Autowired
-	private TestItemRepository testItemRepository;
-
-	@Autowired
-	private LaunchRepository launchRepository;
-
-	@Autowired
-	private ProjectRepository projectRepository;
-
-	@Autowired
-	private ActivityResourceAssembler activityResourceAssembler;
+	public ActivityHandler(ActivityRepository activityRepository, TestItemRepository testItemRepository, LaunchRepository launchRepository,
+			ProjectRepository projectRepository, ActivityResourceAssembler activityResourceAssembler) {
+		this.activityRepository = activityRepository;
+		this.testItemRepository = testItemRepository;
+		this.launchRepository = launchRepository;
+		this.projectRepository = projectRepository;
+		this.activityResourceAssembler = activityResourceAssembler;
+	}
 
 	@Override
 	public List<ActivityResource> getActivitiesHistory(String projectName, Filter filter, Pageable pageable) {
 		expect(projectRepository.exists(projectName), equalTo(true)).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
 		return activityRepository.findActivitiesByProjectId(projectName, filter, pageable).stream()
-				.map(activity -> activityResourceAssembler.toResource(activity)).collect(Collectors.toList());
+				.map(activityResourceAssembler::toResource).collect(Collectors.toList());
 	}
 
 	@Override
@@ -85,12 +84,20 @@ public class ActivityHandler implements IActivityHandler {
 	}
 
 	@Override
+	public com.epam.ta.reportportal.ws.model.Page<ActivityResource> getItemActivities(String projectName, Filter filter, Pageable pageable) {
+		expect(projectRepository.exists(projectName), equalTo(true)).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
+		Page<Activity> page = activityRepository.findByFilter(filter, pageable);
+		return activityResourceAssembler.toPagedResources(page);
+	}
+
+	@Override
 	public List<ActivityResource> getItemActivities(String projectName, String itemId, Filter filter, Pageable pageable) {
 		TestItem testItem = testItemRepository.findOne(itemId);
 		expect(testItem, notNull()).verify(ErrorType.TEST_ITEM_NOT_FOUND, itemId);
 		String projectRef = launchRepository.findOne(testItem.getLaunchRef()).getProjectRef();
 		expect(projectName, equalTo(projectRef)).verify(ErrorType.TEST_ITEM_NOT_FOUND, itemId);
 		return activityRepository.findActivitiesByTestItemId(itemId, filter, pageable).stream()
-				.map(activity -> activityResourceAssembler.toResource(activity)).collect(Collectors.toList());
+				.map(activityResourceAssembler::toResource)
+				.collect(Collectors.toList());
 	}
 }

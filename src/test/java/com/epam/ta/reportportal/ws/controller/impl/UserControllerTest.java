@@ -36,7 +36,10 @@ import com.epam.ta.reportportal.ws.model.user.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MvcResult;
@@ -90,7 +93,8 @@ public class UserControllerTest extends BaseMvcTest {
 		this.mvcMock.perform(
 				post("/user").principal(authentication()).contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
 				.andExpect(status().isCreated());
-		Assert.assertTrue(projectRepository.findOne("project1").getUsers().containsKey("testlogin"));
+		Assert.assertTrue(projectRepository.findOne("project1").getUsers().stream()
+				.anyMatch(config -> config.getLogin().equals("testlogin")));
 		Assert.assertTrue("Personal project isn't created", projectRepository.exists("testlogin" + PersonalProjectService.PERSONAL_PROJECT_POSTFIX));
 	}
 

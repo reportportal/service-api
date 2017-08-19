@@ -51,6 +51,7 @@ import static com.epam.ta.reportportal.commons.Preconditions.HAS_ANY_MODE;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.database.search.Condition.EQUALS;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
@@ -85,7 +86,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 		Launch launch = validate(launchId, projectName);
 		if (launch.getMode() == DEBUG) {
 			Project project = projectRepository.findOne(projectName);
-			final Project.UserConfig userConfig = project.getUsers().get(userName);
+			final Project.UserConfig userConfig = findUserConfigByLogin(project, userName);
 			expect(userConfig.getProjectRole(), not(equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
 		}
 		return launchResourceAssembler.toResource(launch);

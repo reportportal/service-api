@@ -21,13 +21,14 @@
 
 package com.epam.ta.reportportal.auth.permissions;
 
-import javax.validation.constraints.NotNull;
-
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.ProjectRole;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectRole;
+import javax.validation.constraints.NotNull;
+
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 
 /**
  * Validates this is {@link ProjectRole#PROJECT_MANAGER} or higher authority in the
@@ -46,6 +47,7 @@ public class ProjectManagerPermission extends BaseProjectPermission {
 	 */
 	@Override
 	protected boolean checkAllowed(@NotNull Authentication authentication, @NotNull Project project) {
-		return project.getUsers().get(authentication.getName()).getProjectRole().sameOrHigherThan(ProjectRole.PROJECT_MANAGER);
+		return findUserConfigByLogin(project, authentication.getName()).getProjectRole()
+				.sameOrHigherThan(ProjectRole.PROJECT_MANAGER);
 	}
 }

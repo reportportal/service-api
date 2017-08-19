@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
+import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.events.LaunchDeletedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -36,7 +37,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 
 import static com.epam.ta.reportportal.commons.Preconditions.IN_PROGRESS;
@@ -113,7 +113,7 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
 			/* Only PROJECT_MANAGER roles could delete launches */
-			UserConfig userConfig = project.getUsers().get(user.getId());
+			UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, user.getId());
 			expect(userConfig, hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
 		}
 	}

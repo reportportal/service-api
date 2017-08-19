@@ -39,6 +39,8 @@ import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
+
 @SpringFixture("deleteUserTriggerTests")
 public class DeleteUserTriggerTest extends BaseTest {
 
@@ -93,11 +95,11 @@ public class DeleteUserTriggerTest extends BaseTest {
 		Project project = projectRepository.findOne("project1");
 		Assert.assertNotNull(project);
 		Assert.assertNotNull(user);
-		Assert.assertNotNull(project.getUsers().get(user.getLogin()));
+		Assert.assertNotNull(findUserConfigByLogin(project, user.getLogin()));
 		userRepository.delete(user);
 		project = projectRepository.findOne("project1");
 		Assert.assertNotNull(project);
-		Assert.assertNull(project.getUsers().get(user.getLogin()));
+		Assert.assertNull(findUserConfigByLogin(project, user.getLogin()));
 	}
 
 	@Test

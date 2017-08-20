@@ -21,62 +21,78 @@
  
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
-
-import com.google.common.collect.Sets;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
+import javafx.util.Builder;
+import org.apache.commons.collections.CollectionUtils;
 
-@Service
-@Scope("prototype")
-public class LaunchBuilder extends Builder<Launch> {
+import java.util.Date;
+import java.util.Set;
+
+import static com.epam.ta.reportportal.commons.EntityUtils.trimStrings;
+import static com.epam.ta.reportportal.commons.EntityUtils.update;
+
+public class LaunchBuilder implements Builder<Launch> {
+
+	private Launch launch;
+
+	public LaunchBuilder() {
+		this.launch = new Launch();
+	}
 
 	public LaunchBuilder addStartRQ(StartLaunchRQ request) {
 		if (request != null) {
-			getObject().setStartTime(request.getStartTime());
-			getObject().setName(request.getName().trim());
-			Optional.ofNullable(request.getDescription()).ifPresent(desc -> getObject().setDescription(desc.trim()));
-			Set<String> tags = request.getTags();
-			if (null != tags) {
-				tags = Sets.newHashSet(EntityUtils.trimStrings(EntityUtils.update(tags)));
-			}
-			getObject().setTags(tags);
+			launch.setStartTime(request.getStartTime());
+			launch.setName(request.getName().trim());
+			addDescription(request.getDescription());
+			addTags(request.getTags());
 			if (request.getMode() != null) {
-				getObject().setMode(request.getMode());
+				launch.setMode(request.getMode());
 			}
 		}
 		return this;
 	}
 
+	public LaunchBuilder addDescription(String description) {
+		if (!Strings.isNullOrEmpty(description)) {
+			launch.setDescription(description.trim());
+		}
+		return this;
+	}
+
+	public LaunchBuilder addTags(Set<String> tags) {
+		if (!CollectionUtils.isEmpty(tags)) {
+			Set<String> trimmedTags = Sets.newHashSet(trimStrings(update(tags)));
+			launch.setTags(trimmedTags);
+		}
+		return this;
+	}
+
 	public LaunchBuilder addStatus(Status status) {
-		getObject().setStatus(status);
+		launch.setStatus(status);
 		return this;
 	}
 
 	public LaunchBuilder addUser(String userName) {
-		getObject().setUserRef(userName);
+		launch.setUserRef(userName);
 		return this;
 	}
 
 	public LaunchBuilder addProject(String projectName) {
-		getObject().setProjectRef(projectName);
+		launch.setProjectRef(projectName);
 		return this;
 	}
 
 	public LaunchBuilder addEndTime(Date endTime) {
-		getObject().setEndTime(endTime);
+		launch.setEndTime(endTime);
 		return this;
 	}
 
 	@Override
-	protected Launch initObject() {
-		return new Launch();
+	public Launch build() {
+		return launch;
 	}
 }

@@ -145,3 +145,4 @@
 * EPMRPP-26131 - Unique id for test item based on items' names, parameters, launch name, project name
 * EPMRPP-26263 - Implemented latest launches view
 * EPMRPP-26394 - JIRA issue with empty set of fields for post bug form
+* EPMRPP-29345 - Description and tags are not applied in case they were specified on finishLaunch

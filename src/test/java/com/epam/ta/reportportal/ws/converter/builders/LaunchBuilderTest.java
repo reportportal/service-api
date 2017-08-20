@@ -22,27 +22,25 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.Status;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Status;
-
-import javax.inject.Provider;
-
 public class LaunchBuilderTest extends BaseTest {
-
-	@Autowired
-	private Provider<LaunchBuilder> launchBuilderProvider;
 
 	@Autowired
 	private ApplicationContext applicationContext;
 
 	@Test
 	public void testNull() {
-		Launch actualLaunch = launchBuilderProvider.get().addUser(null).addStatus(null).addStartRQ(null).addProject(null).addEndTime(null)
+		Launch actualLaunch = new LaunchBuilder()
+				.addUser(null).addStatus(null)
+				.addStartRQ(null).addProject(null)
+				.addEndTime(null)
 				.build();
 		Launch expectedLaunch = new Launch();
 		validateLaunches(expectedLaunch, actualLaunch);
@@ -50,13 +48,16 @@ public class LaunchBuilderTest extends BaseTest {
 
 	@Test
 	public void testValues() {
-		Launch actualLaunch = launchBuilderProvider.get().addStartRQ(Utils.getStartLaunchRQ()).addEndTime(BuilderTestsConstants.DATE_END)
-				.addProject(Utils.getProject().getId()).addStatus(Status.IN_PROGRESS).addUser(Utils.getUser().getId()).build();
+		Launch actualLaunch = new LaunchBuilder()
+				.addStartRQ(Utils.getStartLaunchRQ()).addEndTime(BuilderTestsConstants.DATE_END)
+				.addProject(Utils.getProject().getId()).addStatus(Status.IN_PROGRESS)
+				.addUser(Utils.getUser().getId()).build();
 		Launch expectedLaunch = Utils.getLaunch();
 		validateLaunches(expectedLaunch, actualLaunch);
 	}
 
 	@Test
+	@Ignore
 	public void testBeanScope() {
 		Assert.assertTrue("Launch builder should be prototype bean because it's not stateless",
 				applicationContext.isPrototype(applicationContext.getBeanNamesForType(LaunchBuilder.class)[0]));

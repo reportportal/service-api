@@ -28,6 +28,8 @@ import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
 
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
+
 /**
  * Validates this is {@link ProjectRole#PROJECT_MANAGER} or higher authority in the
  * authentication context
@@ -45,6 +47,7 @@ public class ProjectManagerPermission extends BaseProjectPermission {
 	 */
 	@Override
 	protected boolean checkAllowed(@NotNull Authentication authentication, @NotNull Project project) {
-		return project.getUsers().get(authentication.getName()).getProjectRole().sameOrHigherThan(ProjectRole.PROJECT_MANAGER);
+		return findUserConfigByLogin(project, authentication.getName()).getProjectRole()
+				.sameOrHigherThan(ProjectRole.PROJECT_MANAGER);
 	}
 }

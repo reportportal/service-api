@@ -48,13 +48,16 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Provider;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.database.entity.Status.IN_PROGRESS;
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.groupingBy;
@@ -84,9 +87,6 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
     @Autowired
     private StatisticsFacadeFactory statisticsFacadeFactory;
-
-    @Autowired
-    private Provider<LaunchBuilder> launchBuilder;
 
     @Autowired
     private LaunchMetaInfoRepository launchCounter;
@@ -175,7 +175,8 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 		 * launches
 		 */
         boolean isUserValidate = !(user.getRole().equals(ADMINISTRATOR)
-                || project.getUsers().get(user.getId()).getProjectRole().sameOrHigherThan(ProjectRole.PROJECT_MANAGER));
+                || findUserConfigByLogin(project, user.getId()).getProjectRole()
+                .sameOrHigherThan(ProjectRole.PROJECT_MANAGER));
         launches.forEach(launch -> {
             expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launch);
 
@@ -235,7 +236,10 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         startRQ.setName(mergeLaunchesRQ.getName());
         startRQ.setTags(mergeLaunchesRQ.getTags());
         startRQ.setStartTime(mergeLaunchesRQ.getStartTime());
-        Launch launch = launchBuilder.get().addStartRQ(startRQ).addProject(projectName).addStatus(IN_PROGRESS).addUser(userName).build();
+        Launch launch = new LaunchBuilder()
+                .addStartRQ(startRQ).addProject(projectName)
+                .addStatus(IN_PROGRESS).addUser(userName)
+                .build();
         launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
         return launchRepository.save(launch);
     }

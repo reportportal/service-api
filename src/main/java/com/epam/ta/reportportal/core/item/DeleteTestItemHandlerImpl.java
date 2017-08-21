@@ -47,6 +47,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.database.entity.Status.RESETED;
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Collections.singletonList;
@@ -144,7 +145,7 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 			/*
 			 * Only PROJECT_MANAGER roles could delete testItems
 			 */
-			UserConfig userConfig = project.getUsers().get(user.getId());
+			UserConfig userConfig = findUserConfigByLogin(project, user.getId());
 			expect(userConfig, hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
 		}
 	}

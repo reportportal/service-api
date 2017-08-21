@@ -57,6 +57,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.CUSTOMER;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.database.entity.Status.IN_PROGRESS;
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
@@ -187,7 +188,8 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		String launchOwner = launch.getUserRef();
 		User principal = userRepository.findOne(userName);
 		Project project = projectRepository.findOne(projectName);
-		if ((project.getUsers().get(userName).getProjectRole() == CUSTOMER) && (null != mode)) {
+		if ((findUserConfigByLogin(project, userName).getProjectRole() == CUSTOMER)
+				&& (null != mode)) {
 			expect(mode, equalTo(DEFAULT)).verify(ACCESS_DENIED);
 		}
 		if (principal.getRole() != ADMINISTRATOR) {
@@ -197,7 +199,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 				 * Only PROJECT_MANAGER roles could move launches
 				 * to/from DEBUG mode
 				 */
-				UserConfig userConfig = project.getUsers().get(userName);
+				UserConfig userConfig = findUserConfigByLogin(project, userName);
 				expect(userConfig, Preconditions.hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
 			} else {
 				/*

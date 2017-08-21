@@ -51,6 +51,7 @@ import static com.epam.ta.reportportal.commons.Preconditions.HAS_ANY_MODE;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.database.search.Condition.EQUALS;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
@@ -85,7 +86,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 		Launch launch = validate(launchId, projectName);
 		if (launch.getMode() == DEBUG) {
 			Project project = projectRepository.findOne(projectName);
-			final Project.UserConfig userConfig = project.getUsers().get(userName);
+			final Project.UserConfig userConfig = findUserConfigByLogin(project, userName);
 			expect(userConfig.getProjectRole(), not(equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
 		}
 		return launchResourceAssembler.toResource(launch);
@@ -131,7 +132,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 
     @Override
     public com.epam.ta.reportportal.ws.model.Page<LaunchResource> getLatestLaunches(String projectName, Filter filter,
-                                                                                    Pageable pageable) {
+                                              Pageable pageable) {
         validateModeConditions(filter);
         filter.addCondition(new FilterCondition(EQUALS, false, DEFAULT.toString(), Launch.MODE_CRITERIA));
         Page<LaunchResource> resources = launchRepository.findLatestLaunches(projectName, filter, pageable)

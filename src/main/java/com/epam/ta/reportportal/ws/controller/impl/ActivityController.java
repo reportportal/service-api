@@ -21,30 +21,38 @@
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static org.springframework.http.HttpStatus.OK;
+
+import java.security.Principal;
+import java.util.List;
+
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.ws.model.Page;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
+import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.epam.ta.reportportal.core.activity.IActivityHandler;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.controller.IActivityController;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
-import com.epam.ta.reportportal.ws.resolver.FilterFor;
-import com.epam.ta.reportportal.ws.resolver.SortFor;
+
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
-
-import java.security.Principal;
-import java.util.List;
-
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static org.springframework.http.HttpStatus.OK;
 
 /**
  * @author Dzmitry_Kavalets
+ * @author Andrei Varabyeu
  */
 @Controller
 @RequestMapping("/{projectName}/activity")
@@ -53,6 +61,15 @@ public class ActivityController implements IActivityController {
 
 	@Autowired
 	private IActivityHandler activityHandler;
+
+	@RequestMapping(value = {"", "/"}, method = RequestMethod.GET)
+	@ResponseStatus(OK)
+	@ResponseBody
+	@ApiOperation("Get activities for project")
+	public Page<ActivityResource> getActivities(@PathVariable String projectName,
+			@FilterFor(Activity.class) Filter filter, @SortFor(Activity.class) Pageable pageable) {
+		return activityHandler.getItemActivities(EntityUtils.normalizeId(projectName), filter, pageable);
+	}
 
 	@Override
 	@RequestMapping(value = "/{activityId}", method = RequestMethod.GET)
@@ -67,38 +84,9 @@ public class ActivityController implements IActivityController {
 	@RequestMapping(value = "/item/{itemId}", method = RequestMethod.GET)
 	@ResponseStatus(OK)
 	@ResponseBody
-	@ApiOperation("Get activities by filter")
+	@ApiOperation("Get activities for test item")
 	public List<ActivityResource> getTestItemActivities(@PathVariable String projectName, @PathVariable String itemId,
 			@FilterFor(Activity.class) Filter filter, @SortFor(Activity.class) Pageable pageable, Principal principal) {
 		return activityHandler.getItemActivities(EntityUtils.normalizeId(projectName), itemId, filter, pageable);
 	}
-
-    @Override
-    @RequestMapping(value = "/events", method = RequestMethod.GET)
-    @ResponseStatus(OK)
-    @ResponseBody
-    @ApiOperation("Get activity event types")
-    public List<String> getActivityTypes(@PathVariable String projectName) {
-        return activityHandler.getActivityTypeNames();
-    }
-
-    @Override
-    @RequestMapping(value = "/objects", method = RequestMethod.GET)
-    @ResponseStatus(OK)
-    @ResponseBody
-    @ApiOperation("Get activity object types")
-    public List<String> getActivityObjectTypes(@PathVariable String projectName) {
-        return activityHandler.getActivityObjectTypeNames();
-    }
-
-    @Override
-    @RequestMapping(value = "/activities", method = RequestMethod.GET)
-    @ResponseStatus(OK)
-    @ResponseBody
-    @ApiOperation("Get activities history for specified project")
-    public List<ActivityResource> getActivities(@PathVariable String projectName, @FilterFor(Activity.class) Filter filter,
-            @SortFor(Activity.class) Pageable pageable) {
-        return activityHandler.getActivitiesHistory(projectName, filter, pageable);
-    }
-
 }

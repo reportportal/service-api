@@ -21,13 +21,13 @@
 
 package com.epam.ta.reportportal.auth.permissions;
 
-import javax.validation.constraints.NotNull;
-
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.ProjectRole;
+import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectRole;
+import javax.validation.constraints.NotNull;
 
 /**
  * Validates this is {@link ProjectRole#MEMBER} or higher authority in the
@@ -46,7 +46,7 @@ public class NotCustomerPermission extends BaseProjectPermission {
 	 */
 	@Override
 	protected boolean checkAllowed(@NotNull Authentication authentication, @NotNull Project project) {
-		ProjectRole projectRole = project.getUsers().get(authentication.getName()).getProjectRole();
+		ProjectRole projectRole = ProjectUtils.findUserConfigByLogin(project, authentication.getName()).getProjectRole();
 		return (null != projectRole) && projectRole.compareTo(ProjectRole.CUSTOMER) != 0;
 	}
 

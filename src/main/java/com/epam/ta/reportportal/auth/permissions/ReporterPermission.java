@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.auth.permissions;
 
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
+import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +44,7 @@ public class ReporterPermission extends BaseProjectPermission {
 	 */
 	@Override
 	protected boolean checkAllowed(@NotNull Authentication authentication, @NotNull Project project) {
-		return project.getUsers().get(authentication.getName()).getProjectRole().sameOrHigherThan(ProjectRole.CUSTOMER);
+		return ProjectUtils.findUserConfigByLogin(project, authentication.getName()).getProjectRole()
+				.sameOrHigherThan(ProjectRole.CUSTOMER);
 	}
 }

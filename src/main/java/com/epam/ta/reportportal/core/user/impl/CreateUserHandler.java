@@ -56,7 +56,6 @@ import org.springframework.stereotype.Service;
 import javax.inject.Provider;
 import java.security.Principal;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static com.epam.reportportal.commons.Safe.safe;
@@ -66,6 +65,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.CUSTOMER;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.forName;
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -145,9 +145,10 @@ public class CreateUserHandler implements ICreateUserHandler {
 		Optional<ProjectRole> projectRole = forName(request.getProjectRole());
 		expect(projectRole, Preconditions.IS_PRESENT).verify(ROLE_NOT_FOUND, request.getProjectRole());
 
-		Map<String, UserConfig> projectUsers = defaultProject.getUsers();
+		List<UserConfig> projectUsers = defaultProject.getUsers();
 		//noinspection ConstantConditions
-		projectUsers.put(user.getId(), UserConfig.newOne().withProjectRole(projectRole.get()).withProposedRole(projectRole.get()));
+		projectUsers.add(UserConfig.newOne().withProjectRole(projectRole.get()).withProposedRole(projectRole.get())
+				.withLogin(user.getId()));
 		defaultProject.setUsers(projectUsers);
 
 		CreateUserRS response = new CreateUserRS();
@@ -195,7 +196,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		Project defaultProject = projectRepository.findOne(EntityUtils.normalizeId(request.getDefaultProject()));
 
 		expect(defaultProject, notNull()).verify(PROJECT_NOT_FOUND, request.getDefaultProject());
-		UserConfig userConfig = defaultProject.getUsers().get(principal.getName());
+		UserConfig userConfig = findUserConfigByLogin(defaultProject, principal.getName());
 		List<Project> projects = projectRepository.findUserProjects(principal.getName());
 		expect(defaultProject, not(in(projects))).verify(ACCESS_DENIED);
 
@@ -262,13 +263,15 @@ public class CreateUserHandler implements ICreateUserHandler {
 		Optional<ProjectRole> projectRole = forName(bid.getRole());
 		expect(projectRole, Preconditions.IS_PRESENT).verify(ROLE_NOT_FOUND, bid.getRole());
 
-		Map<String, UserConfig> projectUsers = defaultProject.getUsers();
+		List<UserConfig> projectUsers = defaultProject.getUsers();
 		//noinspection ConstantConditions
 		if (projectRole.get().equals(CUSTOMER)) {
-			projectUsers.put(user.getId(), UserConfig.newOne().withProjectRole(CUSTOMER).withProposedRole(CUSTOMER));
+			projectUsers.add(UserConfig.newOne().withProjectRole(CUSTOMER).withProjectRole(CUSTOMER)
+					.withLogin(user.getId()));
 		} else {
 			//noinspection ConstantConditions
-			projectUsers.put(user.getId(), UserConfig.newOne().withProjectRole(projectRole.get()).withProposedRole(projectRole.get()));
+			projectUsers.add(UserConfig.newOne().withProjectRole(projectRole.get()).withProposedRole(projectRole.get())
+					.withLogin(user.getId()));
 		}
 		defaultProject.setUsers(projectUsers);
 

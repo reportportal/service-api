@@ -41,7 +41,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Provider;
 import java.util.List;
 import java.util.Set;
 
@@ -62,20 +61,17 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 class StartLaunchHandler implements IStartLaunchHandler {
 
 	private final LaunchRepository launchRepository;
-	private final Provider<LaunchBuilder> launchBuilder;
 	private final LaunchMetaInfoRepository launchCounter;
 	private final ProjectRepository projectRepository;
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	public StartLaunchHandler(LaunchMetaInfoRepository launchCounter, ProjectRepository projectRepository,
-			LaunchRepository launchRepository, ApplicationEventPublisher eventPublisher,
-			Provider<LaunchBuilder> launchBuilder) {
+			LaunchRepository launchRepository, ApplicationEventPublisher eventPublisher) {
 		this.launchCounter = launchCounter;
 		this.projectRepository = projectRepository;
 		this.launchRepository = launchRepository;
 		this.eventPublisher = eventPublisher;
-		this.launchBuilder = launchBuilder;
 	}
 
 	/*
@@ -99,8 +95,9 @@ class StartLaunchHandler implements IStartLaunchHandler {
 
 		// userName and projectName validations here is redundant, user name and
 		// projectName have already validated by spring security in controller
-		Launch launch = launchBuilder.get().addStartRQ(startLaunchRQ)
-				.addProject(projectName).addStatus(IN_PROGRESS).addUser(username)
+		Launch launch = new LaunchBuilder()
+				.addStartRQ(startLaunchRQ).addProject(projectName)
+				.addStatus(IN_PROGRESS).addUser(username)
 				.build();
 		/*
 		 * Retrieve and set number of launch with provided name

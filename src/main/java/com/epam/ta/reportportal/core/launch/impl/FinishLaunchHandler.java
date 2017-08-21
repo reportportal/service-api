@@ -41,6 +41,8 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.google.common.base.Strings;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -99,6 +101,13 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		Project project = validateRoles(launch, username, projectName);
 
 		launch.setEndTime(finishLaunchRQ.getEndTime());
+		if (!Strings.isNullOrEmpty(finishLaunchRQ.getDescription())) {
+			launch.setDescription(finishLaunchRQ.getDescription());
+		}
+		if (!CollectionUtils.isEmpty(finishLaunchRQ.getTags())) {
+			launch.setTags(finishLaunchRQ.getTags());
+		}
+
 		Optional<Status> status = fromValue(finishLaunchRQ.getStatus());
 		status.ifPresent(providedStatus -> {
 			/* Validate provided status */

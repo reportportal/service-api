@@ -48,7 +48,6 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Provider;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,9 +87,6 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
     @Autowired
     private StatisticsFacadeFactory statisticsFacadeFactory;
-
-    @Autowired
-    private Provider<LaunchBuilder> launchBuilder;
 
     @Autowired
     private LaunchMetaInfoRepository launchCounter;
@@ -240,7 +236,10 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         startRQ.setName(mergeLaunchesRQ.getName());
         startRQ.setTags(mergeLaunchesRQ.getTags());
         startRQ.setStartTime(mergeLaunchesRQ.getStartTime());
-        Launch launch = launchBuilder.get().addStartRQ(startRQ).addProject(projectName).addStatus(IN_PROGRESS).addUser(userName).build();
+        Launch launch = new LaunchBuilder()
+                .addStartRQ(startRQ).addProject(projectName)
+                .addStatus(IN_PROGRESS).addUser(userName)
+                .build();
         launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
         return launchRepository.save(launch);
     }

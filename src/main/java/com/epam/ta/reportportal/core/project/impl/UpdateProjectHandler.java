@@ -277,7 +277,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			if (projectType.equals(EntryType.UPSA) && userType.equals(UserType.UPSA)) {
 				fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Project and user has UPSA type!");
 			}
-			if (users.stream().noneMatch(it -> singleUser.getId().equals(it.getLogin()))) {
+			if (!ProjectUtils.doesHaveUser(project, singleUser.getId())) {
 				fail().withError(USER_NOT_FOUND, singleUser.getId(), String.format("User not found in project %s", projectName));
 			}
 
@@ -344,9 +344,9 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 				fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Project and user has UPSA type!");
 
 			UserConfig config = new UserConfig();
-			config.setLogin(username.toLowerCase());
 			String userToAssign = assignUsersRQ.getUserNames().get(username);
 			if (!isNullOrEmpty(userToAssign)) {
+                config.setLogin(username.toLowerCase());
 				Optional<ProjectRole> proposedRoleOptional = ProjectRole.forName(userToAssign);
 				expect(proposedRoleOptional, IS_PRESENT).verify(ROLE_NOT_FOUND, userToAssign);
 				ProjectRole proposedRole = proposedRoleOptional.get();

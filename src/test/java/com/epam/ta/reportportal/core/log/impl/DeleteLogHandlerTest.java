@@ -21,24 +21,15 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.LogRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.dao.UserRepository;
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Log;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectRole;
-import com.epam.ta.reportportal.database.entity.Status;
+import com.epam.ta.reportportal.database.dao.*;
+import com.epam.ta.reportportal.database.entity.*;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.google.common.collect.Lists;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.util.HashMap;
 
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.USER;
@@ -105,13 +96,8 @@ public class DeleteLogHandlerTest {
     static ProjectRepository projectRepositoryMock(String projectId, final String member) {
         ProjectRepository projectRepository = mock(ProjectRepository.class);
         Project project = new Project();
-        project.setUsers(new HashMap<String, Project.UserConfig>() {
-            {
-                Project.UserConfig userConfig = new Project.UserConfig();
-                userConfig.setProjectRole(ProjectRole.MEMBER);
-                put(member, userConfig);
-            }
-        });
+        project.setUsers(Lists.newArrayList(new Project.UserConfig().withLogin(member)
+                .withProjectRole(ProjectRole.MEMBER)));
         when(projectRepository.findOne(projectId)).thenReturn(project);
         return projectRepository;
     }

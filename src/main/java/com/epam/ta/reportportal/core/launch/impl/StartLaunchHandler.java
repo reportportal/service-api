@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
+import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.events.LaunchStartedEvent;
@@ -86,7 +87,7 @@ class StartLaunchHandler implements IStartLaunchHandler {
 		if (startLaunchRQ.getMode() == DEBUG) {
 
 			Project project = projectRepository.findByName(projectName);
-			Project.UserConfig userConfig = project.getUsers().get(username);
+			Project.UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, username);
 			if (userConfig.getProjectRole() == ProjectRole.CUSTOMER) {
 				startLaunchRQ.setMode(DEFAULT);
 			}

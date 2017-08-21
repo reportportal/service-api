@@ -57,6 +57,7 @@ import java.util.function.Supplier;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.database.entity.Status.IN_PROGRESS;
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.groupingBy;
@@ -174,7 +175,8 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 		 * launches
 		 */
         boolean isUserValidate = !(user.getRole().equals(ADMINISTRATOR)
-                || project.getUsers().get(user.getId()).getProjectRole().sameOrHigherThan(ProjectRole.PROJECT_MANAGER));
+                || findUserConfigByLogin(project, user.getId()).getProjectRole()
+                .sameOrHigherThan(ProjectRole.PROJECT_MANAGER));
         launches.forEach(launch -> {
             expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launch);
 

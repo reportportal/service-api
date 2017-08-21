@@ -21,17 +21,6 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.joining;
-
-import java.util.List;
-
-import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -53,6 +42,15 @@ import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.google.common.base.Preconditions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.joining;
 
 /**
  * @author Andrei_Ramanchuk
@@ -86,7 +84,7 @@ public class GetProjectHandler implements IGetProjectHandler {
 		if (null == dbProject || null == dbProject.getUsers()) {
 			return emptyList();
 		}
-		String criteria = dbProject.getUsers().keySet().stream().collect(joining(","));
+		String criteria = dbProject.getUsers().stream().map(Project.UserConfig::getLogin).collect(joining(","));
 		filter.addCondition(new FilterCondition(Condition.IN, false, criteria, User.LOGIN));
 		// Filter filter = new Filter(User.class, Condition.IN, false, criteria,
 		// User.LOGIN);

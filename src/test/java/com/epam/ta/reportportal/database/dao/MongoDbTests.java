@@ -21,10 +21,11 @@
  
 package com.epam.ta.reportportal.database.dao;
 
-import java.util.Calendar;
-import java.util.Collections;
-
 import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.ProjectRole;
+import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.entity.user.UserType;
 import org.junit.After;
 import org.junit.Assert;
@@ -32,10 +33,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectRole;
-import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.database.entity.user.UserRole;
+import java.util.Calendar;
+import java.util.Collections;
 
 public class MongoDbTests  extends BaseTest {
 
@@ -73,8 +72,8 @@ public class MongoDbTests  extends BaseTest {
 		project.setCustomer("some customer");
 		project.setName(DEFAULT_PROJECT);
 		project.setAddInfo("some additional info");
-		project.setUsers(Collections.singletonMap(user.getId(), Project.UserConfig.newOne().withProjectRole(ProjectRole.MEMBER)
-				.withProposedRole(ProjectRole.MEMBER)));
+		project.setUsers(Collections.singletonList(Project.UserConfig.newOne().withProjectRole(ProjectRole.MEMBER)
+				.withProposedRole(ProjectRole.MEMBER).withLogin(user.getId())));
 		projectRepository.save(project);
 
 		Project savedProject = projectRepository.findOne(project.getName());

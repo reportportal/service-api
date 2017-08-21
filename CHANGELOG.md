@@ -139,6 +139,8 @@
 
 ### New Features
 
+* EPMRPP-26416 - Add possibility to use a 'dot' symbol in login of user
+
 ### Bugfixes
 * EPMRPP-29167 - Statistics for deleted elements with custom defect types are still present
 * reportportal#176/EPMRPP-26045 - Split Test Description and test parameters

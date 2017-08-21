@@ -21,27 +21,13 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ErrorType.USER_NOT_FOUND;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toMap;
-
-import java.security.Principal;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.user.IGetUserHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.database.search.Condition;
@@ -52,6 +38,20 @@ import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.UserBidRS;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.google.common.base.Preconditions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.security.Principal;
+import java.util.Map;
+
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.USER_NOT_FOUND;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Implementation for GET user operations
@@ -88,7 +88,7 @@ public class GetUserHandler implements IGetUserHandler {
 		// Active users only
 		filter.addCondition(new FilterCondition(Condition.EQUALS, false, "false", User.EXPIRED));
 		Project project = projectRepository.findOne(projectName);
-		String criteria = project.getUsers().keySet().stream().collect(joining(","));
+		String criteria = project.getUsers().stream().map(Project.UserConfig::getLogin).collect(joining(","));
 		filter.addCondition(new FilterCondition(Condition.IN, true, criteria, User.LOGIN));
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, project);
 		return userResourceAssembler.toPagedResources(userRepository.findByFilterExcluding(filter, pageable, "email"));
@@ -125,7 +125,7 @@ public class GetUserHandler implements IGetUserHandler {
 		return projectRepository.findUserProjects(userName).stream().collect(toMap(Project::getName, it -> {
 			UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
 			assignedProject.setEntryType(it.getConfiguration().getEntryType().name());
-			Project.UserConfig userConfig = it.getUsers().get(userName);
+			Project.UserConfig userConfig = ProjectUtils.findUserConfigByLogin(it, userName);
 			assignedProject.setProjectRole(userConfig.getProjectRole().name());
 			assignedProject.setProposedRole(userConfig.getProposedRole().name());
 			return assignedProject;

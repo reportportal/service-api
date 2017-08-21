@@ -33,19 +33,19 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Migration 3.2
+ * Migration 3.3
  *
  * @author Pavel Bortnik
  */
-@ChangeLog(order = "3.2")
-public class ChangeSets_3_2 {
+@ChangeLog(order = "3.3")
+public class ChangeSets_3_3 {
 
     private static final String HISTORY = "history";
     private static final String CHANGES = "changes";
     private static final String ID = "_id";
     private static final String COLLECTION = "activity";
 
-    @ChangeSet(order = "3.2-1", id = "v3.2-Replace activities embedded collection 'history' with array", author = "pbortnik")
+    @ChangeSet(order = "3.3-1", id = "v3.3-Replace activities embedded collection 'history' with array", author = "pbortnik")
     public void replaceActivitesHistory(MongoTemplate mongoTemplate) {
         final Query q = new Query(Criteria.where(HISTORY).exists(true));
         q.fields().include(ID).include(HISTORY);

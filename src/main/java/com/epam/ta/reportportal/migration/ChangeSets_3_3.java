@@ -41,7 +41,6 @@ import java.util.Map;
 public class ChangeSets_3_3 {
 
     private static final String HISTORY = "history";
-    private static final String CHANGES = "changes";
     private static final String ID = "_id";
     private static final String COLLECTION = "activity";
 
@@ -62,7 +61,7 @@ public class ChangeSets_3_3 {
                 dbArray[i] = res;
                 i++;
             }
-            u.unset(HISTORY).set(CHANGES, dbArray);
+            u.set(HISTORY, dbArray);
             mongoTemplate.updateFirst(Query.query(Criteria.where(ID).is(dbo.get(ID))), u, COLLECTION);
         });
     }

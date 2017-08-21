@@ -270,7 +270,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 					.withLogin(user.getId()));
 		} else {
 			//noinspection ConstantConditions
-			projectUsers.add(UserConfig.newOne().withProjectRole(projectRole.get()).withProjectRole(projectRole.get())
+			projectUsers.add(UserConfig.newOne().withProjectRole(projectRole.get()).withProposedRole(projectRole.get())
 					.withLogin(user.getId()));
 		}
 		defaultProject.setUsers(projectUsers);

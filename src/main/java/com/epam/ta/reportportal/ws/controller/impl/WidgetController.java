@@ -101,7 +101,7 @@ public class WidgetController implements IWidgetController {
     }
 
     @Override
-    @RequestMapping(value = "/empty/{widgetId}", method = RequestMethod.GET)
+    @RequestMapping(value = "/empty/{widgetId}", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     @ApiOperation("Update empty widget")

@@ -15,6 +15,7 @@
         "statistics$defects$system_issue$SI001",
         "statistics$defects$to_investigate$TI001"
       ],
+      "widgetOptions": [],
       "itemsCount": 50
     },
     "applyingFilterId": "",
@@ -36,6 +37,7 @@
         "statistics$executions$failed",
         "statistics$executions$skipped"
       ],
+      "widgetOptions": [],
       "itemsCount": 50
     },
     "applyingFilterId": "",
@@ -59,6 +61,7 @@
         "statistics$defects$no_defect$total",
         "statistics$defects$to_investigate$total"
       ],
+      "widgetOptions": [],
       "itemsCount": 50
     },
     "applyingFilterId": "",
@@ -86,6 +89,7 @@
         "statistics$defects$no_defect$ND001",
         "statistics$defects$to_investigate$TI001"
       ],
+      "widgetOptions": [],
       "itemsCount": 50
     },
     "applyingFilterId": "",
@@ -155,6 +159,7 @@
         "statistics$defects$no_defect$ND001",
         "statistics$defects$to_investigate$TI001"
       ],
+      "widgetOptions": [],
       "itemsCount": 50
     },
     "applyingFilterId": "",
@@ -178,6 +183,7 @@
         "statistics$defects$no_defect$total",
         "statistics$defects$to_investigate$total"
       ],
+      "widgetOptions": [],
       "itemsCount": 50
     },
     "applyingFilterId": "",
@@ -208,6 +214,7 @@
         "last_modified",
         "status"
       ],
+      "widgetOptions": [],
       "itemsCount": 50
     },
     "applyingFilterId": "",

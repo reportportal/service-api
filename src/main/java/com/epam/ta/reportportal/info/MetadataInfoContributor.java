@@ -20,6 +20,8 @@
  */
 package com.epam.ta.reportportal.info;
 
+import com.epam.ta.reportportal.database.entity.item.ActivityEventType;
+import com.epam.ta.reportportal.database.entity.item.ActivityObjectType;
 import com.epam.ta.reportportal.database.entity.project.KeepLogsDelay;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.boot.actuate.info.MapInfoContributor;
@@ -38,11 +40,14 @@ import static java.util.stream.Collectors.toList;
 public class MetadataInfoContributor extends MapInfoContributor {
 
 	public MetadataInfoContributor() {
-		super(ImmutableMap.<String, Object>builder().put("metadata", getKeepLogsDelays()).build());
+		super(ImmutableMap.<String, Object>builder().put("metadata", getMetadata()).build());
 	}
 
-	private static Map<String, Object> getKeepLogsDelays() {
-		return ImmutableMap.<String, Object>builder().put("keepLogsDelay", stream(values()).map(KeepLogsDelay::getValue).collect(toList()))
-				.build();
-	}
+	private static Map<String, Object> getMetadata() {
+	    return ImmutableMap.<String, Object>builder()
+                .put("activitiesEventType", stream(ActivityEventType.values()).map(ActivityEventType::getValue).collect(toList()))
+                .put("activitiesObjectType", stream(ActivityObjectType.values()).map(ActivityObjectType::getValue).collect(toList()))
+                .put("keepLogsDelay", stream(values()).map(KeepLogsDelay::getValue).collect(toList()))
+                .build();
+    }
 }

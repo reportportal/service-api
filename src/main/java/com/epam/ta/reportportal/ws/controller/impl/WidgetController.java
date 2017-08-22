@@ -125,7 +125,7 @@ public class WidgetController implements IWidgetController {
 	@ResponseBody
 	@ApiOperation("Update specified widget")
 	public OperationCompletionRS updateWidget(@PathVariable String projectName, @PathVariable String widgetId,
-											  @RequestBody @Validated WidgetRQ updateRQ, @ActiveRole UserRole userRole, Principal principal) {
+											  @RequestBody WidgetRQ updateRQ, @ActiveRole UserRole userRole, Principal principal) {
 		return updateHandler.updateWidget(widgetId, updateRQ, principal.getName(), normalizeId(projectName), userRole);
 	}
 

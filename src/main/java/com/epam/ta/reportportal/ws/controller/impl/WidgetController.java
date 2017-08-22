@@ -101,6 +101,16 @@ public class WidgetController implements IWidgetController {
     }
 
     @Override
+    @RequestMapping(value = "/empty/{widgetId}", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    @ApiOperation("Update empty widget")
+    public OperationCompletionRS updateEmptyWidget(@PathVariable String projectName, @PathVariable String widgetId,
+                                            @ActiveRole UserRole userRole, WidgetRQ updateRQ, Principal principal) {
+        return updateHandler.updateEmpty(normalizeId(projectName), widgetId, updateRQ, principal.getName(), userRole);
+    }
+
+    @Override
     @RequestMapping(value = "/{widgetId}", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
 	@ResponseBody

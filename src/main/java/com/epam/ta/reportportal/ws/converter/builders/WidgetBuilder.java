@@ -21,14 +21,14 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.trimStrings;
 import static com.google.common.collect.Lists.newArrayList;
@@ -78,6 +78,13 @@ public class WidgetBuilder extends ShareableEntityBuilder<Widget> {
 		getObject().setApplyingFilterId(applyingFilterId);
 		return this;
 	}
+
+	public WidgetBuilder addDescription(String description) {
+	    if (!Strings.isNullOrEmpty(description)) {
+	        getObject().setDescription(description);
+        }
+        return this;
+    }
 
 	@Override
 	protected Widget initObject() {

@@ -93,15 +93,7 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 		Widget beforeUpdate = SerializationUtils.clone(widget);
 		expect(widget, notNull()).verify(WIDGET_NOT_FOUND, widgetId);
 
-		List<Widget> widgetList = widgetRepository.findByProjectAndUser(projectName, userName);
-		if (null != updateRQ.getName() && !widget.getName().equals(updateRQ.getName())) {
-			WidgetUtils.checkUniqueName(updateRQ.getName(), widgetList);
-		}
-		widget.setDescription(updateRQ.getDescription());
-
-		AclUtils.isAllowedToEdit(widget.getAcl(), userName, projectRepository.findProjectRoles(userName),
-                widget.getName(), userRole);
-		expect(widget.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
+		validateWidgetAccess(projectName, userName, userRole, widget, updateRQ);
 
 		UserFilter newFilter = null;
 		if (null != updateRQ.getApplyingFilter()) {
@@ -117,7 +109,10 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 				expect(newFilter.isLink(), equalTo(false)).verify(UNABLE_TO_CREATE_WIDGET, "Widget cannot be based on a link");
 			}
 		}
-		Widget newWidget = widgetBuilder.get().addWidgetRQ(updateRQ).build();
+
+		Widget newWidget = widgetBuilder.get().addWidgetRQ(updateRQ)
+                .addDescription(updateRQ.getDescription())
+                .build();
 
 		validateWidgetFields(newWidget, newFilter, widget, userName, projectName);
 
@@ -131,7 +126,37 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
 	}
 
-	private void shareIfRequired(Boolean isShare, Widget widget, String userName, String projectName, UserFilter newFilter) {
+    @Override
+    public OperationCompletionRS updateEmpty(String projectName, String widgetId, WidgetRQ updateRQ, String userName, UserRole userRole) {
+        Widget widget = widgetRepository.findOne(widgetId);
+        Widget beforeUpdate = SerializationUtils.clone(widget);
+        expect(widget, notNull()).verify(WIDGET_NOT_FOUND, widgetId);
+
+        validateWidgetAccess(projectName, userName, userRole, widget, updateRQ);
+
+        Widget newWidget = widgetBuilder.get().addWidgetRQ(updateRQ)
+                .addDescription(updateRQ.getDescription())
+                .build();
+
+        updateWidget(widget, newWidget, null);
+        shareIfRequired(updateRQ.getShare(), widget, userName, projectName, null);
+        widgetRepository.save(widget);
+        eventPublisher.publishEvent(new WidgetUpdatedEvent(beforeUpdate, updateRQ, userName));
+        return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
+    }
+
+    private void validateWidgetAccess(String projectName, String userName, UserRole userRole, Widget widget, WidgetRQ updateRQ) {
+        List<Widget> widgetList = widgetRepository.findByProjectAndUser(projectName, userName);
+        if (null != updateRQ.getName() && !widget.getName().equals(updateRQ.getName())) {
+            WidgetUtils.checkUniqueName(updateRQ.getName(), widgetList);
+        }
+
+        AclUtils.isAllowedToEdit(widget.getAcl(), userName, projectRepository.findProjectRoles(userName),
+                widget.getName(), userRole);
+        expect(widget.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
+    }
+
+    private void shareIfRequired(Boolean isShare, Widget widget, String userName, String projectName, UserFilter newFilter) {
 		if (isShare != null) {
 			if (null != newFilter) {
 				AclUtils.isPossibleToRead(newFilter.getAcl(), userName, projectName);

@@ -61,8 +61,7 @@ import java.util.UUID;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.LAUNCHES_TABLE;
-import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.PIE_CHART;
+import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.*;
 import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.*;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
@@ -128,7 +127,8 @@ public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandl
 			projectRepo.save(project);
 			widgetRepository.findByProject(projectName).stream()
 					.filter(it -> it.getContentOptions().getType().equals(PIE_CHART.getType())
-							|| it.getContentOptions().getType().equals(LAUNCHES_TABLE.getType()))
+							|| it.getContentOptions().getType().equals(LAUNCHES_TABLE.getType())
+                            || it.getContentOptions().getType().equals(EMPTY_WIDGET.getType()))
                     .filter(it -> it.getContentOptions().getContentFields()
                             .stream().anyMatch(s -> s.contains(subType.getTypeRef().toLowerCase())))
 					.forEach(it -> widgetRepository.addContentField(it.getId(),

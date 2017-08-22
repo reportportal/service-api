@@ -92,9 +92,7 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 		Widget widget = widgetRepository.findOne(widgetId);
 		Widget beforeUpdate = SerializationUtils.clone(widget);
 		expect(widget, notNull()).verify(WIDGET_NOT_FOUND, widgetId);
-
 		validateWidgetAccess(projectName, userName, userRole, widget, updateRQ);
-
 		UserFilter newFilter = null;
 		if (null != updateRQ.getApplyingFilter()) {
 			String filterId = updateRQ.getApplyingFilter();
@@ -175,6 +173,7 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 		if (filter != null) {
 			oldWidget.setApplyingFilterId(filter.getId());
 		}
+		oldWidget.setDescription(newValues.getDescription());
 	}
 
 	/**

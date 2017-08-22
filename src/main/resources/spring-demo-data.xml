@@ -453,40 +453,36 @@
 		<property name="name" value="project1" />
 		<property name="customer" value="someDefaultCustomer" />
 		<property name="users">
-			<util:map>
-				<entry key="user1">
-					<bean class="com.epam.ta.reportportal.database.entity.Project.UserConfig">
-						<property name="projectRole"
-							value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}" />
-						<property name="proposedRole"
-							value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}" />
-					</bean>
-				</entry>
-				<entry key="user2">
-					<bean class="com.epam.ta.reportportal.database.entity.Project.UserConfig">
-						<property name="projectRole"
-							value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).MEMBER}" />
-						<property name="proposedRole"
-							value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).MEMBER}" />
-					</bean>
-				</entry>
-				<entry key="customer">
-					<bean class="com.epam.ta.reportportal.database.entity.Project.UserConfig">
-						<property name="projectRole"
-								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).CUSTOMER}" />
-						<property name="proposedRole"
-								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).CUSTOMER}" />
-					</bean>
-				</entry>
-				<entry key="user4">
-					<bean class="com.epam.ta.reportportal.database.entity.Project.UserConfig">
-						<property name="projectRole"
-								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}" />
-						<property name="proposedRole"
-								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}" />
-					</bean>
-				</entry>
-			</util:map>
+            <util:list>
+                <bean class="com.epam.ta.reportportal.database.entity.Project.UserConfig">
+                    <property name="login" value="user1"/>
+                    <property name="projectRole"
+                              value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}"/>
+                    <property name="proposedRole"
+                              value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}"/>
+                </bean>
+                <bean class="com.epam.ta.reportportal.database.entity.Project.UserConfig">
+                    <property name="login" value="user2"/>
+                    <property name="projectRole"
+                              value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).MEMBER}"/>
+                    <property name="proposedRole"
+                              value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).MEMBER}"/>
+                </bean>
+                <bean class="com.epam.ta.reportportal.database.entity.Project.UserConfig">
+                    <property name="login" value="customer"/>
+                    <property name="projectRole"
+                              value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).CUSTOMER}"/>
+                    <property name="proposedRole"
+                              value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).CUSTOMER}"/>
+                </bean>
+                <bean class="com.epam.ta.reportportal.database.entity.Project.UserConfig">
+                    <property name="login" value="user4"/>
+                    <property name="projectRole"
+                              value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}"/>
+                    <property name="proposedRole"
+                              value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}"/>
+                </bean>
+            </util:list>
 		</property>
 		<property name="configuration">
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
@@ -667,16 +663,15 @@
 		<property name="name" value="project2" />
 		<property name="customer" value="test32" />
 		<property name="users">
-			<util:map>
-				<entry key="user1">
-					<bean class="com.epam.ta.reportportal.database.entity.Project.UserConfig">
-						<property name="projectRole"
-								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}" />
-						<property name="proposedRole"
-								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}" />
-					</bean>
-				</entry>
-			</util:map>
+            <util:list>
+                <bean class="com.epam.ta.reportportal.database.entity.Project.UserConfig">
+                    <property name="login" value="user1"/>
+                    <property name="projectRole"
+                              value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}"/>
+                    <property name="proposedRole"
+                              value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}"/>
+                </bean>
+            </util:list>
 		</property>
 		<property name="configuration">
 			<bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
@@ -729,16 +724,15 @@
 		<property name="name" value="test_123" />
 		<property name="customer" value="test_cust" />
 		<property name="users">
-			<util:map>
-				<entry key="user1">
-					<bean class="com.epam.ta.reportportal.database.entity.Project.UserConfig">
-						<property name="projectRole"
-								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}" />
-						<property name="proposedRole"
-								  value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}" />
-					</bean>
-				</entry>
-			</util:map>
+            <util:list>
+                <bean class="com.epam.ta.reportportal.database.entity.Project.UserConfig">
+                    <property name="login" value="user1"/>
+                    <property name="projectRole"
+                              value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}"/>
+                    <property name="proposedRole"
+                              value="#{T(com.epam.ta.reportportal.database.entity.ProjectRole).PROJECT_MANAGER}"/>
+                </bean>
+            </util:list>
 		</property>
 
 	</bean>
@@ -2817,14 +2811,13 @@
 		<property name="objectType" value="#{T(com.epam.ta.reportportal.database.entity.item.ActivityObjectType).TEST_ITEM}"/>
 		<property name="actionType" value="#{T(com.epam.ta.reportportal.database.entity.item.ActivityEventType).UPDATE_ITEM}"/>
 		<property name="history">
-			<util:map>
-				<entry key="COMMENT">
+			<util:list>
 					<bean class="com.epam.ta.reportportal.database.entity.item.Activity.FieldValues">
+                        <property name="field" value="COMMENT"/>
 						<property name="oldValue" value=""/>
 						<property name="newValue" value="new comment"/>
 					</bean>
-				</entry>
-			</util:map>
+			</util:list>
 		</property>
 	</bean>
 
@@ -2837,14 +2830,13 @@
 		<property name="objectType" value="#{T(com.epam.ta.reportportal.database.entity.item.ActivityObjectType).TEST_ITEM}"/>
 		<property name="actionType" value="#{T(com.epam.ta.reportportal.database.entity.item.ActivityEventType).UPDATE_ITEM}"/>
 		<property name="history">
-			<util:map>
-				<entry key="ISSUE_TYPE">
+			<util:list>
 					<bean class="com.epam.ta.reportportal.database.entity.item.Activity.FieldValues">
+                        <property name="field" value="ISSUE_TYPE"/>
 						<property name="oldValue" value=""/>
 						<property name="newValue" value="To investigate"/>
 					</bean>
-				</entry>
-			</util:map>
+			</util:list>
 		</property>
 	</bean>
 
@@ -2857,14 +2849,13 @@
 		<property name="objectType" value="#{T(com.epam.ta.reportportal.database.entity.item.ActivityObjectType).TEST_ITEM}"/>
 		<property name="actionType" value="#{T(com.epam.ta.reportportal.database.entity.item.ActivityEventType).UPDATE_ITEM}"/>
 		<property name="history">
-			<util:map>
-				<entry key="ISSUE_TYPE">
+			<util:list>
 					<bean class="com.epam.ta.reportportal.database.entity.item.Activity.FieldValues">
+                        <property name="field" value="ISSUE_TYPE"/>
 						<property name="oldValue" value="To investigate"/>
 						<property name="newValue" value="Product bug"/>
 					</bean>
-				</entry>
-			</util:map>
+			</util:list>
 		</property>
 	</bean>
 
@@ -2877,14 +2868,13 @@
 		<property name="objectType" value="#{T(com.epam.ta.reportportal.database.entity.item.ActivityObjectType).TEST_ITEM}"/>
 		<property name="actionType" value="#{T(com.epam.ta.reportportal.database.entity.item.ActivityEventType).UPDATE_ITEM}"/>
 		<property name="history">
-			<util:map>
-				<entry key="COMMENT">
+			<util:list>
 					<bean class="com.epam.ta.reportportal.database.entity.item.Activity.FieldValues">
+                        <property name="field" value="COMMENT"/>
 						<property name="oldValue" value="new comment"/>
 						<property name="newValue" value="updated comment"/>
 					</bean>
-				</entry>
-			</util:map>
+			</util:list>
 		</property>
 	</bean>
 

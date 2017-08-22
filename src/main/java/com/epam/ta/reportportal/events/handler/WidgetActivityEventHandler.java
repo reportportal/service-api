@@ -23,14 +23,22 @@ package com.epam.ta.reportportal.events.handler;
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
+import com.epam.ta.reportportal.events.WidgetCreatedEvent;
+import com.epam.ta.reportportal.events.WidgetDeletedEvent;
 import com.epam.ta.reportportal.events.WidgetUpdatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Provider;
+import java.util.List;
+
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
+import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.WIDGET;
+import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
 
 /**
  * @author Andrei Varabyeu
@@ -38,31 +46,69 @@ import javax.inject.Provider;
 @Component
 public class WidgetActivityEventHandler {
 
-	public static final String SHARE = "share";
-	public static final String UNSHARE = "unshare";
-
-	@Autowired
 	private ActivityRepository activityRepository;
 
 	@Autowired
-	private Provider<ActivityBuilder> activityBuilder;
+    public WidgetActivityEventHandler(ActivityRepository activityRepository) {
+        this.activityRepository = activityRepository;
+    }
 
-	@EventListener
+    @EventListener
 	public void onWidgetUpdated(WidgetUpdatedEvent event) {
 		Widget widget = event.getBefore();
 		WidgetRQ widgetRQ = event.getWidgetRQ();
-		if (null != widgetRQ.getShare()) {
-			if (widget != null) {
-				boolean isShared = !widget.getAcl().getEntries().isEmpty();
-				if (!widgetRQ.getShare().equals(isShared)) {
-					Activity activityLog = activityBuilder.get().addProjectRef(widget.getProjectName()).addObjectType(Widget.WIDGET)
-							.addUserRef(event.getUpdatedBy()).addActionType(widgetRQ.getShare() ? SHARE : UNSHARE)
-							.addLoggedObjectRef(widget.getId()).addObjectName(widgetRQ.getName()).build();
-					activityRepository.save(activityLog);
-
-				}
-			}
-		}
+        List<Activity.FieldValues> history = Lists.newArrayList();
+		if (widget != null) {
+		    processShare(history, widget, widgetRQ.getShare());
+            processName(history, widget.getName(), widgetRQ.getName());
+            processDescription(history, widget.getDescription(), widgetRQ.getDescription());
+            if (!history.isEmpty()) {
+                Activity activityLog = new ActivityBuilder()
+                        .addProjectRef(widget.getProjectName())
+                        .addObjectName(widget.getName())
+                        .addObjectType(WIDGET)
+                        .addActionType(UPDATE_WIDGET)
+                        .addLoggedObjectRef(widget.getId())
+                        .addUserRef(event.getUpdatedBy())
+                        .build();
+                activityLog.setHistory(history);
+                activityRepository.save(activityLog);
+            }
+        }
 	}
+
+	@EventListener
+    public void onCreateWidget(WidgetCreatedEvent event) {
+        WidgetRQ widgetRQ = event.getWidgetRQ();
+        Activity activityLog = new ActivityBuilder()
+                .addActionType(CREATE_WIDGET)
+                .addObjectType(WIDGET)
+                .addObjectName(widgetRQ.getName())
+                .addProjectRef(event.getProjectRef())
+                .addUserRef(event.getCreatedBy())
+                .addLoggedObjectRef(event.getWidgetId())
+                .addHistory(ImmutableList.<Activity.FieldValues>builder()
+                        .add(createHistoryField(NAME, EMPTY_FIELD, widgetRQ.getName()))
+                        .build())
+                .build();
+        activityRepository.save(activityLog);
+
+    }
+
+    @EventListener
+    public void onDeleteWidget(WidgetDeletedEvent event) {
+        Widget widget = event.getBefore();
+        Activity activityLog = new ActivityBuilder()
+                .addActionType(DELETE_WIDGET)
+                .addObjectType(WIDGET)
+                .addObjectName(widget.getName())
+                .addProjectRef(widget.getProjectName())
+                .addUserRef(event.getRemovedBy())
+                .addHistory(ImmutableList.<Activity.FieldValues>builder()
+                        .add(createHistoryField(NAME, widget.getName(), EMPTY_FIELD)).build())
+                .build();
+        activityRepository.save(activityLog);
+    }
+
 }
 

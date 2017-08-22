@@ -17,38 +17,32 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static org.springframework.http.HttpStatus.OK;
-
-import java.security.Principal;
-import java.util.List;
-
 import com.epam.ta.reportportal.commons.EntityUtils;
-import com.epam.ta.reportportal.ws.model.Page;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-import com.epam.ta.reportportal.ws.resolver.FilterFor;
-import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.epam.ta.reportportal.core.activity.IActivityHandler;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.controller.IActivityController;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
-
+import com.epam.ta.reportportal.ws.model.Page;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
+import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
+
+import java.security.Principal;
+import java.util.List;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static org.springframework.http.HttpStatus.OK;
 
 /**
  * @author Dzmitry_Kavalets

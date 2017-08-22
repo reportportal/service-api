@@ -46,6 +46,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.springframework.context.ApplicationEventPublisher;
 
 import javax.inject.Provider;
 import java.util.ArrayList;
@@ -53,8 +54,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Dzmitry_Kavalets
@@ -73,6 +74,8 @@ public class CreateWidgetHandlerTest {
 	private static Provider<WidgetBuilder> lazyReference;
 	private static WidgetRepository widgetRepository;
 	private static UserFilterRepository userFilterRepository;
+	private static ApplicationEventPublisher eventPublisher;
+	private static CreateWidgetHandler createWidgetHandler;
 
 	@SuppressWarnings("unchecked")
 	@BeforeClass
@@ -83,6 +86,8 @@ public class CreateWidgetHandlerTest {
 		when(widgetRepository.findByProjectAndUser(DEFAULT_PROJECT, DEFAULT_USER)).thenReturn(new ArrayList<>());
 		userFilterRepository = mock(UserFilterRepository.class);
 		when(userFilterRepository.findOneLoadACL(DEFAULT_USER, FILTER_ID, DEFAULT_PROJECT)).thenReturn(new UserFilter());
+		eventPublisher = mock(ApplicationEventPublisher.class);
+		doNothing().when(eventPublisher).publishEvent(anyObject());
 	}
 
 	@Test
@@ -100,6 +105,7 @@ public class CreateWidgetHandlerTest {
 		createWidgetHandler.setUserFilterRepository(userFilterRepository);
 		createWidgetHandler.setCriteriaMapFactory(mock(CriteriaMapFactory.class));
 		createWidgetHandler.setWidgetBuilder(lazyReference);
+		createWidgetHandler.setEventPublisher(eventPublisher);
 
 		final EntryCreatedRS widget = createWidgetHandler.createWidget(widgetRQ, DEFAULT_PROJECT, DEFAULT_USER);
 		Assert.assertNotNull(widget);
@@ -216,6 +222,7 @@ public class CreateWidgetHandlerTest {
 		createWidgetHandler.setUserFilterRepository(userFilterRepository);
 		createWidgetHandler.setCriteriaMapFactory(criteriaMapFactory);
 		createWidgetHandler.setWidgetBuilder(lazyReference);
+		createWidgetHandler.setEventPublisher(eventPublisher);
 
 		final EntryCreatedRS widget = createWidgetHandler.createWidget(widgetRQ, DEFAULT_PROJECT, DEFAULT_USER);
 		Assert.assertNotNull(widget);
@@ -243,6 +250,7 @@ public class CreateWidgetHandlerTest {
 		createWidgetHandler.setWidgetRepository(widgetRepository);
 		createWidgetHandler.setUserFilterRepository(userFilterRepository);
 		createWidgetHandler.setCriteriaMapFactory(criteriaMapFactory);
+		createWidgetHandler.setEventPublisher(eventPublisher);
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage(
 				Suppliers.formattedSupplier("Field '{}' cannot be used for calculating data for widget.", "negativeFirst").get());
@@ -273,6 +281,7 @@ public class CreateWidgetHandlerTest {
 		createWidgetHandler.setUserFilterRepository(userFilterRepository);
 		createWidgetHandler.setCriteriaMapFactory(criteriaMapFactory);
 		createWidgetHandler.setWidgetBuilder(lazyReference);
+		createWidgetHandler.setEventPublisher(eventPublisher);
 
 		final EntryCreatedRS widget = createWidgetHandler.createWidget(widgetRQ, DEFAULT_PROJECT, DEFAULT_USER);
 		Assert.assertNotNull(widget);

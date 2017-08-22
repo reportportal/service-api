@@ -30,10 +30,12 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
+import com.epam.ta.reportportal.events.DashboardDeletedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -47,12 +49,17 @@ import java.util.Map;
 public class DeleteDashboardHandler implements IDeleteDashboardHandler {
 
     private final DashboardRepository dashboardRepository;
+
     private final ProjectRepository projectRepository;
 
+    private ApplicationEventPublisher eventPublisher;
+
     @Autowired
-    public DeleteDashboardHandler(DashboardRepository dashboardRepository, ProjectRepository projectRepository) {
+    public DeleteDashboardHandler(DashboardRepository dashboardRepository, ProjectRepository projectRepository,
+                                  ApplicationEventPublisher eventPublisher) {
         this.dashboardRepository = dashboardRepository;
         this.projectRepository = projectRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -69,6 +76,7 @@ public class DeleteDashboardHandler implements IDeleteDashboardHandler {
         } catch (Exception e) {
             throw new ReportPortalException("Error during deleting dashboard item", e);
         }
+        eventPublisher.publishEvent(new DashboardDeletedEvent(dashboard, userName));
         OperationCompletionRS response = new OperationCompletionRS();
         StringBuilder msg = new StringBuilder("Dashboard with ID = '");
         msg.append(dashboardId);

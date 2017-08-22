@@ -28,7 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Provider;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.CREATE_USER;
+import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.USER;
 
 /**
  * @author Andrei Varabyeu
@@ -36,22 +37,23 @@ import javax.inject.Provider;
 @Component
 public class UserActivityHandler {
 
-	public static final String CREATE_USER = "create_user";
-
 	private final ActivityRepository activityRepository;
-	private final Provider<ActivityBuilder> activityBuilder;
 
 	@Autowired
-	public UserActivityHandler(ActivityRepository activityRepository, Provider<ActivityBuilder> activityBuilder) {
+	public UserActivityHandler(ActivityRepository activityRepository) {
 		this.activityRepository = activityRepository;
-		this.activityBuilder = activityBuilder;
 	}
 
 	@EventListener
 	public void onUserCreated(UserCreatedEvent event) {
-		Activity activity = activityBuilder.get().addActionType(CREATE_USER).addLoggedObjectRef(event.getUser().getLogin())
-				.addObjectName(event.getUser().getLogin()).addObjectType("user").addUserRef(event.getCreatedBy())
-				.addProjectRef(event.getUser().getDefaultProject().toLowerCase()).build();
+		Activity activity = new ActivityBuilder()
+                .addActionType(CREATE_USER)
+                .addLoggedObjectRef(event.getUser().getLogin())
+				.addObjectName(event.getUser().getLogin())
+                .addObjectType(USER)
+                .addUserRef(event.getCreatedBy())
+				.addProjectRef(event.getUser().getDefaultProject().toLowerCase())
+                .build();
 		activityRepository.save(activity);
 	}
 }

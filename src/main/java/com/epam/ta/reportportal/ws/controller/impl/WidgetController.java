@@ -106,7 +106,7 @@ public class WidgetController implements IWidgetController {
     @ResponseBody
     @ApiOperation("Update empty widget")
     public OperationCompletionRS updateEmptyWidget(@PathVariable String projectName, @PathVariable String widgetId,
-                                            @ActiveRole UserRole userRole, WidgetRQ updateRQ, Principal principal) {
+                                                   @ActiveRole UserRole userRole, @RequestBody @Validated WidgetRQ updateRQ, Principal principal) {
         return updateHandler.updateEmpty(normalizeId(projectName), widgetId, updateRQ, principal.getName(), userRole);
     }
 

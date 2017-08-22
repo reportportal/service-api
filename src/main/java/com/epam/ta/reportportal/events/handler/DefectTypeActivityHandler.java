@@ -15,9 +15,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.events.handler.ActivityEventType.DELETE_DEFECT;
-import static com.epam.ta.reportportal.events.handler.ActivityEventType.UPDATE_DEFECT;
-import static com.epam.ta.reportportal.events.handler.ActivityObjectType.DEFECT_TYPE;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.DELETE_DEFECT;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.UPDATE_DEFECT;
+import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.DEFECT_TYPE;
 
 /**
  * @author Andrei Varabyeu
@@ -37,9 +37,9 @@ public class DefectTypeActivityHandler {
 		final Activity activity = new ActivityBuilder()
                 .addLoggedObjectRef(event.getStatisticSubType().getLocator())
 				.addProjectRef(event.getProject().toLowerCase())
-                .addObjectType(DEFECT_TYPE.getValue())
+                .addObjectType(DEFECT_TYPE)
                 .addObjectName(event.getStatisticSubType().getLongName())
-                .addActionType(UPDATE_DEFECT.getValue())
+                .addActionType(UPDATE_DEFECT)
 				.addUserRef(event.getUser()).build();
 		activityRepository.save(activity);
 	}
@@ -50,8 +50,8 @@ public class DefectTypeActivityHandler {
 				.stream().map(r ->
                         new ActivityBuilder()
                                 .addProjectRef(event.getProject())
-                                .addObjectType(DEFECT_TYPE.getValue())
-                                .addActionType(UPDATE_DEFECT.getValue())
+                                .addObjectType(DEFECT_TYPE)
+                                .addActionType(UPDATE_DEFECT)
                                 .addLoggedObjectRef(r.getId())
                                 .addUserRef(event.getUpdatedBy())
                                 .build())
@@ -67,8 +67,8 @@ public class DefectTypeActivityHandler {
 				.filter(it -> it.getLocator().equalsIgnoreCase(event.getId())).findFirst().ifPresent(subType -> {
 					Activity activity = new ActivityBuilder()
                             .addProjectRef(projectSettings.getName())
-                            .addObjectType(DEFECT_TYPE.getValue())
-							.addActionType(DELETE_DEFECT.getValue())
+                            .addObjectType(DEFECT_TYPE)
+							.addActionType(DELETE_DEFECT)
                             .addLoggedObjectRef(event.getId())
                             .addUserRef(event.getUpdatedBy().toLowerCase())
 							.addObjectName(subType.getLongName())

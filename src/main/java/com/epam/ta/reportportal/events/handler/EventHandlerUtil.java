@@ -25,8 +25,7 @@ import com.epam.ta.reportportal.database.entity.sharing.Shareable;
 import com.google.common.base.Strings;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author pavel_bortnik
@@ -41,29 +40,31 @@ public class EventHandlerUtil {
     //for created or deleted widgets
     static final String EMPTY_FIELD = "";
 
-    static Activity.FieldValues createHistoryField(String oldValue, String newValue) {
-        return Activity.FieldValues.newOne().withOldValue(oldValue).withNewValue(newValue);
+    static Activity.FieldValues createHistoryField(String field, String oldValue, String newValue) {
+        return Activity.FieldValues.newOne()
+                .withField(field).withOldValue(oldValue)
+                .withNewValue(newValue);
     }
 
-    static void processShare(Map<String, Activity.FieldValues> history, Shareable shareable, Boolean share) {
+    static void processShare(List<Activity.FieldValues> history, Shareable shareable, Boolean share) {
         if (null != share) {
             Boolean isShared = !shareable.getAcl().getEntries().isEmpty();
             if (!share.equals(isShared)) {
-                history.put(SHARE, createHistoryField(isShared.toString(), share.toString()));
+                history.add(createHistoryField(SHARE, isShared.toString(), share.toString()));
             }
         }
     }
 
-    static void processName(Map<String, Activity.FieldValues> history, String oldName, String newName) {
+    static void processName(List<Activity.FieldValues> history, String oldName, String newName) {
         if (!Strings.isNullOrEmpty(newName) && !oldName.equals(newName)) {
-            history.put(NAME, createHistoryField(oldName, newName));
+            history.add(createHistoryField(NAME, oldName, newName));
         }
     }
 
-    static void processDescription(HashMap<String, Activity.FieldValues> history, @Nullable String oldDescription,
+    static void processDescription(List<Activity.FieldValues> history, @Nullable String oldDescription,
                                    String newDescription) {
         if (null != newDescription && !newDescription.equals(oldDescription)) {
-            history.put(DESCRIPTION, createHistoryField(oldDescription, newDescription));
+            history.add(createHistoryField(DESCRIPTION, oldDescription, newDescription));
         }
     }
 

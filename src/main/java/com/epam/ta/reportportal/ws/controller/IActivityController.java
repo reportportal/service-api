@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
+import com.epam.ta.reportportal.ws.model.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.security.Principal;
@@ -58,22 +59,6 @@ public interface IActivityController {
 	List<ActivityResource> getTestItemActivities(String projectName, String itemId, Filter filter, Pageable pageable, Principal principal);
 
     /**
-     * Get activity type names
-     *
-     * @param projectName
-     * @return
-     */
-	List<String> getActivityTypes(String projectName);
-
-    /**
-     * Get activity object type names
-     *
-     * @param projectName
-     * @return
-     */
-	List<String> getActivityObjectTypes(String projectName);
-
-    /**
      * Get activities for specified project with filter
      * and paging
      *
@@ -82,6 +67,6 @@ public interface IActivityController {
      * @param pageable
      * @return
      */
-	List<ActivityResource> getActivities(String projectName, Filter filter, Pageable pageable);
+	Page<ActivityResource> getActivities(String projectName, Filter filter, Pageable pageable);
 
 }

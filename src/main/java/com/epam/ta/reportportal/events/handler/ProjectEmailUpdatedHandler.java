@@ -27,14 +27,16 @@ import com.epam.ta.reportportal.events.EmailConfigUpdatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.EmailConfigConverters;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
-import static com.epam.ta.reportportal.events.handler.ActivityEventType.UPDATE_PROJECT;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.UPDATE_PROJECT;
+import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.PROJECT;
+
 
 /**
  * Handles {@link com.epam.ta.reportportal.events.ProjectUpdatedEvent}
@@ -57,20 +59,21 @@ public class ProjectEmailUpdatedHandler {
 
 	@EventListener
 	public void onProjectEmailUpdate(EmailConfigUpdatedEvent event) {
-		Map<String, Activity.FieldValues> history = new HashMap<>();
+		List<Activity.FieldValues> history = Lists.newArrayList();
 		final ProjectEmailConfigDTO configuration = event.getUpdateProjectEmailRQ();
 		if (null != configuration) {
 			processEmailConfiguration(history, event.getBefore(), configuration);
 		}
 		if (!history.isEmpty()) {
-			Activity activityLog = new ActivityBuilder().addProjectRef(event.getBefore().getName()).addObjectType(Project.PROJECT)
-					.addActionType(UPDATE_PROJECT.getValue()).addUserRef(event.getUpdatedBy()).build();
+			Activity activityLog = new ActivityBuilder()
+                    .addProjectRef(event.getBefore().getName()).addObjectType(PROJECT)
+					.addActionType(UPDATE_PROJECT).addUserRef(event.getUpdatedBy()).build();
 			activityLog.setHistory(history);
 			activityRepository.save(activityLog);
 		}
 	}
 
-	private void processEmailConfiguration(Map<String, Activity.FieldValues> history, Project project, ProjectEmailConfigDTO configuration) {
+	private void processEmailConfiguration(List<Activity.FieldValues> history, Project project, ProjectEmailConfigDTO configuration) {
 
 		/* Has EmailEnabled trigger been updated? */
 		boolean isEmailOptionChanged = configuration.getEmailEnabled() != null && !configuration.getEmailEnabled()
@@ -91,18 +94,20 @@ public class ProjectEmailUpdatedHandler {
 
 		if (isEmailOptionChanged) {
 			Activity.FieldValues fieldValues = Activity.FieldValues.newOne()
+                    .withField(EMAIL_STATUS)
 					.withOldValue(String.valueOf(project.getConfiguration().getEmailConfig().getEmailEnabled()))
 					.withNewValue(String.valueOf(configuration.getEmailEnabled()));
-			history.put(EMAIL_STATUS, fieldValues);
+			history.add(fieldValues);
 		} else {
 			if (isEmailCasesChanged) {
-				history.put(EMAIL_CASES, null);
+			    history.add(Activity.FieldValues.newOne().withField(EMAIL_CASES));
 			}
 			if (isEmailFromChanged) {
 				Activity.FieldValues fieldValues = Activity.FieldValues.newOne()
+                        .withField(EMAIL_FROM)
 						.withOldValue(String.valueOf(project.getConfiguration().getEmailConfig().getFrom()))
 						.withNewValue(String.valueOf(configuration.getFrom()));
-				history.put(EMAIL_FROM, fieldValues);
+				history.add(fieldValues);
 			}
 		}
 	}

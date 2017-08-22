@@ -22,8 +22,10 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.database.entity.item.ActivityEventType;
+import com.epam.ta.reportportal.database.entity.item.ActivityObjectType;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -45,12 +47,13 @@ public class ActivityConverterTest {
     public void testConvert() {
         Activity activity = new Activity();
         activity.setId("id");
-        activity.setActionType("action");
+        activity.setActionType(ActivityEventType.START_LAUNCH);
         activity.setLastModifiedDate(new Date(0));
-        activity.setHistory(ImmutableMap.<String, Activity.FieldValues>builder()
-                .put(KEY , new Activity.FieldValues().withOldValue("old").withNewValue("new")).build());
+        activity.setHistory(ImmutableList.<Activity.FieldValues>builder()
+                .add(new Activity.FieldValues().withField(KEY)
+                        .withOldValue("old").withNewValue("new")).build());
         activity.setLoggedObjectRef("objectRef");
-        activity.setObjectType("objectType");
+        activity.setObjectType(ActivityObjectType.LAUNCH);
         activity.setProjectRef("project");
         activity.setUserRef("user");
         validate(activity, ActivityConverter.TO_RESOURCE.apply(activity));
@@ -59,15 +62,16 @@ public class ActivityConverterTest {
     private void validate(Activity db, ActivityResource resource) {
         Assert.assertEquals(db.getLastModified(), resource.getLastModifiedDate());
         Assert.assertEquals(db.getId(), resource.getActivityId());
-        Assert.assertEquals(db.getActionType(), resource.getActionType());
+        Assert.assertEquals(db.getActionType().getValue(), resource.getActionType());
         Assert.assertEquals(db.getLoggedObjectRef(), resource.getLoggedObjectRef());
-        Assert.assertEquals(db.getObjectType(), resource.getObjectType());
+        Assert.assertEquals(db.getObjectType().getValue(), resource.getObjectType());
         Assert.assertEquals(db.getProjectRef(), resource.getProjectRef());
         Assert.assertEquals(db.getUserRef(), resource.getUserRef());
-        Assert.assertEquals(db.getHistory().get(KEY).getNewValue(),
-                resource.getHistory().get(KEY).getNewValue());
-        Assert.assertEquals(db.getHistory().get(KEY).getOldValue(),
-                resource.getHistory().get(KEY).getOldValue());
+        Activity.FieldValues expected = db.getHistory().get(0);
+        ActivityResource.FieldValues actual = resource.getHistory().get(0);
+        Assert.assertEquals(expected.getField(), actual.getField());
+        Assert.assertEquals(expected.getNewValue(), actual.getNewValue());
+        Assert.assertEquals(expected.getOldValue(), actual.getOldValue());
     }
 
 }

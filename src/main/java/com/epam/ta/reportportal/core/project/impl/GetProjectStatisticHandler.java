@@ -53,8 +53,8 @@ import java.util.Map.Entry;
 
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
 import static com.epam.ta.reportportal.database.search.Condition.*;
-import static com.epam.ta.reportportal.events.handler.ActivityEventType.*;
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.SHARE;
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.UNSHARE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
@@ -201,9 +201,9 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 			ChartObject chartObject = new ChartObject();
 			chartObject.setId(it.getId());
 			HashMap<String, String> values = new HashMap<>();
-			values.put("actionType", it.getActionType());
+			values.put("actionType", it.getActionType().getValue());
 			values.put("last_modified", String.valueOf(it.getLastModified().getTime()));
-			values.put("objectType", it.getObjectType());
+			values.put("objectType", it.getObjectType().getValue());
 			values.put("projectRef", it.getProjectRef());
 			values.put("userRef", it.getUserRef());
 			if (it.getLoggedObjectRef() != null)
@@ -211,10 +211,10 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 			if (it.getName() != null) {
 				values.put("name", it.getName());
 			}
-			it.getHistory().entrySet().forEach(entry -> {
-				Activity.FieldValues fieldValues = entry.getValue();
-				values.put(entry.getKey() + "$oldValue", fieldValues == null ? null : entry.getValue().getOldValue());
-				values.put(entry.getKey() + "$newValue", fieldValues == null ? null : entry.getValue().getNewValue());
+			it.getHistory().forEach(entry -> {
+				Activity.FieldValues fieldValues = entry;
+				values.put(entry.getField() + "$oldValue", entry.getOldValue());
+				values.put(entry.getField() + "$newValue", entry.getNewValue());
 			});
 			chartObject.setValues(values);
 			return chartObject;

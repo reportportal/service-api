@@ -33,17 +33,21 @@ import com.epam.ta.reportportal.events.TicketAttachedEvent;
 import com.epam.ta.reportportal.events.TicketPostedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static com.epam.ta.reportportal.events.handler.ActivityEventType.*;
-import static com.epam.ta.reportportal.events.handler.ActivityObjectType.TEST_ITEM;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
+import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.TEST_ITEM;
 
 /**
  * @author Andrei Varabyeu
@@ -84,14 +88,15 @@ public class TicketActivitySubscriber {
 		} else {
 			newValue = oldValue + separator + event.getTicket().getId() + ":" + event.getTicket().getTicketUrl();
 		}
-		Activity.FieldValues fieldValues = Activity.FieldValues.newOne().withOldValue(oldValue).withNewValue(newValue);
-		HashMap<String, Activity.FieldValues> history = new HashMap<>();
-		history.put(TICKET_ID, fieldValues);
+		List<Activity.FieldValues> history = Lists.newArrayList();
+		Activity.FieldValues fieldValues = Activity.FieldValues.newOne()
+                .withField(TICKET_ID).withOldValue(oldValue).withNewValue(newValue);
+		history.add(fieldValues);
 		Activity activity = new ActivityBuilder()
                 .addProjectRef(event.getProject())
-                .addActionType(POST_ISSUE.getValue())
+                .addActionType(POST_ISSUE)
 				.addLoggedObjectRef(event.getTestItemId())
-                .addObjectType(TEST_ITEM.getValue())
+                .addObjectType(TEST_ITEM)
                 .addUserRef(event.getPostedBy())
 				.addHistory(history).build();
 		activityRepository.save(activity);
@@ -112,14 +117,16 @@ public class TicketActivitySubscriber {
 			if (null == testItem.getIssue())
 				continue;
 			Activity.FieldValues fieldValues = results.get(testItem.getId());
-			fieldValues.withNewValue(issuesIdsToString(testItem.getIssue().getExternalSystemIssues(), separator));
+			fieldValues.withField(TICKET_ID)
+                    .withNewValue(issuesIdsToString(testItem.getIssue().getExternalSystemIssues(), separator));
 			Activity activity = new ActivityBuilder()
                     .addProjectRef(event.getProject())
-                    .addActionType(ATTACH_ISSUE.getValue())
+                    .addActionType(ATTACH_ISSUE)
 					.addLoggedObjectRef(testItem.getId())
-                    .addObjectType(TEST_ITEM.getValue())
+                    .addObjectType(TEST_ITEM)
                     .addUserRef(event.getPostedBy())
-					.addHistory(ImmutableMap.<String, Activity.FieldValues> builder().put(TICKET_ID, fieldValues).build())
+					.addHistory(ImmutableList.<Activity.FieldValues>builder()
+                            .add(fieldValues).build())
                     .build();
 			activities.add(activity);
 		}
@@ -164,20 +171,24 @@ public class TicketActivitySubscriber {
 			Activity activity = new ActivityBuilder()
                     .addProjectRef(projectName)
                     .addLoggedObjectRef(issueDefinition.getId())
-					.addObjectType(TEST_ITEM.getValue())
-                    .addActionType(UPDATE_ITEM.getValue())
+					.addObjectType(TEST_ITEM)
+                    .addActionType(UPDATE_ITEM)
                     .addUserRef(principal)
                     .build();
-			HashMap<String, Activity.FieldValues> history = new HashMap<>();
+			List<Activity.FieldValues> history = Lists.newArrayList();
 			if (!oldIssueDescription.equals(comment)) {
 
-				Activity.FieldValues fieldValues = Activity.FieldValues.newOne().withOldValue(oldIssueDescription).withNewValue(comment);
-				history.put(COMMENT, fieldValues);
+				Activity.FieldValues fieldValues = Activity.FieldValues.newOne()
+                        .withField(COMMENT).withOldValue(oldIssueDescription)
+                        .withNewValue(comment);
+				history.add(fieldValues);
 			}
 			if (statisticSubType != null && ((null == oldIssueType) || !oldIssueType.equalsIgnoreCase(statisticSubType.getLongName()))) {
-				Activity.FieldValues fieldValues = Activity.FieldValues.newOne().withOldValue(oldIssueType)
+				Activity.FieldValues fieldValues = Activity.FieldValues.newOne()
+                        .withField(ISSUE_TYPE)
+                        .withOldValue(oldIssueType)
 						.withNewValue(statisticSubType.getLongName());
-				history.put(ISSUE_TYPE, fieldValues);
+				history.add(fieldValues);
 			}
 			if (!history.isEmpty()) {
 				activity.setHistory(history);

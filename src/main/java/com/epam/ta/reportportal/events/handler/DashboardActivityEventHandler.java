@@ -29,15 +29,16 @@ import com.epam.ta.reportportal.events.DashboardUpdatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
+import java.util.List;
 
-import static com.epam.ta.reportportal.events.handler.ActivityEventType.*;
-import static com.epam.ta.reportportal.events.handler.ActivityObjectType.DASHBOARD;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
+import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.DASHBOARD;
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
 
 /**
@@ -54,15 +55,15 @@ public class DashboardActivityEventHandler {
     public void onDashboardUpdate(DashboardUpdatedEvent event) {
         Dashboard dashboard = event.getDashboard();
         UpdateDashboardRQ updateRQ = event.getUpdateRQ();
-        HashMap<String, Activity.FieldValues> history = new HashMap<>();
+        List<Activity.FieldValues> history = Lists.newArrayList();
         if (dashboard != null) {
             processShare(history, dashboard, updateRQ.getShare());
             processName(history, dashboard.getName(), updateRQ.getName());
             processDescription(history, dashboard.getDescription(), updateRQ.getDescription());
             if (!history.isEmpty()) {
                 Activity activityLog = new ActivityBuilder()
-                        .addActionType(UPDATE_DASHBOARD.name())
-                        .addObjectType(DASHBOARD.getValue())
+                        .addActionType(UPDATE_DASHBOARD)
+                        .addObjectType(DASHBOARD)
                         .addObjectName(dashboard.getName())
                         .addProjectRef(dashboard.getProjectName())
                         .addLoggedObjectRef(dashboard.getId())
@@ -78,14 +79,15 @@ public class DashboardActivityEventHandler {
     public void onDashboardCreate(DashboardCreatedEvent event) {
         CreateDashboardRQ createDashboardRQ = event.getCreateDashboardRQ();
         Activity activityLog = new ActivityBuilder()
-                .addActionType(CREATE_DASHBOARD.name())
-                .addObjectType(DASHBOARD.getValue())
+                .addActionType(CREATE_DASHBOARD)
+                .addObjectType(DASHBOARD)
                 .addObjectName(createDashboardRQ.getName())
                 .addProjectRef(event.getProjectRef())
                 .addUserRef(event.getCreatedBy())
                 .addLoggedObjectRef(event.getDashboardId())
-                .addHistory(ImmutableMap.<String, Activity.FieldValues>builder()
-                        .put(NAME, createHistoryField(EMPTY_FIELD, createDashboardRQ.getName())).build())
+                .addHistory(ImmutableList.<Activity.FieldValues>builder()
+                        .add(createHistoryField(NAME, EMPTY_FIELD, createDashboardRQ.getName()))
+                        .build())
                 .build();
         activityRepository.save(activityLog);
     }
@@ -94,13 +96,13 @@ public class DashboardActivityEventHandler {
     public void onDashboardDelete(DashboardDeletedEvent event) {
         Dashboard dashboard = event.getBefore();
         Activity activityLog = new ActivityBuilder()
-                .addActionType(DELETE_DASHBOARD.name())
-                .addObjectType(DASHBOARD.getValue())
+                .addActionType(DELETE_DASHBOARD)
+                .addObjectType(DASHBOARD)
                 .addObjectName(dashboard.getName())
                 .addProjectRef(dashboard.getProjectName())
                 .addUserRef(event.getRemovedBy())
-                .addHistory(ImmutableMap.<String, Activity.FieldValues>builder()
-                        .put(NAME, createHistoryField(dashboard.getName(), EMPTY_FIELD)).build())
+                .addHistory(ImmutableList.<Activity.FieldValues>builder()
+                        .add(createHistoryField(NAME, dashboard.getName(), EMPTY_FIELD)).build())
                 .build();
         activityRepository.save(activityLog);
     }

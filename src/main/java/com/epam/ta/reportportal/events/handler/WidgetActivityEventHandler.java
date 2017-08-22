@@ -28,15 +28,16 @@ import com.epam.ta.reportportal.events.WidgetDeletedEvent;
 import com.epam.ta.reportportal.events.WidgetUpdatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
+import java.util.List;
 
-import static com.epam.ta.reportportal.events.handler.ActivityEventType.*;
-import static com.epam.ta.reportportal.events.handler.ActivityObjectType.WIDGET;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
+import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.WIDGET;
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
 
 /**
@@ -56,7 +57,7 @@ public class WidgetActivityEventHandler {
 	public void onWidgetUpdated(WidgetUpdatedEvent event) {
 		Widget widget = event.getBefore();
 		WidgetRQ widgetRQ = event.getWidgetRQ();
-        HashMap<String, Activity.FieldValues> history = new HashMap<>();
+        List<Activity.FieldValues> history = Lists.newArrayList();
 		if (widget != null) {
 		    processShare(history, widget, widgetRQ.getShare());
             processName(history, widget.getName(), widgetRQ.getName());
@@ -65,8 +66,8 @@ public class WidgetActivityEventHandler {
                 Activity activityLog = new ActivityBuilder()
                         .addProjectRef(widget.getProjectName())
                         .addObjectName(widget.getName())
-                        .addObjectType(WIDGET.getValue())
-                        .addActionType(UPDATE_WIDGET.getValue())
+                        .addObjectType(WIDGET)
+                        .addActionType(UPDATE_WIDGET)
                         .addLoggedObjectRef(widget.getId())
                         .addUserRef(event.getUpdatedBy())
                         .build();
@@ -80,14 +81,15 @@ public class WidgetActivityEventHandler {
     public void onCreateWidget(WidgetCreatedEvent event) {
         WidgetRQ widgetRQ = event.getWidgetRQ();
         Activity activityLog = new ActivityBuilder()
-                .addActionType(CREATE_WIDGET.getValue())
-                .addObjectType(WIDGET.getValue())
+                .addActionType(CREATE_WIDGET)
+                .addObjectType(WIDGET)
                 .addObjectName(widgetRQ.getName())
                 .addProjectRef(event.getProjectRef())
                 .addUserRef(event.getCreatedBy())
                 .addLoggedObjectRef(event.getWidgetId())
-                .addHistory(ImmutableMap.<String, Activity.FieldValues>builder()
-                        .put(NAME, createHistoryField(EMPTY_FIELD, widgetRQ.getName())).build())
+                .addHistory(ImmutableList.<Activity.FieldValues>builder()
+                        .add(createHistoryField(NAME, EMPTY_FIELD, widgetRQ.getName()))
+                        .build())
                 .build();
         activityRepository.save(activityLog);
 
@@ -97,13 +99,13 @@ public class WidgetActivityEventHandler {
     public void onDeleteWidget(WidgetDeletedEvent event) {
         Widget widget = event.getBefore();
         Activity activityLog = new ActivityBuilder()
-                .addActionType(DELETE_WIDGET.getValue())
-                .addObjectType(WIDGET.getValue())
+                .addActionType(DELETE_WIDGET)
+                .addObjectType(WIDGET)
                 .addObjectName(widget.getName())
                 .addProjectRef(widget.getProjectName())
                 .addUserRef(event.getRemovedBy())
-                .addHistory(ImmutableMap.<String, Activity.FieldValues>builder()
-                        .put(NAME, createHistoryField(widget.getName(), EMPTY_FIELD)).build())
+                .addHistory(ImmutableList.<Activity.FieldValues>builder()
+                        .add(createHistoryField(NAME, widget.getName(), EMPTY_FIELD)).build())
                 .build();
         activityRepository.save(activityLog);
     }

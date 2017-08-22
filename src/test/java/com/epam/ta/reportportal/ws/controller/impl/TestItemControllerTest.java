@@ -41,10 +41,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -211,9 +208,9 @@ public class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	private boolean isHistoryPresent(List<Activity> activities, String oldValue, String newValue) {
-		return activities.stream().map(Activity::getHistory)
-				.flatMap(it -> it.entrySet().stream()).anyMatch(it -> it.getKey().equals("issueType")
-						&& it.getValue().getOldValue().equals(oldValue) && it.getValue().getNewValue().equals(newValue));
+	    return activities.stream().map(Activity::getHistory)
+                .flatMap(Collection::stream).anyMatch(it -> it.getField().equals("issueType")
+                        && it.getOldValue().equals(oldValue) && it.getNewValue().equals(newValue));
 	}
 
 	private List<ParameterResource> getParameters() {

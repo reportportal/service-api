@@ -26,7 +26,7 @@ import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.google.common.base.Preconditions;
 
 import java.util.Collections;
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -50,14 +50,13 @@ public final class ActivityConverter {
         resource.setActivityId(activity.getId());
         resource.setLoggedObjectRef(activity.getLoggedObjectRef());
         resource.setLastModifiedDate(activity.getLastModified());
-        resource.setObjectType(activity.getObjectType());
-        resource.setActionType(activity.getActionType());
-        Map<String, ActivityResource.FieldValues> history =
+        resource.setObjectType(activity.getObjectType().getValue());
+        resource.setActionType(activity.getActionType().getValue());
+        List<ActivityResource.FieldValues> history =
                 Optional.ofNullable(activity.getHistory())
-                        .orElseGet(Collections::emptyMap)
-                        .entrySet().stream()
-                        .collect(Collectors.toMap(Map.Entry::getKey,
-                                e -> ActivityConverter.TO_FIELD_RESOURCE.apply(e.getValue())));
+                        .orElseGet(Collections::emptyList).stream()
+                        .map(ActivityConverter.TO_FIELD_RESOURCE)
+                        .collect(Collectors.toList());
         resource.setHistory(history);
         return resource;
 
@@ -65,6 +64,7 @@ public final class ActivityConverter {
 
     private static final Function<Activity.FieldValues, ActivityResource.FieldValues> TO_FIELD_RESOURCE = model -> {
         ActivityResource.FieldValues fieldValues = new ActivityResource.FieldValues();
+        fieldValues.setField(model.getField());
         fieldValues.setOldValue(model.getOldValue());
         fieldValues.setNewValue(model.getNewValue());
         return fieldValues;

@@ -29,15 +29,16 @@ import com.epam.ta.reportportal.events.FilterUpdatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
+import java.util.List;
 
-import static com.epam.ta.reportportal.events.handler.ActivityEventType.*;
-import static com.epam.ta.reportportal.events.handler.ActivityObjectType.USER_FILTER;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
+import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.USER_FILTER;
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
 
 /**
@@ -57,14 +58,14 @@ public class UserFilterActivityHandler {
     public void onFilterCreate(FilterCreatedEvent event) {
         CreateUserFilterRQ userFilterRQ = event.getFilterRQ();
         Activity activityLog = new ActivityBuilder()
-                .addActionType(CREATE_FILTER.getValue())
-                .addObjectType(USER_FILTER.getValue())
+                .addActionType(CREATE_FILTER)
+                .addObjectType(USER_FILTER)
                 .addObjectName(userFilterRQ.getName())
                 .addProjectRef(event.getProjectRef())
                 .addUserRef(event.getCreatedBy())
                 .addLoggedObjectRef(event.getFilterId())
-                .addHistory(ImmutableMap.<String, Activity.FieldValues>builder()
-                        .put(NAME, createHistoryField(EMPTY_FIELD, userFilterRQ.getName())).build())
+                .addHistory(ImmutableList.<Activity.FieldValues>builder()
+                        .add(createHistoryField(NAME, EMPTY_FIELD, userFilterRQ.getName())).build())
                 .build();
         activityRepository.save(activityLog);
     }
@@ -73,7 +74,7 @@ public class UserFilterActivityHandler {
     public void onFilterUpdate(FilterUpdatedEvent event) {
         UserFilter userFilter = event.getUserFilter();
         UpdateUserFilterRQ updateUserFilterRQ = event.getUpdateUserFilterRQ();
-        HashMap<String, Activity.FieldValues> history = new HashMap<>();
+        List<Activity.FieldValues> history = Lists.newArrayList();
         if (userFilter != null) {
             processShare(history, userFilter, updateUserFilterRQ.getShare());
             processName(history, userFilter.getName(), updateUserFilterRQ.getName());
@@ -82,8 +83,8 @@ public class UserFilterActivityHandler {
                 Activity activityLog = new ActivityBuilder()
                         .addProjectRef(userFilter.getProjectName())
                         .addObjectName(userFilter.getName())
-                        .addObjectType(USER_FILTER.getValue())
-                        .addActionType(UPDATE_FILTER.getValue())
+                        .addObjectType(USER_FILTER)
+                        .addActionType(UPDATE_FILTER)
                         .addLoggedObjectRef(userFilter.getId())
                         .addUserRef(event.getUpdatedBy())
                         .addHistory(history)
@@ -97,13 +98,13 @@ public class UserFilterActivityHandler {
     public void onFilterDelete(FilterDeletedEvent event) {
         UserFilter before = event.getBefore();
         Activity activityLog = new ActivityBuilder()
-                .addActionType(DELETE_FILTER.getValue())
-                .addObjectType(USER_FILTER.getValue())
+                .addActionType(DELETE_FILTER)
+                .addObjectType(USER_FILTER)
                 .addObjectName(before.getName())
                 .addProjectRef(before.getProjectName())
                 .addUserRef(event.getRemovedBy())
-                .addHistory(ImmutableMap.<String, Activity.FieldValues>builder()
-                        .put(NAME, createHistoryField(before.getName(), EMPTY_FIELD)).build())
+                .addHistory(ImmutableList.<Activity.FieldValues>builder()
+                        .add(createHistoryField(NAME, before.getName(), EMPTY_FIELD)).build())
                 .build();
         activityRepository.save(activityLog);
     }

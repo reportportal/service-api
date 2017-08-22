@@ -53,7 +53,8 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.AuthConstants.ADMINISTRATOR;
 import static com.epam.ta.reportportal.auth.AuthConstants.USER_PROJECT;
-import static com.epam.ta.reportportal.events.handler.ActivityEventType.START_LAUNCH;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.START_LAUNCH;
+import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.LAUNCH;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
 import static java.util.Arrays.asList;
@@ -97,8 +98,8 @@ public class LaunchControllerTest extends BaseMvcTest {
 		assertNotNull(activities);
 		assertEquals(1, activities.size());
 		Activity activity = activities.get(0);
-		assertEquals(START_LAUNCH.getValue(), activity.getActionType());
-		assertEquals(Launch.LAUNCH, activity.getObjectType());
+		assertEquals(START_LAUNCH, activity.getActionType());
+		assertEquals(LAUNCH, activity.getObjectType());
 	}
 
 	@Test

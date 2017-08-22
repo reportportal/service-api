@@ -25,6 +25,7 @@
 
 * EPMRPP-20859 - Remove default projects. Replace with Personal spaces
 * EPMRPP-22776 - Add STARTTLS and SSL email connections support
+* 
 
 ### Bugfixes
 
@@ -135,16 +136,25 @@
 
 
 ## 3.2
-##### Released: Aug XXX, 2017
+##### Released: Aug 21, 2017
 
 ### New Features
 
 * EPMRPP-26416 - Add possibility to use a 'dot' symbol in login of user
+* EPMRPP-26263 - Implemented latest launches view
+* EPMRPP-29222 - Introduce LDAP authorization
 
 ### Bugfixes
 * EPMRPP-29167 - Statistics for deleted elements with custom defect types are still present
 * reportportal#176/EPMRPP-26045 - Split Test Description and test parameters
 * EPMRPP-26131 - Unique id for test item based on items' names, parameters, launch name, project name
-* EPMRPP-26263 - Implemented latest launches view
 * EPMRPP-26394 - JIRA issue with empty set of fields for post bug form
 * EPMRPP-29345 - Description and tags are not applied in case they were specified on finishLaunch
+
+## 3.3
+##### Released: XXX XX, 2017
+
+### New Features
+
+* EPMRPP-29218 - Events monitoring
+* EPMRPP-26551 - Widget product status

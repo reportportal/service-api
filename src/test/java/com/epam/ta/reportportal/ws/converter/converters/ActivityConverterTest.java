@@ -62,9 +62,9 @@ public class ActivityConverterTest {
     private void validate(Activity db, ActivityResource resource) {
         Assert.assertEquals(db.getLastModified(), resource.getLastModifiedDate());
         Assert.assertEquals(db.getId(), resource.getActivityId());
-        Assert.assertEquals(db.getActionType().getValue(), resource.getActionType());
+        Assert.assertEquals(db.getActionType(), ActivityEventType.fromString(resource.getActionType()).get());
         Assert.assertEquals(db.getLoggedObjectRef(), resource.getLoggedObjectRef());
-        Assert.assertEquals(db.getObjectType().getValue(), resource.getObjectType());
+        Assert.assertEquals(db.getObjectType(), ActivityObjectType.fromString(resource.getObjectType()).get());
         Assert.assertEquals(db.getProjectRef(), resource.getProjectRef());
         Assert.assertEquals(db.getUserRef(), resource.getUserRef());
         Activity.FieldValues expected = db.getHistory().get(0);

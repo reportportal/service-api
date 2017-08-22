@@ -59,7 +59,7 @@ public interface IWidgetController {
      * @param projectName
      * @return EntryCreatedRS
      */
-    EntryCreatedRS createEmptyWidget(String projectName, WidgetRQ createWidgetRq, Principal principal);
+    EntryCreatedRS createCleanWidget(String projectName, WidgetRQ createWidgetRq, Principal principal);
 
     /**
      * Temporary solution for updating empty widget

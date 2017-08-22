@@ -125,7 +125,7 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 	}
 
     @Override
-    public OperationCompletionRS updateEmpty(String projectName, String widgetId, WidgetRQ updateRQ, String userName, UserRole userRole) {
+    public OperationCompletionRS updateCleanWidget(String projectName, String widgetId, WidgetRQ updateRQ, String userName, UserRole userRole) {
         Widget widget = widgetRepository.findOne(widgetId);
         Widget beforeUpdate = SerializationUtils.clone(widget);
         expect(widget, notNull()).verify(WIDGET_NOT_FOUND, widgetId);

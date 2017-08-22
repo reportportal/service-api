@@ -91,23 +91,23 @@ public class WidgetController implements IWidgetController {
 	}
 
     @Override
-    @RequestMapping(value = "/empty", method = RequestMethod.POST)
+    @RequestMapping(value = "/clean", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
-    @ApiOperation("Create empty widget")
-    public EntryCreatedRS createEmptyWidget(@PathVariable String projectName,
-                                            @RequestBody WidgetRQ createWidgetRq, Principal principal) {
-        return createHandler.createEmpty(createWidgetRq, normalizeId(projectName), principal.getName());
+    @ApiOperation("Create clean widget")
+    public EntryCreatedRS createCleanWidget(@PathVariable String projectName,
+            @RequestBody WidgetRQ createWidgetRq, Principal principal) {
+        return createHandler.createCleanWidget(createWidgetRq, normalizeId(projectName), principal.getName());
     }
 
     @Override
-    @RequestMapping(value = "/empty/{widgetId}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/clean/{widgetId}", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    @ApiOperation("Update empty widget")
+    @ApiOperation("Update clean widget")
     public OperationCompletionRS updateEmptyWidget(@PathVariable String projectName, @PathVariable String widgetId,
-                                                   @ActiveRole UserRole userRole, @RequestBody @Validated WidgetRQ updateRQ, Principal principal) {
-        return updateHandler.updateEmpty(normalizeId(projectName), widgetId, updateRQ, principal.getName(), userRole);
+            @ActiveRole UserRole userRole, @RequestBody WidgetRQ updateRQ, Principal principal) {
+        return updateHandler.updateCleanWidget(normalizeId(projectName), widgetId, updateRQ, principal.getName(), userRole);
     }
 
     @Override
@@ -125,7 +125,7 @@ public class WidgetController implements IWidgetController {
 	@ResponseBody
 	@ApiOperation("Update specified widget")
 	public OperationCompletionRS updateWidget(@PathVariable String projectName, @PathVariable String widgetId,
-											  @RequestBody WidgetRQ updateRQ, @ActiveRole UserRole userRole, Principal principal) {
+			@RequestBody @Validated WidgetRQ updateRQ, @ActiveRole UserRole userRole, Principal principal) {
 		return updateHandler.updateWidget(widgetId, updateRQ, principal.getName(), normalizeId(projectName), userRole);
 	}
 

@@ -48,7 +48,7 @@ public interface IUpdateWidgetHandler {
 									   String projectName, UserRole userRole);
 
 	/**
-	 * Update empty widget with specified id
+	 * Update clean widget with specified id
 	 *
 	 * @param updateRQ
 	 * @param userName
@@ -57,7 +57,7 @@ public interface IUpdateWidgetHandler {
      * @return OperationCompletionRS
 	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS updateEmpty(String projectName, String widgetId, WidgetRQ updateRQ,
+	OperationCompletionRS updateCleanWidget(String projectName, String widgetId, WidgetRQ updateRQ,
                                             String userName, UserRole userRole);
 
 }

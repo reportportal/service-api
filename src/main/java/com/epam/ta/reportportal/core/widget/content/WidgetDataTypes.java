@@ -48,7 +48,7 @@ public enum WidgetDataTypes {
 	LAUNCHES_COMPARISON_CHART("launches_comparison_chart"),
 	LAUNCHES_DURATION_CHART("launches_duration_chart"),
 	LAUNCHES_TABLE("launches_table"),
-    EMPTY_WIDGET("empty_widget");
+    CLEAN_WIDGET("clean_widget");
 
 	private String type;
 

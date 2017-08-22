@@ -50,7 +50,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.widget.content.GadgetTypes.*;
-import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.EMPTY_WIDGET;
+import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.CLEAN_WIDGET;
 import static com.epam.ta.reportportal.core.widget.impl.WidgetUtils.*;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
@@ -192,12 +192,12 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 	}
 
     @Override
-    public EntryCreatedRS createEmpty(WidgetRQ createWidgetRq, String project, String user) {
+    public EntryCreatedRS createCleanWidget(WidgetRQ createWidgetRq, String project, String user) {
         List<Widget> widgetList = widgetRepository.findByProjectAndUser(project, user);
         checkUniqueName(createWidgetRq.getName(), widgetList);
 
         validateGadgetType(createWidgetRq.getContentParameters().getGadget(), BAD_SAVE_WIDGET_REQUEST);
-        createWidgetRq.getContentParameters().setType(EMPTY_WIDGET.getType());
+        createWidgetRq.getContentParameters().setType(CLEAN_WIDGET.getType());
 
         Widget widget = widgetBuilder.get().addWidgetRQ(createWidgetRq).addProject(project)
                 .addSharing(user, project, createWidgetRq.getDescription(), createWidgetRq.getShare() == null ? false : createWidgetRq.getShare()).build();

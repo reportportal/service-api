@@ -61,6 +61,11 @@ public class CompareLaunchesFilterStrategy implements BuildFilterStrategy {
 
     @Override
     public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+        Filter filter = userFilter.getFilter();
+        if (filter.getTarget().equals(Launch.class)) {
+            filter.addCondition(new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.name(), Launch.MODE_CRITERIA));
+            filter.addCondition(new FilterCondition(Condition.NOT_EQUALS, false, Status.IN_PROGRESS.name(), Launch.STATUS));
+        }
         return widgetContentProvider.getChartContent(projectName, userFilter.getFilter(), userFilter.getSelectionOptions(), contentOptions);
     }
 }

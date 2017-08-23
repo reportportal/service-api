@@ -148,3 +148,6 @@
 * EPMRPP-26263 - Implemented latest launches view
 * EPMRPP-26394 - JIRA issue with empty set of fields for post bug form
 * EPMRPP-29345 - Description and tags are not applied in case they were specified on finishLaunch
+* EPMRPP-29337 - Widgets with Latest Launches ON include statistics for launches with In Progress status
+* EPMRPP-29361 - No content of "Overall statistics" widget created for Demo DataUI
+* EPMRPP-29405 - WS: Widget with Latest launches=ON includes launches from Debug

@@ -53,7 +53,7 @@ public class UserActivityHandler {
                 .addObjectType(USER)
                 .addUserRef(event.getCreatedBy())
 				.addProjectRef(event.getUser().getDefaultProject().toLowerCase())
-                .build();
+                .get();
 		activityRepository.save(activity);
 	}
 }

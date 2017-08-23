@@ -63,7 +63,7 @@ public class ExternalSystemActivityHandler {
                 .addUserRef(event.getCreatedBy())
                 .addActionType(CREATE_BTS)
 				.addProjectRef(externalSystem.getProjectRef())
-                .build();
+                .get();
 		activityRepository.save(activity);
 	}
 
@@ -79,7 +79,7 @@ public class ExternalSystemActivityHandler {
                     .addUserRef(event.getUpdatedBy())
                     .addActionType(UPDATE_BTS)
 					.addProjectRef(externalSystem.getProjectRef())
-                    .build();
+                    .get();
 			activityRepository.save(activity);
 		}
 	}
@@ -96,7 +96,7 @@ public class ExternalSystemActivityHandler {
                     .addUserRef(event.getDeletedBy())
                     .addActionType(DELETE_BTS)
 					.addProjectRef(externalSystem.getProjectRef())
-                    .build();
+                    .get();
 			activityRepository.save(activity);
 		}
 	}
@@ -114,7 +114,7 @@ public class ExternalSystemActivityHandler {
 						.addUserRef(event.getDeletedBy())
                         .addActionType(DELETE_BTS)
                         .addProjectRef(event.getProject())
-                        .build();
+                        .get();
 			}).collect(Collectors.toList());
 			if (!activities.isEmpty())
 				activityRepository.save(activities);

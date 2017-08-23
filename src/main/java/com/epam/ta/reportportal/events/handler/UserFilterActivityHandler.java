@@ -66,7 +66,7 @@ public class UserFilterActivityHandler {
                 .addLoggedObjectRef(event.getFilterId())
                 .addHistory(ImmutableList.<Activity.FieldValues>builder()
                         .add(createHistoryField(NAME, EMPTY_FIELD, userFilterRQ.getName())).build())
-                .build();
+                .get();
         activityRepository.save(activityLog);
     }
 
@@ -88,7 +88,7 @@ public class UserFilterActivityHandler {
                         .addLoggedObjectRef(userFilter.getId())
                         .addUserRef(event.getUpdatedBy())
                         .addHistory(history)
-                        .build();
+                        .get();
                 activityRepository.save(activityLog);
             }
         }
@@ -105,7 +105,7 @@ public class UserFilterActivityHandler {
                 .addUserRef(event.getRemovedBy())
                 .addHistory(ImmutableList.<Activity.FieldValues>builder()
                         .add(createHistoryField(NAME, before.getName(), EMPTY_FIELD)).build())
-                .build();
+                .get();
         activityRepository.save(activityLog);
     }
 }

@@ -40,7 +40,8 @@ public class DefectTypeActivityHandler {
                 .addObjectType(DEFECT_TYPE)
                 .addObjectName(event.getStatisticSubType().getLongName())
                 .addActionType(UPDATE_DEFECT)
-				.addUserRef(event.getUser()).build();
+				.addUserRef(event.getUser())
+                .get();
 		activityRepository.save(activity);
 	}
 
@@ -54,7 +55,7 @@ public class DefectTypeActivityHandler {
                                 .addActionType(UPDATE_DEFECT)
                                 .addLoggedObjectRef(r.getId())
                                 .addUserRef(event.getUpdatedBy())
-                                .build())
+                                .get())
 				.collect(Collectors.toList());
 		activityRepository.save(activities);
 
@@ -72,7 +73,7 @@ public class DefectTypeActivityHandler {
                             .addLoggedObjectRef(event.getId())
                             .addUserRef(event.getUpdatedBy().toLowerCase())
 							.addObjectName(subType.getLongName())
-                            .build();
+                            .get();
 					activityRepository.save(activity);
 				});
 	}

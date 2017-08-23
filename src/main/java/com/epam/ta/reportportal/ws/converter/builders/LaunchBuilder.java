@@ -26,16 +26,16 @@ import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-import javafx.util.Builder;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.Date;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.trimStrings;
 import static com.epam.ta.reportportal.commons.EntityUtils.update;
 
-public class LaunchBuilder implements Builder<Launch>{
+public class LaunchBuilder implements Supplier<Launch>{
 
 	private Launch launch;
 
@@ -92,7 +92,7 @@ public class LaunchBuilder implements Builder<Launch>{
 	}
 
 	@Override
-	public Launch build() {
+	public Launch get() {
 		return launch;
 	}
 }

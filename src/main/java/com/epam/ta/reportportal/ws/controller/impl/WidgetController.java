@@ -91,26 +91,6 @@ public class WidgetController implements IWidgetController {
 	}
 
     @Override
-    @RequestMapping(value = "/clean", method = RequestMethod.POST)
-    @ResponseStatus(HttpStatus.CREATED)
-    @ResponseBody
-    @ApiOperation("Create clean widget")
-    public EntryCreatedRS createCleanWidget(@PathVariable String projectName,
-            @RequestBody WidgetRQ createWidgetRq, Principal principal) {
-        return createHandler.createCleanWidget(createWidgetRq, normalizeId(projectName), principal.getName());
-    }
-
-    @Override
-    @RequestMapping(value = "/clean/{widgetId}", method = RequestMethod.PUT)
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    @ApiOperation("Update clean widget")
-    public OperationCompletionRS updateEmptyWidget(@PathVariable String projectName, @PathVariable String widgetId,
-            @ActiveRole UserRole userRole, @RequestBody WidgetRQ updateRQ, Principal principal) {
-        return updateHandler.updateCleanWidget(normalizeId(projectName), widgetId, updateRQ, principal.getName(), userRole);
-    }
-
-    @Override
     @RequestMapping(value = "/{widgetId}", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
 	@ResponseBody

@@ -58,7 +58,7 @@ public class LaunchesDurationContentLoader extends StatisticBasedContentLoader i
 		List<String> chartFields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
 		LaunchesDurationDocumentHandler documentHandler = new LaunchesDurationDocumentHandler();
         if (options.containsKey(LATEST_MODE)) {
-            launchRepository.findLatestWithCallback(projectName, filter, sorting, contentFields, quantity, documentHandler);
+            launchRepository.findLatestWithCallback(filter, sorting, contentFields, quantity, documentHandler);
         } else {
             launchRepository.loadWithCallback(filter, sorting, quantity, chartFields, documentHandler, collectionName);
         }

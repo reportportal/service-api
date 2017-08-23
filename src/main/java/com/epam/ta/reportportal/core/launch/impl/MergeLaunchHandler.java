@@ -239,7 +239,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         Launch launch = new LaunchBuilder()
                 .addStartRQ(startRQ).addProject(projectName)
                 .addStatus(IN_PROGRESS).addUser(userName)
-                .build();
+                .get();
         launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
         return launchRepository.save(launch);
     }

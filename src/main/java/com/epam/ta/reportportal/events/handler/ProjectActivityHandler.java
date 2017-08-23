@@ -77,7 +77,7 @@ public class ProjectActivityHandler {
                     .addObjectType(PROJECT)
 					.addActionType(UPDATE_PROJECT)
                     .addUserRef(event.getUpdatedBy())
-                    .build();
+                    .get();
 			activityLog.setHistory(history);
 			activityRepository.save(activityLog);
 		}

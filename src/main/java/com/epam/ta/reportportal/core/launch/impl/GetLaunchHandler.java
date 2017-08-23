@@ -135,7 +135,8 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
                                               Pageable pageable) {
         validateModeConditions(filter);
         filter.addCondition(new FilterCondition(EQUALS, false, DEFAULT.toString(), Launch.MODE_CRITERIA));
-        Page<LaunchResource> resources = launchRepository.findLatestLaunches(projectName, filter, pageable)
+        filter.addCondition(new FilterCondition(EQUALS, false, projectName, Project.PROJECT));
+        Page<LaunchResource> resources = launchRepository.findLatestLaunches(filter, pageable)
                 .map(launchResourceAssembler::toResource);
         return new com.epam.ta.reportportal.ws.model.Page<>(resources.getContent(), resources.getSize(),
                 resources.getNumber() + 1, resources.getTotalElements(), resources.getTotalPages());

@@ -35,6 +35,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -141,7 +143,11 @@ public class XunitImportHandler extends DefaultHandler {
 
     private void startRootItem(String name, String timestamp) {
         if (null != timestamp) {
-            startItemTime = LocalDateTime.parse(timestamp);
+            DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                    .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                    .optionalStart().appendZoneId().optionalEnd()
+                    .toFormatter();
+            startItemTime = LocalDateTime.parse(timestamp, formatter);
             if (startSuiteTime.isAfter(startItemTime)) {
                 startSuiteTime = LocalDateTime.of(startItemTime.toLocalDate(), startItemTime.toLocalTime());
             }

@@ -153,8 +153,8 @@ public class TestConfig {
 				CacheBuilder.newBuilder().maximumSize(userCacheSize).expireAfterWrite(userCacheExpiration, TimeUnit.MINUTES).build());
 		GuavaCache projectInfo = new GuavaCache(PROJECT_INFO_CACHE, CacheBuilder.newBuilder().maximumSize(projectCacheSize).softValues()
 				.expireAfterWrite(projectInfoCacheExpiration, TimeUnit.MINUTES).build());
-		GuavaCache assignedUsers = new GuavaCache(ASSIGNED_USERS_CACHE, CacheBuilder.newBuilder().maximumSize(userCacheSize).weakKeys()
-				.expireAfterWrite(userCacheExpiration, TimeUnit.MINUTES).build());
+//		GuavaCache assignedUsers = new GuavaCache(ASSIGNED_USERS_CACHE, CacheBuilder.newBuilder().maximumSize(userCacheSize).weakKeys()
+//				.expireAfterWrite(userCacheExpiration, TimeUnit.MINUTES).build());
 
 		//@formatter:off
 		cacheManager.setCaches(ImmutableList.<GuavaCache> builder()
@@ -162,7 +162,7 @@ public class TestConfig {
 				.add(projects)
 				.add(users)
 				.add(projectInfo)
-				.add(assignedUsers)
+//				.add(assignedUsers)
 				.build());
 		//@formatter:on
 		return cacheManager;

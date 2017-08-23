@@ -24,9 +24,9 @@ package com.epam.ta.reportportal.ws.converter.builders;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.database.entity.item.ActivityEventType;
 import com.epam.ta.reportportal.database.entity.item.ActivityObjectType;
-import javafx.util.Builder;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Builder for {@link com.epam.ta.reportportal.database.entity.item.Activity}
@@ -34,7 +34,7 @@ import java.util.List;
  * 
  * @author Dzmitry_Kavalets
  */
-public class ActivityBuilder implements Builder{
+public class ActivityBuilder implements Supplier<Activity>{
     
     private Activity activity;
 
@@ -77,7 +77,8 @@ public class ActivityBuilder implements Builder{
 		return this;
 	}
 
-	public Activity build() {
+	@Override
+	public Activity get() {
         return activity;
     }
 }

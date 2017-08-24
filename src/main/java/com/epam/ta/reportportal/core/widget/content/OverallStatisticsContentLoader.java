@@ -58,7 +58,7 @@ public class  OverallStatisticsContentLoader extends StatisticBasedContentLoader
 
 		OverallStatisticsDocumentHandler overallStatisticsContentLoader = new OverallStatisticsDocumentHandler(contentFields);
 		if (options.containsKey(LATEST_MODE)) {
-            launchRepository.findLatestWithCallback(projectName, filter, sorting,
+            launchRepository.findLatestWithCallback(filter, sorting,
                     contentFields, quantity, overallStatisticsContentLoader);
         } else {
 		    launchRepository.loadWithCallback(filter, sorting, quantity, contentFields,

@@ -37,6 +37,7 @@ import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
 import com.epam.ta.reportportal.events.WidgetCreatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,59 +106,37 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 	}
 
 	@Override
-	public EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, String projectName, String userName) {
-		List<Widget> widgetList = widgetRepository.findByProjectAndUser(projectName, userName);
-		checkUniqueName(createWidgetRQ.getName(), widgetList);
+    public EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, String projectName, String userName) {
+        List<Widget> widgetList = widgetRepository.findByProjectAndUser(projectName, userName);
+        checkUniqueName(createWidgetRQ.getName(), widgetList);
 
+        String widgetType = createWidgetRQ.getContentParameters().getType();
+        validateWidgetDataType(widgetType, BAD_SAVE_WIDGET_REQUEST);
+        validateGadgetType(createWidgetRQ.getContentParameters().getGadget(), BAD_SAVE_WIDGET_REQUEST);
+
+        Widget widget;
+        if (!widgetType.equals(CLEAN_WIDGET.getType())) {
+            widget = create(createWidgetRQ, projectName, userName);
+        } else {
+            widget = createWithoutFilter(createWidgetRQ, projectName, userName);
+        }
+        widgetRepository.save(widget);
+        eventPublisher.publishEvent(new WidgetCreatedEvent(createWidgetRQ, userName, projectName, widget.getId()));
+
+        return new EntryCreatedRS(widget.getId());
+    }
+
+	private Widget create(WidgetRQ createWidgetRQ, String projectName, String userName) {
 		// load only type here it will be reused later for converting
 		// content and metadata fields to db style
 		UserFilter filter = filterRepository.findOneLoadACL(userName, createWidgetRQ.getApplyingFilter(), projectName);
-
-		validateWidgetDataType(createWidgetRQ.getContentParameters().getType(), BAD_SAVE_WIDGET_REQUEST);
-		validateGadgetType(createWidgetRQ.getContentParameters().getGadget(), BAD_SAVE_WIDGET_REQUEST);
-
         GadgetTypes gadget = findByName(createWidgetRQ.getContentParameters().getGadget()).get();
 
         if (gadget != ACTIVITY && gadget != MOST_FAILED_TEST_CASES && gadget != PASSING_RATE_PER_LAUNCH) {
             checkApplyingFilter(filter, createWidgetRQ.getApplyingFilter(), userName);
         }
-
-		if ((null != createWidgetRQ.getContentParameters().getMetadataFields())
-				&& ((null == filter) || filter.getFilter().getTarget().equals(TestItem.class))) {
-			if (createWidgetRQ.getContentParameters().getMetadataFields().contains(NUMBER))
-				createWidgetRQ.getContentParameters().getMetadataFields().remove(NUMBER);
-		}
-
-		if ((null != createWidgetRQ.getContentParameters().getContentFields())
-				&& ((null == filter) || filter.getFilter().getTarget().equals(TestItem.class))) {
-			if (createWidgetRQ.getContentParameters().getContentFields().contains(NUMBER))
-				createWidgetRQ.getContentParameters().getContentFields().remove(NUMBER);
-			if (createWidgetRQ.getContentParameters().getContentFields().contains(USER))
-				createWidgetRQ.getContentParameters().getContentFields().remove(USER);
-		}
-
-		Class<?> filterTarget;
-
-		if (gadget == UNIQUE_BUG_TABLE) {
-			filterTarget = TestItem.class;
-		} else if (gadget == ACTIVITY) {
-			filterTarget = Activity.class;
-		} else if (gadget == MOST_FAILED_TEST_CASES) {
-			filterTarget = TestItem.class;
-		} else if (gadget == PASSING_RATE_PER_LAUNCH) {
-			filterTarget = Launch.class;
-		} else {
-			filterTarget = filter.getFilter().getTarget();
-		}
-
-		CriteriaMap<?> criteriaMap = criteriaMapFactory.getCriteriaMap(filterTarget);
-
-		if (null != createWidgetRQ.getContentParameters().getContentFields()) {
-			validateFields(createWidgetRQ.getContentParameters().getContentFields(), criteriaMap, BAD_SAVE_WIDGET_REQUEST);
-		}
-		if (null != createWidgetRQ.getContentParameters().getMetadataFields()) {
-			validateFields(createWidgetRQ.getContentParameters().getMetadataFields(), criteriaMap, BAD_SAVE_WIDGET_REQUEST);
-		}
+        clearContentParameters(createWidgetRQ.getContentParameters(), filter);
+		validateContentParameters(createWidgetRQ.getContentParameters(), filter, gadget);
 
 		Widget widget = widgetBuilder.get().addWidgetRQ(createWidgetRQ).addFilter(createWidgetRQ.getApplyingFilter())
 				.addProject(projectName)
@@ -167,10 +146,16 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 		// projectName);
 		shareIfRequired(createWidgetRQ.getShare(), widget, userName, projectName, filter);
 
-		widgetRepository.save(widget);
-		eventPublisher.publishEvent(new WidgetCreatedEvent(createWidgetRQ, userName, projectName, widget.getId()));
-		return new EntryCreatedRS(widget.getId());
+		return widget;
 	}
+
+    private Widget createWithoutFilter(WidgetRQ createWidgetRq, String project, String user) {
+        Widget widget = widgetBuilder.get().addWidgetRQ(createWidgetRq).addProject(project)
+                .addSharing(user, project, createWidgetRq.getDescription(), createWidgetRq.getShare() == null ? false : createWidgetRq.getShare()).build();
+        shareIfRequired(createWidgetRq.getShare(), widget, user, project, null);
+        widgetRepository.save(widget);
+        return widget;
+    }
 
 	private void shareIfRequired(Boolean isShare, Widget widget, String userName, String projectName, UserFilter filter) {
 		if (isShare != null) {
@@ -180,6 +165,48 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 			sharingService.modifySharing(Lists.newArrayList(widget), userName, projectName, isShare);
 		}
 	}
+
+	private void clearContentParameters(ContentParameters contentParameters, UserFilter filter) {
+        if ((null != contentParameters.getMetadataFields())
+                && ((null == filter) || filter.getFilter().getTarget().equals(TestItem.class))) {
+            if (contentParameters.getMetadataFields().contains(NUMBER))
+                contentParameters.getMetadataFields().remove(NUMBER);
+        }
+
+        if ((null != contentParameters.getContentFields())
+                && ((null == filter) || filter.getFilter().getTarget().equals(TestItem.class))) {
+            if (contentParameters.getContentFields().contains(NUMBER))
+                contentParameters.getContentFields().remove(NUMBER);
+            if (contentParameters.getContentFields().contains(USER))
+                contentParameters.getContentFields().remove(USER);
+        }
+    }
+
+    private void validateContentParameters(ContentParameters contentParameters, UserFilter filter, GadgetTypes gadget) {
+        Class<?> filterTarget;
+
+        //TODO: remove this
+        if (gadget == UNIQUE_BUG_TABLE) {
+            filterTarget = TestItem.class;
+        } else if (gadget == ACTIVITY) {
+            filterTarget = Activity.class;
+        } else if (gadget == MOST_FAILED_TEST_CASES) {
+            filterTarget = TestItem.class;
+        } else if (gadget == PASSING_RATE_PER_LAUNCH) {
+            filterTarget = Launch.class;
+        } else {
+            filterTarget = filter.getFilter().getTarget();
+        }
+
+        CriteriaMap<?> criteriaMap = criteriaMapFactory.getCriteriaMap(filterTarget);
+
+        if (null != contentParameters.getContentFields()) {
+            validateFields(contentParameters.getContentFields(), criteriaMap, BAD_SAVE_WIDGET_REQUEST);
+        }
+        if (null != contentParameters.getMetadataFields()) {
+            validateFields(contentParameters.getMetadataFields(), criteriaMap, BAD_SAVE_WIDGET_REQUEST);
+        }
+    }
 
 	/**
 	 * Check is applying filter exists in database.
@@ -191,19 +218,4 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 		expect(filter.isLink(), equalTo(false)).verify(UNABLE_TO_CREATE_WIDGET, "Cannot create widget based on a link.");
 	}
 
-    @Override
-    public EntryCreatedRS createCleanWidget(WidgetRQ createWidgetRq, String project, String user) {
-        List<Widget> widgetList = widgetRepository.findByProjectAndUser(project, user);
-        checkUniqueName(createWidgetRq.getName(), widgetList);
-
-        validateGadgetType(createWidgetRq.getContentParameters().getGadget(), BAD_SAVE_WIDGET_REQUEST);
-        createWidgetRq.getContentParameters().setType(CLEAN_WIDGET.getType());
-
-        Widget widget = widgetBuilder.get().addWidgetRQ(createWidgetRq).addProject(project)
-                .addSharing(user, project, createWidgetRq.getDescription(), createWidgetRq.getShare() == null ? false : createWidgetRq.getShare()).build();
-        shareIfRequired(createWidgetRq.getShare(), widget, user, project, null);
-
-        widgetRepository.save(widget);
-        return new EntryCreatedRS(widget.getId());
-    }
 }

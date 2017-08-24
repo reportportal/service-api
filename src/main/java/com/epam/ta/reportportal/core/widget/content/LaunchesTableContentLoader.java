@@ -58,7 +58,7 @@ public class LaunchesTableContentLoader implements IContentLoadingStrategy {
         String collectionName = StatisticBasedContentLoader.getCollectionName(filter.getTarget());
 		LaunchesTableDocumentHandler launchesTableDocumentHandler = new LaunchesTableDocumentHandler(fields);
         if (options.containsKey(LATEST_MODE)) {
-            launchRepository.findLatestWithCallback(projectName, filter, sorting, fields, quantity, launchesTableDocumentHandler);
+            launchRepository.findLatestWithCallback(filter, sorting, fields, quantity, launchesTableDocumentHandler);
         } else {
             launchRepository.loadWithCallback(filter, sorting, quantity, fields, launchesTableDocumentHandler,
                     collectionName);

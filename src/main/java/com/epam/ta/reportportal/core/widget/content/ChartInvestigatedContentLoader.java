@@ -66,7 +66,7 @@ public class ChartInvestigatedContentLoader extends StatisticBasedContentLoader 
 
 		// here can be used any repository which extends ReportPortalRepository
         if (options.containsKey(LATEST_MODE)) {
-            launchRepository.findLatestWithCallback(projectName, filter, sorting, allFields, quantity, handler);
+            launchRepository.findLatestWithCallback(filter, sorting, allFields, quantity, handler);
         } else {
             launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, collectionName);
         }

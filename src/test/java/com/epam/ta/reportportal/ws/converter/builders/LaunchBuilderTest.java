@@ -41,7 +41,7 @@ public class LaunchBuilderTest extends BaseTest {
 				.addUser(null).addStatus(null)
 				.addStartRQ(null).addProject(null)
 				.addEndTime(null)
-				.build();
+				.get();
 		Launch expectedLaunch = new Launch();
 		validateLaunches(expectedLaunch, actualLaunch);
 	}
@@ -51,7 +51,7 @@ public class LaunchBuilderTest extends BaseTest {
 		Launch actualLaunch = new LaunchBuilder()
 				.addStartRQ(Utils.getStartLaunchRQ()).addEndTime(BuilderTestsConstants.DATE_END)
 				.addProject(Utils.getProject().getId()).addStatus(Status.IN_PROGRESS)
-				.addUser(Utils.getUser().getId()).build();
+				.addUser(Utils.getUser().getId()).get();
 		Launch expectedLaunch = Utils.getLaunch();
 		validateLaunches(expectedLaunch, actualLaunch);
 	}

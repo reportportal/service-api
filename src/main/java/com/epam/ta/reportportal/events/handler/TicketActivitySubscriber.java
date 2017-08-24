@@ -98,7 +98,7 @@ public class TicketActivitySubscriber {
 				.addLoggedObjectRef(event.getTestItemId())
                 .addObjectType(TEST_ITEM)
                 .addUserRef(event.getPostedBy())
-				.addHistory(history).build();
+				.addHistory(history).get();
 		activityRepository.save(activity);
 	}
 
@@ -127,7 +127,7 @@ public class TicketActivitySubscriber {
                     .addUserRef(event.getPostedBy())
 					.addHistory(ImmutableList.<Activity.FieldValues>builder()
                             .add(fieldValues).build())
-                    .build();
+                    .get();
 			activities.add(activity);
 		}
 		activityRepository.save(activities);
@@ -174,7 +174,7 @@ public class TicketActivitySubscriber {
 					.addObjectType(TEST_ITEM)
                     .addActionType(UPDATE_ITEM)
                     .addUserRef(principal)
-                    .build();
+                    .get();
 			List<Activity.FieldValues> history = Lists.newArrayList();
 			if (!oldIssueDescription.equals(comment)) {
 

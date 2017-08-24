@@ -70,7 +70,7 @@ public class LaunchActivityHandler {
 			Activity activityLog = new ActivityBuilder().addUserRef(launch.getUserRef())
                     .addProjectRef(launch.getProjectRef().toLowerCase())
 					.addActionType(START_LAUNCH).addObjectType(LAUNCH)
-                    .addLoggedObjectRef(launch.getId()).addObjectName(name).build();
+                    .addLoggedObjectRef(launch.getId()).addObjectName(name).get();
 			activityRepository.save(activityLog);
 		}
 	}
@@ -83,7 +83,7 @@ public class LaunchActivityHandler {
 			Activity activity = new ActivityBuilder().addUserRef(event.getDeletedBy())
                     .addProjectRef(event.getLaunch().getProjectRef())
 					.addActionType(DELETE_LAUNCH).addObjectType(LAUNCH)
-                    .addLoggedObjectRef(launch.getId()).addObjectName(name).build();
+                    .addLoggedObjectRef(launch.getId()).addObjectName(name).get();
 			activityRepository.save(activity);
 		}
 	}
@@ -94,7 +94,7 @@ public class LaunchActivityHandler {
 			Activity activityLog = new ActivityBuilder().addUserRef(finishedBy)
                     .addProjectRef(launch.getProjectRef()).addActionType(FINISH_LAUNCH)
 					.addObjectType(LAUNCH).addLoggedObjectRef(launch.getId())
-                    .addObjectName(name).build();
+                    .addObjectName(name).get();
 			activityRepository.save(activityLog);
 		}
 	}

@@ -70,7 +70,7 @@ public class WidgetActivityEventHandler {
                         .addActionType(UPDATE_WIDGET)
                         .addLoggedObjectRef(widget.getId())
                         .addUserRef(event.getUpdatedBy())
-                        .build();
+                        .get();
                 activityLog.setHistory(history);
                 activityRepository.save(activityLog);
             }
@@ -90,7 +90,7 @@ public class WidgetActivityEventHandler {
                 .addHistory(ImmutableList.<Activity.FieldValues>builder()
                         .add(createHistoryField(NAME, EMPTY_FIELD, widgetRQ.getName()))
                         .build())
-                .build();
+                .get();
         activityRepository.save(activityLog);
 
     }
@@ -106,7 +106,7 @@ public class WidgetActivityEventHandler {
                 .addUserRef(event.getRemovedBy())
                 .addHistory(ImmutableList.<Activity.FieldValues>builder()
                         .add(createHistoryField(NAME, widget.getName(), EMPTY_FIELD)).build())
-                .build();
+                .get();
         activityRepository.save(activityLog);
     }
 

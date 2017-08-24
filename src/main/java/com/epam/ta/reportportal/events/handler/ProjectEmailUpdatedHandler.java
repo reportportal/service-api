@@ -67,7 +67,7 @@ public class ProjectEmailUpdatedHandler {
 		if (!history.isEmpty()) {
 			Activity activityLog = new ActivityBuilder()
                     .addProjectRef(event.getBefore().getName()).addObjectType(PROJECT)
-					.addActionType(UPDATE_PROJECT).addUserRef(event.getUpdatedBy()).build();
+					.addActionType(UPDATE_PROJECT).addUserRef(event.getUpdatedBy()).get();
 			activityLog.setHistory(history);
 			activityRepository.save(activityLog);
 		}

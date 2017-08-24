@@ -9,6 +9,6 @@ info:
 spring:
   profiles:
     ## Profiles list
-    active: consul, dev-mac
+    active: ${rp.profiles:default}
   application:
     name: api

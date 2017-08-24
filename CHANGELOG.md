@@ -145,7 +145,9 @@
 
 ### Bugfixes
 * EPMRPP-29167 - Statistics for deleted elements with custom defect types are still present
+* reportportal/reportportal#170 - Test run breaks with unclassified error (jbehave) #170
 * reportportal#176/EPMRPP-26045 - Split Test Description and test parameters
+* EPMRPP-29167 - Statistics for deleted elements with custom defect types are still present
 * EPMRPP-26131 - Unique id for test item based on items' names, parameters, launch name, project name
 * EPMRPP-26263 - Implemented latest launches view
 * EPMRPP-26394 - JIRA issue with empty set of fields for post bug form

@@ -47,17 +47,4 @@ public interface IUpdateWidgetHandler {
 	OperationCompletionRS updateWidget(String widgetId, WidgetRQ updateRQ, String userName,
 									   String projectName, UserRole userRole);
 
-	/**
-	 * Update clean widget with specified id
-	 *
-	 * @param updateRQ
-	 * @param userName
-	 * @param projectName
-	 * @param userRole
-     * @return OperationCompletionRS
-	 * @throws ReportPortalException
-	 */
-	OperationCompletionRS updateCleanWidget(String projectName, String widgetId, WidgetRQ updateRQ,
-                                            String userName, UserRole userRole);
-
 }

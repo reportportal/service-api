@@ -44,14 +44,4 @@ public interface ICreateWidgetHandler {
 	 */
 	EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, String project, String userName);
 
-    /**
-     * Create widget without fields validation and filter
-     *
-     * @param createWidgetRq
-     * @param project
-     * @param user
-     * @return
-     */
-    EntryCreatedRS createCleanWidget(WidgetRQ createWidgetRq, String project, String user);
-
 }

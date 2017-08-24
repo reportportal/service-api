@@ -54,6 +54,7 @@ import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.core.widget.content.GadgetTypes.*;
+import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.CLEAN_WIDGET;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -87,12 +88,26 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 	private ApplicationEventPublisher eventPublisher;
 
 	@Override
-	public OperationCompletionRS updateWidget(String widgetId, WidgetRQ updateRQ, String userName,
-											  String projectName, UserRole userRole) {
-		Widget widget = widgetRepository.findOne(widgetId);
-		Widget beforeUpdate = SerializationUtils.clone(widget);
-		expect(widget, notNull()).verify(WIDGET_NOT_FOUND, widgetId);
-		validateWidgetAccess(projectName, userName, userRole, widget, updateRQ);
+    public OperationCompletionRS updateWidget(String widgetId, WidgetRQ updateRQ, String userName,
+                                              String projectName, UserRole userRole) {
+        Widget widget = widgetRepository.findOne(widgetId);
+        Widget beforeUpdate = SerializationUtils.clone(widget);
+        expect(widget, notNull()).verify(WIDGET_NOT_FOUND, widgetId);
+        validateWidgetAccess(projectName, userName, userRole, widget, updateRQ);
+
+        Widget newWidget;
+        if (!updateRQ.getContentParameters().getType().equals(CLEAN_WIDGET.getType())) {
+            newWidget = updateWidget(widget, updateRQ, userName, projectName);
+        } else {
+            newWidget = updateCleanWidget(widget, updateRQ, userName, projectName);
+        }
+        widgetRepository.save(newWidget);
+        eventPublisher.publishEvent(new WidgetUpdatedEvent(beforeUpdate, updateRQ, userName));
+        return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
+    }
+
+	private Widget updateWidget(Widget widget, WidgetRQ updateRQ, String userName,
+			String projectName) {
 		UserFilter newFilter = null;
 		if (null != updateRQ.getApplyingFilter()) {
 			String filterId = updateRQ.getApplyingFilter();
@@ -107,40 +122,22 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 				expect(newFilter.isLink(), equalTo(false)).verify(UNABLE_TO_CREATE_WIDGET, "Widget cannot be based on a link");
 			}
 		}
-
 		Widget newWidget = widgetBuilder.get().addWidgetRQ(updateRQ)
                 .addDescription(updateRQ.getDescription())
                 .build();
-
 		validateWidgetFields(newWidget, newFilter, widget, userName, projectName);
-
 		updateWidget(widget, newWidget, newFilter);
-
 		shareIfRequired(updateRQ.getShare(), widget, userName, projectName, newFilter);
-
-		widgetRepository.save(widget);
-
-		eventPublisher.publishEvent(new WidgetUpdatedEvent(beforeUpdate, updateRQ, userName));
-		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
+		return widget;
 	}
 
-    @Override
-    public OperationCompletionRS updateCleanWidget(String projectName, String widgetId, WidgetRQ updateRQ, String userName, UserRole userRole) {
-        Widget widget = widgetRepository.findOne(widgetId);
-        Widget beforeUpdate = SerializationUtils.clone(widget);
-        expect(widget, notNull()).verify(WIDGET_NOT_FOUND, widgetId);
-
-        validateWidgetAccess(projectName, userName, userRole, widget, updateRQ);
-
+    private Widget updateCleanWidget(Widget widget, WidgetRQ updateRQ, String userName, String projectName) {
         Widget newWidget = widgetBuilder.get().addWidgetRQ(updateRQ)
                 .addDescription(updateRQ.getDescription())
                 .build();
-
         updateWidget(widget, newWidget, null);
         shareIfRequired(updateRQ.getShare(), widget, userName, projectName, null);
-        widgetRepository.save(widget);
-        eventPublisher.publishEvent(new WidgetUpdatedEvent(beforeUpdate, updateRQ, userName));
-        return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
+        return widget;
     }
 
     private void validateWidgetAccess(String projectName, String userName, UserRole userRole, Widget widget, WidgetRQ updateRQ) {

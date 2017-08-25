@@ -55,8 +55,6 @@ import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
 import static com.epam.ta.reportportal.database.search.Condition.*;
-import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.SHARE;
-import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.UNSHARE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
@@ -180,11 +178,15 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 
 	@SuppressWarnings("serial")
 	private Map<String, List<ChartObject>> getActivities(String projectId, InfoInterval interval) {
-		String value = new StringJoiner(",").add(UPDATE_PROJECT.getValue()).add(START_LAUNCH.getValue())
-                .add(FINISH_LAUNCH.getValue()).add(DELETE_LAUNCH.getValue()).add(SHARE)
-				.add(UNSHARE).add(POST_ISSUE.getValue()).add(CREATE_USER.getValue()).add(UPDATE_BTS.getValue())
-                .add(CREATE_BTS.getValue())
-				.add(DELETE_BTS.getValue())
+		String value = new StringJoiner(",").add(UPDATE_PROJECT.getValue())
+                .add(START_LAUNCH.getValue()).add(FINISH_LAUNCH.getValue()).add(DELETE_LAUNCH.getValue())
+                .add(UPDATE_BTS.getValue()).add(CREATE_BTS.getValue()).add(DELETE_BTS.getValue())
+                .add(UPDATE_WIDGET.getValue()).add(CREATE_WIDGET.getValue()).add(DELETE_WIDGET.getValue())
+                .add(UPDATE_DASHBOARD.getValue()).add(CREATE_DASHBOARD.getValue()).add(DELETE_DASHBOARD.getValue())
+                .add(UPDATE_FILTER.getValue()).add(CREATE_FILTER.getValue()).add(DELETE_FILTER.getValue())
+                .add(POST_ISSUE.getValue())
+                .add(CREATE_USER.getValue())
+
                 .toString();
 		int limit = 150;
 		Filter filter = new Filter(Activity.class, new HashSet<FilterCondition>() {

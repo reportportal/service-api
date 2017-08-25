@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.events.ExternalSystemDeletedEvent;
 import com.epam.ta.reportportal.events.ExternalSystemUpdatedEvent;
 import com.epam.ta.reportportal.events.ProjectExternalSystemsDeletedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -38,6 +39,7 @@ import java.util.stream.StreamSupport;
 
 import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
 import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.EXTERNAL_SYSTEM;
+import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
 
 /**
  * @author Andrei Varabyeu
@@ -63,6 +65,9 @@ public class ExternalSystemActivityHandler {
                 .addUserRef(event.getCreatedBy())
                 .addActionType(CREATE_BTS)
 				.addProjectRef(externalSystem.getProjectRef())
+                .addHistory(ImmutableList.<Activity.FieldValues>builder()
+                        .add(createHistoryField(NAME, EMPTY_FIELD, name))
+                        .build())
                 .get();
 		activityRepository.save(activity);
 	}
@@ -96,6 +101,9 @@ public class ExternalSystemActivityHandler {
                     .addUserRef(event.getDeletedBy())
                     .addActionType(DELETE_BTS)
 					.addProjectRef(externalSystem.getProjectRef())
+                    .addHistory(ImmutableList.<Activity.FieldValues>builder()
+                            .add(createHistoryField(NAME, name, EMPTY_FIELD))
+                            .build())
                     .get();
 			activityRepository.save(activity);
 		}

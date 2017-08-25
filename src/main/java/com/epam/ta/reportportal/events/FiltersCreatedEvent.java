@@ -21,27 +21,28 @@
 
 package com.epam.ta.reportportal.events;
 
-import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
+import com.epam.ta.reportportal.database.entity.filter.UserFilter;
+
+import java.util.List;
 
 /**
  * @author pavel_bortnik
  */
-public class FilterCreatedEvent {
+public class FiltersCreatedEvent {
 
-    private final CreateUserFilterRQ filterRQ;
+    private final List<UserFilter> createdFilters;
     private final String createdBy;
     private final String projectRef;
-    private final String filterId;
 
-    public FilterCreatedEvent(CreateUserFilterRQ filterRQ, String createdBy, String projectRef, String filterId) {
-        this.filterRQ = filterRQ;
+
+    public FiltersCreatedEvent(List<UserFilter> createdFilters, String createdBy, String projectRef) {
+        this.createdFilters = createdFilters;
         this.createdBy = createdBy;
         this.projectRef = projectRef;
-        this.filterId = filterId;
     }
 
-    public CreateUserFilterRQ getFilterRQ() {
-        return filterRQ;
+    public List<UserFilter> getCreatedFilters() {
+        return createdFilters;
     }
 
     public String getCreatedBy() {
@@ -50,9 +51,5 @@ public class FilterCreatedEvent {
 
     public String getProjectRef() {
         return projectRef;
-    }
-
-    public String getFilterId() {
-        return filterId;
     }
 }

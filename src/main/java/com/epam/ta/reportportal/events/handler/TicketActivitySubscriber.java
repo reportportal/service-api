@@ -177,9 +177,9 @@ public class TicketActivitySubscriber {
                     .get();
 			List<Activity.FieldValues> history = Lists.newArrayList();
 			if (!oldIssueDescription.equals(comment)) {
-
 				Activity.FieldValues fieldValues = Activity.FieldValues.newOne()
-                        .withField(COMMENT).withOldValue(oldIssueDescription)
+                        .withField(COMMENT)
+                        .withOldValue(oldIssueDescription)
                         .withNewValue(comment);
 				history.add(fieldValues);
 			}

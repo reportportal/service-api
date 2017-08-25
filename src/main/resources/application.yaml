@@ -13,7 +13,7 @@ spring:
       discovery:
         tags:
           - urlprefix-${server.contextPath:/}
-          - traefik.frontend.rule=PathPrefixStrip:${server.contextPath:/}
+          - traefik.frontend.rule=PathPrefix:${server.contextPath:/}
           - statusPageUrlPath=${server.contextPath}${management.contextPath}/info
           - healthCheckUrlPath=${server.contextPath}${management.contextPath}/info
         healthCheckPath: ${server.contextPath}/admin/health

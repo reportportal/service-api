@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.database.entity.item.ActivityEventType;
 import com.epam.ta.reportportal.database.entity.project.info.InfoInterval;
 import com.epam.ta.reportportal.database.entity.project.info.ProjectInfoWidget;
 import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
@@ -53,11 +54,14 @@ import java.util.Map.Entry;
 
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.database.entity.item.Activity.ACTION_TYPE;
+import static com.epam.ta.reportportal.database.entity.item.Activity.PROJECT_REF;
 import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
 import static com.epam.ta.reportportal.database.search.Condition.*;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
@@ -178,23 +182,16 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 
 	@SuppressWarnings("serial")
 	private Map<String, List<ChartObject>> getActivities(String projectId, InfoInterval interval) {
-		String value = new StringJoiner(",").add(UPDATE_PROJECT.getValue())
-                .add(START_LAUNCH.getValue()).add(FINISH_LAUNCH.getValue()).add(DELETE_LAUNCH.getValue())
-                .add(UPDATE_BTS.getValue()).add(CREATE_BTS.getValue()).add(DELETE_BTS.getValue())
-                .add(UPDATE_WIDGET.getValue()).add(CREATE_WIDGET.getValue()).add(DELETE_WIDGET.getValue())
-                .add(UPDATE_DASHBOARD.getValue()).add(CREATE_DASHBOARD.getValue()).add(DELETE_DASHBOARD.getValue())
-                .add(UPDATE_FILTER.getValue()).add(CREATE_FILTER.getValue()).add(DELETE_FILTER.getValue())
-                .add(POST_ISSUE.getValue())
-                .add(CREATE_USER.getValue())
-
-                .toString();
+		String value = Arrays.stream(ActivityEventType.values())
+				.filter(it -> it == UPDATE_DEFECT || it == DELETE_DEFECT || it == ATTACH_ISSUE || it == UPDATE_ITEM)
+				.map(ActivityEventType::getValue).collect(joining(","));
 		int limit = 150;
 		Filter filter = new Filter(Activity.class, new HashSet<FilterCondition>() {
 			{
-				add(new FilterCondition(IN, false, value, "actionType"));
-				add(new FilterCondition(EQUALS, false, projectId, "projectRef"));
-				add(new FilterCondition(GREATER_THAN_OR_EQUALS, false, String.valueOf(getStartIntervalDate(interval).getTime()),
-						"last_modified"));
+				add(new FilterCondition(IN, false, value, ACTION_TYPE));
+				add(new FilterCondition(EQUALS, false, projectId, PROJECT_REF));
+				add(new FilterCondition(GREATER_THAN_OR_EQUALS, false,
+						String.valueOf(getStartIntervalDate(interval).getTime()), "last_modified"));
 			}
 		});
 		List<Activity> activities = activityRepository.findByFilterWithSortingAndLimit(filter,

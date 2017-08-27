@@ -144,7 +144,6 @@
 * EPMRPP-29222 - Introduce LDAP authorization
 
 ### Bugfixes
-* EPMRPP-29167 - Statistics for deleted elements with custom defect types are still present
 * reportportal/reportportal#170 - Test run breaks with unclassified error (jbehave) #170
 * reportportal#176/EPMRPP-26045 - Split Test Description and test parameters
 * EPMRPP-29167 - Statistics for deleted elements with custom defect types are still present
@@ -155,6 +154,7 @@
 * EPMRPP-29361 - No content of "Overall statistics" widget created for Demo DataUI
 * EPMRPP-29405 - WS: Widget with Latest launches=ON includes launches from Debug
 * EPMRPP-29337 - Widgets with Latest Launches ON include statistics for launches with In Progress status
+
 
 ## 3.3
 ##### Released: XXX XX, 2017

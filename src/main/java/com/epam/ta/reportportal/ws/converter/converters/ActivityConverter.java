@@ -52,6 +52,7 @@ public final class ActivityConverter {
         resource.setLastModifiedDate(activity.getLastModified());
         resource.setObjectType(activity.getObjectType().getValue());
         resource.setActionType(activity.getActionType().getValue());
+        resource.setObjectName(activity.getName());
         List<ActivityResource.FieldValues> history =
                 Optional.ofNullable(activity.getHistory())
                         .orElseGet(Collections::emptyList).stream()
@@ -62,11 +63,11 @@ public final class ActivityConverter {
 
     };
 
-    private static final Function<Activity.FieldValues, ActivityResource.FieldValues> TO_FIELD_RESOURCE = model -> {
+    private static final Function<Activity.FieldValues, ActivityResource.FieldValues> TO_FIELD_RESOURCE = db -> {
         ActivityResource.FieldValues fieldValues = new ActivityResource.FieldValues();
-        fieldValues.setField(model.getField());
-        fieldValues.setOldValue(model.getOldValue());
-        fieldValues.setNewValue(model.getNewValue());
+        fieldValues.setField(db.getField());
+        fieldValues.setOldValue(db.getOldValue());
+        fieldValues.setNewValue(db.getNewValue());
         return fieldValues;
     };
 

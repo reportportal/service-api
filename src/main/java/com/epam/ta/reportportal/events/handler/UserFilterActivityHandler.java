@@ -23,11 +23,10 @@ package com.epam.ta.reportportal.events.handler;
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.item.Activity;
-import com.epam.ta.reportportal.events.FilterCreatedEvent;
 import com.epam.ta.reportportal.events.FilterDeletedEvent;
 import com.epam.ta.reportportal.events.FilterUpdatedEvent;
+import com.epam.ta.reportportal.events.FiltersCreatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
-import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -55,19 +54,21 @@ public class UserFilterActivityHandler {
     }
 
     @EventListener
-    public void onFilterCreate(FilterCreatedEvent event) {
-        CreateUserFilterRQ userFilterRQ = event.getFilterRQ();
-        Activity activityLog = new ActivityBuilder()
-                .addActionType(CREATE_FILTER)
-                .addObjectType(USER_FILTER)
-                .addObjectName(userFilterRQ.getName())
-                .addProjectRef(event.getProjectRef())
-                .addUserRef(event.getCreatedBy())
-                .addLoggedObjectRef(event.getFilterId())
-                .addHistory(ImmutableList.<Activity.FieldValues>builder()
-                        .add(createHistoryField(NAME, EMPTY_FIELD, userFilterRQ.getName())).build())
-                .get();
-        activityRepository.save(activityLog);
+    public void onFilterCreate(FiltersCreatedEvent event) {
+        List<UserFilter> filters = event.getCreatedFilters();
+        filters.forEach(filter -> {
+            Activity activityLog = new ActivityBuilder()
+                    .addActionType(CREATE_FILTER)
+                    .addObjectType(USER_FILTER)
+                    .addObjectName(filter.getName())
+                    .addProjectRef(event.getProjectRef())
+                    .addUserRef(event.getCreatedBy())
+                    .addLoggedObjectRef(filter.getId())
+                    .addHistory(ImmutableList.<Activity.FieldValues>builder()
+                            .add(createHistoryField(NAME, EMPTY_FIELD, filter.getName())).build())
+                    .get();
+            activityRepository.save(activityLog);
+        });
     }
 
     @EventListener

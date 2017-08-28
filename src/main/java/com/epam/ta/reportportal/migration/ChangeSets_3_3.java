@@ -32,6 +32,9 @@ import org.springframework.data.mongodb.core.query.Update;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static com.epam.ta.reportportal.database.entity.item.Activity.FieldValues.*;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
+
 /**
  * Migration 3.3
  *
@@ -43,6 +46,7 @@ public class ChangeSets_3_3 {
     private static final String HISTORY = "history";
     private static final String ID = "_id";
     private static final String COLLECTION = "activity";
+    private static final String ACTION_TYPE = "actionType";
 
     @ChangeSet(order = "3.3-1", id = "v3.3-Replace activities embedded collection 'history' with array", author = "pbortnik")
     public void replaceActivitesHistory(MongoTemplate mongoTemplate) {
@@ -64,5 +68,51 @@ public class ChangeSets_3_3 {
             u.set(HISTORY, dbArray);
             mongoTemplate.updateFirst(Query.query(Criteria.where(ID).is(dbo.get(ID))), u, COLLECTION);
         });
+    }
+
+    @ChangeSet(order = "3.3-2", id = "v3.3-Update activity types with new values", author = "pbortnik")
+    public void updateActivityTypes(MongoTemplate mongoTemplate) {
+        final Query q = new Query(Criteria.where(ACTION_TYPE).in("start", "finish", "delete", "share", "unshare"));
+        mongoTemplate.stream(q, DBObject.class, COLLECTION).forEachRemaining(dbo -> {
+            String type = (String) dbo.get(ACTION_TYPE);
+            Update u = new Update();
+            switch (type) {
+                case "start":
+                    u.set(ACTION_TYPE, START_LAUNCH.getValue());
+                    break;
+                case "finish":
+                    u.set(ACTION_TYPE, FINISH_LAUNCH.getValue());
+                    break;
+                case "delete":
+                    u.set(ACTION_TYPE, DELETE_LAUNCH.getValue());
+                    break;
+                case "share":
+                    u = createShareHistory(u, (String) dbo.get("objectType"),"true", "false");
+                    break;
+                case "unshare":
+                    u = createShareHistory(u, (String) dbo.get("objectType"),"false", "true");
+                    break;
+            }
+            mongoTemplate.updateFirst(Query.query(Criteria.where(ID).is(dbo.get(ID))), u, COLLECTION);
+        });
+    }
+
+    private Update createShareHistory(Update u, String objectType, String oldValue, String newValue) {
+        Map[] dbArray = new LinkedHashMap[1];
+        Map res = new LinkedHashMap(3);
+        res.put(FIELD, "share");
+        res.put(OLD_VALUE, oldValue);
+        res.put(NEW_VALUE, newValue);
+        dbArray[0] = res;
+        u.set("history", dbArray);
+        switch (objectType) {
+            case "dashboard":
+                u.set(ACTION_TYPE, UPDATE_DASHBOARD.getValue());
+                break;
+            case "widget":
+                u.set(ACTION_TYPE, UPDATE_WIDGET.getValue());
+                break;
+        }
+        return u;
     }
 }

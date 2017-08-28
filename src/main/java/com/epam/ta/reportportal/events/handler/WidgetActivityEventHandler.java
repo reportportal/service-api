@@ -70,8 +70,8 @@ public class WidgetActivityEventHandler {
                         .addActionType(UPDATE_WIDGET)
                         .addLoggedObjectRef(widget.getId())
                         .addUserRef(event.getUpdatedBy())
+                        .addHistory(history)
                         .get();
-                activityLog.setHistory(history);
                 activityRepository.save(activityLog);
             }
         }

@@ -7,6 +7,7 @@ import com.epam.ta.reportportal.events.DefectTypeCreatedEvent;
 import com.epam.ta.reportportal.events.DefectTypeDeletedEvent;
 import com.epam.ta.reportportal.events.DefectTypeUpdatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.DELETE_DEFECT;
 import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.UPDATE_DEFECT;
 import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.DEFECT_TYPE;
+import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
 
 /**
  * @author Andrei Varabyeu
@@ -41,6 +43,9 @@ public class DefectTypeActivityHandler {
                 .addObjectName(event.getStatisticSubType().getLongName())
                 .addActionType(UPDATE_DEFECT)
 				.addUserRef(event.getUser())
+                .addHistory(ImmutableList.<Activity.FieldValues>builder()
+                        .add(createHistoryField(NAME, EMPTY_FIELD, event.getStatisticSubType().getLongName()))
+                        .build())
                 .get();
 		activityRepository.save(activity);
 	}
@@ -73,6 +78,9 @@ public class DefectTypeActivityHandler {
                             .addLoggedObjectRef(event.getId())
                             .addUserRef(event.getUpdatedBy().toLowerCase())
 							.addObjectName(subType.getLongName())
+                            .addHistory(ImmutableList.<Activity.FieldValues>builder()
+                                    .add(createHistoryField(NAME, subType.getLongName(), EMPTY_FIELD))
+                                    .build())
                             .get();
 					activityRepository.save(activity);
 				});

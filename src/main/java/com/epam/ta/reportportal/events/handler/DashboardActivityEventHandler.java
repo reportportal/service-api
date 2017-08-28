@@ -102,7 +102,8 @@ public class DashboardActivityEventHandler {
                 .addProjectRef(dashboard.getProjectName())
                 .addUserRef(event.getRemovedBy())
                 .addHistory(ImmutableList.<Activity.FieldValues>builder()
-                        .add(createHistoryField(NAME, dashboard.getName(), EMPTY_FIELD)).build())
+                        .add(createHistoryField(NAME, dashboard.getName(), EMPTY_FIELD))
+                        .build())
                 .get();
         activityRepository.save(activityLog);
     }

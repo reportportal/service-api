@@ -30,12 +30,14 @@ import com.epam.ta.reportportal.events.LaunchFinishedEvent;
 import com.epam.ta.reportportal.events.LaunchStartedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
+import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
 import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.LAUNCH;
+import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
 
 /**
  * @author Andrei Varabyeu
@@ -69,8 +71,14 @@ public class LaunchActivityHandler {
 			String name = launch.getName() + DELIMITER + launch.getNumber();
 			Activity activityLog = new ActivityBuilder().addUserRef(launch.getUserRef())
                     .addProjectRef(launch.getProjectRef().toLowerCase())
-					.addActionType(START_LAUNCH).addObjectType(LAUNCH)
-                    .addLoggedObjectRef(launch.getId()).addObjectName(name).get();
+					.addActionType(START_LAUNCH)
+                    .addObjectType(LAUNCH)
+                    .addLoggedObjectRef(launch.getId())
+                    .addObjectName(name)
+                    .addHistory(ImmutableList.<Activity.FieldValues>builder()
+                            .add(createHistoryField(NAME, EMPTY_FIELD, name))
+                            .build())
+                    .get();
 			activityRepository.save(activityLog);
 		}
 	}
@@ -80,10 +88,17 @@ public class LaunchActivityHandler {
 		Launch launch = event.getLaunch();
 		if (null != launch && launch.getMode() == Mode.DEFAULT) {
 			String name = launch.getName() + DELIMITER + launch.getNumber();
-			Activity activity = new ActivityBuilder().addUserRef(event.getDeletedBy())
+			Activity activity = new ActivityBuilder()
+                    .addUserRef(event.getDeletedBy())
                     .addProjectRef(event.getLaunch().getProjectRef())
-					.addActionType(DELETE_LAUNCH).addObjectType(LAUNCH)
-                    .addLoggedObjectRef(launch.getId()).addObjectName(name).get();
+					.addActionType(DELETE_LAUNCH)
+                    .addObjectType(LAUNCH)
+                    .addLoggedObjectRef(launch.getId())
+                    .addObjectName(name)
+                    .addHistory(ImmutableList.<Activity.FieldValues>builder()
+                            .add(createHistoryField(NAME, name, EMPTY_FIELD))
+                            .build())
+                    .get();
 			activityRepository.save(activity);
 		}
 	}
@@ -91,10 +106,17 @@ public class LaunchActivityHandler {
 	private void afterLaunchFinished(Launch launch, String finishedBy) {
 		if (launch.getMode() != Mode.DEBUG) {
 			String name = launch.getName() + DELIMITER + launch.getNumber();
-			Activity activityLog = new ActivityBuilder().addUserRef(finishedBy)
-                    .addProjectRef(launch.getProjectRef()).addActionType(FINISH_LAUNCH)
-					.addObjectType(LAUNCH).addLoggedObjectRef(launch.getId())
-                    .addObjectName(name).get();
+			Activity activityLog = new ActivityBuilder()
+                    .addUserRef(finishedBy)
+                    .addProjectRef(launch.getProjectRef())
+                    .addActionType(FINISH_LAUNCH)
+					.addObjectType(LAUNCH)
+                    .addLoggedObjectRef(launch.getId())
+                    .addObjectName(name)
+                    .addHistory(ImmutableList.<Activity.FieldValues>builder()
+                            .add(createHistoryField(NAME, name, name))
+                            .build())
+                    .get();
 			activityRepository.save(activityLog);
 		}
 	}

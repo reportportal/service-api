@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.ws.converter.ActivityResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -43,6 +44,8 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.database.entity.item.Activity.PROJECT_REF;
+import static com.epam.ta.reportportal.database.search.Condition.EQUALS;
 
 /**
  * @author Dzmitry_Kavalets
@@ -86,6 +89,7 @@ public class ActivityHandler implements IActivityHandler {
 	@Override
 	public com.epam.ta.reportportal.ws.model.Page<ActivityResource> getItemActivities(String projectName, Filter filter, Pageable pageable) {
 		expect(projectRepository.exists(projectName), equalTo(true)).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
+        filter.addCondition(new FilterCondition(EQUALS, false, projectName, PROJECT_REF));
 		Page<Activity> page = activityRepository.findByFilter(filter, pageable);
 		return activityResourceAssembler.toPagedResources(page);
 	}

@@ -81,7 +81,6 @@ public final class UserFilterConverter {
             UserFilterEntity userFilterEntity = new UserFilterEntity();
             userFilterEntity.setCondition(Optional.ofNullable(condition.getCondition().getMarker())
                     .orElse(null));
-            userFilterEntity.setIsNegative(condition.isNegative());
             userFilterEntity.setValue(condition.getValue());
             userFilterEntity.setFilteringField(condition.getSearchCriteria());
             result.add(userFilterEntity);

@@ -122,6 +122,8 @@ public class ExternalSystemActivityHandler {
 						.addUserRef(event.getDeletedBy())
                         .addActionType(DELETE_BTS)
                         .addProjectRef(event.getProject())
+						.addHistory(ImmutableList.<Activity.FieldValues>builder()
+								.add(createHistoryField(NAME, name, EMPTY_FIELD)).build())
                         .get();
 			}).collect(Collectors.toList());
 			if (!activities.isEmpty())

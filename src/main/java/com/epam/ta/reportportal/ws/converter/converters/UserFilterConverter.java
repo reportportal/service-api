@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
+import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.filter.SelectionParameters;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterEntity;
@@ -79,9 +80,11 @@ public final class UserFilterConverter {
         Set<UserFilterEntity> result = Sets.newLinkedHashSet();
         filter.getFilterConditions().forEach(condition -> {
             UserFilterEntity userFilterEntity = new UserFilterEntity();
-            userFilterEntity.setCondition(Optional.ofNullable(condition.getCondition().getMarker())
-                    .orElse(null));
-            userFilterEntity.setIsNegative(condition.isNegative());
+
+            Optional.ofNullable(condition.getCondition().getMarker())
+                    .map(it -> Condition.makeNegative(condition.isNegative(), it))
+                    .ifPresent(userFilterEntity::setCondition);
+
             userFilterEntity.setValue(condition.getValue());
             userFilterEntity.setFilteringField(condition.getSearchCriteria());
             result.add(userFilterEntity);

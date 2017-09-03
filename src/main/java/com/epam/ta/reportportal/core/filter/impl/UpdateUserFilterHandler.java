@@ -170,8 +170,8 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 	private Filter createFilter(String objectType, Set<UserFilterEntity> entities) {
 		Set<FilterCondition> filterConditions = new LinkedHashSet<>(entities.size());
 		for (UserFilterEntity filterEntity : entities) {
-			Condition conditionObject = Condition.findByMarker(filterEntity.getCondition());
-			FilterCondition filterCondition = new FilterCondition(conditionObject, filterEntity.getIsNegative(),
+			Condition conditionObject = Condition.findByMarker(filterEntity.getCondition()).orElse(null);
+			FilterCondition filterCondition = new FilterCondition(conditionObject, Condition.isNegative(filterEntity.getCondition()),
 					filterEntity.getValue().trim(), filterEntity.getFilteringField().trim());
 			filterConditions.add(filterCondition);
 		}

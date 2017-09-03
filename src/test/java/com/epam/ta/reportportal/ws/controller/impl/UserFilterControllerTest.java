@@ -200,7 +200,6 @@ public class UserFilterControllerTest extends BaseMvcTest {
 		userFilterEntity.setValue("Api");
 		userFilterEntity.setCondition("cnt");
 		userFilterEntity.setFilteringField("name");
-		userFilterEntity.setIsNegative(false);
 		userFilterEntities.add(userFilterEntity);
 		return userFilterEntities;
 	}

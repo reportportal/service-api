@@ -36,9 +36,10 @@ import com.google.common.collect.Lists;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * Converts internal DB model to DTO
@@ -57,8 +58,8 @@ public final class ProjectConverter {
         project.setCreationDate(new Date());
         project.getConfiguration().setEntryType(EntryType.findByName(request.getEntryType())
                 .orElse(null));
-        Optional.ofNullable(request.getCustomer()).ifPresent(project::setCustomer);
-        Optional.ofNullable(request.getAddInfo()).ifPresent(project::setAddInfo);
+        ofNullable(request.getCustomer()).ifPresent(project::setCustomer);
+        ofNullable(request.getAddInfo()).ifPresent(project::setAddInfo);
 
         // Empty fields creation by default
         project.getConfiguration().setExternalSystem(Lists.newArrayList());
@@ -89,8 +90,8 @@ public final class ProjectConverter {
                 .stream().map(user -> {
                     ProjectResource.ProjectUser one = new ProjectResource.ProjectUser();
                     one.setLogin(user.getLogin());
-                    one.setProjectRole(user.getProjectRole().name());
-                    one.setProposedRole(user.getProposedRole().name());
+                    ofNullable(user.getProjectRole()).ifPresent(role -> one.setProjectRole(role.name()));
+                    ofNullable(user.getProposedRole()).ifPresent(role -> one.setProposedRole(role.name()));
                     return one;
                 }).collect(Collectors.toList());
         resource.setUsers(users);

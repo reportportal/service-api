@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.ws.resolver;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -109,9 +110,9 @@ public class FilterCriteriaResolver implements HandlerMethodArgumentResolver {
 	}
 
 	private Condition getCondition(String marker) {
-		Condition condition = Condition.findByMarker(marker);
-		BusinessRule.expect(condition, Predicates.notNull()).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+		Optional<Condition> condition = Condition.findByMarker(marker);
+		BusinessRule.expect(condition, Predicates.isPresent()).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
 				"Unable to find condition with marker '" + marker + "'");
-		return condition;
+		return condition.get();
 	}
 }

@@ -181,7 +181,6 @@ public class Utils {
 		UserFilterEntity entity = new UserFilterEntity();
 		entity.setCondition(Condition.EQUALS.getMarker());
 		entity.setFilteringField(BuilderTestsConstants.NAME_CRITERIA);
-		entity.setIsNegative(false);
 		entity.setValue("Demo Run from CI");
 		Set<UserFilterEntity> entities = new HashSet<>();
 		entities.add(entity);
@@ -234,7 +233,6 @@ public class Utils {
 		UserFilterEntity userFilterEntity = new UserFilterEntity();
 		userFilterEntity.setCondition(Condition.EQUALS.getMarker());
 		userFilterEntity.setFilteringField(BuilderTestsConstants.NAME_CRITERIA);
-		userFilterEntity.setIsNegative(false);
 		userFilterEntity.setValue("Demo Run from CI");
 		Set<UserFilterEntity> entities = new HashSet<>();
 		entities.add(userFilterEntity);

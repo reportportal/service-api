@@ -122,6 +122,7 @@ public class TicketActivitySubscriber {
                     .addActionType(ATTACH_ISSUE)
 					.addLoggedObjectRef(testItem.getId())
                     .addObjectType(TEST_ITEM)
+					.addObjectName(testItem.getName())
                     .addUserRef(event.getPostedBy())
 					.addHistory(Collections.singletonList(fieldValues))
                     .get();
@@ -169,6 +170,7 @@ public class TicketActivitySubscriber {
                     .addProjectRef(projectName)
                     .addLoggedObjectRef(issueDefinition.getId())
 					.addObjectType(TEST_ITEM)
+					.addObjectName(testItem.getName())
                     .addActionType(UPDATE_ITEM)
                     .addUserRef(principal)
                     .get();

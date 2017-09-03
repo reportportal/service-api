@@ -7,12 +7,12 @@ import com.epam.ta.reportportal.events.DefectTypeCreatedEvent;
 import com.epam.ta.reportportal.events.DefectTypeDeletedEvent;
 import com.epam.ta.reportportal.events.DefectTypeUpdatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
-import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,9 +43,9 @@ public class DefectTypeActivityHandler {
                 .addObjectName(event.getStatisticSubType().getLongName())
                 .addActionType(UPDATE_DEFECT)
 				.addUserRef(event.getUser())
-                .addHistory(ImmutableList.<Activity.FieldValues>builder()
-                        .add(createHistoryField(NAME, EMPTY_FIELD, event.getStatisticSubType().getLongName()))
-                        .build())
+				.addHistory(Collections.singletonList(
+						createHistoryField(NAME, EMPTY_FIELD, event.getStatisticSubType().getLongName())
+				))
                 .get();
 		activityRepository.save(activity);
 	}
@@ -53,14 +53,14 @@ public class DefectTypeActivityHandler {
 	@EventListener
 	public void onDefectTypeUpdated(DefectTypeUpdatedEvent event) {
 		List<Activity> activities = event.getRequest().getIds()
-				.stream().map(r ->
-                        new ActivityBuilder()
-                                .addProjectRef(event.getProject())
-                                .addObjectType(DEFECT_TYPE)
-                                .addActionType(UPDATE_DEFECT)
-                                .addLoggedObjectRef(r.getId())
-                                .addUserRef(event.getUpdatedBy())
-                                .get())
+                .stream().map(subType -> new ActivityBuilder()
+                        .addProjectRef(event.getProject())
+                        .addObjectType(DEFECT_TYPE)
+                        .addObjectName(subType.getLongName())
+                        .addActionType(UPDATE_DEFECT)
+                        .addLoggedObjectRef(subType.getId())
+                        .addUserRef(event.getUpdatedBy())
+                        .get())
 				.collect(Collectors.toList());
 		activityRepository.save(activities);
 
@@ -78,9 +78,9 @@ public class DefectTypeActivityHandler {
                             .addLoggedObjectRef(event.getId())
                             .addUserRef(event.getUpdatedBy().toLowerCase())
 							.addObjectName(subType.getLongName())
-                            .addHistory(ImmutableList.<Activity.FieldValues>builder()
-                                    .add(createHistoryField(NAME, subType.getLongName(), EMPTY_FIELD))
-                                    .build())
+							.addHistory(Collections.singletonList(
+									createHistoryField(NAME, subType.getLongName(), EMPTY_FIELD)
+							))
                             .get();
 					activityRepository.save(activity);
 				});

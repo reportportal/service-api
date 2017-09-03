@@ -28,15 +28,17 @@ import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 public class TicketPostedEvent {
 
 	private final Ticket ticket;
+	private final String itemName;
 	private final String postedBy;
 	private final String testItemId;
 	private final String project;
 
-	public TicketPostedEvent(Ticket ticket, String testItemId, String postedBy, String project) {
+	public TicketPostedEvent(Ticket ticket, String testItemId, String postedBy, String project, String itemName) {
 		this.ticket = ticket;
 		this.postedBy = postedBy;
 		this.testItemId = testItemId;
 		this.project = project;
+		this.itemName = itemName;
 	}
 
 	public Ticket getTicket() {
@@ -53,5 +55,9 @@ public class TicketPostedEvent {
 
 	public String getProject() {
 		return project;
+	}
+
+	public String getItemName() {
+		return itemName;
 	}
 }

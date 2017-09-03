@@ -28,12 +28,12 @@ import com.epam.ta.reportportal.events.FilterUpdatedEvent;
 import com.epam.ta.reportportal.events.FiltersCreatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
@@ -64,8 +64,7 @@ public class UserFilterActivityHandler {
                     .addProjectRef(event.getProjectRef())
                     .addUserRef(event.getCreatedBy())
                     .addLoggedObjectRef(filter.getId())
-                    .addHistory(ImmutableList.<Activity.FieldValues>builder()
-                            .add(createHistoryField(NAME, EMPTY_FIELD, filter.getName())).build())
+                    .addHistory(Collections.singletonList(createHistoryField(NAME, EMPTY_FIELD, filter.getName())))
                     .get();
             activityRepository.save(activityLog);
         });
@@ -104,8 +103,7 @@ public class UserFilterActivityHandler {
                 .addObjectName(before.getName())
                 .addProjectRef(before.getProjectName())
                 .addUserRef(event.getRemovedBy())
-                .addHistory(ImmutableList.<Activity.FieldValues>builder()
-                        .add(createHistoryField(NAME, before.getName(), EMPTY_FIELD)).build())
+                .addHistory(Collections.singletonList(createHistoryField(NAME, before.getName(), EMPTY_FIELD)))
                 .get();
         activityRepository.save(activityLog);
     }

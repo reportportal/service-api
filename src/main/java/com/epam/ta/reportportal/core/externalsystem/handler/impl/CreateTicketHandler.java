@@ -21,26 +21,27 @@
 
 package com.epam.ta.reportportal.core.externalsystem.handler.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-
-import java.util.List;
-
 import com.epam.ta.reportportal.core.externalsystem.ExternalSystemStrategy;
 import com.epam.ta.reportportal.core.externalsystem.StrategyProvider;
+import com.epam.ta.reportportal.core.externalsystem.handler.ICreateTicketHandler;
+import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.entity.ExternalSystem;
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.events.TicketPostedEvent;
+import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
+import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import com.epam.ta.reportportal.core.externalsystem.handler.ICreateTicketHandler;
-import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.entity.ExternalSystem;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
-import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
+import java.util.List;
+
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Default implementation of {@link ICreateTicketHandler}
@@ -58,6 +59,9 @@ public class CreateTicketHandler implements ICreateTicketHandler {
 	private ProjectRepository projectRepository;
 
 	@Autowired
+	private TestItemRepository testItemRepository;
+
+	@Autowired
 	private ExternalSystemRepository externalSystemRepository;
 
 	@Autowired
@@ -66,6 +70,7 @@ public class CreateTicketHandler implements ICreateTicketHandler {
 	@Override
 	public Ticket createIssue(PostTicketRQ postTicketRQ, String projectName, String systemId, String username) {
 		validatePostTicketRQ(postTicketRQ);
+		TestItem testItem = testItemRepository.findOne(postTicketRQ.getTestItemId());
 		Project project = projectRepository.findByName(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 		List<String> ids = project.getConfiguration().getExternalSystem();
@@ -76,7 +81,8 @@ public class CreateTicketHandler implements ICreateTicketHandler {
 				"There aren't any submitted BTS fields!");
 		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name());
 		Ticket ticket = externalSystemStrategy.submitTicket(postTicketRQ, system);
-		eventPublisher.publishEvent(new TicketPostedEvent(ticket, postTicketRQ.getTestItemId(), username, projectName));
+		eventPublisher.publishEvent(new TicketPostedEvent(ticket, postTicketRQ.getTestItemId(), username,
+				projectName, testItem.getName()));
 		return ticket;
 	}
 

@@ -29,12 +29,12 @@ import com.epam.ta.reportportal.events.DashboardUpdatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
@@ -85,9 +85,8 @@ public class DashboardActivityEventHandler {
                 .addProjectRef(event.getProjectRef())
                 .addUserRef(event.getCreatedBy())
                 .addLoggedObjectRef(event.getDashboardId())
-                .addHistory(ImmutableList.<Activity.FieldValues>builder()
-                        .add(createHistoryField(NAME, EMPTY_FIELD, createDashboardRQ.getName()))
-                        .build())
+                .addHistory(Collections.singletonList(
+                        createHistoryField(NAME, EMPTY_FIELD, createDashboardRQ.getName())))
                 .get();
         activityRepository.save(activityLog);
     }
@@ -101,9 +100,9 @@ public class DashboardActivityEventHandler {
                 .addObjectName(dashboard.getName())
                 .addProjectRef(dashboard.getProjectName())
                 .addUserRef(event.getRemovedBy())
-                .addHistory(ImmutableList.<Activity.FieldValues>builder()
-                        .add(createHistoryField(NAME, dashboard.getName(), EMPTY_FIELD))
-                        .build())
+                .addHistory(Collections.singletonList(
+                        createHistoryField(NAME, dashboard.getName(), EMPTY_FIELD)
+                ))
                 .get();
         activityRepository.save(activityLog);
     }

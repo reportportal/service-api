@@ -30,10 +30,11 @@ import com.epam.ta.reportportal.events.LaunchFinishedEvent;
 import com.epam.ta.reportportal.events.LaunchStartedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
-import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+
+import java.util.Collections;
 
 import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
 import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.LAUNCH;
@@ -75,9 +76,7 @@ public class LaunchActivityHandler {
                     .addObjectType(LAUNCH)
                     .addLoggedObjectRef(launch.getId())
                     .addObjectName(name)
-                    .addHistory(ImmutableList.<Activity.FieldValues>builder()
-                            .add(createHistoryField(NAME, EMPTY_FIELD, name))
-                            .build())
+					.addHistory(Collections.singletonList(createHistoryField(NAME, EMPTY_FIELD, name)))
                     .get();
 			activityRepository.save(activityLog);
 		}
@@ -95,9 +94,7 @@ public class LaunchActivityHandler {
                     .addObjectType(LAUNCH)
                     .addLoggedObjectRef(launch.getId())
                     .addObjectName(name)
-                    .addHistory(ImmutableList.<Activity.FieldValues>builder()
-                            .add(createHistoryField(NAME, name, EMPTY_FIELD))
-                            .build())
+					.addHistory(Collections.singletonList(createHistoryField(NAME, name, EMPTY_FIELD)))
                     .get();
 			activityRepository.save(activity);
 		}
@@ -113,9 +110,7 @@ public class LaunchActivityHandler {
 					.addObjectType(LAUNCH)
                     .addLoggedObjectRef(launch.getId())
                     .addObjectName(name)
-                    .addHistory(ImmutableList.<Activity.FieldValues>builder()
-                            .add(createHistoryField(NAME, name, name))
-                            .build())
+					.addHistory(Collections.singletonList(createHistoryField(NAME, name, name)))
                     .get();
 			activityRepository.save(activityLog);
 		}

@@ -35,6 +35,7 @@ import java.util.List;
 
 import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.UPDATE_PROJECT;
 import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.PROJECT;
+import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.createHistoryField;
 
 /**
  * Saves new project activity
@@ -75,6 +76,7 @@ public class ProjectActivityHandler {
 			Activity activityLog = new ActivityBuilder()
                     .addProjectRef(project.getName())
                     .addObjectType(PROJECT)
+					.addObjectName(project.getName())
 					.addActionType(UPDATE_PROJECT)
                     .addUserRef(event.getUpdatedBy())
                     .addHistory(history)
@@ -86,20 +88,17 @@ public class ProjectActivityHandler {
 	private void processStatisticsStrategy(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
 		if ((null != configuration.getStatisticCalculationStrategy())
 				&& (!configuration.getStatisticCalculationStrategy().equalsIgnoreCase((project.getConfiguration().getStatisticsCalculationStrategy().name())))){
-			Activity.FieldValues fieldValues = Activity.FieldValues.newOne()
-                    .withField(STATISTICS_CALCULATION_STRATEGY)
-                    .withOldValue(project.getConfiguration().getStatisticsCalculationStrategy().name())
-					.withNewValue(configuration.getStatisticCalculationStrategy());
+			Activity.FieldValues fieldValues = createHistoryField(STATISTICS_CALCULATION_STRATEGY,
+					project.getConfiguration().getStatisticsCalculationStrategy().name(),
+					configuration.getStatisticCalculationStrategy());
 			history.add(fieldValues);
 		}
 	}
 
 	private void processKeepLogs(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
 		if ((null != configuration.getKeepLogs()) && (!configuration.getKeepLogs().equals(project.getConfiguration().getKeepLogs()))) {
-			Activity.FieldValues fieldValues = Activity.FieldValues.newOne()
-                    .withField(KEEP_LOGS)
-                    .withOldValue(project.getConfiguration().getKeepLogs())
-					.withNewValue(configuration.getKeepLogs());
+			Activity.FieldValues fieldValues = createHistoryField(
+					KEEP_LOGS, project.getConfiguration().getKeepLogs(), configuration.getKeepLogs());
 			history.add(fieldValues);
 		}
 	}
@@ -108,10 +107,8 @@ public class ProjectActivityHandler {
 			ProjectConfiguration configuration) {
 		if ((null != configuration.getInterruptJobTime()) && (!configuration.getInterruptJobTime()
 				.equals(project.getConfiguration().getInterruptJobTime()))) {
-			Activity.FieldValues fieldValues = Activity.FieldValues.newOne()
-                    .withField(LAUNCH_INACTIVITY)
-                    .withOldValue(project.getConfiguration().getInterruptJobTime())
-					.withNewValue(configuration.getInterruptJobTime());
+			Activity.FieldValues fieldValues = createHistoryField(
+					LAUNCH_INACTIVITY, project.getConfiguration().getInterruptJobTime(), configuration.getInterruptJobTime());
 			history.add(fieldValues);
 		}
 	}
@@ -119,11 +116,10 @@ public class ProjectActivityHandler {
 	private void processAutoAnalyze(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
 		if ((null != configuration.getIsAAEnabled()) && (!configuration.getIsAAEnabled()
 				.equals(project.getConfiguration().getIsAutoAnalyzerEnabled()))) {
-			Activity.FieldValues fieldValues = Activity.FieldValues.newOne()
-                    .withField(AUTO_ANALYZE)
-                    .withOldValue(project.getConfiguration().getIsAutoAnalyzerEnabled() == null ? "" :
-							project.getConfiguration().getIsAutoAnalyzerEnabled().toString())
-					.withNewValue(configuration.getIsAAEnabled().toString());
+			String oldValue = project.getConfiguration().getIsAutoAnalyzerEnabled() == null ? "" :
+					project.getConfiguration().getIsAutoAnalyzerEnabled().toString();
+			Activity.FieldValues fieldValues = createHistoryField(
+					AUTO_ANALYZE, oldValue, configuration.getIsAAEnabled().toString());
 			history.add(fieldValues);
 		}
 	}
@@ -132,10 +128,8 @@ public class ProjectActivityHandler {
 			ProjectConfiguration configuration) {
 		if ((null != configuration.getKeepScreenshots()) && (!configuration.getKeepScreenshots()
 				.equals(project.getConfiguration().getKeepScreenshots()))) {
-			Activity.FieldValues fieldValues = Activity.FieldValues.newOne()
-                    .withField(KEEP_SCREENSHOTS)
-                    .withOldValue(project.getConfiguration().getKeepScreenshots())
-					.withNewValue(configuration.getKeepScreenshots());
+			Activity.FieldValues fieldValues = createHistoryField(
+					KEEP_SCREENSHOTS, project.getConfiguration().getKeepScreenshots(), configuration.getKeepScreenshots());
 			history.add(fieldValues);
 		}
 	}

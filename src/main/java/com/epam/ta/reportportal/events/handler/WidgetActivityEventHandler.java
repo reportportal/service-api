@@ -28,12 +28,12 @@ import com.epam.ta.reportportal.events.WidgetDeletedEvent;
 import com.epam.ta.reportportal.events.WidgetUpdatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
@@ -87,9 +87,7 @@ public class WidgetActivityEventHandler {
                 .addProjectRef(event.getProjectRef())
                 .addUserRef(event.getCreatedBy())
                 .addLoggedObjectRef(event.getWidgetId())
-                .addHistory(ImmutableList.<Activity.FieldValues>builder()
-                        .add(createHistoryField(NAME, EMPTY_FIELD, widgetRQ.getName()))
-                        .build())
+                .addHistory(Collections.singletonList(createHistoryField(NAME, EMPTY_FIELD, widgetRQ.getName())))
                 .get();
         activityRepository.save(activityLog);
 
@@ -104,8 +102,7 @@ public class WidgetActivityEventHandler {
                 .addObjectName(widget.getName())
                 .addProjectRef(widget.getProjectName())
                 .addUserRef(event.getRemovedBy())
-                .addHistory(ImmutableList.<Activity.FieldValues>builder()
-                        .add(createHistoryField(NAME, widget.getName(), EMPTY_FIELD)).build())
+                .addHistory(Collections.singletonList(createHistoryField(NAME, widget.getName(), EMPTY_FIELD)))
                 .get();
         activityRepository.save(activityLog);
     }

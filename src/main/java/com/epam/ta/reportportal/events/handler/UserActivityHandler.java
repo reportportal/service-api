@@ -24,10 +24,11 @@ import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.events.UserCreatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
-import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+
+import java.util.Collections;
 
 import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.CREATE_USER;
 import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.USER;
@@ -55,9 +56,8 @@ public class UserActivityHandler {
                 .addObjectType(USER)
                 .addUserRef(event.getCreatedBy())
 				.addProjectRef(event.getUser().getDefaultProject().toLowerCase())
-                .addHistory(ImmutableList.<Activity.FieldValues>builder()
-                        .add(createHistoryField(NAME, EMPTY_FIELD, event.getUser().getLogin()))
-                        .build())
+				.addHistory(Collections.singletonList(
+						createHistoryField(NAME, EMPTY_FIELD, event.getUser().getLogin())))
                 .get();
 		activityRepository.save(activity);
 	}

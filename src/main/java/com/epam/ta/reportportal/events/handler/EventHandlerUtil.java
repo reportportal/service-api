@@ -62,8 +62,10 @@ public class EventHandlerUtil {
     }
 
     static void processDescription(List<Activity.FieldValues> history, @Nullable String oldDescription,
-                                   String newDescription) {
-        if (null != newDescription && !newDescription.equals(oldDescription)) {
+                                   @Nullable String newDescription) {
+        oldDescription = Strings.nullToEmpty(oldDescription);
+        newDescription = Strings.nullToEmpty(newDescription);
+        if (!newDescription.equals(oldDescription)) {
             history.add(createHistoryField(DESCRIPTION, oldDescription, newDescription));
         }
     }

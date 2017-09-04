@@ -36,6 +36,8 @@ import java.util.List;
 
 import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.UPDATE_PROJECT;
 import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.PROJECT;
+import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.EMPTY_FIELD;
+import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.createHistoryField;
 
 
 /**
@@ -96,20 +98,17 @@ public class ProjectEmailUpdatedHandler {
 				.equals(builtProjectEmailConfig.getEmailCases());
 
 		if (isEmailOptionChanged) {
-			Activity.FieldValues fieldValues = Activity.FieldValues.newOne()
-                    .withField(EMAIL_STATUS)
-					.withOldValue(String.valueOf(project.getConfiguration().getEmailConfig().getEmailEnabled()))
-					.withNewValue(String.valueOf(configuration.getEmailEnabled()));
+			Activity.FieldValues fieldValues = createHistoryField(EMAIL_STATUS,
+					String.valueOf(project.getConfiguration().getEmailConfig().getEmailEnabled()),
+					String.valueOf(configuration.getEmailEnabled()));
 			history.add(fieldValues);
 		} else {
 			if (isEmailCasesChanged) {
-			    history.add(Activity.FieldValues.newOne().withField(EMAIL_CASES));
+			    history.add(createHistoryField(EMAIL_CASES, EMPTY_FIELD, EMPTY_FIELD));
 			}
 			if (isEmailFromChanged) {
-				Activity.FieldValues fieldValues = Activity.FieldValues.newOne()
-                        .withField(EMAIL_FROM)
-						.withOldValue(String.valueOf(project.getConfiguration().getEmailConfig().getFrom()))
-						.withNewValue(String.valueOf(configuration.getFrom()));
+				Activity.FieldValues fieldValues = createHistoryField(
+						EMAIL_FROM, project.getConfiguration().getEmailConfig().getFrom(), configuration.getFrom());
 				history.add(fieldValues);
 			}
 		}

@@ -28,11 +28,11 @@ import com.epam.ta.reportportal.events.ExternalSystemDeletedEvent;
 import com.epam.ta.reportportal.events.ExternalSystemUpdatedEvent;
 import com.epam.ta.reportportal.events.ProjectExternalSystemsDeletedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
-import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -65,10 +65,8 @@ public class ExternalSystemActivityHandler {
                 .addUserRef(event.getCreatedBy())
                 .addActionType(CREATE_BTS)
 				.addProjectRef(externalSystem.getProjectRef())
-                .addHistory(ImmutableList.<Activity.FieldValues>builder()
-                        .add(createHistoryField(NAME, EMPTY_FIELD, name))
-                        .build())
-                .get();
+				.addHistory(Collections.singletonList(createHistoryField(NAME, EMPTY_FIELD, name)))
+				.get();
 		activityRepository.save(activity);
 	}
 
@@ -101,9 +99,7 @@ public class ExternalSystemActivityHandler {
                     .addUserRef(event.getDeletedBy())
                     .addActionType(DELETE_BTS)
 					.addProjectRef(externalSystem.getProjectRef())
-                    .addHistory(ImmutableList.<Activity.FieldValues>builder()
-                            .add(createHistoryField(NAME, name, EMPTY_FIELD))
-                            .build())
+					.addHistory(Collections.singletonList(createHistoryField(NAME, name, EMPTY_FIELD)))
                     .get();
 			activityRepository.save(activity);
 		}
@@ -122,6 +118,7 @@ public class ExternalSystemActivityHandler {
 						.addUserRef(event.getDeletedBy())
                         .addActionType(DELETE_BTS)
                         .addProjectRef(event.getProject())
+						.addHistory(Collections.singletonList(createHistoryField(NAME, name, EMPTY_FIELD)))
                         .get();
 			}).collect(Collectors.toList());
 			if (!activities.isEmpty())

@@ -22,11 +22,13 @@ package com.epam.ta.reportportal.events.handler;
 
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.events.WidgetCreatedEvent;
 import com.epam.ta.reportportal.events.WidgetDeletedEvent;
 import com.epam.ta.reportportal.events.WidgetUpdatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
 import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.WIDGET;
@@ -46,7 +49,12 @@ import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
 @Component
 public class WidgetActivityEventHandler {
 
-	private ActivityRepository activityRepository;
+    private static final String ITEMS_COUNT = "items_count";
+    private static final String CONTENT_FIELDS = "content_fields";
+    private static final String METADATA_FIELDS = "metadata_fields";
+    private static final String WIDGET_OPTIONS = "widget_options";
+
+    private ActivityRepository activityRepository;
 
 	@Autowired
     public WidgetActivityEventHandler(ActivityRepository activityRepository) {
@@ -62,6 +70,7 @@ public class WidgetActivityEventHandler {
 		    processShare(history, widget, widgetRQ.getShare());
             processName(history, widget.getName(), widgetRQ.getName());
             processDescription(history, widget.getDescription(), widgetRQ.getDescription());
+            processContentParameters(history, widget.getContentOptions(), widgetRQ.getContentParameters());
             if (!history.isEmpty()) {
                 Activity activityLog = new ActivityBuilder()
                         .addProjectRef(widget.getProjectName())
@@ -77,7 +86,7 @@ public class WidgetActivityEventHandler {
         }
 	}
 
-	@EventListener
+    @EventListener
     public void onCreateWidget(WidgetCreatedEvent event) {
         WidgetRQ widgetRQ = event.getWidgetRQ();
         Activity activityLog = new ActivityBuilder()
@@ -105,6 +114,28 @@ public class WidgetActivityEventHandler {
                 .addHistory(Collections.singletonList(createHistoryField(NAME, widget.getName(), EMPTY_FIELD)))
                 .get();
         activityRepository.save(activityLog);
+    }
+
+    private void processContentParameters(List<Activity.FieldValues> history, ContentOptions old, ContentParameters newContent) {
+        if (old.getItemsCount() != newContent.getItemsCount()) {
+            history.add(createHistoryField(ITEMS_COUNT, String.valueOf(old.getItemsCount()),
+                    String.valueOf(newContent.getItemsCount())));
+        }
+        if (!old.getContentFields().equals(newContent.getContentFields())) {
+            String oldValue = old.getContentFields().stream().collect(Collectors.joining(", "));
+            String newValue = newContent.getContentFields().stream().collect(Collectors.joining(", "));
+            history.add(createHistoryField(CONTENT_FIELDS, oldValue, newValue));
+        }
+        if (!old.getMetadataFields().equals(newContent.getMetadataFields())) {
+            String oldValue = old.getMetadataFields().stream().collect(Collectors.joining(", "));
+            String newValue = newContent.getMetadataFields().stream().collect(Collectors.joining(", "));
+            history.add(createHistoryField(METADATA_FIELDS, oldValue, newValue));
+        }
+        if (!old.getWidgetOptions().equals(newContent.getWidgetOptions())) {
+            String oldValue = old.getWidgetOptions().entrySet().stream().map(it -> it.getKey() + ":" + it.getValue().toString()).collect(Collectors.joining(", "));
+            String newValue = newContent.getWidgetOptions().entrySet().stream().map(it -> it.getKey() + ":" + it.getValue().toString()).collect(Collectors.joining(", "));
+            history.add(createHistoryField(WIDGET_OPTIONS, oldValue, newValue));
+        }
     }
 
 }

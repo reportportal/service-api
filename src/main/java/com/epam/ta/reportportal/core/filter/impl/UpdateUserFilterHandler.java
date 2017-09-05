@@ -102,7 +102,7 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 			}
 			updateUserFilter(existingFilter, updateRQ, userName, projectName);
 			userFilterRepository.save(existingFilter);
-			eventPublisher.publishEvent(new FilterUpdatedEvent(before, updateRQ, userName));
+			eventPublisher.publishEvent(new FilterUpdatedEvent(before, existingFilter, userName));
 		}
 
 		return buildResponse(existingFilter);

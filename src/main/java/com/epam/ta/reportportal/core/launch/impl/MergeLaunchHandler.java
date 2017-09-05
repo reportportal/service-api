@@ -41,7 +41,6 @@ import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.ws.converter.LaunchResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
-import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
@@ -118,7 +117,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
     }
 
     @Override
-    public LaunchResource mergeLaunches(String projectName, String userName, DeepMergeLaunchesRQ rq) {
+    public LaunchResource mergeLaunches(String projectName, String userName, MergeLaunchesRQ rq) {
         User user = userRepository.findOne(userName);
         Project project = projectRepository.findOne(projectName);
         expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);

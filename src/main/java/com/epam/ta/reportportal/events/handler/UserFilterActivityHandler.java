@@ -27,7 +27,6 @@ import com.epam.ta.reportportal.events.FilterDeletedEvent;
 import com.epam.ta.reportportal.events.FilterUpdatedEvent;
 import com.epam.ta.reportportal.events.FiltersCreatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
-import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -72,20 +71,20 @@ public class UserFilterActivityHandler {
 
     @EventListener
     public void onFilterUpdate(FilterUpdatedEvent event) {
-        UserFilter userFilter = event.getUserFilter();
-        UpdateUserFilterRQ updateUserFilterRQ = event.getUpdateUserFilterRQ();
+        UserFilter before = event.getBefore();
+        UserFilter after = event.getAfter();
         List<Activity.FieldValues> history = Lists.newArrayList();
-        if (userFilter != null) {
-            processShare(history, userFilter, updateUserFilterRQ.getShare());
-            processName(history, userFilter.getName(), updateUserFilterRQ.getName());
-            processDescription(history, userFilter.getDescription(), updateUserFilterRQ.getDescription());
+        if (before != null) {
+            processShare(history, before, !after.getAcl().getEntries().isEmpty());
+            processName(history, before.getName(), after.getName());
+            processDescription(history, before.getDescription(), after.getDescription());
             if (!history.isEmpty()) {
                 Activity activityLog = new ActivityBuilder()
-                        .addProjectRef(userFilter.getProjectName())
-                        .addObjectName(userFilter.getName())
+                        .addProjectRef(after.getProjectName())
+                        .addObjectName(after.getName())
                         .addObjectType(USER_FILTER)
                         .addActionType(UPDATE_FILTER)
-                        .addLoggedObjectRef(userFilter.getId())
+                        .addLoggedObjectRef(after.getId())
                         .addUserRef(event.getUpdatedBy())
                         .addHistory(history)
                         .get();

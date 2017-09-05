@@ -22,29 +22,17 @@
 package com.epam.ta.reportportal.events;
 
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
-import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
 
 /**
- * @author pavel_bortnik
+ * @author Pavel Bortnik
  */
-public class FilterUpdatedEvent {
+public class FilterUpdatedEvent extends AroundEvent<UserFilter> {
 
-    private final UserFilter userFilter;
-    private final UpdateUserFilterRQ updateUserFilterRQ;
     private final String updatedBy;
 
-    public FilterUpdatedEvent(UserFilter userFilter, UpdateUserFilterRQ updateUserFilterRQ, String updatedBy) {
-        this.userFilter = userFilter;
-        this.updateUserFilterRQ = updateUserFilterRQ;
+    public FilterUpdatedEvent(UserFilter before, UserFilter after, String updatedBy) {
+        super(before, after);
         this.updatedBy = updatedBy;
-    }
-
-    public UserFilter getUserFilter() {
-        return userFilter;
-    }
-
-    public UpdateUserFilterRQ getUpdateUserFilterRQ() {
-        return updateUserFilterRQ;
     }
 
     public String getUpdatedBy() {

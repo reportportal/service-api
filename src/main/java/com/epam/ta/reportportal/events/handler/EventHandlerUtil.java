@@ -46,11 +46,18 @@ public class EventHandlerUtil {
                 .withNewValue(newValue);
     }
 
-    static void processShare(List<Activity.FieldValues> history, Shareable shareable, Boolean share) {
-        if (null != share) {
-            Boolean isShared = !shareable.getAcl().getEntries().isEmpty();
-            if (!share.equals(isShared)) {
-                history.add(createHistoryField(SHARE, isShared.toString(), share.toString()));
+    /**
+     * Creates a history field if entity's sharing status was changed
+     *
+     * @param history           List of history fields
+     * @param before            Object before changes
+     * @param isAfterShared     Sharing status
+     */
+    static void processShare(List<Activity.FieldValues> history, Shareable before, Boolean isAfterShared) {
+        if (null != isAfterShared) {
+            Boolean isBeforeShared = !before.getAcl().getEntries().isEmpty();
+            if (!isAfterShared.equals(isBeforeShared)) {
+                history.add(createHistoryField(SHARE, String.valueOf(isBeforeShared), String.valueOf(isAfterShared)));
             }
         }
     }

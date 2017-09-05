@@ -98,7 +98,7 @@ public class CreateWidgetHandlerTest {
 		WidgetRQ widgetRQ = new WidgetRQ();
 		widgetRQ.setName("activityWidget");
 		widgetRQ.setContentParameters(contentParameters);
-		widgetRQ.setApplyingFilter(FILTER_ID);
+		widgetRQ.setFilterId(FILTER_ID);
 
 		final CreateWidgetHandler createWidgetHandler = new CreateWidgetHandler();
 		createWidgetHandler.setWidgetRepository(widgetRepository);
@@ -120,7 +120,7 @@ public class CreateWidgetHandlerTest {
 		WidgetRQ widgetRQ = new WidgetRQ();
 		widgetRQ.setName("activityWidget");
 		widgetRQ.setContentParameters(contentParameters);
-		widgetRQ.setApplyingFilter(FILTER_ID);
+		widgetRQ.setFilterId(FILTER_ID);
 
 		final CreateWidgetHandler createWidgetHandler = new CreateWidgetHandler();
 		createWidgetHandler.setWidgetRepository(widgetRepository);
@@ -141,7 +141,7 @@ public class CreateWidgetHandlerTest {
 		WidgetRQ widgetRQ = new WidgetRQ();
 		widgetRQ.setName("activityWidget");
 		widgetRQ.setContentParameters(contentParameters);
-		widgetRQ.setApplyingFilter(FILTER_ID);
+		widgetRQ.setFilterId(FILTER_ID);
 
 		final CreateWidgetHandler createWidgetHandler = new CreateWidgetHandler();
 		createWidgetHandler.setWidgetRepository(widgetRepository);
@@ -184,7 +184,7 @@ public class CreateWidgetHandlerTest {
 		final UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
 		final UserFilter userFilter = new UserFilter();
 		userFilter.setFilter(new Filter(Launch.class, Condition.EQUALS, false, "name", Launch.NAME));
-		when(userFilterRepository.findOneLoadACL(DEFAULT_USER, widgetRQ.getApplyingFilter(), DEFAULT_PROJECT)).thenReturn(userFilter);
+		when(userFilterRepository.findOneLoadACL(DEFAULT_USER, widgetRQ.getFilterId(), DEFAULT_PROJECT)).thenReturn(userFilter);
 
 		final CriteriaMapFactory criteriaMapFactory = mock(CriteriaMapFactory.class);
 		when(criteriaMapFactory.getCriteriaMap(Activity.class)).thenReturn(new CriteriaMap<>(Activity.class));
@@ -212,7 +212,7 @@ public class CreateWidgetHandlerTest {
 		final UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
 		final UserFilter userFilter = new UserFilter();
 		userFilter.setFilter(new Filter(Launch.class, Condition.EQUALS, false, "name", Launch.NAME));
-		when(userFilterRepository.findOneLoadACL(DEFAULT_USER, widgetRQ.getApplyingFilter(), DEFAULT_PROJECT)).thenReturn(userFilter);
+		when(userFilterRepository.findOneLoadACL(DEFAULT_USER, widgetRQ.getFilterId(), DEFAULT_PROJECT)).thenReturn(userFilter);
 
 		final CriteriaMapFactory criteriaMapFactory = mock(CriteriaMapFactory.class);
 		when(criteriaMapFactory.getCriteriaMap(Activity.class)).thenReturn(new CriteriaMap<>(Activity.class));
@@ -241,7 +241,7 @@ public class CreateWidgetHandlerTest {
 		final UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
 		final UserFilter userFilter = new UserFilter();
 		userFilter.setFilter(new Filter(Launch.class, Condition.EQUALS, false, "name", Launch.NAME));
-		when(userFilterRepository.findOneLoadACL(DEFAULT_USER, widgetRQ.getApplyingFilter(), DEFAULT_PROJECT)).thenReturn(userFilter);
+		when(userFilterRepository.findOneLoadACL(DEFAULT_USER, widgetRQ.getFilterId(), DEFAULT_PROJECT)).thenReturn(userFilter);
 
 		final CriteriaMapFactory criteriaMapFactory = mock(CriteriaMapFactory.class);
 		when(criteriaMapFactory.getCriteriaMap(Activity.class)).thenReturn(new CriteriaMap<>(Activity.class));
@@ -270,7 +270,7 @@ public class CreateWidgetHandlerTest {
 		final UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
 		final UserFilter userFilter = new UserFilter();
 		userFilter.setFilter(new Filter(Launch.class, Condition.EQUALS, false, "name", Launch.NAME));
-		when(userFilterRepository.findOneLoadACL(DEFAULT_USER, widgetRQ.getApplyingFilter(), DEFAULT_PROJECT)).thenReturn(userFilter);
+		when(userFilterRepository.findOneLoadACL(DEFAULT_USER, widgetRQ.getFilterId(), DEFAULT_PROJECT)).thenReturn(userFilter);
 
 		final CriteriaMapFactory criteriaMapFactory = mock(CriteriaMapFactory.class);
 		when(criteriaMapFactory.getCriteriaMap(Activity.class)).thenReturn(new CriteriaMap<>(Activity.class));

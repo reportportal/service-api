@@ -29,6 +29,8 @@ import com.epam.ta.reportportal.ws.controller.IWidgetController;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
+import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import com.epam.ta.reportportal.ws.resolver.ActiveRole;
@@ -98,6 +100,16 @@ public class WidgetController implements IWidgetController {
 	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable String widgetId, Principal principal) {
 		return getHandler.getWidget(widgetId, principal.getName(), normalizeId(projectName));
 	}
+
+	@Override
+    @RequestMapping(value = "/preview", method = RequestMethod.PUT)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    @ApiOperation("Get widget preview")
+    public Map<String, List<ChartObject>> getWidgetPreview(@PathVariable String projectName,
+            @RequestBody @Validated WidgetPreviewRQ previewRQ, Principal principal) {
+        return getHandler.getWidgetPreview(normalizeId(projectName),  principal.getName(), previewRQ);
+    }
 
 	@Override
 	@RequestMapping(value = "/{widgetId}", method = RequestMethod.PUT)

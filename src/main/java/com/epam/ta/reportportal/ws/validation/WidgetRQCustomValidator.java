@@ -17,10 +17,13 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.validation;
 
+import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
+import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.validation.Errors;
@@ -28,21 +31,23 @@ import org.springframework.validation.SmartValidator;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
-import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import java.util.List;
 
 /**
- * Custom validator for validating {@link WidgetRQ} object<br>
- * This validator should be used for validating {@link WidgetRQ} objects<br>
+ * Custom validator for validating {@link WidgetRQ}, {@link WidgetPreviewRQ} objects<br>
+ * This validator should be used for validating {@link WidgetRQ}, {@link WidgetPreviewRQ} objects<br>
  * before post operation in the {@link com.epam.ta.reportportal.ws.controller.IWidgetController}
- * 
+ *
  * @author Aliaksei_Makayed
- * 
+ *
  */
 public class WidgetRQCustomValidator implements SmartValidator {
 
 	public static final String NOT_NULL = "NotNull";
 	public static final String NAME = "name";
 	public static final String CONTENT_PARAMETERS = "contentParameters";
+    private static final List<Class<?>> SUPPORTED_CLASSES = ImmutableList.<Class<?>>builder()
+            .add(WidgetRQ.class, WidgetPreviewRQ.class).build();
 
 	@Autowired
 	@Qualifier("validator")
@@ -50,7 +55,7 @@ public class WidgetRQCustomValidator implements SmartValidator {
 
 	@Override
 	public boolean supports(Class<?> arg0) {
-		return WidgetRQ.class.equals(arg0);
+	    return SUPPORTED_CLASSES.contains(arg0);
 	}
 
 	@Override

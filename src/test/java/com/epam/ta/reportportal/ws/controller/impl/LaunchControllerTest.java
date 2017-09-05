@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
+import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -158,7 +158,7 @@ public class LaunchControllerTest extends BaseMvcTest {
 
 	@Test
 	public void mergeLaunchesPositive() throws Exception {
-		DeepMergeLaunchesRQ rq = new DeepMergeLaunchesRQ();
+		MergeLaunchesRQ rq = new MergeLaunchesRQ();
 		HashSet<String> set = new HashSet<>();
 		set.add("88624678053de743b3e5aa3e");
 		set.add("89224678053de743b3e5aa3e");

@@ -39,8 +39,8 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.*;
-import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
@@ -204,7 +204,7 @@ public interface ILaunchController {
 	 * @param principal
 	 * @return
 	 */
-	LaunchResource mergeLaunches(String projectName, DeepMergeLaunchesRQ mergeLaunchesRQ, Principal principal);
+	LaunchResource mergeLaunches(String projectName, MergeLaunchesRQ mergeLaunchesRQ, Principal principal);
 
 	/**
 	 * Start auto-analyzer for specified launch

@@ -20,7 +20,7 @@
  */
 package com.epam.ta.reportportal.core.imprt.impl;
 
-import org.springframework.web.multipart.MultipartFile;
+import java.io.File;
 
 /**
  * Handler for processing launch importing.
@@ -36,5 +36,5 @@ public interface ImportStrategy {
      * @param file      zip file that contains xml test reports
      * @return launch id
      */
-    String importLaunch(String projectId, String userName, MultipartFile file);
+    String importLaunch(String projectId, String userName, File file);
 }

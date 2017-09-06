@@ -8,7 +8,7 @@ ENV JAVA_OPTS="-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -Dja
 ENV JAVA_APP=/app.jar
 
 RUN apt-get update && \
-    apt-get install -y fonts-noto && \
+    apt-get install -y fonts-noto net-tools && \
     rm -rf /var/lib/apt/lists/*
 
 RUN sh -c "echo '#!/bin/sh \n\

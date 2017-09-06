@@ -36,8 +36,8 @@ import com.epam.ta.reportportal.database.fixture.SpringFixture;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
-import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -52,8 +52,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.database.entity.statistics.IssueCounter.GROUP_TOTAL;
 
@@ -143,7 +143,7 @@ public class MergeLaunchHandlerTest extends BaseTest {
         thrown.expectMessage("Merge Strategy type UNSUPPORTED is unsupported");
 
         ImmutableList<String> ids = ImmutableList.<String>builder().add(MERGE_LAUNCH_2).add(MERGE_LAUNCH_1).build();
-        DeepMergeLaunchesRQ deepMergeRequest = getDeepMergeRequest(ids);
+        MergeLaunchesRQ deepMergeRequest = getDeepMergeRequest(ids);
         deepMergeRequest.setMergeStrategyType("UNSUPPORTED");
         mergeLaunchHandler.mergeLaunches(PROJECT1, USER1, deepMergeRequest);
     }
@@ -195,9 +195,9 @@ public class MergeLaunchHandlerTest extends BaseTest {
         Assert.assertEquals(testItemRepository.findAllDescendants(item.getId()).size(), 3);
     }
 
-    private DeepMergeLaunchesRQ getMergeRequest(List<String> launches) {
-        DeepMergeLaunchesRQ mergeLaunchesRQ = new DeepMergeLaunchesRQ();
-        mergeLaunchesRQ.setLaunches(launches.stream().collect(Collectors.toSet()));
+    private MergeLaunchesRQ getMergeRequest(List<String> launches) {
+        MergeLaunchesRQ mergeLaunchesRQ = new MergeLaunchesRQ();
+        mergeLaunchesRQ.setLaunches(new HashSet<>(launches));
         mergeLaunchesRQ.setStartTime(new Date(0));
         mergeLaunchesRQ.setEndTime(new Date(1000));
         mergeLaunchesRQ.setMode(Mode.DEFAULT);
@@ -208,9 +208,9 @@ public class MergeLaunchHandlerTest extends BaseTest {
         return mergeLaunchesRQ;
     }
 
-    private DeepMergeLaunchesRQ getDeepMergeRequest(List<String> launches){
-        DeepMergeLaunchesRQ deepMergeLaunchesRQ = new DeepMergeLaunchesRQ();
-        deepMergeLaunchesRQ.setLaunches(launches.stream().collect(Collectors.toSet()));
+    private MergeLaunchesRQ getDeepMergeRequest(List<String> launches){
+        MergeLaunchesRQ deepMergeLaunchesRQ = new MergeLaunchesRQ();
+        deepMergeLaunchesRQ.setLaunches(new HashSet<>(launches));
         deepMergeLaunchesRQ.setStartTime(new Date(0));
         deepMergeLaunchesRQ.setEndTime(new Date(1000));
         deepMergeLaunchesRQ.setMode(Mode.DEFAULT);

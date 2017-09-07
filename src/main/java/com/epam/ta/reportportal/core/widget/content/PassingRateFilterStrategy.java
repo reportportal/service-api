@@ -48,11 +48,10 @@ import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContent
 @Service
 public class PassingRateFilterStrategy implements BuildFilterStrategy {
 
+    private static final String LAUNCH_NAME_FIELD = "launchNameFilter";
+
     @Autowired
     private LaunchRepository launchRepository;
-
-
-    private static final String LAUNCH_NAME_FIELD = "launchNameFilter";
 
     @Override
     public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
@@ -73,7 +72,7 @@ public class PassingRateFilterStrategy implements BuildFilterStrategy {
         chartObject.setValues(ImmutableMap.<String, String>builder()
                 .put(TOTAL_FIELD, String.valueOf(lastLaunch.getStatistics().getExecutionCounter().getTotal()))
                 .put(PASSED_FIELD, String.valueOf(lastLaunch.getStatistics().getExecutionCounter().getPassed()))
-        .build());
+                .build());
         return chartObject;
     }
 

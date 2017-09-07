@@ -46,5 +46,13 @@ public interface BuildFilterStrategy {
 	 */
 	Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName);
 
-	Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName);
+    /**
+     * Load widget content of latest launches with predefined filter.
+     *
+     * @param userFilter
+     * @param contentOptions
+     * @param projectName
+     * @return
+     */
+    Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName);
 }

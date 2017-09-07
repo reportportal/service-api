@@ -66,6 +66,7 @@ public class WidgetConfig implements ApplicationContextAware {
         mapping.put(GadgetTypes.LAUNCHES_DURATION_CHART, applicationContext.getBean(LaunchesDurationContentLoader.class));
         mapping.put(GadgetTypes.LAUNCHES_TABLE, applicationContext.getBean(LaunchesTableContentLoader.class));
         mapping.put(GadgetTypes.PASSING_RATE_SUMMARY, applicationContext.getBean(OverallStatisticsContentLoader.class));
+        mapping.put(GadgetTypes.CUMULATIVE, applicationContext.getBean(CumulativeContentLoader.class));
         return mapping;
     }
 
@@ -88,6 +89,7 @@ public class WidgetConfig implements ApplicationContextAware {
         mapping.put(GadgetTypes.PASSING_RATE_SUMMARY, applicationContext.getBean(GeneralFilterStrategy.class));
         mapping.put(GadgetTypes.MOST_FAILED_TEST_CASES, applicationContext.getBean(MostFailedTestCasesFilterStrategy.class));
         mapping.put(GadgetTypes.PASSING_RATE_PER_LAUNCH, applicationContext.getBean(PassingRateFilterStrategy.class));
+        mapping.put(GadgetTypes.CUMULATIVE, applicationContext.getBean(GeneralFilterStrategy.class));
         return mapping;
     }
 

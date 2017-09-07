@@ -58,9 +58,10 @@ public class CumulativeContentLoaderTest extends BaseTest {
 	public void testNullOrWithoutTagPrefix() {
 		Filter filter = Filter.builder().withTarget(Launch.class)
 				.withCondition(new FilterCondition(Condition.CONTAINS, false, "name", "name")).build();
-		Map<String, List<ChartObject>> content = contentLoader.loadContent("project2", filter, null, 10, emptyList(), emptyList(), null);
+		Map<String, List<ChartObject>> content = contentLoader
+				.loadContent("project", filter, null, 10, emptyList(), emptyList(), emptyMap());
 		assertEquals(emptyMap(), content);
-		content = contentLoader.loadContent("project", filter, null, 10, emptyList(), emptyList(), emptyMap());
+		content = contentLoader.loadContent("project", filter, null, 10, emptyList(), emptyList(), singletonMap("prefix", emptyList()));
 		assertEquals(emptyMap(), content);
 	}
 
@@ -85,7 +86,7 @@ public class CumulativeContentLoaderTest extends BaseTest {
 		Assert.assertEquals("3", jobTwo.getValues().get("passed"));
 		Assert.assertEquals("0", jobTwo.getValues().get("skipped"));
 
-		Assert.assertEquals("Sorting is not correct", "job:1", jobTwo.getId());
+		Assert.assertEquals("Sorting is not correct", "job:1", jobOne.getId());
 		Assert.assertEquals("5", jobOne.getValues().get("failed"));
 		Assert.assertEquals("3", jobOne.getValues().get("passed"));
 		Assert.assertEquals("0", jobOne.getValues().get("skipped"));

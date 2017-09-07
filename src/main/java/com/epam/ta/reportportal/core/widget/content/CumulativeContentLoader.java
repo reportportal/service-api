@@ -57,7 +57,7 @@ public class CumulativeContentLoader implements IContentLoadingStrategy {
 	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity,
 			List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> options) {
 		Map<String, List<ChartObject>> emptyResult = Collections.emptyMap();
-		if (options == null || options.get(TAG_PREFIX).get(0) == null) {
+		if (options == null || !options.containsKey(TAG_PREFIX) || options.get(TAG_PREFIX).isEmpty()) {
 			return emptyResult;
 		}
 

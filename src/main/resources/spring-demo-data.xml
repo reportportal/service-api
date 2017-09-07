@@ -201,7 +201,7 @@
 		<property name="userRef" value="user1" />
 		<property name="tags">
 			<set>
-				<value>"job:2"</value>
+				<value>job:2</value>
 			</set>
 		</property>
 		<property name="statistics">
@@ -235,7 +235,7 @@
 		<property name="userRef" value="user1" />
 		<property name="tags">
 			<set>
-				<value>"job:2"</value>
+				<value>job:2</value>
 			</set>
 		</property>
 		<property name="statistics">
@@ -268,7 +268,7 @@
 		<property name="userRef" value="user1" />
 		<property name="tags">
 			<set>
-				<value>"job:1"</value>
+				<value>job:1</value>
 			</set>
 		</property>
 		<property name="statistics">
@@ -302,7 +302,7 @@
 		<property name="userRef" value="user1" />
 		<property name="tags">
 			<set>
-				<value>"job:1"</value>
+				<value>job:1</value>
 			</set>
 		</property>
 		<property name="number" value="2" />

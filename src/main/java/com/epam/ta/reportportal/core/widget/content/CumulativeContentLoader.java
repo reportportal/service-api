@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.core.widget.content;
 import com.epam.ta.reportportal.database.StatisticsDocumentHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader.RESULT;
 
 /**
@@ -57,9 +61,8 @@ public class CumulativeContentLoader implements IContentLoadingStrategy {
 	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity,
 			List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> options) {
 		Map<String, List<ChartObject>> emptyResult = Collections.emptyMap();
-		if (options == null || !options.containsKey(TAG_PREFIX) || options.get(TAG_PREFIX).isEmpty()) {
-			return emptyResult;
-		}
+		expect(options.get(TAG_PREFIX), notNull()).verify(ErrorType.BAD_REQUEST_ERROR, "widgetOptions");
+		expect(options.get(TAG_PREFIX).isEmpty(), equalTo(false)).verify(ErrorType.BAD_REQUEST_ERROR, TAG_PREFIX);
 
 		List<String> fields = contentFields.stream().map(it -> it.substring(it.lastIndexOf(".") + 1)).collect(Collectors.toList());
 		StatisticsDocumentHandler handler = new StatisticsDocumentHandler(fields, metaDataFields);

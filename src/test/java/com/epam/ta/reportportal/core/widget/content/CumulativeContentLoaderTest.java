@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -39,7 +40,6 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.*;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Pavel Bortnik
@@ -54,15 +54,22 @@ public class CumulativeContentLoaderTest extends BaseTest {
 	@Autowired
 	public SpringFixtureRule dfRule;
 
-	@Test
+	@Test(expected = ReportPortalException.class)
 	public void testNullOrWithoutTagPrefix() {
 		Filter filter = Filter.builder().withTarget(Launch.class)
 				.withCondition(new FilterCondition(Condition.CONTAINS, false, "name", "name")).build();
 		Map<String, List<ChartObject>> content = contentLoader
 				.loadContent("project", filter, null, 10, emptyList(), emptyList(), emptyMap());
-		assertEquals(emptyMap(), content);
-		content = contentLoader.loadContent("project", filter, null, 10, emptyList(), emptyList(), singletonMap("prefix", emptyList()));
-		assertEquals(emptyMap(), content);
+		Assert.fail("Error in handled Request. Please, check specified parameters: 'widgetOptions'");
+	}
+
+	@Test(expected = ReportPortalException.class)
+	public void testWithoutTagPrefix() {
+		Filter filter = Filter.builder().withTarget(Launch.class)
+				.withCondition(new FilterCondition(Condition.CONTAINS, false, "name", "name")).build();
+		Map<String, List<ChartObject>> content = contentLoader
+				.loadContent("project", filter, null, 10, emptyList(), emptyList(), singletonMap("prefix", emptyList()));
+		Assert.fail("Error in handled Request. Please, check specified parameters: 'prefix'");
 	}
 
 	@Test

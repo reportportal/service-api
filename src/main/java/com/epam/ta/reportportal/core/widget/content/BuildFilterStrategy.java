@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
 
@@ -30,7 +30,7 @@ import java.util.Map;
 
 /**
  * Strategy definition interface for building widget specific filters
- * 
+ *
  * @author Dzmitry_Kavalets
  */
 public interface BuildFilterStrategy {
@@ -38,7 +38,7 @@ public interface BuildFilterStrategy {
 	/**
 	 * Get widget content with predefined filter in accordance with used
 	 * strategy
-	 * 
+	 *
 	 * @param userFilter
 	 * @param contentOptions
 	 * @param projectName
@@ -46,13 +46,13 @@ public interface BuildFilterStrategy {
 	 */
 	Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName);
 
-    /**
-     * Load widget content of latest launches with predefined filter.
-     *
-     * @param userFilter
-     * @param contentOptions
-     * @param projectName
-     * @return
-     */
-    Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName);
+	/**
+	 * Load widget content of latest launches with predefined filter.
+	 *
+	 * @param userFilter
+	 * @param contentOptions
+	 * @param projectName
+	 * @return
+	 */
+	Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName);
 }

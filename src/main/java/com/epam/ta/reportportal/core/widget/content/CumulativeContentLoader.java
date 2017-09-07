@@ -38,36 +38,39 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader.RESULT;
 
 /**
+ * Content loader for cumulative trend chart widget. Content is based
+ * on specified filter and tag prefix in widget options. They are presented
+ * as sum by specified fields and tag with number.
+ *
  * @author Pavel Bortnik
  */
 
 @Service
 public class CumulativeContentLoader implements IContentLoadingStrategy {
 
-    private static final String TAG_PREFIX = "prefix";
+	private static final String TAG_PREFIX = "prefix";
 
-    @Autowired
-    private LaunchRepository launchRepository;
+	@Autowired
+	private LaunchRepository launchRepository;
 
-    @Override
-    public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity,
-                                                      List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> options) {
-        Map<String, List<ChartObject>> emptyResult = Collections.emptyMap();
-        if (options == null || options.get(TAG_PREFIX).get(0) == null) {
-            return emptyResult;
-        }
+	@Override
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity,
+			List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> options) {
+		Map<String, List<ChartObject>> emptyResult = Collections.emptyMap();
+		if (options == null || options.get(TAG_PREFIX).get(0) == null) {
+			return emptyResult;
+		}
 
-        List<String> fields = contentFields.stream().map(it -> it.substring(it.lastIndexOf(".") + 1)).collect(Collectors.toList());
-        StatisticsDocumentHandler handler = new StatisticsDocumentHandler(fields, metaDataFields);
+		List<String> fields = contentFields.stream().map(it -> it.substring(it.lastIndexOf(".") + 1)).collect(Collectors.toList());
+		StatisticsDocumentHandler handler = new StatisticsDocumentHandler(fields, metaDataFields);
 
-        launchRepository.cumulativeStatisticsGroupedByTag(filter, contentFields,
-                quantity, options.get(TAG_PREFIX).get(0), handler);
+		launchRepository.cumulativeStatisticsGroupedByTag(filter, contentFields, quantity, options.get(TAG_PREFIX).get(0), handler);
 
-        List<ChartObject> result = handler.getResult();
-        if (null == result) {
-            return emptyResult;
-        }
+		List<ChartObject> result = handler.getResult();
+		if (null == result) {
+			return emptyResult;
+		}
 
-        return ImmutableMap.<String, List<ChartObject>>builder().put(RESULT, result).build();
-    }
+		return ImmutableMap.<String, List<ChartObject>>builder().put(RESULT, result).build();
+	}
 }

@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
 
@@ -47,10 +47,9 @@ public enum GadgetTypes {
 	LAUNCHES_TABLE("launches_table"),
 	MOST_FAILED_TEST_CASES("most_failed_test_cases"),
 	PASSING_RATE_SUMMARY("passing_rate_summary"),
-    PASSING_RATE_PER_LAUNCH("passing_rate_per_launch"),
-    PRODUCT_STATUS("product_status"),
-    CUMULATIVE("cumulative");
-
+	PASSING_RATE_PER_LAUNCH("passing_rate_per_launch"),
+	PRODUCT_STATUS("product_status"),
+	CUMULATIVE("cumulative");
 
 	private final String type;
 
@@ -67,7 +66,6 @@ public enum GadgetTypes {
 	}
 
 	public static Optional<GadgetTypes> findByName(@Nullable String name) {
-		return Arrays.stream(GadgetTypes.values()).filter(gadgetTypes -> gadgetTypes.getType()
-				.equalsIgnoreCase(name)).findAny();
+		return Arrays.stream(GadgetTypes.values()).filter(gadgetTypes -> gadgetTypes.getType().equalsIgnoreCase(name)).findAny();
 	}
 }

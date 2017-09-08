@@ -109,8 +109,8 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 	private Widget updateWidget(Widget widget, WidgetRQ updateRQ, String userName,
 			String projectName) {
 		UserFilter newFilter = null;
-		if (null != updateRQ.getApplyingFilter()) {
-			String filterId = updateRQ.getApplyingFilter();
+		if (null != updateRQ.getFilterId()) {
+			String filterId = updateRQ.getFilterId();
 			newFilter = filterRepository.findOneLoadACL(userName, filterId, projectName);
 
 			// skip filter validation for Activity and Most Failed Test Cases
@@ -118,7 +118,7 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 			if (!(null != updateRQ.getContentParameters() && findByName(updateRQ.getContentParameters().getGadget()).isPresent()
 					&& (findByName(updateRQ.getContentParameters().getGadget()).get() == ACTIVITY)
 					&& (findByName(updateRQ.getContentParameters().getGadget()).get() == MOST_FAILED_TEST_CASES))) {
-				expect(newFilter, notNull()).verify(USER_FILTER_NOT_FOUND, updateRQ.getApplyingFilter(), userName);
+				expect(newFilter, notNull()).verify(USER_FILTER_NOT_FOUND, updateRQ.getFilterId(), userName);
 				expect(newFilter.isLink(), equalTo(false)).verify(UNABLE_TO_CREATE_WIDGET, "Widget cannot be based on a link");
 			}
 		}

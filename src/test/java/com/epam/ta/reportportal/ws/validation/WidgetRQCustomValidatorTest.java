@@ -21,12 +21,9 @@
 
 package com.epam.ta.reportportal.ws.validation;
 
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
+import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -35,9 +32,11 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ObjectError;
 
-import com.epam.ta.BaseTest;
-import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
-import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 
 public class WidgetRQCustomValidatorTest extends BaseTest {
 
@@ -47,7 +46,7 @@ public class WidgetRQCustomValidatorTest extends BaseTest {
 	@Test
 	public void testInnerFilelds() {
 		WidgetRQ widgetRQ = new WidgetRQ();
-		widgetRQ.setApplyingFilter("1234");
+		widgetRQ.setFilterId("1234");
 		widgetRQ.setContentParameters(new ContentParameters());
 		widgetRQ.setName("name");
 		Errors errors = new BeanPropertyBindingResult(widgetRQ, "widgetRQ");
@@ -72,7 +71,7 @@ public class WidgetRQCustomValidatorTest extends BaseTest {
 	@Test
 	public void positiveTest() {
 		WidgetRQ widgetRQ = new WidgetRQ();
-		widgetRQ.setApplyingFilter("1234");
+		widgetRQ.setFilterId("1234");
 		widgetRQ.setName("name");
 		ContentParameters contententParameters = new ContentParameters();
 		contententParameters.setType("line_chart");
@@ -92,7 +91,7 @@ public class WidgetRQCustomValidatorTest extends BaseTest {
 	@Test
 	public void testIncorrectType() {
 		WidgetRQ widgetRQ = new WidgetRQ();
-		widgetRQ.setApplyingFilter("12344");
+		widgetRQ.setFilterId("12344");
 		widgetRQ.setName("name1");
 		ContentParameters contententParameters = new ContentParameters();
 		contententParameters.setType("line_chartline_chart");

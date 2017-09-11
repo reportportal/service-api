@@ -45,8 +45,8 @@ import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.controller.ILaunchController;
 import com.epam.ta.reportportal.ws.model.*;
-import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
@@ -284,10 +284,8 @@ public class LaunchController implements ILaunchController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Merge set of specified launches in common one")
-	public LaunchResource mergeLaunches(
-			@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,
-			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated DeepMergeLaunchesRQ mergeLaunchesRQ,
-			Principal principal) {
+	public LaunchResource mergeLaunches(@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,
+			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ, Principal principal) {
 		return mergeLaunchesHandler.mergeLaunches(normalizeId(projectName), principal.getName(), mergeLaunchesRQ);
 	}
 

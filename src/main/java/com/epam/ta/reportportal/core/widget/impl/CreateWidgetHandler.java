@@ -129,16 +129,16 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 	private Widget create(WidgetRQ createWidgetRQ, String projectName, String userName) {
 		// load only type here it will be reused later for converting
 		// content and metadata fields to db style
-		UserFilter filter = filterRepository.findOneLoadACL(userName, createWidgetRQ.getApplyingFilter(), projectName);
+		UserFilter filter = filterRepository.findOneLoadACL(userName, createWidgetRQ.getFilterId(), projectName);
         GadgetTypes gadget = findByName(createWidgetRQ.getContentParameters().getGadget()).get();
 
         if (gadget != ACTIVITY && gadget != MOST_FAILED_TEST_CASES && gadget != PASSING_RATE_PER_LAUNCH) {
-            checkApplyingFilter(filter, createWidgetRQ.getApplyingFilter(), userName);
+            checkApplyingFilter(filter, createWidgetRQ.getFilterId(), userName);
         }
         clearContentParameters(createWidgetRQ.getContentParameters(), filter);
 		validateContentParameters(createWidgetRQ.getContentParameters(), filter, gadget);
 
-		Widget widget = widgetBuilder.get().addWidgetRQ(createWidgetRQ).addFilter(createWidgetRQ.getApplyingFilter())
+		Widget widget = widgetBuilder.get().addWidgetRQ(createWidgetRQ).addFilter(createWidgetRQ.getFilterId())
 				.addProject(projectName)
 				.addSharing(userName, projectName, createWidgetRQ.getDescription(), createWidgetRQ.getShare() == null ? false : createWidgetRQ.getShare()).build();
 

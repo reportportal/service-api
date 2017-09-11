@@ -58,12 +58,12 @@ public class WidgetConverterTest {
         WidgetResource expectedValue = new WidgetResource();
         expectedValue.setContentParameters(new ContentParameters());
         expectedValue.setName(BuilderTestsConstants.NAME);
-        expectedValue.setApplyingFilterID("1234");
+        expectedValue.setFilterId("1234");
         validate(expectedValue, actualValue);
     }
 
     private void validate(WidgetResource expectedValue, WidgetResource actualValue) {
-        Assert.assertEquals(expectedValue.getApplyingFilterID(), actualValue.getApplyingFilterID());
+        Assert.assertEquals(expectedValue.getFilterId(), actualValue.getFilterId());
         Assert.assertEquals(expectedValue.getName(), actualValue.getName());
         Assert.assertEquals(expectedValue.getWidgetId(), actualValue.getWidgetId());
         Assert.assertEquals(expectedValue.getContentParameters(), actualValue.getContentParameters());

@@ -34,8 +34,10 @@ import com.epam.ta.reportportal.database.entity.sharing.Shareable;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.converter.WidgetResourceAssembler;
+import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -47,6 +49,8 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.core.widget.impl.WidgetUtils.validateGadgetType;
+import static com.epam.ta.reportportal.core.widget.impl.WidgetUtils.validateWidgetDataType;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -138,7 +142,23 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 		return widgetRepository.findByProjectAndUser(projectName, userName).stream().map(Widget::getName).collect(Collectors.toList());
 	}
 
-	/**
+    @Override
+    public Map<String, List<ChartObject>> getWidgetPreview(String projectName, String userName, WidgetPreviewRQ previewRQ) {
+        validateWidgetDataType(previewRQ.getContentParameters().getType(), BAD_REQUEST_ERROR);
+        validateGadgetType(previewRQ.getContentParameters().getGadget(), BAD_REQUEST_ERROR);
+
+        Optional<UserFilter> userFilter = findUserFilter(previewRQ.getFilterId());
+        final GadgetTypes gadgetType = GadgetTypes.findByName(previewRQ.getContentParameters().getGadget()).get();
+        if (!isRequireUserFilter(gadgetType, userFilter) || isFilterUnShared(userName, projectName, userFilter)) {
+            return Collections.emptyMap();
+        } else {
+            ContentOptions contentOptions = new WidgetBuilder()
+                    .addContentParameters(previewRQ.getContentParameters()).build().getContentOptions();
+            return loadContentByFilterType(userFilter, projectName, contentOptions);
+        }
+    }
+
+    /**
 	 * Transform list of widgets to map of Shared entities result map:<br>
 	 * <li>key - widget id
 	 * <li>value - {@link SharedEntity}

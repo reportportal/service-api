@@ -38,8 +38,11 @@ package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.auth.UserRoleHierarchy;
 import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
+import com.epam.ta.reportportal.auth.permissions.ProjectAuthority;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.AuthoritiesExtractor;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.FixedAuthoritiesExtractor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDecisionManager;
@@ -53,6 +56,7 @@ import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
@@ -60,7 +64,9 @@ import org.springframework.security.web.access.expression.DefaultWebSecurityExpr
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 
 import java.util.List;
-
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Spring's Security Configuration
@@ -110,6 +116,23 @@ class SecurityConfiguration {
         @Bean
         public static RoleHierarchy userRoleHierarchy() {
             return new UserRoleHierarchy();
+        }
+
+        @Bean
+        public static AuthoritiesExtractor rpAuthoritiesExtractor(){
+            return new FixedAuthoritiesExtractor() {
+                @Override
+                public List<GrantedAuthority> extractAuthorities(Map<String, Object> map) {
+                    List<GrantedAuthority> userRoles = super.extractAuthorities(map);
+                    Optional.ofNullable(map.get("projects"))
+                            .map(p -> ((Map<String,String>) p).entrySet()
+                                    .stream()
+                                    .map(e -> new ProjectAuthority(e.getKey(), e.getValue())).collect(
+                                    Collectors.toList()))
+                            .ifPresent(userRoles::addAll);
+                    return userRoles;
+                }
+            };
         }
 
         private DefaultWebSecurityExpressionHandler webSecurityExpressionHandler() {

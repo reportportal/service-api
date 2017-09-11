@@ -72,18 +72,16 @@ public class ProjectActivityHandler {
 			processStatisticsStrategy(history, project, configuration);
 		}
 
-		if (!history.isEmpty()) {
-			Activity activityLog = new ActivityBuilder()
-                    .addProjectRef(project.getName())
-                    .addObjectType(PROJECT)
-					.addObjectName(project.getName())
-					.addActionType(UPDATE_PROJECT)
-                    .addUserRef(event.getUpdatedBy())
-                    .addHistory(history)
-                    .get();
-			activityRepository.save(activityLog);
-		}
-	}
+        Activity activityLog = new ActivityBuilder()
+                .addProjectRef(project.getName())
+                .addObjectType(PROJECT)
+                .addObjectName(project.getName())
+                .addActionType(UPDATE_PROJECT)
+                .addUserRef(event.getUpdatedBy())
+                .addHistory(history.isEmpty() ? null : history)
+                .get();
+        activityRepository.save(activityLog);
+    }
 
 	private void processStatisticsStrategy(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
 		if ((null != configuration.getStatisticCalculationStrategy())

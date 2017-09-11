@@ -27,16 +27,16 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.events.ImportFinishedEvent;
 import com.epam.ta.reportportal.events.ImportStartedEvent;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import java.io.File;
+import java.io.IOException;
 
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -59,23 +59,28 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
     @Override
     public OperationCompletionRS importLaunch(String projectId, String userName, String format, MultipartFile file) {
         Project project = projectRepository.findOne(projectId);
-        expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectId);
 
-        String originalFilename = file.getOriginalFilename();
-        expect(originalFilename, it -> it.matches(ZIP_REGEX)).verify(ErrorType.BAD_IMPORT_FILE_TYPE, originalFilename);
+        expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectId);
+        expect(file.getOriginalFilename(), it -> it.matches(ZIP_REGEX))
+                .verify(ErrorType.BAD_IMPORT_FILE_TYPE, file.getOriginalFilename());
 
         ImportType type = ImportType.fromValue(format).orElse(null);
         expect(type, notNull()).verify(ErrorType.BAD_IMPORT_FILE_TYPE, format);
-
         ImportStrategy strategy = factory.getImportLaunch(type);
-        CommonsMultipartFile multipartFile = (CommonsMultipartFile) file;
-        DiskFileItem fileItem = (DiskFileItem) multipartFile.getFileItem();
-        File tempFile = fileItem.getStoreLocation();
-
-        eventPublisher.publishEvent(new ImportStartedEvent(projectId, userName, originalFilename));
-        String launch = strategy.importLaunch(projectId, userName, tempFile, originalFilename);
-        eventPublisher.publishEvent(new ImportFinishedEvent(projectId, userName, originalFilename));
-
+        File tempFile = transferToTempFile(file);
+        eventPublisher.publishEvent(new ImportStartedEvent(projectId, userName, file.getOriginalFilename()));
+        String launch = strategy.importLaunch(projectId, userName, tempFile);
+        eventPublisher.publishEvent(new ImportFinishedEvent(projectId, userName, file.getOriginalFilename()));
         return new OperationCompletionRS("Launch with id = " + launch + " is successfully imported.");
+    }
+
+    private File transferToTempFile(MultipartFile file) {
+        try {
+            File tmp = File.createTempFile(file.getOriginalFilename(), ".zip");
+            file.transferTo(tmp);
+            return tmp;
+        } catch (IOException e) {
+            throw new ReportPortalException("Error during transferring multipart file", e);
+        }
     }
 }

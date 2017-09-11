@@ -70,22 +70,18 @@ public class XunitImportStrategy implements ImportStrategy {
     private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName().matches(XML_REGEX);
 
     @Override
-	public String importLaunch(String projectId, String userName, File file, String originalFilename) {
-		try {
-			return processZipFile(file, projectId, userName, originalFilename);
-		} catch (IOException e) {
-			throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, file.getName(), e);
-		} finally {
-			if (null != file) {
-				file.delete();
-			}
-		}
+    public String importLaunch(String projectId, String userName, File file) {
+        try {
+            return processZipFile(file, projectId, userName);
+        } catch (IOException e) {
+            throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, file.getName(), e);
+        }
     }
 
-	private String processZipFile(File zip, String projectId, String userName, String fileName) throws IOException {
-		try (ZipFile zipFile = new ZipFile(zip)) {
-			String launchId = startLaunch(projectId, userName, fileName);
-			CompletableFuture[] futures = zipFile.stream()
+    private String processZipFile(File zip, String projectId, String userName) throws IOException {
+        try (ZipFile zipFile = new ZipFile(zip)) {
+            String launchId = startLaunch(projectId, userName, zip.getName().substring(0, zip.getName().indexOf(".zip")));
+            CompletableFuture[] futures = zipFile.stream()
                     .filter(isFile.and(isXml))
                     .map(zipEntry -> {
                         try {

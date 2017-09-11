@@ -199,6 +199,11 @@
 		<property name="status" value="FAILED" />
 		<property name="projectRef" value="project2" />
 		<property name="userRef" value="user1" />
+		<property name="tags">
+			<set>
+				<value>job:2</value>
+			</set>
+		</property>
 		<property name="statistics">
 			<bean
 				class="com.epam.ta.reportportal.database.entity.statistics.Statistics">
@@ -228,6 +233,11 @@
 		<property name="status" value="IN_PROGRESS" />
 		<property name="projectRef" value="project2" />
 		<property name="userRef" value="user1" />
+		<property name="tags">
+			<set>
+				<value>job:2</value>
+			</set>
+		</property>
 		<property name="statistics">
 			<bean
 				class="com.epam.ta.reportportal.database.entity.statistics.Statistics">
@@ -256,6 +266,11 @@
 		<property name="status" value="FAILED" />
 		<property name="projectRef" value="project2" />
 		<property name="userRef" value="user1" />
+		<property name="tags">
+			<set>
+				<value>job:1</value>
+			</set>
+		</property>
 		<property name="statistics">
 			<bean
 				class="com.epam.ta.reportportal.database.entity.statistics.Statistics">
@@ -285,6 +300,11 @@
 		<property name="status" value="FAILED" />
 		<property name="projectRef" value="project2" />
 		<property name="userRef" value="user1" />
+		<property name="tags">
+			<set>
+				<value>job:1</value>
+			</set>
+		</property>
 		<property name="number" value="2" />
 		<property name="statistics">
 			<bean

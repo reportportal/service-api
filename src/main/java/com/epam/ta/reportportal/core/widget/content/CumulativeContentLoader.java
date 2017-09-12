@@ -64,8 +64,8 @@ public class CumulativeContentLoader implements IContentLoadingStrategy {
 		expect(options.get(TAG_PREFIX), notNull()).verify(ErrorType.BAD_REQUEST_ERROR, "widgetOptions");
 		expect(options.get(TAG_PREFIX).isEmpty(), equalTo(false)).verify(ErrorType.BAD_REQUEST_ERROR, TAG_PREFIX);
 
-		List<String> fields = contentFields.stream().map(it -> it.substring(it.lastIndexOf(".") + 1)).collect(Collectors.toList());
-		StatisticsDocumentHandler handler = new StatisticsDocumentHandler(fields, metaDataFields);
+        List<String> fields = contentFields.stream().map(it -> it.replace('.', '$')).collect(Collectors.toList());
+        StatisticsDocumentHandler handler = new StatisticsDocumentHandler(fields, metaDataFields);
 
 		launchRepository.cumulativeStatisticsGroupedByTag(filter, contentFields, quantity, options.get(TAG_PREFIX).get(0), handler);
 

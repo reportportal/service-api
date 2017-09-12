@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.core.launch.IStartLaunchHandler;
+import com.epam.ta.reportportal.core.launch.meta.LaunchMetadataUtil;
 import com.epam.ta.reportportal.database.dao.LaunchMetaInfoRepository;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
@@ -104,6 +105,7 @@ class StartLaunchHandler implements IStartLaunchHandler {
 		 */
 		launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
 		launch.setApproximateDuration(calculateApproximateDuration(projectName, startLaunchRQ.getName(), 5));
+		LaunchMetadataUtil.addBuildNumber(launch);
 
 		launchRepository.save(launch);
 

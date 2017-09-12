@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.core.item.merge.strategy.MergeStrategy;
 import com.epam.ta.reportportal.core.item.merge.strategy.MergeStrategyFactory;
 import com.epam.ta.reportportal.core.item.merge.strategy.MergeStrategyType;
 import com.epam.ta.reportportal.core.launch.IMergeLaunchHandler;
+import com.epam.ta.reportportal.core.launch.meta.LaunchMetadataUtil;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
@@ -154,6 +155,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         launch = launchRepository.findOne(launch.getId());
         launch.setStatus(StatisticsHelper.getStatusFromStatistics(launch.getStatistics()));
         launch.setEndTime(rq.getEndTime());
+        LaunchMetadataUtil.addBuildNumber(launch);
 
         launchRepository.save(launch);
         launchRepository.delete(launchesIds);

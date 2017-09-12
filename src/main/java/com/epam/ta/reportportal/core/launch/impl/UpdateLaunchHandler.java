@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.launch.IUpdateLaunchHandler;
+import com.epam.ta.reportportal.core.launch.meta.LaunchMetadataUtil;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -121,6 +122,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 			}
 			if (null != rq.getTags()) {
 				launch.setTags(Sets.newHashSet(EntityUtils.trimStrings(EntityUtils.update(rq.getTags()))));
+				launch = LaunchMetadataUtil.addBuildNumber(launch);
 			}
 			launchRepository.save(launch);
 		}

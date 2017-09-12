@@ -18,28 +18,35 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.epam.ta.reportportal.core.imprt.impl;
 
-import com.epam.ta.reportportal.core.imprt.impl.junit.XunitImportStrategy;
-import com.google.common.collect.ImmutableMap;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+package com.epam.ta.reportportal.events;
 
-import java.util.Map;
+/**
+ * @author Pavel Bortnik
+ */
+public class ImportStartedEvent {
 
-@Service
-public class ImportStrategyFactoryImpl implements ImportStrategyFactory {
+    private String projectId;
 
-    private final Map<ImportType, ImportStrategy> MAPPING;
+    private String userName;
 
-    @Autowired
-    public ImportStrategyFactoryImpl(XunitImportStrategy xunitImportStrategy) {
-        MAPPING = ImmutableMap.<ImportType, ImportStrategy>builder()
-                .put(ImportType.XUNIT, xunitImportStrategy).build();
+    private String fileName;
+
+    public ImportStartedEvent(String projectId, String userName, String fileName) {
+        this.projectId = projectId;
+        this.userName = userName;
+        this.fileName = fileName;
     }
 
-    @Override
-    public ImportStrategy getImportLaunch(ImportType type) {
-        return MAPPING.get(type);
+    public String getProjectId() {
+        return projectId;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public String getFileName() {
+        return fileName;
     }
 }

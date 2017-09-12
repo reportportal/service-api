@@ -142,23 +142,23 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 		return widgetRepository.findByProjectAndUser(projectName, userName).stream().map(Widget::getName).collect(Collectors.toList());
 	}
 
-    @Override
-    public Map<String, List<ChartObject>> getWidgetPreview(String projectName, String userName, WidgetPreviewRQ previewRQ) {
-        validateWidgetDataType(previewRQ.getContentParameters().getType(), BAD_REQUEST_ERROR);
-        validateGadgetType(previewRQ.getContentParameters().getGadget(), BAD_REQUEST_ERROR);
+	@Override
+	public Map<String, List<ChartObject>> getWidgetPreview(String projectName, String userName, WidgetPreviewRQ previewRQ) {
+		validateWidgetDataType(previewRQ.getContentParameters().getType(), BAD_REQUEST_ERROR);
+		validateGadgetType(previewRQ.getContentParameters().getGadget(), BAD_REQUEST_ERROR);
 
-        Optional<UserFilter> userFilter = findUserFilter(previewRQ.getFilterId());
-        final GadgetTypes gadgetType = GadgetTypes.findByName(previewRQ.getContentParameters().getGadget()).get();
-        if (!isRequireUserFilter(gadgetType, userFilter) || isFilterUnShared(userName, projectName, userFilter)) {
-            return Collections.emptyMap();
-        } else {
-            ContentOptions contentOptions = new WidgetBuilder()
-                    .addContentParameters(previewRQ.getContentParameters()).build().getContentOptions();
-            return loadContentByFilterType(userFilter, projectName, contentOptions);
-        }
-    }
+		Optional<UserFilter> userFilter = findUserFilter(previewRQ.getFilterId());
+		final GadgetTypes gadgetType = GadgetTypes.findByName(previewRQ.getContentParameters().getGadget()).get();
+		if (!isRequireUserFilter(gadgetType, userFilter) || isFilterUnShared(userName, projectName, userFilter)) {
+			return Collections.emptyMap();
+		} else {
+			ContentOptions contentOptions = new WidgetBuilder().addContentParameters(previewRQ.getContentParameters()).build()
+					.getContentOptions();
+			return loadContentByFilterType(userFilter, projectName, contentOptions);
+		}
+	}
 
-    /**
+	/**
 	 * Transform list of widgets to map of Shared entities result map:<br>
 	 * <li>key - widget id
 	 * <li>value - {@link SharedEntity}

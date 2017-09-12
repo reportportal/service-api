@@ -102,14 +102,14 @@ public class WidgetController implements IWidgetController {
 	}
 
 	@Override
-    @RequestMapping(value = "/preview", method = RequestMethod.PUT)
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    @ApiOperation("Get widget preview")
-    public Map<String, List<ChartObject>> getWidgetPreview(@PathVariable String projectName,
-            @RequestBody @Validated WidgetPreviewRQ previewRQ, Principal principal) {
-        return getHandler.getWidgetPreview(normalizeId(projectName),  principal.getName(), previewRQ);
-    }
+	@RequestMapping(value = "/preview", method = RequestMethod.POST)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	@ApiOperation("Get widget preview")
+	public Map<String, List<ChartObject>> getWidgetPreview(@PathVariable String projectName,
+			@RequestBody @Validated WidgetPreviewRQ previewRQ, Principal principal) {
+		return getHandler.getWidgetPreview(normalizeId(projectName), principal.getName(), previewRQ);
+	}
 
 	@Override
 	@RequestMapping(value = "/{widgetId}", method = RequestMethod.PUT)

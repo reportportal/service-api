@@ -130,12 +130,12 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 		// load only type here it will be reused later for converting
 		// content and metadata fields to db style
 		UserFilter filter = filterRepository.findOneLoadACL(userName, createWidgetRQ.getFilterId(), projectName);
-        GadgetTypes gadget = findByName(createWidgetRQ.getContentParameters().getGadget()).get();
+		GadgetTypes gadget = findByName(createWidgetRQ.getContentParameters().getGadget()).get();
 
         if (gadget != ACTIVITY && gadget != MOST_FAILED_TEST_CASES && gadget != PASSING_RATE_PER_LAUNCH) {
-            checkApplyingFilter(filter, createWidgetRQ.getFilterId(), userName);
-        }
-        clearContentParameters(createWidgetRQ.getContentParameters(), filter);
+			checkApplyingFilter(filter, createWidgetRQ.getFilterId(), userName);
+		}
+		clearContentParameters(createWidgetRQ.getContentParameters(), filter);
 		validateContentParameters(createWidgetRQ.getContentParameters(), filter, gadget);
 
 		Widget widget = widgetBuilder.get().addWidgetRQ(createWidgetRQ).addFilter(createWidgetRQ.getFilterId())

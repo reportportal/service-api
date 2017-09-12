@@ -77,7 +77,8 @@ public class CumulativeContentLoaderTest extends BaseTest {
 		Filter filter = Filter.builder().withTarget(Launch.class).withCondition(new FilterCondition(Condition.CONTAINS, false, "l", "name"))
 				.build();
 		ImmutableList<String> contentField = ImmutableList.<String>builder().add("statistics.executionCounter.failed")
-				.add("statistics.executionCounter.passed").add("statistics.executionCounter.skipped").build();
+				.add("statistics.executionCounter.passed").add("statistics.executionCounter.skipped")
+				.add("statistics.issueCounter.productBug.total").build();
 		List<String> metadata = emptyList();
 		ImmutableMap<String, List<String>> options = ImmutableMap.<String, List<String>>builder().put("prefix", singletonList("job"))
 				.build();
@@ -89,14 +90,15 @@ public class CumulativeContentLoaderTest extends BaseTest {
 		ChartObject jobOne = result.get(1);
 
 		Assert.assertEquals("Sorting is not correct", "job:2", jobTwo.getId());
-		Assert.assertEquals("1", jobTwo.getValues().get("failed"));
-		Assert.assertEquals("3", jobTwo.getValues().get("passed"));
-		Assert.assertEquals("0", jobTwo.getValues().get("skipped"));
+		Assert.assertEquals("1", jobTwo.getValues().get("statistics$executionCounter$failed"));
+		Assert.assertEquals("3", jobTwo.getValues().get("statistics$executionCounter$passed"));
+		Assert.assertEquals("0", jobTwo.getValues().get("statistics$executionCounter$skipped"));
 
 		Assert.assertEquals("Sorting is not correct", "job:1", jobOne.getId());
-		Assert.assertEquals("5", jobOne.getValues().get("failed"));
-		Assert.assertEquals("3", jobOne.getValues().get("passed"));
-		Assert.assertEquals("0", jobOne.getValues().get("skipped"));
+		Assert.assertEquals("5", jobOne.getValues().get("statistics$executionCounter$failed"));
+		Assert.assertEquals("3", jobOne.getValues().get("statistics$executionCounter$passed"));
+		Assert.assertEquals("0", jobOne.getValues().get("statistics$executionCounter$skipped"));
+		Assert.assertEquals("3", jobOne.getValues().get("statistics$issueCounter$productBug$total"));
 	}
 
 }

@@ -76,13 +76,13 @@ public interface IGetWidgetHandler {
 	 */
 	List<String> getWidgetNames(String projectName, String userName);
 
-    /**
-     * Get content for building preview while creating widget
-     *
-     * @param previewRQ     Widget parameters
-     * @param projectName   Project name
-     * @param userName      Username
-     * @return              Widget content
-     */
-    Map<String,List<ChartObject>> getWidgetPreview(String projectName, String userName, WidgetPreviewRQ previewRQ);
+	/**
+	 * Get content for building preview while creating widget
+	 *
+	 * @param previewRQ   Widget parameters
+	 * @param projectName Project name
+	 * @param userName    Username
+	 * @return Widget content
+	 */
+	Map<String, List<ChartObject>> getWidgetPreview(String projectName, String userName, WidgetPreviewRQ previewRQ);
 }

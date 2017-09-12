@@ -66,14 +66,14 @@ public interface IWidgetController {
 	 */
 	WidgetResource getWidget(String projectName, String widgetId, Principal principal);
 
-    /**
-     * Get content for building preview while creating widget
-     *
-     * @param previewRQ     Widget parameters
-     * @param projectName   Project name
-     * @return              Content
-     */
-    Map<String, List<ChartObject>> getWidgetPreview(String projectName, WidgetPreviewRQ previewRQ, Principal principal);
+	/**
+	 * Get content for building preview while creating widget
+	 *
+	 * @param previewRQ   Widget parameters
+	 * @param projectName Project name
+	 * @return Content
+	 */
+	Map<String, List<ChartObject>> getWidgetPreview(String projectName, WidgetPreviewRQ previewRQ, Principal principal);
 
 	/**
 	 * Update widget with specified id

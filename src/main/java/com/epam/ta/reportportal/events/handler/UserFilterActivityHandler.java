@@ -78,18 +78,16 @@ public class UserFilterActivityHandler {
             processShare(history, before, !after.getAcl().getEntries().isEmpty());
             processName(history, before.getName(), after.getName());
             processDescription(history, before.getDescription(), after.getDescription());
-            if (!history.isEmpty()) {
-                Activity activityLog = new ActivityBuilder()
-                        .addProjectRef(after.getProjectName())
-                        .addObjectName(after.getName())
-                        .addObjectType(USER_FILTER)
-                        .addActionType(UPDATE_FILTER)
-                        .addLoggedObjectRef(after.getId())
-                        .addUserRef(event.getUpdatedBy())
-                        .addHistory(history)
-                        .get();
-                activityRepository.save(activityLog);
-            }
+            Activity activityLog = new ActivityBuilder()
+                    .addProjectRef(after.getProjectName())
+                    .addObjectName(after.getName())
+                    .addObjectType(USER_FILTER)
+                    .addActionType(UPDATE_FILTER)
+                    .addLoggedObjectRef(after.getId())
+                    .addUserRef(event.getUpdatedBy())
+                    .addHistory(!history.isEmpty() ? history : null)
+                    .get();
+            activityRepository.save(activityLog);
         }
     }
 

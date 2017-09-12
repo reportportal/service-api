@@ -46,8 +46,8 @@ public class WidgetRQCustomValidator implements SmartValidator {
 	public static final String NOT_NULL = "NotNull";
 	public static final String NAME = "name";
 	public static final String CONTENT_PARAMETERS = "contentParameters";
-    private static final List<Class<?>> SUPPORTED_CLASSES = ImmutableList.<Class<?>>builder()
-            .add(WidgetRQ.class, WidgetPreviewRQ.class).build();
+	private static final List<Class<?>> SUPPORTED_CLASSES = ImmutableList.<Class<?>>builder().add(WidgetRQ.class, WidgetPreviewRQ.class)
+			.build();
 
 	@Autowired
 	@Qualifier("validator")
@@ -55,7 +55,7 @@ public class WidgetRQCustomValidator implements SmartValidator {
 
 	@Override
 	public boolean supports(Class<?> arg0) {
-	    return SUPPORTED_CLASSES.contains(arg0);
+		return SUPPORTED_CLASSES.contains(arg0);
 	}
 
 	@Override

@@ -76,110 +76,94 @@ import java.util.stream.Collectors;
 @Configuration
 class SecurityConfiguration {
 
-    @Bean
-    public PermissionEvaluatorFactoryBean permissionEvaluator() {
-        return new PermissionEvaluatorFactoryBean();
-    }
+	@Bean
+	public PermissionEvaluatorFactoryBean permissionEvaluator() {
+		return new PermissionEvaluatorFactoryBean();
+	}
 
-    @Configuration
-    @EnableGlobalMethodSecurity(proxyTargetClass = true, prePostEnabled = true)
-    public static class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
+	@Configuration
+	@EnableGlobalMethodSecurity(proxyTargetClass = true, prePostEnabled = true)
+	public static class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
 
-        @Autowired
-        private RoleHierarchy roleHierarchy;
+		@Autowired
+		private RoleHierarchy roleHierarchy;
 
-        @Autowired
-        private PermissionEvaluator permissionEvaluator;
+		@Autowired
+		private PermissionEvaluator permissionEvaluator;
 
-        @Override
-        protected MethodSecurityExpressionHandler createExpressionHandler() {
-            DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
-            handler.setRoleHierarchy(roleHierarchy);
-            handler.setPermissionEvaluator(permissionEvaluator);
-            return handler;
-        }
+		@Override
+		protected MethodSecurityExpressionHandler createExpressionHandler() {
+			DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
+			handler.setRoleHierarchy(roleHierarchy);
+			handler.setPermissionEvaluator(permissionEvaluator);
+			return handler;
+		}
 
-    }
+	}
 
-    @Configuration
-    @EnableResourceServer
-    public static class SecurityServerConfiguration extends ResourceServerConfigurerAdapter {
+	@Configuration
+	@EnableResourceServer
+	public static class SecurityServerConfiguration extends ResourceServerConfigurerAdapter {
 
-        @Autowired
-        private PermissionEvaluator permissionEvaluator;
+		@Autowired
+		private PermissionEvaluator permissionEvaluator;
 
-        @Bean
-        public static PermissionEvaluatorFactoryBean permissionEvaluatorFactoryBean() {
-            return new PermissionEvaluatorFactoryBean();
-        }
+		@Bean
+		public static PermissionEvaluatorFactoryBean permissionEvaluatorFactoryBean() {
+			return new PermissionEvaluatorFactoryBean();
+		}
 
-        @Bean
-        public static RoleHierarchy userRoleHierarchy() {
-            return new UserRoleHierarchy();
-        }
+		@Bean
+		public static RoleHierarchy userRoleHierarchy() {
+			return new UserRoleHierarchy();
+		}
 
-        @Bean
-        public static AuthoritiesExtractor rpAuthoritiesExtractor(){
-            return new FixedAuthoritiesExtractor() {
-                @Override
-                public List<GrantedAuthority> extractAuthorities(Map<String, Object> map) {
-                    List<GrantedAuthority> userRoles = super.extractAuthorities(map);
-                    Optional.ofNullable(map.get("projects"))
-                            .map(p -> ((Map<String,String>) p).entrySet()
-                                    .stream()
-                                    .map(e -> new ProjectAuthority(e.getKey(), e.getValue())).collect(
-                                    Collectors.toList()))
-                            .ifPresent(userRoles::addAll);
-                    return userRoles;
-                }
-            };
-        }
+		@Bean
+		public static AuthoritiesExtractor rpAuthoritiesExtractor() {
+			return new ReportPortalAuthorityExtractor();
+		}
 
-        private DefaultWebSecurityExpressionHandler webSecurityExpressionHandler() {
-            OAuth2WebSecurityExpressionHandler handler = new OAuth2WebSecurityExpressionHandler();
-            handler.setRoleHierarchy(userRoleHierarchy());
-            handler.setPermissionEvaluator(permissionEvaluator);
-            return handler;
-        }
+		private DefaultWebSecurityExpressionHandler webSecurityExpressionHandler() {
+			OAuth2WebSecurityExpressionHandler handler = new OAuth2WebSecurityExpressionHandler();
+			handler.setRoleHierarchy(userRoleHierarchy());
+			handler.setPermissionEvaluator(permissionEvaluator);
+			return handler;
+		}
 
-        private AccessDecisionManager webAccessDecisionManager() {
-            List<AccessDecisionVoter<?>> accessDecisionVoters = Lists.newArrayList();
-            accessDecisionVoters.add(new AuthenticatedVoter());
-            WebExpressionVoter webVoter = new WebExpressionVoter();
-            webVoter.setExpressionHandler(webSecurityExpressionHandler());
-            accessDecisionVoters.add(webVoter);
+		private AccessDecisionManager webAccessDecisionManager() {
+			List<AccessDecisionVoter<?>> accessDecisionVoters = Lists.newArrayList();
+			accessDecisionVoters.add(new AuthenticatedVoter());
+			WebExpressionVoter webVoter = new WebExpressionVoter();
+			webVoter.setExpressionHandler(webSecurityExpressionHandler());
+			accessDecisionVoters.add(webVoter);
 
-            return new AffirmativeBased(accessDecisionVoters);
-        }
+			return new AffirmativeBased(accessDecisionVoters);
+		}
 
-        @Override
-        public void configure(HttpSecurity http) throws Exception {
-            http
-                    .authorizeRequests()
-                    .accessDecisionManager(webAccessDecisionManager())
-                    .antMatchers(
-                            "/**/user/registration/info*",
-                            "/**/user/registration**",
-                            "/**/user/password/reset/*",
-                            "/**/user/password/reset**",
-                            "/**/user/password/restore**",
+		@Override
+		public void configure(HttpSecurity http) throws Exception {
+			http.authorizeRequests().accessDecisionManager(webAccessDecisionManager())
+					.antMatchers("/**/user/registration/info*", "/**/user/registration**", "/**/user/password/reset/*",
+							"/**/user/password/reset**", "/**/user/password/restore**",
 
-                            "/documentation.html")
-                        .permitAll()
-                    /* set of special endpoints for another microservices from RP ecosystem */
-                    .antMatchers("/api-internal/**").hasRole("COMPONENT")
-                    .antMatchers(
-                            "/v2/**",
-                            "/swagger-resources",
-                            "/certificate/**",
-                            "/api/**",
-                            "/**")
-                        .hasRole("USER")
-                    .anyRequest().authenticated()
-                    .and().csrf().disable();
-        }
+							"/documentation.html").permitAll()
+					/* set of special endpoints for another microservices from RP ecosystem */.antMatchers("/api-internal/**")
+					.hasRole("COMPONENT").antMatchers("/v2/**", "/swagger-resources", "/certificate/**", "/api/**", "/**").hasRole("USER")
+					.anyRequest().authenticated().and().csrf().disable();
+		}
 
-    }
+	}
+
+	static class ReportPortalAuthorityExtractor extends FixedAuthoritiesExtractor {
+		@Override
+		public List<GrantedAuthority> extractAuthorities(Map<String, Object> map) {
+			List<GrantedAuthority> userRoles = super.extractAuthorities(map);
+			Optional.ofNullable(map.get("projects"))
+					.map(p -> ((Map<String, String>) p).entrySet().stream().map(e -> new ProjectAuthority(e.getKey(), e.getValue()))
+							.collect(Collectors.toList())).ifPresent(userRoles::addAll);
+			return userRoles;
+		}
+	}
 
 }
 

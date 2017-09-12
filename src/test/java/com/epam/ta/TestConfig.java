@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta;
 
@@ -39,9 +39,6 @@ import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
@@ -49,7 +46,6 @@ import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResour
 import java.util.concurrent.TimeUnit;
 
 import static com.epam.ta.reportportal.config.CacheConfiguration.*;
-import static org.mockito.Mockito.mock;
 
 @SuppressWarnings("unchecked")
 @Configuration
@@ -79,26 +75,6 @@ public class TestConfig {
 	@Value("#{new Long(${rp.cache.project.info})}")
 	private long projectInfoCacheExpiration;
 
-	@Configuration
-	@Profile("unittest")
-	static class Config {
-		@Bean
-		@SuppressWarnings("unchecked")
-		public RedisSerializer<Object> defaultRedisSerializer() {
-			return mock(RedisSerializer.class);
-		}
-
-		@Bean
-		@Primary
-		public RedisConnectionFactory connectionFactory() {
-			RedisConnectionFactory factory = mock(RedisConnectionFactory.class);
-			RedisConnection connection = mock(RedisConnection.class);
-			Mockito.when(factory.getConnection()).thenReturn(connection);
-
-			return factory;
-		}
-	}
-
 	@Bean
 	public static PropertySourcesPlaceholderConfigurer propertiesResolver() {
 		return new PropertySourcesPlaceholderConfigurer();
@@ -124,10 +100,9 @@ public class TestConfig {
 	}
 
 	@Bean
-	public OAuth2ProtectedResourceDetails oauthResource(){
+	public OAuth2ProtectedResourceDetails oauthResource() {
 		return Mockito.mock(OAuth2ProtectedResourceDetails.class);
 	}
-
 
 	@Bean
 	public MongoFixtureImporter mongoFixtureImporter() {
@@ -136,7 +111,7 @@ public class TestConfig {
 
 	@Bean
 	@Scope(scopeName = "prototype")
-	public OAuth2ClientContext oAuth2ClientContext(){
+	public OAuth2ClientContext oAuth2ClientContext() {
 		return new DefaultOAuth2ClientContext();
 	}
 
@@ -145,16 +120,17 @@ public class TestConfig {
 	public CacheManager getGlobalCacheManager() {
 		SimpleCacheManager cacheManager = new SimpleCacheManager();
 
-		GuavaCache tickets = new GuavaCache(EXTERNAL_SYSTEM_TICKET_CACHE, CacheBuilder.newBuilder().maximumSize(ticketCacheSize)
-				.softValues().expireAfterAccess(ticketCacheExpiration, TimeUnit.MINUTES).build());
+		GuavaCache tickets = new GuavaCache(EXTERNAL_SYSTEM_TICKET_CACHE,
+				CacheBuilder.newBuilder().maximumSize(ticketCacheSize).softValues()
+						.expireAfterAccess(ticketCacheExpiration, TimeUnit.MINUTES).build());
 		GuavaCache projects = new GuavaCache(JIRA_PROJECT_CACHE, CacheBuilder.newBuilder().maximumSize(projectCacheSize).softValues()
 				.expireAfterAccess(projectCacheExpiration, TimeUnit.DAYS).build());
 		GuavaCache users = new GuavaCache(USERS_CACHE,
 				CacheBuilder.newBuilder().maximumSize(userCacheSize).expireAfterWrite(userCacheExpiration, TimeUnit.MINUTES).build());
 		GuavaCache projectInfo = new GuavaCache(PROJECT_INFO_CACHE, CacheBuilder.newBuilder().maximumSize(projectCacheSize).softValues()
 				.expireAfterWrite(projectInfoCacheExpiration, TimeUnit.MINUTES).build());
-//		GuavaCache assignedUsers = new GuavaCache(ASSIGNED_USERS_CACHE, CacheBuilder.newBuilder().maximumSize(userCacheSize).weakKeys()
-//				.expireAfterWrite(userCacheExpiration, TimeUnit.MINUTES).build());
+		//		GuavaCache assignedUsers = new GuavaCache(ASSIGNED_USERS_CACHE, CacheBuilder.newBuilder().maximumSize(userCacheSize).weakKeys()
+		//				.expireAfterWrite(userCacheExpiration, TimeUnit.MINUTES).build());
 
 		//@formatter:off
 		cacheManager.setCaches(ImmutableList.<GuavaCache> builder()

@@ -35,6 +35,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Function;
 
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -61,6 +62,8 @@ public class WidgetContentProvider {
 	@Autowired
 	@Qualifier("contentLoader")
 	private Map<GadgetTypes, IContentLoadingStrategy> contentLoader;
+
+	public static final Function<String, String> TO_UI_STYLE = db -> db.replace('.', '$');
 
 	/**
 	 * Load content according input parameters

@@ -40,6 +40,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader.RESULT;
+import static com.epam.ta.reportportal.core.widget.content.WidgetContentProvider.TO_UI_STYLE;
 
 /**
  * Content loader for cumulative trend chart widget. Content is based
@@ -64,8 +65,8 @@ public class CumulativeContentLoader implements IContentLoadingStrategy {
 		expect(options.get(TAG_PREFIX), notNull()).verify(ErrorType.BAD_REQUEST_ERROR, "widgetOptions");
 		expect(options.get(TAG_PREFIX).isEmpty(), equalTo(false)).verify(ErrorType.BAD_REQUEST_ERROR, TAG_PREFIX);
 
-        List<String> fields = contentFields.stream().map(it -> it.replace('.', '$')).collect(Collectors.toList());
-        StatisticsDocumentHandler handler = new StatisticsDocumentHandler(fields, metaDataFields);
+		List<String> fields = contentFields.stream().map(TO_UI_STYLE).collect(Collectors.toList());
+		StatisticsDocumentHandler handler = new StatisticsDocumentHandler(fields, metaDataFields);
 
 		launchRepository.cumulativeStatisticsGroupedByTag(filter, contentFields, quantity, options.get(TAG_PREFIX).get(0), handler);
 

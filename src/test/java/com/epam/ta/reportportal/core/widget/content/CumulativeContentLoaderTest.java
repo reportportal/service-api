@@ -89,14 +89,14 @@ public class CumulativeContentLoaderTest extends BaseTest {
 		ChartObject jobOne = result.get(1);
 
 		Assert.assertEquals("Sorting is not correct", "job:2", jobTwo.getId());
-		Assert.assertEquals("1", jobTwo.getValues().get("failed"));
-		Assert.assertEquals("3", jobTwo.getValues().get("passed"));
-		Assert.assertEquals("0", jobTwo.getValues().get("skipped"));
+		Assert.assertEquals("1", jobTwo.getValues().get("statistics$executionCounter$failed"));
+		Assert.assertEquals("3", jobTwo.getValues().get("statistics$executionCounter$passed"));
+		Assert.assertEquals("0", jobTwo.getValues().get("statistics$executionCounter$skipped"));
 
 		Assert.assertEquals("Sorting is not correct", "job:1", jobOne.getId());
-		Assert.assertEquals("5", jobOne.getValues().get("failed"));
-		Assert.assertEquals("3", jobOne.getValues().get("passed"));
-		Assert.assertEquals("0", jobOne.getValues().get("skipped"));
+		Assert.assertEquals("5", jobOne.getValues().get("statistics$executionCounter$failed"));
+		Assert.assertEquals("3", jobOne.getValues().get("statistics$executionCounter$passed"));
+		Assert.assertEquals("0", jobOne.getValues().get("statistics$executionCounter$skipped"));
 	}
 
 }

@@ -102,7 +102,7 @@ public class WidgetController implements IWidgetController {
 	}
 
 	@Override
-	@RequestMapping(value = "/preview", method = RequestMethod.PUT)
+	@RequestMapping(value = "/preview", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	@ApiOperation("Get widget preview")

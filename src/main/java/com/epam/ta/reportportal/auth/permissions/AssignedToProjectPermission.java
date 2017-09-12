@@ -17,16 +17,18 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.auth.permissions;
 
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Provider;
+import java.util.Collection;
 
 /**
  * Check whether user assigned to project
@@ -51,7 +53,13 @@ class AssignedToProjectPermission implements Permission {
 	 */
 	@Override
 	public boolean isAllowed(Authentication authentication, Object projectName) {
-		return authentication.isAuthenticated() && projectRepository.get()
-				.isAssignedToProject((String) projectName, authentication.getName());
+		String project = (String) projectName;
+ 		return authentication.isAuthenticated() && (hasProjectAuthority(authentication.getAuthorities(), project)
+				|| projectRepository.get().isAssignedToProject(project, authentication.getName()));
+	}
+
+	private boolean hasProjectAuthority(Collection<? extends GrantedAuthority> authorityList, String project) {
+		return authorityList.stream().filter(a -> a instanceof ProjectAuthority)
+				.anyMatch(pa -> ((ProjectAuthority) pa).getProject().equals(project));
 	}
 }

@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.commons.DbUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.launch.IFinishLaunchHandler;
+import com.epam.ta.reportportal.core.launch.meta.LaunchMetadataUtil;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import com.epam.ta.reportportal.database.dao.*;
@@ -106,6 +107,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		}
 		if (!CollectionUtils.isEmpty(finishLaunchRQ.getTags())) {
 			launch.setTags(finishLaunchRQ.getTags());
+			LaunchMetadataUtil.addBuildNumber(launch);
 		}
 
 		Optional<Status> status = fromValue(finishLaunchRQ.getStatus());

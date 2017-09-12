@@ -204,6 +204,11 @@
                 <value>job:2</value>
             </set>
         </property>
+        <property name="metadata">
+            <bean class="com.epam.ta.reportportal.database.entity.Launch$Metadata">
+                <property name="build" value="2"/>
+            </bean>
+        </property>
 		<property name="statistics">
 			<bean
 				class="com.epam.ta.reportportal.database.entity.statistics.Statistics">
@@ -238,6 +243,11 @@
                 <value>job:2</value>
             </set>
         </property>
+        <property name="metadata">
+            <bean class="com.epam.ta.reportportal.database.entity.Launch$Metadata">
+                <property name="build" value="2"/>
+            </bean>
+        </property>
 		<property name="statistics">
 			<bean
 				class="com.epam.ta.reportportal.database.entity.statistics.Statistics">
@@ -268,8 +278,13 @@
 		<property name="userRef" value="user1" />
         <property name="tags">
             <set>
-                <value>job:1</value>
+                <value>job:10</value>
             </set>
+        </property>
+        <property name="metadata">
+            <bean class="com.epam.ta.reportportal.database.entity.Launch$Metadata">
+                <property name="build" value="10"/>
+            </bean>
         </property>
 		<property name="statistics">
 			<bean
@@ -302,8 +317,13 @@
 		<property name="userRef" value="user1" />
         <property name="tags">
             <set>
-                <value>job:1</value>
+                <value>job:10</value>
             </set>
+        </property>
+        <property name="metadata">
+            <bean class="com.epam.ta.reportportal.database.entity.Launch$Metadata">
+                <property name="build" value="10"/>
+            </bean>
         </property>
 		<property name="number" value="2" />
 		<property name="statistics">

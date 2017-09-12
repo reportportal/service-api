@@ -60,7 +60,6 @@ public class CumulativeContentLoaderTest extends BaseTest {
 				.withCondition(new FilterCondition(Condition.CONTAINS, false, "name", "name")).build();
 		Map<String, List<ChartObject>> content = contentLoader
 				.loadContent("project", filter, null, 10, emptyList(), emptyList(), emptyMap());
-		Assert.fail("Error in handled Request. Please, check specified parameters: 'widgetOptions'");
 	}
 
 	@Test(expected = ReportPortalException.class)
@@ -69,7 +68,6 @@ public class CumulativeContentLoaderTest extends BaseTest {
 				.withCondition(new FilterCondition(Condition.CONTAINS, false, "name", "name")).build();
 		Map<String, List<ChartObject>> content = contentLoader
 				.loadContent("project", filter, null, 10, emptyList(), emptyList(), singletonMap("prefix", emptyList()));
-		Assert.fail("Error in handled Request. Please, check specified parameters: 'prefix'");
 	}
 
 	@Test
@@ -86,19 +84,19 @@ public class CumulativeContentLoaderTest extends BaseTest {
 		List<ChartObject> result = results.get("result");
 		Assert.assertEquals("Got incorrect results", 2, result.size());
 
-		ChartObject jobTwo = result.get(0);
-		ChartObject jobOne = result.get(1);
+		ChartObject jobTen = result.get(0);
+		ChartObject jobTwo = result.get(1);
 
-		Assert.assertEquals("Sorting is not correct", "job:2", jobTwo.getId());
+		Assert.assertEquals("Sorting is not correct", "10", jobTen.getId());
+		Assert.assertEquals("5", jobTen.getValues().get("statistics$executionCounter$failed"));
+		Assert.assertEquals("3", jobTen.getValues().get("statistics$executionCounter$passed"));
+		Assert.assertEquals("0", jobTen.getValues().get("statistics$executionCounter$skipped"));
+		Assert.assertEquals("3", jobTen.getValues().get("statistics$issueCounter$productBug$total"));
+
+		Assert.assertEquals("Sorting is not correct", "2", jobTwo.getId());
 		Assert.assertEquals("1", jobTwo.getValues().get("statistics$executionCounter$failed"));
 		Assert.assertEquals("3", jobTwo.getValues().get("statistics$executionCounter$passed"));
 		Assert.assertEquals("0", jobTwo.getValues().get("statistics$executionCounter$skipped"));
-
-		Assert.assertEquals("Sorting is not correct", "job:1", jobOne.getId());
-		Assert.assertEquals("5", jobOne.getValues().get("statistics$executionCounter$failed"));
-		Assert.assertEquals("3", jobOne.getValues().get("statistics$executionCounter$passed"));
-		Assert.assertEquals("0", jobOne.getValues().get("statistics$executionCounter$skipped"));
-		Assert.assertEquals("3", jobOne.getValues().get("statistics$issueCounter$productBug$total"));
 	}
 
 }

@@ -77,7 +77,8 @@ public class CumulativeContentLoaderTest extends BaseTest {
 		Filter filter = Filter.builder().withTarget(Launch.class).withCondition(new FilterCondition(Condition.CONTAINS, false, "l", "name"))
 				.build();
 		ImmutableList<String> contentField = ImmutableList.<String>builder().add("statistics.executionCounter.failed")
-				.add("statistics.executionCounter.passed").add("statistics.executionCounter.skipped").build();
+				.add("statistics.executionCounter.passed").add("statistics.executionCounter.skipped")
+				.add("statistics.issueCounter.productBug.total").build();
 		List<String> metadata = emptyList();
 		ImmutableMap<String, List<String>> options = ImmutableMap.<String, List<String>>builder().put("prefix", singletonList("job"))
 				.build();
@@ -97,6 +98,7 @@ public class CumulativeContentLoaderTest extends BaseTest {
 		Assert.assertEquals("5", jobOne.getValues().get("statistics$executionCounter$failed"));
 		Assert.assertEquals("3", jobOne.getValues().get("statistics$executionCounter$passed"));
 		Assert.assertEquals("0", jobOne.getValues().get("statistics$executionCounter$skipped"));
+		Assert.assertEquals("3", jobOne.getValues().get("statistics$issueCounter$productBug$total"));
 	}
 
 }

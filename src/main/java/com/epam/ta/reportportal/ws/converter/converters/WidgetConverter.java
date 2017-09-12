@@ -46,7 +46,7 @@ public final class WidgetConverter {
         widgetResource.setWidgetId(widget.getId());
         widgetResource.setName(widget.getName());
         widgetResource.setDescription(widget.getDescription());
-        widgetResource.setApplyingFilterID(widget.getApplyingFilterId());
+        widgetResource.setFilterId(widget.getApplyingFilterId());
         Optional.ofNullable(widget.getContentOptions()).ifPresent(options -> {
             ContentParameters contentParameters = new ContentParameters();
             contentParameters.setType(options.getType());

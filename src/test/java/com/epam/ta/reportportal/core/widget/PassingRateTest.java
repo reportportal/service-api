@@ -75,9 +75,9 @@ public class PassingRateTest extends BaseTest {
         contentParameters.setWidgetOptions(ImmutableMap.<String, List<String>>builder()
                 .put("launchNameFilter", Collections.singletonList("Demo launch_launch1-stat")).build());
         WidgetRQ rq = new WidgetRQ();
-        rq.setFilterId("");
-        rq.setName("widget");
-        rq.setShare(false);
+		rq.setFilterId("");
+		rq.setName("widget");
+		rq.setShare(false);
         rq.setContentParameters(contentParameters);
         return rq;
     }
@@ -90,9 +90,9 @@ public class PassingRateTest extends BaseTest {
                 .add("statistics$executions$passed").build());
         contentParameters.setItemsCount(5);
         WidgetRQ rq = new WidgetRQ();
-        rq.setFilterId(FILTER_ID);
-        rq.setName("widget");
-        rq.setShare(false);
+		rq.setFilterId(FILTER_ID);
+		rq.setName("widget");
+		rq.setShare(false);
         rq.setContentParameters(contentParameters);
         return rq;
     }

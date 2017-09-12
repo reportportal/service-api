@@ -60,7 +60,6 @@ public class CumulativeContentLoaderTest extends BaseTest {
 				.withCondition(new FilterCondition(Condition.CONTAINS, false, "name", "name")).build();
 		Map<String, List<ChartObject>> content = contentLoader
 				.loadContent("project", filter, null, 10, emptyList(), emptyList(), emptyMap());
-		Assert.fail("Error in handled Request. Please, check specified parameters: 'widgetOptions'");
 	}
 
 	@Test(expected = ReportPortalException.class)
@@ -69,7 +68,6 @@ public class CumulativeContentLoaderTest extends BaseTest {
 				.withCondition(new FilterCondition(Condition.CONTAINS, false, "name", "name")).build();
 		Map<String, List<ChartObject>> content = contentLoader
 				.loadContent("project", filter, null, 10, emptyList(), emptyList(), singletonMap("prefix", emptyList()));
-		Assert.fail("Error in handled Request. Please, check specified parameters: 'prefix'");
 	}
 
 	@Test

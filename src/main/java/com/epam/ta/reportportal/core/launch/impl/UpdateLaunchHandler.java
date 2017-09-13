@@ -146,7 +146,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 
 		List<TestItem> testItems = analyzerService.analyze(launchId, toInvestigate);
 		testItemRepository.save(testItems);
-		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launchId + "' started.");		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launchId + "' started.");
+		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launchId + "' started.");
 	}
 
 	@Override

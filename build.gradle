@@ -89,7 +89,7 @@ dependencies {
 
     compile "ch.qos.logback:logback-classic:${logback}"
     compile 'net.coobird:thumbnailator:0.4.8'
-    compile 'com.sun.mail:javax.mail:1.5.6'
+    compile 'com.sun.mail:javax.mail:1.6.0'
 
 //    compile 'org.springframework.cloud:spring-cloud-config-client'
     compile 'org.springframework.retry:spring-retry'

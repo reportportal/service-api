@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.item.TestItemUniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.merge.strategy.MergeStrategy;
 import com.epam.ta.reportportal.core.item.merge.strategy.MergeStrategyFactory;
 import com.epam.ta.reportportal.core.item.merge.strategy.MergeStrategyType;
@@ -33,19 +34,18 @@ import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.ws.converter.LaunchResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
-import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Provider;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,8 +54,8 @@ import java.util.function.Supplier;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.LEAD;
 import static com.epam.ta.reportportal.database.entity.Status.IN_PROGRESS;
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.groupingBy;
@@ -84,13 +84,13 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
     private StatisticsFacadeFactory statisticsFacadeFactory;
 
     @Autowired
-    private Provider<LaunchBuilder> launchBuilder;
-
-    @Autowired
     private LaunchMetaInfoRepository launchCounter;
 
     @Autowired
     private LaunchResourceAssembler launchResourceAssembler;
+
+    @Autowired
+    private TestItemUniqueIdGenerator identifierGenerator;
 
     @Autowired
     public void setProjectRepository(ProjectRepository projectRepository) {
@@ -113,7 +113,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
     }
 
     @Override
-    public LaunchResource mergeLaunches(String projectName, String userName, DeepMergeLaunchesRQ rq) {
+    public LaunchResource mergeLaunches(String projectName, String userName, MergeLaunchesRQ rq) {
         User user = userRepository.findOne(userName);
         Project project = projectRepository.findOne(projectName);
         expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
@@ -124,9 +124,9 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         validateMergingLaunches(launchesList, user, project);
 
         Launch launch = createResultedLaunch(projectName, userName, rq);
-
+        boolean isNameChanged = !launch.getName().equals(launchesList.get(0).getName());
         updateChildrenOfLaunches(launch.getId(), rq.getLaunches(),
-                rq.isExtendSuitesDescription());
+                rq.isExtendSuitesDescription(), isNameChanged, projectName);
 
         MergeStrategyType type = MergeStrategyType.fromValue(rq.getMergeStrategyType());
         expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
@@ -166,11 +166,12 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         expect(launches.size(), not(equalTo(0))).verify(BAD_REQUEST_ERROR, launches);
 
 		/*
-         * ADMINISTRATOR and LEAD+ users have permission to merge not-only-own
+         * ADMINISTRATOR and PROJECT_MANAGER+ users have permission to merge not-only-own
 		 * launches
 		 */
         boolean isUserValidate = !(user.getRole().equals(ADMINISTRATOR)
-                || project.getUsers().get(user.getId()).getProjectRole().getRoleLevel() >= LEAD.getRoleLevel());
+                || findUserConfigByLogin(project, user.getId()).getProjectRole()
+                .sameOrHigherThan(ProjectRole.PROJECT_MANAGER));
         launches.forEach(launch -> {
             expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launch);
 
@@ -182,7 +183,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
             if (isUserValidate) {
                 expect(launch.getUserRef(), equalTo(user.getId())).verify(ACCESS_DENIED,
-                        "You are not an owner of launches or have less than LEAD project role.");
+                        "You are not an owner of launches or have less than PROJECT_MANAGER project role.");
             }
         });
     }
@@ -190,11 +191,15 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
     /**
      * Update test-items of specified launches with new LaunchID
      */
-    private void updateChildrenOfLaunches(String launchId, Set<String> launches, boolean extendDescription) {
+    private void updateChildrenOfLaunches(String launchId, Set<String> launches, boolean extendDescription,
+                                          boolean isNameChanged, String project) {
         List<TestItem> testItems = launches.stream().flatMap(id -> {
             Launch launch = launchRepository.findOne(id);
             return testItemRepository.findByLaunch(launch).stream().map(item -> {
                 item.setLaunchRef(launchId);
+                if (isNameChanged && identifierGenerator.validate(item.getUniqueId())) {
+                    item.setUniqueId(identifierGenerator.generate(item, project));
+                }
                 if (item.getType().sameLevel(TestItemType.SUITE)) {
                     // Add launch reference description for top level items
                     Supplier<String> newDescription = Suppliers
@@ -223,7 +228,10 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         startRQ.setName(mergeLaunchesRQ.getName());
         startRQ.setTags(mergeLaunchesRQ.getTags());
         startRQ.setStartTime(mergeLaunchesRQ.getStartTime());
-        Launch launch = launchBuilder.get().addStartRQ(startRQ).addProject(projectName).addStatus(IN_PROGRESS).addUser(userName).build();
+        Launch launch = new LaunchBuilder()
+                .addStartRQ(startRQ).addProject(projectName)
+                .addStatus(IN_PROGRESS).addUser(userName)
+                .get();
         launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
         return launchRepository.save(launch);
     }

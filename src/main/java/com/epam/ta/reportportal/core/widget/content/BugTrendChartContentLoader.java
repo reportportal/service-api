@@ -21,19 +21,19 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import com.google.common.collect.ImmutableList;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.StatisticsDocumentHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import com.google.common.collect.ImmutableList;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * ContentLoader implementation for <b>Unique Bugs to Total test-cases
@@ -52,7 +52,7 @@ public class BugTrendChartContentLoader extends StatisticBasedContentLoader impl
 	private LaunchRepository launchRepository;
 
 	@Override
-	public Map<String, List<ChartObject>> loadContent(Filter filter, Sort sorting, int quantity, List<String> contentFields,
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
 			List<String> metaDataFields, Map<String, List<String>> options) {
 
 		StatisticsDocumentHandler statisticsDocumentHandler = new StatisticsDocumentHandler(contentFields, metaDataFields);
@@ -60,7 +60,11 @@ public class BugTrendChartContentLoader extends StatisticBasedContentLoader impl
 			return Collections.emptyMap();
 		}
 		List<String> allFields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
-		launchRepository.loadWithCallback(filter, sorting, quantity, allFields, statisticsDocumentHandler, COLLECTION_NAME);
+		if (options.containsKey(LATEST_MODE)){
+		    launchRepository.findLatestWithCallback(filter, sorting, allFields, quantity, statisticsDocumentHandler);
+        } else {
+            launchRepository.loadWithCallback(filter, sorting, quantity, allFields, statisticsDocumentHandler, COLLECTION_NAME);
+        }
 		List<ChartObject> result = statisticsDocumentHandler.getResult();
 
 		return assembleWidgetData(result);
@@ -70,7 +74,6 @@ public class BugTrendChartContentLoader extends StatisticBasedContentLoader impl
 	 * Calculate chart data (Total count of issues) for UI
 	 * 
 	 * @param input
-	 * @param sorting
 	 * @return
 	 */
 	private Map<String, List<ChartObject>> assembleWidgetData(List<ChartObject> input) {

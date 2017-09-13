@@ -31,13 +31,15 @@ import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.ImmutableMap;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Map;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Pavel Bortnik
@@ -50,9 +52,15 @@ public class DeleteUserFilterHandlerTest {
 
     private final UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
     private final ProjectRepository projectRepository = mock(ProjectRepository.class);
+    private final static ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
     private DeleteUserFilterHandler handler =
-            new DeleteUserFilterHandler(userFilterRepository, projectRepository);
+            new DeleteUserFilterHandler(userFilterRepository, projectRepository, eventPublisher);
+
+    @BeforeClass
+    public static void beforeClass() {
+        doNothing().when(eventPublisher).publishEvent(anyObject());
+    }
 
     @Test
     public void deleteFilterByOwner() {

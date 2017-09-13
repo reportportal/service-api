@@ -54,7 +54,7 @@ public class LaunchesComparisonContentLoader extends StatisticBasedContentLoader
 	private LaunchRepository launchRepository;
 
 	@Override
-	public Map<String, List<ChartObject>> loadContent(Filter filter, Sort sorting, int quantity, List<String> contentFields,
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
 			List<String> metaDataFields, Map<String, List<String>> options) {
 
 		if (filter.getTarget().equals(TestItem.class)) {
@@ -64,8 +64,7 @@ public class LaunchesComparisonContentLoader extends StatisticBasedContentLoader
 		List<String> allFields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
 
 		String collectionName = getCollectionName(filter.getTarget());
-		launchRepository.loadWithCallback(filter, sorting, QUANTITY, allFields, documentHandler, collectionName);
-
+        launchRepository.loadWithCallback(filter, sorting, QUANTITY, allFields, documentHandler, collectionName);
 		return convertResult(documentHandler.getResult());
 	}
 

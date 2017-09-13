@@ -35,6 +35,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader.LATEST_MODE;
+
 /**
  * Content loader for Filter results widget
  *
@@ -47,15 +49,20 @@ public class LaunchesTableContentLoader implements IContentLoadingStrategy {
 	private LaunchRepository launchRepository;
 
 	@Override
-	public Map<String, List<ChartObject>> loadContent(Filter filter, Sort sorting, int quantity, List<String> contentFields,
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
 			List<String> metaDataFields, Map<String, List<String>> options) {
 		if (filter.getTarget().equals(TestItem.class)) {
 			return Collections.emptyMap();
 		}
 		List<String> fields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
+        String collectionName = StatisticBasedContentLoader.getCollectionName(filter.getTarget());
 		LaunchesTableDocumentHandler launchesTableDocumentHandler = new LaunchesTableDocumentHandler(fields);
-		launchRepository.loadWithCallback(filter, sorting, quantity, fields, launchesTableDocumentHandler,
-				StatisticBasedContentLoader.getCollectionName(filter.getTarget()));
+        if (options.containsKey(LATEST_MODE)) {
+            launchRepository.findLatestWithCallback(filter, sorting, fields, quantity, launchesTableDocumentHandler);
+        } else {
+            launchRepository.loadWithCallback(filter, sorting, quantity, fields, launchesTableDocumentHandler,
+                    collectionName);
+        }
 		return launchesTableDocumentHandler.getResult();
 	}
 }

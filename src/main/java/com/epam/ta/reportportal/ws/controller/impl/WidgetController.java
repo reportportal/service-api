@@ -29,6 +29,8 @@ import com.epam.ta.reportportal.ws.controller.IWidgetController;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
+import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import com.epam.ta.reportportal.ws.resolver.ActiveRole;
@@ -90,13 +92,23 @@ public class WidgetController implements IWidgetController {
 		return createHandler.createWidget(createWidgetRQ, normalizeId(projectName), principal.getName());
 	}
 
-	@Override
-	@RequestMapping(value = "/{widgetId}", method = RequestMethod.GET)
-	@ResponseStatus(HttpStatus.OK)
+    @Override
+    @RequestMapping(value = "/{widgetId}", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	@ApiOperation("Get widget by ID")
 	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable String widgetId, Principal principal) {
 		return getHandler.getWidget(widgetId, principal.getName(), normalizeId(projectName));
+	}
+
+	@Override
+	@RequestMapping(value = "/preview", method = RequestMethod.POST)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	@ApiOperation("Get widget preview")
+	public Map<String, List<ChartObject>> getWidgetPreview(@PathVariable String projectName,
+			@RequestBody @Validated WidgetPreviewRQ previewRQ, Principal principal) {
+		return getHandler.getWidgetPreview(normalizeId(projectName), principal.getName(), previewRQ);
 	}
 
 	@Override
@@ -105,7 +117,7 @@ public class WidgetController implements IWidgetController {
 	@ResponseBody
 	@ApiOperation("Update specified widget")
 	public OperationCompletionRS updateWidget(@PathVariable String projectName, @PathVariable String widgetId,
-											  @RequestBody @Validated WidgetRQ updateRQ, @ActiveRole UserRole userRole, Principal principal) {
+			@RequestBody @Validated WidgetRQ updateRQ, @ActiveRole UserRole userRole, Principal principal) {
 		return updateHandler.updateWidget(widgetId, updateRQ, principal.getName(), normalizeId(projectName), userRole);
 	}
 

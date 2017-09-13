@@ -56,7 +56,7 @@ public class NotPassedTestsContentLoader extends StatisticBasedContentLoader imp
 
 	@SuppressFBWarnings("NP_NULL_PARAM_DEREF")
 	@Override
-	public Map<String, List<ChartObject>> loadContent(Filter filter, Sort sorting, int quantity, List<String> contentFields,
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
 			List<String> metaDataFields, Map<String, List<String>> options) {
 		BusinessRule.expect(metaDataFields == null || metaDataFields.isEmpty(), Predicates.equalTo(Boolean.FALSE))
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Metadata fields should exist for providing content for 'column chart'.");
@@ -65,7 +65,11 @@ public class NotPassedTestsContentLoader extends StatisticBasedContentLoader imp
 		String collectionName = getCollectionName(filter.getTarget());
 
 		// here can be used any repository which extends ReportPortalRepository
-		launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, collectionName);
+        if (options.containsKey(LATEST_MODE)) {
+            launchRepository.findLatestWithCallback(filter, sorting, allFields, quantity, handler);
+        } else {
+            launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, collectionName);
+        }
 		return this.convertResult(handler);
 	}
 

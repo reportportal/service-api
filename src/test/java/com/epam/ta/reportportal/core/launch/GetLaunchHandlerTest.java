@@ -21,16 +21,7 @@
 
 package com.epam.ta.reportportal.core.launch;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
 import com.epam.ta.reportportal.core.launch.impl.GetLaunchHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
@@ -41,6 +32,15 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.LaunchResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
+import com.google.common.collect.ImmutableList;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import java.util.List;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Dzmitry_Kavalets
@@ -74,10 +74,9 @@ public class GetLaunchHandlerTest {
 
 	private Project buildProject(String user) {
 		Project project = new Project();
-		HashMap<String, Project.UserConfig> users = new HashMap<>();
-		Project.UserConfig userConfig = new Project.UserConfig();
-		userConfig.setProjectRole(ProjectRole.CUSTOMER);
-		users.put(user, userConfig);
+		List<Project.UserConfig> users = ImmutableList.<Project.UserConfig>builder()
+				.add(Project.UserConfig.newOne().withProjectRole(ProjectRole.CUSTOMER)
+				.withLogin(user)).build();
 		project.setUsers(users);
 		return project;
 	}

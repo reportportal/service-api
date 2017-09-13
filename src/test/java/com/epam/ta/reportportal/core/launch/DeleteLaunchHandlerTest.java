@@ -21,19 +21,6 @@
 
 package com.epam.ta.reportportal.core.launch;
 
-import static com.epam.ta.reportportal.database.entity.user.UserRole.USER;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
-import org.springframework.context.ApplicationEventPublisher;
-
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.launch.impl.DeleteLaunchHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
@@ -45,6 +32,17 @@ import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.google.common.collect.ImmutableList;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
+import org.springframework.context.ApplicationEventPublisher;
+
+import static com.epam.ta.reportportal.database.entity.user.UserRole.USER;
+import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DeleteLaunchHandlerTest {
 
@@ -77,13 +75,8 @@ public class DeleteLaunchHandlerTest {
 		ProjectRepository projectRepository = mock(ProjectRepository.class);
 		Project project = new Project();
 		project.setName(projectId);
-		project.setUsers(new HashMap<String, Project.UserConfig>() {
-			{
-				Project.UserConfig userConfig = new Project.UserConfig();
-				userConfig.setProjectRole(ProjectRole.MEMBER);
-				put(member, userConfig);
-			}
-		});
+		project.setUsers(ImmutableList.<Project.UserConfig>builder().add(Project.UserConfig.newOne().withLogin(member)
+				.withProjectRole(ProjectRole.MEMBER)).build());
 		when(projectRepository.findOne(projectId)).thenReturn(project);
 		return projectRepository;
 	}

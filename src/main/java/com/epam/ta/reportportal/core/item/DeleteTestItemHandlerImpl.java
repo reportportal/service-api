@@ -21,24 +21,6 @@
 
 package com.epam.ta.reportportal.core.item;
 
-import static com.epam.ta.reportportal.commons.Preconditions.IN_PROGRESS;
-import static com.epam.ta.reportportal.commons.Preconditions.hasProjectRoles;
-import static com.epam.ta.reportportal.commons.Predicates.*;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.LEAD;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
-import static com.epam.ta.reportportal.database.entity.Status.RESETED;
-import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.stream.Collectors.toList;
-
-import java.util.List;
-import java.util.stream.Stream;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
@@ -52,7 +34,24 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.google.common.collect.Lists;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Stream;
+
+import static com.epam.ta.reportportal.commons.Preconditions.IN_PROGRESS;
+import static com.epam.ta.reportportal.commons.Preconditions.hasProjectRoles;
+import static com.epam.ta.reportportal.commons.Predicates.*;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.database.entity.Status.RESETED;
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
+import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Default implementation of {@link DeleteTestItemHandler}
@@ -144,10 +143,10 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
 			/*
-			 * Only LEAD and PROJECT_MANAGER roles could delete testItems
+			 * Only PROJECT_MANAGER roles could delete testItems
 			 */
-			UserConfig userConfig = project.getUsers().get(user.getId());
-			expect(userConfig, hasProjectRoles(Lists.newArrayList(PROJECT_MANAGER, LEAD))).verify(ACCESS_DENIED);
+			UserConfig userConfig = findUserConfigByLogin(project, user.getId());
+			expect(userConfig, hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
 		}
 	}
 }

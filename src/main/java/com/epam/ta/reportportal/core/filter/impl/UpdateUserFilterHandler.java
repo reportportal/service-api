@@ -21,45 +21,41 @@
 
 package com.epam.ta.reportportal.core.filter.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.UserRepository;
-import com.epam.ta.reportportal.database.entity.ProjectRole;
-import com.epam.ta.reportportal.database.entity.user.UserRole;
-import com.epam.ta.reportportal.database.entity.user.UserUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.acl.AclUtils;
 import com.epam.ta.reportportal.core.acl.SharingService;
 import com.epam.ta.reportportal.core.filter.IUpdateUserFilterHandler;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserFilterRepository;
+import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.filter.ObjectType;
 import com.epam.ta.reportportal.database.entity.filter.SelectionOptions;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
+import com.epam.ta.reportportal.events.FilterUpdatedEvent;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterEntity;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.SerializationUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Default implementation of {@link IUpdateUserFilterHandler}
@@ -82,16 +78,19 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 	@Autowired
 	private SharingService sharingService;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
 	@Override
 	public OperationCompletionRS updateUserFilter(String userFilterId, UpdateUserFilterRQ updateRQ, String userName,
 												  String projectName, UserRole userRole) {
 
 		UserFilter existingFilter = userFilterRepository.findOne(userFilterId);
-
-		expect(existingFilter, notNull()).verify(USER_FILTER_NOT_FOUND, userFilterId, userName);
+        expect(existingFilter, notNull()).verify(USER_FILTER_NOT_FOUND, userFilterId, userName);
 		AclUtils.isAllowedToEdit(existingFilter.getAcl(), userName, projectRepository.findProjectRoles(userName),
 				existingFilter.getName(), userRole);
 		expect(existingFilter.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
+        UserFilter before = SerializationUtils.clone(existingFilter);
 
 		// added synchronization because if user1 in one session checked that
 		// filter name is unique
@@ -103,6 +102,7 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 			}
 			updateUserFilter(existingFilter, updateRQ, userName, projectName);
 			userFilterRepository.save(existingFilter);
+			eventPublisher.publishEvent(new FilterUpdatedEvent(before, existingFilter, userName));
 		}
 
 		return buildResponse(existingFilter);
@@ -170,8 +170,8 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 	private Filter createFilter(String objectType, Set<UserFilterEntity> entities) {
 		Set<FilterCondition> filterConditions = new LinkedHashSet<>(entities.size());
 		for (UserFilterEntity filterEntity : entities) {
-			Condition conditionObject = Condition.findByMarker(filterEntity.getCondition());
-			FilterCondition filterCondition = new FilterCondition(conditionObject, filterEntity.getIsNegative(),
+			Condition conditionObject = Condition.findByMarker(filterEntity.getCondition()).orElse(null);
+			FilterCondition filterCondition = new FilterCondition(conditionObject, Condition.isNegative(filterEntity.getCondition()),
 					filterEntity.getValue().trim(), filterEntity.getFilteringField().trim());
 			filterConditions.add(filterCondition);
 		}

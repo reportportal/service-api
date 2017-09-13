@@ -20,7 +20,6 @@
  */
 package com.epam.ta.reportportal.core.imprt.impl.junit;
 
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.imprt.impl.DateUtils;
 import com.epam.ta.reportportal.core.imprt.impl.ImportStrategy;
 import com.epam.ta.reportportal.core.launch.IFinishLaunchHandler;
@@ -34,7 +33,6 @@ import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.inject.Provider;
 import java.io.File;
@@ -47,10 +45,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 @Service
-public class AsyncJunitImportStrategy implements ImportStrategy {
+public class XunitImportStrategy implements ImportStrategy {
 
     @Autowired
-    private Provider<JunitParseJob> xmlParseJobProvider;
+    private Provider<XunitParseJob> xmlParseJobProvider;
 
     @Autowired
     private IStartLaunchHandler startLaunchHandler;
@@ -67,22 +65,16 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
 
     private static final String XML_REGEX = ".*xml";
 
-    private static final String ZIP_REGEX = ".*zip";
-
     private static final Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
 
     private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName().matches(XML_REGEX);
 
     @Override
-    public String importLaunch(String projectId, String userName, MultipartFile file) {
+    public String importLaunch(String projectId, String userName, File file) {
         try {
-            BusinessRule.expect(file.getOriginalFilename(), it -> it.matches(ZIP_REGEX))
-                    .verify(ErrorType.BAD_IMPORT_FILE_TYPE, file.getOriginalFilename());
-            File tmp = File.createTempFile(file.getOriginalFilename(), ".zip");
-            file.transferTo(tmp);
-            return processZipFile(tmp, projectId, userName);
+            return processZipFile(file, projectId, userName);
         } catch (IOException e) {
-            throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, file.getOriginalFilename(), e);
+            throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, file.getName(), e);
         }
     }
 
@@ -93,14 +85,14 @@ public class AsyncJunitImportStrategy implements ImportStrategy {
                     .filter(isFile.and(isXml))
                     .map(zipEntry -> {
                         try {
-                            JunitParseJob job = xmlParseJobProvider.get()
+                            XunitParseJob job = xmlParseJobProvider.get()
                                     .withParameters(projectId, launchId, userName, zipFile.getInputStream(zipEntry));
                             return CompletableFuture.supplyAsync(job::call, service);
                         } catch (IOException e) {
                             throw new ReportPortalException("There was a problem while parsing file : " + zipEntry.getName(), e);
                         }
                     }).toArray(CompletableFuture[]::new);
-            CompletableFuture.allOf(futures).get(5, TimeUnit.MINUTES);
+            CompletableFuture.allOf(futures).get(30, TimeUnit.MINUTES);
             finishLaunch(launchId, projectId, userName, processResults(futures));
             return launchId;
         } catch (InterruptedException | ExecutionException | TimeoutException | IllegalArgumentException e) {

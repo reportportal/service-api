@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
@@ -57,6 +58,8 @@ import static com.epam.ta.reportportal.commons.Preconditions.NOT_EMPTY_COLLECTIO
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.database.entity.Status.PASSED;
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.doesHaveUser;
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -238,7 +241,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		String launchOwner = launch.getUserRef();
 		if (userRepository.findOne(userName).getRole() != UserRole.ADMINISTRATOR) {
 			expect(projectName, equalTo(project.getName())).verify(ACCESS_DENIED);
-			if (project.getUsers().containsKey(userName) && project.getUsers().get(userName).getProjectRole().getRoleLevel() < 2) {
+			if (doesHaveUser(project, userName) && findUserConfigByLogin(project, userName).getProjectRole()
+					.lowerThan(ProjectRole.PROJECT_MANAGER)) {
 				expect(userName, equalTo(launchOwner)).verify(ACCESS_DENIED);
 			}
 		}

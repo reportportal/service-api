@@ -26,6 +26,8 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
+import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 
@@ -63,6 +65,15 @@ public interface IWidgetController {
 	 * @throws ReportPortalException
 	 */
 	WidgetResource getWidget(String projectName, String widgetId, Principal principal);
+
+	/**
+	 * Get content for building preview while creating widget
+	 *
+	 * @param previewRQ   Widget parameters
+	 * @param projectName Project name
+	 * @return Content
+	 */
+	Map<String, List<ChartObject>> getWidgetPreview(String projectName, WidgetPreviewRQ previewRQ, Principal principal);
 
 	/**
 	 * Update widget with specified id

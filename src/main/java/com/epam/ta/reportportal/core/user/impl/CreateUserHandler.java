@@ -56,7 +56,6 @@ import org.springframework.stereotype.Service;
 import javax.inject.Provider;
 import java.security.Principal;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static com.epam.reportportal.commons.Safe.safe;
@@ -64,8 +63,8 @@ import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.CUSTOMER;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.forName;
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -77,7 +76,6 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 public class CreateUserHandler implements ICreateUserHandler {
 
 	static final HashFunction HASH_FUNCTION = Hashing.md5();
-
 
 	private UserRepository userRepository;
 	private ProjectRepository projectRepository;
@@ -121,8 +119,8 @@ public class CreateUserHandler implements ICreateUserHandler {
 		expect(userRepository.exists(newUsername), equalTo(false))
 				.verify(USER_ALREADY_EXISTS, formattedSupplier("login='{}'", newUsername));
 
-		expect(newUsername, Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
-				formattedSupplier("Username '{}' consists only of special characters", newUsername));
+		expect(newUsername, Predicates.SPECIAL_CHARS_ONLY.negate())
+				.verify(ErrorType.INCORRECT_REQUEST, formattedSupplier("Username '{}' consists only of special characters", newUsername));
 
 		String projectName = EntityUtils.normalizeId(request.getDefaultProject());
 		Project defaultProject = projectRepository.findOne(projectName);
@@ -145,9 +143,10 @@ public class CreateUserHandler implements ICreateUserHandler {
 		Optional<ProjectRole> projectRole = forName(request.getProjectRole());
 		expect(projectRole, Preconditions.IS_PRESENT).verify(ROLE_NOT_FOUND, request.getProjectRole());
 
-		Map<String, UserConfig> projectUsers = defaultProject.getUsers();
+		List<UserConfig> projectUsers = defaultProject.getUsers();
 		//noinspection ConstantConditions
-		projectUsers.put(user.getId(), UserConfig.newOne().withProjectRole(projectRole.get()).withProposedRole(projectRole.get()));
+		projectUsers
+				.add(UserConfig.newOne().withProjectRole(projectRole.get()).withProposedRole(projectRole.get()).withLogin(user.getId()));
 		defaultProject.setUsers(projectUsers);
 
 		CreateUserRS response = new CreateUserRS();
@@ -164,8 +163,8 @@ public class CreateUserHandler implements ICreateUserHandler {
 				projectRepository.save(personalProject);
 			}
 
-			safe(() -> emailServiceFactory.getDefaultEmailService(true)
-					.sendCreateUserConfirmationEmail(request, basicUrl), e -> response.setWarning(e.getMessage()));
+			safe(() -> emailServiceFactory.getDefaultEmailService(true).sendCreateUserConfirmationEmail(request, basicUrl),
+					e -> response.setWarning(e.getMessage()));
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {
@@ -180,8 +179,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 	@Override
 	public CreateUserBidRS createUserBid(CreateUserRQ request, Principal principal, String emailURL) {
-		EmailService emailService = emailServiceFactory
-				.getDefaultEmailService(true);
+		EmailService emailService = emailServiceFactory.getDefaultEmailService(true);
 
 		User creator = userRepository.findOne(principal.getName());
 		expect(creator, notNull()).verify(ACCESS_DENIED);
@@ -195,7 +193,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		Project defaultProject = projectRepository.findOne(EntityUtils.normalizeId(request.getDefaultProject()));
 
 		expect(defaultProject, notNull()).verify(PROJECT_NOT_FOUND, request.getDefaultProject());
-		UserConfig userConfig = defaultProject.getUsers().get(principal.getName());
+		UserConfig userConfig = findUserConfigByLogin(defaultProject, principal.getName());
 		List<Project> projects = projectRepository.findUserProjects(principal.getName());
 		expect(defaultProject, not(in(projects))).verify(ACCESS_DENIED);
 
@@ -204,10 +202,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 		// FIXME move to controller level
 		if (creator.getRole() != UserRole.ADMINISTRATOR) {
-			int creatorProjectRoleLevel = userConfig.getProjectRole().getRoleLevel();
-			//noinspection ConstantConditions
-			int newUserProjectRoleLevel = role.get().getRoleLevel();
-			expect(creatorProjectRoleLevel >= newUserProjectRoleLevel, equalTo(Boolean.TRUE)).verify(ACCESS_DENIED);
+			expect(userConfig.getProjectRole().sameOrHigherThan(role.get()), equalTo(Boolean.TRUE)).verify(ACCESS_DENIED);
 		}
 
 		UserCreationBid bid = UserCreationBidConverter.TO_USER.apply(request);
@@ -221,7 +216,8 @@ public class CreateUserHandler implements ICreateUserHandler {
 		try {
 			emailLink.append("/ui/#registration?uuid=");
 			emailLink.append(bid.getId());
-			emailService.sendCreateUserConfirmationEmail("User registration confirmation", new String[] { bid.getEmail() }, emailLink.toString());
+			emailService.sendCreateUserConfirmationEmail("User registration confirmation", new String[] { bid.getEmail() },
+					emailLink.toString());
 		} catch (Exception e) {
 			fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
 					formattedSupplier("Unable to send email for bid '{}'." + e.getMessage(), bid.getId()));
@@ -265,14 +261,16 @@ public class CreateUserHandler implements ICreateUserHandler {
 		Optional<ProjectRole> projectRole = forName(bid.getRole());
 		expect(projectRole, Preconditions.IS_PRESENT).verify(ROLE_NOT_FOUND, bid.getRole());
 
-		Map<String, UserConfig> projectUsers = defaultProject.getUsers();
-		//noinspection ConstantConditions
-		if (projectRole.get().equals(CUSTOMER)) {
-			projectUsers.put(user.getId(), UserConfig.newOne().withProjectRole(CUSTOMER).withProposedRole(CUSTOMER));
-		} else {
-			//noinspection ConstantConditions
-			projectUsers.put(user.getId(), UserConfig.newOne().withProjectRole(projectRole.get()).withProposedRole(projectRole.get()));
-		}
+		List<UserConfig> projectUsers = defaultProject.getUsers();
+
+		//@formatter:off
+		projectUsers
+				.add(UserConfig.newOne()
+						.withProjectRole(projectRole.get())
+						.withProposedRole(projectRole.get())
+						.withLogin(user.getId()));
+		//@formatter:on
+
 		defaultProject.setUsers(projectUsers);
 
 		try {

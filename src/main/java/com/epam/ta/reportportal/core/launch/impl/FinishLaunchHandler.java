@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.events.LaunchFinishForcedEvent;
 import com.epam.ta.reportportal.events.LaunchFinishedEvent;
@@ -40,7 +41,8 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.google.common.collect.Lists;
+import com.google.common.base.Strings;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -54,7 +56,6 @@ import static com.epam.ta.reportportal.commons.Preconditions.hasProjectRoles;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.LEAD;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.database.entity.Status.*;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
@@ -100,6 +101,13 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		Project project = validateRoles(launch, username, projectName);
 
 		launch.setEndTime(finishLaunchRQ.getEndTime());
+		if (!Strings.isNullOrEmpty(finishLaunchRQ.getDescription())) {
+			launch.setDescription(finishLaunchRQ.getDescription());
+		}
+		if (!CollectionUtils.isEmpty(finishLaunchRQ.getTags())) {
+			launch.setTags(finishLaunchRQ.getTags());
+		}
+
 		Optional<Status> status = fromValue(finishLaunchRQ.getStatus());
 		status.ifPresent(providedStatus -> {
 			/* Validate provided status */
@@ -204,10 +212,10 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
 			expect(launch.getProjectRef(), equalTo(projectName)).verify(ACCESS_DENIED);
 			/*
-			 * Only LEAD and PROJECT_MANAGER roles could delete launches
+			 * Only PROJECT_MANAGER roles could delete launches
 			 */
-			UserConfig userConfig = project.getUsers().get(user.getId());
-			expect(userConfig, hasProjectRoles(Lists.newArrayList(PROJECT_MANAGER, LEAD))).verify(ACCESS_DENIED);
+			UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, user.getId());
+			expect(userConfig, hasProjectRoles(Collections.singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
 		}
 		return project;
 	}

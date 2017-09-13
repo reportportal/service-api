@@ -59,37 +59,38 @@ public class TestBasedDemoDataFacade extends DemoDataCommonService implements De
 
     private List<String> generateLaunches(DemoDataRq rq, Map<String, Map<String, List<String>>> storiesStructure,
                                           String user, String project) {
-        return IntStream.range(0, rq.getLaunchesQuantity()).mapToObj(launchRunCount -> {
-            String launchId = startLaunch(NAME + "_" + rq.getPostfix(), launchRunCount, project, user);
+        return IntStream.range(0, rq.getLaunchesQuantity()).mapToObj(i -> {
+            String launchId = startLaunch(NAME + "_" + rq.getPostfix(), i, project, user);
 
             boolean hasBeforeAfterStories = ContentUtils.getWithProbability(STORY_PROBABILITY);
             if (hasBeforeAfterStories) {
                 finishRootItem(
-                        startRootItem("BeforeStories", launchId, STORY).getId());
+                        startRootItem("BeforeStories", launchId, STORY, project).getId());
             }
-            generateStories(storiesStructure, launchRunCount, launchId, project);
+            generateStories(storiesStructure, i, launchId, project);
             if (hasBeforeAfterStories) {
                 finishRootItem(
-                        startRootItem("AfterStories", launchId, STORY).getId());
+                        startRootItem("AfterStories", launchId, STORY, project).getId());
             }
             finishLaunch(launchId);
             return launchId;
         }).collect(toList());
     }
 
-    private List<String> generateStories(Map<String, Map<String, List<String>>> storiesStructure, int launchRunCount,
+    private List<String> generateStories(Map<String, Map<String, List<String>>> storiesStructure, int i,
                                          String launchId, String project) {
-        List<String> stories = storiesStructure.entrySet().stream().limit(launchRunCount + 1).map(story -> {
-            TestItem storyItem = startRootItem(story.getKey(), launchId, STORY);
+        List<String> stories = storiesStructure.entrySet().stream().limit(i + 1).map(story -> {
+            TestItem storyItem = startRootItem(story.getKey(), launchId, STORY, project);
             story.getValue().entrySet().forEach(scenario -> {
                 if (ContentUtils.getWithProbability(STORY_PROBABILITY)) {
                     finishTestItem(
-                            startTestItem(storyItem, launchId, "beforeScenario", SCENARIO).getId(), status(), strategy);
+                            startTestItem(storyItem, launchId, "beforeScenario", SCENARIO, project).getId(),
+                            status(), strategy);
                 }
-                TestItem scenarioItem = startTestItem(storyItem, launchId, scenario.getKey(), SCENARIO);
+                TestItem scenarioItem = startTestItem(storyItem, launchId, scenario.getKey(), SCENARIO, project);
                 boolean isFailed = false;
                 for (String step : scenario.getValue()) {
-                    TestItem stepItem = startTestItem(scenarioItem, launchId, step, STEP);
+                    TestItem stepItem = startTestItem(scenarioItem, launchId, step, STEP, project);
                     String status;
                     if (isFailed) {
                         status = SKIPPED.name();
@@ -105,7 +106,7 @@ public class TestBasedDemoDataFacade extends DemoDataCommonService implements De
                 finishTestItem(scenarioItem.getId(), isFailed ? FAILED.name() : PASSED.name(), strategy);
                 if (ContentUtils.getWithProbability(STORY_PROBABILITY)) {
                     finishTestItem(
-                            startTestItem(storyItem, launchId, "afterScenario", SCENARIO).getId(), status(), strategy);
+                            startTestItem(storyItem, launchId, "afterScenario", SCENARIO, project).getId(), status(), strategy);
                 }
             });
             finishRootItem(storyItem.getId());
@@ -124,12 +125,12 @@ public class TestBasedDemoDataFacade extends DemoDataCommonService implements De
      * @return story id
      */
     private String generateCustomStory(String launchId, String project) {
-        TestItem outerStory = startRootItem("Complex story with given inner story", launchId, STORY);
-        TestItem innerStory = startTestItem(outerStory, launchId, "Given Story", STORY);
-        TestItem innerScenario = startTestItem(innerStory, launchId, "A given story scenario", SCENARIO);
-        TestItem innerStep = startTestItem(innerScenario, launchId, "Today has 'a' and 'y' in its name", STEP);
-        TestItem outerScenario = startTestItem(outerStory, launchId, "Simple Scenario", SCENARIO);
-        TestItem outerStep = startTestItem(outerScenario, launchId, "Simple Step", STEP);
+        TestItem outerStory = startRootItem("Complex story with given inner story", launchId, STORY, project);
+        TestItem innerStory = startTestItem(outerStory, launchId, "Given Story", STORY, project);
+        TestItem innerScenario = startTestItem(innerStory, launchId, "A given story scenario", SCENARIO, project);
+        TestItem innerStep = startTestItem(innerScenario, launchId, "Today has 'a' and 'y' in its name", STEP, project);
+        TestItem outerScenario = startTestItem(outerStory, launchId, "Simple Scenario", SCENARIO, project);
+        TestItem outerStep = startTestItem(outerScenario, launchId, "Simple Step", STEP, project);
         logDemoDataService.generateDemoLogs(innerStep.getId(), PASSED.name(), project);
         logDemoDataService.generateDemoLogs(outerStep.getId(), FAILED.name(), project);
         finishTestItem(outerStep.getId(), FAILED.name(), strategy);

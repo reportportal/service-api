@@ -1,6 +1,12 @@
 language: java
 
+dist: trusty
+sudo: required
 script: ./gradlew build --stacktrace
+
+env:
+  global:
+    - GRADLE_OPTS="-Xms128m -Xmx1g"
 
 jdk:
   - oraclejdk8

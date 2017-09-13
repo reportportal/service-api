@@ -48,7 +48,7 @@ public class ActivityContentLoader implements IContentLoadingStrategy {
 	private ActivityRepository activityRepository;
 
 	@Override
-	public Map<String, List<ChartObject>> loadContent(Filter filter, Sort sorting, int quantity, List<String> contentFields,
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
 			List<String> metaDataFields, Map<String, List<String>> options) {
 		ActivityDocumentHandler activityDocumentHandler = new ActivityDocumentHandler();
 		List<String> fields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();

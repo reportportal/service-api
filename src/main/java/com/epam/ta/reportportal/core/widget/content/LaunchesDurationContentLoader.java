@@ -47,7 +47,7 @@ public class LaunchesDurationContentLoader extends StatisticBasedContentLoader i
 	private LaunchRepository launchRepository;
 
 	@Override
-	public Map<String, List<ChartObject>> loadContent(Filter filter, Sort sorting, int quantity, List<String> contentFields,
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
 			List<String> metaDataFields, Map<String, List<String>> options) {
 
 		if (filter.getTarget().equals(TestItem.class)) {
@@ -57,7 +57,11 @@ public class LaunchesDurationContentLoader extends StatisticBasedContentLoader i
 		String collectionName = getCollectionName(filter.getTarget());
 		List<String> chartFields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
 		LaunchesDurationDocumentHandler documentHandler = new LaunchesDurationDocumentHandler();
-		launchRepository.loadWithCallback(filter, sorting, quantity, chartFields, documentHandler, collectionName);
+        if (options.containsKey(LATEST_MODE)) {
+            launchRepository.findLatestWithCallback(filter, sorting, contentFields, quantity, documentHandler);
+        } else {
+            launchRepository.loadWithCallback(filter, sorting, quantity, chartFields, documentHandler, collectionName);
+        }
 		return Collections.singletonMap(RESULT, documentHandler.getResult());
 	}
 }

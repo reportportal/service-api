@@ -30,6 +30,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.doesHaveUser;
+
 @SpringFixture("removeUserTest")
 public class ProjectRepositoryTest extends BaseTest {
 
@@ -45,7 +47,8 @@ public class ProjectRepositoryTest extends BaseTest {
 		projectRepository.removeUserFromProjects("user1");
 		Project project1 = projectRepository.findOne("project1");
 		Project project2 = projectRepository.findOne("project2");
-		Assert.assertFalse(project1.getUsers().containsKey("user1"));
-		Assert.assertFalse(project2.getUsers().containsKey("user1"));
+
+		Assert.assertFalse(doesHaveUser(project1, "user1"));
+		Assert.assertFalse(doesHaveUser(project2, "user1"));
 	}
 }

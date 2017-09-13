@@ -38,6 +38,8 @@ import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
+import com.google.common.base.Strings;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -120,7 +122,12 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	public OperationCompletionRS finishTestItem(String testItemId, FinishTestItemRQ finishExecutionRQ, String username) {
 		TestItem testItem = verifyTestItem(testItemId, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()));
 		testItem.setEndTime(finishExecutionRQ.getEndTime());
-
+		if (!Strings.isNullOrEmpty(finishExecutionRQ.getDescription())) {
+			testItem.setItemDescription(finishExecutionRQ.getDescription());
+		}
+		if (!CollectionUtils.isEmpty(finishExecutionRQ.getTags())) {
+			testItem.setTags(finishExecutionRQ.getTags());
+		}
 		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
 		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, testItem.getLaunchRef());
 		if (!launch.getUserRef().equalsIgnoreCase(username))

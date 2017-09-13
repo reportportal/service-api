@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
+import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.events.LaunchDeletedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -43,7 +44,6 @@ import static com.epam.ta.reportportal.commons.Preconditions.hasProjectRoles;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.LEAD;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -112,9 +112,9 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId()));
 
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
-			/* Only LEAD and PROJECT_MANAGER roles could delete launches */
-			UserConfig userConfig = project.getUsers().get(user.getId());
-			expect(userConfig, hasProjectRoles(asList(PROJECT_MANAGER, LEAD))).verify(ACCESS_DENIED);
+			/* Only PROJECT_MANAGER roles could delete launches */
+			UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, user.getId());
+			expect(userConfig, hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
 		}
 	}
 }

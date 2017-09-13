@@ -52,6 +52,7 @@ import springfox.documentation.annotations.ApiIgnore;
 import java.security.Principal;
 import java.util.List;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -91,6 +92,7 @@ public class TestItemController implements ITestItemController {
     @ResponseBody
     @ResponseStatus(CREATED)
     @ApiOperation("Start a root test item")
+    @PreAuthorize(ALLOWED_TO_REPORT)
     public EntryCreatedRS startRootItem(@PathVariable String projectName, @RequestBody @Validated StartTestItemRQ startTestItemRQ,
                                         Principal principal) {
         return startTestItemHandler.startRootItem(projectName, startTestItemRQ);
@@ -101,9 +103,10 @@ public class TestItemController implements ITestItemController {
     @ResponseBody
     @ResponseStatus(CREATED)
     @ApiOperation("Start a child test item")
+    @PreAuthorize(ALLOWED_TO_REPORT)
     public EntryCreatedRS startChildItem(@PathVariable String projectName, @PathVariable String parentItem,
                                          @RequestBody @Validated StartTestItemRQ startTestItemRQ, Principal principal) {
-        return startTestItemHandler.startChildItem(startTestItemRQ, parentItem);
+        return startTestItemHandler.startChildItem(projectName, startTestItemRQ, parentItem);
     }
 
     @Override
@@ -111,6 +114,7 @@ public class TestItemController implements ITestItemController {
     @ResponseBody
     @ResponseStatus(OK)
     @ApiOperation("Finish test item")
+    @PreAuthorize(ALLOWED_TO_REPORT)
     public OperationCompletionRS finishTestItem(@PathVariable String projectName, @PathVariable String testItemId,
                                                 @RequestBody @Validated FinishTestItemRQ finishExecutionRQ, Principal principal) {
         return finishTestItemHandler.finishTestItem(testItemId, finishExecutionRQ, principal.getName());

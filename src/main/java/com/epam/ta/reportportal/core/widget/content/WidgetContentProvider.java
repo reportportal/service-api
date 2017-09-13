@@ -35,6 +35,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Function;
 
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -62,6 +63,8 @@ public class WidgetContentProvider {
 	@Qualifier("contentLoader")
 	private Map<GadgetTypes, IContentLoadingStrategy> contentLoader;
 
+	public static final Function<String, String> TO_UI_STYLE = db -> db.replace('.', '$');
+
 	/**
 	 * Load content according input parameters
 	 *
@@ -69,7 +72,7 @@ public class WidgetContentProvider {
 	 * @param selectionOptions
 	 * @param options
 	 */
-	public Map<String, List<ChartObject>> getChartContent(Filter filter, SelectionOptions selectionOptions, ContentOptions options) {
+	public Map<String, List<ChartObject>> getChartContent(String projectName, Filter filter, SelectionOptions selectionOptions, ContentOptions options) {
 
 		boolean revertResult = false;
 
@@ -103,8 +106,7 @@ public class WidgetContentProvider {
 		expect(loadingStrategy, notNull()).verify(UNABLE_LOAD_WIDGET_CONTENT,
 				Suppliers.formattedSupplier("Unknown gadget type: '{}'.", options.getGadgetType()));
 		Map<String, List<String>> widgetOptions = null == options.getWidgetOptions() ? new HashMap<>() : options.getWidgetOptions();
-		result = loadingStrategy.loadContent(filter, sort, options.getItemsCount(), contentFields, metaDataFields, widgetOptions);
-
+        result = loadingStrategy.loadContent(projectName, filter, sort, options.getItemsCount(), contentFields, metaDataFields, widgetOptions);
 		if (null != options.getContentFields()) {
 			result = transformToFilterStyle(criteriaMap, result, options.getContentFields());
 			result = transformNamesForUI(result);

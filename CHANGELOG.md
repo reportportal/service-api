@@ -92,8 +92,8 @@
 * EPMRPP-25255 - Personal projects have TEST_BASES calculation strategy (BDD) instead of STEP_BASED (regular)
 
 
-## 3.1.x
-##### Released: Apr XXX, 2017
+## 3.1.0
+##### Released: Aug 5, 2017
 
 ### New Features
 
@@ -102,6 +102,10 @@
 * EPMRPP-12090 - Implemented deep launches merge
 * EPMRPP-26010 - Implemented Passing rate widget
 * EPMRPP-26021 - Hash for unique instance generating by server
+* reportportal#176/EPMRPP-26045 - Split Test Description and test parameters
+* EPMRPP-26131 - Unique id for test item based on items' names, parameters, launch name, project name
+* EPMRPP-26263 - Implemented latest launches view
+* EPMRPP-26394 - JIRA issue with empty set of fields for post bug form
 
 ### Bugfixes
 
@@ -123,5 +127,40 @@
 * EPMRPP-26020 - 500 error on attempt to delete not existed widget
 * EPMRPP-23553 - Verify API methods against last updates/changes
 * EPMRPP-26393 - Launches are not filtered by start time correctly
+* EPMRPP-29167 - Statistics for deleted elements with custom defect types are still present
 * reportportal/reportportal#200 - Droid Sans fonts no longer supported by debian
 * reportportal/reportportal#201 - Avoid CPU consumption on huge logs during auto-analysis
+* reportportal/reportportal#12, reportportal/reportportal#65 - LDAP Authorization
+* reportportal/reportportal#208 - Introduce new project role that is not allowed to report
+
+
+## 3.2
+##### Released: Aug XXX, 2017
+
+### New Features
+
+* EPMRPP-26416 - Add possibility to use a 'dot' symbol in login of user
+* EPMRPP-26263 - Implemented latest launches view
+* EPMRPP-29222 - Introduce LDAP authorization
+
+### Bugfixes
+* reportportal/reportportal#170 - Test run breaks with unclassified error (jbehave) #170
+* reportportal#176/EPMRPP-26045 - Split Test Description and test parameters
+* EPMRPP-29167 - Statistics for deleted elements with custom defect types are still present
+* EPMRPP-26131 - Unique id for test item based on items' names, parameters, launch name, project name
+* EPMRPP-26263 - Implemented latest launches view
+* EPMRPP-26394 - JIRA issue with empty set of fields for post bug form
+* EPMRPP-29345 - Description and tags are not applied in case they were specified on finishLaunch
+* EPMRPP-29361 - No content of "Overall statistics" widget created for Demo DataUI
+* EPMRPP-29405 - WS: Widget with Latest launches=ON includes launches from Debug
+* EPMRPP-29337 - Widgets with Latest Launches ON include statistics for launches with In Progress status
+
+
+## 3.3
+##### Released: XXX XX, 2017
+
+### New Features
+
+* EPMRPP-29218 - Events monitoring
+* EPMRPP-26551 - Widget product status
+* reportportal/reportporatl#236 - Drop Redis

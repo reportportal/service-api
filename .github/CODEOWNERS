@@ -11,4 +11,4 @@
 # and not the global owner(s) will be requested for a review.
 #*.js    @js-owner
 
-src/main/java/com/epam/ta/reportportal/core/imprt/*  pictureb00k
+src/main/java/com/epam/ta/reportportal/core/imprt/*  @pictureb00k

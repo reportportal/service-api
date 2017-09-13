@@ -27,6 +27,7 @@ package com.epam.ta.reportportal.ws.converter.builders;
  * @param <T>
  * @author Andrei Varabyeu
  */
+@Deprecated
 public abstract class Builder<T> {
 
     private T object;

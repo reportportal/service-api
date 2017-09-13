@@ -24,7 +24,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.project.EntryType;
 import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -38,7 +38,8 @@ public class ProjectInfoConverterTest {
     @Test
     public void testConvert() {
         Project project = new Project();
-        project.setUsers(ImmutableMap.<String, Project.UserConfig>builder().put("", new Project.UserConfig()).build());
+        project.setUsers(ImmutableList.<Project.UserConfig>builder().add(Project.UserConfig.newOne().withLogin(""))
+                .build());
         project.setCreationDate(new Date());
         ProjectInfoResource resource = ProjectInfoConverter.TO_RESOURCE.apply(project);
         Assert.assertTrue(resource.getUsersQuantity() == project.getUsers().size());

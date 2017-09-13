@@ -17,21 +17,12 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.externalsystem.handler.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-
-import java.util.List;
-
 import com.epam.ta.reportportal.core.externalsystem.ExternalSystemStrategy;
 import com.epam.ta.reportportal.core.externalsystem.StrategyProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.externalsystem.handler.IGetTicketHandler;
 import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
@@ -39,26 +30,39 @@ import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.model.ErrorType.EXTERNAL_SYSTEM_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_CONFIGURED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 
 /**
  * Default implementation of {@link IGetTicketHandler}
- * 
+ *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
  */
 @Service
 public class GetTicketHandler implements IGetTicketHandler {
 
-	@Autowired
-	private StrategyProvider strategyProvider;
+	private final StrategyProvider strategyProvider;
+	private final ProjectRepository projectRepository;
+	private final ExternalSystemRepository externalSystemRepository;
 
-	@Autowired
-	private ProjectRepository projectRepository;
+    @Autowired
+    public GetTicketHandler(StrategyProvider strategyProvider, ProjectRepository projectRepository,
+            ExternalSystemRepository externalSystemRepository) {
+        this.strategyProvider = strategyProvider;
+        this.projectRepository = projectRepository;
+        this.externalSystemRepository = externalSystemRepository;
+    }
 
-	@Autowired
-	private ExternalSystemRepository externalSystemRepository;
-
-	@Override
+    @Override
 	public Ticket getTicket(String ticketId, String projectName, String systemId) {
 		Project project = projectRepository.findOne(projectName);
 		// Project validated on controller level
@@ -73,11 +77,27 @@ public class GetTicketHandler implements IGetTicketHandler {
 
 	@Override
 	public List<PostFormField> getSubmitTicketFields(String ticketType, String projectName, String systemId) {
-		Project project = projectRepository.findOne(projectName);
-		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
-		ExternalSystem system = externalSystemRepository.findOne(systemId);
-		expect(system, notNull()).verify(EXTERNAL_SYSTEM_NOT_FOUND, systemId);
+		validateProject(projectName);
+        ExternalSystem system = validateExternalSystem(systemId);
 		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name());
 		return externalSystemStrategy.getTicketFields(ticketType, system);
 	}
+
+    @Override
+    public List<String> getAllowableIssueTypes(String projectName, String systemId) {
+        validateProject(projectName);
+        ExternalSystem system = validateExternalSystem(systemId);
+        ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name());
+        return externalSystemStrategy.getIssueTypes(system);
+    }
+
+    private void validateProject(String projectName) {
+        expect(projectRepository.exists(projectName), exists -> exists).verify(PROJECT_NOT_FOUND, projectName);
+    }
+
+    private ExternalSystem validateExternalSystem(String systemId) {
+        ExternalSystem system = externalSystemRepository.findOne(systemId);
+        expect(system, notNull()).verify(EXTERNAL_SYSTEM_NOT_FOUND, systemId);
+        return system;
+    }
 }

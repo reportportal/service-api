@@ -35,6 +35,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -43,7 +45,7 @@ import java.util.Optional;
 import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toDate;
 import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toMillis;
 
-public class JunitImportHandler extends DefaultHandler {
+public class XunitImportHandler extends DefaultHandler {
 
     @Autowired
     private StartTestItemHandler startTestItemHandler;
@@ -86,14 +88,14 @@ public class JunitImportHandler extends DefaultHandler {
 
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-        switch (JunitReportTag.fromString(qName)) {
+        switch (XunitReportTag.fromString(qName)) {
             case TESTSUITE:
-                startRootItem(attributes.getValue(JunitReportTag.ATTR_NAME.getValue()),
-                        attributes.getValue(JunitReportTag.TIMESTAMP.getValue()));
+                startRootItem(attributes.getValue(XunitReportTag.ATTR_NAME.getValue()),
+                        attributes.getValue(XunitReportTag.TIMESTAMP.getValue()));
                 break;
             case TESTCASE:
-                startTestItem(attributes.getValue(JunitReportTag.ATTR_NAME.getValue()),
-                        attributes.getValue(JunitReportTag.ATTR_TIME.getValue()));
+                startTestItem(attributes.getValue(XunitReportTag.ATTR_NAME.getValue()),
+                        attributes.getValue(XunitReportTag.ATTR_TIME.getValue()));
                 break;
             case FAILURE:
                 message = new StringBuilder();
@@ -111,7 +113,7 @@ public class JunitImportHandler extends DefaultHandler {
 
     @Override
     public void endElement(String uri, String localName, String qName) throws SAXException {
-        switch (JunitReportTag.fromString(qName)) {
+        switch (XunitReportTag.fromString(qName)) {
             case TESTSUITE:
                 finishRootItem();
                 break;
@@ -141,7 +143,11 @@ public class JunitImportHandler extends DefaultHandler {
 
     private void startRootItem(String name, String timestamp) {
         if (null != timestamp) {
-            startItemTime = LocalDateTime.parse(timestamp);
+            DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                    .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                    .optionalStart().appendZoneId().optionalEnd()
+                    .toFormatter();
+            startItemTime = LocalDateTime.parse(timestamp, formatter);
             if (startSuiteTime.isAfter(startItemTime)) {
                 startSuiteTime = LocalDateTime.of(startItemTime.toLocalDate(), startItemTime.toLocalTime());
             }
@@ -163,7 +169,7 @@ public class JunitImportHandler extends DefaultHandler {
         rq.setStartTime(toDate(startItemTime));
         rq.setType(TestItemType.STEP.name());
         rq.setName(name);
-        String id = startTestItemHandler.startChildItem(rq, itemsIds.peekLast()).getId();
+        String id = startTestItemHandler.startChildItem(projectId, rq, itemsIds.peekLast()).getId();
         currentDuration = toMillis(duration);
         itemsIds.push(id);
     }
@@ -209,7 +215,7 @@ public class JunitImportHandler extends DefaultHandler {
         }
     }
 
-    JunitImportHandler withParameters(String projectId, String launchId, String user) {
+    XunitImportHandler withParameters(String projectId, String launchId, String user) {
         this.projectId = projectId;
         this.launchId = launchId;
         this.userName = user;

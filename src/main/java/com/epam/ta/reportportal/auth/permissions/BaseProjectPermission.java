@@ -21,17 +21,19 @@
 
 package com.epam.ta.reportportal.auth.permissions;
 
-import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 
 import javax.inject.Provider;
 import javax.validation.constraints.NotNull;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 
 /**
  * Base logic for project-related permissions. Validates project exists and
@@ -63,7 +65,8 @@ abstract class BaseProjectPermission implements Permission {
 		Project p = projectRepository.get().findOne(project);
 		BusinessRule.expect(p, Predicates.notNull()).verify(ErrorType.PROJECT_NOT_FOUND, project);
 
-		BusinessRule.expect(p.getUsers(), Preconditions.containsKey(authentication.getName())).verify(ErrorType.ACCESS_DENIED);
+		BusinessRule.expect(ProjectUtils.doesHaveUser(p, authentication.getName()), equalTo(true))
+				.verify(ErrorType.ACCESS_DENIED);
 		return checkAllowed(authentication, p);
 	}
 

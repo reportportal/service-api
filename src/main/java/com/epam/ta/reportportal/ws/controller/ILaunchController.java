@@ -38,12 +38,9 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.BulkRQ;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
+import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
@@ -138,11 +135,13 @@ public interface ILaunchController {
 	 *
 	 * @param login
 	 * @param filter
-	 * @param pageble
+	 * @param pageable
 	 * @param principal
 	 * @return
 	 */
-	Iterable<LaunchResource> getDebugLaunches(String login, Filter filter, Pageable pageble, Principal principal);
+	Iterable<LaunchResource> getDebugLaunches(String login, Filter filter, Pageable pageable, Principal principal);
+
+	Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable);
 
 	/**
 	 * Get launch tags of specified project by value (auto-complete)
@@ -205,7 +204,7 @@ public interface ILaunchController {
 	 * @param principal
 	 * @return
 	 */
-	LaunchResource mergeLaunches(String projectName, DeepMergeLaunchesRQ mergeLaunchesRQ, Principal principal);
+	LaunchResource mergeLaunches(String projectName, MergeLaunchesRQ mergeLaunchesRQ, Principal principal);
 
 	/**
 	 * Start auto-analyzer for specified launch
@@ -231,10 +230,20 @@ public interface ILaunchController {
 	 */
 	Map<String, String> getStatuses(String projectName, String[] ids, Principal principal);
 
+    /**
+     * Imports test results of zip archive with xml reports inside
+     *
+     * @param projectId
+     * @param file
+     * @param principal
+     * @return
+     */
+    OperationCompletionRS importLaunch(String projectId, MultipartFile file, Principal principal);
+
 	void getLaunchReport(String projectName, String launchId, String view, Principal principal, HttpServletResponse response)
 			throws IOException;
 
 	OperationCompletionRS deleteLaunches(String projectName, String[] ids, Principal principal);
 
-	OperationCompletionRS importLaunch(String projectId, MultipartFile file, Principal principal) throws IOException;
+
 }

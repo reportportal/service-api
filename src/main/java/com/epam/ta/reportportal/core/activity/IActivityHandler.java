@@ -17,20 +17,20 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.core.activity;
-
-import java.util.List;
-
-import org.springframework.data.domain.Pageable;
 
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
+import com.epam.ta.reportportal.ws.model.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 /**
  * Define operations for loading activities
- * 
+ *
  * @author Dzmitry_Kavalets
  */
 public interface IActivityHandler {
@@ -39,20 +39,20 @@ public interface IActivityHandler {
 	 * Load list of {@link com.epam.ta.reportportal.ws.model.ActivityResource}
 	 * for specified
 	 * {@link com.epam.ta.reportportal.database.entity.item.TestItem}
-	 * 
-	 * @param projectName
-	 * @param filter
-	 * @param pageable
-	 * @return
+	 *
+	 * @param projectName Name of project
+	 * @param filter      Filter
+	 * @param pageable    Page Details
+	 * @return Found activities
 	 */
 	List<ActivityResource> getActivitiesHistory(String projectName, Filter filter, Pageable pageable);
 
 	/**
 	 * Load {@link com.epam.ta.reportportal.ws.model.ActivityResource}
-	 * 
-	 * @param projectName
-	 * @param activityId
-	 * @return
+	 *
+	 * @param projectName Name of project
+	 * @param activityId  ID of activity
+	 * @return Found Activity or NOT FOUND exception
 	 */
 	ActivityResource getActivity(String projectName, String activityId);
 
@@ -60,13 +60,25 @@ public interface IActivityHandler {
 	 * Load list of {@link com.epam.ta.reportportal.ws.model.ActivityResource}
 	 * for specified
 	 * {@link com.epam.ta.reportportal.database.entity.item.TestItem}
-	 * 
-	 * @param projectName
-	 * @param itemId
-	 * @param filter
-	 * @param pageable
-	 * @return
+	 *
+	 * @param projectName Name of project
+	 * @param itemId      ID of test item
+	 * @param filter      Filter
+	 * @param pageable    Page Details
+	 * @return Found activities
 	 */
 	List<ActivityResource> getItemActivities(String projectName, String itemId, Filter filter, Pageable pageable);
+
+	/**
+	 * Load list of {@link com.epam.ta.reportportal.ws.model.ActivityResource}
+	 * for specified
+	 * {@link com.epam.ta.reportportal.database.entity.Project}
+	 *
+	 * @param projectName Name of project
+	 * @param filter      Filter
+	 * @param pageable    Page Details
+	 * @return Found activities
+	 */
+	Page<ActivityResource> getItemActivities(String projectName, Filter filter, Pageable pageable);
 
 }

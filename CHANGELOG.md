@@ -164,3 +164,8 @@
 * EPMRPP-29218 - Events monitoring
 * EPMRPP-26551 - Widget product status
 * reportportal/reportporatl#236 - Drop Redis
+* EPMRPP-29378 - Comulative ternd chart
+
+### Bugfixes
+
+* EPMRPP-29635 - Cumulative trend chart: Sorting bug

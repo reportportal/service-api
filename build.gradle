@@ -121,7 +121,7 @@ dependencies {
     compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.7.0'
     compile group: 'io.springfox', name: 'springfox-swagger2', version: '2.7.0'
 
-    compile 'com.google.guava:guava:21.0'
+    compile 'com.google.guava:guava:23.0'
 
     api 'org.jacoco:org.jacoco.agent:0.7.7.201606060606'
 

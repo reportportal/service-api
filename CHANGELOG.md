@@ -169,3 +169,4 @@
 ### Bugfixes
 
 * EPMRPP-29635 - Cumulative trend chart: Sorting bug
+* EPMRPP-29701: Tag prefix should be fully matched with the searched value

@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
+import com.epam.ta.reportportal.core.widget.impl.WidgetUtils;
 import com.epam.ta.reportportal.database.StatisticsDocumentHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
@@ -66,7 +67,9 @@ public class BugTrendChartContentLoader extends StatisticBasedContentLoader impl
             launchRepository.loadWithCallback(filter, sorting, quantity, allFields, statisticsDocumentHandler, COLLECTION_NAME);
         }
 		List<ChartObject> result = statisticsDocumentHandler.getResult();
-
+		if (WidgetUtils.needRevert(sorting)) {
+			Collections.reverse(result);
+		}
 		return assembleWidgetData(result);
 	}
 

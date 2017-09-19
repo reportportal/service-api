@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
+import com.epam.ta.reportportal.core.widget.impl.WidgetUtils;
 import com.epam.ta.reportportal.database.StatisticsDocumentHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
@@ -65,11 +66,16 @@ public class LaunchesComparisonContentLoader extends StatisticBasedContentLoader
 
 		String collectionName = getCollectionName(filter.getTarget());
         launchRepository.loadWithCallback(filter, sorting, QUANTITY, allFields, documentHandler, collectionName);
-		return convertResult(documentHandler.getResult());
+		List<ChartObject> result = documentHandler.getResult();
+		return convertResult(result, sorting);
 	}
 
-	private Map<String, List<ChartObject>> convertResult(List<ChartObject> objects) {
+	private Map<String, List<ChartObject>> convertResult(List<ChartObject> objects, Sort sort) {
 		DecimalFormat formatter = new DecimalFormat("###.##");
+
+		if (WidgetUtils.needRevert(sort)) {
+			Collections.reverse(objects);
+		}
 
 		for (ChartObject object : objects) {
 			Map<String, String> values = new HashMap<>();

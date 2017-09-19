@@ -23,15 +23,27 @@ package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.item.Parameter;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.google.common.base.Strings;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 import org.apache.commons.collections.CollectionUtils;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.util.CloseableIterator;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -51,15 +63,30 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 
     private static final String SECRET = "auto:";
 
+    private static final String COLLECTION = "generationCheckpoint";
+    private static final String CHECKPOINT_ID = "checkpoint";
+    private static final String CHECKPOINT_ITEM_ID = "item_id";
+    private static final int BATCH_SIZE = 1000;
+
     @Autowired
     private TestItemRepository testItemRepository;
 
     @Autowired
     private LaunchRepository launchRepository;
 
+    @Autowired
+    private MongoOperations mongoOperations;
+
+    @EventListener
+    public void onContextRefresh(ContextRefreshedEvent event) {
+        if (mongoOperations.collectionExists(COLLECTION)) {
+            Executors.newSingleThreadExecutor().execute(this::generateForAll);
+        }
+    }
+
     @Override
-    public String generate(TestItem testItem, String projectName) {
-        String forEncoding = prepareForEncoding(testItem, projectName);
+    public String generate(TestItem testItem) {
+        String forEncoding = prepareForEncoding(testItem);
         return ENCODER.encodeToString(forEncoding.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -68,8 +95,57 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
         return !Strings.isNullOrEmpty(encoded) && new String(DECODER.decode(encoded), StandardCharsets.UTF_8).startsWith(SECRET);
     }
 
-    private String prepareForEncoding(TestItem testItem, String projectName) {
-        String launchName = launchRepository.findNameNumberAndModeById(testItem.getLaunchRef()).getName();
+    @Override
+    public void generateForAll() {
+        String checkPoint = getLastCheckPoint();
+        try (CloseableIterator<TestItem> itemIterator = getItemIterator(checkPoint)) {
+            List<TestItem> testItems = new ArrayList<>(BATCH_SIZE);
+            while (itemIterator.hasNext()) {
+                TestItem next = itemIterator.next();
+                if (next != null) {
+                    String uniqueId = generate(next);
+                    next.setUniqueId(uniqueId);
+                    if (checkPoint == null) {
+                        checkPoint = next.getId();
+                    }
+                    testItems.add(next);
+                    if (testItems.size() == BATCH_SIZE || !itemIterator.hasNext()) {
+                        createCheckpoint(checkPoint);
+                        testItemRepository.save(testItems);
+                        testItems = new ArrayList<>(BATCH_SIZE);
+                        checkPoint = null;
+                    }
+                }
+
+            }
+        }
+        mongoOperations.getCollection(COLLECTION).drop();
+    }
+
+    private void createCheckpoint(String checkPoint) {
+        BasicDBObject checkpoint = new BasicDBObject("_id", CHECKPOINT_ID).append(CHECKPOINT_ITEM_ID, checkPoint);
+        mongoOperations.getCollection(COLLECTION).save(checkpoint);
+    }
+
+    private CloseableIterator<TestItem> getItemIterator(String checkPoint) {
+        Sort sort = new Sort(Sort.Direction.ASC, "_id");
+        Query query = new Query().with(sort).noCursorTimeout();
+        query.addCriteria(Criteria.where("uniqueId").exists(false));
+        if (checkPoint != null) {
+            query.addCriteria(Criteria.where("_id").gte(new ObjectId(checkPoint)));
+        }
+        return mongoOperations.stream(query, TestItem.class);
+    }
+
+    private String getLastCheckPoint() {
+        DBObject object = mongoOperations.getCollection(COLLECTION).findOne(new BasicDBObject("_id", CHECKPOINT_ID));
+        return object == null ? null : (String) object.get(CHECKPOINT_ITEM_ID);
+    }
+
+    private String prepareForEncoding(TestItem testItem) {
+        Launch launch = launchRepository.findOne(testItem.getLaunchRef());
+        String launchName = launch.getName();
+        String projectName = launch.getProjectRef();
         List<String> pathNames = getPathNames(testItem.getPath());
         String itemName = testItem.getName();
         List<Parameter> parameters = Optional.ofNullable(testItem.getParameters()).orElse(Collections.emptyList());

@@ -31,10 +31,9 @@ public interface UniqueIdGenerator {
     /**
      * Generates the unique identifier for test item
      * @param testItem source for id
-     * @param projectName project
      * @return unique id
      */
-    String generate(TestItem testItem, String projectName);
+    String generate(TestItem testItem);
 
     /**
      * Validate if string has been generated.
@@ -42,5 +41,7 @@ public interface UniqueIdGenerator {
      * @return
      */
     boolean validate(String encoded);
+
+    void generateForAll();
 
 }

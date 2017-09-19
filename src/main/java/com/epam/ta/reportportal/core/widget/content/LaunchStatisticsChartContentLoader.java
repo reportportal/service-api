@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
+import com.epam.ta.reportportal.core.widget.impl.WidgetUtils;
 import com.epam.ta.reportportal.database.StatisticsDocumentHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.search.Filter;
@@ -45,7 +46,6 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
  * Content represents pie\bar view of launch statistic.
  *
  * @author Andrei_Ramanchuk
- *
  */
 @Service("LaunchStatisticsChartContentLoader")
 public class LaunchStatisticsChartContentLoader extends StatisticBasedContentLoader implements IContentLoadingStrategy {
@@ -55,15 +55,18 @@ public class LaunchStatisticsChartContentLoader extends StatisticBasedContentLoa
 
 	@SuppressFBWarnings("NP_NULL_PARAM_DEREF")
 	@Override
-	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
-			List<String> metaDataFields, Map<String, List<String>> options) {
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity,
+			List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> options) {
 		expect(metaDataFields == null || metaDataFields.isEmpty(), equalTo(false)).verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
-				"Metadata fields should exist for providing content for 'Launch Statistics Chart'.");
+				"Metadata fields should exist for providing content for 'Launch Statistics Chart'."
+		);
 		List<String> allFields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
 		StatisticsDocumentHandler handler = new StatisticsDocumentHandler(contentFields, metaDataFields);
 		String collectionName = getCollectionName(filter.getTarget());
 		// pie charts use only last launch
 		quantity = 1;
+		// to get last sorting should be DESC in any case
+		sorting = new Sort(Sort.Direction.DESC, WidgetUtils.START_TIME);
 		launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, collectionName);
 
 		Map<String, List<ChartObject>> result = this.convertResult(handler);

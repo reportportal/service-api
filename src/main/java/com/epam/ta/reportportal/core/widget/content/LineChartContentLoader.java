@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.widget.content;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.core.widget.impl.WidgetUtils;
 import com.epam.ta.reportportal.database.StatisticsDocumentHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.search.Filter;
@@ -52,8 +53,8 @@ public class LineChartContentLoader extends StatisticBasedContentLoader implemen
 
 	@SuppressFBWarnings("NP_NULL_PARAM_DEREF")
 	@Override
-	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
-			List<String> metaDataFields, Map<String, List<String>> options) {
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity,
+			List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> options) {
 
 		BusinessRule.expect(metaDataFields == null || metaDataFields.isEmpty(), Predicates.equalTo(Boolean.FALSE))
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Metadata fields should exist for providing content.");
@@ -63,10 +64,14 @@ public class LineChartContentLoader extends StatisticBasedContentLoader implemen
 		String collectionName = getCollectionName(filter.getTarget());
 
 		// here can be used any repository which extends ReportPortalRepository
-        launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, collectionName);
-		if ((options.get(TIMELINE) != null) && (Period.findByName(options.get(TIMELINE).get(0)) != null)) {
-			return groupByDate(handler.getResult(), Period.findByName(options.get(TIMELINE).get(0)));
+		launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, collectionName);
+		List<ChartObject> result = handler.getResult();
+		if (WidgetUtils.needRevert(sorting)) {
+			Collections.reverse(result);
 		}
-		return Collections.singletonMap(RESULT, handler.getResult());
+		if ((options.get(TIMELINE) != null) && (Period.findByName(options.get(TIMELINE).get(0)) != null)) {
+			return groupByDate(result, Period.findByName(options.get(TIMELINE).get(0)));
+		}
+		return Collections.singletonMap(RESULT, result);
 	}
 }

@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.widget.content;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.core.widget.impl.WidgetUtils;
 import com.epam.ta.reportportal.database.StatisticsDocumentHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.search.Filter;
@@ -70,10 +71,14 @@ public class ChartInvestigatedContentLoader extends StatisticBasedContentLoader 
         } else {
             launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, collectionName);
         }
-		if ((options.get(TIMELINE) != null) && (Period.findByName(options.get(TIMELINE).get(0)) != null)) {
-			return convertResult(groupByDate(handler.getResult(), Period.findByName(options.get(TIMELINE).get(0))));
+		List<ChartObject> result = handler.getResult();
+		if (WidgetUtils.needRevert(sorting)) {
+			Collections.reverse(result);
 		}
-		return convertResult(Collections.singletonMap(RESULT, handler.getResult()));
+		if ((options.get(TIMELINE) != null) && (Period.findByName(options.get(TIMELINE).get(0)) != null)) {
+			return convertResult(groupByDate(result, Period.findByName(options.get(TIMELINE).get(0))));
+		}
+		return convertResult(Collections.singletonMap(RESULT, result));
 	}
 
 	/**

@@ -167,7 +167,7 @@ public class WidgetControllerTest extends BaseMvcTest {
 	@Test
 	public void getLaunchesTableWidget() throws Exception {
 		mvcMock.perform(get(PROJECT_BASE_URL + "/widget/613e1f3818127ca356339f45").principal(authentication())).andExpect(status().is(200))
-				.andExpect(jsonPath("$.content.result[1].values.statistics$issueCounter$productBug").value("3"));
+				.andExpect(jsonPath("$.content.result[0].values.statistics$issueCounter$productBug").value("3"));
 	}
 
 	@Test

@@ -93,6 +93,9 @@ public class WidgetUtils {
 	 * @return true if need to be reverted
 	 */
 	public static boolean needRevert(Sort sort) {
+		if (sort == null) {
+			return false;
+		}
 		String property = sort.iterator().next().getProperty();
 		Sort.Order orderFor = sort.getOrderFor(property);
 		return property.equalsIgnoreCase(START_TIME) && orderFor.isDescending();

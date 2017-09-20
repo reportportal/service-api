@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.database.StatisticsDocumentHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.search.Filter;
-import com.epam.ta.reportportal.util.MoreCollectors;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +38,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_LOAD_WIDGET_CONTENT;
 
 /**
- * ContentLoader implementation for <b>Cases Trend Gadget</b>.<br>
- * Content represents <b>total</b> values of cases at time-period with<br>
+ * ContentLoader implementation for <b>Cases Trend Gadget</b>.<br> Content represents <b>total</b> values of cases at time-period with<br>
  * difference delta between current and previous periods.
  *
  * @author Andrei_Ramanchuk
@@ -168,14 +166,13 @@ public class CasesTrendContentLoader extends StatisticBasedContentLoader impleme
 	 * @return - transformed Map with reverse ordered elements
 	 */
 	private Map<String, List<ChartObject>> mapRevert(Map<String, List<ChartObject>> input, Sort sorting) {
-		Sort.Order order = sorting.iterator().next();
-		if (order.getProperty().equalsIgnoreCase(SORT_FIELD) && order.isAscending()) {
-			return input;
+		if (null != sorting) {
+			Sort.Order order = sorting.iterator().next();
+			if (order.getProperty().equalsIgnoreCase(SORT_FIELD) && order.isAscending()) {
+				return input;
+			}
 		}
-		return input.entrySet().stream().collect(MoreCollectors.toLinkedMap(Map.Entry::getKey, it -> {
-			List<ChartObject> list = it.getValue();
-			Collections.reverse(list);
-			return list;
-		}));
+		input.forEach((key, value) -> Collections.reverse(value));
+		return input;
 	}
 }

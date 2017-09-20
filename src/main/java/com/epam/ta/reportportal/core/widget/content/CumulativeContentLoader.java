@@ -60,15 +60,16 @@ public class CumulativeContentLoader implements IContentLoadingStrategy {
 
 	@Override
 	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity,
-			List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> options) {
+			List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> widgetsOptions) {
 		Map<String, List<ChartObject>> emptyResult = Collections.emptyMap();
-		expect(options.get(TAG_PREFIX), notNull()).verify(ErrorType.BAD_REQUEST_ERROR, "widgetOptions");
-		expect(options.get(TAG_PREFIX).isEmpty(), equalTo(false)).verify(ErrorType.BAD_REQUEST_ERROR, TAG_PREFIX);
+		List<String> options = widgetsOptions.get(TAG_PREFIX);
+		expect(options, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, "widgetOptions");
+		expect(options.isEmpty(), equalTo(false)).verify(ErrorType.BAD_REQUEST_ERROR, TAG_PREFIX);
 
 		List<String> fields = contentFields.stream().map(TO_UI_STYLE).collect(Collectors.toList());
 		StatisticsDocumentHandler handler = new StatisticsDocumentHandler(fields, metaDataFields);
 
-		launchRepository.cumulativeStatisticsGroupedByTag(filter, contentFields, quantity, options.get(TAG_PREFIX).get(0), handler);
+		launchRepository.cumulativeStatisticsGroupedByTag(filter, contentFields, quantity, options.get(0), handler);
 
 		List<ChartObject> result = handler.getResult();
 		if (null == result) {

@@ -45,7 +45,8 @@ import static com.epam.ta.reportportal.core.widget.content.WidgetContentProvider
 /**
  * Content loader for cumulative trend chart widget. Content is based
  * on specified filter and tag prefix in widget options. They are presented
- * as sum by specified fields and tag with number.
+ * as sum by specified fields and tag with number. Filter's sorting is
+ * not applied to results. They are fixed in ASC by tag number.
  *
  * @author Pavel Bortnik
  */
@@ -75,7 +76,7 @@ public class CumulativeContentLoader implements IContentLoadingStrategy {
 		if (null == result) {
 			return emptyResult;
 		}
-
+		Collections.reverse(result);
 		return ImmutableMap.<String, List<ChartObject>>builder().put(RESULT, result).build();
 	}
 }

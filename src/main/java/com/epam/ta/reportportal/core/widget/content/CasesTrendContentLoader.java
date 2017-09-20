@@ -76,7 +76,10 @@ public class CasesTrendContentLoader extends StatisticBasedContentLoader impleme
 
 		// start_time is required sorting for trend
 		// charts then setup it before loading chart data
-		sorting = new Sort(Sort.Direction.DESC, SORT_FIELD);
+		Sort.Order order = sorting.iterator().next();
+		if (order.getProperty().equalsIgnoreCase(SORT_FIELD)) {
+			sorting = order.isAscending() ? new Sort(Sort.Direction.ASC, SORT_FIELD) : new Sort(Sort.Direction.DESC, SORT_FIELD);
+		}
 		launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, COLLECTION);
 		List<ChartObject> rawData = handler.getResult();
 
@@ -90,7 +93,7 @@ public class CasesTrendContentLoader extends StatisticBasedContentLoader impleme
 		} else {
 			result = calculateDiffs(rawData, sorting);
 		}
-		return mapRevert(result);
+		return mapRevert(result, sorting);
 	}
 
 	/**
@@ -159,12 +162,16 @@ public class CasesTrendContentLoader extends StatisticBasedContentLoader impleme
 	}
 
 	/**
-	 * Revert results as it is trend chart.
+	 * Revert results if in descending order as it is a trend chart.
 	 *
 	 * @param input - callback output result
 	 * @return - transformed Map with reverse ordered elements
 	 */
-	private Map<String, List<ChartObject>> mapRevert(Map<String, List<ChartObject>> input) {
+	private Map<String, List<ChartObject>> mapRevert(Map<String, List<ChartObject>> input, Sort sorting) {
+		Sort.Order order = sorting.iterator().next();
+		if (order.getProperty().equalsIgnoreCase(SORT_FIELD) && order.isAscending()) {
+			return input;
+		}
 		return input.entrySet().stream().collect(MoreCollectors.toLinkedMap(Map.Entry::getKey, it -> {
 			List<ChartObject> list = it.getValue();
 			Collections.reverse(list);

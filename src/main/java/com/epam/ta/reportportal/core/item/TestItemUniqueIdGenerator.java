@@ -53,21 +53,21 @@ import java.util.stream.Collectors;
 @Service
 public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 
-    private static final Base64.Encoder ENCODER = Base64.getEncoder();
+	private static final Base64.Encoder ENCODER = Base64.getEncoder();
 
-    private static final Base64.Decoder DECODER = Base64.getDecoder();
+	private static final Base64.Decoder DECODER = Base64.getDecoder();
 
-    private static final String SECRET = "auto:";
+	private static final String SECRET = "auto:";
 
-    private static final String COLLECTION = "generationCheckpoint";
+	private static final String COLLECTION = "generationCheckpoint";
 
-    private static final int BATCH_SIZE = 1000;
+	private static final int BATCH_SIZE = 1000;
 
-    private TestItemRepository testItemRepository;
+	private TestItemRepository testItemRepository;
 
-    private LaunchRepository launchRepository;
+	private LaunchRepository launchRepository;
 
-    private MongoOperations mongoOperations;
+	private MongoOperations mongoOperations;
 
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
@@ -84,71 +84,71 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 		this.mongoOperations = mongoOperations;
 	}
 
-    @EventListener
-    public void onContextRefresh(ContextRefreshedEvent event) {
-        if (mongoOperations.collectionExists(COLLECTION)) {
-            Executors.newSingleThreadExecutor().execute(this::generateForAll);
-        }
-    }
+	@EventListener
+	public void onContextRefresh(ContextRefreshedEvent event) {
+		if (mongoOperations.collectionExists(COLLECTION)) {
+			Executors.newSingleThreadExecutor().execute(this::generateForAll);
+		}
+	}
 
-    @Override
-    public String generate(TestItem testItem) {
-        String forEncoding = prepareForEncoding(testItem);
-        return ENCODER.encodeToString(forEncoding.getBytes(StandardCharsets.UTF_8));
-    }
+	@Override
+	public String generate(TestItem testItem) {
+		String forEncoding = prepareForEncoding(testItem);
+		return ENCODER.encodeToString(forEncoding.getBytes(StandardCharsets.UTF_8));
+	}
 
-    @Override
-    public boolean validate(String encoded) {
-        return !Strings.isNullOrEmpty(encoded) && new String(DECODER.decode(encoded), StandardCharsets.UTF_8).startsWith(SECRET);
-    }
+	@Override
+	public boolean validate(String encoded) {
+		return !Strings.isNullOrEmpty(encoded) && new String(DECODER.decode(encoded), StandardCharsets.UTF_8).startsWith(SECRET);
+	}
 
-    @Override
-    public void generateForAll() {
+	@Override
+	public void generateForAll() {
 		try (CloseableIterator<TestItem> itemIterator = getItemIterator()) {
 			List<TestItem> testItems = new ArrayList<>(BATCH_SIZE);
-            while (itemIterator.hasNext()) {
-                TestItem next = itemIterator.next();
-                if (next != null) {
+			while (itemIterator.hasNext()) {
+				TestItem next = itemIterator.next();
+				if (next != null) {
 					String item = generate(next);
 					next.setUniqueId(item);
 					testItems.add(next);
-                    if (testItems.size() == BATCH_SIZE || !itemIterator.hasNext()) {
-                        testItemRepository.save(testItems);
-                        testItems = new ArrayList<>(BATCH_SIZE);
-                    }
-                }
-            }
-        }
-        mongoOperations.getCollection(COLLECTION).drop();
-    }
+					if (testItems.size() == BATCH_SIZE || !itemIterator.hasNext()) {
+						testItemRepository.save(testItems);
+						testItems = new ArrayList<>(BATCH_SIZE);
+					}
+				}
+			}
+		}
+		mongoOperations.getCollection(COLLECTION).drop();
+	}
 
 	private CloseableIterator<TestItem> getItemIterator() {
 		return mongoOperations.stream(new Query().addCriteria(Criteria.where("uniqueId").exists(false)), TestItem.class);
 	}
 
-    private String prepareForEncoding(TestItem testItem) {
-        Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-        String launchName = launch.getName();
-        String projectName = launch.getProjectRef();
-        List<String> pathNames = getPathNames(testItem.getPath());
-        String itemName = testItem.getName();
-        List<Parameter> parameters = Optional.ofNullable(testItem.getParameters()).orElse(Collections.emptyList());
-        StringJoiner joiner = new StringJoiner(";");
-        joiner.add(SECRET).add(projectName).add(launchName);
-        if (!CollectionUtils.isEmpty(pathNames)) {
-            joiner.add(pathNames.stream().collect(Collectors.joining(",")));
-        }
-        joiner.add(itemName);
-        if (!parameters.isEmpty()) {
-            joiner.add(parameters.stream().map(parameter ->
-                    (!Strings.isNullOrEmpty(parameter.getKey()) ?
-                            parameter.getKey() + "=" : "") + parameter.getValue()).collect(Collectors.joining(",")));
-        }
-        return joiner.toString();
-    }
+	private String prepareForEncoding(TestItem testItem) {
+		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
+		String launchName = launch.getName();
+		String projectName = launch.getProjectRef();
+		List<String> pathNames = getPathNames(testItem.getPath());
+		String itemName = testItem.getName();
+		List<Parameter> parameters = Optional.ofNullable(testItem.getParameters()).orElse(Collections.emptyList());
+		StringJoiner joiner = new StringJoiner(";");
+		joiner.add(SECRET).add(projectName).add(launchName);
+		if (!CollectionUtils.isEmpty(pathNames)) {
+			joiner.add(pathNames.stream().collect(Collectors.joining(",")));
+		}
+		joiner.add(itemName);
+		if (!parameters.isEmpty()) {
+			joiner.add(parameters.stream()
+					.map(parameter -> (!Strings.isNullOrEmpty(parameter.getKey()) ? parameter.getKey() + "=" : "") + parameter.getValue())
+					.collect(Collectors.joining(",")));
+		}
+		return joiner.toString();
+	}
 
-    private List<String> getPathNames(List<String> path) {
-        Map<String, String> names = testItemRepository.findPathNames(path);
-        return path.stream().map(names::get).collect(Collectors.toList());
-    }
+	private List<String> getPathNames(List<String> path) {
+		Map<String, String> names = testItemRepository.findPathNames(path);
+		return path.stream().map(names::get).collect(Collectors.toList());
+	}
 }

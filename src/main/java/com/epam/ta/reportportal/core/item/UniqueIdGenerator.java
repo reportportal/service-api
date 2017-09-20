@@ -24,24 +24,32 @@ package com.epam.ta.reportportal.core.item;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 
 /**
+ * Unique id generator for designate test item's originality
+ *
  * @author Pavel_Bortnik
+ * @since V3.2
  */
 public interface UniqueIdGenerator {
 
-    /**
-     * Generates the unique identifier for test item
-     * @param testItem source for id
-     * @return unique id
-     */
-    String generate(TestItem testItem);
+	/**
+	 * Generates the unique identifier for test item
+	 *
+	 * @param testItem source for id
+	 * @return unique id
+	 */
+	String generate(TestItem testItem);
 
-    /**
-     * Validate if string has been generated.
-     * @param encoded
-     * @return
-     */
-    boolean validate(String encoded);
+	/**
+	 * Validate if string has been generated automatically
+	 *
+	 * @param encoded encoded
+	 * @return true if it has been generated automatically
+	 */
+	boolean validate(String encoded);
 
-    void generateForAll();
+	/**
+	 * Generate unique ids for all test items without it
+	 */
+	void generateForAll();
 
 }

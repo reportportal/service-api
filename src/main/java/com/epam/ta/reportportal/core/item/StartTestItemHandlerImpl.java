@@ -91,7 +91,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		validate(projectName, rq, launch);
 		TestItem item = testItemBuilder.get().addStartItemRequest(rq).addStatus(Status.IN_PROGRESS).addLaunch(launch).build();
 		if (null == item.getUniqueId()) {
-			item.setUniqueId(identifierGenerator.generate(item, projectName));
+			item.setUniqueId(identifierGenerator.generate(item));
 		}
 		testItemRepository.save(item);
 		return new EntryCreatedRS(item.getId());
@@ -110,7 +110,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		TestItem item = testItemBuilder.get().addStartItemRequest(rq).addParent(parentItem).addPath(parentItem)
 				.addStatus(Status.IN_PROGRESS).build();
 		if (null == item.getUniqueId()) {
-			item.setUniqueId(identifierGenerator.generate(item, projectName));
+			item.setUniqueId(identifierGenerator.generate(item));
 		}
 		testItemRepository.save(item);
 

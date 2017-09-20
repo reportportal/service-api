@@ -129,8 +129,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
         Launch launch = createResultedLaunch(projectName, userName, rq);
         boolean isNameChanged = !launch.getName().equals(launchesList.get(0).getName());
-        updateChildrenOfLaunches(launch.getId(), rq.getLaunches(),
-                rq.isExtendSuitesDescription(), isNameChanged, projectName);
+        updateChildrenOfLaunches(launch.getId(), rq.getLaunches(), rq.isExtendSuitesDescription(), isNameChanged);
 
         MergeStrategyType type = MergeStrategyType.fromValue(rq.getMergeStrategyType());
         expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
@@ -198,14 +197,13 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
     /**
      * Update test-items of specified launches with new LaunchID
      */
-    private void updateChildrenOfLaunches(String launchId, Set<String> launches, boolean extendDescription,
-                                          boolean isNameChanged, String project) {
+    private void updateChildrenOfLaunches(String launchId, Set<String> launches, boolean extendDescription, boolean isNameChanged) {
         List<TestItem> testItems = launches.stream().flatMap(id -> {
             Launch launch = launchRepository.findOne(id);
             return testItemRepository.findByLaunch(launch).stream().map(item -> {
                 item.setLaunchRef(launchId);
                 if (isNameChanged && identifierGenerator.validate(item.getUniqueId())) {
-                    item.setUniqueId(identifierGenerator.generate(item, project));
+                    item.setUniqueId(identifierGenerator.generate(item));
                 }
                 if (item.getType().sameLevel(TestItemType.SUITE)) {
                     // Add launch reference description for top level items

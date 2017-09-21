@@ -33,59 +33,62 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 
 /**
- *
  * @author Pavel_Bortnik
  */
 @SpringFixture("triggerTests")
 public class UniqueIdGeneratorTest extends BaseTest {
 
-    @Rule
-    @Autowired
-    public SpringFixtureRule dfRule;
+	@Rule
+	@Autowired
+	public SpringFixtureRule dfRule;
 
-    @Autowired
-    private TestItemRepository testItemRepository;
+	@Autowired
+	private TestItemRepository testItemRepository;
 
-    @Autowired
-    private UniqueIdGenerator identifierGenerator;
+	@Autowired
+	private UniqueIdGenerator identifierGenerator;
 
-    private static final String ITEM = "44524cc1553de753b3e5ab2f";
-    private static final String PROJECT = "DEFAULT";
+	private static final String ITEM = "44524cc1553de753b3e5ab2f";
+	private static final String PROJECT = "DEFAULT";
 
-    @Test
-    public void generateUniqueId() {
-        TestItem item = testItemRepository.findOne(ITEM);
-        String s1 = identifierGenerator.generate(item, PROJECT);
-        String s2 = identifierGenerator.generate(item, PROJECT);
-        Assert.assertEquals(s1, s2);
-        item.setParameters(getParameters());
-        String s3 = identifierGenerator.generate(item, PROJECT);
-        Assert.assertNotEquals(s1, s3);
+	@Test
+	public void generateUniqueId() {
+		TestItem item = testItemRepository.findOne(ITEM);
+		String s1 = identifierGenerator.generate(item);
+		String s2 = identifierGenerator.generate(item);
+		Assert.assertEquals(s1, s2);
+		item.setParameters(getParameters());
+		String s3 = identifierGenerator.generate(item);
+		Assert.assertNotEquals(s1, s3);
 
-        item.setName("Different");
-        item.setParameters(null);
-        String s4 = identifierGenerator.generate(item, PROJECT);
-        Assert.assertNotEquals(s3, s4);
-    }
+		item.setName("Different");
+		item.setParameters(null);
+		String s4 = identifierGenerator.generate(item);
+		Assert.assertNotEquals(s3, s4);
+	}
 
-    @Test
-    public void validate() {
-        TestItem item = testItemRepository.findOne(ITEM);
-        String s1 = identifierGenerator.generate(item, PROJECT);
-        Assert.assertTrue(identifierGenerator.validate(s1));
-        Assert.assertFalse(identifierGenerator.validate("customId"));
-    }
+	@Test
+	public void validate() {
+		TestItem item = testItemRepository.findOne(ITEM);
+		String s1 = identifierGenerator.generate(item);
+		Assert.assertTrue(identifierGenerator.validate(s1));
+		byte[] decode = Base64.getDecoder().decode(s1);
+		Assert.assertTrue(new String(decode, StandardCharsets.UTF_8).contains("project1"));
+		Assert.assertFalse(identifierGenerator.validate("customId"));
+	}
 
-    private List<Parameter> getParameters() {
-        Parameter parameters = new Parameter();
-        parameters.setKey("CardNumber");
-        parameters.setValue("4444333322221111");
-        Parameter parameters1 = new Parameter();
-        parameters1.setKey("Stars");
-        parameters1.setValue("2 stars");
-        return ImmutableList.<Parameter>builder().add(parameters).add(parameters1).build();
-    }
+	private List<Parameter> getParameters() {
+		Parameter parameters = new Parameter();
+		parameters.setKey("CardNumber");
+		parameters.setValue("4444333322221111");
+		Parameter parameters1 = new Parameter();
+		parameters1.setKey("Stars");
+		parameters1.setValue("2 stars");
+		return ImmutableList.<Parameter>builder().add(parameters).add(parameters1).build();
+	}
 }

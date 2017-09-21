@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.core.widget.content.WidgetDataTypes;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.database.search.CriteriaMap;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -83,5 +84,20 @@ public class WidgetUtils {
 			existingWidgets.forEach(existingWidget -> expect(existingWidget.getName().equals(newWidgetName), equalTo(false))
 					.verify(RESOURCE_ALREADY_EXISTS, newWidgetName));
 		}
+	}
+
+	/**
+	 * Used by trend charts to reorder results for trend representation.
+	 *
+	 * @param sort Trend Chart sorting
+	 * @return true if need to be reverted
+	 */
+	public static boolean needRevert(Sort sort) {
+		if (sort == null) {
+			return false;
+		}
+		String property = sort.iterator().next().getProperty();
+		Sort.Order orderFor = sort.getOrderFor(property);
+		return property.equalsIgnoreCase(START_TIME) && orderFor.isDescending();
 	}
 }

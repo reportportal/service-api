@@ -311,7 +311,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		try {
 			// TODO use default 'from' param or project specified?
 			emailService
-					.sendRestorePasswordEmail("Password recovery", new String[] { rq.getEmail() }, baseUrl + "#login?reset=" + bid.getId(),
+					.sendRestorePasswordEmail("Password recovery", new String[] { email }, baseUrl + "#login?reset=" + bid.getId(),
 							user.getLogin());
 		} catch (Exception e) {
 			fail().withError(FORBIDDEN_OPERATION, formattedSupplier("Unable to send email for bid '{}'.", bid.getId()));

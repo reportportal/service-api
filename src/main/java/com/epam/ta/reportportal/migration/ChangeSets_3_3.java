@@ -97,6 +97,11 @@ public class ChangeSets_3_3 {
         });
     }
 
+    @ChangeSet(order = "3.3-3", id = "v3.3-Generate id", author = "pbortnik")
+    public void generate(MongoTemplate mongoTemplate) {
+        mongoTemplate.createCollection("generationCheckpoint");
+    }
+
     private Update createShareHistory(Update u, String objectType, String oldValue, String newValue) {
         Map[] dbArray = new LinkedHashMap[1];
         Map res = new LinkedHashMap(3);

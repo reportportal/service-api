@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
 
@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.database.search.CriteriaMap;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
-import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Sort;
@@ -72,9 +71,8 @@ public class WidgetContentProvider {
 	 * @param selectionOptions
 	 * @param options
 	 */
-	public Map<String, List<ChartObject>> getChartContent(String projectName, Filter filter, SelectionOptions selectionOptions, ContentOptions options) {
-
-		boolean revertResult = false;
+	public Map<String, List<ChartObject>> getChartContent(String projectName, Filter filter, SelectionOptions selectionOptions,
+			ContentOptions options) {
 
 		Class<?> type = filter.getTarget();
 		CriteriaMap<?> criteriaMap = criteriaMapFactory.getCriteriaMap(type);
@@ -92,33 +90,21 @@ public class WidgetContentProvider {
 		 */
 		Sort sort;
 		String sortingColumnName = selectionOptions.getSortingColumnName();
-		if ("start_time".equalsIgnoreCase(sortingColumnName) && isAscSort) {
-			sort = new Sort(Sort.Direction.DESC, criteriaMap.getCriteriaHolder(sortingColumnName).getQueryCriteria());
-			revertResult = true;
-		} else {
-			sort = new Sort(isAscSort ? Sort.Direction.ASC : Sort.Direction.DESC,
-					criteriaMap.getCriteriaHolder(sortingColumnName).getQueryCriteria());
-		}
+		sort = new Sort(isAscSort ? Sort.Direction.ASC : Sort.Direction.DESC,
+				criteriaMap.getCriteriaHolder(sortingColumnName).getQueryCriteria()
+		);
 
 		Map<String, List<ChartObject>> result;
-
 		IContentLoadingStrategy loadingStrategy = contentLoader.get(GadgetTypes.findByName(options.getGadgetType()).get());
 		expect(loadingStrategy, notNull()).verify(UNABLE_LOAD_WIDGET_CONTENT,
-				Suppliers.formattedSupplier("Unknown gadget type: '{}'.", options.getGadgetType()));
+				Suppliers.formattedSupplier("Unknown gadget type: '{}'.", options.getGadgetType())
+		);
 		Map<String, List<String>> widgetOptions = null == options.getWidgetOptions() ? new HashMap<>() : options.getWidgetOptions();
-        result = loadingStrategy.loadContent(projectName, filter, sort, options.getItemsCount(), contentFields, metaDataFields, widgetOptions);
+		int itemsCount = options.getItemsCount();
+		result = loadingStrategy.loadContent(projectName, filter, sort, itemsCount, contentFields, metaDataFields, widgetOptions);
 		if (null != options.getContentFields()) {
 			result = transformToFilterStyle(criteriaMap, result, options.getContentFields());
 			result = transformNamesForUI(result);
-		}
-		/*
-		 * Reordering of results for user-friendly UI output. NOTE: Probably it
-		 * will be moved to 'transformation' method.
-		 */
-		// TODO: move transformations in one common method
-		// TODO: replace dirty-hack with specific gadget data freeze
-		if (!revertResult || options.getGadgetType().equalsIgnoreCase(GadgetTypes.CASES_TREND.getType())) {
-			result = mapRevert(result);
 		}
 		return result;
 	}
@@ -143,8 +129,9 @@ public class WidgetContentProvider {
 					break;
 				}
 			}
-			if (!isConverted)
+			if (!isConverted) {
 				result.put(entry.getKey(), data);
+			}
 		}
 		return result;
 	}
@@ -175,32 +162,13 @@ public class WidgetContentProvider {
 	 * holder.
 	 */
 	public static List<String> transformToDBStyle(CriteriaMap<?> criteriaMap, List<String> chartFields) {
-		if (chartFields == null)
+		if (chartFields == null) {
 			return new ArrayList<>();
+		}
 		return chartFields.stream().map(it -> {
 			return criteriaMap.getCriteriaHolder(it).getQueryCriteria();
-					//+ ((filterCriteria.getExtension() != null) ? "." + filterCriteria.getExtension() : "");
+			//+ ((filterCriteria.getExtension() != null) ? "." + filterCriteria.getExtension() : "");
 		}).collect(toList());
 	}
 
-	/**
-	 * Transformation function for avoidance of truncated results by filter
-	 *
-	 * @param input
-	 *            - callback output result
-	 * @return - transformed Map with reverse ordered elements
-	 */
-	private Map<String, List<ChartObject>> mapRevert(Map<String, List<ChartObject>> input) {
-		Map<String, List<ChartObject>> result = new LinkedHashMap<>();
-		for (Map.Entry<String, List<ChartObject>> entry : input.entrySet()) {
-			List<ChartObject> newOrder = Lists.newArrayList();
-			List<ChartObject> data = entry.getValue();
-
-			for (int i = (data.size() - 1); i >= 0; i--)
-				newOrder.add(data.get(i));
-
-			result.put(entry.getKey(), newOrder);
-		}
-		return result;
-	}
 }

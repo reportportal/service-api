@@ -22,8 +22,11 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.dao.LogRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.Parameter;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.google.common.base.Strings;
@@ -67,6 +70,12 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 
 	private LaunchRepository launchRepository;
 
+	@Autowired
+	private LogRepository logRepository;
+
+	@Autowired
+	private ProjectRepository projectRepository;
+
 	private MongoOperations mongoOperations;
 
 	@Autowired
@@ -109,17 +118,36 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 			while (itemIterator.hasNext()) {
 				TestItem next = itemIterator.next();
 				if (next != null) {
-					String item = generate(next);
-					next.setUniqueId(item);
-					testItems.add(next);
-					if (testItems.size() == BATCH_SIZE || !itemIterator.hasNext()) {
-						testItemRepository.save(testItems);
-						testItems = new ArrayList<>(BATCH_SIZE);
+					boolean isRemoved = removeIfInvalid(next);
+					if (!isRemoved) {
+						String item = generate(next);
+						next.setUniqueId(item);
+						testItems.add(next);
+						if (testItems.size() == BATCH_SIZE || !itemIterator.hasNext()) {
+							testItemRepository.save(testItems);
+							testItems = new ArrayList<>(BATCH_SIZE);
+						}
 					}
 				}
 			}
 		}
 		mongoOperations.getCollection(COLLECTION).drop();
+	}
+
+	private boolean removeIfInvalid(TestItem next) {
+		String launchRef = next.getLaunchRef();
+		Launch one = launchRepository.findOne(launchRef);
+		if (one == null) {
+			testItemRepository.delete(next.getId());
+			return true;
+		} else {
+			Project project = projectRepository.findByName(one.getProjectRef());
+			if (project == null) {
+				launchRepository.delete(launchRef);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private CloseableIterator<TestItem> getItemIterator() {

@@ -97,6 +97,7 @@ class UpdateUniqueId {
 		do {
 			try (CloseableIterator<TestItem> itemIterator = getItemIterator()) {
 				List<TestItem> testItems = new ArrayList<>(BATCH_SIZE);
+				int counter = 0;
 				while (itemIterator.hasNext()) {
 					TestItem next = itemIterator.next();
 					if (next != null) {
@@ -107,17 +108,19 @@ class UpdateUniqueId {
 							testItems.add(next);
 							if (testItems.size() == BATCH_SIZE || !itemIterator.hasNext()) {
 								updateTestItems(testItems);
-								LOGGER.info("Generated unique id for" + BATCH_SIZE + " test items. " + "It is " + (
-										(update / (float) forUpdate) * 100) + "% done");
-								update += testItems.size();
-								testItems = new ArrayList<>(BATCH_SIZE);
+								counter++;
+								if (counter == 1000) {
+									LOGGER.info("Generated uniqueId for " + update + " items. " + "It is " + ((update / (float) forUpdate)
+											* 100) + "% done");
+									counter = 0;
+								}
 							}
 						}
 					}
 				}
 				isOk = true;
 			} catch (Exception e) {
-				LOGGER.warn("Potential endless loop in reason of: ", e.getMessage());
+				LOGGER.warn("Potential endless loop in reason of: ", e);
 				//continue generating uniqueId
 				isOk = false;
 			}

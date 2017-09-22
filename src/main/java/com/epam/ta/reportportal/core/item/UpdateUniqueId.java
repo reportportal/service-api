@@ -114,6 +114,8 @@ class UpdateUniqueId {
 											* 100) + "% done");
 									counter = 0;
 								}
+								update += testItems.size();
+								testItems = new ArrayList<>(BATCH_SIZE);
 							}
 						}
 					}

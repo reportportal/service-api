@@ -45,6 +45,7 @@ import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -77,10 +78,14 @@ class UpdateUniqueId {
 	@Autowired
 	private TestItemRepository testItemRepository;
 
+	private static final AtomicBoolean STARTED = new AtomicBoolean();
+
 	@EventListener
 	public void onContextRefresh(ContextRefreshedEvent event) {
-		if (mongoOperations.collectionExists(COLLECTION)) {
-			Executors.newSingleThreadExecutor().execute(this::generateForAll);
+		if (STARTED.compareAndSet(false, true)) {
+			if (mongoOperations.collectionExists(COLLECTION)) {
+				Executors.newSingleThreadExecutor().execute(this::generateForAll);
+			}
 		}
 	}
 
@@ -117,6 +122,7 @@ class UpdateUniqueId {
 				isOk = false;
 			}
 		} while (!isOk);
+		STARTED.set(false);
 		mongoOperations.getCollection(COLLECTION).drop();
 		launchCache.cleanUp();
 		LOGGER.info("Generating uniqueId is done!");

@@ -71,6 +71,13 @@ public class DeleteDashboardHandlerTest {
         assertTrue(rs.getResultMessage().contains(DASHBOARD));
     }
 
+    @Test
+    public void test() {
+        Long l1 = 2200000L;
+        Long l2 = 225123456L;
+        System.out.println(l1 / (float) l2 * 100);
+    }
+
     private Dashboard getNotOwnerDashboard() {
         Acl acl = new Acl();
         acl.setOwnerUserId("not_owner");

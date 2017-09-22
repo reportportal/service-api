@@ -47,9 +47,4 @@ public interface UniqueIdGenerator {
 	 */
 	boolean validate(String encoded);
 
-	/**
-	 * Generate unique ids for all test items without it
-	 */
-	void generateForAll();
-
 }

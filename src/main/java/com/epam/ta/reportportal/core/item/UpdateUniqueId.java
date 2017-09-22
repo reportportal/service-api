@@ -68,10 +68,6 @@ class UpdateUniqueId {
 
 	private static final String SECRET = "auto:";
 
-	private static Long FOR_UPDATE = 0L;
-
-	private static Long UPDATED = 0L;
-
 	//launches cache
 	private static final Cache<String, Launch> launchCache = Caffeine.newBuilder().maximumSize(200).build();
 
@@ -89,6 +85,8 @@ class UpdateUniqueId {
 	}
 
 	private void generateForAll() {
+		long forUpdate = mongoOperations.count(testItemQuery(), TestItem.class);
+		long update = 0;
 		boolean isOk;
 		//potential endless loop
 		do {
@@ -105,8 +103,8 @@ class UpdateUniqueId {
 							if (testItems.size() == BATCH_SIZE || !itemIterator.hasNext()) {
 								updateTestItems(testItems);
 								LOGGER.info("Generated unique id for" + BATCH_SIZE + " test items. " + "It is " + (
-										(UPDATED / (float) FOR_UPDATE) * 100) + "% done");
-								UPDATED += testItems.size();
+										(update / (float) forUpdate) * 100) + "% done");
+								update += testItems.size();
 								testItems = new ArrayList<>(BATCH_SIZE);
 							}
 						}
@@ -135,7 +133,6 @@ class UpdateUniqueId {
 	}
 
 	private CloseableIterator<TestItem> getItemIterator() {
-		FOR_UPDATE = mongoOperations.count(testItemQuery(), TestItem.class);
 		return mongoOperations.stream(testItemQuery().noCursorTimeout(), TestItem.class);
 	}
 

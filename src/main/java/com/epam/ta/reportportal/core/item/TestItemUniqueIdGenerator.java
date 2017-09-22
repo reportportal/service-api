@@ -22,27 +22,17 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.LogRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.Parameter;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.google.common.base.Strings;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.util.CloseableIterator;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -62,21 +52,9 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 
 	private static final String SECRET = "auto:";
 
-	private static final String COLLECTION = "generationCheckpoint";
-
-	private static final int BATCH_SIZE = 1000;
-
 	private TestItemRepository testItemRepository;
 
 	private LaunchRepository launchRepository;
-
-	@Autowired
-	private LogRepository logRepository;
-
-	@Autowired
-	private ProjectRepository projectRepository;
-
-	private MongoOperations mongoOperations;
 
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
@@ -86,18 +64,6 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 	@Autowired
 	public void setLaunchRepository(LaunchRepository launchRepository) {
 		this.launchRepository = launchRepository;
-	}
-
-	@Autowired
-	public void setMongoOperations(MongoOperations mongoOperations) {
-		this.mongoOperations = mongoOperations;
-	}
-
-	@EventListener
-	public void onContextRefresh(ContextRefreshedEvent event) {
-		if (mongoOperations.collectionExists(COLLECTION)) {
-			Executors.newSingleThreadExecutor().execute(this::generateForAll);
-		}
 	}
 
 	@Override
@@ -111,48 +77,6 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 		return !Strings.isNullOrEmpty(encoded) && new String(DECODER.decode(encoded), StandardCharsets.UTF_8).startsWith(SECRET);
 	}
 
-	@Override
-	public void generateForAll() {
-		try (CloseableIterator<TestItem> itemIterator = getItemIterator()) {
-			List<TestItem> testItems = new ArrayList<>(BATCH_SIZE);
-			while (itemIterator.hasNext()) {
-				TestItem next = itemIterator.next();
-				if (next != null) {
-					boolean isRemoved = removeIfInvalid(next);
-					if (!isRemoved) {
-						String item = generate(next);
-						next.setUniqueId(item);
-						testItems.add(next);
-						if (testItems.size() == BATCH_SIZE || !itemIterator.hasNext()) {
-							testItemRepository.save(testItems);
-							testItems = new ArrayList<>(BATCH_SIZE);
-						}
-					}
-				}
-			}
-		}
-		mongoOperations.getCollection(COLLECTION).drop();
-	}
-
-	private boolean removeIfInvalid(TestItem next) {
-		String launchRef = next.getLaunchRef();
-		Launch one = launchRepository.findOne(launchRef);
-		if (one == null) {
-			testItemRepository.delete(next.getId());
-			return true;
-		} else {
-			Project project = projectRepository.findByName(one.getProjectRef());
-			if (project == null) {
-				launchRepository.delete(launchRef);
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private CloseableIterator<TestItem> getItemIterator() {
-		return mongoOperations.stream(new Query().addCriteria(Criteria.where("uniqueId").exists(false)), TestItem.class);
-	}
 
 	private String prepareForEncoding(TestItem testItem) {
 		Launch launch = launchRepository.findOne(testItem.getLaunchRef());

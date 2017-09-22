@@ -104,9 +104,8 @@ class UpdateUniqueId {
 							testItems.add(next);
 							if (testItems.size() == BATCH_SIZE || !itemIterator.hasNext()) {
 								updateTestItems(testItems);
-								LOGGER.info(
-										"Generated unique id for" + BATCH_SIZE + " test items. " + "It is " + ((UPDATED / FOR_UPDATE) * 100)
-												+ "% done");
+								LOGGER.info("Generated unique id for" + BATCH_SIZE + " test items. " + "It is " + (
+										(UPDATED / (float) FOR_UPDATE) * 100) + "% done");
 								UPDATED += testItems.size();
 								testItems = new ArrayList<>(BATCH_SIZE);
 							}

@@ -48,11 +48,6 @@
 	<bean id="validator"
 		  class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean" />
 
-
-	<bean id="analyzerService" class="com.epam.ta.reportportal.util.analyzer.IssuesAnalyzerService" />
-
-
-
 	<!--<bean class="com.epam.ta.reportportal.aop.logging.ActivityLoggingAspect" factory-method="aspectOf"/>-->
 	<!--<bean class="com.epam.ta.reportportal.aop.logging.ProjectActivitiesAspect" factory-method="aspectOf"/>-->
 	<!--<bean class="com.epam.ta.reportportal.aop.logging.ExternalSystemActivitiesAspect" factory-method="aspectOf"/>-->

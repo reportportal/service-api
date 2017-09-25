@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  * 
  * 
  * This file is part of EPAM Report Portal.
@@ -72,17 +72,6 @@ public class JobsConfiguration {
 
 	@EnableScheduling
 	public static class SchedulingConfiguration {
-	}
-
-	@Bean(name = "autoAnalyzeTaskExecutor")
-	public TaskExecutor autoAnalyzeTaskExecutor() {
-		final ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-		threadPoolTaskExecutor.setCorePoolSize(10);
-		threadPoolTaskExecutor.setMaxPoolSize(30);
-		threadPoolTaskExecutor.setQueueCapacity(200);
-		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
-		threadPoolTaskExecutor.setThreadNamePrefix("auto-analyze-exec");
-		return threadPoolTaskExecutor;
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  * 
  * 
  * This file is part of EPAM Report Portal.
@@ -21,28 +21,22 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.entity.statistics.Statistics;
-import com.epam.ta.reportportal.util.analyzer.IssuesAnalyzerService;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 @Service
 @Scope("prototype")
 public class LaunchResourceBuilder extends Builder<LaunchResource> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LaunchResourceBuilder.class);
-
-    @Autowired
-    private IssuesAnalyzerService analyzeService;
 
     public LaunchResourceBuilder addLaunch(Launch launch) {
         Preconditions.checkNotNull(launch);
@@ -57,16 +51,7 @@ public class LaunchResourceBuilder extends Builder<LaunchResource> {
         resource.setTags(launch.getTags());
         resource.setMode(launch.getMode());
         resource.setApproximateDuration(launch.getApproximateDuration());
-        try {
-            if (null != analyzeService.getProcessIds().get(launch.getId())) {
-                if ("started".equalsIgnoreCase(analyzeService.getProcessIds().get(launch.getId())))
-                    resource.setIsProcessing(true);
-            } else
-                resource.setIsProcessing(false);
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
-            resource.setIsProcessing(false);
-        }
+        resource.setIsProcessing(false);
         resource.setOwner(launch.getUserRef());
         Statistics statistics = launch.getStatistics();
         if (statistics != null) {

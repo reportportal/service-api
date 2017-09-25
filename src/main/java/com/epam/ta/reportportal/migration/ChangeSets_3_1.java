@@ -48,4 +48,9 @@ public class ChangeSets_3_1 {
 				new Update().set("instanceId", UUID.randomUUID().toString()), "serverSettings");
 	}
 
+	@ChangeSet(order = "3.1.0-3", id = "v3.1.3-Add log indexing checkpoint ID", author = "isharamet")
+	public void addLogIndexingCheckpoint(MongoTemplate mongoTemplate) throws IOException {
+		mongoTemplate.createCollection("logIndexingCheckpoint");
+	}
+
 }

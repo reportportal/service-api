@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
 import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.entity.filter.ObjectType;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
+import com.epam.ta.reportportal.events.FiltersCreatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
@@ -34,6 +35,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
@@ -58,6 +60,9 @@ public class CreateUserFilterHandler implements ICreateUserFilterHandler {
 
 	@Autowired
 	private UserFilterValidationService userFilterService;
+
+	@Autowired
+    private ApplicationEventPublisher eventPublisher;
 
 	@Override
 	public List<EntryCreatedRS> createFilter(String userName, String projectName, CollectionsRQ<CreateUserFilterRQ> createFilterRQ) {
@@ -96,8 +101,9 @@ public class CreateUserFilterHandler implements ICreateUserFilterHandler {
 				return userFilter.getName();
 			}).collect(Collectors.toSet());
 			BusinessRule.expect(filterNames.size(), Predicates.equalTo(filters.size())).verify(ErrorType.BAD_SAVE_USER_FILTER_REQUEST);
-			filterRepository.save(filters);
-		}
+            List<UserFilter> saved = filterRepository.save(filters);
+            eventPublisher.publishEvent(new FiltersCreatedEvent(saved, userName, projectName));
+        }
 		return filters.stream().map(filter -> new EntryCreatedRS(filter.getId())).collect(Collectors.toList());
 	}
 }

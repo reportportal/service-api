@@ -49,26 +49,24 @@ public class CompareLaunchesFilterStrategy implements BuildFilterStrategy {
 
 	@Override
 	public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
-		Filter filter = userFilter.getFilter();
-		if (filter.getTarget().equals(Launch.class)) {
-			filter.addCondition(new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.name(), Launch.MODE_CRITERIA));
-			filter.addCondition(new FilterCondition(Condition.NOT_EQUALS, false, Status.IN_PROGRESS.name(), Launch.STATUS));
-			filter.addCondition(new FilterCondition(Condition.EQUALS, false, projectName, Launch.PROJECT));
-		}
-
+		Filter filter = extendFilter(userFilter.getFilter(), projectName);
 		return widgetContentProvider.getChartContent(projectName, filter, userFilter.getSelectionOptions(), contentOptions);
 	}
 
     @Override
     public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
-        Filter filter = userFilter.getFilter();
-        if (filter.getTarget().equals(Launch.class)) {
-            filter.addCondition(new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.name(), Launch.MODE_CRITERIA));
-            filter.addCondition(new FilterCondition(Condition.NOT_EQUALS, false, Status.IN_PROGRESS.name(), Launch.STATUS));
-            filter.addCondition(new FilterCondition(Condition.EQUALS, false, projectName, Launch.PROJECT));
-        }
-        return widgetContentProvider.getChartContent(projectName, filter, userFilter.getSelectionOptions(), contentOptions);
-    }
+		Filter filter = extendFilter(userFilter.getFilter(), projectName);
+		return widgetContentProvider.getChartContent(projectName, filter, userFilter.getSelectionOptions(), contentOptions);
+	}
+
+	private Filter extendFilter(Filter filter, String projectName) {
+		if (filter.getTarget().equals(Launch.class)) {
+			filter.addCondition(new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.name(), Launch.MODE_CRITERIA));
+			filter.addCondition(new FilterCondition(Condition.NOT_EQUALS, false, Status.IN_PROGRESS.name(), Launch.STATUS));
+			filter.addCondition(new FilterCondition(Condition.EQUALS, false, projectName, Launch.PROJECT));
+		}
+		return filter;
+	}
 
 
 }

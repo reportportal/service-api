@@ -21,12 +21,14 @@
  
 package com.epam.ta.reportportal.core.widget;
 
-import java.util.List;
-import java.util.Map;
-
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
+import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Get Widget handler
@@ -73,4 +75,14 @@ public interface IGetWidgetHandler {
 	 * @return
 	 */
 	List<String> getWidgetNames(String projectName, String userName);
+
+	/**
+	 * Get content for building preview while creating widget
+	 *
+	 * @param previewRQ   Widget parameters
+	 * @param projectName Project name
+	 * @param userName    Username
+	 * @return Widget content
+	 */
+	Map<String, List<ChartObject>> getWidgetPreview(String projectName, String userName, WidgetPreviewRQ previewRQ);
 }

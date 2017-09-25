@@ -41,7 +41,6 @@ import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.ws.converter.LaunchResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
-import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
@@ -118,7 +117,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
     }
 
     @Override
-    public LaunchResource mergeLaunches(String projectName, String userName, DeepMergeLaunchesRQ rq) {
+    public LaunchResource mergeLaunches(String projectName, String userName, MergeLaunchesRQ rq) {
         User user = userRepository.findOne(userName);
         Project project = projectRepository.findOne(projectName);
         expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
@@ -130,8 +129,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
         Launch launch = createResultedLaunch(projectName, userName, rq);
         boolean isNameChanged = !launch.getName().equals(launchesList.get(0).getName());
-        updateChildrenOfLaunches(launch.getId(), rq.getLaunches(),
-                rq.isExtendSuitesDescription(), isNameChanged, projectName);
+        updateChildrenOfLaunches(launch.getId(), rq.getLaunches(), rq.isExtendSuitesDescription(), isNameChanged);
 
         MergeStrategyType type = MergeStrategyType.fromValue(rq.getMergeStrategyType());
         expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
@@ -199,14 +197,13 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
     /**
      * Update test-items of specified launches with new LaunchID
      */
-    private void updateChildrenOfLaunches(String launchId, Set<String> launches, boolean extendDescription,
-                                          boolean isNameChanged, String project) {
+    private void updateChildrenOfLaunches(String launchId, Set<String> launches, boolean extendDescription, boolean isNameChanged) {
         List<TestItem> testItems = launches.stream().flatMap(id -> {
             Launch launch = launchRepository.findOne(id);
             return testItemRepository.findByLaunch(launch).stream().map(item -> {
                 item.setLaunchRef(launchId);
                 if (isNameChanged && identifierGenerator.validate(item.getUniqueId())) {
-                    item.setUniqueId(identifierGenerator.generate(item, project));
+                    item.setUniqueId(identifierGenerator.generate(item));
                 }
                 if (item.getType().sameLevel(TestItemType.SUITE)) {
                     // Add launch reference description for top level items
@@ -239,7 +236,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
         Launch launch = new LaunchBuilder()
                 .addStartRQ(startRQ).addProject(projectName)
                 .addStatus(IN_PROGRESS).addUser(userName)
-                .build();
+                .get();
         launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
         return launchRepository.save(launch);
     }

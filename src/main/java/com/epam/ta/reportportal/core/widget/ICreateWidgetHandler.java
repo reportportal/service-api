@@ -44,15 +44,4 @@ public interface ICreateWidgetHandler {
 	 */
 	EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, String project, String userName);
 
-    /**
-     * Temporary solution for product status widget.
-     * UI needs widget without any information.
-     *
-     * @param createWidgetRq
-     * @param project
-     * @param user
-     * @return
-     */
-    EntryCreatedRS createEmpty(WidgetRQ createWidgetRq, String project, String user);
-
 }

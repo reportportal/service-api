@@ -140,6 +140,8 @@
 ### New Features
 
 * EPMRPP-26416 - Add possibility to use a 'dot' symbol in login of user
+* EPMRPP-26263 - Implemented latest launches view
+* EPMRPP-29222 - Introduce LDAP authorization
 
 ### Bugfixes
 * reportportal/reportportal#170 - Test run breaks with unclassified error (jbehave) #170
@@ -152,3 +154,19 @@
 * EPMRPP-29361 - No content of "Overall statistics" widget created for Demo DataUI
 * EPMRPP-29405 - WS: Widget with Latest launches=ON includes launches from Debug
 * EPMRPP-29337 - Widgets with Latest Launches ON include statistics for launches with In Progress status
+
+
+## 3.3
+##### Released: XXX XX, 2017
+
+### New Features
+
+* EPMRPP-29218 - Events monitoring
+* EPMRPP-26551 - Widget product status
+* reportportal/reportporatl#236 - Drop Redis
+* EPMRPP-29378 - Comulative ternd chart
+
+### Bugfixes
+
+* EPMRPP-29635 - Cumulative trend chart: Sorting bug
+* EPMRPP-29701: Tag prefix should be fully matched with the searched value

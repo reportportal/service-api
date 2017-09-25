@@ -98,7 +98,7 @@ class StartLaunchHandler implements IStartLaunchHandler {
 		Launch launch = new LaunchBuilder()
 				.addStartRQ(startLaunchRQ).addProject(projectName)
 				.addStatus(IN_PROGRESS).addUser(username)
-				.build();
+				.get();
 		/*
 		 * Retrieve and set number of launch with provided name
 		 */

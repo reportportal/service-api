@@ -21,9 +21,10 @@
  
 package com.epam.ta.reportportal.database.entity;
 
-import static org.hamcrest.Matchers.*;
 import org.junit.Assert;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.*;
 
 /**
  * Validates stuff related to Project entity

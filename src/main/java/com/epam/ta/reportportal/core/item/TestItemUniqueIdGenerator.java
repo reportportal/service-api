@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.item.Parameter;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.google.common.base.Strings;
@@ -45,50 +46,61 @@ import java.util.stream.Collectors;
 @Service
 public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 
-    private static final Base64.Encoder ENCODER = Base64.getEncoder();
+	private static final Base64.Encoder ENCODER = Base64.getEncoder();
 
-    private static final Base64.Decoder DECODER = Base64.getDecoder();
+	private static final Base64.Decoder DECODER = Base64.getDecoder();
 
-    private static final String SECRET = "auto:";
+	private static final String SECRET = "auto:";
 
-    @Autowired
-    private TestItemRepository testItemRepository;
+	private TestItemRepository testItemRepository;
 
-    @Autowired
-    private LaunchRepository launchRepository;
+	private LaunchRepository launchRepository;
 
-    @Override
-    public String generate(TestItem testItem, String projectName) {
-        String forEncoding = prepareForEncoding(testItem, projectName);
-        return ENCODER.encodeToString(forEncoding.getBytes(StandardCharsets.UTF_8));
-    }
+	@Autowired
+	public void setTestItemRepository(TestItemRepository testItemRepository) {
+		this.testItemRepository = testItemRepository;
+	}
 
-    @Override
-    public boolean validate(String encoded) {
-        return !Strings.isNullOrEmpty(encoded) && new String(DECODER.decode(encoded), StandardCharsets.UTF_8).startsWith(SECRET);
-    }
+	@Autowired
+	public void setLaunchRepository(LaunchRepository launchRepository) {
+		this.launchRepository = launchRepository;
+	}
 
-    private String prepareForEncoding(TestItem testItem, String projectName) {
-        String launchName = launchRepository.findNameNumberAndModeById(testItem.getLaunchRef()).getName();
-        List<String> pathNames = getPathNames(testItem.getPath());
-        String itemName = testItem.getName();
-        List<Parameter> parameters = Optional.ofNullable(testItem.getParameters()).orElse(Collections.emptyList());
-        StringJoiner joiner = new StringJoiner(";");
-        joiner.add(SECRET).add(projectName).add(launchName);
-        if (!CollectionUtils.isEmpty(pathNames)) {
-            joiner.add(pathNames.stream().collect(Collectors.joining(",")));
-        }
-        joiner.add(itemName);
-        if (!parameters.isEmpty()) {
-            joiner.add(parameters.stream().map(parameter ->
-                    (!Strings.isNullOrEmpty(parameter.getKey()) ?
-                            parameter.getKey() + "=" : "") + parameter.getValue()).collect(Collectors.joining(",")));
-        }
-        return joiner.toString();
-    }
+	@Override
+	public String generate(TestItem testItem) {
+		String forEncoding = prepareForEncoding(testItem);
+		return ENCODER.encodeToString(forEncoding.getBytes(StandardCharsets.UTF_8));
+	}
 
-    private List<String> getPathNames(List<String> path) {
-        Map<String, String> names = testItemRepository.findPathNames(path);
-        return path.stream().map(names::get).collect(Collectors.toList());
-    }
+	@Override
+	public boolean validate(String encoded) {
+		return !Strings.isNullOrEmpty(encoded) && new String(DECODER.decode(encoded), StandardCharsets.UTF_8).startsWith(SECRET);
+	}
+
+
+	private String prepareForEncoding(TestItem testItem) {
+		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
+		String launchName = launch.getName();
+		String projectName = launch.getProjectRef();
+		List<String> pathNames = getPathNames(testItem.getPath());
+		String itemName = testItem.getName();
+		List<Parameter> parameters = Optional.ofNullable(testItem.getParameters()).orElse(Collections.emptyList());
+		StringJoiner joiner = new StringJoiner(";");
+		joiner.add(SECRET).add(projectName).add(launchName);
+		if (!CollectionUtils.isEmpty(pathNames)) {
+			joiner.add(pathNames.stream().collect(Collectors.joining(",")));
+		}
+		joiner.add(itemName);
+		if (!parameters.isEmpty()) {
+			joiner.add(parameters.stream()
+					.map(parameter -> (!Strings.isNullOrEmpty(parameter.getKey()) ? parameter.getKey() + "=" : "") + parameter.getValue())
+					.collect(Collectors.joining(",")));
+		}
+		return joiner.toString();
+	}
+
+	private List<String> getPathNames(List<String> path) {
+		Map<String, String> names = testItemRepository.findPathNames(path);
+		return path.stream().map(names::get).collect(Collectors.toList());
+	}
 }

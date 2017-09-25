@@ -21,13 +21,13 @@
  
 package com.epam.ta.reportportal.ws.controller;
 
-import java.security.Principal;
-import java.util.List;
-
-import org.springframework.data.domain.Pageable;
-
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
+import com.epam.ta.reportportal.ws.model.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.security.Principal;
+import java.util.List;
 
 /**
  * Report Portal WS Interface. Activity controller
@@ -57,5 +57,16 @@ public interface IActivityController {
 	 * @return
 	 */
 	List<ActivityResource> getTestItemActivities(String projectName, String itemId, Filter filter, Pageable pageable, Principal principal);
+
+    /**
+     * Get activities for specified project with filter
+     * and paging
+     *
+     * @param projectName
+     * @param filter
+     * @param pageable
+     * @return
+     */
+	Page<ActivityResource> getActivities(String projectName, Filter filter, Pageable pageable);
 
 }

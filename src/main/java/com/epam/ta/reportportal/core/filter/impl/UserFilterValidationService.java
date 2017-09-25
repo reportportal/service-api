@@ -110,17 +110,19 @@ public class UserFilterValidationService {
 				BusinessRule.expect(holderOptional.isPresent(), Predicates.equalTo(Boolean.TRUE)).verify(
 						ErrorType.BAD_SAVE_USER_FILTER_REQUEST,
 						Suppliers.formattedSupplier("Filtering field '{}' is unknown.", userFilterEntity.getFilteringField()));
-				Condition condition = Condition.findByMarker(userFilterEntity.getCondition());
+				Condition condition = Condition.findByMarker(userFilterEntity.getCondition()).orElse(null);
 				BusinessRule.expect(condition, Predicates.notNull()).verify(ErrorType.BAD_SAVE_USER_FILTER_REQUEST,
 						Suppliers.formattedSupplier("Incorrect filter's entity condition '{}'.", userFilterEntity.getCondition()));
+
+				//TODO bug?
 				if (!reload) {
-					condition.validate(holderOptional.get(), userFilterEntity.getValue(), userFilterEntity.getIsNegative(),
+					condition.validate(holderOptional.get(), userFilterEntity.getValue(), Condition.isNegative(userFilterEntity.getValue()),
 							ErrorType.BAD_SAVE_USER_FILTER_REQUEST);
 					// check is values have correct type(is it possible to cast user
 					// filter entity value to to type specified in criteria holder)
 					condition.castValue(holderOptional.get(), userFilterEntity.getValue(), ErrorType.BAD_SAVE_USER_FILTER_REQUEST);
 				} else {
-					condition.validate(updated, userFilterEntity.getValue(), userFilterEntity.getIsNegative(),
+					condition.validate(updated, userFilterEntity.getValue(), Condition.isNegative(userFilterEntity.getValue()),
 							ErrorType.BAD_SAVE_USER_FILTER_REQUEST);
 					// check is values have correct type(is it possible to cast user
 					// filter entity value to to type specified in criteria holder)

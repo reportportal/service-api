@@ -21,8 +21,8 @@
 
 package com.epam.ta.reportportal.core.launch;
 
-import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 
 /**
  * Merge launches handler in common one
@@ -31,6 +31,6 @@ import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
  */
 public interface IMergeLaunchHandler {
 
-    LaunchResource mergeLaunches(String projectName, String userName, DeepMergeLaunchesRQ mergeLaunchesRQ);
+    LaunchResource mergeLaunches(String projectName, String userName, MergeLaunchesRQ mergeLaunchesRQ);
 
 }

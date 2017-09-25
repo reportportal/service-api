@@ -24,9 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Collections;
 import java.util.List;
 
-import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader.PASSED_FIELD;
-import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader.RESULT;
-import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader.TOTAL_FIELD;
+import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader.*;
 
 @SpringFixture("widgets")
 public class PassingRateTest extends BaseTest {
@@ -77,9 +75,9 @@ public class PassingRateTest extends BaseTest {
         contentParameters.setWidgetOptions(ImmutableMap.<String, List<String>>builder()
                 .put("launchNameFilter", Collections.singletonList("Demo launch_launch1-stat")).build());
         WidgetRQ rq = new WidgetRQ();
-        rq.setApplyingFilter("");
-        rq.setName("widget");
-        rq.setShare(false);
+		rq.setFilterId("");
+		rq.setName("widget");
+		rq.setShare(false);
         rq.setContentParameters(contentParameters);
         return rq;
     }
@@ -92,9 +90,9 @@ public class PassingRateTest extends BaseTest {
                 .add("statistics$executions$passed").build());
         contentParameters.setItemsCount(5);
         WidgetRQ rq = new WidgetRQ();
-        rq.setApplyingFilter(FILTER_ID);
-        rq.setName("widget");
-        rq.setShare(false);
+		rq.setFilterId(FILTER_ID);
+		rq.setName("widget");
+		rq.setShare(false);
         rq.setContentParameters(contentParameters);
         return rq;
     }

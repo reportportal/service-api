@@ -54,6 +54,7 @@ import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.core.widget.content.GadgetTypes.*;
+import static com.epam.ta.reportportal.core.widget.content.WidgetDataTypes.CLEAN_WIDGET;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -87,25 +88,29 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 	private ApplicationEventPublisher eventPublisher;
 
 	@Override
-	public OperationCompletionRS updateWidget(String widgetId, WidgetRQ updateRQ, String userName,
-											  String projectName, UserRole userRole) {
-		Widget widget = widgetRepository.findOne(widgetId);
-		Widget beforeUpdate = SerializationUtils.clone(widget);
-		expect(widget, notNull()).verify(WIDGET_NOT_FOUND, widgetId);
+    public OperationCompletionRS updateWidget(String widgetId, WidgetRQ updateRQ, String userName,
+                                              String projectName, UserRole userRole) {
+        Widget widget = widgetRepository.findOne(widgetId);
+        Widget beforeUpdate = SerializationUtils.clone(widget);
+        expect(widget, notNull()).verify(WIDGET_NOT_FOUND, widgetId);
+        validateWidgetAccess(projectName, userName, userRole, widget, updateRQ);
 
-		List<Widget> widgetList = widgetRepository.findByProjectAndUser(projectName, userName);
-		if (null != updateRQ.getName() && !widget.getName().equals(updateRQ.getName())) {
-			WidgetUtils.checkUniqueName(updateRQ.getName(), widgetList);
-		}
-		widget.setDescription(updateRQ.getDescription());
+        Widget newWidget;
+        if (!updateRQ.getContentParameters().getType().equals(CLEAN_WIDGET.getType())) {
+            newWidget = updateWidget(widget, updateRQ, userName, projectName);
+        } else {
+            newWidget = updateCleanWidget(widget, updateRQ, userName, projectName);
+        }
+        widgetRepository.save(newWidget);
+        eventPublisher.publishEvent(new WidgetUpdatedEvent(beforeUpdate, updateRQ, userName));
+        return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
+    }
 
-		AclUtils.isAllowedToEdit(widget.getAcl(), userName, projectRepository.findProjectRoles(userName),
-                widget.getName(), userRole);
-		expect(widget.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
-
+	private Widget updateWidget(Widget widget, WidgetRQ updateRQ, String userName,
+			String projectName) {
 		UserFilter newFilter = null;
-		if (null != updateRQ.getApplyingFilter()) {
-			String filterId = updateRQ.getApplyingFilter();
+		if (null != updateRQ.getFilterId()) {
+			String filterId = updateRQ.getFilterId();
 			newFilter = filterRepository.findOneLoadACL(userName, filterId, projectName);
 
 			// skip filter validation for Activity and Most Failed Test Cases
@@ -113,25 +118,40 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 			if (!(null != updateRQ.getContentParameters() && findByName(updateRQ.getContentParameters().getGadget()).isPresent()
 					&& (findByName(updateRQ.getContentParameters().getGadget()).get() == ACTIVITY)
 					&& (findByName(updateRQ.getContentParameters().getGadget()).get() == MOST_FAILED_TEST_CASES))) {
-				expect(newFilter, notNull()).verify(USER_FILTER_NOT_FOUND, updateRQ.getApplyingFilter(), userName);
+				expect(newFilter, notNull()).verify(USER_FILTER_NOT_FOUND, updateRQ.getFilterId(), userName);
 				expect(newFilter.isLink(), equalTo(false)).verify(UNABLE_TO_CREATE_WIDGET, "Widget cannot be based on a link");
 			}
 		}
-		Widget newWidget = widgetBuilder.get().addWidgetRQ(updateRQ).build();
-
+		Widget newWidget = widgetBuilder.get().addWidgetRQ(updateRQ)
+                .addDescription(updateRQ.getDescription())
+                .build();
 		validateWidgetFields(newWidget, newFilter, widget, userName, projectName);
-
 		updateWidget(widget, newWidget, newFilter);
-
 		shareIfRequired(updateRQ.getShare(), widget, userName, projectName, newFilter);
-
-		widgetRepository.save(widget);
-
-		eventPublisher.publishEvent(new WidgetUpdatedEvent(beforeUpdate, updateRQ, userName));
-		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
+		return widget;
 	}
 
-	private void shareIfRequired(Boolean isShare, Widget widget, String userName, String projectName, UserFilter newFilter) {
+    private Widget updateCleanWidget(Widget widget, WidgetRQ updateRQ, String userName, String projectName) {
+        Widget newWidget = widgetBuilder.get().addWidgetRQ(updateRQ)
+                .addDescription(updateRQ.getDescription())
+                .build();
+        updateWidget(widget, newWidget, null);
+        shareIfRequired(updateRQ.getShare(), widget, userName, projectName, null);
+        return widget;
+    }
+
+    private void validateWidgetAccess(String projectName, String userName, UserRole userRole, Widget widget, WidgetRQ updateRQ) {
+        List<Widget> widgetList = widgetRepository.findByProjectAndUser(projectName, userName);
+        if (null != updateRQ.getName() && !widget.getName().equals(updateRQ.getName())) {
+            WidgetUtils.checkUniqueName(updateRQ.getName(), widgetList);
+        }
+
+        AclUtils.isAllowedToEdit(widget.getAcl(), userName, projectRepository.findProjectRoles(userName),
+                widget.getName(), userRole);
+        expect(widget.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
+    }
+
+    private void shareIfRequired(Boolean isShare, Widget widget, String userName, String projectName, UserFilter newFilter) {
 		if (isShare != null) {
 			if (null != newFilter) {
 				AclUtils.isPossibleToRead(newFilter.getAcl(), userName, projectName);
@@ -150,6 +170,7 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 		if (filter != null) {
 			oldWidget.setApplyingFilterId(filter.getId());
 		}
+		oldWidget.setDescription(newValues.getDescription());
 	}
 
 	/**

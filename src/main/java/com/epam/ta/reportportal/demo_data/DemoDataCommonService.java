@@ -117,7 +117,7 @@ public class DemoDataCommonService {
         testItem.setHasChilds(true);
         testItem.setStatus(IN_PROGRESS);
         testItem.setType(type);
-        testItem.setUniqueId(identifierGenerator.generate(testItem, project));
+        testItem.setUniqueId(identifierGenerator.generate(testItem));
         return testItemRepository.save(testItem);
     }
 
@@ -149,7 +149,7 @@ public class DemoDataCommonService {
         testItem.setType(type);
         testItem.getPath().addAll(rootItemId.getPath());
         testItem.getPath().add(rootItemId.getId());
-        testItem.setUniqueId(identifierGenerator.generate(testItem, project));
+        testItem.setUniqueId(identifierGenerator.generate(testItem));
         return testItemRepository.save(testItem);
     }
 

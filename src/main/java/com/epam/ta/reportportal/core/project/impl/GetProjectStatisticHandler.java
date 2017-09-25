@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.database.entity.item.ActivityEventType;
 import com.epam.ta.reportportal.database.entity.project.info.InfoInterval;
 import com.epam.ta.reportportal.database.entity.project.info.ProjectInfoWidget;
 import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
@@ -33,7 +34,6 @@ import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
-import com.epam.ta.reportportal.events.handler.ExternalSystemActivityHandler;
 import com.epam.ta.reportportal.ws.converter.ProjectInfoResourceAssembler;
 import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.project.LaunchesPerUser;
@@ -54,19 +54,14 @@ import java.util.Map.Entry;
 
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.database.entity.item.Activity.ACTION_TYPE;
+import static com.epam.ta.reportportal.database.entity.item.Activity.PROJECT_REF;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
 import static com.epam.ta.reportportal.database.search.Condition.*;
-import static com.epam.ta.reportportal.events.handler.ExternalSystemActivityHandler.UPDATE;
-import static com.epam.ta.reportportal.events.handler.LaunchActivityHandler.DELETE;
-import static com.epam.ta.reportportal.events.handler.LaunchActivityHandler.FINISH;
-import static com.epam.ta.reportportal.events.handler.LaunchActivityHandler.START;
-import static com.epam.ta.reportportal.events.handler.ProjectActivityHandler.UPDATE_PROJECT;
-import static com.epam.ta.reportportal.events.handler.TicketActivitySubscriber.POST_ISSUE;
-import static com.epam.ta.reportportal.events.handler.UserActivityHandler.CREATE_USER;
-import static com.epam.ta.reportportal.events.handler.WidgetActivityEventHandler.SHARE;
-import static com.epam.ta.reportportal.events.handler.WidgetActivityEventHandler.UNSHARE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
@@ -187,16 +182,16 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 
 	@SuppressWarnings("serial")
 	private Map<String, List<ChartObject>> getActivities(String projectId, InfoInterval interval) {
-		String value = new StringJoiner(",").add(UPDATE_PROJECT).add(START).add(FINISH).add(DELETE).add(SHARE)
-				.add(UNSHARE).add(POST_ISSUE).add(CREATE_USER).add(UPDATE).add(ExternalSystemActivityHandler.CREATE)
-				.add(ExternalSystemActivityHandler.DELETE).toString();
+		String value = Arrays.stream(ActivityEventType.values())
+				.filter(it -> it == UPDATE_DEFECT || it == DELETE_DEFECT || it == ATTACH_ISSUE || it == UPDATE_ITEM)
+				.map(ActivityEventType::getValue).collect(joining(","));
 		int limit = 150;
 		Filter filter = new Filter(Activity.class, new HashSet<FilterCondition>() {
 			{
-				add(new FilterCondition(IN, false, value, "actionType"));
-				add(new FilterCondition(EQUALS, false, projectId, "projectRef"));
-				add(new FilterCondition(GREATER_THAN_OR_EQUALS, false, String.valueOf(getStartIntervalDate(interval).getTime()),
-						"last_modified"));
+				add(new FilterCondition(IN, false, value, ACTION_TYPE));
+				add(new FilterCondition(EQUALS, false, projectId, PROJECT_REF));
+				add(new FilterCondition(GREATER_THAN_OR_EQUALS, false,
+						String.valueOf(getStartIntervalDate(interval).getTime()), "last_modified"));
 			}
 		});
 		List<Activity> activities = activityRepository.findByFilterWithSortingAndLimit(filter,
@@ -205,9 +200,9 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 			ChartObject chartObject = new ChartObject();
 			chartObject.setId(it.getId());
 			HashMap<String, String> values = new HashMap<>();
-			values.put("actionType", it.getActionType());
+			values.put("actionType", it.getActionType().getValue());
 			values.put("last_modified", String.valueOf(it.getLastModified().getTime()));
-			values.put("objectType", it.getObjectType());
+			values.put("objectType", it.getObjectType().getValue());
 			values.put("projectRef", it.getProjectRef());
 			values.put("userRef", it.getUserRef());
 			if (it.getLoggedObjectRef() != null)
@@ -215,10 +210,10 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 			if (it.getName() != null) {
 				values.put("name", it.getName());
 			}
-			it.getHistory().entrySet().forEach(entry -> {
-				Activity.FieldValues fieldValues = entry.getValue();
-				values.put(entry.getKey() + "$oldValue", fieldValues == null ? null : entry.getValue().getOldValue());
-				values.put(entry.getKey() + "$newValue", fieldValues == null ? null : entry.getValue().getNewValue());
+			it.getHistory().forEach(entry -> {
+				Activity.FieldValues fieldValues = entry;
+				values.put(entry.getField() + "$oldValue", entry.getOldValue());
+				values.put(entry.getField() + "$newValue", entry.getNewValue());
 			});
 			chartObject.setValues(values);
 			return chartObject;

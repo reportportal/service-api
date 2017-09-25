@@ -47,7 +47,8 @@ public enum WidgetDataTypes {
 	BUG_TREND("bug_trend"),
 	LAUNCHES_COMPARISON_CHART("launches_comparison_chart"),
 	LAUNCHES_DURATION_CHART("launches_duration_chart"),
-	LAUNCHES_TABLE("launches_table");
+	LAUNCHES_TABLE("launches_table"),
+    CLEAN_WIDGET("clean_widget");
 
 	private String type;
 

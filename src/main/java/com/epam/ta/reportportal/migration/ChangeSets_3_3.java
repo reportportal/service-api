@@ -59,12 +59,21 @@ public class ChangeSets_3_3 {
             int i = 0;
             for (String key : history.keySet()) {
                 DBObject o = (DBObject) history.get(key);
-                Map res = new LinkedHashMap(o.keySet().size() + 1);
-                res.put("field", key);
-                res.putAll(o.toMap());
-                dbArray[i] = res;
-                i++;
-            }
+				if (o.keySet() != null) {
+					Map res = new LinkedHashMap(o.keySet().size() + 1);
+					res.put("field", key);
+					res.putAll(o.toMap());
+					dbArray[i] = res;
+					i++;
+				} else {
+					Map res = new LinkedHashMap<>(1);
+					res.put("field", key);
+					res.put(OLD_VALUE, "");
+					res.put(NEW_VALUE, "");
+					dbArray[i] = res;
+					i++;
+				}
+			}
             u.set(HISTORY, dbArray);
             mongoTemplate.updateFirst(Query.query(Criteria.where(ID).is(dbo.get(ID))), u, COLLECTION);
         });

@@ -53,7 +53,7 @@ import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
  * @author Aliaksei_Makayed
  * 
  */
-@Service
+@Service("testItemsHistoryHandler")
 public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 
 	private TestItemRepository testItemRepository;
@@ -100,6 +100,7 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 		BusinessRule.expect(startPointsIds.length, t -> t < MAX_HISTORY_SIZE_BOUND).verify(UNABLE_LOAD_TEST_ITEM_HISTORY,
 				"History size should be less than '" + MAX_HISTORY_SIZE_BOUND + "' test items.");
 
+		//test items start point ids
 		List<String> listIds = Lists.newArrayList(startPointsIds);
 
 		List<TestItem> itemsForHistory = historyServiceStrategy.loadItems(listIds);

@@ -24,7 +24,6 @@ package com.epam.ta.reportportal.util.analyzer;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
@@ -32,8 +31,8 @@ import com.epam.ta.reportportal.util.analyzer.model.IndexTestItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Default implementation of {@link IIssuesAnalyzer}.
@@ -69,14 +68,10 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
     private IndexLaunch analyze(Launch launch, List<TestItem> testItems) {
         IndexLaunch rs = null;
 
-        List<IndexTestItem> rqTestItems = new ArrayList<>();
-
-        for (TestItem testItem : testItems) {
-            List<Log> logs = logRepository.findByTestItemRef(testItem.getId());
-            if (!logs.isEmpty()) {
-                rqTestItems.add(IndexTestItem.fromTestItem(testItem, logs));
-            }
-        }
+		List<IndexTestItem> rqTestItems = testItems.stream()
+				.map(it -> IndexTestItem.fromTestItem(it, logRepository.findByTestItemRef(it.getId())))
+				.filter(it -> it.getLogs() != null)
+				.collect(Collectors.toList());
 
         if (!rqTestItems.isEmpty()) {
             IndexLaunch rqLaunch = new IndexLaunch();
@@ -91,17 +86,14 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
         return rs;
     }
 
-    private List<TestItem> updateTestItems(IndexLaunch rs, List<TestItem> testItems) {
-        for (IndexTestItem rsTestItem : rs.getTestItems()) {
-            if (rsTestItem.getIssueType() != null){
-                for (TestItem testItem : testItems) {
-                    if (testItem.getId().equals(rsTestItem.getTestItemId())) {
-                        testItem.setIssue(new TestItemIssue(rsTestItem.getIssueType(), DEFAULT_ISSUE_DESCRIPTION));
-                        break;
-                    }
-                }
-            }
-        }
-        return testItems;
-    }
+	private List<TestItem> updateTestItems(IndexLaunch rs, List<TestItem> testItems) {
+		rs.getTestItems()
+				.stream()
+				.filter(it -> it.getIssueType() != null)
+				.forEach(indexTestItem -> testItems.stream()
+						.filter(testItem -> testItem.getId().equals(indexTestItem.getTestItemId()))
+						.findFirst()
+						.ifPresent(it -> it.setIssue(new TestItemIssue(indexTestItem.getIssueType(), DEFAULT_ISSUE_DESCRIPTION))));
+		return testItems;
+	}
 }

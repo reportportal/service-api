@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 /**
  * Default implementation of {@link ILogIndexer}.
@@ -58,7 +59,7 @@ import java.util.concurrent.Executors;
 @Service("indexerService")
 public class LogIndexerService implements ILogIndexer {
 
-    private static final int BATCH_SIZE = 1000;
+    private static final int BATCH_SIZE = 666;
 
     private static final String CHECKPOINT_COLL = "logIndexingCheckpoint";
     private static final String CHECKPOINT_ID = "checkpoint";
@@ -99,13 +100,12 @@ public class LogIndexerService implements ILogIndexer {
     public void indexLogs(String launchId, List<TestItem> testItems) {
         Launch launch = launchRepository.findOne(launchId);
         if (launch != null) {
-            List<IndexTestItem> rqTestItems = new ArrayList<>(testItems.size());
-            for (TestItem testItem : testItems) {
-                List<Log> logs = logRepository.findByTestItemRef(testItem.getId());
-                if (!logs.isEmpty()) {
-                    rqTestItems.add(IndexTestItem.fromTestItem(testItem, logs));
-                }
-            }
+
+            List<IndexTestItem> rqTestItems = testItems.stream()
+                    .map(it -> IndexTestItem.fromTestItem(it, logRepository.findByTestItemRef(it.getId())))
+                    .filter(it -> it.getLogs() != null)
+                    .collect(Collectors.toList());
+
             if (!rqTestItems.isEmpty()) {
                 IndexLaunch rqLaunch = new IndexLaunch();
                 rqLaunch.setLaunchId(launchId);

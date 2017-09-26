@@ -21,6 +21,7 @@
 package com.epam.ta.reportportal.events.handler;
 
 import com.epam.ta.reportportal.commons.SendCase;
+import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.FailReferenceResourceRepository;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -76,12 +77,14 @@ public class LaunchFinishedEventHandler {
 
 	private final UserRepository userRepository;
 
+	private final StatisticsFacadeFactory statisticsFacadeFactory;
+
 	private final Provider<HttpServletRequest> currentRequest;
 
 	@Autowired
 	public LaunchFinishedEventHandler(IIssuesAnalyzer analyzerService, UserRepository userRepository, TestItemRepository testItemRepository,
-									  Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory,
-									  FailReferenceResourceRepository issuesRepository) {
+			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory,
+			FailReferenceResourceRepository issuesRepository, StatisticsFacadeFactory statisticsFacadeFactory) {
 		this.analyzerService = analyzerService;
 		this.userRepository = userRepository;
 		this.testItemRepository = testItemRepository;
@@ -89,6 +92,7 @@ public class LaunchFinishedEventHandler {
 		this.launchRepository = launchRepository;
 		this.emailServiceFactory = emailServiceFactory;
 		this.issuesRepository = issuesRepository;
+		this.statisticsFacadeFactory = statisticsFacadeFactory;
 	}
 
 	@EventListener
@@ -102,8 +106,9 @@ public class LaunchFinishedEventHandler {
 		boolean waitForAutoAnalysis;
 
 		/* Avoid NULL object processing */
-		if (null == project || null == launch)
+		if (null == project || null == launch) {
 			return;
+		}
 
 		Optional<EmailService> emailService = emailServiceFactory.getDefaultEmailService(project.getConfiguration().getEmailConfig());
 
@@ -116,18 +121,23 @@ public class LaunchFinishedEventHandler {
 		}
 
 		// Do not process debug launches.
-		if (launch.getMode().equals(Mode.DEBUG))
+		if (launch.getMode().equals(Mode.DEBUG)) {
 			return;
+		}
+
 		List<FailReferenceResource> resources = issuesRepository.findAllLaunchIssues(launch.getId());
 		if (!project.getConfiguration().getIsAutoAnalyzerEnabled()) {
 			this.clearInvestigatedIssues(resources);
 			return;
 		}
+
 		List<TestItem> converted = resources.stream().map(resource -> testItemRepository.findOne(resource.getTestItemRef()))
 				.collect(Collectors.toList());
 
 		List<TestItem> testItems = analyzerService.analyze(launch.getId(), converted);
 		testItemRepository.save(testItems);
+		statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
+				.recalculateStatistics(launch);
 
 		// Remove already processed items from repository
 		this.clearInvestigatedIssues(resources);
@@ -169,20 +179,20 @@ public class LaunchFinishedEventHandler {
 	 */
 	static boolean isSuccessRateEnough(Launch launch, SendCase option) {
 		switch (option) {
-		case ALWAYS:
-			return true;
-		case FAILED:
-			return launch.getStatus().equals(Status.FAILED);
-		case TO_INVESTIGATE:
-			return launch.getStatistics().getIssueCounter().getToInvestigateTotal() > 0;
-		case MORE_10:
-			return getSuccessRate(launch) > 0.1;
-		case MORE_20:
-			return getSuccessRate(launch) > 0.2;
-		case MORE_50:
-			return getSuccessRate(launch) > 0.5;
-		default:
-			return false;
+			case ALWAYS:
+				return true;
+			case FAILED:
+				return launch.getStatus().equals(Status.FAILED);
+			case TO_INVESTIGATE:
+				return launch.getStatistics().getIssueCounter().getToInvestigateTotal() > 0;
+			case MORE_10:
+				return getSuccessRate(launch) > 0.1;
+			case MORE_20:
+				return getSuccessRate(launch) > 0.2;
+			case MORE_50:
+				return getSuccessRate(launch) > 0.5;
+			default:
+				return false;
 		}
 	}
 
@@ -233,10 +243,15 @@ public class LaunchFinishedEventHandler {
 				try {
 					/* Update with static Util resources provider */
 					String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(currentRequest.get()))
-							.replacePath(String.format("/#%s/launches/all/", project.getName())).build().toUriString();
+							.replacePath(String.format("/#%s/launches/all/", project.getName()))
+							.build()
+							.toUriString();
 
-					emailService
-							.sendLaunchFinishNotification(recipientsArray, basicURL + launch.getId(), launch, project.getConfiguration());
+					emailService.sendLaunchFinishNotification(recipientsArray,
+							basicURL + launch.getId(),
+							launch,
+							project.getConfiguration()
+					);
 				} catch (Exception e) {
 					LOGGER.error("Unable to send email. Error: \n{}", e);
 				}

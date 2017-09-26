@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.launch.IUpdateLaunchHandler;
+import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -36,18 +37,13 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.launch.AutoAnalyzeStrategy;
 import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.util.analyzer.AnalyzerConfig;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -55,9 +51,8 @@ import java.util.List;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.*;
-import static com.epam.ta.reportportal.database.entity.Status.IN_PROGRESS;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.CUSTOMER;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -84,10 +79,10 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
     private UserRepository userRepository;
 
 	@Autowired
-	private IIssuesAnalyzer analyzerService;
+	private StatisticsFacadeFactory statisticsFacadeFactory;
 
 	@Autowired
-	private AnalyzerConfig analyzerConfig;
+	private IIssuesAnalyzer analyzerService;
 
 	@Autowired
 	public void setLaunchRepository(LaunchRepository launchRepository) {
@@ -146,6 +141,8 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 
 		List<TestItem> testItems = analyzerService.analyze(launchId, toInvestigate);
 		testItemRepository.save(testItems);
+		statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
+				.recalculateStatistics(launch);
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launchId + "' started.");
 	}
 

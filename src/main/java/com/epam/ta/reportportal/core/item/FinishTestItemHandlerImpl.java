@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.util.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.ws.converter.builders.FailReferenceResourceBuilder;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
@@ -54,8 +55,8 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.database.entity.Status.*;
-import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.NOT_ISSUE_FLAG;
-import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.validValues;
+import static com.epam.ta.reportportal.database.entity.Status.fromValue;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.*;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -77,6 +78,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private Provider<FailReferenceResourceBuilder> failReferenceResourceBuilder;
 	private ExternalSystemRepository externalSystemRepository;
 	private ILogIndexer logIndexer;
+	private IIssuesAnalyzer issuesAnalyzer;
 
 	@Autowired
 	public void setProjectRepository(ProjectRepository projectRepository) {
@@ -118,6 +120,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		this.logIndexer = logIndexer;
 	}
 
+	@Autowired
+	public void setIssuesAnalyzer(IIssuesAnalyzer issuesAnalyzer) {
+		this.issuesAnalyzer = issuesAnalyzer;
+	}
+
 	@Override
 	public OperationCompletionRS finishTestItem(String testItemId, FinishTestItemRQ finishExecutionRQ, String username) {
 		TestItem testItem = verifyTestItem(testItemId, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()));
@@ -156,6 +163,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		}
 
 		try {
+			if (null != testItem.getIssue() && testItem.getIssue().getIssueType().equals(TO_INVESTIGATE.getLocator())) {
+				testItem = issuesAnalyzer.analyze(launch.getId(), Collections.singletonList(testItem)).get(0);
+			}
 			testItemRepository.save(testItem);
 			testItem = statisticsFacade.updateExecutionStatistics(testItem);
 			if (null != testItem.getIssue()) {

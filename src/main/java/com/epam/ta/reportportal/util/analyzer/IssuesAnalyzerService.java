@@ -43,49 +43,49 @@ import java.util.stream.Collectors;
 @Service("analyzerService")
 public class IssuesAnalyzerService implements IIssuesAnalyzer {
 
-    private static final String DEFAULT_ISSUE_DESCRIPTION = "";
+	private static final String DEFAULT_ISSUE_DESCRIPTION = "";
 
-    @Autowired
-    private AnalyzerServiceClient analyzerServiceClient;
+	@Autowired
+	private AnalyzerServiceClient analyzerServiceClient;
 
-    @Autowired
-    private LaunchRepository launchRepository;
+	@Autowired
+	private LaunchRepository launchRepository;
 
-    @Autowired
-    private LogRepository logRepository;
+	@Autowired
+	private LogRepository logRepository;
 
-    @Override
-    public List<TestItem> analyze(String launchId, List<TestItem> testItems) {
-        Launch launch = launchRepository.findEntryById(launchId);
-        if (launch != null) {
-            IndexLaunch rs = analyze(launch, testItems);
-            if (rs != null) {
-                updateTestItems(rs, testItems);
-            }
-        }
-        return testItems;
-    }
+	@Override
+	public List<TestItem> analyze(String launchId, List<TestItem> testItems) {
+		Launch launch = launchRepository.findEntryById(launchId);
+		if (launch != null) {
+			IndexLaunch rs = analyze(launch, testItems);
+			if (rs != null) {
+				updateTestItems(rs, testItems);
+			}
+		}
+		return testItems;
+	}
 
-    private IndexLaunch analyze(Launch launch, List<TestItem> testItems) {
-        IndexLaunch rs = null;
+	private IndexLaunch analyze(Launch launch, List<TestItem> testItems) {
+		IndexLaunch rs = null;
 
 		List<IndexTestItem> rqTestItems = testItems.stream()
 				.map(it -> IndexTestItem.fromTestItem(it, logRepository.findByTestItemRef(it.getId())))
 				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
 				.collect(Collectors.toList());
 
-        if (!rqTestItems.isEmpty()) {
-            IndexLaunch rqLaunch = new IndexLaunch();
-            rqLaunch.setLaunchId(launch.getId());
-            rqLaunch.setLaunchName(launch.getName());
-            rqLaunch.setProject(launch.getProjectRef());
-            rqLaunch.setTestItems(rqTestItems);
+		if (!rqTestItems.isEmpty()) {
+			IndexLaunch rqLaunch = new IndexLaunch();
+			rqLaunch.setLaunchId(launch.getId());
+			rqLaunch.setLaunchName(launch.getName());
+			rqLaunch.setProject(launch.getProjectRef());
+			rqLaunch.setTestItems(rqTestItems);
 
-            rs = analyzerServiceClient.analyze(rqLaunch);
-        }
+			rs = analyzerServiceClient.analyze(rqLaunch);
+		}
 
-        return rs;
-    }
+		return rs;
+	}
 
 	private List<TestItem> updateTestItems(IndexLaunch rs, List<TestItem> testItems) {
 		rs.getTestItems()

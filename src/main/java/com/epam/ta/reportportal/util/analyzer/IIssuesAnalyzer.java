@@ -29,19 +29,15 @@ import java.util.List;
  * Service for issue type analysis based on historical data.
  *
  * @author Ivan Sharamet
- *
  */
 public interface IIssuesAnalyzer {
 
-    /**
-     * Analyze history to find similar issues
-     *
-     * @param launchId
-     *            ID of initial launch for history
-     * @param testItems
-     *            - current test items with failed\skipped status and issue
-     *
-     * @return list of test items with updated issue type
-     */
-    List<TestItem> analyze(String launchId, List<TestItem> testItems);
+	/**
+	 * Analyze history to find similar issues
+	 *
+	 * @param launchId  ID of initial launch for history
+	 * @param testItems - current test items with failed\skipped status and issue
+	 * @return list of test items with updated issue type
+	 */
+	List<TestItem> analyze(String launchId, List<TestItem> testItems);
 }

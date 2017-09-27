@@ -27,60 +27,64 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Represents detailed index information in indexing operation response.
  *
  * @author Ivan Sharamet
- *
  */
 public class IndexRsIndex {
 
-    @JsonProperty("index")
-    private String index;
-    @JsonProperty("type")
-    private String type;
-    @JsonProperty("id")
-    private String id;
-    @JsonProperty("version")
-    private int version;
-    @JsonProperty("result")
-    private String result;
+	@JsonProperty("index")
+	private String index;
 
-    public IndexRsIndex() {}
+	@JsonProperty("type")
+	private String type;
 
-    public String getIndex() {
-        return index;
-    }
+	@JsonProperty("id")
+	private String id;
 
-    public void setIndex(String index) {
-        this.index = index;
-    }
+	@JsonProperty("version")
+	private int version;
 
-    public String getType() {
-        return type;
-    }
+	@JsonProperty("result")
+	private String result;
 
-    public void setType(String type) {
-        this.type = type;
-    }
+	public IndexRsIndex() {
+	}
 
-    public String getId() {
-        return id;
-    }
+	public String getIndex() {
+		return index;
+	}
 
-    public void setId(String id) {
-        this.id = id;
-    }
+	public void setIndex(String index) {
+		this.index = index;
+	}
 
-    public int getVersion() {
-        return version;
-    }
+	public String getType() {
+		return type;
+	}
 
-    public void setVersion(int version) {
-        this.version = version;
-    }
+	public void setType(String type) {
+		this.type = type;
+	}
 
-    public String getResult() {
-        return result;
-    }
+	public String getId() {
+		return id;
+	}
 
-    public void setResult(String result) {
-        this.result = result;
-    }
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public int getVersion() {
+		return version;
+	}
+
+	public void setVersion(int version) {
+		this.version = version;
+	}
+
+	public String getResult() {
+		return result;
+	}
+
+	public void setResult(String result) {
+		this.result = result;
+	}
 }

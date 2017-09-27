@@ -28,50 +28,52 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Represents log container in index/analysis request/response.
  *
  * @author Ivan Sharamet
- *
  */
 public class IndexLog {
 
-    @JsonProperty("logId")
-    private String logId;
-    @JsonProperty("logLevel")
-    private int logLevel;
-    @JsonProperty("message")
-    private String message;
+	@JsonProperty("logId")
+	private String logId;
 
-    public static IndexLog fromLog(Log log) {
-        IndexLog indexLog = new IndexLog();
-        indexLog.setLogId(log.getId());
-        if (log.getLevel() != null) {
-            indexLog.setLogLevel(log.getLevel().toInt());
-        }
-        indexLog.setMessage(log.getLogMsg());
-        return indexLog;
-    }
+	@JsonProperty("logLevel")
+	private int logLevel;
 
-    public IndexLog() {}
+	@JsonProperty("message")
+	private String message;
 
-    public String getLogId() {
-        return logId;
-    }
+	public static IndexLog fromLog(Log log) {
+		IndexLog indexLog = new IndexLog();
+		indexLog.setLogId(log.getId());
+		if (log.getLevel() != null) {
+			indexLog.setLogLevel(log.getLevel().toInt());
+		}
+		indexLog.setMessage(log.getLogMsg());
+		return indexLog;
+	}
 
-    public void setLogId(String logId) {
-        this.logId = logId;
-    }
+	public IndexLog() {
+	}
 
-    public int getLogLevel() {
-        return logLevel;
-    }
+	public String getLogId() {
+		return logId;
+	}
 
-    public void setLogLevel(int logLevel) {
-        this.logLevel = logLevel;
-    }
+	public void setLogId(String logId) {
+		this.logId = logId;
+	}
 
-    public String getMessage() {
-        return message;
-    }
+	public int getLogLevel() {
+		return logLevel;
+	}
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
+	public void setLogLevel(int logLevel) {
+		this.logLevel = logLevel;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
 }

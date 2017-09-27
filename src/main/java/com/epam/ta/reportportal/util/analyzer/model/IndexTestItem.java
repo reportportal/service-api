@@ -32,16 +32,18 @@ import java.util.stream.Collectors;
  * Represents test item container in index/analysis request/response.
  *
  * @author Ivan Sharamet
- *
  */
 public class IndexTestItem {
 
 	@JsonProperty("testItemId")
 	private String testItemId;
+
 	@JsonProperty("issueType")
 	private String issueType;
+
 	@JsonProperty("logs")
 	private List<IndexLog> logs;
+
 	@JsonProperty("uniqueId")
 	private String uniqueId;
 

@@ -27,47 +27,49 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Represents single item in indexing operation response.
  *
  * @author Ivan Sharamet
- *
  */
 public class IndexRsItem {
 
-    public static final int STATUS_UPDATED = 200;
-    public static final int STATUS_CREATED = 201;
+	public static final int STATUS_UPDATED = 200;
+	public static final int STATUS_CREATED = 201;
 
-    @JsonProperty("index")
-    private IndexRsIndex index;
-    @JsonProperty("created")
-    private boolean created;
-    @JsonProperty("status")
-    private int status;
+	@JsonProperty("index")
+	private IndexRsIndex index;
 
-    public IndexRsItem() {}
+	@JsonProperty("created")
+	private boolean created;
 
-    public IndexRsIndex getIndex() {
-        return index;
-    }
+	@JsonProperty("status")
+	private int status;
 
-    public void setIndex(IndexRsIndex index) {
-        this.index = index;
-    }
+	public IndexRsItem() {
+	}
 
-    public boolean isCreated() {
-        return created;
-    }
+	public IndexRsIndex getIndex() {
+		return index;
+	}
 
-    public void setCreated(boolean created) {
-        this.created = created;
-    }
+	public void setIndex(IndexRsIndex index) {
+		this.index = index;
+	}
 
-    public int getStatus() {
-        return status;
-    }
+	public boolean isCreated() {
+		return created;
+	}
 
-    public void setStatus(int status) {
-        this.status = status;
-    }
+	public void setCreated(boolean created) {
+		this.created = created;
+	}
 
-    public boolean failed() {
-        return status != STATUS_CREATED && status != STATUS_UPDATED;
-    }
+	public int getStatus() {
+		return status;
+	}
+
+	public void setStatus(int status) {
+		this.status = status;
+	}
+
+	public boolean failed() {
+		return status != STATUS_CREATED && status != STATUS_UPDATED;
+	}
 }

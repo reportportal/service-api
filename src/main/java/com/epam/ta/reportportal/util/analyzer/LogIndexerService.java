@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.util.analyzer.model.IndexTestItem;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
+import org.apache.commons.collections.CollectionUtils;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -59,7 +60,7 @@ import java.util.stream.Collectors;
 @Service("indexerService")
 public class LogIndexerService implements ILogIndexer {
 
-    private static final int BATCH_SIZE = 666;
+	public static final int BATCH_SIZE = 1000;
 
     private static final String CHECKPOINT_COLL = "logIndexingCheckpoint";
     private static final String CHECKPOINT_ID = "checkpoint";
@@ -103,8 +104,7 @@ public class LogIndexerService implements ILogIndexer {
 
             List<IndexTestItem> rqTestItems = testItems.stream()
                     .map(it -> IndexTestItem.fromTestItem(it, logRepository.findByTestItemRef(it.getId())))
-                    .filter(it -> it.getLogs() != null)
-                    .collect(Collectors.toList());
+					.filter(it -> !CollectionUtils.isEmpty(it.getLogs())).collect(Collectors.toList());
 
             if (!rqTestItems.isEmpty()) {
                 IndexLaunch rqLaunch = new IndexLaunch();

@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.epam.ta.reportportal.util.analyzer.LogIndexerService.BATCH_SIZE;
 import static org.mockito.Mockito.*;
 
 /**
@@ -190,7 +191,7 @@ public class LogIndexerServiceTest {
         when(mongoOperations.getCollection(eq("logIndexingCheckpoint"))).thenReturn(checkpointColl);
         when(checkpointColl.findOne(any(Query.class))).thenReturn(null);
         int batchCount = 5;
-        int logCount = batchCount * 1000;
+        int logCount = batchCount * BATCH_SIZE;
         when(mongoOperations.stream(any(Query.class), eq(Log.class))).thenReturn(createLogIterator(logCount));
         when(launchRepository.findOne(anyString())).thenReturn(createLaunch("launchId"));
         when(testItemRepository.findOne(anyString())).thenReturn(createTestItem("testItemId"));

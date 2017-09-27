@@ -106,8 +106,8 @@ public class ChangeSets_3_3 {
         });
     }
 
-    @ChangeSet(order = "3.3-3", id = "v3.3-Generate id", author = "pbortnik")
-    public void generate(MongoTemplate mongoTemplate) {
+	@ChangeSet(order = "3.3-3", id = "v3.3-Generate uniqueId for all test items based on md5 algorithm", author = "pbortnik")
+	public void generate(MongoTemplate mongoTemplate) {
         mongoTemplate.createCollection("generationCheckpoint");
     }
 

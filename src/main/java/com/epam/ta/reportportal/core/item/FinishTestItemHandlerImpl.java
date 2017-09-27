@@ -130,26 +130,27 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		}
 		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
 		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, testItem.getLaunchRef());
-		if (!launch.getUserRef().equalsIgnoreCase(username))
+		if (!launch.getUserRef().equalsIgnoreCase(username)) {
 			fail().withError(FINISH_ITEM_NOT_ALLOWED, "You are not launch owner.");
+		}
 		final Project project = projectRepository.findOne(launch.getProjectRef());
 
 		Optional<Status> actualStatus = fromValue(finishExecutionRQ.getStatus());
 		Issue providedIssue = finishExecutionRQ.getIssue();
 
-        StatisticsFacade statisticsFacade = statisticsFacadeFactory
-                .getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
+		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration()
+				.getStatisticsCalculationStrategy());
 
 		/*
 		 * If test item has descendants, it's status is resolved from statistics
 		 * When status provided, no meter test item has or not descendants, test
 		 * item status is resolved to provided
 		 */
-        if (!actualStatus.isPresent() && testItem.hasChilds()) {
-            testItem = statisticsFacade.identifyStatus(testItem);
-        } else {
-            testItem.setStatus(actualStatus.get());
-        }
+		if (!actualStatus.isPresent() && testItem.hasChilds()) {
+			testItem = statisticsFacade.identifyStatus(testItem);
+		} else {
+			testItem.setStatus(actualStatus.get());
+		}
 
 		if (statisticsFacade.awareIssue(testItem)) {
 			testItem = awareTestItemIssueTypeFromStatus(testItem, providedIssue, project, username);
@@ -185,7 +186,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 			expect(!actualStatus.isPresent() && !testItem.hasChilds(), equalTo(Boolean.FALSE), formattedSupplier(
 					"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
-					testItemId)).verify();
+					testItemId
+			)).verify();
 
 			List<TestItem> descendants = Collections.emptyList();
 			if (testItem.hasChilds()) {
@@ -193,11 +195,18 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			}
 
 			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED,
-					formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'", testItemId,
-							IN_PROGRESS.name(), descendants));
+					formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'",
+							testItemId,
+							IN_PROGRESS.name(),
+							descendants
+					)
+			);
 
-			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime()))
-					.verify(FINISH_TIME_EARLIER_THAN_START_TIME, finishExecutionRQ.getEndTime(), testItem.getStartTime(), testItemId);
+			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
+					finishExecutionRQ.getEndTime(),
+					testItem.getStartTime(),
+					testItemId
+			);
 
 			/*
 			 * If there is issue provided we have to be sure issue type is
@@ -211,9 +220,12 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	void verifyIssue(String testItemId, Issue issue, Project.Configuration projectSettings) {
 		if (issue != null && !NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(issue.getIssueType())) {
-			expect(projectSettings.getByLocator(issue.getIssueType()), notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS,
-					formattedSupplier("Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types are: {}",
-							issue.getIssueType(), testItemId, validValues()));
+			expect(projectSettings.getByLocator(issue.getIssueType()), notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
+					"Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types are: {}",
+					issue.getIssueType(),
+					testItemId,
+					validValues()
+			));
 		}
 	}
 
@@ -232,19 +244,18 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				String issueType = providedIssue.getIssueType();
 				if (!issueType.equalsIgnoreCase(NOT_ISSUE_FLAG.getValue())) {
 					TestItemIssue issue = new TestItemIssue(project.getConfiguration().getByLocator(issueType).getLocator(),
-							providedIssue.getComment());
+							providedIssue.getComment()
+					);
 
 					//set provided external issues if any present
 					issue.setExternalSystemIssues(Optional.ofNullable(providedIssue.getExternalSystemIssues())
-							.map(issues -> issues.stream()
-									.map(it -> 		{
-										//not sure if it propogates exception correctly
-										expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true))
-												.verify(EXTERNAL_SYSTEM_NOT_FOUND, it.getExternalSystemId());
-										return it;
-									})
-									.map(TestItemUtils.externalIssueDtoConverter(submitter))
-									.collect(Collectors.toSet()))
+							.map(issues -> issues.stream().map(it -> {
+								//not sure if it propogates exception correctly
+								expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true)).verify(EXTERNAL_SYSTEM_NOT_FOUND,
+										it.getExternalSystemId()
+								);
+								return it;
+							}).map(TestItemUtils.externalIssueDtoConverter(submitter)).collect(Collectors.toSet()))
 							.orElse(null));
 
 					testItem.setIssue(issue);
@@ -254,8 +265,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				/* For AA saving reference initialization */
 				Launch launch = launchRepository.findOne(testItem.getLaunchRef());
 				expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, testItem.getLaunchRef());
-				if (Mode.DEFAULT.equals(launch.getMode()) && project.getConfiguration().getIsAutoAnalyzerEnabled())
+				if (Mode.DEFAULT.equals(launch.getMode()) && project.getConfiguration().getIsAutoAnalyzerEnabled()) {
 					finalizeFailed(testItem);
+				}
 			}
 		}
 		return testItem;
@@ -267,8 +279,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param testItem Item to be finalized
 	 */
 	private void finalizeFailed(final TestItem testItem) {
-		FailReferenceResource resource = failReferenceResourceBuilder.get().addLaunchRef(testItem.getLaunchRef())
-				.addTestItemRef(testItem.getId()).build();
+		FailReferenceResource resource = failReferenceResourceBuilder.get()
+				.addLaunchRef(testItem.getLaunchRef())
+				.addTestItemRef(testItem.getId())
+				.build();
 		issuesRepository.save(resource);
 	}
 }

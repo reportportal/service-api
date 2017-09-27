@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.util.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.ws.converter.builders.FailReferenceResourceBuilder;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
@@ -54,8 +55,8 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.database.entity.Status.*;
-import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.NOT_ISSUE_FLAG;
-import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.validValues;
+import static com.epam.ta.reportportal.database.entity.Status.fromValue;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.*;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -77,6 +78,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private Provider<FailReferenceResourceBuilder> failReferenceResourceBuilder;
 	private ExternalSystemRepository externalSystemRepository;
 	private ILogIndexer logIndexer;
+	private IIssuesAnalyzer issuesAnalyzer;
 
 	@Autowired
 	public void setProjectRepository(ProjectRepository projectRepository) {
@@ -116,6 +118,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	@Autowired
 	public void setLogIndexer(ILogIndexer logIndexer) {
 		this.logIndexer = logIndexer;
+	}
+
+	@Autowired
+	public void setIssuesAnalyzer(IIssuesAnalyzer issuesAnalyzer) {
+		this.issuesAnalyzer = issuesAnalyzer;
 	}
 
 	@Override
@@ -169,7 +176,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 		return new OperationCompletionRS("TestItem with ID = '" + testItemId + "' successfully finished.");
 	}
-
 	/**
 	 * Validation procedure for specified test item
 	 *
@@ -188,12 +194,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 					"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
 					testItemId
 			)).verify();
-
 			List<TestItem> descendants = Collections.emptyList();
 			if (testItem.hasChilds()) {
 				descendants = testItemRepository.findDescendants(testItem.getId());
 			}
-
 			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED,
 					formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'",
 							testItemId,
@@ -201,7 +205,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 							descendants
 					)
 			);
-
 			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
 					finishExecutionRQ.getEndTime(),
 					testItem.getStartTime(),
@@ -284,5 +287,24 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				.addTestItemRef(testItem.getId())
 				.build();
 		issuesRepository.save(resource);
+	}
+
+	/**
+	 * Analyze current item if auto analysis goes automatically and on the fly
+	 * of test items processing. Analyze only items that have
+	 * {@link com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType#TO_INVESTIGATE} issue
+	 *
+	 * @param launchId              Launch id
+	 * @param testItem              Test item to analyze
+	 * @param isAutoAnalyzerEnabled
+	 * @return
+	 */
+	private TestItem analyzeItem(String launchId, TestItem testItem, Boolean isAutoAnalyzerEnabled) {
+		TestItemIssue issue = testItem.getIssue();
+		if (null != issue && isAutoAnalyzerEnabled && issue.getIssueType().equals(TO_INVESTIGATE.getLocator())) {
+			List<TestItem> analyzedItem = issuesAnalyzer.analyze(launchId, Collections.singletonList(testItem));
+			return analyzedItem.get(0);
+		}
+		return testItem;
 	}
 }

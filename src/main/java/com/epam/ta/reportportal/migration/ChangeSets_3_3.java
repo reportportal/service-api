@@ -66,7 +66,7 @@ public class ChangeSets_3_3 {
 					dbArray[i] = res;
 					i++;
 				} else {
-					Map res = new LinkedHashMap<>(1);
+					Map res = new LinkedHashMap<>(3);
 					res.put("field", key);
 					res.put(OLD_VALUE, "");
 					res.put(NEW_VALUE, "");

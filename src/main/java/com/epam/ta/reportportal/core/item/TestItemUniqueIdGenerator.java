@@ -27,11 +27,11 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.item.Parameter;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.google.common.base.Strings;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -46,11 +46,7 @@ import java.util.stream.Collectors;
 @Service
 public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 
-	private static final Base64.Encoder ENCODER = Base64.getEncoder();
-
-	private static final Base64.Decoder DECODER = Base64.getDecoder();
-
-	private static final String SECRET = "auto:";
+	private static final String TRAIT = "auto:";
 
 	private TestItemRepository testItemRepository;
 
@@ -69,14 +65,13 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 	@Override
 	public String generate(TestItem testItem) {
 		String forEncoding = prepareForEncoding(testItem);
-		return ENCODER.encodeToString(forEncoding.getBytes(StandardCharsets.UTF_8));
+		return TRAIT + DigestUtils.md5Hex(forEncoding);
 	}
 
 	@Override
 	public boolean validate(String encoded) {
-		return !Strings.isNullOrEmpty(encoded) && new String(DECODER.decode(encoded), StandardCharsets.UTF_8).startsWith(SECRET);
+		return !Strings.isNullOrEmpty(encoded) && encoded.startsWith(TRAIT);
 	}
-
 
 	private String prepareForEncoding(TestItem testItem) {
 		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
@@ -86,7 +81,7 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 		String itemName = testItem.getName();
 		List<Parameter> parameters = Optional.ofNullable(testItem.getParameters()).orElse(Collections.emptyList());
 		StringJoiner joiner = new StringJoiner(";");
-		joiner.add(SECRET).add(projectName).add(launchName);
+		joiner.add(projectName).add(launchName);
 		if (!CollectionUtils.isEmpty(pathNames)) {
 			joiner.add(pathNames.stream().collect(Collectors.joining(",")));
 		}

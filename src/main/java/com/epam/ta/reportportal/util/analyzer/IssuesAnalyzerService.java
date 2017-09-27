@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.util.analyzer.model.IndexTestItem;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -70,7 +71,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 
 		List<IndexTestItem> rqTestItems = testItems.stream()
 				.map(it -> IndexTestItem.fromTestItem(it, logRepository.findByTestItemRef(it.getId())))
-				.filter(it -> it.getLogs() != null)
+				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
 				.collect(Collectors.toList());
 
         if (!rqTestItems.isEmpty()) {

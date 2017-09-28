@@ -42,6 +42,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.util.CloseableIterator;
@@ -122,8 +123,7 @@ class UpdateUniqueId {
 								updateTestItems(testItems);
 								counter++;
 								if (counter == 1000) {
-									LOGGER.info("Generated uniqueId for " + update + " items. " + "It is " + ((update / (float) forUpdate)
-											* 100) + "% done");
+									LOGGER.info("Generated uniqueId for " + update + " items. " + "It is " + ((update / (float) forUpdate) * 100) + "% done");
 									counter = 0;
 								}
 								update += testItems.size();
@@ -144,6 +144,13 @@ class UpdateUniqueId {
 		mongoOperations.getCollection(COLLECTION).drop();
 		launchCache.cleanUp();
 		LOGGER.info("Generating uniqueId is done!");
+		indexUniqueIds();
+
+	}
+
+	private void indexUniqueIds() {
+		mongoOperations.indexOps(mongoOperations.getCollectionName(TestItem.class))
+				.ensureIndex(new Index().on("uniqueId", Sort.Direction.ASC));
 	}
 
 	private void updateTestItems(List<TestItem> testItems) {

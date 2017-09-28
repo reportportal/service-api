@@ -17,20 +17,19 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
-package com.epam.ta.reportportal.core.item.history;
+ */
 
-import java.util.List;
+package com.epam.ta.reportportal.core.item.history;
 
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
 
+import java.util.List;
+
 /**
  * Define handler's operations for loading testItem's history.
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 public interface TestItemsHistoryHandler {
 
@@ -39,14 +38,11 @@ public interface TestItemsHistoryHandler {
 	 * <li>isSoloSelection - select history for specified by id item <li>isRoot
 	 * - select history for suites of specified by if launch <li>default -
 	 * select history for all children of specified by id item
-	 * 
-	 * @param projectName
-	 * @param startPointsIds
-	 *            - ids of history start points(launch id or testitem id)
-	 * @param historyDepth
-	 *            - count of items in history
-	 * 
-	 * @return
+	 *
+	 * @param projectName    - project name
+	 * @param startPointsIds - ids of history start points(launch id or testitem id)
+	 * @param historyDepth   - count of items in history
+	 * @return List of {@link TestItemHistoryElement}
 	 */
 	List<TestItemHistoryElement> getItemsHistory(String projectName, String[] startPointsIds, int historyDepth, boolean showBrokenLaunches);
 

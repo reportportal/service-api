@@ -41,11 +41,19 @@ import static java.util.stream.Collectors.toList;
 @Service("uniqueIdBasedHistoryHandler")
 public class UniqueIdBasedHistoryHandlerImpl implements TestItemsHistoryHandler {
 
-	@Autowired
 	private TestItemRepository testItemRepository;
 
-	@Autowired
 	private ITestItemsHistoryService historyService;
+
+	@Autowired
+	public void setTestItemRepository(TestItemRepository testItemRepository) {
+		this.testItemRepository = testItemRepository;
+	}
+
+	@Autowired
+	public void setHistoryService(ITestItemsHistoryService historyService) {
+		this.historyService = historyService;
+	}
 
 	@Override
 	public List<TestItemHistoryElement> getItemsHistory(String projectName, String[] startPointsIds, int historyDepth,
@@ -56,6 +64,7 @@ public class UniqueIdBasedHistoryHandlerImpl implements TestItemsHistoryHandler 
 		List<String> itemsIds = Lists.newArrayList(startPointsIds);
 		List<TestItem> itemsForHistory = testItemRepository.loadItemsForHistory(itemsIds);
 		historyService.validateItems(itemsForHistory, itemsIds, projectName);
+
 		List<Launch> launches = historyService.loadLaunches(
 				historyDepth,
 				itemsForHistory.get(0).getLaunchRef(),

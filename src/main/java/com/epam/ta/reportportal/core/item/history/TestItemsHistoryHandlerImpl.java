@@ -24,28 +24,19 @@ package com.epam.ta.reportportal.core.item.history;
 import com.epam.ta.reportportal.commons.DbUtils;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
-import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_LOAD_TEST_ITEM_HISTORY;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
 
 /**
  * Default implementation of {@link TestItemsHistoryHandler}.
@@ -58,25 +49,11 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 
 	private TestItemRepository testItemRepository;
 
-	private ProjectRepository projectRepository;
-
-	private TestItemResourceAssembler itemResourceAssembler;
-
 	private ITestItemsHistoryService historyServiceStrategy;
 
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
 		this.testItemRepository = testItemRepository;
-	}
-
-	@Autowired
-	public void setProjectRepository(ProjectRepository projectRepository) {
-		this.projectRepository = projectRepository;
-	}
-
-	@Autowired
-	public void setItemBuilder(TestItemResourceAssembler itemResourceAssembler) {
-		this.itemResourceAssembler = itemResourceAssembler;
 	}
 
 	@Autowired
@@ -87,23 +64,12 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 	@Override
 	public List<TestItemHistoryElement> getItemsHistory(String projectName, String[] startPointsIds, int historyDepth,
 			boolean showBrokenLaunches) {
-
-		Project project = projectRepository.findOne(projectName);
-		BusinessRule.expect(project, Predicates.notNull()).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
-
-		Predicate<Integer> greaterThan = t -> t > MIN_HISTORY_DEPTH_BOUND;
-		Predicate<Integer> lessThan = t -> t < MAX_HISTORY_DEPTH_BOUND;
-		String historyDepthMessage = "Items history depth should be greater than '" + MIN_HISTORY_DEPTH_BOUND + "' and lower than '"
-				+ MAX_HISTORY_DEPTH_BOUND + "'";
-		BusinessRule.expect(historyDepth, greaterThan.and(lessThan)).verify(UNABLE_LOAD_TEST_ITEM_HISTORY, historyDepthMessage);
-
-		BusinessRule.expect(startPointsIds.length, t -> t < MAX_HISTORY_SIZE_BOUND).verify(UNABLE_LOAD_TEST_ITEM_HISTORY,
-				"History size should be less than '" + MAX_HISTORY_SIZE_BOUND + "' test items.");
+		historyServiceStrategy.validateHistoryRequest(projectName, startPointsIds, historyDepth);
 
 		//test items start point ids
 		List<String> listIds = Lists.newArrayList(startPointsIds);
 
-		List<TestItem> itemsForHistory = historyServiceStrategy.loadItems(listIds);
+		List<TestItem> itemsForHistory = Lists.newArrayList(testItemRepository.findAll(listIds));
 		historyServiceStrategy.validateItems(itemsForHistory, listIds, projectName);
 
 		List<Launch> launches = historyServiceStrategy.loadLaunches(historyDepth, itemsForHistory.get(0).getLaunchRef(), projectName,
@@ -114,24 +80,9 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 				loadParentIds(itemsForHistory.get(0), historyLaunchesIds));
 
 		Map<String, List<TestItem>> groupedItems = history.stream().collect(Collectors.groupingBy(TestItem::getLaunchRef));
-		return launches.stream().map(launch -> buildHistoryElement(launch, groupedItems.get(launch.getId()))).collect(Collectors.toList());
+		return launches.stream().map(launch -> historyServiceStrategy.buildHistoryElement(launch, groupedItems.get(launch.getId()))).collect(Collectors.toList());
 	}
 
-	TestItemHistoryElement buildHistoryElement(Launch launch, List<TestItem> testItems) {
-		List<TestItemResource> resources = new ArrayList<>();
-		if (testItems != null) {
-			resources = testItems.stream().map(item ->
-					itemResourceAssembler.toResource(item, launch.getStatus().name()))
-					.collect(Collectors.toList());
-		}
-		TestItemHistoryElement testItemHistoryElement = new TestItemHistoryElement();
-		testItemHistoryElement.setLaunchId(launch.getId());
-		testItemHistoryElement.setLaunchNumber(launch.getNumber().toString());
-		testItemHistoryElement.setStartTime(String.valueOf(launch.getStartTime().getTime()));
-		testItemHistoryElement.setResources(resources);
-		testItemHistoryElement.setLaunchStatus(launch.getStatus().name());
-		return testItemHistoryElement;
-	}
 
 	private List<String> loadParentIds(TestItem testItem, List<String> launchesIds) {
 		// root item doesn't have parents

@@ -22,26 +22,56 @@
 package com.epam.ta.reportportal.core.item.history;
 
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Pavel Bortnik
  */
 @Service("uniqueIdBasedHistoryHandler")
-public class UniqueIdBasedHistoryHandler implements TestItemsHistoryHandler {
+public class UniqueIdBasedHistoryHandlerImpl implements TestItemsHistoryHandler {
 
 	@Autowired
 	private TestItemRepository testItemRepository;
 
+	@Autowired
+	private ITestItemsHistoryService historyService;
+
 	@Override
 	public List<TestItemHistoryElement> getItemsHistory(String projectName, String[] startPointsIds, int historyDepth,
 			boolean showBrokenLaunches) {
-		List<String> testItemsIds = Lists.newArrayList(startPointsIds);
-		return null;
+		//@formatter:off
+		historyService.validateHistoryRequest(projectName, startPointsIds, historyDepth);
+
+		List<String> itemsIds = Lists.newArrayList(startPointsIds);
+		List<TestItem> itemsForHistory = testItemRepository.loadItemsForHistory(itemsIds);
+		historyService.validateItems(itemsForHistory, itemsIds, projectName);
+		List<Launch> launches = historyService.loadLaunches(
+				historyDepth,
+				itemsForHistory.get(0).getLaunchRef(),
+				projectName,
+				showBrokenLaunches
+		);
+
+		List<TestItem> historyItems = testItemRepository.loadHistoryItems(
+				itemsForHistory.stream().map(TestItem::getUniqueId).collect(toList()),
+				launches.stream().map(Launch::getId).collect(toList())
+		);
+
+		Map<String, List<TestItem>> groupedItems = historyItems.stream().collect(Collectors.groupingBy(TestItem::getLaunchRef));
+		return launches.stream()
+				.map(launch -> historyService.buildHistoryElement(launch, groupedItems.get(launch.getId())))
+				.collect(Collectors.toList());
+		//@formatter:on
 	}
 }

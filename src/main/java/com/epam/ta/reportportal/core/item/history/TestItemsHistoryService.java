@@ -25,20 +25,29 @@ import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.search.Filter;
-import com.google.common.collect.Lists;
+import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
+import com.epam.ta.reportportal.ws.model.TestItemResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_LOAD_TEST_ITEM_HISTORY;
+import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
 import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toList;
@@ -60,10 +69,11 @@ public class TestItemsHistoryService implements ITestItemsHistoryService {
 	@Autowired
 	private LaunchRepository launchRepository;
 
-	@Override
-	public List<TestItem> loadItems(List<String> startingPointIds) {
-		return Lists.newArrayList(testItemRepository.findAll(startingPointIds));
-	}
+	@Autowired
+	private ProjectRepository projectRepository;
+
+	@Autowired
+	private TestItemResourceAssembler itemResourceAssembler;
 
 	@Override
 	public List<Launch> loadLaunches(int quantity, String startingLaunchId, String projectName, boolean showBrokenLaunches) {
@@ -77,6 +87,38 @@ public class TestItemsHistoryService implements ITestItemsHistoryService {
 		Filter filter = HistoryUtils.getLaunchSelectionFilter(startingLaunch.getName(), projectName, startingLaunch.getStartTime(),
 				showBrokenLaunches);
 		return launchRepository.findIdsByFilter(filter, new Sort(DESC, "start_time"), quantity);
+	}
+
+	@Override
+	public TestItemHistoryElement buildHistoryElement(Launch launch, List<TestItem> testItems) {
+		List<TestItemResource> resources = new ArrayList<>();
+		if (testItems != null) {
+			resources = testItems.stream().map(item ->
+					itemResourceAssembler.toResource(item, launch.getStatus().name()))
+					.collect(Collectors.toList());
+		}
+		TestItemHistoryElement testItemHistoryElement = new TestItemHistoryElement();
+		testItemHistoryElement.setLaunchId(launch.getId());
+		testItemHistoryElement.setLaunchNumber(launch.getNumber().toString());
+		testItemHistoryElement.setStartTime(String.valueOf(launch.getStartTime().getTime()));
+		testItemHistoryElement.setResources(resources);
+		testItemHistoryElement.setLaunchStatus(launch.getStatus().name());
+		return testItemHistoryElement;
+	}
+
+	@Override
+	public void validateHistoryRequest(String projectName, String[] startPointsIds, int historyDepth) {
+		Project project = projectRepository.findOne(projectName);
+		BusinessRule.expect(project, Predicates.notNull()).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
+
+		Predicate<Integer> greaterThan = t -> t > MIN_HISTORY_DEPTH_BOUND;
+		Predicate<Integer> lessThan = t -> t < MAX_HISTORY_DEPTH_BOUND;
+		String historyDepthMessage = "Items history depth should be greater than '" + MIN_HISTORY_DEPTH_BOUND + "' and lower than '"
+				+ MAX_HISTORY_DEPTH_BOUND + "'";
+		BusinessRule.expect(historyDepth, greaterThan.and(lessThan)).verify(UNABLE_LOAD_TEST_ITEM_HISTORY, historyDepthMessage);
+
+		BusinessRule.expect(startPointsIds.length, t -> t < MAX_HISTORY_SIZE_BOUND).verify(UNABLE_LOAD_TEST_ITEM_HISTORY,
+				"History size should be less than '" + MAX_HISTORY_SIZE_BOUND + "' test items.");
 	}
 
 	@Override
@@ -101,8 +143,6 @@ public class TestItemsHistoryService implements ITestItemsHistoryService {
 	}
 
 	private void checkItemsIsSiblings(List<TestItem> itemsForHistory) {
-		if (itemsForHistory == null || itemsForHistory.isEmpty())
-			return;
 		String parentId = itemsForHistory.get(0).getParent();
 		/*
 		 * If parent field is present check it - for example step, test if

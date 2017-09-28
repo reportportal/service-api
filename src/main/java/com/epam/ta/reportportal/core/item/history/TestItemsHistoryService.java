@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.item.history;
 
@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
@@ -57,14 +56,11 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 /**
  * History loading service for regular test items (is_root property was set to
  * false).
- * 
+ *
  * @author Aliaksei_Makayed
  */
 @Service
 public class TestItemsHistoryService implements ITestItemsHistoryService {
-
-	@Autowired
-	private TestItemRepository testItemRepository;
 
 	@Autowired
 	private LaunchRepository launchRepository;

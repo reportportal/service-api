@@ -36,6 +36,8 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 
 /**
+ * Creating items history based on {@link TestItem#uniqueId} field
+ *
  * @author Pavel Bortnik
  */
 @Service("uniqueIdBasedHistoryHandler")
@@ -65,7 +67,7 @@ public class UniqueIdBasedHistoryHandlerImpl implements TestItemsHistoryHandler 
 		List<TestItem> itemsForHistory = testItemRepository.loadItemsForHistory(itemsIds);
 		historyService.validateItems(itemsForHistory, itemsIds, projectName);
 
-		List<Launch> launches = historyService.loadLaunches(
+		List<Launch> historyLaunches = historyService.loadLaunches(
 				historyDepth,
 				itemsForHistory.get(0).getLaunchRef(),
 				projectName,
@@ -74,11 +76,11 @@ public class UniqueIdBasedHistoryHandlerImpl implements TestItemsHistoryHandler 
 
 		List<TestItem> historyItems = testItemRepository.loadHistoryItems(
 				itemsForHistory.stream().map(TestItem::getUniqueId).collect(toList()),
-				launches.stream().map(Launch::getId).collect(toList())
+				historyLaunches.stream().map(Launch::getId).collect(toList())
 		);
 
 		Map<String, List<TestItem>> groupedItems = historyItems.stream().collect(Collectors.groupingBy(TestItem::getLaunchRef));
-		return launches.stream()
+		return historyLaunches.stream()
 				.map(launch -> historyService.buildHistoryElement(launch, groupedItems.get(launch.getId())))
 				.collect(Collectors.toList());
 		//@formatter:on

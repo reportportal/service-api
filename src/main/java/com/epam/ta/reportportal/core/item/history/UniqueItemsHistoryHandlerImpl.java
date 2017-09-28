@@ -41,7 +41,10 @@ import static java.util.stream.Collectors.toList;
  * @author Pavel Bortnik
  */
 @Service("uniqueIdBasedHistoryHandler")
-public class UniqueIdBasedHistoryHandlerImpl implements TestItemsHistoryHandler {
+public class UniqueItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
+
+	private static final String LAUNCH_REF = "launchRef";
+	private static final String UNIQUE_ID = "uniqueId";
 
 	private TestItemRepository testItemRepository;
 
@@ -64,7 +67,7 @@ public class UniqueIdBasedHistoryHandlerImpl implements TestItemsHistoryHandler 
 		historyService.validateHistoryRequest(projectName, startPointsIds, historyDepth);
 
 		List<String> itemsIds = Lists.newArrayList(startPointsIds);
-		List<TestItem> itemsForHistory = testItemRepository.loadItemsForHistory(itemsIds);
+		List<TestItem> itemsForHistory = testItemRepository.findByIds(itemsIds, Lists.newArrayList(LAUNCH_REF, UNIQUE_ID));
 		historyService.validateItems(itemsForHistory, itemsIds, projectName);
 
 		List<Launch> historyLaunches = historyService.loadLaunches(
@@ -74,7 +77,7 @@ public class UniqueIdBasedHistoryHandlerImpl implements TestItemsHistoryHandler 
 				showBrokenLaunches
 		);
 
-		List<TestItem> historyItems = testItemRepository.loadHistoryItems(
+		List<TestItem> historyItems = testItemRepository.loadItemsHistory(
 				itemsForHistory.stream().map(TestItem::getUniqueId).collect(toList()),
 				historyLaunches.stream().map(Launch::getId).collect(toList())
 		);

@@ -40,10 +40,11 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_NOT_FOUND;
 
 /**
  * Default implementation of {@link TestItemsHistoryHandler}.
- * 
+ *
  * @author Aliaksei_Makayed
- * 
+ * @deprecated Use {@link UniqueItemsHistoryHandlerImpl} instead
  */
+@Deprecated
 @Service("testItemsHistoryHandler")
 public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 

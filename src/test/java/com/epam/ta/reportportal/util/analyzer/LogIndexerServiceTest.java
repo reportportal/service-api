@@ -235,7 +235,6 @@ public class LogIndexerServiceTest {
 		List<IndexRsItem> rsItems = new ArrayList<>(count);
 		for (int i = 0; i < count; i++) {
 			IndexRsItem rsItem = new IndexRsItem();
-			rsItem.setCreated(true);
 			rsItem.setIndex(new IndexRsIndex());
 			rsItems.add(rsItem);
 		}

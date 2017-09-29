@@ -29,21 +29,29 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Strings;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.StringJoiner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -62,10 +70,10 @@ class UpdateUniqueId {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UpdateUniqueId.class);
 
 	private static final String COLLECTION = "generationCheckpoint";
+	private static final String CHECKPOINT = "checkpoint";
+	private static final String CHECKPOINT_ID = "testItemId";
 
 	private static final int BATCH_SIZE = 100;
-
-	private static final Base64.Encoder ENCODER = Base64.getEncoder();
 
 	private static final String SECRET = "auto:";
 
@@ -93,29 +101,34 @@ class UpdateUniqueId {
 		long forUpdate = mongoOperations.count(testItemQuery(), TestItem.class);
 		long update = 0;
 		boolean isOk;
+		String checkpoint = getLastCheckpoint();
 		//potential endless loop
 		do {
-			try (CloseableIterator<TestItem> itemIterator = getItemIterator()) {
+			try (CloseableIterator<TestItem> itemIterator = getItemIterator(checkpoint)) {
 				List<TestItem> testItems = new ArrayList<>(BATCH_SIZE);
 				int counter = 0;
 				while (itemIterator.hasNext()) {
-					TestItem next = itemIterator.next();
-					if (next != null) {
-						boolean isRemoved = removeIfInvalid(next);
+					TestItem testItem = itemIterator.next();
+					if (testItem != null) {
+						boolean isRemoved = removeIfInvalid(testItem);
 						if (!isRemoved) {
-							String item = generate(next);
-							next.setUniqueId(item);
-							testItems.add(next);
+							if (checkpoint == null) {
+								checkpoint = testItem.getId();
+							}
+							String uniqueId = generate(testItem);
+							testItem.setUniqueId(uniqueId);
+							testItems.add(testItem);
 							if (testItems.size() == BATCH_SIZE || !itemIterator.hasNext()) {
+								createCheckpoint(checkpoint);
 								updateTestItems(testItems);
 								counter++;
 								if (counter == 1000) {
-									LOGGER.info("Generated uniqueId for " + update + " items. " + "It is " + ((update / (float) forUpdate)
-											* 100) + "% done");
+									LOGGER.info("Generated uniqueId for " + update + " items. " + "It is " + ((update / (float) forUpdate) * 100) + "% done");
 									counter = 0;
 								}
 								update += testItems.size();
 								testItems = new ArrayList<>(BATCH_SIZE);
+								checkpoint = null;
 							}
 						}
 					}
@@ -131,6 +144,13 @@ class UpdateUniqueId {
 		mongoOperations.getCollection(COLLECTION).drop();
 		launchCache.cleanUp();
 		LOGGER.info("Generating uniqueId is done!");
+		indexUniqueIds();
+
+	}
+
+	private void indexUniqueIds() {
+		mongoOperations.indexOps(mongoOperations.getCollectionName(TestItem.class))
+				.ensureIndex(new Index().on("uniqueId", Sort.Direction.ASC));
 	}
 
 	private void updateTestItems(List<TestItem> testItems) {
@@ -141,10 +161,6 @@ class UpdateUniqueId {
 			bulk.updateOne(query(where("_id").is(it.getId())), update);
 		});
 		bulk.execute();
-	}
-
-	private CloseableIterator<TestItem> getItemIterator() {
-		return mongoOperations.stream(testItemQuery().noCursorTimeout(), TestItem.class);
 	}
 
 	private boolean removeIfInvalid(TestItem item) {
@@ -169,7 +185,7 @@ class UpdateUniqueId {
 
 	public String generate(TestItem testItem) {
 		String forEncoding = prepareForEncoding(testItem);
-		return ENCODER.encodeToString(forEncoding.getBytes(StandardCharsets.UTF_8));
+		return SECRET + DigestUtils.md5Hex(forEncoding);
 	}
 
 	private String prepareForEncoding(TestItem testItem) {
@@ -198,6 +214,16 @@ class UpdateUniqueId {
 		return joiner.toString();
 	}
 
+	private CloseableIterator<TestItem> getItemIterator(String checkpoint) {
+		Sort sort = new Sort(new Sort.Order(Sort.Direction.ASC, "_id"));
+		Query query = new Query().with(sort).noCursorTimeout();
+		if (checkpoint != null) {
+			query.addCriteria(where("_id").gte(new ObjectId(checkpoint)));
+		}
+		query.fields().include("name").include("path").include("launchRef").include("parameters");
+		return mongoOperations.stream(query, TestItem.class);
+	}
+
 	private List<String> getPathNames(List<String> path) {
 		Map<String, String> names = testItemRepository.findPathNames(path);
 		return path.stream().map(names::get).collect(Collectors.toList());
@@ -211,9 +237,19 @@ class UpdateUniqueId {
 	}
 
 	private Query testItemQuery() {
-		Query query = query(where("uniqueId").exists(false));
+		Query query = new Query();
 		query.fields().include("name").include("path").include("launchRef").include("parameters");
 		return query;
+	}
+
+	private String getLastCheckpoint() {
+		DBObject checkpoint = mongoOperations.getCollection(COLLECTION).findOne(new BasicDBObject("_id", CHECKPOINT));
+		return checkpoint == null ? null : (String) checkpoint.get(CHECKPOINT_ID);
+	}
+
+	private void createCheckpoint(String logId) {
+		BasicDBObject checkpoint = new BasicDBObject("_id", CHECKPOINT).append(CHECKPOINT_ID, logId);
+		mongoOperations.getCollection(COLLECTION).save(checkpoint);
 	}
 
 }

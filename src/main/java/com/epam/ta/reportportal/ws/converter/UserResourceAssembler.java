@@ -33,6 +33,8 @@ import org.springframework.stereotype.Service;
 import javax.inject.Provider;
 import java.util.HashMap;
 
+import static java.util.Optional.ofNullable;
+
 /**
  * Resource Assembler for the {@link User} DB entity.
  *
@@ -56,8 +58,10 @@ public class UserResourceAssembler extends PagedResourcesAssembler<User, UserRes
             HashMap<String, UserResource.AssignedProject> assignedProjects = new HashMap<>();
             UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
             Project.UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, userResource.getUserId());
-            assignedProject.setProposedRole(userConfig.getProposedRole().name());
-            assignedProject.setProjectRole(userConfig.getProjectRole().name());
+
+            ofNullable(userConfig.getProjectRole()).ifPresent(it -> assignedProject.setProjectRole(it.name()));
+            ofNullable(userConfig.getProposedRole()).ifPresent(it -> assignedProject.setProposedRole(it.name()));
+
             assignedProject.setEntryType(entryType);
             assignedProjects.put(project.getId(), assignedProject);
             userResource.setAssignedProjects(assignedProjects);

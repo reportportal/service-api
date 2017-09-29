@@ -240,7 +240,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param project       Project
 	 * @return TestItem
 	 */
-	TestItem awareTestItemIssueTypeFromStatus(final TestItem testItem, final Issue providedIssue, final Project project, String submitter) {
+	TestItem awareTestItemIssueTypeFromStatus(TestItem testItem, final Issue providedIssue, final Project project, String submitter) {
 		if (FAILED.equals(testItem.getStatus()) || SKIPPED.equals(testItem.getStatus())) {
 			if (null != providedIssue) {
 				verifyIssue(testItem.getId(), providedIssue, project.getConfiguration());
@@ -270,6 +270,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, testItem.getLaunchRef());
 				if (Mode.DEFAULT.equals(launch.getMode()) && project.getConfiguration().getIsAutoAnalyzerEnabled()) {
 					finalizeFailed(testItem);
+					testItem = analyzeItem(launch.getId(), testItem, project.getConfiguration().getAnalyzeOnTheFly());
 				}
 			}
 		}
@@ -296,12 +297,12 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 *
 	 * @param launchId              Launch id
 	 * @param testItem              Test item to analyze
-	 * @param isAutoAnalyzerEnabled
+	 * @param analyzeOnTheFly
 	 * @return
 	 */
-	private TestItem analyzeItem(String launchId, TestItem testItem, Boolean isAutoAnalyzerEnabled) {
+	private TestItem analyzeItem(String launchId, TestItem testItem, Boolean analyzeOnTheFly) {
 		TestItemIssue issue = testItem.getIssue();
-		if (null != issue && isAutoAnalyzerEnabled && issue.getIssueType().equals(TO_INVESTIGATE.getLocator())) {
+		if (null != issue && analyzeOnTheFly && issue.getIssueType().equals(TO_INVESTIGATE.getLocator())) {
 			List<TestItem> analyzedItem = issuesAnalyzer.analyze(launchId, Collections.singletonList(testItem));
 			return analyzedItem.get(0);
 		}

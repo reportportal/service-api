@@ -59,7 +59,7 @@ public class ChangeSets_3_3 {
             int i = 0;
             for (String key : history.keySet()) {
                 DBObject o = (DBObject) history.get(key);
-                if (o.keySet() != null) {
+                if (null != o && null != o.keySet()) {
                     Map res = new LinkedHashMap(o.keySet().size() + 1);
                     res.put("field", key);
                     res.putAll(o.toMap());

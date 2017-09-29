@@ -96,8 +96,8 @@ public class TestItemsHistoryServiceTest {
 		Launch launch = launch();
 		launch.setMode(Mode.DEBUG);
 		when(launchRepository.findNameNumberAndModeById(launch.getId())).thenReturn(launch);
-		verify(launchRepository, times(1)).findNameNumberAndModeById(launch.getId());
 		List<Launch> launches = historyService.loadLaunches(1, launch.getId(), PROJECT, true);
+		verify(launchRepository, times(1)).findNameNumberAndModeById(launch.getId());
 		Assert.assertTrue(launches.size() == 1);
 		Assert.assertEquals(launch, launches.get(0));
 	}

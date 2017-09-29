@@ -46,7 +46,7 @@ import static org.mockito.Mockito.*;
 /**
  * @author Pavel Bortnik
  */
-public class UniqueItemsHistoryHandlerImplTest {
+public class TestItemsHistoryHandlerImplTest {
 
 	private static final String PROJECT = "project";
 
@@ -57,7 +57,7 @@ public class UniqueItemsHistoryHandlerImplTest {
 	private TestItemRepository testItemRepository;
 
 	@InjectMocks
-	private TestItemsHistoryHandler historyHandler = new UniqueItemsHistoryHandlerImpl();
+	private TestItemsHistoryHandler historyHandler = new TestItemsHistoryHandlerImpl();
 
 	@Before
 	public void init() {

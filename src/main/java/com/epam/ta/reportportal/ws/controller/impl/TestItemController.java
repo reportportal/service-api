@@ -42,7 +42,6 @@ import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -80,7 +79,6 @@ public class TestItemController implements ITestItemController {
 	private GetTestItemHandler getTestItemHandler;
 
 	@Autowired
-	@Qualifier("uniqueIdBasedHistoryHandler")
 	private TestItemsHistoryHandler testItemsHistoryHandler;
 
 	@Autowired

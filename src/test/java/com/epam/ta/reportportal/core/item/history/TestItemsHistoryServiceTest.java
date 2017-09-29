@@ -25,10 +25,12 @@ import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
+import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
@@ -40,6 +42,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.data.domain.Sort;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -77,6 +80,42 @@ public class TestItemsHistoryServiceTest {
 	public void init() {
 		MockitoAnnotations.initMocks(this);
 	}
+
+
+	@Test
+	public void loadLaunchesNull() {
+		String launchId = "1";
+		when(launchRepository.findNameNumberAndModeById(launchId)).thenReturn(null);
+		List<Launch> launches = historyService.loadLaunches(1, launchId, PROJECT, true);
+		verify(launchRepository, times(1)).findNameNumberAndModeById(launchId);
+		Assert.assertTrue("List of launches should be empty", launches.isEmpty());
+	}
+
+	@Test
+	public void loadLaunchesDebug() {
+		Launch launch = launch();
+		launch.setMode(Mode.DEBUG);
+		when(launchRepository.findNameNumberAndModeById(launch.getId())).thenReturn(launch);
+		verify(launchRepository, times(1)).findNameNumberAndModeById(launch.getId());
+		List<Launch> launches = historyService.loadLaunches(1, launch.getId(), PROJECT, true);
+		Assert.assertTrue(launches.size() == 1);
+		Assert.assertEquals(launch, launches.get(0));
+	}
+
+	@Test
+	public void loadLaunches() {
+		Launch launch = launch();
+		int count = 1;
+		Sort start_time = new Sort(Sort.Direction.DESC, "start_time");
+		Filter filter = HistoryUtils.getLaunchSelectionFilter(launch.getName(), PROJECT, now, true);
+		when(launchRepository.findNameNumberAndModeById(launch.getId())).thenReturn(launch);
+		when(launchRepository.findIdsByFilter(eq(filter), eq(start_time), eq(count))).thenReturn(Collections.singletonList(launch));
+		List<Launch> launches = historyService.loadLaunches(count, launch.getId(), PROJECT, true);
+		Assert.assertTrue(launches.size() == 1);
+		verify(launchRepository, times(1)).findNameNumberAndModeById(launch.getId());
+		verify(launchRepository, times(1)).findIdsByFilter(eq(filter), eq(start_time), eq(count));
+	}
+
 
 	@Test
 	public void buildHistoryElement() {
@@ -168,6 +207,7 @@ public class TestItemsHistoryServiceTest {
 		Launch launch = new Launch();
 		launch.setId("1");
 		launch.setNumber(1L);
+		launch.setMode(Mode.DEFAULT);
 		launch.setStatus(Status.PASSED);
 		launch.setStartTime(now);
 		launch.setProjectRef(PROJECT);
@@ -178,6 +218,7 @@ public class TestItemsHistoryServiceTest {
 		Launch launch = new Launch();
 		launch.setId("2");
 		launch.setNumber(1L);
+		launch.setMode(Mode.DEFAULT);
 		launch.setStatus(Status.PASSED);
 		launch.setStartTime(now);
 		launch.setProjectRef("ANOTHER_PROJECT");

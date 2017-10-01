@@ -27,21 +27,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Represents single item in indexing operation response.
  *
  * @author Ivan Sharamet
- *
  */
 public class IndexRsItem {
 
-    public static final int STATUS_UPDATED = 200;
-    public static final int STATUS_CREATED = 201;
-
     @JsonProperty("index")
     private IndexRsIndex index;
-    @JsonProperty("created")
-    private boolean created;
-    @JsonProperty("status")
-    private int status;
 
-    public IndexRsItem() {}
+    public IndexRsItem() {
+    }
 
     public IndexRsIndex getIndex() {
         return index;
@@ -51,23 +44,4 @@ public class IndexRsItem {
         this.index = index;
     }
 
-    public boolean isCreated() {
-        return created;
-    }
-
-    public void setCreated(boolean created) {
-        this.created = created;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-    public boolean failed() {
-        return status != STATUS_CREATED && status != STATUS_UPDATED;
-    }
 }

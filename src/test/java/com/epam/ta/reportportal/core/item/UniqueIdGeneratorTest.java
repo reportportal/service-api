@@ -33,8 +33,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.List;
 
 /**
@@ -54,7 +52,6 @@ public class UniqueIdGeneratorTest extends BaseTest {
 	private UniqueIdGenerator identifierGenerator;
 
 	private static final String ITEM = "44524cc1553de753b3e5ab2f";
-	private static final String PROJECT = "DEFAULT";
 
 	@Test
 	public void generateUniqueId() {
@@ -77,9 +74,6 @@ public class UniqueIdGeneratorTest extends BaseTest {
 		TestItem item = testItemRepository.findOne(ITEM);
 		String s1 = identifierGenerator.generate(item);
 		Assert.assertTrue(identifierGenerator.validate(s1));
-		byte[] decode = Base64.getDecoder().decode(s1);
-		Assert.assertTrue(new String(decode, StandardCharsets.UTF_8).contains("project1"));
-		Assert.assertFalse(identifierGenerator.validate("customId"));
 	}
 
 	private List<Parameter> getParameters() {

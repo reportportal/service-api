@@ -27,60 +27,93 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Represents detailed index information in indexing operation response.
  *
  * @author Ivan Sharamet
- *
  */
 public class IndexRsIndex {
 
-    @JsonProperty("index")
-    private String index;
-    @JsonProperty("type")
-    private String type;
-    @JsonProperty("id")
-    private String id;
-    @JsonProperty("version")
-    private int version;
-    @JsonProperty("result")
-    private String result;
+	public static final int STATUS_UPDATED = 200;
+	public static final int STATUS_CREATED = 201;
 
-    public IndexRsIndex() {}
+	@JsonProperty("_index")
+	private String index;
 
-    public String getIndex() {
-        return index;
-    }
+	@JsonProperty("_type")
+	private String type;
 
-    public void setIndex(String index) {
-        this.index = index;
-    }
+	@JsonProperty("_id")
+	private String id;
 
-    public String getType() {
-        return type;
-    }
+	@JsonProperty("_version")
+	private int version;
 
-    public void setType(String type) {
-        this.type = type;
-    }
+	@JsonProperty("result")
+	private String result;
 
-    public String getId() {
-        return id;
-    }
+	@JsonProperty("created")
+	private boolean created;
 
-    public void setId(String id) {
-        this.id = id;
-    }
+	@JsonProperty("status")
+	private int status;
 
-    public int getVersion() {
-        return version;
-    }
+	public IndexRsIndex() {
+	}
 
-    public void setVersion(int version) {
-        this.version = version;
-    }
+	public String getIndex() {
+		return index;
+	}
 
-    public String getResult() {
-        return result;
-    }
+	public void setIndex(String index) {
+		this.index = index;
+	}
 
-    public void setResult(String result) {
-        this.result = result;
-    }
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public int getVersion() {
+		return version;
+	}
+
+	public void setVersion(int version) {
+		this.version = version;
+	}
+
+	public String getResult() {
+		return result;
+	}
+
+	public void setResult(String result) {
+		this.result = result;
+	}
+
+	public boolean isCreated() {
+		return created;
+	}
+
+	public void setCreated(boolean created) {
+		this.created = created;
+	}
+
+	public int getStatus() {
+		return status;
+	}
+
+	public void setStatus(int status) {
+		this.status = status;
+	}
+
+	public boolean failed() {
+		return status != STATUS_CREATED && status != STATUS_UPDATED;
+	}
 }

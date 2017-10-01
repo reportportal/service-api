@@ -30,30 +30,26 @@ import java.util.List;
  * Service for indexing log content in some external storage for further search/analysis.
  *
  * @author Ivan Sharamet
- *
  */
 public interface ILogIndexer {
 
-    /**
-     * Index single log
-     *
-     * @param log
-     *            - log
-     */
-    void indexLog(Log log);
+	/**
+	 * Index single log
+	 *
+	 * @param log - log
+	 */
+	void indexLog(Log log);
 
-    /**
-     * Index logs for all given test items within launch
-     *
-     * @param launchId
-     *            - ID of the launch
-     * @param testItems
-     *            - list of test items, for which log indexing will be performed
-     */
-    void indexLogs(String launchId, List<TestItem> testItems);
+	/**
+	 * Index logs for all given test items within launch
+	 *
+	 * @param launchId  - ID of the launch
+	 * @param testItems - list of test items, for which log indexing will be performed
+	 */
+	void indexLogs(String launchId, List<TestItem> testItems);
 
-    /**
-     * Index all logs in repository
-     */
-    void indexAllLogs();
+	/**
+	 * Index all logs in repository
+	 */
+	void indexAllLogs();
 }

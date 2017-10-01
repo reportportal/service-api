@@ -59,12 +59,21 @@ public class ChangeSets_3_3 {
             int i = 0;
             for (String key : history.keySet()) {
                 DBObject o = (DBObject) history.get(key);
-                Map res = new LinkedHashMap(o.keySet().size() + 1);
-                res.put("field", key);
-                res.putAll(o.toMap());
-                dbArray[i] = res;
-                i++;
-            }
+				if (o.keySet() != null) {
+					Map res = new LinkedHashMap(o.keySet().size() + 1);
+					res.put("field", key);
+					res.putAll(o.toMap());
+					dbArray[i] = res;
+					i++;
+				} else {
+					Map res = new LinkedHashMap<>(3);
+					res.put("field", key);
+					res.put(OLD_VALUE, "");
+					res.put(NEW_VALUE, "");
+					dbArray[i] = res;
+					i++;
+				}
+			}
             u.set(HISTORY, dbArray);
             mongoTemplate.updateFirst(Query.query(Criteria.where(ID).is(dbo.get(ID))), u, COLLECTION);
         });
@@ -97,8 +106,8 @@ public class ChangeSets_3_3 {
         });
     }
 
-    @ChangeSet(order = "3.3-3", id = "v3.3-Generate id", author = "pbortnik")
-    public void generate(MongoTemplate mongoTemplate) {
+	@ChangeSet(order = "3.3-3", id = "v3.3-Generate uniqueId for all test items based on md5 algorithm", author = "pbortnik")
+	public void generate(MongoTemplate mongoTemplate) {
         mongoTemplate.createCollection("generationCheckpoint");
     }
 

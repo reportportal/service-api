@@ -36,33 +36,34 @@ import java.util.List;
  * Simple HTTP client for log indexing/analysis service.
  *
  * @author Ivan Sharamet
- *
  */
 @Service("analyzerServiceClient")
 public class AnalyzerServiceClient {
 
-    private static final String INDEX_PATH = "/_index";
-    private static final String ANALYZE_PATH = "/_analyze";
+	private static final String INDEX_PATH = "/_index";
+	private static final String ANALYZE_PATH = "/_analyze";
 
-    private final RestTemplate restTemplate;
-    private final String serviceUrl;
+	private final RestTemplate restTemplate;
+	private final String serviceUrl;
 
-    @Autowired
-    public AnalyzerServiceClient(RestTemplate restTemplate, @Value("${rp.analyzer.url}") String serviceUrl) {
-        this.restTemplate = restTemplate;
-        this.serviceUrl = serviceUrl;
-    }
+	@Autowired
+	public AnalyzerServiceClient(RestTemplate restTemplate, @Value("${rp.analyzer.url}") String serviceUrl) {
+		this.restTemplate = restTemplate;
+		this.serviceUrl = serviceUrl;
+	}
 
-    public IndexRs index(List<IndexLaunch> rq) {
-        ResponseEntity<IndexRs> rsEntity = restTemplate.postForEntity(serviceUrl + INDEX_PATH, rq, IndexRs.class);
-        return rsEntity.getBody();
-    }
+	public IndexRs index(List<IndexLaunch> rq) {
+		ResponseEntity<IndexRs> rsEntity = restTemplate.postForEntity(serviceUrl + INDEX_PATH, rq, IndexRs.class);
+		return rsEntity.getBody();
+	}
 
-    public IndexLaunch analyze(IndexLaunch rq) {
-        ResponseEntity<IndexLaunch[]> rsEntity =
-                restTemplate.postForEntity(
-                        serviceUrl + ANALYZE_PATH, Collections.singletonList(rq), IndexLaunch[].class);
-        IndexLaunch[] rs = rsEntity.getBody();
-        return rs.length > 0 ? rs[0] : null;
-    }
+	public IndexLaunch analyze(IndexLaunch rq) {
+		ResponseEntity<IndexLaunch[]> rsEntity = restTemplate.postForEntity(
+				serviceUrl + ANALYZE_PATH,
+				Collections.singletonList(rq),
+				IndexLaunch[].class
+		);
+		IndexLaunch[] rs = rsEntity.getBody();
+		return rs.length > 0 ? rs[0] : null;
+	}
 }

@@ -29,40 +29,42 @@ import java.util.List;
  * Represents indexing operation response.
  *
  * @author Ivan Sharamet
- *
  */
 public class IndexRs {
 
-    @JsonProperty("took")
-    private int took;
-    @JsonProperty("errors")
-    private boolean errors;
-    @JsonProperty("items")
-    private List<IndexRsItem> items;
+	@JsonProperty("took")
+	private int took;
 
-    public IndexRs() {}
+	@JsonProperty("errors")
+	private boolean errors;
 
-    public int getTook() {
-        return took;
-    }
+	@JsonProperty("items")
+	private List<IndexRsItem> items;
 
-    public void setTook(int took) {
-        this.took = took;
-    }
+	public IndexRs() {
+	}
 
-    public boolean isErrors() {
-        return errors;
-    }
+	public int getTook() {
+		return took;
+	}
 
-    public void setErrors(boolean errors) {
-        this.errors = errors;
-    }
+	public void setTook(int took) {
+		this.took = took;
+	}
 
-    public List<IndexRsItem> getItems() {
-        return items;
-    }
+	public boolean isErrors() {
+		return errors;
+	}
 
-    public void setItems(List<IndexRsItem> items) {
-        this.items = items;
-    }
+	public void setErrors(boolean errors) {
+		this.errors = errors;
+	}
+
+	public List<IndexRsItem> getItems() {
+		return items;
+	}
+
+	public void setItems(List<IndexRsItem> items) {
+		this.items = items;
+	}
 }

@@ -32,53 +32,64 @@ import java.util.stream.Collectors;
  * Represents test item container in index/analysis request/response.
  *
  * @author Ivan Sharamet
- *
  */
 public class IndexTestItem {
 
-    @JsonProperty("testItemId")
-    private String testItemId;
-    @JsonProperty("issueType")
-    private String issueType;
-    @JsonProperty("logs")
-    private List<IndexLog> logs;
+	@JsonProperty("testItemId")
+	private String testItemId;
 
-    public static IndexTestItem fromTestItem(TestItem testItem, List<Log> logs) {
-        IndexTestItem indexTestItem = new IndexTestItem();
-        indexTestItem.setTestItemId(testItem.getId());
-        if (testItem.getIssue() != null) {
-            indexTestItem.setIssueType(testItem.getIssue().getIssueType());
-        }
-        indexTestItem.setLogs(
-                logs.stream()
-                        .map(IndexLog::fromLog)
-                        .collect(Collectors.toList()));
-        return indexTestItem;
-    }
+	@JsonProperty("issueType")
+	private String issueType;
 
-    public IndexTestItem() {}
+	@JsonProperty("logs")
+	private List<IndexLog> logs;
 
-    public String getTestItemId() {
-        return testItemId;
-    }
+	@JsonProperty("uniqueId")
+	private String uniqueId;
 
-    public void setTestItemId(String testItemId) {
-        this.testItemId = testItemId;
-    }
+	public static IndexTestItem fromTestItem(TestItem testItem, List<Log> logs) {
+		IndexTestItem indexTestItem = new IndexTestItem();
+		indexTestItem.setTestItemId(testItem.getId());
+		indexTestItem.setUniqueId(testItem.getUniqueId());
+		if (testItem.getIssue() != null) {
+			indexTestItem.setIssueType(testItem.getIssue().getIssueType());
+		}
+		indexTestItem.setLogs(logs.stream().map(IndexLog::fromLog).collect(Collectors.toList()));
+		return indexTestItem;
+	}
 
-    public String getIssueType() {
-        return issueType;
-    }
+	public IndexTestItem() {
+	}
 
-    public void setIssueType(String issueType) {
-        this.issueType = issueType;
-    }
+	public String getTestItemId() {
+		return testItemId;
+	}
 
-    public List<IndexLog> getLogs() {
-        return logs;
-    }
+	public void setTestItemId(String testItemId) {
+		this.testItemId = testItemId;
+	}
 
-    public void setLogs(List<IndexLog> logs) {
-        this.logs = logs;
-    }
+	public String getUniqueId() {
+		return uniqueId;
+	}
+
+	public void setUniqueId(String uniqueId) {
+		this.uniqueId = uniqueId;
+	}
+
+	public String getIssueType() {
+		return issueType;
+	}
+
+	public void setIssueType(String issueType) {
+		this.issueType = issueType;
+	}
+
+	public List<IndexLog> getLogs() {
+		return logs;
+	}
+
+	public void setLogs(List<IndexLog> logs) {
+		this.logs = logs;
+	}
 }

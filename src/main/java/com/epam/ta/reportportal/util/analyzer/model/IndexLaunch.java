@@ -29,50 +29,53 @@ import java.util.List;
  * Represents launch container in index/analysis request/response.
  *
  * @author Ivan Sharamet
- *
  */
 public class IndexLaunch {
 
-    @JsonProperty("launchId")
-    private String launchId;
-    @JsonProperty("launchName")
-    private String launchName;
-    @JsonProperty("project")
-    private String project;
-    @JsonProperty("testItems")
-    private List<IndexTestItem> testItems;
+	@JsonProperty("launchId")
+	private String launchId;
 
-    public IndexLaunch() {}
+	@JsonProperty("launchName")
+	private String launchName;
 
-    public String getLaunchId() {
-        return launchId;
-    }
+	@JsonProperty("project")
+	private String project;
 
-    public void setLaunchId(String launchId) {
-        this.launchId = launchId;
-    }
+	@JsonProperty("testItems")
+	private List<IndexTestItem> testItems;
 
-    public String getLaunchName() {
-        return launchName;
-    }
+	public IndexLaunch() {
+	}
 
-    public void setLaunchName(String launchName) {
-        this.launchName = launchName;
-    }
+	public String getLaunchId() {
+		return launchId;
+	}
 
-    public String getProject() {
-        return project;
-    }
+	public void setLaunchId(String launchId) {
+		this.launchId = launchId;
+	}
 
-    public void setProject(String project) {
-        this.project = project;
-    }
+	public String getLaunchName() {
+		return launchName;
+	}
 
-    public List<IndexTestItem> getTestItems() {
-        return testItems;
-    }
+	public void setLaunchName(String launchName) {
+		this.launchName = launchName;
+	}
 
-    public void setTestItems(List<IndexTestItem> testItems) {
-        this.testItems = testItems;
-    }
+	public String getProject() {
+		return project;
+	}
+
+	public void setProject(String project) {
+		this.project = project;
+	}
+
+	public List<IndexTestItem> getTestItems() {
+		return testItems;
+	}
+
+	public void setTestItems(List<IndexTestItem> testItems) {
+		this.testItems = testItems;
+	}
 }

@@ -72,11 +72,11 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	@Autowired
 	private TestItemRepository testItemRepository;
 
-    private ProjectRepository projectRepository;
+	private ProjectRepository projectRepository;
 
-    private LaunchRepository launchRepository;
+	private LaunchRepository launchRepository;
 
-    private UserRepository userRepository;
+	private UserRepository userRepository;
 
 	@Autowired
 	private StatisticsFacadeFactory statisticsFacadeFactory;
@@ -120,7 +120,6 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	}
 
 	@Override
-	// TODO Review after all new requirements BRs list and optimize it
 	public OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId, String scope) {
 		AutoAnalyzeStrategy type = AutoAnalyzeStrategy.fromValue(scope);
 		expect(type, notNull()).verify(INCORRECT_FILTER_PARAMETERS, scope);
@@ -129,7 +128,8 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);
 
 		expect(launch.getProjectRef(), equalTo(projectName)).verify(FORBIDDEN_OPERATION,
-				Suppliers.formattedSupplier("Launch with ID '{}' is not under '{}' project.", launchId, projectName));
+				Suppliers.formattedSupplier("Launch with ID '{}' is not under '{}' project.", launchId, projectName)
+		);
 
 		/* Do not process debug launches */
 		expect(launch.getMode(), equalTo(DEFAULT)).verify(INCORRECT_REQUEST, "Cannot analyze launches in debug mode.");
@@ -138,7 +138,6 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
 		List<TestItem> toInvestigate = testItemRepository.findInIssueTypeItems(TestItemIssueType.TO_INVESTIGATE.getLocator(), launchId);
-
 		List<TestItem> testItems = analyzerService.analyze(launchId, toInvestigate);
 		testItemRepository.save(testItems);
 		statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
@@ -148,7 +147,10 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 
 	@Override
 	public List<OperationCompletionRS> updateLaunch(BulkRQ<UpdateLaunchRQ> rq, String projectName, String userName) {
-		return rq.getEntities().entrySet().stream().map(entry -> updateLaunch(entry.getKey(), projectName, userName, entry.getValue()))
+		return rq.getEntities()
+				.entrySet()
+				.stream()
+				.map(entry -> updateLaunch(entry.getKey(), projectName, userName, entry.getValue()))
 				.collect(toList());
 	}
 
@@ -158,8 +160,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		String launchOwner = launch.getUserRef();
 		User principal = userRepository.findOne(userName);
 		Project project = projectRepository.findOne(projectName);
-		if ((findUserConfigByLogin(project, userName).getProjectRole() == CUSTOMER)
-				&& (null != mode)) {
+		if ((findUserConfigByLogin(project, userName).getProjectRole() == CUSTOMER) && (null != mode)) {
 			expect(mode, equalTo(DEFAULT)).verify(ACCESS_DENIED);
 		}
 		if (principal.getRole() != ADMINISTRATOR) {

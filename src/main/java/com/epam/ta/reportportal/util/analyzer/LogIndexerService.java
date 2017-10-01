@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.util.analyzer.model.IndexTestItem;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
+import org.apache.commons.collections.CollectionUtils;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -54,150 +55,146 @@ import java.util.stream.Collectors;
  * Default implementation of {@link ILogIndexer}.
  *
  * @author Ivan Sharamet
- *
  */
 @Service("indexerService")
 public class LogIndexerService implements ILogIndexer {
 
-    private static final int BATCH_SIZE = 666;
+	public static final int BATCH_SIZE = 1000;
 
-    private static final String CHECKPOINT_COLL = "logIndexingCheckpoint";
-    private static final String CHECKPOINT_ID = "checkpoint";
-    private static final String CHECKPOINT_LOG_ID = "logId";
+	private static final String CHECKPOINT_COLL = "logIndexingCheckpoint";
+	private static final String CHECKPOINT_ID = "checkpoint";
+	private static final String CHECKPOINT_LOG_ID = "logId";
 
-    @Autowired
-    private AnalyzerServiceClient analyzerServiceClient;
+	@Autowired
+	private AnalyzerServiceClient analyzerServiceClient;
 
-    @Autowired
-    private MongoOperations mongoOperations;
+	@Autowired
+	private MongoOperations mongoOperations;
 
-    @Autowired
-    private LaunchRepository launchRepository;
+	@Autowired
+	private LaunchRepository launchRepository;
 
-    @Autowired
-    private TestItemRepository testItemRepository;
+	@Autowired
+	private TestItemRepository testItemRepository;
 
-    @Autowired
-    private LogRepository logRepository;
+	@Autowired
+	private LogRepository logRepository;
 
-    @EventListener
-    public void onApplicationEvent(ContextRefreshedEvent event) {
-        if (mongoOperations.collectionExists(CHECKPOINT_COLL)) {
-            Executors.newSingleThreadExecutor().execute(this::indexAllLogs);
-        }
-    }
+	@EventListener
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		if (mongoOperations.collectionExists(CHECKPOINT_COLL)) {
+			Executors.newSingleThreadExecutor().execute(this::indexAllLogs);
+		}
+	}
 
-    @Override
-    public void indexLog(Log log) {
-        IndexLaunch rq = createRqLaunch(log);
-        if (rq != null) {
-            IndexRs rs = analyzerServiceClient.index(Collections.singletonList(rq));
-            retryFailed(rs);
-        }
-    }
+	@Override
+	public void indexLog(Log log) {
+		IndexLaunch rq = createRqLaunch(log);
+		if (rq != null) {
+			IndexRs rs = analyzerServiceClient.index(Collections.singletonList(rq));
+			retryFailed(rs);
+		}
+	}
 
-    @Override
-    public void indexLogs(String launchId, List<TestItem> testItems) {
-        Launch launch = launchRepository.findOne(launchId);
-        if (launch != null) {
+	@Override
+	public void indexLogs(String launchId, List<TestItem> testItems) {
+		Launch launch = launchRepository.findOne(launchId);
+		if (launch != null) {
 
-            List<IndexTestItem> rqTestItems = testItems.stream()
-                    .map(it -> IndexTestItem.fromTestItem(it, logRepository.findByTestItemRef(it.getId())))
-                    .filter(it -> it.getLogs() != null)
-                    .collect(Collectors.toList());
+			List<IndexTestItem> rqTestItems = testItems.stream()
+					.map(it -> IndexTestItem.fromTestItem(it, logRepository.findByTestItemRef(it.getId())))
+					.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
+					.collect(Collectors.toList());
 
-            if (!rqTestItems.isEmpty()) {
-                IndexLaunch rqLaunch = new IndexLaunch();
-                rqLaunch.setLaunchId(launchId);
-                rqLaunch.setLaunchName(launch.getName());
-                rqLaunch.setProject(launch.getProjectRef());
-                rqLaunch.setTestItems(rqTestItems);
-                IndexRs rs = analyzerServiceClient.index(Collections.singletonList(rqLaunch));
-                retryFailed(rs);
-            }
-        }
-    }
+			if (!rqTestItems.isEmpty()) {
+				IndexLaunch rqLaunch = new IndexLaunch();
+				rqLaunch.setLaunchId(launchId);
+				rqLaunch.setLaunchName(launch.getName());
+				rqLaunch.setProject(launch.getProjectRef());
+				rqLaunch.setTestItems(rqTestItems);
+				IndexRs rs = analyzerServiceClient.index(Collections.singletonList(rqLaunch));
+				retryFailed(rs);
+			}
+		}
+	}
 
-    @Override
-    public void indexAllLogs() {
-        String checkpoint = getLastCheckpoint();
+	@Override
+	public void indexAllLogs() {
+		String checkpoint = getLastCheckpoint();
 
-        try (CloseableIterator<Log> logIterator = getLogIterator(checkpoint)) {
-            List<IndexLaunch> rq = new ArrayList<>(BATCH_SIZE);
-            while (logIterator.hasNext()) {
-                Log log = logIterator.next();
-                IndexLaunch rqLaunch = createRqLaunch(log);
-                if (rqLaunch != null) {
-                    if (checkpoint == null) {
-                        checkpoint = log.getId();
-                    }
-                    rq.add(rqLaunch);
-                    if (rq.size() == BATCH_SIZE || !logIterator.hasNext()) {
-                        createCheckpoint(checkpoint);
+		try (CloseableIterator<Log> logIterator = getLogIterator(checkpoint)) {
+			List<IndexLaunch> rq = new ArrayList<>(BATCH_SIZE);
+			while (logIterator.hasNext()) {
+				Log log = logIterator.next();
+				IndexLaunch rqLaunch = createRqLaunch(log);
+				if (rqLaunch != null) {
+					if (checkpoint == null) {
+						checkpoint = log.getId();
+					}
+					rq.add(rqLaunch);
+					if (rq.size() == BATCH_SIZE || !logIterator.hasNext()) {
+						createCheckpoint(checkpoint);
 
-                        IndexRs rs = analyzerServiceClient.index(rq);
+						IndexRs rs = analyzerServiceClient.index(rq);
 
-                        retryFailed(rs);
+						retryFailed(rs);
 
-                        rq = new ArrayList<>(BATCH_SIZE);
-                        checkpoint = null;
-                    }
-                }
-            }
-        }
+						rq = new ArrayList<>(BATCH_SIZE);
+						checkpoint = null;
+					}
+				}
+			}
+		}
 
-        getCheckpointCollection().drop();
-    }
+		getCheckpointCollection().drop();
+	}
 
-    private CloseableIterator<Log> getLogIterator(String checkpoint) {
-        Sort sort = new Sort(new Sort.Order(Sort.Direction.ASC, "_id"));
-        Query query = new Query().with(sort).noCursorTimeout();
+	private CloseableIterator<Log> getLogIterator(String checkpoint) {
+		Sort sort = new Sort(new Sort.Order(Sort.Direction.ASC, "_id"));
+		Query query = new Query().with(sort).noCursorTimeout();
 
-        if (checkpoint != null) {
-            query.addCriteria(Criteria.where("_id").gte(new ObjectId(checkpoint)));
-        }
+		if (checkpoint != null) {
+			query.addCriteria(Criteria.where("_id").gte(new ObjectId(checkpoint)));
+		}
 
-        return mongoOperations.stream(query, Log.class);
-    }
+		return mongoOperations.stream(query, Log.class);
+	}
 
-    private IndexLaunch createRqLaunch(Log log) {
-        IndexLaunch rqLaunch = null;
-        TestItem testItem = testItemRepository.findOne(log.getTestItemRef());
-        if (testItem != null) {
-            Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-            if (launch != null) {
-                rqLaunch = new IndexLaunch();
-                rqLaunch.setLaunchId(launch.getId());
-                rqLaunch.setLaunchName(launch.getName());
-                rqLaunch.setProject(launch.getProjectRef());
-                rqLaunch.setTestItems(
-                        Collections.singletonList(
-                                IndexTestItem.fromTestItem(
-                                        testItem, Collections.singletonList(log))));
-            }
-        }
-        return rqLaunch;
-    }
+	private IndexLaunch createRqLaunch(Log log) {
+		IndexLaunch rqLaunch = null;
+		TestItem testItem = testItemRepository.findOne(log.getTestItemRef());
+		if (testItem != null) {
+			Launch launch = launchRepository.findOne(testItem.getLaunchRef());
+			if (launch != null) {
+				rqLaunch = new IndexLaunch();
+				rqLaunch.setLaunchId(launch.getId());
+				rqLaunch.setLaunchName(launch.getName());
+				rqLaunch.setProject(launch.getProjectRef());
+				rqLaunch.setTestItems(Collections.singletonList(IndexTestItem.fromTestItem(testItem, Collections.singletonList(log))));
+			}
+		}
+		return rqLaunch;
+	}
 
-    private void retryFailed(IndexRs rs) {
-        // TODO: Retry failed items!
-//        List<IndexRsItem> failedItems =
-//                rs.getItems().stream().filter(i -> i.failed()).collect(Collectors.toList());
-    }
+	private void retryFailed(IndexRs rs) {
+		// TODO: Retry failed items!
+		//        List<IndexRsItem> failedItems =
+		//                rs.getItems().stream().filter(i -> i.failed()).collect(Collectors.toList());
+	}
 
-    private DBCollection getCheckpointCollection() {
-        return mongoOperations.getCollection(CHECKPOINT_COLL);
-    }
+	private DBCollection getCheckpointCollection() {
+		return mongoOperations.getCollection(CHECKPOINT_COLL);
+	}
 
-    private String getLastCheckpoint() {
-        DBObject checkpoint = getCheckpointCollection().findOne(new BasicDBObject("_id", CHECKPOINT_ID));
-        return checkpoint == null ? null : (String) checkpoint.get(CHECKPOINT_LOG_ID);
-    }
+	private String getLastCheckpoint() {
+		DBObject checkpoint = getCheckpointCollection().findOne(new BasicDBObject("_id", CHECKPOINT_ID));
+		return checkpoint == null ? null : (String) checkpoint.get(CHECKPOINT_LOG_ID);
+	}
 
-    private void createCheckpoint(String logId) {
-        BasicDBObject checkpoint = new BasicDBObject("_id", CHECKPOINT_ID).append(CHECKPOINT_LOG_ID, logId);
-        getCheckpointCollection().save(checkpoint);
-    }
+	private void createCheckpoint(String logId) {
+		BasicDBObject checkpoint = new BasicDBObject("_id", CHECKPOINT_ID).append(CHECKPOINT_LOG_ID, logId);
+		getCheckpointCollection().save(checkpoint);
+	}
 }
 
 

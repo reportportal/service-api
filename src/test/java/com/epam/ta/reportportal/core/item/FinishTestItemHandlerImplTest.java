@@ -135,6 +135,7 @@ public class FinishTestItemHandlerImplTest {
 		Project project = new Project();
 		Project.Configuration configuration = new Project.Configuration();
 		configuration.setIsAutoAnalyzerEnabled(true);
+		configuration.setAnalyzeOnTheFly(false);
 		project.setConfiguration(configuration);
 
 		TestItem updatedTestItem = finishTestItemHandler.awareTestItemIssueTypeFromStatus(testItem, null, project, "someuser");

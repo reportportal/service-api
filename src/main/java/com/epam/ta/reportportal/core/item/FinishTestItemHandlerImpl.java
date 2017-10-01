@@ -24,17 +24,18 @@ import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
-import com.epam.ta.reportportal.database.dao.*;
+import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
+import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Status;
-import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.util.analyzer.ILogIndexer;
-import com.epam.ta.reportportal.ws.converter.builders.FailReferenceResourceBuilder;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -44,7 +45,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Provider;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -74,8 +74,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private LaunchRepository launchRepository;
 	private TestItemRepository testItemRepository;
 	private StatisticsFacadeFactory statisticsFacadeFactory;
-	private FailReferenceResourceRepository issuesRepository;
-	private Provider<FailReferenceResourceBuilder> failReferenceResourceBuilder;
 	private ExternalSystemRepository externalSystemRepository;
 	private ILogIndexer logIndexer;
 	private IIssuesAnalyzer issuesAnalyzer;
@@ -98,16 +96,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	@Autowired
 	public void setStatisticsFacadeFactory(StatisticsFacadeFactory statisticsFacadeFactory) {
 		this.statisticsFacadeFactory = statisticsFacadeFactory;
-	}
-
-	@Autowired
-	public void setFailReferenceResourceRepository(FailReferenceResourceRepository issuesRepository) {
-		this.issuesRepository = issuesRepository;
-	}
-
-	@Autowired
-	public void setFailReferenceResourceBuilder(Provider<FailReferenceResourceBuilder> failReferenceResourceBuilder) {
-		this.failReferenceResourceBuilder = failReferenceResourceBuilder;
 	}
 
 	@Autowired
@@ -255,12 +243,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 					//set provided external issues if any present
 					issue.setExternalSystemIssues(Optional.ofNullable(providedIssue.getExternalSystemIssues())
-							.map(issues -> issues.stream().map(it -> {
+							.map(issues -> issues.stream().peek(it -> {
 								//not sure if it propogates exception correctly
 								expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true)).verify(EXTERNAL_SYSTEM_NOT_FOUND,
 										it.getExternalSystemId()
 								);
-								return it;
 							}).map(TestItemUtils.externalIssueDtoConverter(submitter)).collect(Collectors.toSet()))
 							.orElse(null));
 
@@ -272,25 +259,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				Launch launch = launchRepository.findOne(testItem.getLaunchRef());
 				expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, testItem.getLaunchRef());
 				if (Mode.DEFAULT.equals(launch.getMode()) && project.getConfiguration().getIsAutoAnalyzerEnabled()) {
-					finalizeFailed(testItem);
 					testItem = analyzeItem(launch.getId(), testItem, project.getConfiguration().getAnalyzeOnTheFly());
 				}
 			}
 		}
 		return testItem;
-	}
-
-	/**
-	 * Add test item reference into specific repository for AA processing after.
-	 *
-	 * @param testItem Item to be finalized
-	 */
-	private void finalizeFailed(final TestItem testItem) {
-		FailReferenceResource resource = failReferenceResourceBuilder.get()
-				.addLaunchRef(testItem.getLaunchRef())
-				.addTestItemRef(testItem.getId())
-				.build();
-		issuesRepository.save(resource);
 	}
 
 	/**

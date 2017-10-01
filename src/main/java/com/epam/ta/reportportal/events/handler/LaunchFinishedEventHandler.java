@@ -22,15 +22,14 @@ package com.epam.ta.reportportal.events.handler;
 
 import com.epam.ta.reportportal.commons.SendCase;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
-import com.epam.ta.reportportal.database.dao.FailReferenceResourceRepository;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Status;
-import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig;
@@ -55,7 +54,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Andrei Varabyeu
@@ -64,8 +62,6 @@ import java.util.stream.Collectors;
 public class LaunchFinishedEventHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LaunchFinishedEventHandler.class);
-
-	private final FailReferenceResourceRepository issuesRepository;
 
 	private final TestItemRepository testItemRepository;
 
@@ -84,14 +80,13 @@ public class LaunchFinishedEventHandler {
 	@Autowired
 	public LaunchFinishedEventHandler(IIssuesAnalyzer analyzerService, UserRepository userRepository, TestItemRepository testItemRepository,
 			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory,
-			FailReferenceResourceRepository issuesRepository, StatisticsFacadeFactory statisticsFacadeFactory) {
+			StatisticsFacadeFactory statisticsFacadeFactory) {
 		this.analyzerService = analyzerService;
 		this.userRepository = userRepository;
 		this.testItemRepository = testItemRepository;
 		this.currentRequest = currentRequest;
 		this.launchRepository = launchRepository;
 		this.emailServiceFactory = emailServiceFactory;
-		this.issuesRepository = issuesRepository;
 		this.statisticsFacadeFactory = statisticsFacadeFactory;
 	}
 
@@ -125,22 +120,18 @@ public class LaunchFinishedEventHandler {
 			return;
 		}
 
-		List<FailReferenceResource> resources = issuesRepository.findAllLaunchIssues(launch.getId());
 		if (!project.getConfiguration().getIsAutoAnalyzerEnabled()) {
-			this.clearInvestigatedIssues(resources);
 			return;
 		}
 
-		List<TestItem> converted = resources.stream().map(resource -> testItemRepository.findOne(resource.getTestItemRef()))
-				.collect(Collectors.toList());
+		List<TestItem> toInvestigateItems = testItemRepository.findInIssueTypeItems(TestItemIssueType.TO_INVESTIGATE.getLocator(),
+				launch.getId()
+		);
 
-		List<TestItem> testItems = analyzerService.analyze(launch.getId(), converted);
+		List<TestItem> testItems = analyzerService.analyze(launch.getId(), toInvestigateItems);
 		testItemRepository.save(testItems);
 		statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 				.recalculateStatistics(launch);
-
-		// Remove already processed items from repository
-		this.clearInvestigatedIssues(resources);
 
 		/* Previous email sending cycle was skipped due waiting AA results */
 		if (waitForAutoAnalysis) {
@@ -148,15 +139,6 @@ public class LaunchFinishedEventHandler {
 			Launch freshLaunch = launchRepository.findOne(launch.getId());
 			emailService.ifPresent(it -> sendEmailRightNow(freshLaunch, project, it));
 		}
-	}
-
-	/**
-	 * Clear failReferences repository
-	 *
-	 * @param issues List of references to be deleted
-	 */
-	private void clearInvestigatedIssues(List<FailReferenceResource> issues) {
-		issuesRepository.delete(issues);
 	}
 
 	/**
@@ -197,8 +179,7 @@ public class LaunchFinishedEventHandler {
 	}
 
 	/**
-	 * Validate matching of finished launch name and project settings for
-	 * emailing
+	 * Validate matching of finished launch name and project settings for emailing
 	 *
 	 * @param launch  Launch to be evaluated
 	 * @param oneCase Mail case
@@ -210,8 +191,7 @@ public class LaunchFinishedEventHandler {
 	}
 
 	/**
-	 * Validate matching of finished launch tags and project settings for
-	 * emailing
+	 * Validate matching of finished launch tags and project settings for emailing
 	 *
 	 * @param launch  Launch to be evaluated
 	 * @param oneCase Mail case

@@ -26,12 +26,14 @@ import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.launch.IFinishLaunchHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
-import com.epam.ta.reportportal.database.dao.*;
+import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.Status;
-import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.database.entity.user.User;
@@ -80,9 +82,6 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 
 	@Autowired
 	private StatisticsFacadeFactory statisticsFacadeFactory;
-
-	@Autowired
-	private FailReferenceResourceRepository issuesRepository;
 
 	@Autowired
 	private ProjectRepository projectRepository;
@@ -244,7 +243,6 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 
 	private void interruptItems(List<TestItem> testItems, Launch launch) {
 		testItems.forEach(this::interruptItem);
-		clearIssueReferences(launch.getId());
 	}
 
 	private void interruptItem(TestItem item) {
@@ -265,10 +263,5 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 				interruptItem(testItemRepository.findOne(item.getParent()));
 			}
 		}
-	}
-
-	private void clearIssueReferences(String launchId) {
-		List<FailReferenceResource> issues = issuesRepository.findAllLaunchIssues(launchId);
-		issuesRepository.delete(issues);
 	}
 }

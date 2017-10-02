@@ -21,15 +21,18 @@
 
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.commons.accessible.Accessible;
+import com.epam.ta.reportportal.config.MongodbConfiguration;
+import com.github.mongobee.Mongobee;
+import com.github.mongobee.dao.ChangeEntryDao;
+import com.mongodb.MongoClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
-
-import com.epam.ta.reportportal.config.MongodbConfiguration;
-import com.github.mongobee.Mongobee;
-import com.mongodb.MongoClient;
 
 /**
  * Mongo Migration tool configs
@@ -38,19 +41,38 @@ import com.mongodb.MongoClient;
  */
 @Configuration
 public class MigrationConfiguration {
-	@Autowired
-	private MongodbConfiguration.MongoProperies mongoProperties;
-	@Autowired
-	private Environment environment;
 
-	@Bean
-	@Autowired
-	@Profile({ "!unittest" })
-	public Mongobee mongobee(MongoClient mongoClient) {
-		Mongobee runner = new Mongobee(mongoClient);
-		runner.setDbName(mongoProperties.getDbName());
-		runner.setChangeLogsScanPackage("com.epam.ta.reportportal.migration");
-		runner.setSpringEnvironment(environment);
-		return runner;
-	}
+    private static final Logger LOGGER = LoggerFactory.getLogger(MongodbConfiguration.class);
+
+
+    @Autowired
+    private MongodbConfiguration.MongoProperies mongoProperties;
+    @Autowired
+    private Environment environment;
+
+    @Bean
+    @Autowired
+    @Profile({"!unittest"})
+    public Mongobee mongobee(MongoClient mongoClient) {
+        Mongobee runner = new Mongobee(mongoClient);
+        runner.setDbName(mongoProperties.getDbName());
+        runner.setChangeLogsScanPackage("com.epam.ta.reportportal.migration");
+        runner.setSpringEnvironment(environment);
+
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                LOGGER.info("Making sure mongobee lock is removed...");
+                ChangeEntryDao dao = (ChangeEntryDao) Accessible.on(runner).field(Mongobee.class.getDeclaredField("dao")).getValue();
+                if (dao.isProccessLockHeld()) {
+                    LOGGER.warn("Mongobee lock is NOT removed. Removing...");
+                    dao.releaseProcessLock();
+                }
+                LOGGER.info("Mongobee lock has been removed");
+            } catch (Exception ignored) {
+                LOGGER.error("Cannot make sure mongobee lock has been removed", ignored);
+            }
+        }));
+        return runner;
+    }
 }

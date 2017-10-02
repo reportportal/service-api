@@ -69,6 +69,7 @@ public class ProjectActivityHandler {
 			processKeepScreenshots(history, project, configuration);
 			processLaunchInactivityTimeout(history, project, configuration);
 			processAutoAnalyze(history, project, configuration);
+			processAnalyzeOnTheFly(history, project, configuration);
 			processStatisticsStrategy(history, project, configuration);
 		}
 
@@ -118,6 +119,17 @@ public class ProjectActivityHandler {
 					project.getConfiguration().getIsAutoAnalyzerEnabled().toString();
 			Activity.FieldValues fieldValues = createHistoryField(
 					AUTO_ANALYZE, oldValue, configuration.getIsAAEnabled().toString());
+			history.add(fieldValues);
+		}
+	}
+
+	private void processAnalyzeOnTheFly(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
+		if ((null != configuration.getAnalyzeOnTheFly()) && (!configuration.getAnalyzeOnTheFly()
+				.equals(project.getConfiguration().getAnalyzeOnTheFly()))) {
+			String oldValue = project.getConfiguration().getAnalyzeOnTheFly() == null ? "" :
+					project.getConfiguration().getAnalyzeOnTheFly().toString();
+			Activity.FieldValues fieldValues = createHistoryField(
+					AUTO_ANALYZE, oldValue, configuration.getAnalyzeOnTheFly().toString());
 			history.add(fieldValues);
 		}
 	}

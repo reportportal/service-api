@@ -38,7 +38,6 @@ import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -46,9 +45,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Dzmitry_Kavalets
@@ -81,9 +81,6 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		String userName = "user1";
 		UpdateProjectRQ updateProjectRQ = new UpdateProjectRQ();
 		ProjectConfiguration configuration = new ProjectConfiguration();
-		configuration.setEntry("INTERNAL");
-		configuration.setStatisticCalculationStrategy("TEST_BASED");
-		configuration.setProjectSpecific("DEFAULT");
 
 		ProjectEmailConfigDTO emailConfig = new ProjectEmailConfigDTO();
 		final EmailSenderCaseDTO emailSenderCase = new EmailSenderCaseDTO();
@@ -96,7 +93,37 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		String project1 = "project1";
 		updateProjectHandler.updateProject(project1, updateProjectRQ, userName);
 		Project one = projectRepository.findOne(project1);
-		Assert.assertNotNull(one.getConfiguration().getEmailConfig());
+		assertNotNull(one.getConfiguration().getEmailConfig());
+	}
+
+	@Test
+	public void checkConfigurationFields() {
+		String userName = "user1";
+		UpdateProjectRQ updateProjectRQ = new UpdateProjectRQ();
+		ProjectConfiguration configuration = new ProjectConfiguration();
+		configuration.setEntry("INTERNAL");
+		configuration.setKeepLogs("2 weeks");
+		configuration.setInterruptJobTime("1 hour");
+		configuration.setKeepScreenshots("1 week");
+		configuration.setProjectSpecific("DEFAULT");
+		configuration.setIsAAEnabled(true);
+		configuration.setAnalyzeOnTheFly(true);
+		configuration.setStatisticCalculationStrategy("TEST_BASED");
+		updateProjectRQ.setConfiguration(configuration);
+
+		String project1 = "project1";
+		updateProjectHandler.updateProject(project1, updateProjectRQ, userName);
+		Project one = projectRepository.findOne(project1);
+
+		Project.Configuration dbConfig = one.getConfiguration();
+		assertEquals(configuration.getEntry(), dbConfig.getEntryType().name());
+		assertEquals(configuration.getKeepLogs(), dbConfig.getKeepLogs());
+		assertEquals(configuration.getInterruptJobTime(), dbConfig.getInterruptJobTime());
+		assertEquals(configuration.getKeepScreenshots(), dbConfig.getKeepScreenshots());
+		assertEquals(configuration.getProjectSpecific(), dbConfig.getProjectSpecific().name());
+		assertEquals(configuration.getIsAAEnabled(), dbConfig.getIsAutoAnalyzerEnabled());
+		assertEquals(configuration.getAnalyzeOnTheFly(), dbConfig.getAnalyzeOnTheFly());
+		assertEquals(configuration.getStatisticCalculationStrategy(), dbConfig.getStatisticsCalculationStrategy().name());
 	}
 
 	@Test

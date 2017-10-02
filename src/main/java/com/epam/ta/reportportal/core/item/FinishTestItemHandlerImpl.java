@@ -152,9 +152,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		}
 
 		try {
-			if (null != testItem.getIssue() && testItem.getIssue().getIssueType().equals(TO_INVESTIGATE.getLocator())) {
-				testItem = issuesAnalyzer.analyze(launch.getId(), Collections.singletonList(testItem)).get(0);
-			}
 			testItemRepository.save(testItem);
 			testItem = statisticsFacade.updateExecutionStatistics(testItem);
 			if (null != testItem.getIssue()) {

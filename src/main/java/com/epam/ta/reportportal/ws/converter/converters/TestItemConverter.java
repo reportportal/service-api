@@ -48,6 +48,7 @@ public final class TestItemConverter {
         Preconditions.checkNotNull(item);
         TestItemResource resource = new TestItemResource();
         resource.setDescription(item.getItemDescription());
+        resource.setUniqueId(item.getUniqueId());
         resource.setTags(item.getTags());
         resource.setEndTime(item.getEndTime());
         resource.setItemId(item.getId());

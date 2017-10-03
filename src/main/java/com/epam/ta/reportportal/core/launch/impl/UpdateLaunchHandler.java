@@ -47,6 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
@@ -139,9 +140,15 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 
 		List<TestItem> toInvestigate = testItemRepository.findInIssueTypeItems(TestItemIssueType.TO_INVESTIGATE.getLocator(), launchId);
 		List<TestItem> testItems = analyzerService.analyze(launchId, toInvestigate);
-		testItemRepository.save(testItems);
-		statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
-				.recalculateStatistics(launch);
+
+		List<TestItem> forUpdate = testItems.stream()
+				.filter(item -> !TestItemIssueType.TO_INVESTIGATE.getLocator().equals(item.getIssue().getIssueType()))
+				.collect(Collectors.toList());
+		if (!forUpdate.isEmpty()) {
+			testItemRepository.save(forUpdate);
+			statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
+					.recalculateStatistics(launch);
+		}
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launchId + "' started.");
 	}
 

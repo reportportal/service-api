@@ -275,7 +275,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 */
 	private TestItem analyzeItem(String launchId, TestItem testItem, Boolean analyzeOnTheFly) {
 		TestItemIssue issue = testItem.getIssue();
-		if (null != issue && analyzeOnTheFly && issue.getIssueType().equals(TO_INVESTIGATE.getLocator())) {
+		if (null != issue && analyzeOnTheFly && TO_INVESTIGATE.getLocator().equals(issue.getIssueType())) {
 			List<TestItem> analyzedItem = issuesAnalyzer.analyze(launchId, Collections.singletonList(testItem));
 			return analyzedItem.get(0);
 		}

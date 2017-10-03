@@ -24,6 +24,7 @@ package com.epam.ta;
 import com.epam.ta.reportportal.auth.UatClient;
 import com.epam.ta.reportportal.database.fixture.MongoFixtureImporter;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
+import com.epam.ta.reportportal.util.analyzer.AnalyzerServiceClient;
 import com.github.fakemongo.Fongo;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
@@ -42,10 +43,12 @@ import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
+import com.epam.ta.reportportal.util.analyzer.AnalyzerServiceClient;
 
 import java.util.concurrent.TimeUnit;
 
 import static com.epam.ta.reportportal.config.CacheConfiguration.*;
+import static org.mockito.Mockito.mock;
 
 @SuppressWarnings("unchecked")
 @Configuration
@@ -113,6 +116,12 @@ public class TestConfig {
 	@Scope(scopeName = "prototype")
 	public OAuth2ClientContext oAuth2ClientContext() {
 		return new DefaultOAuth2ClientContext();
+	}
+
+	@Bean
+	public AnalyzerServiceClient analyzerServiceClient()
+	{
+		return mock(AnalyzerServiceClient.class);
 	}
 
 	@Bean

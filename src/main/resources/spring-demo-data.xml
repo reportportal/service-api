@@ -587,6 +587,7 @@
 				<property name="keepLogs" value="2 weeks" />
 				<property name="keepScreenshots" value="1 week" />
 				<property name="isAutoAnalyzerEnabled" value="true" />
+				<property name="analyzeOnTheFly" value="true"/>
 				<property name="projectSpecific" value="DEFAULT" />
 				<property name="emailConfig">
 					<bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">

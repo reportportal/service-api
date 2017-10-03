@@ -22,7 +22,10 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
-import com.epam.ta.reportportal.database.dao.*;
+import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.dao.LogRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Status;
@@ -56,9 +59,6 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 
 	@Autowired
 	private LogRepository logRepository;
-
-	@Autowired
-	private FailReferenceResourceRepository issuesRepository;
 
 	@Autowired
 	private StatisticsFacadeFactory statisticsFacadeFactory;
@@ -127,13 +127,6 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 		launch.setStatus(Status.INTERRUPTED);
 		launch.setEndTime(Calendar.getInstance().getTime());
 		launchRepository.save(launch);
-		/*
-		 * Delete references on failed\skipped tests in launch. It cannot be
-		 * used in main function cause break operators for valid launches.
-		 * For valid launches references from FailReference collections
-		 * should be kept.
-		 */
-		this.clearIssueReferences(launch.getId());
 	}
 
 	private void interruptItems(List<TestItem> testItems, Launch launch) {
@@ -141,27 +134,10 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 			return;
 		}
 		testItems.forEach(item -> interruptItem(item, launch));
-
 		Launch launchReloaded = launchRepository.findOne(launch.getId());
 		launchReloaded.setStatus(Status.INTERRUPTED);
 		launchReloaded.setEndTime(Calendar.getInstance().getTime());
 		launchRepository.save(launchReloaded);
-		/*
-		 * Delete references on failed\skipped tests in launch. It cannot be
-		 * used in main function cause break operators for valid launches. For
-		 * valid launches references from FailReference collections should be
-		 * kept.
-		 */
-		this.clearIssueReferences(launch.getId());
-	}
-
-	/**
-	 * Clear failReference collections by specified launch id
-	 *
-	 * @param launchId ID of Launch
-	 */
-	private void clearIssueReferences(String launchId) {
-		issuesRepository.deleteAllIssuesForLaunch(launchId);
 	}
 
 	private void interruptItem(TestItem item, Launch launch) {

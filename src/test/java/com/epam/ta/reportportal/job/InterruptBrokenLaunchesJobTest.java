@@ -23,7 +23,10 @@ package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
-import com.epam.ta.reportportal.database.dao.*;
+import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.dao.LogRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
@@ -39,9 +42,11 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import java.time.Duration;
-import java.util.*;
-import java.util.stream.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
@@ -61,8 +66,6 @@ public class InterruptBrokenLaunchesJobTest {
     private TestItemRepository testItemRepository;
     @Mock
     private LogRepository logRepository;
-    @Mock
-    private FailReferenceResourceRepository issuesRepository;
     @Mock
     private StatisticsFacadeFactory statisticsFacadeFactory;
     @Mock
@@ -184,8 +187,6 @@ public class InterruptBrokenLaunchesJobTest {
                 .hasLogsAddedLately(any(Duration.class), any(TestItem.class));
         verify(launchRepository, times(1))
                 .save(any(Launch.class));
-        verify(issuesRepository, times(1))
-                .deleteAllIssuesForLaunch(anyString());
     }
 
     @Test
@@ -233,8 +234,6 @@ public class InterruptBrokenLaunchesJobTest {
                 .save(any(Launch.class));
         verify(launchRepository, times(1))
                 .findOne(anyString());
-        verify(issuesRepository, times(2))
-                .deleteAllIssuesForLaunch(anyString());
         verify(testItemRepository, times(2))
                 .save(any(TestItem.class));
         verify(projectRepository, times(2))
@@ -259,8 +258,6 @@ public class InterruptBrokenLaunchesJobTest {
                 eq(Status.IN_PROGRESS), any(String.class));
         verify(launchRepository, times(1))
                 .save(any(Launch.class));
-        verify(issuesRepository, times(1))
-                .deleteAllIssuesForLaunch(anyString());
     }
 
 }

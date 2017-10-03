@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  * 
  * 
  * This file is part of EPAM Report Portal.
@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -61,6 +62,8 @@ public class CreateLogHandler implements ICreateLogHandler {
 
     protected Provider<LogBuilder> logBuilder;
 
+    protected ILogIndexer logIndexer;
+
     @Autowired
     public void setTestItemRepository(TestItemRepository testItemRepository) {
         this.testItemRepository = testItemRepository;
@@ -79,6 +82,11 @@ public class CreateLogHandler implements ICreateLogHandler {
     @Autowired
     public void setLogBuilder(Provider<LogBuilder> logBuilder) {
         this.logBuilder = logBuilder;
+    }
+
+    @Autowired
+    public void setLogIndexer(ILogIndexer logIndexer) {
+        this.logIndexer = logIndexer;
     }
 
     @Override
@@ -105,6 +113,7 @@ public class CreateLogHandler implements ICreateLogHandler {
 
         try {
             logRepository.save(log);
+            logIndexer.indexLog(log);
         } catch (Exception exc) {
             throw new ReportPortalException("Error while Log instance creating.", exc);
         }

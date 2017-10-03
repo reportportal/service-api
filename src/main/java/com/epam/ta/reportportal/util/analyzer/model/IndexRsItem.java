@@ -19,25 +19,29 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.util.analyzer;
+package com.epam.ta.reportportal.util.analyzer.model;
 
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Service for issue type analysis based on historical data.
+ * Represents single item in indexing operation response.
  *
  * @author Ivan Sharamet
  */
-public interface IIssuesAnalyzer {
+public class IndexRsItem {
 
-	/**
-	 * Analyze history to find similar issues
-	 *
-	 * @param launchId  ID of initial launch for history
-	 * @param testItems - current test items with failed\skipped status and issue
-	 * @return list of test items with updated issue type
-	 */
-	List<TestItem> analyze(String launchId, List<TestItem> testItems);
+    @JsonProperty("index")
+    private IndexRsIndex index;
+
+    public IndexRsItem() {
+    }
+
+    public IndexRsIndex getIndex() {
+        return index;
+    }
+
+    public void setIndex(IndexRsIndex index) {
+        this.index = index;
+    }
+
 }

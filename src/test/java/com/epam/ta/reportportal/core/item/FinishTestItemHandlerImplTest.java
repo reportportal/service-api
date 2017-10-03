@@ -22,18 +22,17 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
-import com.epam.ta.reportportal.database.dao.FailReferenceResourceRepository;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.builders.FailReferenceResourceBuilder;
+import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
+import com.epam.ta.reportportal.util.analyzer.IssuesAnalyzerService;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.collect.Sets;
 import org.hamcrest.Matchers;
@@ -43,8 +42,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
-import javax.inject.Provider;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -116,15 +115,50 @@ public class FinishTestItemHandlerImplTest {
 		Assert.assertNull(issue);
 	}
 
+	@Test
+	public void analyzeOnFinish() {
+		String launchRef = "launchRef";
+		LaunchRepository launchRepository = mock(LaunchRepository.class);
+		IIssuesAnalyzer analyzerService = mock(IssuesAnalyzerService.class);
+		Launch launch = new Launch();
+		launch.setId(launchRef);
+		when(launchRepository.findOne(launchRef)).thenReturn(launch);
+		finishTestItemHandler.setLaunchRepository(launchRepository);
+		finishTestItemHandler.setIssuesAnalyzer(analyzerService);
+		TestItem testItem = new TestItem();
+		testItem.setLaunchRef(launchRef);
+		testItem.setStatus(FAILED);
+		testItem.setType(TestItemType.STEP);
+		Project project = new Project();
+		Project.Configuration configuration = new Project.Configuration();
+		configuration.setIsAutoAnalyzerEnabled(true);
+		configuration.setAnalyzeOnTheFly(true);
+		project.setConfiguration(configuration);
+
+		TestItem analyzed = new TestItem();
+		analyzed.setLaunchRef(launchRef);
+		analyzed.setStatus(FAILED);
+		analyzed.setIssue(new TestItemIssue(TestItemIssueType.PRODUCT_BUG.getLocator(), null));
+		analyzed.setType(TestItemType.STEP);
+
+		List<TestItem> forAnalyze = Collections.singletonList(testItem);
+		when(analyzerService.analyze(eq(launchRef), eq(forAnalyze))).thenReturn(Collections.singletonList(analyzed));
+
+		TestItem updatedTestItem = finishTestItemHandler.awareTestItemIssueTypeFromStatus(testItem, null, project, "someuser");
+
+		Assert.assertNotNull(updatedTestItem);
+		Assert.assertNotNull(updatedTestItem.getIssue());
+		Assert.assertNull(updatedTestItem.getIssue().getIssueDescription());
+		Assert.assertNull(updatedTestItem.getIssue().getExternalSystemIssues());
+		Assert.assertEquals("PB001", updatedTestItem.getIssue().getIssueType());
+		verify(launchRepository, times(1)).findOne(launchRef);
+		verify(analyzerService, times(1)).analyze(launchRef, forAnalyze);
+	}
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void failedWithoutIssue() {
 		String launchRef = "launchRef";
-		Provider<FailReferenceResourceBuilder> lazyReference = Mockito.mock(Provider.class);
-		when(lazyReference.get()).thenReturn(new FailReferenceResourceBuilder());
-		finishTestItemHandler.setFailReferenceResourceBuilder(lazyReference);
-		FailReferenceResourceRepository referenceResourceRepository = mock(FailReferenceResourceRepository.class);
-		finishTestItemHandler.setFailReferenceResourceRepository(referenceResourceRepository);
 		LaunchRepository launchRepository = mock(LaunchRepository.class);
 		when(launchRepository.findOne(launchRef)).thenReturn(new Launch());
 		finishTestItemHandler.setLaunchRepository(launchRepository);
@@ -135,6 +169,7 @@ public class FinishTestItemHandlerImplTest {
 		Project project = new Project();
 		Project.Configuration configuration = new Project.Configuration();
 		configuration.setIsAutoAnalyzerEnabled(true);
+		configuration.setAnalyzeOnTheFly(false);
 		project.setConfiguration(configuration);
 
 		TestItem updatedTestItem = finishTestItemHandler.awareTestItemIssueTypeFromStatus(testItem, null, project, "someuser");
@@ -144,7 +179,6 @@ public class FinishTestItemHandlerImplTest {
 		Assert.assertNull(updatedTestItem.getIssue().getIssueDescription());
 		Assert.assertNull(updatedTestItem.getIssue().getExternalSystemIssues());
 		Assert.assertEquals("TI001", updatedTestItem.getIssue().getIssueType());
-		verify(referenceResourceRepository, times(1)).save(any(FailReferenceResource.class));
 		verify(launchRepository, times(1)).findOne(launchRef);
 	}
 

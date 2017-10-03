@@ -56,7 +56,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 
 	@Override
 	public List<TestItem> analyze(String launchId, List<TestItem> testItems) {
-		Launch launch = launchRepository.findEntryById(launchId);
+		Launch launch = launchRepository.findOne(launchId);
 		if (launch != null) {
 			IndexLaunch rs = analyze(launch, testItems);
 			if (rs != null) {

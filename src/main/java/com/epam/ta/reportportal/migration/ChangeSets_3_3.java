@@ -111,6 +111,11 @@ public class ChangeSets_3_3 {
         mongoTemplate.createCollection("generationCheckpoint");
     }
 
+    @ChangeSet(order = "3.3-4", id = "V3.3-Drop unused failReferences collection in reason of new analyzer", author = "pbortnik")
+    public void dropfailReferences(MongoTemplate mongoTemplate) {
+        mongoTemplate.dropCollection("failReferences");
+    }
+
     private Update createShareHistory(Update u, String objectType, String oldValue, String newValue) {
         Map[] dbArray = new LinkedHashMap[1];
         Map res = new LinkedHashMap(3);

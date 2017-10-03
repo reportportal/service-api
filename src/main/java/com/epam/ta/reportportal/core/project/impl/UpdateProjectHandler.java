@@ -191,10 +191,6 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 
 		if (null != modelConfig.getEmailConfig()) {
 			updateProjectEmailConfig(projectName, principalName, modelConfig.getEmailConfig());
-			dbConfig.setStatisticsCalculationStrategy(fromString(modelConfig.getStatisticCalculationStrategy()).orElseThrow(() -> new ReportPortalException(
-					ErrorType.BAD_REQUEST_ERROR,
-					"Incorrect statistics calculation type: " + modelConfig.getStatisticCalculationStrategy()
-			)));
 		}
 
 	}

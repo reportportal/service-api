@@ -84,7 +84,7 @@ public class IssuesAnalyzerServiceTest {
 	@Test
 	public void testAnalyzeTestItemsWithoutLogs() {
 		String launchId = "3";
-		when(launchRepository.findEntryById(Mockito.eq(launchId))).thenReturn(createLaunch(launchId));
+		when(launchRepository.findOne(Mockito.eq(launchId))).thenReturn(createLaunch(launchId));
 		when(logRepository.findByTestItemRef(Mockito.anyString())).thenReturn(Collections.emptyList());
 		int testItemCount = 10;
 		analyzerService.analyze(launchId, createTestItems(testItemCount));
@@ -95,7 +95,7 @@ public class IssuesAnalyzerServiceTest {
 	@Test
 	public void testAnalyze() {
 		String launchId = "4";
-		when(launchRepository.findEntryById(Mockito.eq(launchId))).thenReturn(createLaunch(launchId));
+		when(launchRepository.findOne(Mockito.eq(launchId))).thenReturn(createLaunch(launchId));
 		when(logRepository.findByTestItemRef(Mockito.anyString())).thenReturn(Collections.singletonList(new Log()));
 		int testItemCount = 2;
 		when(analyzerServiceClient.analyze(Mockito.any(IndexLaunch.class))).thenReturn(crateAnalyzeRs(testItemCount));

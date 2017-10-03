@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  *
  *
  * This file is part of EPAM Report Portal.
@@ -33,7 +33,6 @@ import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.entity.statistics.Statistics;
 import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.util.analyzer.AnalyzerConfig;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
@@ -83,7 +82,7 @@ public class LaunchFinishedEventHandlerTest {
 			public Optional<EmailService> getDefaultEmailService() {
 				return Optional.of(emailService);
 			}
-		}, mock(FailReferenceResourceRepository.class), mock(AnalyzerConfig.class));
+		}, mock(FailReferenceResourceRepository.class));
 	}
 
 	@Test

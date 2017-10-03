@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  * 
  * 
  * This file is part of EPAM Report Portal.
@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.epam.ta.reportportal.core.statistics.StepBasedStatisticsFacade;
+import com.epam.ta.reportportal.util.analyzer.ILogIndexer;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,7 +53,6 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
-import org.mockito.Mockito;
 
 /**
  * @author Dzmitry_Kavalets
@@ -137,10 +137,13 @@ public class FinishItemTest {
 		when(testItemRepository.findOne(testItemId)).thenReturn(testItem);
 		when(testItemRepository.hasDescendants(testItemId)).thenReturn(true);
 
+		final ILogIndexer logIndexer = mock(ILogIndexer.class);
+
 		final FinishTestItemHandlerImpl finishTestItemHandler = new FinishTestItemHandlerImpl();
 		finishTestItemHandler.setProjectRepository(projectRepository);
 		finishTestItemHandler.setLaunchRepository(launchRepository);
 		finishTestItemHandler.setTestItemRepository(testItemRepository);
+		finishTestItemHandler.setLogIndexer(logIndexer);
 
 		StatisticsFacadeFactory facadeFactoryMock = mock(StatisticsFacadeFactory.class);
 		StepBasedStatisticsFacade facadeMock = mock(StepBasedStatisticsFacade.class);

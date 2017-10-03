@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  *
  *
  * This file is part of EPAM Report Portal.
@@ -35,7 +35,6 @@ import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.events.LaunchFinishedEvent;
-import com.epam.ta.reportportal.util.analyzer.AnalyzerConfig;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
@@ -79,12 +78,10 @@ public class LaunchFinishedEventHandler {
 
 	private final Provider<HttpServletRequest> currentRequest;
 
-	private final Integer autoAnalysisDepth;
-
 	@Autowired
 	public LaunchFinishedEventHandler(IIssuesAnalyzer analyzerService, UserRepository userRepository, TestItemRepository testItemRepository,
-			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory,
-			FailReferenceResourceRepository issuesRepository, AnalyzerConfig analyzerConfig) {
+									  Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory,
+									  FailReferenceResourceRepository issuesRepository) {
 		this.analyzerService = analyzerService;
 		this.userRepository = userRepository;
 		this.testItemRepository = testItemRepository;
@@ -92,7 +89,6 @@ public class LaunchFinishedEventHandler {
 		this.launchRepository = launchRepository;
 		this.emailServiceFactory = emailServiceFactory;
 		this.issuesRepository = issuesRepository;
-		this.autoAnalysisDepth = analyzerConfig.getDepth();
 	}
 
 	@EventListener
@@ -127,10 +123,11 @@ public class LaunchFinishedEventHandler {
 			this.clearInvestigatedIssues(resources);
 			return;
 		}
-		List<TestItem> previous = analyzerService.collectPreviousIssues(autoAnalysisDepth, launch.getId(), project.getName());
 		List<TestItem> converted = resources.stream().map(resource -> testItemRepository.findOne(resource.getTestItemRef()))
 				.collect(Collectors.toList());
-		analyzerService.analyze(launch.getId(), converted, previous);
+
+		List<TestItem> testItems = analyzerService.analyze(launch.getId(), converted);
+		testItemRepository.save(testItems);
 
 		// Remove already processed items from repository
 		this.clearInvestigatedIssues(resources);

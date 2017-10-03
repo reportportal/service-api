@@ -42,9 +42,11 @@ import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -54,8 +56,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.CUSTOMER;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.*;
 import static com.epam.ta.reportportal.database.entity.Status.IN_PROGRESS;
 import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
@@ -84,10 +85,6 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 
 	@Autowired
 	private IIssuesAnalyzer analyzerService;
-
-	@Autowired
-	@Qualifier("autoAnalyzeTaskExecutor")
-	private TaskExecutor taskExecutor;
 
 	@Autowired
 	private AnalyzerConfig analyzerConfig;
@@ -145,34 +142,10 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		Project project = projectRepository.findOne(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
-		/* Prevent AA for already processing launches */
-		if (!analyzerService.isPossible(launchId) && type.equals(AutoAnalyzeStrategy.HISTORY)) {
-			fail().withError(FORBIDDEN_OPERATION,
-					Suppliers.formattedSupplier("Launch with ID '{}' in auto-analyzer cache already", launchId));
-		}
-
-		/*
-		 * Stupid requirement -> for IN_PROGRESS launches: AA is possible, but
-		 * Match is not
-		 */
-		if ((launch.getStatus().equals(IN_PROGRESS) || !analyzerService.isPossible(launchId))
-				&& !(type.equals(AutoAnalyzeStrategy.HISTORY)))
-			fail().withError(FORBIDDEN_OPERATION,
-					Suppliers.formattedSupplier("Launch with ID '{}' in auto-analyzer cache already and/or in progress still", launchId));
-
 		List<TestItem> toInvestigate = testItemRepository.findInIssueTypeItems(TestItemIssueType.TO_INVESTIGATE.getLocator(), launchId);
-		List<TestItem> got;
-		if (type.equals(AutoAnalyzeStrategy.SINGLE)) {
-			/* Match issues for single launch */
-			got = analyzerService.collectPreviousIssues(1, launchId, projectName);
-		} else {
-			/* General AA flow */
-			got = analyzerService.collectPreviousIssues(analyzerConfig.getDepth(), launchId, projectName);
-		}
 
-		if (analyzerService.analyzeStarted(launchId)) {
-			taskExecutor.execute(() -> analyzerService.analyze(launchId, toInvestigate, got));
-		}
+		List<TestItem> testItems = analyzerService.analyze(launchId, toInvestigate);
+		testItemRepository.save(testItems);
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launchId + "' started.");
 	}
 

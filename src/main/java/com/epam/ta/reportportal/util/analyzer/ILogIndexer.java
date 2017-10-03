@@ -21,27 +21,39 @@
 
 package com.epam.ta.reportportal.util.analyzer;
 
+import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 
 import java.util.List;
 
 /**
- * Service for issue type analysis based on historical data.
+ * Service for indexing log content in some external storage for further search/analysis.
  *
  * @author Ivan Sharamet
  *
  */
-public interface IIssuesAnalyzer {
+public interface ILogIndexer {
 
     /**
-     * Analyze history to find similar issues
+     * Index single log
+     *
+     * @param log
+     *            - log
+     */
+    void indexLog(Log log);
+
+    /**
+     * Index logs for all given test items within launch
      *
      * @param launchId
-     *            ID of initial launch for history
+     *            - ID of the launch
      * @param testItems
-     *            - current test items with failed\skipped status and issue
-     *
-     * @return list of test items with updated issue type
+     *            - list of test items, for which log indexing will be performed
      */
-    List<TestItem> analyze(String launchId, List<TestItem> testItems);
+    void indexLogs(String launchId, List<TestItem> testItems);
+
+    /**
+     * Index all logs in repository
+     */
+    void indexAllLogs();
 }

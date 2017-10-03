@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  * 
  * 
  * This file is part of EPAM Report Portal.
@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.ws.converter.builders.FailReferenceResourceBuilder;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -75,6 +76,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private FailReferenceResourceRepository issuesRepository;
 	private Provider<FailReferenceResourceBuilder> failReferenceResourceBuilder;
 	private ExternalSystemRepository externalSystemRepository;
+	private ILogIndexer logIndexer;
 
 	@Autowired
 	public void setProjectRepository(ProjectRepository projectRepository) {
@@ -109,6 +111,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	@Autowired
 	public void setExternalSystemRepository(ExternalSystemRepository externalSystemRepository) {
 		this.externalSystemRepository = externalSystemRepository;
+	}
+
+	@Autowired
+	public void setLogIndexer(ILogIndexer logIndexer) {
+		this.logIndexer = logIndexer;
 	}
 
 	@Override
@@ -154,6 +161,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			if (null != testItem.getIssue()) {
 				statisticsFacade.updateIssueStatistics(testItem);
 			}
+			logIndexer.indexLogs(launch.getId(), Collections.singletonList(testItem));
 		} catch (Exception e) {
 			throw new ReportPortalException("Error during updating TestItem " + e.getMessage(), e);
 		}

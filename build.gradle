@@ -8,7 +8,7 @@ buildscript {
     }
     dependencies {
         classpath "io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE"
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.6.RELEASE")
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.7.RELEASE")
         classpath 'com.bmuschko:gradle-docker-plugin:3.0.12'
     }
 }
@@ -58,8 +58,8 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Dalston.SR3"
-        mavenBom "org.springframework.boot:spring-boot-dependencies:1.5.6.RELEASE"
+        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Dalston.SR4"
+        mavenBom "org.springframework.boot:spring-boot-dependencies:1.5.7.RELEASE"
     }
 }
 
@@ -76,7 +76,7 @@ dependencies {
     } else {
         compile('com.github.reportportal:commons-dao:25af64f')
         compile('com.github.reportportal:commons-rules:3.3.0')
-        compile 'com.github.reportportal:commons-model:2748acc4c'
+        compile 'com.github.reportportal:commons-model:7e8acf7916e1f8c7fa7d371a7060888cd8948821'
         compile ('com.github.reportportal:commons:3.1.0')
     }
 
@@ -141,17 +141,8 @@ dependencies {
 }
 
 
-task staticResources(type: Copy) {
-
-    from("${project.projectDir}/../../public/common", {
-        include '*.jks'
-        into 'certificate'
-//        rename {'reportportal-client-v2.jks'}
-    })
-}
-
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.0.2'
+    gradleVersion = '4.2.1'
 }
 
 //Start section for external jacoco test report
@@ -175,7 +166,6 @@ task copyJacocoAgentToLibs(type: Copy) {
 jar.dependsOn copyJacocoAgentToLibs
 //End section for external jacoco test report
 
-processResources.dependsOn staticResources
 build.dependsOn jacocoTestReport
 test {
 //    testLogging.showStandardStreams = true

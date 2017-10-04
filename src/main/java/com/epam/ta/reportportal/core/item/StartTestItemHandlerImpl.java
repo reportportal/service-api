@@ -30,8 +30,8 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -86,7 +86,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 * Starts root item and related to the specific launch
 	 */
 	@Override
-	public EntryCreatedRS startRootItem(String projectName, StartTestItemRQ rq) {
+	public ItemCreatedRS startRootItem(String projectName, StartTestItemRQ rq) {
 		Launch launch = launchRepository.loadStatusProjectRefAndStartTime(rq.getLaunchId());
 		validate(projectName, rq, launch);
 		TestItem item = testItemBuilder.get().addStartItemRequest(rq).addStatus(Status.IN_PROGRESS).addLaunch(launch).build();
@@ -94,14 +94,14 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			item.setUniqueId(identifierGenerator.generate(item));
 		}
 		testItemRepository.save(item);
-		return new EntryCreatedRS(item.getId());
+		return new ItemCreatedRS(item.getId(), item.getUniqueId());
 	}
 
 	/**
 	 * Starts children item and building it's path from parent with parant's
 	 */
 	@Override
-	public EntryCreatedRS startChildItem(String projectName, StartTestItemRQ rq, String parent) {
+	public ItemCreatedRS startChildItem(String projectName, StartTestItemRQ rq, String parent) {
 		TestItem parentItem = testItemRepository.findOne(parent);
 
 		validate(parentItem, parent);
@@ -117,7 +117,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		if (!parentItem.hasChilds()) {
 			testItemRepository.updateHasChilds(parentItem.getId(), true);
 		}
-		return new EntryCreatedRS(item.getId());
+		return new ItemCreatedRS(item.getId(), item.getUniqueId());
 	}
 
 	private void validate(String projectName, StartTestItemRQ rq, Launch launch) {

@@ -144,8 +144,9 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		List<TestItem> forUpdate = testItems.stream()
 				.filter(item -> !TestItemIssueType.TO_INVESTIGATE.getLocator().equals(item.getIssue().getIssueType()))
 				.collect(Collectors.toList());
+
 		if (!forUpdate.isEmpty()) {
-			testItemRepository.save(forUpdate);
+			testItemRepository.updateItemsIssues(forUpdate);
 			statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 					.recalculateStatistics(launch);
 		}

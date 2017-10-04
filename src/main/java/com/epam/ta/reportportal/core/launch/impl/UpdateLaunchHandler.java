@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.launch.AutoAnalyzeStrategy;
 import com.epam.ta.reportportal.database.entity.user.User;
@@ -47,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -139,11 +141,11 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
 		List<TestItem> toInvestigate = testItemRepository.findInIssueTypeItems(TestItemIssueType.TO_INVESTIGATE.getLocator(), launchId);
-		List<TestItem> testItems = analyzerService.analyze(launchId, toInvestigate);
+		List<TestItem> analyzed = analyzerService.analyze(launchId, toInvestigate);
 
-		List<TestItem> forUpdate = testItems.stream()
+		Map<String, TestItemIssue> forUpdate = analyzed.stream()
 				.filter(item -> !TestItemIssueType.TO_INVESTIGATE.getLocator().equals(item.getIssue().getIssueType()))
-				.collect(Collectors.toList());
+				.collect(Collectors.toMap(TestItem::getId, TestItem::getIssue));
 
 		if (!forUpdate.isEmpty()) {
 			testItemRepository.updateItemsIssues(forUpdate);

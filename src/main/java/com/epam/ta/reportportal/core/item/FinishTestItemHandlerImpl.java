@@ -133,8 +133,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		Optional<Status> actualStatus = fromValue(finishExecutionRQ.getStatus());
 		Issue providedIssue = finishExecutionRQ.getIssue();
 
-		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration()
-				.getStatisticsCalculationStrategy());
+		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(
+				project.getConfiguration().getStatisticsCalculationStrategy());
 
 		/*
 		 * If test item has descendants, it's status is resolved from statistics
@@ -164,6 +164,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 		return new OperationCompletionRS("TestItem with ID = '" + testItemId + "' successfully finished.");
 	}
+
 	/**
 	 * Validation procedure for specified test item
 	 *
@@ -187,17 +188,12 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				descendants = testItemRepository.findDescendants(testItem.getId());
 			}
 			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED,
-					formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'",
-							testItemId,
-							IN_PROGRESS.name(),
-							descendants
+					formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'", testItemId,
+							IN_PROGRESS.name(), descendants
 					)
 			);
-			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
-					finishExecutionRQ.getEndTime(),
-					testItem.getStartTime(),
-					testItemId
-			);
+			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime())).verify(
+					FINISH_TIME_EARLIER_THAN_START_TIME, finishExecutionRQ.getEndTime(), testItem.getStartTime(), testItemId);
 
 			/*
 			 * If there is issue provided we have to be sure issue type is
@@ -211,12 +207,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	void verifyIssue(String testItemId, Issue issue, Project.Configuration projectSettings) {
 		if (issue != null && !NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(issue.getIssueType())) {
-			expect(projectSettings.getByLocator(issue.getIssueType()), notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
-					"Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types are: {}",
-					issue.getIssueType(),
-					testItemId,
-					validValues()
-			));
+			expect(projectSettings.getByLocator(issue.getIssueType()), notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS,
+					formattedSupplier("Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types are: {}",
+							issue.getIssueType(), testItemId, validValues()
+					)
+			);
 		}
 	}
 
@@ -239,14 +234,12 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 					);
 
 					//set provided external issues if any present
-					issue.setExternalSystemIssues(Optional.ofNullable(providedIssue.getExternalSystemIssues())
-							.map(issues -> issues.stream().peek(it -> {
+					issue.setExternalSystemIssues(
+							Optional.ofNullable(providedIssue.getExternalSystemIssues()).map(issues -> issues.stream().peek(it -> {
 								//not sure if it propogates exception correctly
-								expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true)).verify(EXTERNAL_SYSTEM_NOT_FOUND,
-										it.getExternalSystemId()
-								);
-							}).map(TestItemUtils.externalIssueDtoConverter(submitter)).collect(Collectors.toSet()))
-							.orElse(null));
+								expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true)).verify(
+										EXTERNAL_SYSTEM_NOT_FOUND, it.getExternalSystemId());
+							}).map(TestItemUtils.externalIssueDtoConverter(submitter)).collect(Collectors.toSet())).orElse(null));
 
 					testItem.setIssue(issue);
 				}
@@ -268,14 +261,15 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * of test items processing. Analyze only items that have
 	 * {@link com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType#TO_INVESTIGATE} issue
 	 *
-	 * @param launchId              Launch id
-	 * @param testItem              Test item to analyze
+	 * @param launchId        Launch id
+	 * @param testItem        Test item to analyze
 	 * @param analyzeOnTheFly
 	 * @return
 	 */
 	private TestItem analyzeItem(String launchId, TestItem testItem, Boolean analyzeOnTheFly) {
 		TestItemIssue issue = testItem.getIssue();
-		if (null != issue && analyzeOnTheFly && issue.getIssueType().equals(TO_INVESTIGATE.getLocator())) {
+		analyzeOnTheFly = Optional.ofNullable(analyzeOnTheFly).orElse(false);
+		if (null != issue && analyzeOnTheFly && TO_INVESTIGATE.getLocator().equals(issue.getIssueType())) {
 			List<TestItem> analyzedItem = issuesAnalyzer.analyze(launchId, Collections.singletonList(testItem));
 			return analyzedItem.get(0);
 		}

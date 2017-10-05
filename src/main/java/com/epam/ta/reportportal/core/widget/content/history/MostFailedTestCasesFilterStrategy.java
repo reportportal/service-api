@@ -1,34 +1,33 @@
 /*
- * Copyright 2016 EPAM Systems
- * 
- * 
+ * Copyright 2017 EPAM Systems
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.core.widget.content;
+package com.epam.ta.reportportal.core.widget.content.history;
 
-import com.epam.ta.reportportal.core.item.history.ITestItemsHistoryService;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader;
+import com.epam.ta.reportportal.core.widget.content.WidgetContentProvider;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +45,8 @@ import static java.util.stream.Collectors.toMap;
  *
  * @author Andrei_Ramanchuk
  */
-@Service("MostFailedTestCasesFilterStrategy")
-public class MostFailedTestCasesFilterStrategy implements BuildFilterStrategy {
+@Service
+public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy{
 	private static final String ALL_RUNS = "All runs";
 	private static final String FAILED = "Failed";
 	private static final String AFFECTED_BY = "Affected by";
@@ -60,13 +59,7 @@ public class MostFailedTestCasesFilterStrategy implements BuildFilterStrategy {
 	private static final int ITEMS_COUNT_VALUE = 20;
 
 	@Autowired
-	private LaunchRepository launchRepository;
-
-	@Autowired
 	private TestItemRepository itemRepository;
-
-	@Autowired
-	private ITestItemsHistoryService historyServiceStrategy;
 
 	@Autowired
 	private CriteriaMapFactory criteriaMapFactory;
@@ -74,35 +67,13 @@ public class MostFailedTestCasesFilterStrategy implements BuildFilterStrategy {
 	@Override
 	public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions,
 			String projectName) {
-		/*
-		 * Load content without building filter cause we don't need detailed
-		 * information per item here
-		 */
-		Map<String, List<ChartObject>> result = Collections.emptyMap();
-		/*
-		 * Return empty response for absent filtering launch name parameter
-		 */
-		if (contentOptions.getWidgetOptions() == null || contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD) == null)
-			return result;
-		Optional<Launch> lastLaunchForProject = launchRepository.findLastLaunch(projectName,
-				contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD).get(0), Mode.DEFAULT.name());
-		if (!lastLaunchForProject.isPresent()) {
-			return result;
-		}
-
 		String criteria = new StatisticBasedContentLoader().getSystemIssueFieldName();
 		if (null != contentOptions.getContentFields() && contentOptions.getContentFields().size() >= 1) {
 			criteria = WidgetContentProvider.transformToDBStyle(criteriaMapFactory.getCriteriaMap(Launch.class),
 					contentOptions.getContentFields()).get(0);
 		}
-
-		List<Launch> launchHistory = historyServiceStrategy.loadLaunches(contentOptions.getItemsCount(), lastLaunchForProject.get().getId(),
-				projectName, false);
-		if (launchHistory.isEmpty()) {
-			return result;
-		}
+		List<Launch> launchHistory = getLaunchHistory(contentOptions, projectName);
 		Map<String, String> dbProcessor = itemRepository.getMostFailedTestCases(launchHistory, criteria);
-
 		Map<String, ComplexValue> dbProcessed = this.mapAggregationConvert(dbProcessor);
 		// Hack due history method missed launch Name field
 		// TODO review launches formation or wait till widgets refactoring

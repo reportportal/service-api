@@ -19,7 +19,7 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.core.widget.content;
+package com.epam.ta.reportportal.core.widget.content.history;
 
 import com.epam.ta.reportportal.core.item.history.ITestItemsHistoryService;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
@@ -28,8 +28,8 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.item.ItemStatusHistory;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  * @author Pavel Bortnik
  */
 @Service
-public class FlakyTestCasesStrategy implements BuildFilterStrategy {
+public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 
 	private static final String TOTAL = "total";
 	private static final String SWITCHED = "switched";
@@ -66,48 +66,24 @@ public class FlakyTestCasesStrategy implements BuildFilterStrategy {
 	@Override
 	public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions,
 			String projectName) {
-			/*
-		 * Load content without building filter cause we don't need detailed
-		 * information per item here
-		 */
-		Map<String, List<ChartObject>> emptyMap = Collections.emptyMap();
-		/*
-		 * Return empty response for absent filtering launch name parameter
-		 */
-		if (contentOptions.getWidgetOptions() == null || contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD) == null)
-			return emptyMap;
-		Optional<Launch> lastLaunchForProject = launchRepository.findLastLaunch(projectName,
-				contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD).get(0), Mode.DEFAULT.name());
-		if (!lastLaunchForProject.isPresent()) {
-			return emptyMap;
-		}
 
-		List<Launch> launchHistory = historyServiceStrategy.loadLaunches(contentOptions.getItemsCount(), lastLaunchForProject.get().getId(),
-				projectName, false);
-
-		if (launchHistory.isEmpty()) {
-			return emptyMap;
+		List<Launch> launchHistory = getLaunchHistory(contentOptions, projectName);
+		if (CollectionUtils.isEmpty(launchHistory)) {
+			return Collections.emptyMap();
 		}
 
 		List<ItemStatusHistory> itemStatusHistory = itemRepository.getFlakyItemStatusHistory(
 				launchHistory.stream().map(Launch::getId).collect(Collectors.toList()));
 
-		if (itemStatusHistory.isEmpty()) {
-			return emptyMap;
+		if (CollectionUtils.isEmpty(itemStatusHistory)) {
+			return Collections.emptyMap();
 		}
 
 		Map<String, List<ChartObject>> result = processHistory(itemStatusHistory);
-		addLastLaunch(result, lastLaunchForProject.get());
+		addLastLaunch(result, launchHistory.get(0));
 		return result;
 	}
 
-	private void addLastLaunch(Map<String, List<ChartObject>> result, Launch last) {
-		ChartObject lastLaunch = new ChartObject();
-		lastLaunch.setName(last.getName());
-		lastLaunch.setNumber(last.getNumber().toString());
-		lastLaunch.setId(last.getId());
-		result.put(LAST_FOUND_LAUNCH, Collections.singletonList(lastLaunch));
-	}
 
 	private Map<String, List<ChartObject>> processHistory(List<ItemStatusHistory> itemStatusHistory) {
 		Map<String, List<ChartObject>> result = new HashMap<>();

@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
 
@@ -27,7 +27,6 @@ import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.search.*;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,10 +41,10 @@ import java.util.stream.Collectors;
  * Implementation of
  * {@link com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy} for
  * unique bug widget
- * 
+ *
  * @author Dzmitry_Kavalets
  */
-@Service("UniqueBugFilterStrategy")
+@Service
 public class UniqueBugFilterStrategy implements BuildFilterStrategy {
 
 	private static final String SEPARATOR = ",";
@@ -82,8 +81,4 @@ public class UniqueBugFilterStrategy implements BuildFilterStrategy {
 		return widgetContentProvider.getChartContent(projectName, filter, userFilter.getSelectionOptions(), contentOptions);
 	}
 
-    @Override
-    public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
-        throw new ReportPortalException("Operation is not supported for this strategy");
-    }
 }

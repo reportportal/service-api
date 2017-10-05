@@ -51,8 +51,8 @@ import java.util.stream.Collectors;
  * 
  * @author Dzmitry_Kavalets
  */
-@Service("OldBuildFilterStrategy")
-public class GeneralFilterStrategy implements BuildFilterStrategy {
+@Service
+public class GeneralFilterStrategy implements BuildFilterStrategyLatest {
 
 	@Autowired
 	private LaunchRepository launchRepository;
@@ -82,7 +82,7 @@ public class GeneralFilterStrategy implements BuildFilterStrategy {
 	}
 
     @Override
-    public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+    public Map<String, List<ChartObject>> loadContentOfLatest(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
         Filter filter = userFilter.getFilter();
         if (filter.getTarget().equals(Launch.class)) {
             filter.addCondition(new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.name(), Launch.MODE_CRITERIA));

@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,11 +76,6 @@ public class ActivityFilterStrategy implements BuildFilterStrategy {
 		selectionOptions.setPageNumber(PAGE_NUMBER);
 		return widgetContentProvider.getChartContent(projectName, searchFilter, selectionOptions, contentOptions);
 	}
-
-    @Override
-    public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
-        throw new ReportPortalException("Operation is not supported for this strategy");
-    }
 
     private FilterCondition buildFilterCondition(String searchCriteria, List<String> values) {
 		Condition condition;

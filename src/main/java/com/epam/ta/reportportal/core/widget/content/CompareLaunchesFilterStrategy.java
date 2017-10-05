@@ -41,8 +41,8 @@ import java.util.Map;
  * 
  * @author Dzmitry_Kavalets
  */
-@Service("CompareLaunchesFilterStrategy")
-public class CompareLaunchesFilterStrategy implements BuildFilterStrategy {
+@Service
+public class CompareLaunchesFilterStrategy implements BuildFilterStrategyLatest {
 
 	@Autowired
 	private WidgetContentProvider widgetContentProvider;
@@ -54,7 +54,7 @@ public class CompareLaunchesFilterStrategy implements BuildFilterStrategy {
 	}
 
     @Override
-    public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+    public Map<String, List<ChartObject>> loadContentOfLatest(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
 		Filter filter = extendFilter(userFilter.getFilter(), projectName);
 		return widgetContentProvider.getChartContent(projectName, filter, userFilter.getSelectionOptions(), contentOptions);
 	}

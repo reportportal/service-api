@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.Lists;
@@ -44,7 +43,7 @@ import static java.util.stream.Collectors.toMap;
 /**
  * Most failed test-cases widget content loader<br>
  * <b>Slow widget because history based</b>
- * 
+ *
  * @author Andrei_Ramanchuk
  */
 @Service("MostFailedTestCasesFilterStrategy")
@@ -111,14 +110,9 @@ public class MostFailedTestCasesFilterStrategy implements BuildFilterStrategy {
 		return databaseDataConverter(sortByValue(dbProcessed), contentOptions.getItemsCount(), launchHistory.get(0));
 	}
 
-    @Override
-    public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
-        throw new ReportPortalException("Operation is not supported for this strategy");
-    }
-
 	/**
 	 * Returned data from database converter in UI style charts
-	 * 
+	 *
 	 * @param dbData
 	 * @return
 	 */
@@ -153,7 +147,7 @@ public class MostFailedTestCasesFilterStrategy implements BuildFilterStrategy {
 	 * Sorting result map from data by counter<br>
 	 * <b>WARNING: do not use method somewhere else except here cause complex
 	 * map value and top-20 limit</b>
-	 * 
+	 *
 	 * @param map
 	 * @return
 	 */
@@ -177,7 +171,7 @@ public class MostFailedTestCasesFilterStrategy implements BuildFilterStrategy {
 
 	/**
 	 * Convert Aggregation result into readable map content
-	 * 
+	 *
 	 * @return
 	 */
 	private Map<String, ComplexValue> mapAggregationConvert(Map<String, String> input) {
@@ -194,7 +188,7 @@ public class MostFailedTestCasesFilterStrategy implements BuildFilterStrategy {
 
 	/**
 	 * Representation of complex value of MongoDB Map Aggregation result
-	 * 
+	 *
 	 * @author Andrei_Ramanchuk
 	 */
 	static class ComplexValue implements Comparable<ComplexValue> {

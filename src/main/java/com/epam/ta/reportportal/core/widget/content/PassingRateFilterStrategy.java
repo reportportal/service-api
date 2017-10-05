@@ -24,7 +24,6 @@ import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.ImmutableMap;
@@ -76,9 +75,4 @@ public class PassingRateFilterStrategy implements BuildFilterStrategy {
 		return chartObject;
 	}
 
-	@Override
-	public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions,
-			String projectName) {
-		throw new ReportPortalException("Operation is not supported for this strategy");
-	}
 }

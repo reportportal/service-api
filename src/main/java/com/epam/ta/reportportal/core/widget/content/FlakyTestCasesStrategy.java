@@ -160,12 +160,6 @@ public class FlakyTestCasesStrategy implements BuildFilterStrategy {
 		return processedObject;
 	}
 
-	@Override
-	public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions,
-			String projectName) {
-		return null;
-	}
-
 	private static class ProcessedObject {
 
 		private Long total;

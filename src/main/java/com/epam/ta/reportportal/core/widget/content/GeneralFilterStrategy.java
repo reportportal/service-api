@@ -67,7 +67,7 @@ public class GeneralFilterStrategy implements BuildFilterStrategyLatest {
 	}
 
 	@Override
-	public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions,
+	public Map<String, ?> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions,
 			String projectName) {
 		Filter searchFilter = userFilter.getFilter();
 		if (searchFilter.getTarget().getSimpleName().equalsIgnoreCase(TestItem.class.getSimpleName())) {

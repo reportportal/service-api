@@ -23,9 +23,7 @@ package com.epam.ta.reportportal.core.widget.content;
 
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
-import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -44,6 +42,6 @@ public interface BuildFilterStrategy {
 	 * @param projectName
 	 * @return
 	 */
-	Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName);
+	Map<String, ?> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName);
 
 }

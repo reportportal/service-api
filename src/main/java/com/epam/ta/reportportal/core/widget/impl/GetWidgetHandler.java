@@ -37,7 +37,6 @@ import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.converter.WidgetResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
-import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -144,7 +143,7 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 	}
 
 	@Override
-	public Map<String, List<ChartObject>> getWidgetPreview(String projectName, String userName, WidgetPreviewRQ previewRQ) {
+	public Map<String, ?> getWidgetPreview(String projectName, String userName, WidgetPreviewRQ previewRQ) {
 		validateWidgetDataType(previewRQ.getContentParameters().getType(), BAD_REQUEST_ERROR);
 		validateGadgetType(previewRQ.getContentParameters().getGadget(), BAD_REQUEST_ERROR);
 
@@ -197,11 +196,11 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 	 * @param contentOptions
 	 * @return
 	 */
-	Map<String, List<ChartObject>> loadContentByFilterType(Optional<UserFilter> userFilter, String projectName,
+	Map<String, ?> loadContentByFilterType(Optional<UserFilter> userFilter, String projectName,
 			ContentOptions contentOptions) {
 		// Log doesn't have any statistics, so currently unable to create any
 		// widget with valid content for log
-		Map<String, List<ChartObject>> content;
+		Map<String, ?> content;
 		if (userFilter.isPresent() && Log.class.equals(userFilter.get().getFilter().getTarget())) {
 			content = new HashMap<>();
 		} else {

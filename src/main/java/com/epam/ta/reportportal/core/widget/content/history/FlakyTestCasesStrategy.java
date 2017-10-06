@@ -21,14 +21,11 @@
 
 package com.epam.ta.reportportal.core.widget.content.history;
 
-import com.epam.ta.reportportal.core.item.history.ITestItemsHistoryService;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.item.ItemStatusHistory;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
-import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,30 +39,13 @@ import java.util.stream.Collectors;
 @Service
 public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 
-	private static final String TOTAL = "total";
-	private static final String SWITCHED = "switched";
-	private static final String AFFECTED_BY = "percentage";
-	private static final String LAST_SWITCH = "lastSwitch";
-	private static final String STATUSES = "statuses";
-
-	private static final String LAST_FOUND_LAUNCH = "lastLaunch";
-
-	private static final String LAUNCH_NAME_FIELD = "launchNameFilter";
-
 	private static final int ITEMS_COUNT_VALUE = 20;
-
-	@Autowired
-	private LaunchRepository launchRepository;
 
 	@Autowired
 	private TestItemRepository itemRepository;
 
-	@Autowired
-	private ITestItemsHistoryService historyServiceStrategy;
-
 	@Override
-	public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions,
-			String projectName) {
+	public Map<String, List<?>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
 
 		List<Launch> launchHistory = getLaunchHistory(contentOptions, projectName);
 		if (CollectionUtils.isEmpty(launchHistory)) {
@@ -79,43 +59,31 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 			return Collections.emptyMap();
 		}
 
-		Map<String, List<ChartObject>> result = processHistory(itemStatusHistory);
+		Map<String, List<?>> result = processHistory(itemStatusHistory);
 		addLastLaunch(result, launchHistory.get(0));
 		return result;
 	}
 
-
-	private Map<String, List<ChartObject>> processHistory(List<ItemStatusHistory> itemStatusHistory) {
-		Map<String, List<ChartObject>> result = new HashMap<>();
-		List<ProcessedObject> processedObjects = new ArrayList<>();
+	private Map<String, List<?>> processHistory(List<ItemStatusHistory> itemStatusHistory) {
+		Map<String, List<?>> result = new HashMap<>();
+		List<FlakinessObject> flakinessObjects = new ArrayList<>();
 		for (ItemStatusHistory historyItem : itemStatusHistory) {
-			ProcessedObject item = processItem(historyItem);
-			processedObjects.add(item);
+			FlakinessObject item = processItem(historyItem);
+			flakinessObjects.add(item);
 		}
-		processedObjects.sort(Comparator.comparing(ProcessedObject::getSwitchCounter));
-		if (processedObjects.size() > ITEMS_COUNT_VALUE) {
-			processedObjects = processedObjects.subList(0, ITEMS_COUNT_VALUE);
+		flakinessObjects.sort(Comparator.comparing(FlakinessObject::getSwitchCounter));
+		if (flakinessObjects.size() > ITEMS_COUNT_VALUE) {
+			flakinessObjects = flakinessObjects.subList(0, ITEMS_COUNT_VALUE);
 		}
-
-		processedObjects.forEach(it -> {
-			ChartObject chartObject = new ChartObject();
-			Map<String, String> values = new HashMap<>();
-			values.put(TOTAL, String.valueOf(it.getTotal()));
-			values.put(SWITCHED, String.valueOf(it.getSwitchCounter()));
-			values.put(AFFECTED_BY, String.format( "%.2f", (double) it.getSwitchCounter() / it.getTotal() * 100));
-			values.put(LAST_SWITCH, String.valueOf(it.getLastSwitched().getTime()));
-			values.put(STATUSES, it.getStatuses());
-			chartObject.setValues(values);
-			result.put(it.getName(), Collections.singletonList(chartObject));
-		});
+		result.put("content", flakinessObjects);
 		return result;
 	}
 
-	private ProcessedObject processItem(ItemStatusHistory historyItem) {
+	private FlakinessObject processItem(ItemStatusHistory historyItem) {
 		LinkedList<ItemStatusHistory.Entry> statusHistory = historyItem.getStatusHistory();
 		Date lastSwitched = statusHistory.get(0).getTime();
 		Long switchCounter = 0L;
-		StringJoiner statuses = new StringJoiner(", ");
+		List<String> statuses = new ArrayList<>();
 
 		String prevStatus = statusHistory.get(0).getStatus();
 		for (ItemStatusHistory.Entry entry : statusHistory) {
@@ -127,50 +95,21 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 			prevStatus = entry.getStatus();
 		}
 
-		ProcessedObject processedObject = new ProcessedObject();
-		processedObject.setName(historyItem.getName());
-		processedObject.setTotal(historyItem.getTotal());
-		processedObject.setLastSwitched(lastSwitched);
-		processedObject.setStatuses(statuses.toString());
-		processedObject.setSwitchCounter(switchCounter);
-		return processedObject;
+		FlakinessObject flakinessObject = new FlakinessObject();
+		flakinessObject.setName(historyItem.getName());
+		flakinessObject.setTotal(historyItem.getTotal());
+		flakinessObject.setSwitchCounter(switchCounter);
+		flakinessObject.setPercentage(String.format("%.2f", (double) switchCounter / historyItem.getTotal() * 100));
+		flakinessObject.setLastTime(lastSwitched);
+		flakinessObject.setStatuses(statuses);
+		return flakinessObject;
 	}
 
-	private static class ProcessedObject {
-
-		private Long total;
-
-		private String name;
-
-		private Date lastSwitched;
+	private static class FlakinessObject extends HistoryObject {
 
 		private Long switchCounter;
 
-		private String statuses;
-
-		public Long getTotal() {
-			return total;
-		}
-
-		public void setTotal(Long total) {
-			this.total = total;
-		}
-
-		public Date getLastSwitched() {
-			return lastSwitched;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public void setLastSwitched(Date lastSwitched) {
-			this.lastSwitched = lastSwitched;
-		}
+		private List<String> statuses;
 
 		public Long getSwitchCounter() {
 			return switchCounter;
@@ -180,11 +119,11 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 			this.switchCounter = switchCounter;
 		}
 
-		public String getStatuses() {
+		public List<String> getStatuses() {
 			return statuses;
 		}
 
-		public void setStatuses(String statuses) {
+		public void setStatuses(List<String> statuses) {
 			this.statuses = statuses;
 		}
 	}

@@ -31,10 +31,7 @@ import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author Pavel Bortnik
@@ -73,12 +70,55 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 		return launchHistory;
 	}
 
-	protected void addLastLaunch(Map<String, List<ChartObject>> result, Launch last) {
+	protected void addLastLaunch(Map<String, List<?>> result, Launch last) {
 		ChartObject lastLaunch = new ChartObject();
 		lastLaunch.setName(last.getName());
 		lastLaunch.setNumber(last.getNumber().toString());
 		lastLaunch.setId(last.getId());
 		result.put(LAST_FOUND_LAUNCH, Collections.singletonList(lastLaunch));
+	}
+
+	protected static class HistoryObject {
+
+		protected Long total;
+
+		protected String name;
+
+		protected Date lastTime;
+
+		protected String percentage;
+
+		public Long getTotal() {
+			return total;
+		}
+
+		public void setTotal(Long total) {
+			this.total = total;
+		}
+
+		public Date getLastTime() {
+			return lastTime;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public void setLastTime(Date lastTime) {
+			this.lastTime = lastTime;
+		}
+
+		public String getPercentage() {
+			return percentage;
+		}
+
+		public void setPercentage(String percentage) {
+			this.percentage = percentage;
+		}
 	}
 
 }

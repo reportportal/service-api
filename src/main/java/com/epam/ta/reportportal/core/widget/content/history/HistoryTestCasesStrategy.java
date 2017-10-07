@@ -43,13 +43,15 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 
 	private static final String LAST_FOUND_LAUNCH = "lastLaunch";
 
+	static final int ITEMS_COUNT_VALUE = 20;
+
 	@Autowired
 	protected LaunchRepository launchRepository;
 
 	@Autowired
 	private ITestItemsHistoryService historyServiceStrategy;
 
-	protected List<Launch> getLaunchHistory(ContentOptions contentOptions, String projectName) {
+	List<Launch> getLaunchHistory(ContentOptions contentOptions, String projectName) {
 		/*
 		 * Return false response for absent filtering launch name parameter
 		 */
@@ -70,7 +72,7 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 		return launchHistory;
 	}
 
-	protected void addLastLaunch(Map<String, List<?>> result, Launch last) {
+	void addLastLaunch(Map<String, List<?>> result, Launch last) {
 		ChartObject lastLaunch = new ChartObject();
 		lastLaunch.setName(last.getName());
 		lastLaunch.setNumber(last.getNumber().toString());
@@ -80,13 +82,13 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 
 	protected static class HistoryObject {
 
-		protected Long total;
+		Long total;
 
-		protected String name;
+		String name;
 
-		protected Date lastTime;
+		Date lastTime;
 
-		protected String percentage;
+		String percentage;
 
 		public Long getTotal() {
 			return total;

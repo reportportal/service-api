@@ -31,21 +31,21 @@ import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
  */
 public interface StartTestItemHandler {
 
-    /**
-     * Start Root item operation
-     *
-     * @param projectName Name of the project
-     * @param rq          Item details
-     * @return ItemID and uniqueID of test item
-     */
-    ItemCreatedRS startRootItem(String projectName, StartTestItemRQ rq);
+	/**
+	 * Start Root item operation
+	 *
+	 * @param projectName Name of the project
+	 * @param rq          Item details
+	 * @return ItemID and uniqueID of test item
+	 */
+	ItemCreatedRS startRootItem(String projectName, StartTestItemRQ rq);
 
-    /**
-     * Start child item operation
-     *
-     * @param projectName Name of the project
-     * @param rq          Item details
-     * @return ItemID and uniqueID of test item
-     */
-    ItemCreatedRS startChildItem(String projectName, StartTestItemRQ rq, String rootItem);
+	/**
+	 * Start child item operation
+	 *
+	 * @param projectName Name of the project
+	 * @param rq          Item details
+	 * @return ItemID and uniqueID of test item
+	 */
+	ItemCreatedRS startChildItem(String projectName, StartTestItemRQ rq, String rootItem);
 }

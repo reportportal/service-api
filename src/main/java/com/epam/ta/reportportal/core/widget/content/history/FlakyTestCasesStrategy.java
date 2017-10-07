@@ -31,7 +31,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Pavel Bortnik
@@ -39,7 +40,7 @@ import java.util.stream.Collectors;
 @Service
 public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 
-	private static final int ITEMS_COUNT_VALUE = 20;
+	private static final String FLAKY = "flaky";
 
 	@Autowired
 	private TestItemRepository itemRepository;
@@ -51,9 +52,9 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 		if (CollectionUtils.isEmpty(launchHistory)) {
 			return Collections.emptyMap();
 		}
-
-		List<ItemStatusHistory> itemStatusHistory = itemRepository.getFlakyItemStatusHistory(
-				launchHistory.stream().map(Launch::getId).collect(Collectors.toList()));
+		List<ItemStatusHistory> itemStatusHistory = itemRepository.getFlakyItemStatusHistory(launchHistory.stream()
+				.map(Launch::getId)
+				.collect(toList()));
 
 		if (CollectionUtils.isEmpty(itemStatusHistory)) {
 			return Collections.emptyMap();
@@ -66,16 +67,12 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 
 	private Map<String, List<?>> processHistory(List<ItemStatusHistory> itemStatusHistory) {
 		Map<String, List<?>> result = new HashMap<>();
-		List<FlakinessObject> flakinessObjects = new ArrayList<>();
-		for (ItemStatusHistory historyItem : itemStatusHistory) {
-			FlakinessObject item = processItem(historyItem);
-			flakinessObjects.add(item);
-		}
+		List<FlakinessObject> flakinessObjects = itemStatusHistory.stream().map(this::processItem).collect(toList());
 		flakinessObjects.sort(Comparator.comparing(FlakinessObject::getSwitchCounter));
 		if (flakinessObjects.size() > ITEMS_COUNT_VALUE) {
 			flakinessObjects = flakinessObjects.subList(0, ITEMS_COUNT_VALUE);
 		}
-		result.put("content", flakinessObjects);
+		result.put(FLAKY, flakinessObjects);
 		return result;
 	}
 
@@ -111,11 +108,11 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 
 		private List<String> statuses;
 
-		public Long getSwitchCounter() {
+		Long getSwitchCounter() {
 			return switchCounter;
 		}
 
-		public void setSwitchCounter(Long switchCounter) {
+		void setSwitchCounter(Long switchCounter) {
 			this.switchCounter = switchCounter;
 		}
 
@@ -123,7 +120,7 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 			return statuses;
 		}
 
-		public void setStatuses(List<String> statuses) {
+		void setStatuses(List<String> statuses) {
 			this.statuses = statuses;
 		}
 	}

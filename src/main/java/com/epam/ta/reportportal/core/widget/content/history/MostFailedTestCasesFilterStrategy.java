@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.core.widget.content.history;
 
-import com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.WidgetContentProvider;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.history.status.MostFailedHistory;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -54,14 +55,10 @@ public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy 
 
 	@Override
 	public Map<String, List<?>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
-		String criteria = new StatisticBasedContentLoader().getSystemIssueFieldName();
-		if (null != contentOptions.getContentFields() && contentOptions.getContentFields().size() >= 1) {
-			criteria = WidgetContentProvider.transformToDBStyle(criteriaMapFactory.getCriteriaMap(Launch.class),
-					contentOptions.getContentFields()
-			).get(0);
-		}
+		String criteria = getCriteria(contentOptions);
 		List<Launch> launchHistory = getLaunchHistory(contentOptions, projectName);
 		List<String> ids = launchHistory.stream().map(Launch::getId).collect(toList());
+
 		List<MostFailedHistory> history = itemRepository.getMostFailedItemHistory(ids, criteria, ITEMS_COUNT_VALUE);
 
 		Map<String, List<?>> result = new HashMap<>(RESULTED_MAP_SIZE);
@@ -98,6 +95,17 @@ public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy 
 		mostFailed.setLastTime(date);
 		mostFailed.setIsFailed(statuses);
 		return mostFailed;
+	}
+
+	private String getCriteria(ContentOptions contentOptions) {
+		String criteria = null;
+		if (null != contentOptions.getContentFields() && contentOptions.getContentFields().size() >= 1) {
+			criteria = WidgetContentProvider.transformToDBStyle(criteriaMapFactory.getCriteriaMap(Launch.class),
+					contentOptions.getContentFields()
+			).get(0);
+		}
+		BusinessRule.expect(criteria, Objects::nonNull).verify(ErrorType.BAD_REQUEST_ERROR);
+		return criteria;
 	}
 
 	private static class MostFailedHistoryObject extends HistoryObject {

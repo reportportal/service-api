@@ -43,6 +43,8 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 
 	private static final String LAST_FOUND_LAUNCH = "lastLaunch";
 
+	static final int RESULTED_MAP_SIZE = 2;
+
 	static final int ITEMS_COUNT_VALUE = 20;
 
 	@Autowired
@@ -80,21 +82,21 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 		result.put(LAST_FOUND_LAUNCH, Collections.singletonList(lastLaunch));
 	}
 
+	String countPercentage(int amount, int total) {
+		return String.format("%.2f", (double) amount / total * 100) + "%";
+	}
+
 	protected static class HistoryObject {
-
-		Long total;
-
+		int total;
 		String name;
-
 		Date lastTime;
-
 		String percentage;
 
-		public Long getTotal() {
+		public int getTotal() {
 			return total;
 		}
 
-		public void setTotal(Long total) {
+		public void setTotal(int total) {
 			this.total = total;
 		}
 

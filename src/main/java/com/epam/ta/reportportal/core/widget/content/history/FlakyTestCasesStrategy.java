@@ -24,7 +24,7 @@ package com.epam.ta.reportportal.core.widget.content.history;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
-import com.epam.ta.reportportal.database.entity.item.ItemStatusHistory;
+import com.epam.ta.reportportal.database.entity.history.status.FlakyHistory;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +52,7 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 		if (CollectionUtils.isEmpty(launchHistory)) {
 			return Collections.emptyMap();
 		}
-		List<ItemStatusHistory> itemStatusHistory = itemRepository.getFlakyItemStatusHistory(launchHistory.stream()
+		List<FlakyHistory> itemStatusHistory = itemRepository.getFlakyItemStatusHistory(launchHistory.stream()
 				.map(Launch::getId)
 				.collect(toList()));
 
@@ -65,54 +65,54 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 		return result;
 	}
 
-	private Map<String, List<?>> processHistory(List<ItemStatusHistory> itemStatusHistory) {
+	private Map<String, List<?>> processHistory(List<FlakyHistory> itemStatusHistory) {
 		Map<String, List<?>> result = new HashMap<>();
-		List<FlakinessObject> flakinessObjects = itemStatusHistory.stream().map(this::processItem).collect(toList());
-		flakinessObjects.sort(Comparator.comparing(FlakinessObject::getSwitchCounter));
-		if (flakinessObjects.size() > ITEMS_COUNT_VALUE) {
-			flakinessObjects = flakinessObjects.subList(0, ITEMS_COUNT_VALUE);
+		List<FlakyHistoryObject> flakyHistoryObjects = itemStatusHistory.stream().map(this::processItem).collect(toList());
+		flakyHistoryObjects.sort(Comparator.comparing(FlakyHistoryObject::getSwitchCounter));
+		if (flakyHistoryObjects.size() > ITEMS_COUNT_VALUE) {
+			flakyHistoryObjects = flakyHistoryObjects.subList(0, ITEMS_COUNT_VALUE);
 		}
-		result.put(FLAKY, flakinessObjects);
+		result.put(FLAKY, flakyHistoryObjects);
 		return result;
 	}
 
-	private FlakinessObject processItem(ItemStatusHistory historyItem) {
-		LinkedList<ItemStatusHistory.Entry> statusHistory = historyItem.getStatusHistory();
-		Date lastSwitched = statusHistory.get(0).getTime();
-		Long switchCounter = 0L;
+	private FlakyHistoryObject processItem(FlakyHistory historyItem) {
+		List<FlakyHistory.HistoryEntry> statusHistory = historyItem.getStatusHistory();
+		Date lastSwitched = statusHistory.get(0).getStartTime();
+		int switchCounter = 0;
 		List<String> statuses = new ArrayList<>();
 
 		String prevStatus = statusHistory.get(0).getStatus();
-		for (ItemStatusHistory.Entry entry : statusHistory) {
+		for (FlakyHistory.HistoryEntry entry : statusHistory) {
 			if (!entry.getStatus().equals(prevStatus)) {
-				lastSwitched = entry.getTime();
+				lastSwitched = entry.getStartTime();
 				switchCounter++;
 			}
 			statuses.add(entry.getStatus());
 			prevStatus = entry.getStatus();
 		}
 
-		FlakinessObject flakinessObject = new FlakinessObject();
-		flakinessObject.setName(historyItem.getName());
-		flakinessObject.setTotal(historyItem.getTotal());
-		flakinessObject.setSwitchCounter(switchCounter);
-		flakinessObject.setPercentage(String.format("%.2f", (double) switchCounter / historyItem.getTotal() * 100));
-		flakinessObject.setLastTime(lastSwitched);
-		flakinessObject.setStatuses(statuses);
-		return flakinessObject;
+		FlakyHistoryObject flakyHistoryObject = new FlakyHistoryObject();
+		flakyHistoryObject.setName(historyItem.getName());
+		flakyHistoryObject.setTotal(historyItem.getTotal());
+		flakyHistoryObject.setSwitchCounter(switchCounter);
+		flakyHistoryObject.setPercentage(countPercentage(switchCounter, historyItem.getTotal()));
+		flakyHistoryObject.setLastTime(lastSwitched);
+		flakyHistoryObject.setStatuses(statuses);
+		return flakyHistoryObject;
 	}
 
-	private static class FlakinessObject extends HistoryObject {
+	private static class FlakyHistoryObject extends HistoryObject {
 
-		private Long switchCounter;
+		private int switchCounter;
 
 		private List<String> statuses;
 
-		Long getSwitchCounter() {
+		public int getSwitchCounter() {
 			return switchCounter;
 		}
 
-		void setSwitchCounter(Long switchCounter) {
+		public void setSwitchCounter(int switchCounter) {
 			this.switchCounter = switchCounter;
 		}
 

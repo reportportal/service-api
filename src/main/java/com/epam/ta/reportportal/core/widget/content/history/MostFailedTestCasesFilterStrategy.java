@@ -26,25 +26,24 @@ import com.epam.ta.reportportal.core.widget.content.WidgetContentProvider;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
-import com.epam.ta.reportportal.database.entity.item.ItemStatusHistory;
+import com.epam.ta.reportportal.database.entity.history.status.MostFailedHistory;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 
 /**
  * Most failed test-cases widget content loader<br> <b>Slow widget because history based</b>
  *
- * @author Andrei_Ramanchuk
+ * @author Pavel Bortnik
  */
 @Service
 public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy {
+
 	private static final String MOST_FAILED = "most_failed";
 
 	@Autowired
@@ -64,80 +63,60 @@ public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy 
 		}
 		List<Launch> launchHistory = getLaunchHistory(contentOptions, projectName);
 		List<String> ids = launchHistory.stream().map(Launch::getId).collect(toList());
-		List<ItemStatusHistory> history = itemRepository.getMostFailedItemHistory(ids, criteria);
-		Map<String, List<?>> result = processHistory(history);
+		List<MostFailedHistory> history = itemRepository.getMostFailedItemHistory(ids, criteria, ITEMS_COUNT_VALUE);
+
+		Map<String, List<?>> result = new HashMap<>(RESULTED_MAP_SIZE);
+		processHistory(result, history);
 		addLastLaunch(result, launchHistory.get(0));
 		return result;
 	}
 
-	private Map<String, List<?>> processHistory(List<ItemStatusHistory> itemStatusHistory) {
-		Map<String, List<?>> result = new HashMap<>();
+	private Map<String, List<?>> processHistory(Map<String, List<?>> result, List<MostFailedHistory> itemStatusHistory) {
 		result.put(MOST_FAILED, itemStatusHistory.stream().map(this::processItem).collect(toList()));
 		return result;
 	}
 
-	private MostFailedHistoryObject processItem(ItemStatusHistory historyItem) {
-		MostFailedHistoryObject mostFailedHistoryObject = new MostFailedHistoryObject();
-		mostFailedHistoryObject.setName(historyItem.getName());
-		mostFailedHistoryObject.setTotal(historyItem.getTotal());
-		mostFailedHistoryObject.setFailedCount(historyItem.getCount());
-		mostFailedHistoryObject.setPercentage(String.format("%.2f", (double) historyItem.getCount() / historyItem.getTotal() * 100));
-		List<Statuses> statuses = historyItem.getStatusHistory()
-				.stream()
-				.map(it -> new Statuses(it.getStatus(), it.getIssue()))
-				.collect(toList());
-		mostFailedHistoryObject.setStatuses(statuses);
-		return mostFailedHistoryObject;
+	private MostFailedHistoryObject processItem(MostFailedHistory historyItem) {
+		MostFailedHistoryObject mostFailed = new MostFailedHistoryObject();
+		mostFailed.setName(historyItem.getName());
+		mostFailed.setTotal(historyItem.getTotal());
+		mostFailed.setFailedCount(historyItem.getFailed());
+		mostFailed.setPercentage(countPercentage(historyItem.getFailed(), historyItem.getTotal()));
+		Date date = null;
+		List<Boolean> statuses = new ArrayList<>(historyItem.getStatusHistory().size());
+		for (MostFailedHistory.HistoryEntry entry : historyItem.getStatusHistory()) {
+			boolean isFailed = false;
+			if (entry.getCriteriaAmount() > 0) {
+				date = entry.getStartTime();
+				isFailed = true;
+			}
+			statuses.add(isFailed);
+		}
+		mostFailed.setLastTime(date);
+		mostFailed.setIsFailed(statuses);
+		return mostFailed;
 	}
 
 	private static class MostFailedHistoryObject extends HistoryObject {
 
-		private Long failedCount;
+		private int failedCount;
 
-		private List<Statuses> statuses;
+		private List<Boolean> isFailed;
 
-		public List<Statuses> getStatuses() {
-			return statuses;
-		}
-
-		public void setStatuses(List<Statuses> statuses) {
-			this.statuses = statuses;
-		}
-
-		public Long getFailedCount() {
+		public int getFailedCount() {
 			return failedCount;
 		}
 
-		public void setFailedCount(Long failedCount) {
+		public void setFailedCount(int failedCount) {
 			this.failedCount = failedCount;
 		}
-	}
 
-	private static class Statuses {
-
-		public Statuses(String status, String issue) {
-			this.status = status;
-			this.issue = issue;
+		public List<Boolean> getIsFailed() {
+			return isFailed;
 		}
 
-		private String status;
-
-		private String issue;
-
-		public String getStatus() {
-			return status;
-		}
-
-		public void setStatus(String status) {
-			this.status = status;
-		}
-
-		public String getIssue() {
-			return issue;
-		}
-
-		public void setIssue(String issue) {
-			this.issue = issue;
+		public void setIsFailed(List<Boolean> isFailed) {
+			this.isFailed = isFailed;
 		}
 	}
 }

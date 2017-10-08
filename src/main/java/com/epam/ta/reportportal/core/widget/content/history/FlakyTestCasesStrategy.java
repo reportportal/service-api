@@ -60,13 +60,13 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 			return Collections.emptyMap();
 		}
 
-		Map<String, List<?>> result = processHistory(itemStatusHistory);
+		Map<String, List<?>> result = new HashMap<>(RESULTED_MAP_SIZE);
+		processHistory(result, itemStatusHistory);
 		addLastLaunch(result, launchHistory.get(0));
 		return result;
 	}
 
-	private Map<String, List<?>> processHistory(List<FlakyHistory> itemStatusHistory) {
-		Map<String, List<?>> result = new HashMap<>();
+	private Map<String, List<?>> processHistory(Map<String, List<?>> result, List<FlakyHistory> itemStatusHistory) {
 		List<FlakyHistoryObject> flakyHistoryObjects = itemStatusHistory.stream().map(this::processItem).collect(toList());
 		flakyHistoryObjects.sort(Comparator.comparing(FlakyHistoryObject::getSwitchCounter));
 		if (flakyHistoryObjects.size() > ITEMS_COUNT_VALUE) {

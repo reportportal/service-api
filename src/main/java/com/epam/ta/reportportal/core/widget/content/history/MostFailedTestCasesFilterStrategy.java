@@ -53,8 +53,7 @@ public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy 
 	private CriteriaMapFactory criteriaMapFactory;
 
 	@Override
-	public Map<String, List<?>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions,
-			String projectName) {
+	public Map<String, List<?>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
 		String criteria = new StatisticBasedContentLoader().getSystemIssueFieldName();
 		if (null != contentOptions.getContentFields() && contentOptions.getContentFields().size() >= 1) {
 			criteria = WidgetContentProvider.transformToDBStyle(criteriaMapFactory.getCriteriaMap(Launch.class),
@@ -82,9 +81,12 @@ public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy 
 		mostFailed.setTotal(historyItem.getTotal());
 		mostFailed.setFailedCount(historyItem.getFailed());
 		mostFailed.setPercentage(countPercentage(historyItem.getFailed(), historyItem.getTotal()));
+
 		Date date = null;
-		List<Boolean> statuses = new ArrayList<>(historyItem.getStatusHistory().size());
-		for (MostFailedHistory.HistoryEntry entry : historyItem.getStatusHistory()) {
+		List<MostFailedHistory.HistoryEntry> historyEntries = Optional.ofNullable(historyItem.getStatusHistory())
+				.orElse(Collections.emptyList());
+		List<Boolean> statuses = new ArrayList<>(historyEntries.size());
+		for (MostFailedHistory.HistoryEntry entry : historyEntries) {
 			boolean isFailed = false;
 			if (entry.getCriteriaAmount() > 0) {
 				date = entry.getStartTime();
@@ -92,6 +94,7 @@ public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy 
 			}
 			statuses.add(isFailed);
 		}
+
 		mostFailed.setLastTime(date);
 		mostFailed.setIsFailed(statuses);
 		return mostFailed;

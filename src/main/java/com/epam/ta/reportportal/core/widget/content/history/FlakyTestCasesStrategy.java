@@ -79,6 +79,7 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 	private FlakyHistoryObject processItem(FlakyHistory historyItem) {
 		List<FlakyHistory.HistoryEntry> statusHistory = historyItem.getStatusHistory();
 		Date lastSwitched = statusHistory.get(0).getStartTime();
+		int potentialSwitches = historyItem.getTotal() - 1;
 		int switchCounter = 0;
 		List<String> statuses = new ArrayList<>();
 
@@ -94,9 +95,9 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 
 		FlakyHistoryObject flakyHistoryObject = new FlakyHistoryObject();
 		flakyHistoryObject.setName(historyItem.getName());
-		flakyHistoryObject.setTotal(historyItem.getTotal());
+		flakyHistoryObject.setTotal(potentialSwitches);
 		flakyHistoryObject.setSwitchCounter(switchCounter);
-		flakyHistoryObject.setPercentage(countPercentage(switchCounter, historyItem.getTotal()));
+		flakyHistoryObject.setPercentage(countPercentage(switchCounter, potentialSwitches));
 		flakyHistoryObject.setLastTime(lastSwitched);
 		flakyHistoryObject.setStatuses(statuses);
 		return flakyHistoryObject;

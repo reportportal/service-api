@@ -78,6 +78,11 @@
 		<ref bean="sharedFilter1"/>
 	</util:list>
 
+    <util:list id="getLaunchTests">
+        <ref bean="launchInDebugMode"/>
+        <ref bean="launchInDefaultMode"/>
+    </util:list>
+
 	<util:list id="mvcTests">
 		<ref bean="user1" />
 		<ref bean="user2" />

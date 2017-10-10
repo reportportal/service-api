@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.ws.converter.LaunchResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
@@ -111,7 +112,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 		 * com.mongodb.BasicDBObject, user can't add a second 'mode' criteria
 		 */
 		validateModeConditions(filter);
-		filter = addLaunchCommonCriteria(filter, projectName);
+		filter = addLaunchCommonCriteria(DEFAULT, filter, projectName);
 		Page<Launch> launches = launchRepository.findByFilter(filter, pageable);
 		return launchResourceAssembler.toPagedResources(launches);
 	}
@@ -122,7 +123,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 	 */
 	@Override
 	public Iterable<LaunchResource> getDebugLaunches(String projectName, String userName, Filter filter, Pageable pageable) {
-		filter = addLaunchCommonCriteria(filter, projectName);
+		filter = addLaunchCommonCriteria(DEBUG, filter, projectName);
 		Page<Launch> launches = launchRepository.findByFilter(filter, pageable);
 		return launchResourceAssembler.toPagedResources(launches);
 	}
@@ -130,7 +131,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 	@Override
 	public com.epam.ta.reportportal.ws.model.Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable) {
 		validateModeConditions(filter);
-		addLaunchCommonCriteria(filter, projectName);
+		addLaunchCommonCriteria(DEFAULT, filter, projectName);
 		Page<LaunchResource> resources = launchRepository.findLatestLaunches(filter, pageable).map(launchResourceAssembler::toResource);
 		return new com.epam.ta.reportportal.ws.model.Page<>(resources.getContent(),
 				resources.getSize(),
@@ -209,9 +210,9 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 	 * @param filter Filter to update
 	 * @return Updated filter
 	 */
-	private Filter addLaunchCommonCriteria(Filter filter, String projectName) {
+	private Filter addLaunchCommonCriteria(Mode mode, Filter filter, String projectName) {
 		if (null != filter) {
-			filter.addCondition(new FilterCondition(EQUALS, false, DEFAULT.toString(), Launch.MODE_CRITERIA));
+			filter.addCondition(new FilterCondition(EQUALS, false, mode.toString(), Launch.MODE_CRITERIA));
 			filter.addCondition(new FilterCondition(EQUALS, false, projectName, Project.PROJECT));
 		}
 		return filter;

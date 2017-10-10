@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.fixture.SpringFixture;
+import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -63,6 +64,10 @@ public class GetLaunchHandlerTest extends BaseTest {
 
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
+
+	@Rule
+	@Autowired
+	public SpringFixtureRule dfRule;
 
 	@Test
 	public void getDebugLaunches() {

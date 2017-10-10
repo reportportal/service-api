@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.impl;
 
@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.acl.AclUtils;
 import com.epam.ta.reportportal.core.widget.IGetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
+import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategyLatest;
 import com.epam.ta.reportportal.core.widget.content.GadgetTypes;
 import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.dao.WidgetRepository;
@@ -36,7 +37,6 @@ import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.converter.WidgetResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
-import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +55,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Default implementation of {@link IGetWidgetHandler}
- * 
+ *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
  */
@@ -132,7 +132,7 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 	@Override
 	public List<WidgetResource> getSharedWidgetsList(String userName, String projectName) {
 		List<Widget> widgets = widgetRepository.findSharedEntities(userName, projectName,
-				Arrays.asList(Widget.ID, Widget.NAME, "description", Widget.OWNER, Widget.GADGET_TYPE, Widget.CONTENT_FIELDS),
+				Arrays.asList(Widget.ID, Widget.NAME, "description", Widget.OWNER, Widget.GADGET_TYPE, Widget.CONTENT_FIELDS, Widget.ENTRIES),
 				Shareable.NAME_OWNER_SORT);
 		return resourceAssembler.toResources(widgets);
 	}
@@ -143,7 +143,7 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 	}
 
 	@Override
-	public Map<String, List<ChartObject>> getWidgetPreview(String projectName, String userName, WidgetPreviewRQ previewRQ) {
+	public Map<String, ?> getWidgetPreview(String projectName, String userName, WidgetPreviewRQ previewRQ) {
 		validateWidgetDataType(previewRQ.getContentParameters().getType(), BAD_REQUEST_ERROR);
 		validateGadgetType(previewRQ.getContentParameters().getGadget(), BAD_REQUEST_ERROR);
 
@@ -162,7 +162,7 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 	 * Transform list of widgets to map of Shared entities result map:<br>
 	 * <li>key - widget id
 	 * <li>value - {@link SharedEntity}
-	 * 
+	 *
 	 * @param widgets
 	 * @return
 	 */
@@ -180,9 +180,8 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 	}
 
 	private boolean isRequireUserFilter(GadgetTypes gadgetType, Optional<UserFilter> userFilter) {
-		return !(!userFilter.isPresent() && (gadgetType != GadgetTypes.ACTIVITY)
-				&& (gadgetType != GadgetTypes.MOST_FAILED_TEST_CASES)
-				&& (gadgetType != GadgetTypes.PASSING_RATE_PER_LAUNCH));
+		return !(!userFilter.isPresent() && (gadgetType != GadgetTypes.ACTIVITY) && (gadgetType != GadgetTypes.MOST_FAILED_TEST_CASES) && (
+				gadgetType != GadgetTypes.PASSING_RATE_PER_LAUNCH));
 	}
 
 	private boolean isFilterUnShared(String userName, String project, Optional<UserFilter> userFilter) {
@@ -191,36 +190,38 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 
 	/**
 	 * Load widget content according filter type.
-	 * 
+	 *
 	 * @param userFilter
 	 * @param projectName
 	 * @param contentOptions
 	 * @return
 	 */
-	Map<String, List<ChartObject>> loadContentByFilterType(Optional<UserFilter> userFilter, String projectName,
+	Map<String, ?> loadContentByFilterType(Optional<UserFilter> userFilter, String projectName,
 			ContentOptions contentOptions) {
 		// Log doesn't have any statistics, so currently unable to create any
 		// widget with valid content for log
-		Map<String, List<ChartObject>> content;
+		Map<String, ?> content;
 		if (userFilter.isPresent() && Log.class.equals(userFilter.get().getFilter().getTarget())) {
 			content = new HashMap<>();
 		} else {
 			BuildFilterStrategy filterStrategy = buildFilterStrategy.get(GadgetTypes.findByName(contentOptions.getGadgetType()).get());
 			expect(filterStrategy, notNull()).verify(UNABLE_LOAD_WIDGET_CONTENT,
-					Suppliers.formattedSupplier("Unknown gadget type: '{}'.",
-							contentOptions.getGadgetType()));
+					Suppliers.formattedSupplier("Unknown gadget type: '{}'.", contentOptions.getGadgetType())
+			);
+
 			if (contentOptions.getWidgetOptions() != null && contentOptions.getWidgetOptions().containsKey("latest")) {
-			    content = filterStrategy.loadContentOfLatestLaunches(userFilter.orElse(null), contentOptions, projectName);
-            }else {
-                content = filterStrategy.buildFilterAndLoadContent(userFilter.orElse(null), contentOptions, projectName);
-            }
+				content = ((BuildFilterStrategyLatest) filterStrategy).loadContentOfLatest(
+						userFilter.orElse(null), contentOptions, projectName);
+			} else {
+				content = filterStrategy.buildFilterAndLoadContent(userFilter.orElse(null), contentOptions, projectName);
+			}
 		}
 		return content;
 	}
 
 	/**
 	 * Get userFilter by id, id can be null.
-	 * 
+	 *
 	 * @param filterId
 	 * @return
 	 */

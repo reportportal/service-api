@@ -23,7 +23,6 @@ package com.epam.ta.reportportal.core.widget;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
-import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 
@@ -84,5 +83,5 @@ public interface IGetWidgetHandler {
 	 * @param userName    Username
 	 * @return Widget content
 	 */
-	Map<String, List<ChartObject>> getWidgetPreview(String projectName, String userName, WidgetPreviewRQ previewRQ);
+	Map<String, ?> getWidgetPreview(String projectName, String userName, WidgetPreviewRQ previewRQ);
 }

@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
+import com.epam.ta.reportportal.commons.MoreCollectors;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.acl.AclUtils;
@@ -28,7 +29,6 @@ import com.epam.ta.reportportal.core.dashboard.IGetDashboardHandler;
 import com.epam.ta.reportportal.database.dao.DashboardRepository;
 import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.sharing.Shareable;
-import com.epam.ta.reportportal.util.MoreCollectors;
 import com.epam.ta.reportportal.ws.converter.DashboardResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.SharedEntity;

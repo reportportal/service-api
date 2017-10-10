@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader.*;
 
@@ -47,7 +48,8 @@ public class PassingRateTest extends BaseTest {
     public void testPassingRatePerLaunch() {
         EntryCreatedRS widget = createWidgetHandler.createWidget(widgetRQ(), "project2", "user1");
         WidgetResource widgetResource = getWidgetHandler.getWidget(widget.getId(), "user1", "project2");
-        ChartObject chartObject = widgetResource.getContent().get(RESULT).get(0);
+        Map<String, List<ChartObject>> content = (Map<String, List<ChartObject>>) widgetResource.getContent();
+        ChartObject chartObject = content.get(RESULT).get(0);
         Assert.assertEquals(GadgetTypes.PASSING_RATE_PER_LAUNCH.getType(), widgetResource.getContentParameters().getGadget());
         Assert.assertEquals(WidgetDataTypes.BAR_CHART.getType(), widgetResource.getContentParameters().getType());
         Assert.assertTrue(chartObject.getValues().size() == 2);
@@ -59,7 +61,8 @@ public class PassingRateTest extends BaseTest {
     public void testPassingRateSummary() {
         EntryCreatedRS widget = createWidgetHandler.createWidget(widgetRQSummary(), "project2", "user1");
         WidgetResource widgetResource = getWidgetHandler.getWidget(widget.getId(), "user1", "project2");
-        ChartObject chartObject = widgetResource.getContent().get(RESULT).get(0);
+        Map<String, List<ChartObject>> content = (Map<String, List<ChartObject>>) widgetResource.getContent();
+        ChartObject chartObject = content.get(RESULT).get(0);
         StatisticBasedContentLoader loader = new StatisticBasedContentLoader();
         Assert.assertEquals(GadgetTypes.PASSING_RATE_SUMMARY.getType(), widgetResource.getContentParameters().getGadget());
         Assert.assertEquals(WidgetDataTypes.BAR_CHART.getType(), widgetResource.getContentParameters().getType());

@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.database.entity.statistics.Statistics;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.junit.Assert;
@@ -53,6 +54,8 @@ public class EmailServiceTest {
 		Launch launch = new Launch();
 		launch.setId(UUID.randomUUID().toString());
 		launch.setEndTime(Calendar.getInstance().getTime());
+		launch.setDescription("custom description");
+		launch.setTags(Sets.newHashSet("tag1", "tag2"));
 		launch.setName("hello world");
 		launch.setNumber(1L);
 
@@ -106,6 +109,7 @@ public class EmailServiceTest {
 
 		Document doc = Jsoup.parse(text);
 
+		Assert.assertThat("Incorrect description", getDescription(doc), containsString("custom description"));
 		Assert.assertThat("Incorrect 'TOTAL' count", getBugCount(doc, "TOTAL"), is(10));
 		Assert.assertThat("Incorrect 'Passed' count", getStatisticsCount(doc, "Passed"), is(5));
 		Assert.assertThat("Incorrect 'Failed' count", getStatisticsCount(doc, "Failed"), is(4));
@@ -124,6 +128,10 @@ public class EmailServiceTest {
 
 	private int getStatisticsCount(Document doc, String group) {
 		return Integer.parseInt(doc.select(String.format("td:contains(%s)", group)).last().nextElementSibling().text());
+	}
+
+	private String getDescription(Document doc) {
+		return doc.select(String.format("p:contains(%s)", "Description")).get(0).text();
 	}
 
 }

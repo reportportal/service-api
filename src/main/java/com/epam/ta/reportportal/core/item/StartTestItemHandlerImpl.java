@@ -24,7 +24,6 @@ package com.epam.ta.reportportal.core.item;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
@@ -40,108 +39,108 @@ import javax.inject.Provider;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.CHILD_START_TIME_EARLIER_THAN_PARENT;
+import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.START_ITEM_NOT_ALLOWED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_NOT_FOUND;
 
 /**
  * Start Launch operation default implementation
  *
  * @author Andrei Varabyeu
  * @author Andrei_Ramanchuk
- *
  */
 @Service
 class StartTestItemHandlerImpl implements StartTestItemHandler {
-	private TestItemRepository testItemRepository;
-	private LaunchRepository launchRepository;
-	private Provider<TestItemBuilder> testItemBuilder;
-	private LogRepository logRepository;
-	private UniqueIdGenerator identifierGenerator;
+    private TestItemRepository testItemRepository;
+    private LaunchRepository launchRepository;
+    private Provider<TestItemBuilder> testItemBuilder;
+    private UniqueIdGenerator identifierGenerator;
 
-	@Autowired
-	public void setIdentifierGenerator(UniqueIdGenerator identifierGenerator) {
-		this.identifierGenerator = identifierGenerator;
-	}
+    @Autowired
+    public void setIdentifierGenerator(UniqueIdGenerator identifierGenerator) {
+        this.identifierGenerator = identifierGenerator;
+    }
 
-	@Autowired
-	public void setTestItemRepository(TestItemRepository testItemRepository) {
-		this.testItemRepository = testItemRepository;
-	}
+    @Autowired
+    public void setTestItemRepository(TestItemRepository testItemRepository) {
+        this.testItemRepository = testItemRepository;
+    }
 
-	@Autowired
-	public void setLaunchRepository(LaunchRepository launchRepository) {
-		this.launchRepository = launchRepository;
-	}
+    @Autowired
+    public void setLaunchRepository(LaunchRepository launchRepository) {
+        this.launchRepository = launchRepository;
+    }
 
-	@Autowired
-	public void setLogRepository(LogRepository logRepository) {
-		this.logRepository = logRepository;
-	}
+    @Autowired
+    public void setTestItemBuilder(Provider<TestItemBuilder> testItemBuilder) {
+        this.testItemBuilder = testItemBuilder;
+    }
 
-	@Autowired
-	public void setTestItemBuilder(Provider<TestItemBuilder> testItemBuilder) {
-		this.testItemBuilder = testItemBuilder;
-	}
+    /**
+     * Starts root item and related to the specific launch
+     */
+    @Override
+    public EntryCreatedRS startRootItem(String projectName, StartTestItemRQ rq) {
+        Launch launch = launchRepository.loadStatusProjectRefAndStartTime(rq.getLaunchId());
+        validate(projectName, rq, launch);
+        TestItem item = testItemBuilder.get().addStartItemRequest(rq).addStatus(Status.IN_PROGRESS).addLaunch(launch)
+                .build();
+        if (null == item.getUniqueId()) {
+            item.setUniqueId(identifierGenerator.generate(item));
+        }
+        testItemRepository.save(item);
+        return new EntryCreatedRS(item.getId());
+    }
 
-	/**
-	 * Starts root item and related to the specific launch
-	 */
-	@Override
-	public EntryCreatedRS startRootItem(String projectName, StartTestItemRQ rq) {
-		Launch launch = launchRepository.loadStatusProjectRefAndStartTime(rq.getLaunchId());
-		validate(projectName, rq, launch);
-		TestItem item = testItemBuilder.get().addStartItemRequest(rq).addStatus(Status.IN_PROGRESS).addLaunch(launch).build();
-		if (null == item.getUniqueId()) {
-			item.setUniqueId(identifierGenerator.generate(item));
-		}
-		testItemRepository.save(item);
-		return new EntryCreatedRS(item.getId());
-	}
+    /**
+     * Starts children item and building it's path from parent with parant's
+     */
+    @Override
+    public EntryCreatedRS startChildItem(String projectName, StartTestItemRQ rq, String parent) {
+        TestItem parentItem = testItemRepository.findOne(parent);
 
-	/**
-	 * Starts children item and building it's path from parent with parant's
-	 */
-	@Override
-	public EntryCreatedRS startChildItem(String projectName, StartTestItemRQ rq, String parent) {
-		TestItem parentItem = testItemRepository.findOne(parent);
+        validate(parentItem, parent);
+        validate(rq, parentItem);
 
-		validate(parentItem, parent);
-		validate(rq, parentItem);
+        TestItem item = testItemBuilder.get().addStartItemRequest(rq).addParent(parentItem).addPath(parentItem)
+                .addStatus(Status.IN_PROGRESS).build();
+        if (null == item.getUniqueId()) {
+            item.setUniqueId(identifierGenerator.generate(item));
+        }
+        testItemRepository.save(item);
 
-		TestItem item = testItemBuilder.get().addStartItemRequest(rq).addParent(parentItem).addPath(parentItem)
-				.addStatus(Status.IN_PROGRESS).build();
-		if (null == item.getUniqueId()) {
-			item.setUniqueId(identifierGenerator.generate(item));
-		}
-		testItemRepository.save(item);
+        if (!parentItem.hasChilds()) {
+            testItemRepository.updateHasChilds(parentItem.getId(), true);
+        }
+        return new EntryCreatedRS(item.getId());
+    }
 
-		if (!parentItem.hasChilds()) {
-			testItemRepository.updateHasChilds(parentItem.getId(), true);
-		}
-		return new EntryCreatedRS(item.getId());
-	}
+    private void validate(String projectName, StartTestItemRQ rq, Launch launch) {
+        expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, rq.getLaunchId());
+        expect(projectName.toLowerCase(), equalTo(launch.getProjectRef())).verify(ACCESS_DENIED);
+        expect(launch, Preconditions.IN_PROGRESS).verify(START_ITEM_NOT_ALLOWED,
+                Suppliers.formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId()));
 
-	private void validate(String projectName, StartTestItemRQ rq, Launch launch) {
-		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, rq.getLaunchId());
-		expect(projectName.toLowerCase(), equalTo(launch.getProjectRef())).verify(ACCESS_DENIED);
-		expect(launch, Preconditions.IN_PROGRESS).verify(START_ITEM_NOT_ALLOWED,
-				Suppliers.formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId()));
+        expect(rq, Preconditions.startSameTimeOrLater(launch.getStartTime()))
+                .verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
+                        rq.getStartTime(), launch.getStartTime(), launch.getId());
 
-		expect(rq, Preconditions.startSameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(), launch.getStartTime(), launch.getId());
+    }
 
-	}
+    private void validate(TestItem parentTestItem, String parent) {
+        expect(parentTestItem, notNull()).verify(TEST_ITEM_NOT_FOUND, parent);
+        expect(parentTestItem, Preconditions.IN_PROGRESS).verify(START_ITEM_NOT_ALLOWED,
+                Suppliers.formattedSupplier("Parent Item '{}' is not in progress", parentTestItem.getId()));
+        //		long logCount = logRepository.getNumberOfLogByTestItem(parentTestItem);
+        //		expect(logCount, equalTo(0L)).verify(START_ITEM_NOT_ALLOWED,
+        //				Suppliers.formattedSupplier("Parent Item '{}' already has log items", parentTestItem.getId()));
+    }
 
-	private void validate(TestItem parentTestItem, String parent) {
-		expect(parentTestItem, notNull()).verify(TEST_ITEM_NOT_FOUND, parent);
-		expect(parentTestItem, Preconditions.IN_PROGRESS).verify(START_ITEM_NOT_ALLOWED,
-				Suppliers.formattedSupplier("Parent Item '{}' is not in progress", parentTestItem.getId()));
-		long logCount = logRepository.getNumberOfLogByTestItem(parentTestItem);
-		expect(logCount, equalTo(0L)).verify(START_ITEM_NOT_ALLOWED,
-				Suppliers.formattedSupplier("Parent Item '{}' already has log items", parentTestItem.getId()));
-	}
-
-	private void validate(StartTestItemRQ rq, TestItem parent) {
-		expect(rq, Preconditions.startSameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(), parent.getStartTime(), parent.getId());
-	}
+    private void validate(StartTestItemRQ rq, TestItem parent) {
+        expect(rq, Preconditions.startSameTimeOrLater(parent.getStartTime()))
+                .verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
+                        rq.getStartTime(), parent.getStartTime(), parent.getId());
+    }
 }

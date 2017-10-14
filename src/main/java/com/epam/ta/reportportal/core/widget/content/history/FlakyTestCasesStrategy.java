@@ -63,7 +63,7 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 		}
 
 		Map<String, List<?>> result = new HashMap<>(RESULTED_MAP_SIZE);
-		processHistory(result, itemStatusHistory);
+		result = processHistory(result, itemStatusHistory);
 		addLastLaunch(result, launchHistory.get(0));
 		return result;
 	}

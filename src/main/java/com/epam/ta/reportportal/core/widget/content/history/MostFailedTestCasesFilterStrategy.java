@@ -63,7 +63,7 @@ public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy 
 		List<MostFailedHistory> history = itemRepository.getMostFailedItemHistory(ids, criteria, ITEMS_COUNT_VALUE);
 
 		Map<String, List<?>> result = new HashMap<>(RESULTED_MAP_SIZE);
-		processHistory(result, history);
+		result = processHistory(result, history);
 		addLastLaunch(result, launchHistory.get(0));
 		return result;
 	}

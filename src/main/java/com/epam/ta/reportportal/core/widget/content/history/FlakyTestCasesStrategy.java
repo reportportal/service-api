@@ -34,6 +34,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import static java.util.Comparator.comparing;
+import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -70,7 +72,9 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 
 	private Map<String, List<?>> processHistory(Map<String, List<?>> result, List<FlakyHistory> itemStatusHistory) {
 		List<FlakyHistoryObject> flakyHistoryObjects = itemStatusHistory.stream().map(this::processItem).collect(toList());
-		flakyHistoryObjects.sort(Comparator.comparing(FlakyHistoryObject::getSwitchCounter).thenComparing(FlakyHistoryObject::getTotal));
+		flakyHistoryObjects.sort(comparing(FlakyHistoryObject::getSwitchCounter,
+				reverseOrder()
+		).thenComparing(FlakyHistoryObject::getTotal));
 		if (flakyHistoryObjects.size() > ITEMS_COUNT_VALUE) {
 			flakyHistoryObjects = flakyHistoryObjects.subList(0, ITEMS_COUNT_VALUE);
 		}

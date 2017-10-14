@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.impl;
 
@@ -73,7 +73,7 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 
 	private SharingService sharingService;
 
-    private ApplicationEventPublisher eventPublisher;
+	private ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	public void setWidgetRepository(WidgetRepository widgetRepository) {
@@ -81,11 +81,11 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 	}
 
 	@Autowired
-    public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
-        this.eventPublisher = eventPublisher;
-    }
+	public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
+		this.eventPublisher = eventPublisher;
+	}
 
-    @Autowired
+	@Autowired
 	public void setWidgetBuilder(Provider<WidgetBuilder> widgetBuilder) {
 		this.widgetBuilder = widgetBuilder;
 	}
@@ -106,25 +106,25 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 	}
 
 	@Override
-    public EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, String projectName, String userName) {
-        List<Widget> widgetList = widgetRepository.findByProjectAndUser(projectName, userName);
-        checkUniqueName(createWidgetRQ.getName(), widgetList);
+	public EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, String projectName, String userName) {
+		List<Widget> widgetList = widgetRepository.findByProjectAndUser(projectName, userName);
+		checkUniqueName(createWidgetRQ.getName(), widgetList);
 
-        String widgetType = createWidgetRQ.getContentParameters().getType();
-        validateWidgetDataType(widgetType, BAD_SAVE_WIDGET_REQUEST);
-        validateGadgetType(createWidgetRQ.getContentParameters().getGadget(), BAD_SAVE_WIDGET_REQUEST);
+		String widgetType = createWidgetRQ.getContentParameters().getType();
+		validateWidgetDataType(widgetType, BAD_SAVE_WIDGET_REQUEST);
+		validateGadgetType(createWidgetRQ.getContentParameters().getGadget(), BAD_SAVE_WIDGET_REQUEST);
 
-        Widget widget;
-        if (!widgetType.equals(CLEAN_WIDGET.getType())) {
-            widget = create(createWidgetRQ, projectName, userName);
-        } else {
-            widget = createWithoutFilter(createWidgetRQ, projectName, userName);
-        }
-        widgetRepository.save(widget);
-        eventPublisher.publishEvent(new WidgetCreatedEvent(createWidgetRQ, userName, projectName, widget.getId()));
+		Widget widget;
+		if (!widgetType.equals(CLEAN_WIDGET.getType())) {
+			widget = create(createWidgetRQ, projectName, userName);
+		} else {
+			widget = createWithoutFilter(createWidgetRQ, projectName, userName);
+		}
+		widgetRepository.save(widget);
+		eventPublisher.publishEvent(new WidgetCreatedEvent(createWidgetRQ, userName, projectName, widget.getId()));
 
-        return new EntryCreatedRS(widget.getId());
-    }
+		return new EntryCreatedRS(widget.getId());
+	}
 
 	private Widget create(WidgetRQ createWidgetRQ, String projectName, String userName) {
 		// load only type here it will be reused later for converting
@@ -132,15 +132,19 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 		UserFilter filter = filterRepository.findOneLoadACL(userName, createWidgetRQ.getFilterId(), projectName);
 		GadgetTypes gadget = findByName(createWidgetRQ.getContentParameters().getGadget()).get();
 
-        if (gadget != ACTIVITY && gadget != MOST_FAILED_TEST_CASES && gadget != PASSING_RATE_PER_LAUNCH) {
+		if (gadget != ACTIVITY && gadget != MOST_FAILED_TEST_CASES && gadget != PASSING_RATE_PER_LAUNCH) {
 			checkApplyingFilter(filter, createWidgetRQ.getFilterId(), userName);
 		}
 		clearContentParameters(createWidgetRQ.getContentParameters(), filter);
 		validateContentParameters(createWidgetRQ.getContentParameters(), filter, gadget);
 
 		Widget widget = widgetBuilder.get().addWidgetRQ(createWidgetRQ).addFilter(createWidgetRQ.getFilterId())
-				.addProject(projectName)
-				.addSharing(userName, projectName, createWidgetRQ.getDescription(), createWidgetRQ.getShare() == null ? false : createWidgetRQ.getShare()).build();
+				.addProject(projectName).addSharing(
+						userName,
+						projectName,
+						createWidgetRQ.getDescription(),
+						createWidgetRQ.getShare() == null ? false : createWidgetRQ.getShare()
+				).build();
 
 		// shareIfRequired(createWidgetRQ.getShare(), filter, userName,
 		// projectName);
@@ -149,13 +153,20 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 		return widget;
 	}
 
-    private Widget createWithoutFilter(WidgetRQ createWidgetRq, String project, String user) {
-        Widget widget = widgetBuilder.get().addWidgetRQ(createWidgetRq).addProject(project)
-                .addSharing(user, project, createWidgetRq.getDescription(), createWidgetRq.getShare() == null ? false : createWidgetRq.getShare()).build();
-        shareIfRequired(createWidgetRq.getShare(), widget, user, project, null);
-        widgetRepository.save(widget);
-        return widget;
-    }
+	private Widget createWithoutFilter(WidgetRQ createWidgetRq, String project, String user) {
+		Widget widget = widgetBuilder.get()
+				.addWidgetRQ(createWidgetRq)
+				.addProject(project)
+				.addSharing(user,
+						project,
+						createWidgetRq.getDescription(),
+						createWidgetRq.getShare() == null ? false : createWidgetRq.getShare()
+				)
+				.build();
+		shareIfRequired(createWidgetRq.getShare(), widget, user, project, null);
+		widgetRepository.save(widget);
+		return widget;
+	}
 
 	private void shareIfRequired(Boolean isShare, Widget widget, String userName, String projectName, UserFilter filter) {
 		if (isShare != null) {
@@ -167,46 +178,49 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 	}
 
 	private void clearContentParameters(ContentParameters contentParameters, UserFilter filter) {
-        if ((null != contentParameters.getMetadataFields())
-                && ((null == filter) || filter.getFilter().getTarget().equals(TestItem.class))) {
-            if (contentParameters.getMetadataFields().contains(NUMBER))
-                contentParameters.getMetadataFields().remove(NUMBER);
-        }
+		if ((null != contentParameters.getMetadataFields()) && ((null == filter) || filter.getFilter()
+				.getTarget()
+				.equals(TestItem.class))) {
+			if (contentParameters.getMetadataFields().contains(NUMBER)) {
+				contentParameters.getMetadataFields().remove(NUMBER);
+			}
+		}
 
-        if ((null != contentParameters.getContentFields())
-                && ((null == filter) || filter.getFilter().getTarget().equals(TestItem.class))) {
-            if (contentParameters.getContentFields().contains(NUMBER))
-                contentParameters.getContentFields().remove(NUMBER);
-            if (contentParameters.getContentFields().contains(USER))
-                contentParameters.getContentFields().remove(USER);
-        }
-    }
+		if ((null != contentParameters.getContentFields()) && ((null == filter) || filter.getFilter().getTarget().equals(TestItem.class))) {
+			if (contentParameters.getContentFields().contains(NUMBER)) {
+				contentParameters.getContentFields().remove(NUMBER);
+			}
+			if (contentParameters.getContentFields().contains(USER)) {
+				contentParameters.getContentFields().remove(USER);
+			}
+		}
+	}
 
-    private void validateContentParameters(ContentParameters contentParameters, UserFilter filter, GadgetTypes gadget) {
-        Class<?> filterTarget;
+	private void validateContentParameters(ContentParameters contentParameters, UserFilter filter, GadgetTypes gadget) {
+		Class<?> filterTarget;
 
-        //TODO: remove this
-        if (gadget == UNIQUE_BUG_TABLE) {
-            filterTarget = TestItem.class;
-        } else if (gadget == ACTIVITY) {
-            filterTarget = Activity.class;
-        } else if (gadget == MOST_FAILED_TEST_CASES) {
-            filterTarget = TestItem.class;
-        } else if (gadget == PASSING_RATE_PER_LAUNCH) {
-            filterTarget = Launch.class;
-        } else {
-            filterTarget = filter.getFilter().getTarget();
-        }
+		//TODO: remove this
+		if (gadget == UNIQUE_BUG_TABLE) {
+			filterTarget = TestItem.class;
+		} else if (gadget == ACTIVITY) {
+			filterTarget = Activity.class;
+		} else if (gadget == MOST_FAILED_TEST_CASES) {
+			filterTarget = TestItem.class;
+		} else if (gadget == PASSING_RATE_PER_LAUNCH) {
+			filterTarget = Launch.class;
+		} else {
+			filterTarget = filter.getFilter().getTarget();
+		}
 
-        CriteriaMap<?> criteriaMap = criteriaMapFactory.getCriteriaMap(filterTarget);
+		CriteriaMap<?> criteriaMap = criteriaMapFactory.getCriteriaMap(filterTarget);
 
-        if (null != contentParameters.getContentFields()) {
-            validateFields(contentParameters.getContentFields(), criteriaMap, BAD_SAVE_WIDGET_REQUEST);
-        }
-        if (null != contentParameters.getMetadataFields()) {
-            validateFields(contentParameters.getMetadataFields(), criteriaMap, BAD_SAVE_WIDGET_REQUEST);
-        }
-    }
+		if (null != contentParameters.getContentFields()) {
+			validateFields(contentParameters.getContentFields(), criteriaMap, BAD_SAVE_WIDGET_REQUEST);
+		}
+		if (null != contentParameters.getMetadataFields()) {
+			validateFields(contentParameters.getMetadataFields(), criteriaMap, BAD_SAVE_WIDGET_REQUEST);
+		}
+	}
 
 	/**
 	 * Check is applying filter exists in database.

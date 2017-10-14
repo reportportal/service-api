@@ -61,7 +61,6 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
  * Default implementation of {@link IUpdateWidgetHandler}
  *
  * @author Aliaksei_Makayed
- *
  */
 @Service
 public class UpdateWidgetHandler implements IUpdateWidgetHandler {
@@ -88,26 +87,24 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 	private ApplicationEventPublisher eventPublisher;
 
 	@Override
-    public OperationCompletionRS updateWidget(String widgetId, WidgetRQ updateRQ, String userName,
-                                              String projectName, UserRole userRole) {
-        Widget widget = widgetRepository.findOne(widgetId);
-        Widget beforeUpdate = SerializationUtils.clone(widget);
-        expect(widget, notNull()).verify(WIDGET_NOT_FOUND, widgetId);
-        validateWidgetAccess(projectName, userName, userRole, widget, updateRQ);
+	public OperationCompletionRS updateWidget(String widgetId, WidgetRQ updateRQ, String userName, String projectName, UserRole userRole) {
+		Widget widget = widgetRepository.findOne(widgetId);
+		Widget beforeUpdate = SerializationUtils.clone(widget);
+		expect(widget, notNull()).verify(WIDGET_NOT_FOUND, widgetId);
+		validateWidgetAccess(projectName, userName, userRole, widget, updateRQ);
 
-        Widget newWidget;
-        if (!updateRQ.getContentParameters().getType().equals(CLEAN_WIDGET.getType())) {
-            newWidget = updateWidget(widget, updateRQ, userName, projectName);
-        } else {
-            newWidget = updateCleanWidget(widget, updateRQ, userName, projectName);
-        }
-        widgetRepository.save(newWidget);
-        eventPublisher.publishEvent(new WidgetUpdatedEvent(beforeUpdate, updateRQ, userName));
-        return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
-    }
+		Widget newWidget;
+		if (!updateRQ.getContentParameters().getType().equals(CLEAN_WIDGET.getType())) {
+			newWidget = updateWidget(widget, updateRQ, userName, projectName);
+		} else {
+			newWidget = updateCleanWidget(widget, updateRQ, userName, projectName);
+		}
+		widgetRepository.save(newWidget);
+		eventPublisher.publishEvent(new WidgetUpdatedEvent(beforeUpdate, updateRQ, userName));
+		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
+	}
 
-	private Widget updateWidget(Widget widget, WidgetRQ updateRQ, String userName,
-			String projectName) {
+	private Widget updateWidget(Widget widget, WidgetRQ updateRQ, String userName, String projectName) {
 		UserFilter newFilter = null;
 		if (null != updateRQ.getFilterId()) {
 			String filterId = updateRQ.getFilterId();
@@ -115,43 +112,38 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 
 			// skip filter validation for Activity and Most Failed Test Cases
 			// widgets
-			if (!(null != updateRQ.getContentParameters() && findByName(updateRQ.getContentParameters().getGadget()).isPresent()
-					&& (findByName(updateRQ.getContentParameters().getGadget()).get() == ACTIVITY)
-					&& (findByName(updateRQ.getContentParameters().getGadget()).get() == MOST_FAILED_TEST_CASES))) {
+			if (!(null != updateRQ.getContentParameters() && findByName(updateRQ.getContentParameters().getGadget()).isPresent() && (
+					findByName(updateRQ.getContentParameters().getGadget()).get() == ACTIVITY) && (
+					findByName(updateRQ.getContentParameters().getGadget()).get() == MOST_FAILED_TEST_CASES))) {
 				expect(newFilter, notNull()).verify(USER_FILTER_NOT_FOUND, updateRQ.getFilterId(), userName);
 				expect(newFilter.isLink(), equalTo(false)).verify(UNABLE_TO_CREATE_WIDGET, "Widget cannot be based on a link");
 			}
 		}
-		Widget newWidget = widgetBuilder.get().addWidgetRQ(updateRQ)
-                .addDescription(updateRQ.getDescription())
-                .build();
+		Widget newWidget = widgetBuilder.get().addWidgetRQ(updateRQ).addDescription(updateRQ.getDescription()).build();
 		validateWidgetFields(newWidget, newFilter, widget, userName, projectName);
 		updateWidget(widget, newWidget, newFilter);
 		shareIfRequired(updateRQ.getShare(), widget, userName, projectName, newFilter);
 		return widget;
 	}
 
-    private Widget updateCleanWidget(Widget widget, WidgetRQ updateRQ, String userName, String projectName) {
-        Widget newWidget = widgetBuilder.get().addWidgetRQ(updateRQ)
-                .addDescription(updateRQ.getDescription())
-                .build();
-        updateWidget(widget, newWidget, null);
-        shareIfRequired(updateRQ.getShare(), widget, userName, projectName, null);
-        return widget;
-    }
+	private Widget updateCleanWidget(Widget widget, WidgetRQ updateRQ, String userName, String projectName) {
+		Widget newWidget = widgetBuilder.get().addWidgetRQ(updateRQ).addDescription(updateRQ.getDescription()).build();
+		updateWidget(widget, newWidget, null);
+		shareIfRequired(updateRQ.getShare(), widget, userName, projectName, null);
+		return widget;
+	}
 
-    private void validateWidgetAccess(String projectName, String userName, UserRole userRole, Widget widget, WidgetRQ updateRQ) {
-        List<Widget> widgetList = widgetRepository.findByProjectAndUser(projectName, userName);
-        if (null != updateRQ.getName() && !widget.getName().equals(updateRQ.getName())) {
-            WidgetUtils.checkUniqueName(updateRQ.getName(), widgetList);
-        }
+	private void validateWidgetAccess(String projectName, String userName, UserRole userRole, Widget widget, WidgetRQ updateRQ) {
+		List<Widget> widgetList = widgetRepository.findByProjectAndUser(projectName, userName);
+		if (null != updateRQ.getName() && !widget.getName().equals(updateRQ.getName())) {
+			WidgetUtils.checkUniqueName(updateRQ.getName(), widgetList);
+		}
 
-        AclUtils.isAllowedToEdit(widget.getAcl(), userName, projectRepository.findProjectRoles(userName),
-                widget.getName(), userRole);
-        expect(widget.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
-    }
+		AclUtils.isAllowedToEdit(widget.getAcl(), userName, projectRepository.findProjectRoles(userName), widget.getName(), userRole);
+		expect(widget.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
+	}
 
-    private void shareIfRequired(Boolean isShare, Widget widget, String userName, String projectName, UserFilter newFilter) {
+	private void shareIfRequired(Boolean isShare, Widget widget, String userName, String projectName, UserFilter newFilter) {
 		if (isShare != null) {
 			if (null != newFilter) {
 				AclUtils.isPossibleToRead(newFilter.getAcl(), userName, projectName);
@@ -192,16 +184,15 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 		}
 		Class<?> target = null;
 
-		if ((null == contentOptions)
-				|| (findByName(contentOptions.getGadgetType()).isPresent() && (findByName(contentOptions.getGadgetType()).get() != ACTIVITY)
-				&& (findByName(contentOptions.getGadgetType()).get() != MOST_FAILED_TEST_CASES)
-				&& (findByName(contentOptions.getGadgetType()).get() != PASSING_RATE_PER_LAUNCH))) {
+		if ((null == contentOptions) || (findByName(contentOptions.getGadgetType()).isPresent() && (
+				findByName(contentOptions.getGadgetType()).get() != ACTIVITY) && (findByName(contentOptions.getGadgetType()).get()
+				!= MOST_FAILED_TEST_CASES) && (findByName(contentOptions.getGadgetType()).get() != PASSING_RATE_PER_LAUNCH))) {
 			if (newFilter == null) {
 				UserFilter currentFilter = filterRepository.findOneLoadACLAndType(userName, widget.getApplyingFilterId(), projectName);
-				expect(currentFilter, notNull()).verify(BAD_UPDATE_WIDGET_REQUEST,
-						formattedSupplier(
-								"Unable update widget content parameters. Please specify new filter for widget. Current filter with id {} removed.",
-								widget.getApplyingFilterId()));
+				expect(currentFilter, notNull()).verify(BAD_UPDATE_WIDGET_REQUEST, formattedSupplier(
+						"Unable update widget content parameters. Please specify new filter for widget. Current filter with id {} removed.",
+						widget.getApplyingFilterId()
+				));
 
 				target = currentFilter.getFilter().getTarget();
 			} else {
@@ -241,11 +232,14 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 	}
 
 	void removeLaunchSpecificFields(ContentOptions contentOptions) {
-		if (null != contentOptions.getMetadataFields() && contentOptions.getMetadataFields().contains(WidgetUtils.NUMBER))
+		if (null != contentOptions.getMetadataFields() && contentOptions.getMetadataFields().contains(WidgetUtils.NUMBER)) {
 			contentOptions.getMetadataFields().remove(WidgetUtils.NUMBER);
-		if (null != contentOptions.getContentFields() && contentOptions.getContentFields().contains(WidgetUtils.NUMBER))
+		}
+		if (null != contentOptions.getContentFields() && contentOptions.getContentFields().contains(WidgetUtils.NUMBER)) {
 			contentOptions.getContentFields().remove(WidgetUtils.NUMBER);
-		if (null != contentOptions.getContentFields() && contentOptions.getContentFields().contains(WidgetUtils.USER))
+		}
+		if (null != contentOptions.getContentFields() && contentOptions.getContentFields().contains(WidgetUtils.USER)) {
 			contentOptions.getContentFields().remove(WidgetUtils.USER);
+		}
 	}
 }

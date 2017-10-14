@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.core.widget.content.GadgetTypes;
 import com.epam.ta.reportportal.core.widget.content.WidgetDataTypes;
+import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.database.search.CriteriaMap;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -31,9 +32,10 @@ import org.springframework.data.domain.Sort;
 import java.util.List;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.model.ErrorType.RESOURCE_ALREADY_EXISTS;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Widget's related utils
@@ -77,6 +79,16 @@ public class WidgetUtils {
 	public static void validateGadgetType(String gadget, ErrorType errorType) {
 		expect(GadgetTypes.findByName(gadget).isPresent(), equalTo(true)).verify(errorType,
 				formattedSupplier("Unknown gadget type: '{}'.", gadget));
+	}
+
+	/**
+	 * Check is applying filter exists in database.
+	 *
+	 * @param filterID
+	 */
+	public static void checkApplyingFilter(UserFilter filter, String filterID, String userName) {
+		expect(filter, notNull()).verify(USER_FILTER_NOT_FOUND, filterID, userName);
+		expect(filter.isLink(), equalTo(false)).verify(UNABLE_TO_CREATE_WIDGET, "Cannot create widget based on a link.");
 	}
 
 	public static void checkUniqueName(String newWidgetName, List<Widget> existingWidgets) {

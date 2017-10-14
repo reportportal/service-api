@@ -112,8 +112,7 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 			widgetResource = resourceAssembler.toResource(widget);
 
 			Optional<UserFilter> userFilter = findUserFilter(widget.getApplyingFilterId());
-			final GadgetTypes gadgetType = GadgetTypes.findByName(widget.getContentOptions().getGadgetType()).get();
-			if (!isRequireUserFilter(gadgetType, userFilter) || isFilterUnShared(userName, project, userFilter)) {
+			if (isFilterUnShared(userName, project, userFilter)) {
 				widgetResource.setContent(new HashMap<>());
 			} else {
 			    widgetResource.setContent(loadContentByFilterType(userFilter, project, widget.getContentOptions()));

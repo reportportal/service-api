@@ -46,13 +46,10 @@ import org.springframework.stereotype.Service;
 import javax.inject.Provider;
 import java.util.List;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.widget.content.GadgetTypes.UNIQUE_BUG_TABLE;
 import static com.epam.ta.reportportal.core.widget.content.GadgetTypes.findByName;
 import static com.epam.ta.reportportal.core.widget.impl.WidgetUtils.*;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_SAVE_WIDGET_REQUEST;
 
 /**
  * Default implementation of {@link ICreateWidgetHandler}
@@ -208,15 +205,4 @@ public class CreateWidgetHandler implements ICreateWidgetHandler {
 			validateFields(contentParameters.getMetadataFields(), criteriaMap, BAD_SAVE_WIDGET_REQUEST);
 		}
 	}
-
-	/**
-	 * Check is applying filter exists in database.
-	 *
-	 * @param filterID
-	 */
-	private void checkApplyingFilter(UserFilter filter, String filterID, String userName) {
-		expect(filter, notNull()).verify(USER_FILTER_NOT_FOUND, filterID, userName);
-		expect(filter.isLink(), equalTo(false)).verify(UNABLE_TO_CREATE_WIDGET, "Cannot create widget based on a link.");
-	}
-
 }

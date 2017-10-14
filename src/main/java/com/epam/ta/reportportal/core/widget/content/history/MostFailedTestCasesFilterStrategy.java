@@ -27,7 +27,9 @@ import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.history.status.MostFailedHistory;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
+import com.epam.ta.reportportal.database.search.CriteriaMap;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.base.MoreObjects;
@@ -36,6 +38,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import static com.epam.ta.reportportal.core.widget.impl.WidgetUtils.validateFields;
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_SAVE_WIDGET_REQUEST;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -57,6 +61,7 @@ public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy 
 	@Override
 	public Map<String, List<?>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
 		String criteria = getCriteria(contentOptions);
+		CriteriaMap<?> criteriaMap = criteriaMapFactory.getCriteriaMap(TestItem.class);
 		List<Launch> launchHistory = getLaunchHistory(contentOptions, projectName);
 		List<String> ids = launchHistory.stream().map(Launch::getId).collect(toList());
 
@@ -100,7 +105,8 @@ public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy 
 
 	private String getCriteria(ContentOptions contentOptions) {
 		String criteria = null;
-		if (null != contentOptions.getContentFields() && contentOptions.getContentFields().size() >= 1) {
+		if (null != contentOptions.getContentFields() && contentOptions.getContentFields().size() == 1) {
+			validateFields(contentOptions.getContentFields(), criteriaMapFactory.getCriteriaMap(TestItem.class), BAD_SAVE_WIDGET_REQUEST);
 			criteria = WidgetContentProvider.transformToDBStyle(criteriaMapFactory.getCriteriaMap(Launch.class),
 					contentOptions.getContentFields()
 			).get(0);

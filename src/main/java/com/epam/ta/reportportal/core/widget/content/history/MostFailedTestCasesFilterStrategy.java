@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.database.entity.history.status.MostFailedHistory
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.google.common.base.MoreObjects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -128,6 +129,38 @@ public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy 
 
 		public void setIsFailed(List<Boolean> isFailed) {
 			this.isFailed = isFailed;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			if (!super.equals(o)) {
+				return false;
+			}
+			MostFailedHistoryObject that = (MostFailedHistoryObject) o;
+			return failedCount == that.failedCount && com.google.common.base.Objects.equal(isFailed, that.isFailed);
+		}
+
+		@Override
+		public int hashCode() {
+			return com.google.common.base.Objects.hashCode(super.hashCode(), failedCount, isFailed);
+		}
+
+		@Override
+		public String toString() {
+			return MoreObjects.toStringHelper(this)
+					.add("failedCount", failedCount)
+					.add("isFailed", isFailed)
+					.add("total", total)
+					.add("name", name)
+					.add("lastTime", lastTime)
+					.add("percentage", percentage)
+					.toString();
 		}
 	}
 }

@@ -26,6 +26,8 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.history.status.FlakyHistory;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -123,6 +125,38 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 
 		void setStatuses(List<String> statuses) {
 			this.statuses = statuses;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			if (!super.equals(o)) {
+				return false;
+			}
+			FlakyHistoryObject that = (FlakyHistoryObject) o;
+			return switchCounter == that.switchCounter && Objects.equal(statuses, that.statuses);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(super.hashCode(), switchCounter, statuses);
+		}
+
+		@Override
+		public String toString() {
+			return MoreObjects.toStringHelper(this)
+					.add("switchCounter", switchCounter)
+					.add("statuses", statuses)
+					.add("total", total)
+					.add("name", name)
+					.add("lastTime", lastTime)
+					.add("percentage", percentage)
+					.toString();
 		}
 	}
 }

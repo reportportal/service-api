@@ -34,7 +34,9 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoUnit;
@@ -143,11 +145,7 @@ public class XunitImportHandler extends DefaultHandler {
 
     private void startRootItem(String name, String timestamp) {
         if (null != timestamp) {
-            DateTimeFormatter formatter = new DateTimeFormatterBuilder()
-                    .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                    .optionalStart().appendZoneId().optionalEnd()
-                    .toFormatter();
-            startItemTime = LocalDateTime.parse(timestamp, formatter);
+            startItemTime = parseTimeStamp(timestamp);
             if (startSuiteTime.isAfter(startItemTime)) {
                 startSuiteTime = LocalDateTime.of(startItemTime.toLocalDate(), startItemTime.toLocalTime());
             }
@@ -163,6 +161,26 @@ public class XunitImportHandler extends DefaultHandler {
         itemsIds.push(id);
     }
 
+    private LocalDateTime parseTimeStamp(String timestamp) {
+        LocalDateTime localDateTime = null;
+        try {
+            long l = Long.parseLong(timestamp);
+			System.out.println(l);
+			localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(timestamp)), ZoneId.systemDefault());
+        }catch (NumberFormatException e) {
+            //ignored
+        }
+        if (null == localDateTime) {
+            DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                    .appendOptional(DateTimeFormatter.RFC_1123_DATE_TIME)
+                    .appendOptional(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                    .optionalStart().appendZoneId().optionalEnd()
+                    .toFormatter();
+            localDateTime = LocalDateTime.parse(timestamp, formatter);
+        }
+        return localDateTime;
+    }
+
     private void startTestItem(String name, String duration) {
         StartTestItemRQ rq = new StartTestItemRQ();
         rq.setLaunchId(launchId);
@@ -171,6 +189,7 @@ public class XunitImportHandler extends DefaultHandler {
         rq.setName(name);
         String id = startTestItemHandler.startChildItem(projectId, rq, itemsIds.peekLast()).getId();
         currentDuration = toMillis(duration);
+        currentId = id;
         itemsIds.push(id);
     }
 

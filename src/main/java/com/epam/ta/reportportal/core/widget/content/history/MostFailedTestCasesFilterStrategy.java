@@ -38,8 +38,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-import static com.epam.ta.reportportal.core.widget.impl.WidgetUtils.validateFields;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_SAVE_WIDGET_REQUEST;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -106,7 +104,6 @@ public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy 
 	private String getCriteria(ContentOptions contentOptions) {
 		String criteria = null;
 		if (null != contentOptions.getContentFields() && contentOptions.getContentFields().size() == 1) {
-			validateFields(contentOptions.getContentFields(), criteriaMapFactory.getCriteriaMap(TestItem.class), BAD_SAVE_WIDGET_REQUEST);
 			criteria = WidgetContentProvider.transformToDBStyle(criteriaMapFactory.getCriteriaMap(Launch.class),
 					contentOptions.getContentFields()
 			).get(0);

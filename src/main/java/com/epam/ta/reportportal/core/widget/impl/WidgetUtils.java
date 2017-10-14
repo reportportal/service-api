@@ -23,13 +23,18 @@ package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.core.widget.content.GadgetTypes;
 import com.epam.ta.reportportal.core.widget.content.WidgetDataTypes;
+import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
+import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.database.search.CriteriaMap;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.google.common.collect.ImmutableMap;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
@@ -50,6 +55,16 @@ public class WidgetUtils {
 	public static final String START_TIME = "start_time";
 	public static final String USER = "user";
 
+	public static final Map<GadgetTypes, Class<?>> withoutFilter = ImmutableMap.<GadgetTypes, Class<?>>builder().put(
+			GadgetTypes.PRODUCT_STATUS,
+			Launch.class
+	)
+			.put(GadgetTypes.ACTIVITY, Activity.class)
+			.put(GadgetTypes.PASSING_RATE_PER_LAUNCH, Launch.class)
+			.put(GadgetTypes.MOST_FAILED_TEST_CASES, TestItem.class)
+			.put(GadgetTypes.FLAKY_TEST_CASES, TestItem.class)
+			.build();
+
 	private WidgetUtils() {
 		//static only
 	}
@@ -65,20 +80,22 @@ public class WidgetUtils {
 		if (fields == null || criteriaMap == null || errorType == null) {
 			return;
 		}
-		fields.forEach(field -> expect(criteriaMap.getCriteriaHolderUnchecked(field).isPresent(), equalTo(true))
-                .verify(errorType, formattedSupplier("Field '{}' cannot be used for calculating data for widget.", field)));
+		fields.forEach(field -> expect(criteriaMap.getCriteriaHolderUnchecked(field).isPresent(), equalTo(true)).verify(errorType,
+				formattedSupplier("Field '{}' cannot be used for calculating data for widget.", field)
+		));
 	}
 
 	public static void validateWidgetDataType(String type, ErrorType errorType) {
-		expect(WidgetDataTypes.findByName(type).isPresent(), equalTo(true)).verify(errorType,
-				formattedSupplier(
-						"Unknown widget data type: '{}'. " + "Possible data types: line_chart, bar_chart, column_chart, combine_pie_chart, table",
-						type));
+		expect(WidgetDataTypes.findByName(type).isPresent(), equalTo(true)).verify(errorType, formattedSupplier(
+				"Unknown widget data type: '{}'. " + "Possible data types: line_chart, bar_chart, column_chart, combine_pie_chart, table",
+				type
+		));
 	}
 
 	public static void validateGadgetType(String gadget, ErrorType errorType) {
 		expect(GadgetTypes.findByName(gadget).isPresent(), equalTo(true)).verify(errorType,
-				formattedSupplier("Unknown gadget type: '{}'.", gadget));
+				formattedSupplier("Unknown gadget type: '{}'.", gadget)
+		);
 	}
 
 	/**
@@ -93,8 +110,9 @@ public class WidgetUtils {
 
 	public static void checkUniqueName(String newWidgetName, List<Widget> existingWidgets) {
 		if (null != existingWidgets) {
-			existingWidgets.forEach(existingWidget -> expect(existingWidget.getName().equals(newWidgetName), equalTo(false))
-					.verify(RESOURCE_ALREADY_EXISTS, newWidgetName));
+			existingWidgets.forEach(existingWidget -> expect(existingWidget.getName().equals(newWidgetName), equalTo(false)).verify(RESOURCE_ALREADY_EXISTS,
+					newWidgetName
+			));
 		}
 	}
 

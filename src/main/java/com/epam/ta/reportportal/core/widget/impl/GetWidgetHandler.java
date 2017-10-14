@@ -147,8 +147,7 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 		validateGadgetType(previewRQ.getContentParameters().getGadget(), BAD_REQUEST_ERROR);
 
 		Optional<UserFilter> userFilter = findUserFilter(previewRQ.getFilterId());
-		final GadgetTypes gadgetType = GadgetTypes.findByName(previewRQ.getContentParameters().getGadget()).get();
-		if (!isRequireUserFilter(gadgetType, userFilter) || isFilterUnShared(userName, projectName, userFilter)) {
+		if (isFilterUnShared(userName, projectName, userFilter)) {
 			return Collections.emptyMap();
 		} else {
 			ContentOptions contentOptions = new WidgetBuilder().addContentParameters(previewRQ.getContentParameters()).build()

@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.core.widget.impl;
 import com.epam.ta.reportportal.core.acl.AclUtils;
 import com.epam.ta.reportportal.core.acl.SharingService;
 import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
+import com.epam.ta.reportportal.core.widget.content.GadgetTypes;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.dao.WidgetRepository;
@@ -38,7 +39,6 @@ import com.epam.ta.reportportal.events.WidgetUpdatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +51,9 @@ import java.util.List;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.core.widget.content.GadgetTypes.findByName;
 import static com.epam.ta.reportportal.core.widget.impl.WidgetUtils.checkApplyingFilter;
+import static com.epam.ta.reportportal.core.widget.impl.WidgetUtils.withoutFilter;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -90,33 +92,25 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 		expect(widget, notNull()).verify(WIDGET_NOT_FOUND, widgetId);
 		validateWidgetAccess(projectName, userName, userRole, widget, updateRQ);
 
-		Widget newWidget;
-		if (Strings.isNullOrEmpty(widget.getApplyingFilterId())) {
-			newWidget = updateWidgetWithoutFilter(widget, updateRQ, userName, projectName);
-		} else {
-			newWidget = updateWidget(widget, updateRQ, userName, projectName);
-		}
+		Widget newWidget = updateWidget(widget, updateRQ, userName, projectName);
 		widgetRepository.save(newWidget);
 		eventPublisher.publishEvent(new WidgetUpdatedEvent(beforeUpdate, updateRQ, userName));
 		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
 	}
 
 	private Widget updateWidget(Widget widget, WidgetRQ updateRQ, String userName, String projectName) {
-		UserFilter newFilter = filterRepository.findOneLoadACL(userName, updateRQ.getFilterId(), projectName);
-		checkApplyingFilter(newFilter, updateRQ.getFilterId(), userName);
+		GadgetTypes gadget = findByName(updateRQ.getContentParameters().getGadget()).get();
+		UserFilter newFilter = null;
+		if (!withoutFilter.containsKey(gadget)) {
+			newFilter = filterRepository.findOneLoadACL(userName, updateRQ.getFilterId(), projectName);
+			checkApplyingFilter(newFilter, updateRQ.getFilterId(), userName);
+		}
 
 		Widget newWidget = widgetBuilder.get().addWidgetRQ(updateRQ).addDescription(updateRQ.getDescription()).build();
-		validateWidgetFields(newWidget, newFilter);
+		validateWidgetFields(newWidget, newFilter, gadget);
 		updateWidget(widget, newWidget, newFilter);
 		shareIfRequired(updateRQ.getShare(), widget, userName, projectName, newFilter);
 
-		return widget;
-	}
-
-	private Widget updateWidgetWithoutFilter(Widget widget, WidgetRQ updateRQ, String userName, String projectName) {
-		Widget newWidget = widgetBuilder.get().addWidgetRQ(updateRQ).addDescription(updateRQ.getDescription()).build();
-		updateWidget(widget, newWidget, null);
-		shareIfRequired(updateRQ.getShare(), widget, userName, projectName, null);
 		return widget;
 	}
 
@@ -158,11 +152,15 @@ public class UpdateWidgetHandler implements IUpdateWidgetHandler {
 	 *
 	 * @param newWidget
 	 * @param newFilter
-
 	 */
-	private void validateWidgetFields(Widget newWidget, UserFilter newFilter) {
+	private void validateWidgetFields(Widget newWidget, UserFilter newFilter, GadgetTypes gadget) {
 		ContentOptions contentOptions = newWidget.getContentOptions();
-		Class<?> target = newFilter.getFilter().getTarget();
+		Class<?> target;
+		if (WidgetUtils.withoutFilter.containsKey(gadget)) {
+			target = withoutFilter.get(gadget);
+		} else {
+			target = newFilter.getFilter().getTarget();
+		}
 
 		// check is new content fields agreed with new or current filter
 		if (TestItem.class.equals(target)) {

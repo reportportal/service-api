@@ -101,6 +101,7 @@ public class XunitImportHandler extends DefaultHandler {
 						attributes.getValue(XunitReportTag.ATTR_TIME.getValue())
 				);
 				break;
+			case ERROR:
 			case FAILURE:
 				message = new StringBuilder();
 				status = Status.FAILED;
@@ -127,6 +128,7 @@ public class XunitImportHandler extends DefaultHandler {
 			case SKIPPED:
 				attachLog(LogLevel.ERROR);
 				break;
+			case ERROR:
 			case FAILURE:
 				attachLog(LogLevel.ERROR);
 				break;
@@ -167,7 +169,6 @@ public class XunitImportHandler extends DefaultHandler {
 		LocalDateTime localDateTime = null;
 		try {
 			long l = Long.parseLong(timestamp);
-			System.out.println(l);
 			localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(timestamp)), ZoneId.systemDefault());
 		} catch (NumberFormatException e) {
 			//ignored
@@ -220,7 +221,7 @@ public class XunitImportHandler extends DefaultHandler {
 			SaveLogRQ saveLogRQ = new SaveLogRQ();
 			saveLogRQ.setLevel(logLevel.name());
 			saveLogRQ.setLogTime(toDate(startItemTime));
-			saveLogRQ.setMessage(message.toString());
+			saveLogRQ.setMessage(message.toString().trim());
 			saveLogRQ.setTestItemId(currentId);
 			createLogHandler.createLog(saveLogRQ, null, projectId);
 		}
@@ -231,7 +232,7 @@ public class XunitImportHandler extends DefaultHandler {
 			SaveLogRQ saveLogRQ = new SaveLogRQ();
 			saveLogRQ.setLevel(logLevel.name());
 			saveLogRQ.setLogTime(toDate(startItemTime));
-			saveLogRQ.setMessage(message.toString());
+			saveLogRQ.setMessage(message.toString().trim());
 			saveLogRQ.setTestItemId(itemsIds.getFirst());
 			createLogHandler.createLog(saveLogRQ, null, projectId);
 		}

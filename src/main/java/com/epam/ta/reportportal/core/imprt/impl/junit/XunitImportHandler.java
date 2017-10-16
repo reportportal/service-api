@@ -168,7 +168,6 @@ public class XunitImportHandler extends DefaultHandler {
     private LocalDateTime parseTimeStamp(String timestamp) {
         LocalDateTime localDateTime = null;
         try {
-            long l = Long.parseLong(timestamp);
             localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(timestamp)), ZoneId.systemDefault());
         } catch (NumberFormatException e) {
             //ignored

@@ -165,8 +165,10 @@
 * EPMRPP-26551 - Widget product status
 * reportportal/reportporatl#236 - Drop Redis
 * EPMRPP-29378 - Comulative ternd chart
+* Import - support <error> tag as failed test
 
 ### Bugfixes
 
 * EPMRPP-29635 - Cumulative trend chart: Sorting bug
-* EPMRPP-29701: Tag prefix should be fully matched with the searched value
+* EPMRPP-29701 - Tag prefix should be fully matched with the searched value
+* reportportal/reportportal#245 - Default TestNG xml report isn't compatible with RP report

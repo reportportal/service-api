@@ -43,7 +43,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 
@@ -121,7 +120,7 @@ public class EmailService extends JavaMailSenderImpl {
 			/* Email fields values */
 		email.put("name", launch.getName());
 		email.put("number", String.valueOf(launch.getNumber()));
-		email.put("tags", launch.getTags().stream().collect(Collectors.joining(", ")));
+		email.put("tags", launch.getTags());
 		email.put("description", launch.getDescription());
 		email.put("url", url);
 

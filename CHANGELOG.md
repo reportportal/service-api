@@ -170,3 +170,20 @@
 
 * EPMRPP-29635 - Cumulative trend chart: Sorting bug
 * EPMRPP-29701: Tag prefix should be fully matched with the searched value
+
+## 4.0
+##### Released: XXX XX, 2017
+
+### New Features
+
+* EPMRPP-25494 - Add widget to represent flaky tests in launches
+* EPMRPP-29797 - Prepare API for new version of analyzer
+* EPMRPP-29803 - Auto Analyze on the fly
+* EPMRPP-30991 - Add a tag to e-mail body
+* EPMRPP-31001 - Most failed test cases: refactored in case of new design
+
+### Bugfixes
+
+* EPMRPP-30984 - No data about previous new and old values of update of project
+* EPMRPP-31020 - Launches reported to DEFAULT mode are present in DEBUG as well
+* reportportal/reportportal#245 - Default TestNG xml report isn't compatible with RP report

@@ -45,11 +45,12 @@ import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.createHis
 @Component
 public class ProjectActivityHandler {
 
-	public static final String KEEP_SCREENSHOTS = "keepScreenshots";
-	public static final String KEEP_LOGS = "keepLogs";
-	public static final String LAUNCH_INACTIVITY = "launchInactivity";
-	public static final String STATISTICS_CALCULATION_STRATEGY = "statisticsCalculationStrategy";
-	public static final String AUTO_ANALYZE = "auto_analyze";
+	static final String KEEP_SCREENSHOTS = "keepScreenshots";
+	static final String KEEP_LOGS = "keepLogs";
+	static final String LAUNCH_INACTIVITY = "launchInactivity";
+	static final String STATISTICS_CALCULATION_STRATEGY = "statisticsCalculationStrategy";
+	static final String AUTO_ANALYZE = "auto_analyze";
+	static final String ANALYZE_ON_FLY = "analyze_on_fly";
 
 	private final ActivityRepository activityRepository;
 
@@ -129,8 +130,7 @@ public class ProjectActivityHandler {
 				.equals(project.getConfiguration().getAnalyzeOnTheFly()))) {
 			String oldValue = project.getConfiguration().getAnalyzeOnTheFly() == null ? "" :
 					project.getConfiguration().getAnalyzeOnTheFly().toString();
-			Activity.FieldValues fieldValues = createHistoryField(
-					AUTO_ANALYZE, oldValue, configuration.getAnalyzeOnTheFly().toString());
+			Activity.FieldValues fieldValues = createHistoryField(ANALYZE_ON_FLY, oldValue, configuration.getAnalyzeOnTheFly().toString());
 			history.add(fieldValues);
 		}
 	}

@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import com.google.common.base.MoreObjects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -87,10 +88,14 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 	}
 
 	protected static class HistoryObject {
-		int total;
-		String name;
-		Date lastTime;
-		String percentage;
+
+		protected int total;
+
+		protected String name;
+
+		protected Date lastTime;
+
+		protected String percentage;
 
 		public int getTotal() {
 			return total;
@@ -122,6 +127,35 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 
 		public void setPercentage(String percentage) {
 			this.percentage = percentage;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			HistoryObject that = (HistoryObject) o;
+			return total == that.total && com.google.common.base.Objects.equal(name, that.name) && com.google.common.base.Objects.equal(lastTime,
+					that.lastTime
+			) && com.google.common.base.Objects.equal(percentage, that.percentage);
+		}
+
+		@Override
+		public int hashCode() {
+			return com.google.common.base.Objects.hashCode(total, name, lastTime, percentage);
+		}
+
+		@Override
+		public String toString() {
+			return MoreObjects.toStringHelper(this)
+					.add("total", total)
+					.add("name", name)
+					.add("lastTime", lastTime)
+					.add("percentage", percentage)
+					.toString();
 		}
 	}
 

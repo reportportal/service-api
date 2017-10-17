@@ -26,12 +26,16 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.history.status.FlakyHistory;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import static java.util.Comparator.comparing;
+import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -61,14 +65,16 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 		}
 
 		Map<String, List<?>> result = new HashMap<>(RESULTED_MAP_SIZE);
-		processHistory(result, itemStatusHistory);
+		result = processHistory(result, itemStatusHistory);
 		addLastLaunch(result, launchHistory.get(0));
 		return result;
 	}
 
 	private Map<String, List<?>> processHistory(Map<String, List<?>> result, List<FlakyHistory> itemStatusHistory) {
 		List<FlakyHistoryObject> flakyHistoryObjects = itemStatusHistory.stream().map(this::processItem).collect(toList());
-		flakyHistoryObjects.sort(Comparator.comparing(FlakyHistoryObject::getSwitchCounter));
+		flakyHistoryObjects.sort(comparing(FlakyHistoryObject::getSwitchCounter,
+				reverseOrder()
+		).thenComparing(FlakyHistoryObject::getTotal));
 		if (flakyHistoryObjects.size() > ITEMS_COUNT_VALUE) {
 			flakyHistoryObjects = flakyHistoryObjects.subList(0, ITEMS_COUNT_VALUE);
 		}
@@ -123,6 +129,38 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 
 		void setStatuses(List<String> statuses) {
 			this.statuses = statuses;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			if (!super.equals(o)) {
+				return false;
+			}
+			FlakyHistoryObject that = (FlakyHistoryObject) o;
+			return switchCounter == that.switchCounter && Objects.equal(statuses, that.statuses);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(super.hashCode(), switchCounter, statuses);
+		}
+
+		@Override
+		public String toString() {
+			return MoreObjects.toStringHelper(this)
+					.add("switchCounter", switchCounter)
+					.add("statuses", statuses)
+					.add("total", total)
+					.add("name", name)
+					.add("lastTime", lastTime)
+					.add("percentage", percentage)
+					.toString();
 		}
 	}
 }

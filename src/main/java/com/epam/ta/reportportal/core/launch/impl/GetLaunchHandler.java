@@ -180,6 +180,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 					.put(getSystemIssueFieldName().replaceAll("\\.", "\\$"), issueCounter.getSystemIssueTotal())
 					.put(getAutomationBugFieldName().replaceAll("\\.", "\\$"), issueCounter.getAutomationBugTotal())
 					.put(getToInvestigateFieldName().replaceAll("\\.", "\\$"), issueCounter.getToInvestigateTotal())
+					.put(getNoDefectFieldName().replaceAll("\\.", "\\$"), issueCounter.getNoDefectTotal())
 					.build();
 
 			ExecutionCounter executionCounter = launch.getStatistics().getExecutionCounter();

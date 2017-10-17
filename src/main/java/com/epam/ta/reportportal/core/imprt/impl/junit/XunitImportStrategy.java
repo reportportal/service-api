@@ -31,6 +31,8 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +48,8 @@ import java.util.zip.ZipFile;
 
 @Service
 public class XunitImportStrategy implements ImportStrategy {
+
+    private static final Logger LOGGER = LogManager.getLogger(XunitImportStrategy.class);
 
     @Autowired
     private Provider<XunitParseJob> xmlParseJobProvider;
@@ -96,6 +100,7 @@ public class XunitImportStrategy implements ImportStrategy {
             finishLaunch(launchId, projectId, userName, processResults(futures));
             return launchId;
         } catch (InterruptedException | ExecutionException | TimeoutException | IllegalArgumentException e) {
+            LOGGER.error(e.getMessage());
             throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, "There are invalid xml files inside.", e);
         }
     }

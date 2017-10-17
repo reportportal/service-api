@@ -112,8 +112,7 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 			widgetResource = resourceAssembler.toResource(widget);
 
 			Optional<UserFilter> userFilter = findUserFilter(widget.getApplyingFilterId());
-			final GadgetTypes gadgetType = GadgetTypes.findByName(widget.getContentOptions().getGadgetType()).get();
-			if (!isRequireUserFilter(gadgetType, userFilter) || isFilterUnShared(userName, project, userFilter)) {
+			if (isFilterUnShared(userName, project, userFilter)) {
 				widgetResource.setContent(new HashMap<>());
 			} else {
 			    widgetResource.setContent(loadContentByFilterType(userFilter, project, widget.getContentOptions()));
@@ -148,8 +147,7 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 		validateGadgetType(previewRQ.getContentParameters().getGadget(), BAD_REQUEST_ERROR);
 
 		Optional<UserFilter> userFilter = findUserFilter(previewRQ.getFilterId());
-		final GadgetTypes gadgetType = GadgetTypes.findByName(previewRQ.getContentParameters().getGadget()).get();
-		if (!isRequireUserFilter(gadgetType, userFilter) || isFilterUnShared(userName, projectName, userFilter)) {
+		if (isFilterUnShared(userName, projectName, userFilter)) {
 			return Collections.emptyMap();
 		} else {
 			ContentOptions contentOptions = new WidgetBuilder().addContentParameters(previewRQ.getContentParameters()).build()

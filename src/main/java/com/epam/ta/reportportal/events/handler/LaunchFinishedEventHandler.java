@@ -223,12 +223,12 @@ public class LaunchFinishedEventHandler {
 				try {
 					/* Update with static Util resources provider */
 					String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(currentRequest.get()))
-							.replacePath(String.format("/#%s/launches/all/", project.getName()))
+							.replacePath(String.format("/#%s", project.getName()))
 							.build()
 							.toUriString();
 
 					emailService.sendLaunchFinishNotification(recipientsArray,
-							basicURL + launch.getId(),
+							basicURL,
 							launch,
 							project.getConfiguration()
 					);

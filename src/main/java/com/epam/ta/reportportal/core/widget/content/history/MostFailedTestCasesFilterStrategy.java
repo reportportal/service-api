@@ -27,9 +27,12 @@ import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.history.status.MostFailedHistory;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
+import com.epam.ta.reportportal.database.search.CriteriaMap;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.google.common.base.MoreObjects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -56,13 +59,14 @@ public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy 
 	@Override
 	public Map<String, List<?>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
 		String criteria = getCriteria(contentOptions);
+		CriteriaMap<?> criteriaMap = criteriaMapFactory.getCriteriaMap(TestItem.class);
 		List<Launch> launchHistory = getLaunchHistory(contentOptions, projectName);
 		List<String> ids = launchHistory.stream().map(Launch::getId).collect(toList());
 
 		List<MostFailedHistory> history = itemRepository.getMostFailedItemHistory(ids, criteria, ITEMS_COUNT_VALUE);
 
 		Map<String, List<?>> result = new HashMap<>(RESULTED_MAP_SIZE);
-		processHistory(result, history);
+		result = processHistory(result, history);
 		addLastLaunch(result, launchHistory.get(0));
 		return result;
 	}
@@ -99,7 +103,7 @@ public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy 
 
 	private String getCriteria(ContentOptions contentOptions) {
 		String criteria = null;
-		if (null != contentOptions.getContentFields() && contentOptions.getContentFields().size() >= 1) {
+		if (null != contentOptions.getContentFields() && contentOptions.getContentFields().size() == 1) {
 			criteria = WidgetContentProvider.transformToDBStyle(criteriaMapFactory.getCriteriaMap(Launch.class),
 					contentOptions.getContentFields()
 			).get(0);
@@ -128,6 +132,38 @@ public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy 
 
 		public void setIsFailed(List<Boolean> isFailed) {
 			this.isFailed = isFailed;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			if (!super.equals(o)) {
+				return false;
+			}
+			MostFailedHistoryObject that = (MostFailedHistoryObject) o;
+			return failedCount == that.failedCount && com.google.common.base.Objects.equal(isFailed, that.isFailed);
+		}
+
+		@Override
+		public int hashCode() {
+			return com.google.common.base.Objects.hashCode(super.hashCode(), failedCount, isFailed);
+		}
+
+		@Override
+		public String toString() {
+			return MoreObjects.toStringHelper(this)
+					.add("failedCount", failedCount)
+					.add("isFailed", isFailed)
+					.add("total", total)
+					.add("name", name)
+					.add("lastTime", lastTime)
+					.add("percentage", percentage)
+					.toString();
 		}
 	}
 }

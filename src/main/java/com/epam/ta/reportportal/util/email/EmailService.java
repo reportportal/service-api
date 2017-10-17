@@ -43,9 +43,10 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Email Sending Service based on {@link JavaMailSender}
@@ -55,6 +56,7 @@ import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 public class EmailService extends JavaMailSenderImpl {
 
 	private static final String FINISH_LAUNCH_EMAIL_SUBJECT = " Report Portal Notification: launch '%s' #%s finished";
+	private static final String FILTER_TAG_FORMAT = "%s/launch?filter.has.tags=%s";
 	private static final String EMAIL_TEMPLATE_PREFIX = "templates/email/";
 	private TemplateEngine templateEngine;
 
@@ -100,7 +102,7 @@ public class EmailService extends JavaMailSenderImpl {
 	 */
 	public void sendLaunchFinishNotification(final String[] recipients, final String url, final Launch launch,
 			final Project.Configuration settings) {
-		String subject = String.format(FINISH_LAUNCH_EMAIL_SUBJECT, launch.getName(), launch.getNumber());
+		String subject = format(FINISH_LAUNCH_EMAIL_SUBJECT, launch.getName(), launch.getNumber());
 		MimeMessagePreparator preparator = mimeMessage -> {
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
 			message.setSubject(subject);
@@ -121,9 +123,9 @@ public class EmailService extends JavaMailSenderImpl {
 			/* Email fields values */
 		email.put("name", launch.getName());
 		email.put("number", String.valueOf(launch.getNumber()));
-		email.put("tags", launch.getTags().stream().collect(Collectors.joining(", ")));
+		email.put("tags", launch.getTags().stream().collect(toMap(tag -> tag, tag -> format(FILTER_TAG_FORMAT, url, tag))));
 		email.put("description", launch.getDescription());
-		email.put("url", url);
+		email.put("url", format("%s/launches/all/%s", url, launch.getId()));
 
 			/* Launch execution statistics */
 		email.put("total", launch.getStatistics().getExecutionCounter().getTotal().toString());

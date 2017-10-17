@@ -1485,7 +1485,6 @@
 				<property name="contentFields">
 					<util:list>
 						<value>statistics$executions$failed</value>
-						<value>statistics$defects$automation_bug$AB002</value>
 					</util:list>
 				</property>
 				<property name="widgetOptions">

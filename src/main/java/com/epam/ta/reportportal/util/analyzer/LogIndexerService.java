@@ -106,7 +106,7 @@ public class LogIndexerService implements ILogIndexer {
 		if (launch != null) {
 
 			List<IndexTestItem> rqTestItems = testItems.stream()
-					.map(it -> IndexTestItem.fromTestItem(it, logRepository.findTestItemErrorLogs(it.getId())))
+					.map(it -> IndexTestItem.fromTestItem(it, logRepository.findLogsGreaterThanLevel(it.getId(), LogLevel.ERROR)))
 					.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
 					.collect(Collectors.toList());
 

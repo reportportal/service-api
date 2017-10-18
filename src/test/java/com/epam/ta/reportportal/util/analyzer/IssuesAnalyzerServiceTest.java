@@ -86,10 +86,10 @@ public class IssuesAnalyzerServiceTest {
 	public void testAnalyzeTestItemsWithoutLogs() {
 		String launchId = "3";
 		when(launchRepository.findOne(Mockito.eq(launchId))).thenReturn(createLaunch(launchId));
-		when(logRepository.findTestItemErrorLogs(Mockito.anyString())).thenReturn(Collections.emptyList());
+		when(logRepository.findLogsGreaterThanLevel(Mockito.anyString(), eq(LogLevel.ERROR))).thenReturn(Collections.emptyList());
 		int testItemCount = 10;
 		analyzerService.analyze(launchId, createTestItems(testItemCount));
-		verify(logRepository, Mockito.times(testItemCount)).findTestItemErrorLogs(Mockito.anyString());
+		verify(logRepository, Mockito.times(testItemCount)).findLogsGreaterThanLevel(Mockito.anyString(), eq(LogLevel.ERROR));
 		verifyZeroInteractions(analyzerServiceClient);
 	}
 
@@ -97,12 +97,12 @@ public class IssuesAnalyzerServiceTest {
 	public void testAnalyze() {
 		String launchId = "4";
 		when(launchRepository.findOne(Mockito.eq(launchId))).thenReturn(createLaunch(launchId));
-		when(logRepository.findTestItemErrorLogs(Mockito.anyString())).thenReturn(Collections.singletonList(createErrorLog()));
+		when(logRepository.findLogsGreaterThanLevel(Mockito.anyString(), eq(LogLevel.ERROR))).thenReturn(Collections.singletonList(createErrorLog()));
 		int testItemCount = 2;
 		when(analyzerServiceClient.analyze(Mockito.any(IndexLaunch.class))).thenReturn(crateAnalyzeRs(testItemCount));
 		List<TestItem> rs = analyzerService.analyze(launchId, createTestItems(testItemCount));
 		rs.forEach(ti -> Assert.assertEquals("ISSUE" + ti.getId(), ti.getIssue().getIssueType()));
-		verify(logRepository, Mockito.times(testItemCount)).findTestItemErrorLogs(Mockito.anyString());
+		verify(logRepository, Mockito.times(testItemCount)).findLogsGreaterThanLevel(Mockito.anyString(), eq(LogLevel.ERROR));
 		verify(analyzerServiceClient).analyze(Mockito.any(IndexLaunch.class));
 		verifyZeroInteractions(analyzerServiceClient);
 	}

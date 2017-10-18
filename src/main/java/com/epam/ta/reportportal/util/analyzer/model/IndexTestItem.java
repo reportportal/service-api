@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -43,7 +44,7 @@ public class IndexTestItem {
 	private String issueType;
 
 	@JsonProperty("logs")
-	private List<IndexLog> logs;
+	private Set<IndexLog> logs;
 
 	@JsonProperty("uniqueId")
 	private String uniqueId;
@@ -59,7 +60,7 @@ public class IndexTestItem {
 			indexTestItem.setLogs(logs.stream()
 					.filter(it -> null != it.getLevel() && it.getLevel().isGreaterOrEqual(LogLevel.ERROR))
 					.map(IndexLog::fromLog)
-					.collect(Collectors.toList()));
+					.collect(Collectors.toSet()));
 		}
 		return indexTestItem;
 	}
@@ -91,11 +92,11 @@ public class IndexTestItem {
 		this.issueType = issueType;
 	}
 
-	public List<IndexLog> getLogs() {
+	public Set<IndexLog> getLogs() {
 		return logs;
 	}
 
-	public void setLogs(List<IndexLog> logs) {
+	public void setLogs(Set<IndexLog> logs) {
 		this.logs = logs;
 	}
 }

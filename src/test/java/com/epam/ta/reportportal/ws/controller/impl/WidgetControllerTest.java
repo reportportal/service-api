@@ -20,19 +20,6 @@
  */
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.Arrays;
-
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.test.web.servlet.MvcResult;
-
 import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
@@ -41,6 +28,18 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.test.web.servlet.MvcResult;
+
+import java.util.Arrays;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author Dzmitry_Kavalets
@@ -63,7 +62,7 @@ public class WidgetControllerTest extends BaseMvcTest {
 		contentParameters.setMetadataFields(Arrays.asList("number", "name"));
 		contentParameters.setContentFields(Arrays.asList("number", "name", "user", "statistics$defects$automation_bug$AB002"));
 		contentParameters.setItemsCount(50);
-		rq.setApplyingFilter("566e1f3818177ca344439d40");
+		rq.setFilterId("566e1f3818177ca344439d40");
 		rq.setContentParameters(contentParameters);
 		rq.setShare(true);
 		final MvcResult mvcResult = mvcMock.perform(post(PROJECT_BASE_URL + "/widget").principal(authentication())
@@ -85,7 +84,7 @@ public class WidgetControllerTest extends BaseMvcTest {
 		final WidgetRQ rq = new WidgetRQ();
 		rq.setName("Most failure test-cases table new");
 		rq.setDescription("description");
-		rq.setApplyingFilter("566e1f3818177ca344439d40");
+		rq.setFilterId("566e1f3818177ca344439d40");
 		rq.setShare(true);
 		final ContentParameters contentParameters = new ContentParameters();
 		contentParameters.setGadget("old_line_chart");
@@ -168,7 +167,7 @@ public class WidgetControllerTest extends BaseMvcTest {
 	@Test
 	public void getLaunchesTableWidget() throws Exception {
 		mvcMock.perform(get(PROJECT_BASE_URL + "/widget/613e1f3818127ca356339f45").principal(authentication())).andExpect(status().is(200))
-				.andExpect(jsonPath("$.content.result[1].values.statistics$issueCounter$productBug").value("3"));
+				.andExpect(jsonPath("$.content.result[0].values.statistics$issueCounter$productBug").value("3"));
 	}
 
 	@Test

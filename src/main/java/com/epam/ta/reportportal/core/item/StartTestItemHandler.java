@@ -17,35 +17,35 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.core.item;
 
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 
 /**
  * Handler for start launch operation
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public interface StartTestItemHandler {
 
 	/**
 	 * Start Root item operation
-	 * 
-	 * @param rq
-	 * @return
+	 *
+	 * @param projectName Name of the project
+	 * @param rq          Item details
+	 * @return ItemID and uniqueID of test item
 	 */
-	EntryCreatedRS startRootItem(String projectName, StartTestItemRQ rq);
+	ItemCreatedRS startRootItem(String projectName, StartTestItemRQ rq);
 
 	/**
 	 * Start child item operation
-	 * 
-	 * @param rq
-	 * @param rootItem
-	 * @return
+	 *
+	 * @param projectName Name of the project
+	 * @param rq          Item details
+	 * @return ItemID and uniqueID of test item
 	 */
-	EntryCreatedRS startChildItem(StartTestItemRQ rq, String rootItem);
+	ItemCreatedRS startChildItem(String projectName, StartTestItemRQ rq, String rootItem);
 }

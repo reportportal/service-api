@@ -20,6 +20,7 @@
  */
 package com.epam.ta.reportportal.demo_data;
 
+import com.epam.ta.reportportal.core.item.TestItemUniqueIdGenerator;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchMetaInfoRepository;
@@ -65,6 +66,9 @@ public class DemoDataCommonService {
     DemoLogsService logDemoDataService;
 
     @Autowired
+    private TestItemUniqueIdGenerator identifierGenerator;
+
+    @Autowired
     protected LaunchRepository launchRepository;
 
     @Autowired
@@ -101,7 +105,7 @@ public class DemoDataCommonService {
         launchRepository.save(launch);
     }
 
-    TestItem startRootItem(String rootItemName, String launchId, TestItemType type) {
+    TestItem startRootItem(String rootItemName, String launchId, TestItemType type, String project) {
         TestItem testItem = new TestItem();
         testItem.setLaunchRef(launchId);
         if (type.sameLevel(SUITE) && ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
@@ -113,6 +117,7 @@ public class DemoDataCommonService {
         testItem.setHasChilds(true);
         testItem.setStatus(IN_PROGRESS);
         testItem.setType(type);
+        testItem.setUniqueId(identifierGenerator.generate(testItem));
         return testItemRepository.save(testItem);
     }
 
@@ -123,7 +128,8 @@ public class DemoDataCommonService {
         testItemRepository.save(testItem);
     }
 
-    TestItem startTestItem(TestItem rootItemId, String launchId, String name, TestItemType type) {
+    TestItem startTestItem(TestItem rootItemId, String launchId, String name,
+                           TestItemType type, String project) {
         TestItem testItem = new TestItem();
         if (ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
             if (hasChildren(type)) {
@@ -143,6 +149,7 @@ public class DemoDataCommonService {
         testItem.setType(type);
         testItem.getPath().addAll(rootItemId.getPath());
         testItem.getPath().add(rootItemId.getId());
+        testItem.setUniqueId(identifierGenerator.generate(testItem));
         return testItemRepository.save(testItem);
     }
 

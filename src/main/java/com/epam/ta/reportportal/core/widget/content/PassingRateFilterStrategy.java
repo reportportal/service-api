@@ -36,7 +36,6 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader.*;
 
-
 /**
  * Loads total and failed content for last run of
  * specified launch
@@ -47,32 +46,33 @@ import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContent
 @Service
 public class PassingRateFilterStrategy implements BuildFilterStrategy {
 
-    @Autowired
-    private LaunchRepository launchRepository;
+	private static final String LAUNCH_NAME_FIELD = "launchNameFilter";
 
+	@Autowired
+	private LaunchRepository launchRepository;
 
-    private static final String LAUNCH_NAME_FIELD = "launchNameFilter";
+	@Override
+	public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions,
+			String projectName) {
+		Map<String, List<ChartObject>> emptyResult = Collections.emptyMap();
+		if (contentOptions.getWidgetOptions() == null || contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD) == null)
+			return emptyResult;
+		Launch lastLaunchForProject = launchRepository
+				.findLatestLaunch(projectName, contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD).get(0), Mode.DEFAULT.name())
+				.orElse(null);
+		if (null == lastLaunchForProject) {
+			return emptyResult;
+		}
+		ChartObject chartObject = processStatistics(lastLaunchForProject);
+		return ImmutableMap.<String, List<ChartObject>>builder().put(RESULT, Collections.singletonList(chartObject)).build();
+	}
 
-    @Override
-    public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
-        Map<String, List<ChartObject>> emptyResult = Collections.emptyMap();
-        if (contentOptions.getWidgetOptions() == null || contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD) == null)
-            return emptyResult;
-        Launch lastLaunchForProject = launchRepository.findLastLaunch(projectName,
-                contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD).get(0), Mode.DEFAULT.name()).orElse(null);
-        if (null == lastLaunchForProject) {
-            return emptyResult;
-        }
-        ChartObject chartObject = processStatistics(lastLaunchForProject);
-        return ImmutableMap.<String, List<ChartObject>>builder().put(RESULT, Collections.singletonList(chartObject)).build();
-    }
+	private ChartObject processStatistics(Launch lastLaunch) {
+		ChartObject chartObject = new ChartObject();
+		chartObject.setValues(ImmutableMap.<String, String>builder()
+				.put(TOTAL_FIELD, String.valueOf(lastLaunch.getStatistics().getExecutionCounter().getTotal()))
+				.put(PASSED_FIELD, String.valueOf(lastLaunch.getStatistics().getExecutionCounter().getPassed())).build());
+		return chartObject;
+	}
 
-    private ChartObject processStatistics(Launch lastLaunch) {
-        ChartObject chartObject = new ChartObject();
-        chartObject.setValues(ImmutableMap.<String, String>builder()
-                .put(TOTAL_FIELD, String.valueOf(lastLaunch.getStatistics().getExecutionCounter().getTotal()))
-                .put(PASSED_FIELD, String.valueOf(lastLaunch.getStatistics().getExecutionCounter().getPassed()))
-        .build());
-        return chartObject;
-    }
 }

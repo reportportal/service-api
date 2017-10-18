@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
+import com.epam.ta.reportportal.core.widget.impl.WidgetUtils;
 import com.epam.ta.reportportal.database.LaunchesDurationDocumentHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
@@ -47,17 +48,23 @@ public class LaunchesDurationContentLoader extends StatisticBasedContentLoader i
 	private LaunchRepository launchRepository;
 
 	@Override
-	public Map<String, List<ChartObject>> loadContent(Filter filter, Sort sorting, int quantity, List<String> contentFields,
-			List<String> metaDataFields, Map<String, List<String>> options) {
-
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity,
+			List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> options) {
 		if (filter.getTarget().equals(TestItem.class)) {
 			return Collections.emptyMap();
 		}
-
 		String collectionName = getCollectionName(filter.getTarget());
 		List<String> chartFields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
 		LaunchesDurationDocumentHandler documentHandler = new LaunchesDurationDocumentHandler();
-		launchRepository.loadWithCallback(filter, sorting, quantity, chartFields, documentHandler, collectionName);
-		return Collections.singletonMap(RESULT, documentHandler.getResult());
+		if (options.containsKey(LATEST_MODE)) {
+			launchRepository.findLatestWithCallback(filter, sorting, contentFields, quantity, documentHandler);
+		} else {
+			launchRepository.loadWithCallback(filter, sorting, quantity, chartFields, documentHandler, collectionName);
+		}
+		List<ChartObject> result = documentHandler.getResult();
+		if (WidgetUtils.needRevert(sorting)) {
+			Collections.reverse(result);
+		}
+		return Collections.singletonMap(RESULT, result);
 	}
 }

@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.filter.impl;
 
+import com.epam.ta.reportportal.commons.MoreCollectors;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.acl.AclUtils;
@@ -29,7 +30,6 @@ import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.sharing.Shareable;
 import com.epam.ta.reportportal.database.search.Filter;
-import com.epam.ta.reportportal.util.MoreCollectors;
 import com.epam.ta.reportportal.ws.converter.UserFilterResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.SharedEntity;

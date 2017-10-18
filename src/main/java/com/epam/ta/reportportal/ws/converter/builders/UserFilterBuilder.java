@@ -99,8 +99,8 @@ public class UserFilterBuilder extends ShareableEntityBuilder<UserFilter> {
 
 		Set<FilterCondition> filterConditions = new LinkedHashSet<>(filterEntities.size());
 		for (UserFilterEntity filterEntity : filterEntities) {
-			Condition conditionObject = Condition.findByMarker(filterEntity.getCondition());
-			FilterCondition filterCondition = new FilterCondition(conditionObject, filterEntity.getIsNegative(),
+			Condition conditionObject = Condition.findByMarker(filterEntity.getCondition()).orElse(null);
+			FilterCondition filterCondition = new FilterCondition(conditionObject, Condition.isNegative(filterEntity.getCondition()),
 					filterEntity.getValue().trim(), filterEntity.getFilteringField().trim());
 			filterConditions.add(filterCondition);
 		}

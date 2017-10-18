@@ -59,6 +59,8 @@ public class StatisticBasedContentLoader {
 
 	private static final String DATE_PATTERN = "yyyy-MM-dd";
 
+	static final String LATEST_MODE = "latest";
+
 	/**
 	 * Return collection name using input class object
 	 * 

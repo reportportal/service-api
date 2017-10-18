@@ -21,20 +21,21 @@
 
 package com.epam.ta.reportportal.core.filter.impl;
 
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.entity.user.UserRole;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.acl.AclUtils;
 import com.epam.ta.reportportal.core.filter.IDeleteUserFilterHandler;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
+import com.epam.ta.reportportal.database.entity.user.UserRole;
+import com.epam.ta.reportportal.events.FilterDeletedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 
 /**
  * Default implementation of {@link IDeleteUserFilterHandler}
@@ -47,12 +48,17 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 public class DeleteUserFilterHandler implements IDeleteUserFilterHandler {
 
 	private final UserFilterRepository filterRepository;
+
 	private final ProjectRepository projectRepository;
 
+    private ApplicationEventPublisher eventPublisher;
+
 	@Autowired
-	public DeleteUserFilterHandler(UserFilterRepository filterRepository, ProjectRepository projectRepository) {
+	public DeleteUserFilterHandler(UserFilterRepository filterRepository, ProjectRepository projectRepository,
+                                   ApplicationEventPublisher eventPublisher) {
 		this.filterRepository = filterRepository;
 		this.projectRepository = projectRepository;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
@@ -66,6 +72,8 @@ public class DeleteUserFilterHandler implements IDeleteUserFilterHandler {
 
 		try {
 			filterRepository.delete(filterId);
+			eventPublisher.publishEvent(new FilterDeletedEvent(userFilter, userName));
+
 		} catch (Exception e) {
 			throw new ReportPortalException("Error during deleting complex filter item", e);
 		}

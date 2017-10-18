@@ -33,10 +33,12 @@ import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.events.DashboardUpdatedEvent;
+import com.epam.ta.reportportal.events.WidgetDeletedEvent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -85,6 +87,7 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 
 		StringBuilder additionalInfo = new StringBuilder();
 		Dashboard dashboard = dashboardRepository.findOne(dashboardId);
+		Dashboard beforeUpdate = SerializationUtils.clone(dashboard);
 		expect(dashboard, notNull()).verify(DASHBOARD_NOT_FOUND, dashboardId);
 
 		Map<String, ProjectRole> projectRoles = projectRepository.findProjectRoles(userName);
@@ -161,6 +164,7 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
             if (null != widget && AclUtils.isAllowedToDeleteWidget(dashboard.getAcl(), widget.getAcl(),
                     userName, projectRoles.get(projectName), userRole)) {
                 widgetRepository.delete(it);
+                eventPublisher.publishEvent(new WidgetDeletedEvent(widget, userName));
             }
 		});
 
@@ -168,7 +172,7 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 
 		dashboardRepository.save(dashboard);
 
-		eventPublisher.publishEvent(new DashboardUpdatedEvent(dashboard, rq, userName));
+		eventPublisher.publishEvent(new DashboardUpdatedEvent(beforeUpdate, rq, userName));
 		return new OperationCompletionRS(
 				"Dashboard with ID = '" + dashboard.getId() + "' successfully updated." + additionalInfo.toString());
 	}

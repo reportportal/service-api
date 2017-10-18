@@ -21,18 +21,19 @@
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.dashboard.ICreateDashboardHandler;
 import com.epam.ta.reportportal.database.dao.DashboardRepository;
 import com.epam.ta.reportportal.database.entity.Dashboard;
+import com.epam.ta.reportportal.events.DashboardCreatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.DashboardBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
 
@@ -51,6 +52,9 @@ public class CreateDashboardHandler implements ICreateDashboardHandler {
 	@Autowired
 	private Provider<DashboardBuilder> dashboardBuilder;
 
+	@Autowired
+    private ApplicationEventPublisher eventPublisher;
+
 	@Override
 	public EntryCreatedRS createDashboard(String projectName, CreateDashboardRQ rq, String userName) {
 		// if can user login to server
@@ -67,6 +71,7 @@ public class CreateDashboardHandler implements ICreateDashboardHandler {
 		Dashboard dashboard = dashboardBuilder.get().addCreateDashboardRQ(rq)
 				.addSharing(userName, projectName, rq.getDescription(), rq.getShare() == null ? false : rq.getShare()).addProject(projectName).build();
 		dashboardRepository.save(dashboard);
+		eventPublisher.publishEvent(new DashboardCreatedEvent(rq, userName, projectName, dashboard.getId()));
 		return new EntryCreatedRS(dashboard.getId());
 	}
 }

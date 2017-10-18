@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.launch.IUpdateLaunchHandler;
+import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -33,32 +34,29 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.launch.AutoAnalyzeStrategy;
 import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.util.analyzer.AnalyzerConfig;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.*;
-import static com.epam.ta.reportportal.database.entity.Status.IN_PROGRESS;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.CUSTOMER;
+import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
@@ -77,21 +75,17 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	@Autowired
 	private TestItemRepository testItemRepository;
 
-    private ProjectRepository projectRepository;
+	private ProjectRepository projectRepository;
 
-    private LaunchRepository launchRepository;
+	private LaunchRepository launchRepository;
 
-    private UserRepository userRepository;
+	private UserRepository userRepository;
+
+	@Autowired
+	private StatisticsFacadeFactory statisticsFacadeFactory;
 
 	@Autowired
 	private IIssuesAnalyzer analyzerService;
-
-	@Autowired
-	@Qualifier("autoAnalyzeTaskExecutor")
-	private TaskExecutor taskExecutor;
-
-	@Autowired
-	private AnalyzerConfig analyzerConfig;
 
 	@Autowired
 	public void setLaunchRepository(LaunchRepository launchRepository) {
@@ -129,7 +123,6 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	}
 
 	@Override
-	// TODO Review after all new requirements BRs list and optimize it
 	public OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId, String scope) {
 		AutoAnalyzeStrategy type = AutoAnalyzeStrategy.fromValue(scope);
 		expect(type, notNull()).verify(INCORRECT_FILTER_PARAMETERS, scope);
@@ -138,7 +131,8 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);
 
 		expect(launch.getProjectRef(), equalTo(projectName)).verify(FORBIDDEN_OPERATION,
-				Suppliers.formattedSupplier("Launch with ID '{}' is not under '{}' project.", launchId, projectName));
+				Suppliers.formattedSupplier("Launch with ID '{}' is not under '{}' project.", launchId, projectName)
+		);
 
 		/* Do not process debug launches */
 		expect(launch.getMode(), equalTo(DEFAULT)).verify(INCORRECT_REQUEST, "Cannot analyze launches in debug mode.");
@@ -146,40 +140,27 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		Project project = projectRepository.findOne(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
-		/* Prevent AA for already processing launches */
-		if (!analyzerService.isPossible(launchId) && type.equals(AutoAnalyzeStrategy.HISTORY)) {
-			fail().withError(FORBIDDEN_OPERATION,
-					Suppliers.formattedSupplier("Launch with ID '{}' in auto-analyzer cache already", launchId));
-		}
-
-		/*
-		 * Stupid requirement -> for IN_PROGRESS launches: AA is possible, but
-		 * Match is not
-		 */
-		if ((launch.getStatus().equals(IN_PROGRESS) || !analyzerService.isPossible(launchId))
-				&& !(type.equals(AutoAnalyzeStrategy.HISTORY)))
-			fail().withError(FORBIDDEN_OPERATION,
-					Suppliers.formattedSupplier("Launch with ID '{}' in auto-analyzer cache already and/or in progress still", launchId));
-
 		List<TestItem> toInvestigate = testItemRepository.findInIssueTypeItems(TestItemIssueType.TO_INVESTIGATE.getLocator(), launchId);
-		List<TestItem> got;
-		if (type.equals(AutoAnalyzeStrategy.SINGLE)) {
-			/* Match issues for single launch */
-			got = analyzerService.collectPreviousIssues(1, launchId, projectName);
-		} else {
-			/* General AA flow */
-			got = analyzerService.collectPreviousIssues(analyzerConfig.getDepth(), launchId, projectName);
-		}
+		List<TestItem> analyzed = analyzerService.analyze(launchId, toInvestigate);
 
-		if (analyzerService.analyzeStarted(launchId)) {
-			taskExecutor.execute(() -> analyzerService.analyze(launchId, toInvestigate, got));
+		Map<String, TestItemIssue> forUpdate = analyzed.stream()
+				.filter(item -> !TestItemIssueType.TO_INVESTIGATE.getLocator().equals(item.getIssue().getIssueType()))
+				.collect(Collectors.toMap(TestItem::getId, TestItem::getIssue));
+
+		if (!forUpdate.isEmpty()) {
+			testItemRepository.updateItemsIssues(forUpdate);
+			statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
+					.recalculateStatistics(launch);
 		}
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launchId + "' started.");
 	}
 
 	@Override
 	public List<OperationCompletionRS> updateLaunch(BulkRQ<UpdateLaunchRQ> rq, String projectName, String userName) {
-		return rq.getEntities().entrySet().stream().map(entry -> updateLaunch(entry.getKey(), projectName, userName, entry.getValue()))
+		return rq.getEntities()
+				.entrySet()
+				.stream()
+				.map(entry -> updateLaunch(entry.getKey(), projectName, userName, entry.getValue()))
 				.collect(toList());
 	}
 
@@ -189,7 +170,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		String launchOwner = launch.getUserRef();
 		User principal = userRepository.findOne(userName);
 		Project project = projectRepository.findOne(projectName);
-		if ((project.getUsers().get(userName).getProjectRole() == CUSTOMER) && (null != mode)) {
+		if ((findUserConfigByLogin(project, userName).getProjectRole() == CUSTOMER) && (null != mode)) {
 			expect(mode, equalTo(DEFAULT)).verify(ACCESS_DENIED);
 		}
 		if (principal.getRole() != ADMINISTRATOR) {
@@ -199,7 +180,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 				 * Only PROJECT_MANAGER roles could move launches
 				 * to/from DEBUG mode
 				 */
-				UserConfig userConfig = project.getUsers().get(userName);
+				UserConfig userConfig = findUserConfigByLogin(project, userName);
 				expect(userConfig, Preconditions.hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
 			} else {
 				/*

@@ -44,12 +44,9 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.controller.ILaunchController;
-import com.epam.ta.reportportal.ws.model.BulkRQ;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
+import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
@@ -77,9 +74,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MEMBER;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -186,7 +181,7 @@ public class LaunchController implements ILaunchController {
 	@PutMapping("/update")
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ResponseStatus(OK)
-    @ApiOperation("Updates launches for specified project")
+	@ApiOperation("Updates launches for specified project")
 	public List<OperationCompletionRS> updateLaunches(@PathVariable String projectName, @RequestBody @Validated BulkRQ<UpdateLaunchRQ> rq,
 			Principal principal) {
 		return updateLaunchHandler.updateLaunch(rq, normalizeId(projectName), principal.getName());
@@ -221,10 +216,20 @@ public class LaunchController implements ILaunchController {
 	}
 
 	@Override
+	@RequestMapping(value = "/latest", method = GET)
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Get list of latest project launches by filter")
+	public Page<LaunchResource> getLatestLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
+			@SortFor(Launch.class) Pageable pageable) {
+		return getLaunchMessageHandler.getLatestLaunches(normalizeId(projectName), filter, pageable);
+	}
+
+	@Override
 	@RequestMapping(value = "/mode", method = GET)
 	@ResponseBody
 	@ResponseStatus(OK)
-	@PreAuthorize(PROJECT_MEMBER)
+	@PreAuthorize(NOT_CUSTOMER)
 	@ApiOperation("Get launches of specified project from DEBUG mode")
 	public Iterable<LaunchResource> getDebugLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
 			@SortFor(Launch.class) Pageable pageable, Principal principal) {
@@ -248,8 +253,8 @@ public class LaunchController implements ILaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique owners of project launches")
 	public List<String> getAllOwners(@PathVariable String projectName,
-			 @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + Launch.USER) String value,
-			 @RequestParam(value = "mode", required = false, defaultValue = "DEFAULT") String mode, Principal principal) {
+			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + Launch.USER) String value,
+			@RequestParam(value = "mode", required = false, defaultValue = "DEFAULT") String mode, Principal principal) {
 		return getLaunchMessageHandler.getOwners(normalizeId(projectName), value, "userRef", mode);
 	}
 
@@ -274,29 +279,14 @@ public class LaunchController implements ILaunchController {
 		return getLaunchMessageHandler.getLaunchesComparisonInfo(normalizeId(projectName), ids);
 	}
 
-/*	@Override
-	@PostMapping("/merge")
-	@ResponseBody
-	@ResponseStatus(OK)
-	// Owner and project LEAD+ permissions validated inside cause no information
-	// on top resource level
-	@ApiOperation("Merge set of specified launches in common one")
-	public LaunchResource mergeLaunches(
-			@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,
-			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
-			Principal principal) {
-		return mergeLaunchesHandler.mergeLaunches(normalizeId(projectName), principal.getName(), mergeLaunchesRQ);
-	}*/
-
 	@Override
 	@PostMapping("/merge")
 	@ResponseBody
 	@ResponseStatus(OK)
-	//@ApiIgnore
 	@ApiOperation("Merge set of specified launches in common one")
 	public LaunchResource mergeLaunches(
 			@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,
-			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated DeepMergeLaunchesRQ mergeLaunchesRQ,
+			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
 			Principal principal) {
 		return mergeLaunchesHandler.mergeLaunches(normalizeId(projectName), principal.getName(), mergeLaunchesRQ);
 	}
@@ -307,7 +297,8 @@ public class LaunchController implements ILaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation("Start launch auto-analyzer on demand")
 	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName, @PathVariable String launchId,
-			@ApiParam(allowableValues = "single, history") @PathVariable String strategy, Principal principal) throws InterruptedException, ExecutionException {
+			@ApiParam(allowableValues = "single, history") @PathVariable String strategy, Principal principal)
+			throws InterruptedException, ExecutionException {
 		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), launchId, strategy);
 	}
 
@@ -328,14 +319,15 @@ public class LaunchController implements ILaunchController {
 	@ApiOperation(value = "Export specified launch", notes = "Only following formats are supported: pdf (by default), xls, html.")
 	public void getLaunchReport(@PathVariable String projectName, @PathVariable String launchId,
 			@ApiParam(allowableValues = "pdf, xls, html") @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,
-            Principal principal, HttpServletResponse response) throws IOException {
+			Principal principal, HttpServletResponse response) throws IOException {
 
 		JasperPrint jasperPrint = getJasperHandler.getLaunchDetails(launchId, principal.getName());
 
 		ReportFormat format = getJasperHandler.getReportFormat(view);
 		response.setContentType(format.getContentType());
 		response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-				String.format("attachment; filename=RP_%s_Report.%s", format.name(), format.getValue()));
+				String.format("attachment; filename=RP_%s_Report.%s", format.name(), format.getValue())
+		);
 
 		getJasperHandler.writeReport(format, response.getOutputStream(), jasperPrint);
 
@@ -356,7 +348,8 @@ public class LaunchController implements ILaunchController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip.")
-	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file, Principal principal) {
-		return importLaunchHandler.importLaunch(normalizeId(projectName), principal.getName(), "JUNIT", file);
+	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file,
+			Principal principal) {
+		return importLaunchHandler.importLaunch(normalizeId(projectName), principal.getName(), "XUNIT", file);
 	}
 }

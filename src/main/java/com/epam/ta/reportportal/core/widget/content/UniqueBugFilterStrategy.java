@@ -17,17 +17,9 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
@@ -37,15 +29,22 @@ import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.search.*;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.Sets;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of
  * {@link com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy} for
  * unique bug widget
- * 
+ *
  * @author Dzmitry_Kavalets
  */
-@Service("UniqueBugFilterStrategy")
+@Service
 public class UniqueBugFilterStrategy implements BuildFilterStrategy {
 
 	private static final String SEPARATOR = ",";
@@ -79,6 +78,7 @@ public class UniqueBugFilterStrategy implements BuildFilterStrategy {
 		}
 		filter.addCondition(new FilterCondition(Condition.EXISTS, false, "true", TestItem.EXTERNAL_SYSTEM_ISSUES));
 
-		return widgetContentProvider.getChartContent(filter, userFilter.getSelectionOptions(), contentOptions);
+		return widgetContentProvider.getChartContent(projectName, filter, userFilter.getSelectionOptions(), contentOptions);
 	}
+
 }

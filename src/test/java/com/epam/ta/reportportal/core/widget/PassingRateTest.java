@@ -23,10 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
-import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader.PASSED_FIELD;
-import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader.RESULT;
-import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader.TOTAL_FIELD;
+import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader.*;
 
 @SpringFixture("widgets")
 public class PassingRateTest extends BaseTest {
@@ -49,7 +48,8 @@ public class PassingRateTest extends BaseTest {
     public void testPassingRatePerLaunch() {
         EntryCreatedRS widget = createWidgetHandler.createWidget(widgetRQ(), "project2", "user1");
         WidgetResource widgetResource = getWidgetHandler.getWidget(widget.getId(), "user1", "project2");
-        ChartObject chartObject = widgetResource.getContent().get(RESULT).get(0);
+        Map<String, List<ChartObject>> content = (Map<String, List<ChartObject>>) widgetResource.getContent();
+        ChartObject chartObject = content.get(RESULT).get(0);
         Assert.assertEquals(GadgetTypes.PASSING_RATE_PER_LAUNCH.getType(), widgetResource.getContentParameters().getGadget());
         Assert.assertEquals(WidgetDataTypes.BAR_CHART.getType(), widgetResource.getContentParameters().getType());
         Assert.assertTrue(chartObject.getValues().size() == 2);
@@ -61,7 +61,8 @@ public class PassingRateTest extends BaseTest {
     public void testPassingRateSummary() {
         EntryCreatedRS widget = createWidgetHandler.createWidget(widgetRQSummary(), "project2", "user1");
         WidgetResource widgetResource = getWidgetHandler.getWidget(widget.getId(), "user1", "project2");
-        ChartObject chartObject = widgetResource.getContent().get(RESULT).get(0);
+        Map<String, List<ChartObject>> content = (Map<String, List<ChartObject>>) widgetResource.getContent();
+        ChartObject chartObject = content.get(RESULT).get(0);
         StatisticBasedContentLoader loader = new StatisticBasedContentLoader();
         Assert.assertEquals(GadgetTypes.PASSING_RATE_SUMMARY.getType(), widgetResource.getContentParameters().getGadget());
         Assert.assertEquals(WidgetDataTypes.BAR_CHART.getType(), widgetResource.getContentParameters().getType());
@@ -77,9 +78,9 @@ public class PassingRateTest extends BaseTest {
         contentParameters.setWidgetOptions(ImmutableMap.<String, List<String>>builder()
                 .put("launchNameFilter", Collections.singletonList("Demo launch_launch1-stat")).build());
         WidgetRQ rq = new WidgetRQ();
-        rq.setApplyingFilter("");
-        rq.setName("widget");
-        rq.setShare(false);
+		rq.setFilterId("");
+		rq.setName("widget");
+		rq.setShare(false);
         rq.setContentParameters(contentParameters);
         return rq;
     }
@@ -92,9 +93,9 @@ public class PassingRateTest extends BaseTest {
                 .add("statistics$executions$passed").build());
         contentParameters.setItemsCount(5);
         WidgetRQ rq = new WidgetRQ();
-        rq.setApplyingFilter(FILTER_ID);
-        rq.setName("widget");
-        rq.setShare(false);
+		rq.setFilterId(FILTER_ID);
+		rq.setName("widget");
+		rq.setShare(false);
         rq.setContentParameters(contentParameters);
         return rq;
     }

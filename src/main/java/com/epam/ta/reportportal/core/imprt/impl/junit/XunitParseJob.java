@@ -31,12 +31,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.Callable;
 
-public class JunitParseJob implements Callable<ParseResults> {
+public class XunitParseJob implements Callable<ParseResults> {
 
     @Autowired
-    private Provider<JunitImportHandler> junitImportHandlerProvider;
+    private Provider<XunitImportHandler> junitImportHandlerProvider;
 
-    private JunitImportHandler handler;
+    private XunitImportHandler handler;
 
     private InputStream xmlInputStream;
 
@@ -50,7 +50,7 @@ public class JunitParseJob implements Callable<ParseResults> {
         return new ParseResults(handler.getStartSuiteTime(), handler.getCommonDuration());
     }
 
-    JunitParseJob withParameters(String projectId, String launchId, String user, InputStream xmlInputStream) {
+    XunitParseJob withParameters(String projectId, String launchId, String user, InputStream xmlInputStream) {
         this.xmlInputStream = xmlInputStream;
         this.handler = junitImportHandlerProvider.get().withParameters(projectId, launchId, user);
         return this;

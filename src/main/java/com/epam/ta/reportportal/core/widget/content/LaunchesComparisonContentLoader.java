@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
+import com.epam.ta.reportportal.core.widget.impl.WidgetUtils;
 import com.epam.ta.reportportal.database.StatisticsDocumentHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
@@ -54,7 +55,7 @@ public class LaunchesComparisonContentLoader extends StatisticBasedContentLoader
 	private LaunchRepository launchRepository;
 
 	@Override
-	public Map<String, List<ChartObject>> loadContent(Filter filter, Sort sorting, int quantity, List<String> contentFields,
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
 			List<String> metaDataFields, Map<String, List<String>> options) {
 
 		if (filter.getTarget().equals(TestItem.class)) {
@@ -64,13 +65,17 @@ public class LaunchesComparisonContentLoader extends StatisticBasedContentLoader
 		List<String> allFields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
 
 		String collectionName = getCollectionName(filter.getTarget());
-		launchRepository.loadWithCallback(filter, sorting, QUANTITY, allFields, documentHandler, collectionName);
-
-		return convertResult(documentHandler.getResult());
+        launchRepository.loadWithCallback(filter, sorting, QUANTITY, allFields, documentHandler, collectionName);
+		List<ChartObject> result = documentHandler.getResult();
+		return convertResult(result, sorting);
 	}
 
-	private Map<String, List<ChartObject>> convertResult(List<ChartObject> objects) {
+	private Map<String, List<ChartObject>> convertResult(List<ChartObject> objects, Sort sort) {
 		DecimalFormat formatter = new DecimalFormat("###.##");
+
+		if (WidgetUtils.needRevert(sort)) {
+			Collections.reverse(objects);
+		}
 
 		for (ChartObject object : objects) {
 			Map<String, String> values = new HashMap<>();

@@ -70,9 +70,10 @@ public class CreateProjectHandler implements ICreateProjectHandler {
 
 		Project project = ProjectConverter.TO_MODEL.apply(createProjectRQ);
 		Project.UserConfig userConfig = new Project.UserConfig();
+		userConfig.setLogin(username);
 		userConfig.setProjectRole(ProjectRole.PROJECT_MANAGER);
 		userConfig.setProposedRole(ProjectRole.PROJECT_MANAGER);
-		project.getUsers().put(username, userConfig);
+		project.getUsers().add(userConfig);
 
 		Project createdProject;
 		try {

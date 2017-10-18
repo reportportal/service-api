@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.launch.DeepMergeLaunchesRQ;
+import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -53,7 +53,8 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.AuthConstants.ADMINISTRATOR;
 import static com.epam.ta.reportportal.auth.AuthConstants.USER_PROJECT;
-import static com.epam.ta.reportportal.events.handler.LaunchActivityHandler.START;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.START_LAUNCH;
+import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.LAUNCH;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
 import static java.util.Arrays.asList;
@@ -97,8 +98,8 @@ public class LaunchControllerTest extends BaseMvcTest {
 		assertNotNull(activities);
 		assertEquals(1, activities.size());
 		Activity activity = activities.get(0);
-		assertEquals(START, activity.getActionType());
-		assertEquals(Launch.LAUNCH, activity.getObjectType());
+		assertEquals(START_LAUNCH, activity.getActionType());
+		assertEquals(LAUNCH, activity.getObjectType());
 	}
 
 	@Test
@@ -157,7 +158,7 @@ public class LaunchControllerTest extends BaseMvcTest {
 
 	@Test
 	public void mergeLaunchesPositive() throws Exception {
-		DeepMergeLaunchesRQ rq = new DeepMergeLaunchesRQ();
+		MergeLaunchesRQ rq = new MergeLaunchesRQ();
 		HashSet<String> set = new HashSet<>();
 		set.add("88624678053de743b3e5aa3e");
 		set.add("89224678053de743b3e5aa3e");

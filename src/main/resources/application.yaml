@@ -1,7 +1,7 @@
 rp:
   upload:
     maxUploadSize: 128MB
-    maxFileSize: 32MB
+    maxFileSize: 64MB
   analytics:
     enableByDefault: true
 
@@ -13,7 +13,7 @@ spring:
       discovery:
         tags:
           - urlprefix-${server.contextPath:/}
-          - traefik.frontend.rule=PathPrefixStrip:${server.contextPath:/}
+          - traefik.frontend.rule=PathPrefix:${server.contextPath:/}
           - statusPageUrlPath=${server.contextPath}${management.contextPath}/info
           - healthCheckUrlPath=${server.contextPath}${management.contextPath}/info
         healthCheckPath: ${server.contextPath}/admin/health

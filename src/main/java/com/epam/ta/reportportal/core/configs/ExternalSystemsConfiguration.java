@@ -23,7 +23,6 @@ package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.commons.exception.forwarding.ForwardingClientExceptionHandler;
 import com.epam.ta.reportportal.core.externalsystem.ExternalSystemEurekaDelegate;
-import com.epam.ta.reportportal.core.externalsystem.ExternalSystemStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;

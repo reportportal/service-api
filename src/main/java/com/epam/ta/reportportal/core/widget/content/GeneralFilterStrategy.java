@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.core.widget.content;
 import com.epam.ta.reportportal.core.widget.impl.WidgetUtils;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
@@ -50,8 +51,8 @@ import java.util.stream.Collectors;
  * 
  * @author Dzmitry_Kavalets
  */
-@Service("OldBuildFilterStrategy")
-public class GeneralFilterStrategy implements BuildFilterStrategy {
+@Service
+public class GeneralFilterStrategy implements BuildFilterStrategyLatest {
 
 	@Autowired
 	private LaunchRepository launchRepository;
@@ -66,7 +67,7 @@ public class GeneralFilterStrategy implements BuildFilterStrategy {
 	}
 
 	@Override
-	public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions,
+	public Map<String, ?> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions,
 			String projectName) {
 		Filter searchFilter = userFilter.getFilter();
 		if (searchFilter.getTarget().getSimpleName().equalsIgnoreCase(TestItem.class.getSimpleName())) {
@@ -77,10 +78,21 @@ public class GeneralFilterStrategy implements BuildFilterStrategy {
 		// all widget content should be selected per project, so added
 		// additional condition to filter
 		searchFilter.addConditions(getAdditionalConditions(searchFilter.getTarget(), projectName));
-		return widgetContentProvider.getChartContent(searchFilter, userFilter.getSelectionOptions(), contentOptions);
+		return widgetContentProvider.getChartContent(projectName, searchFilter, userFilter.getSelectionOptions(), contentOptions);
 	}
 
-	/**
+    @Override
+    public Map<String, List<ChartObject>> loadContentOfLatest(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+        Filter filter = userFilter.getFilter();
+        if (filter.getTarget().equals(Launch.class)) {
+            filter.addCondition(new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.name(), Launch.MODE_CRITERIA));
+            filter.addCondition(new FilterCondition(Condition.NOT_EQUALS, false, Status.IN_PROGRESS.name(), Launch.STATUS));
+            filter.addCondition(new FilterCondition(Condition.EQUALS, false, projectName, Launch.PROJECT));
+        }
+        return widgetContentProvider.getChartContent(projectName, userFilter.getFilter(), userFilter.getSelectionOptions(), contentOptions);
+    }
+
+    /**
 	 * Get {@link com.epam.ta.reportportal.database.search.FilterCondition}s for
 	 * selecting data foe widget Additional conditions:
 	 * <li>data only from current project;

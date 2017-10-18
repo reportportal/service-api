@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.ws.converter.builders.UserResourceBuilder;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
@@ -31,7 +32,8 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
 import java.util.HashMap;
-import java.util.Map;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * Resource Assembler for the {@link User} DB entity.
@@ -50,14 +52,16 @@ public class UserResourceAssembler extends PagedResourcesAssembler<User, UserRes
     }
 
     public com.epam.ta.reportportal.ws.model.Page<UserResource> toPagedResources(Page<User> content, Project project) {
-        Map<String, Project.UserConfig> usersConfig = project.getUsers();
         String entryType = project.getConfiguration().getEntryType().name();
         com.epam.ta.reportportal.ws.model.Page<UserResource> userResources = toPagedResources(content);
         for (UserResource userResource : userResources) {
             HashMap<String, UserResource.AssignedProject> assignedProjects = new HashMap<>();
             UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-            assignedProject.setProposedRole(usersConfig.get(userResource.getUserId()).getProposedRole().name());
-            assignedProject.setProjectRole(usersConfig.get(userResource.getUserId()).getProjectRole().name());
+            Project.UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, userResource.getUserId());
+
+            ofNullable(userConfig.getProjectRole()).ifPresent(it -> assignedProject.setProjectRole(it.name()));
+            ofNullable(userConfig.getProposedRole()).ifPresent(it -> assignedProject.setProposedRole(it.name()));
+
             assignedProject.setEntryType(entryType);
             assignedProjects.put(project.getId(), assignedProject);
             userResource.setAssignedProjects(assignedProjects);

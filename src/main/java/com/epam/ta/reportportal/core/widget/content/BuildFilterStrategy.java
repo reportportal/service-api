@@ -17,20 +17,18 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import java.util.List;
-import java.util.Map;
-
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
-import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+
+import java.util.Map;
 
 /**
  * Strategy definition interface for building widget specific filters
- * 
+ *
  * @author Dzmitry_Kavalets
  */
 public interface BuildFilterStrategy {
@@ -38,11 +36,12 @@ public interface BuildFilterStrategy {
 	/**
 	 * Get widget content with predefined filter in accordance with used
 	 * strategy
-	 * 
+	 *
 	 * @param userFilter
 	 * @param contentOptions
 	 * @param projectName
 	 * @return
 	 */
-	Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName);
+	Map<String, ?> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName);
+
 }

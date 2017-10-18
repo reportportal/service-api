@@ -26,12 +26,16 @@ import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.events.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Provider;
-import java.util.HashMap;
+import java.util.List;
+
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.UPDATE_PROJECT;
+import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.PROJECT;
+import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.createHistoryField;
 
 /**
  * Saves new project activity
@@ -41,26 +45,24 @@ import java.util.HashMap;
 @Component
 public class ProjectActivityHandler {
 
-	public static final String UPDATE_PROJECT = "update_project";
-	public static final String KEEP_SCREENSHOTS = "keepScreenshots";
-	public static final String KEEP_LOGS = "keepLogs";
-	public static final String LAUNCH_INACTIVITY = "launchInactivity";
-	public static final String STATISTICS_CALCULATION_STRATEGY = "statisticsCalculationStrategy";
-	public static final String AUTO_ANALYZE = "auto_analyze";
+	static final String KEEP_SCREENSHOTS = "keepScreenshots";
+	static final String KEEP_LOGS = "keepLogs";
+	static final String LAUNCH_INACTIVITY = "launchInactivity";
+	static final String STATISTICS_CALCULATION_STRATEGY = "statisticsCalculationStrategy";
+	static final String AUTO_ANALYZE = "auto_analyze";
+	static final String ANALYZE_ON_FLY = "analyze_on_fly";
 
 	private final ActivityRepository activityRepository;
-	private final Provider<ActivityBuilder> activityBuilder;
 
 	@Autowired
-	public ProjectActivityHandler(Provider<ActivityBuilder> activityBuilder, ActivityRepository activityRepository) {
-		this.activityBuilder = activityBuilder;
+	public ProjectActivityHandler(ActivityRepository activityRepository) {
 		this.activityRepository = activityRepository;
 	}
 
 	@EventListener
 	public void onApplicationEvent(ProjectUpdatedEvent event) {
 		Project project = event.getBefore();
-		HashMap<String, Activity.FieldValues> history = new HashMap<>();
+		List<Activity.FieldValues> history = Lists.newArrayList();
 
 		ProjectConfiguration configuration = event.getUpdateProjectRQ().getConfiguration();
 		if (null != configuration) {
@@ -68,63 +70,78 @@ public class ProjectActivityHandler {
 			processKeepScreenshots(history, project, configuration);
 			processLaunchInactivityTimeout(history, project, configuration);
 			processAutoAnalyze(history, project, configuration);
+			processAnalyzeOnTheFly(history, project, configuration);
 			processStatisticsStrategy(history, project, configuration);
 		}
 
 		if (!history.isEmpty()) {
-			Activity activityLog = activityBuilder.get().addProjectRef(project.getName()).addObjectType(Project.PROJECT)
-					.addActionType(UPDATE_PROJECT).addUserRef(event.getUpdatedBy()).build();
-			activityLog.setHistory(history);
+			Activity activityLog = new ActivityBuilder().addProjectRef(project.getName())
+					.addObjectType(PROJECT)
+					.addObjectName(project.getName())
+					.addActionType(UPDATE_PROJECT)
+					.addUserRef(event.getUpdatedBy())
+					.addHistory(history.isEmpty() ? null : history)
+					.get();
 			activityRepository.save(activityLog);
 		}
 	}
 
-	private void processStatisticsStrategy(HashMap<String, Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
+	private void processStatisticsStrategy(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
 		if ((null != configuration.getStatisticCalculationStrategy())
 				&& (!configuration.getStatisticCalculationStrategy().equalsIgnoreCase((project.getConfiguration().getStatisticsCalculationStrategy().name())))){
-			Activity.FieldValues fieldValues = Activity.FieldValues.newOne().withOldValue(project.getConfiguration().getStatisticsCalculationStrategy().name())
-					.withNewValue(configuration.getStatisticCalculationStrategy());
-			history.put(STATISTICS_CALCULATION_STRATEGY, fieldValues);
+			Activity.FieldValues fieldValues = createHistoryField(STATISTICS_CALCULATION_STRATEGY,
+					project.getConfiguration().getStatisticsCalculationStrategy().name(),
+					configuration.getStatisticCalculationStrategy());
+			history.add(fieldValues);
 		}
 	}
 
-	private void processKeepLogs(HashMap<String, Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
+	private void processKeepLogs(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
 		if ((null != configuration.getKeepLogs()) && (!configuration.getKeepLogs().equals(project.getConfiguration().getKeepLogs()))) {
-			Activity.FieldValues fieldValues = Activity.FieldValues.newOne().withOldValue(project.getConfiguration().getKeepLogs())
-					.withNewValue(configuration.getKeepLogs());
-			history.put(KEEP_LOGS, fieldValues);
+			Activity.FieldValues fieldValues = createHistoryField(
+					KEEP_LOGS, project.getConfiguration().getKeepLogs(), configuration.getKeepLogs());
+			history.add(fieldValues);
 		}
 	}
 
-	private void processLaunchInactivityTimeout(HashMap<String, Activity.FieldValues> history, Project project,
+	private void processLaunchInactivityTimeout(List<Activity.FieldValues> history, Project project,
 			ProjectConfiguration configuration) {
 		if ((null != configuration.getInterruptJobTime()) && (!configuration.getInterruptJobTime()
 				.equals(project.getConfiguration().getInterruptJobTime()))) {
-			Activity.FieldValues fieldValues = Activity.FieldValues.newOne().withOldValue(project.getConfiguration().getInterruptJobTime())
-					.withNewValue(configuration.getInterruptJobTime());
-			history.put(LAUNCH_INACTIVITY, fieldValues);
+			Activity.FieldValues fieldValues = createHistoryField(
+					LAUNCH_INACTIVITY, project.getConfiguration().getInterruptJobTime(), configuration.getInterruptJobTime());
+			history.add(fieldValues);
 		}
 	}
 
-	private void processAutoAnalyze(HashMap<String, Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
+	private void processAutoAnalyze(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
 		if ((null != configuration.getIsAAEnabled()) && (!configuration.getIsAAEnabled()
 				.equals(project.getConfiguration().getIsAutoAnalyzerEnabled()))) {
-			Activity.FieldValues fieldValues = Activity.FieldValues.newOne().withOldValue(
-					project.getConfiguration().getIsAutoAnalyzerEnabled() == null ?
-							"" :
-							project.getConfiguration().getIsAutoAnalyzerEnabled().toString())
-					.withNewValue(configuration.getIsAAEnabled().toString());
-			history.put(AUTO_ANALYZE, fieldValues);
+			String oldValue = project.getConfiguration().getIsAutoAnalyzerEnabled() == null ? "" :
+					project.getConfiguration().getIsAutoAnalyzerEnabled().toString();
+			Activity.FieldValues fieldValues = createHistoryField(
+					AUTO_ANALYZE, oldValue, configuration.getIsAAEnabled().toString());
+			history.add(fieldValues);
 		}
 	}
 
-	private void processKeepScreenshots(HashMap<String, Activity.FieldValues> history, Project project,
+	private void processAnalyzeOnTheFly(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
+		if ((null != configuration.getAnalyzeOnTheFly()) && (!configuration.getAnalyzeOnTheFly()
+				.equals(project.getConfiguration().getAnalyzeOnTheFly()))) {
+			String oldValue = project.getConfiguration().getAnalyzeOnTheFly() == null ? "" :
+					project.getConfiguration().getAnalyzeOnTheFly().toString();
+			Activity.FieldValues fieldValues = createHistoryField(ANALYZE_ON_FLY, oldValue, configuration.getAnalyzeOnTheFly().toString());
+			history.add(fieldValues);
+		}
+	}
+
+	private void processKeepScreenshots(List<Activity.FieldValues> history, Project project,
 			ProjectConfiguration configuration) {
 		if ((null != configuration.getKeepScreenshots()) && (!configuration.getKeepScreenshots()
 				.equals(project.getConfiguration().getKeepScreenshots()))) {
-			Activity.FieldValues fieldValues = Activity.FieldValues.newOne().withOldValue(project.getConfiguration().getKeepScreenshots())
-					.withNewValue(configuration.getKeepScreenshots());
-			history.put(KEEP_SCREENSHOTS, fieldValues);
+			Activity.FieldValues fieldValues = createHistoryField(
+					KEEP_SCREENSHOTS, project.getConfiguration().getKeepScreenshots(), configuration.getKeepScreenshots());
+			history.add(fieldValues);
 		}
 	}
 }

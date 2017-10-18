@@ -27,7 +27,6 @@ import com.epam.ta.reportportal.core.preference.IUpdatePreferenceHandler;
 import com.epam.ta.reportportal.core.project.*;
 import com.epam.ta.reportportal.core.user.IGetUserHandler;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
@@ -58,15 +57,11 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.security.Principal;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -153,7 +148,7 @@ public class ProjectController implements IProjectController {
 	@RequestMapping(value = "/{projectName}/users", method = GET)
 	@ResponseBody
 	@ResponseView(ModelViews.DefaultView.class)
-	@PreAuthorize(PROJECT_MEMBER)
+	@PreAuthorize(NOT_CUSTOMER)
 	@ApiOperation("Get users from project")
 	public Iterable<UserResource> getProjectUsers(@PathVariable String projectName, @FilterFor(User.class) Filter filter,
 			@SortFor(User.class) Pageable pageable, Principal principal) {
@@ -207,7 +202,7 @@ public class ProjectController implements IProjectController {
 	@RequestMapping(value = "/{projectName}/usernames", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	@PreAuthorize(PROJECT_MEMBER)
+	@PreAuthorize(NOT_CUSTOMER)
 	@ApiOperation(value = "Load project users by filter", notes = "Only for users that are members of the project")
 	public List<String> getProjectUsers(@PathVariable String projectName,
 			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + Project.USERS) String value,

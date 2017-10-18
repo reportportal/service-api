@@ -51,12 +51,19 @@ public class  OverallStatisticsContentLoader extends StatisticBasedContentLoader
 	// data must be collected from launch collection
 	private static final String COLLECTION_NAME = "launch";
 
+
 	@Override
-	public Map<String, List<ChartObject>> loadContent(Filter filter, Sort sorting, int quantity, List<String> contentFields,
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
 			List<String> metaDataFields, Map<String, List<String>> options) {
 
 		OverallStatisticsDocumentHandler overallStatisticsContentLoader = new OverallStatisticsDocumentHandler(contentFields);
-		launchRepository.loadWithCallback(filter, sorting, quantity, contentFields, overallStatisticsContentLoader, COLLECTION_NAME);
+		if (options.containsKey(LATEST_MODE)) {
+            launchRepository.findLatestWithCallback(filter, sorting,
+                    contentFields, quantity, overallStatisticsContentLoader);
+        } else {
+		    launchRepository.loadWithCallback(filter, sorting, quantity, contentFields,
+                    overallStatisticsContentLoader, COLLECTION_NAME);
+        }
 		return assembleData(overallStatisticsContentLoader.getResult());
 	}
 
@@ -84,4 +91,5 @@ public class  OverallStatisticsContentLoader extends StatisticBasedContentLoader
 		String[] split = fieldName.split("\\.");
 		return split[split.length - 1];
 	}
+
 }

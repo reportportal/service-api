@@ -22,15 +22,15 @@
 package com.epam.ta.reportportal.core.project;
 
 import com.epam.ta.BaseTest;
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
+import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Dzmitry_Kavalets
@@ -55,7 +55,8 @@ public class CreateProjectHandlerTest extends BaseTest{
 		Assert.assertNotNull(project);
 		Assert.assertEquals("new_project", projectRS.getId());
 		Assert.assertNotNull(project.getUsers());
-		Assert.assertTrue(project.getUsers().containsKey(creator));
-		Assert.assertEquals(ProjectRole.PROJECT_MANAGER, project.getUsers().get(creator).getProjectRole());
+		Project.UserConfig configByLogin = ProjectUtils.findUserConfigByLogin(project, creator);
+		Assert.assertNotNull(configByLogin);
+		Assert.assertEquals(ProjectRole.PROJECT_MANAGER, configByLogin.getProjectRole());
 	}
 }

@@ -35,6 +35,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -81,9 +82,11 @@ public class UserResourceBuilder extends Builder<UserResource> {
 				String personalProject = null;
 				for (Project project : projects) {
 					UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-					Project.UserConfig userConfig = project.getUsers().get(user.getId());
-					assignedProject.setProjectRole(userConfig.getProjectRole().name());
-					assignedProject.setProposedRole(userConfig.getProposedRole().name());
+					Project.UserConfig userConfig = findUserConfigByLogin(project, user.getId());
+
+					ofNullable(userConfig.getProjectRole()).ifPresent(it -> assignedProject.setProjectRole(it.name()));
+					ofNullable(userConfig.getProposedRole()).ifPresent(it -> assignedProject.setProposedRole(it.name()));
+
 					assignedProject.setEntryType(project.getConfiguration().getEntryType().name());
 					userProjects.put(project.getId(), assignedProject);
 

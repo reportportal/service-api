@@ -211,7 +211,7 @@
                                                                                                   border="0" width="21"
                                                                                                   height="12" alt="vk"></a>
                                 </td>
-                                <td><a href="https://reportportal.slack.com" target="_blank"><img src="cid:ic-slack.png"
+                                <td><a href="https://reportportal-slack-auto.herokuapp.com/" target="_blank"><img src="cid:ic-slack.png"
                                                                                                   border="0" width="18"
                                                                                                   height="18"
                                                                                                   alt="slack"></a>

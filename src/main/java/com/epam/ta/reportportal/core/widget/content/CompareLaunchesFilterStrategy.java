@@ -21,12 +21,6 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
@@ -36,27 +30,43 @@ import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Filter strategy for Launches comparison chart & Launches duration widget
  * 
  * @author Dzmitry_Kavalets
  */
-@Service("CompareLaunchesFilterStrategy")
-public class CompareLaunchesFilterStrategy implements BuildFilterStrategy {
+@Service
+public class CompareLaunchesFilterStrategy implements BuildFilterStrategyLatest {
 
 	@Autowired
 	private WidgetContentProvider widgetContentProvider;
 
 	@Override
 	public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
-		Filter filter = userFilter.getFilter();
+		Filter filter = extendFilter(userFilter.getFilter(), projectName);
+		return widgetContentProvider.getChartContent(projectName, filter, userFilter.getSelectionOptions(), contentOptions);
+	}
+
+    @Override
+    public Map<String, List<ChartObject>> loadContentOfLatest(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+		Filter filter = extendFilter(userFilter.getFilter(), projectName);
+		return widgetContentProvider.getChartContent(projectName, filter, userFilter.getSelectionOptions(), contentOptions);
+	}
+
+	private Filter extendFilter(Filter filter, String projectName) {
 		if (filter.getTarget().equals(Launch.class)) {
 			filter.addCondition(new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.name(), Launch.MODE_CRITERIA));
 			filter.addCondition(new FilterCondition(Condition.NOT_EQUALS, false, Status.IN_PROGRESS.name(), Launch.STATUS));
 			filter.addCondition(new FilterCondition(Condition.EQUALS, false, projectName, Launch.PROJECT));
 		}
-
-		return widgetContentProvider.getChartContent(filter, userFilter.getSelectionOptions(), contentOptions);
+		return filter;
 	}
+
+
 }

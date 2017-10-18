@@ -21,13 +21,13 @@
 
 package com.epam.ta.reportportal.auth.permissions;
 
-import javax.validation.constraints.NotNull;
-
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.ProjectRole;
+import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectRole;
+import javax.validation.constraints.NotNull;
 
 /**
  * Validates this is {@link ProjectRole#MEMBER} or higher authority in the
@@ -37,16 +37,17 @@ import com.epam.ta.reportportal.database.entity.ProjectRole;
  * 
  */
 @Component
-@LookupPermission({ "projectMemberPermission" })
-public class ProjectWorkerPermission extends BaseProjectPermission {
+@LookupPermission({ "notCustomerPermission" })
+public class NotCustomerPermission extends BaseProjectPermission {
 
 	/**
-	 * Validates this is {@link ProjectRole#MEMBER} or higher authority in the
+	 * Validates this is not a {@link ProjectRole#CUSTOMER} or higher authority in the
 	 * authentication context
 	 */
 	@Override
 	protected boolean checkAllowed(@NotNull Authentication authentication, @NotNull Project project) {
-		return project.getUsers().get(authentication.getName()).getProjectRole().compareTo(ProjectRole.MEMBER) >= 0;
+		ProjectRole projectRole = ProjectUtils.findUserConfigByLogin(project, authentication.getName()).getProjectRole();
+		return (null != projectRole) && projectRole.compareTo(ProjectRole.CUSTOMER) != 0;
 	}
 
 }

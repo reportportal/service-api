@@ -43,7 +43,7 @@ import org.springframework.security.core.Authentication;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.events.handler.ProjectActivityHandler.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -78,13 +78,14 @@ public class ProjectActivitiesListenerTest extends BaseMvcTest {
 				new HashSet<>(Arrays.asList(new FilterCondition(Condition.EQUALS, false, "project1", "projectRef"),
 						new FilterCondition(Condition.EQUALS, false, "update_project", "actionType"))));
 		List<Activity> activities = activityRepository.findByFilter(filter);
-		Map<String, Activity.FieldValues> history = activities.get(0).getHistory();
+		List<Activity.FieldValues> history = activities.get(0).getHistory();
 
-		Assert.assertTrue(history.containsKey(LAUNCH_INACTIVITY));
-		Assert.assertTrue(history.containsKey(KEEP_LOGS));
-		Assert.assertTrue(history.containsKey(KEEP_SCREENSHOTS));
-		Assert.assertTrue(history.containsKey(AUTO_ANALYZE));
-		Assert.assertTrue(history.containsKey(STATISTICS_CALCULATION_STRATEGY));
+        List<String> fields = history.stream().map(Activity.FieldValues::getField).collect(Collectors.toList());
+        Assert.assertTrue(fields.contains(LAUNCH_INACTIVITY));
+		Assert.assertTrue(fields.contains(KEEP_LOGS));
+		Assert.assertTrue(fields.contains(KEEP_SCREENSHOTS));
+		Assert.assertTrue(fields.contains(AUTO_ANALYZE));
+		Assert.assertTrue(fields.contains(STATISTICS_CALCULATION_STRATEGY));
 	}
 
 	@Override

@@ -18,31 +18,28 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.epam.ta.reportportal.util;
 
-import java.util.LinkedHashMap;
+package com.epam.ta.reportportal.core.widget.content;
+
+import com.epam.ta.reportportal.database.entity.filter.UserFilter;
+import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
+import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+
+import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 /**
- * Custom collectors for collections streaming.
- *
  * @author Pavel Bortnik
  */
-public final class MoreCollectors {
+public interface BuildFilterStrategyLatest extends BuildFilterStrategy {
 
-    private MoreCollectors() {
-        //static only
-    }
-
-    public static <T, K, U> Collector<T, ?, Map<K, U>> toLinkedMap(Function<? super T, ? extends K> keyMapper,
-                                                                   Function<? super T, ? extends U> valueMapper) {
-        return Collectors.toMap(keyMapper, valueMapper,
-                (u, v) -> {
-                    throw new IllegalStateException(String.format("Duplicate key %s", u));
-                },
-                LinkedHashMap::new);
-    }
+	/**
+	 * Load widget content of latest launches with predefined filter.
+	 *
+	 * @param userFilter
+	 * @param contentOptions
+	 * @param projectName
+	 * @return
+	 */
+	Map<String, List<ChartObject>> loadContentOfLatest(UserFilter userFilter, ContentOptions contentOptions, String projectName);
 }

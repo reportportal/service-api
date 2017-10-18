@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.events.LaunchStartedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -82,7 +83,7 @@ class StartLaunchHandler implements IStartLaunchHandler {
 	 * .String, com.epam.ta.reportportal.ws.model.StartLaunchRQ)
 	 */
 	@Override
-	public EntryCreatedRS startLaunch(String username, String projectName, StartLaunchRQ startLaunchRQ) {
+	public StartLaunchRS startLaunch(String username, String projectName, StartLaunchRQ startLaunchRQ) {
 
 		if (startLaunchRQ.getMode() == DEBUG) {
 
@@ -108,7 +109,7 @@ class StartLaunchHandler implements IStartLaunchHandler {
 		launchRepository.save(launch);
 
 		eventPublisher.publishEvent(new LaunchStartedEvent(launch));
-		return new EntryCreatedRS(launch.getId());
+		return new StartLaunchRS(launch.getId(), launch.getNumber());
 
 	}
 

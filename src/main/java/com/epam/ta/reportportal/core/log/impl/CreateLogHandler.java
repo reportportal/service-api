@@ -39,6 +39,8 @@ import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -53,6 +55,8 @@ import java.io.IOException;
  * @author Andrei Varabyeu
  */
 public class CreateLogHandler implements ICreateLogHandler {
+
+    private static final Logger LOGGER = LogManager.getLogger(AsyncCreateLogHandler.class);
 
     protected TestItemRepository testItemRepository;
 
@@ -107,15 +111,13 @@ public class CreateLogHandler implements ICreateLogHandler {
             }
 
         }
-
         Log log = logBuilder.get().addSaveLogRQ(createLogRQ).addBinaryContent(binaryContent).addTestItem(testItem)
                 .build();
-
+        logRepository.save(log);
         try {
-            logRepository.save(log);
             logIndexer.indexLog(log);
-        } catch (Exception exc) {
-            throw new ReportPortalException("Error while Log instance creating.", exc);
+        } catch (Exception e) {
+			LOGGER.warn("Log '" + log.getId() + "' is not indexed. Error: \n{} ", e);
         }
         return new EntryCreatedRS(log.getId());
     }

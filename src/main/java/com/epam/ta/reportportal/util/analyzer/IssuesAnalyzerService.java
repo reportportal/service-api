@@ -70,7 +70,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 		IndexLaunch rs = null;
 
 		List<IndexTestItem> rqTestItems = testItems.stream()
-				.map(it -> IndexTestItem.fromTestItem(it, logRepository.findByTestItemRef(it.getId())))
+				.map(it -> IndexTestItem.fromTestItem(it, logRepository.findTestItemErrorLogs(it.getId())))
 				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
 				.collect(Collectors.toList());
 

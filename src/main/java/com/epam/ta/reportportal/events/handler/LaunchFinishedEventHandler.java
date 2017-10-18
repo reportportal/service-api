@@ -116,7 +116,7 @@ public class LaunchFinishedEventHandler {
 		}
 
 		// Do not process debug launches.
-		if (launch.getMode().equals(Mode.DEBUG)) {
+		if (Mode.DEBUG.equals(launch.getMode())) {
 			return;
 		}
 

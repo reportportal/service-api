@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Log;
+import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.util.analyzer.model.IndexTestItem;
@@ -85,10 +86,10 @@ public class IssuesAnalyzerServiceTest {
 	public void testAnalyzeTestItemsWithoutLogs() {
 		String launchId = "3";
 		when(launchRepository.findOne(Mockito.eq(launchId))).thenReturn(createLaunch(launchId));
-		when(logRepository.findByTestItemRef(Mockito.anyString())).thenReturn(Collections.emptyList());
+		when(logRepository.findTestItemErrorLogs(Mockito.anyString())).thenReturn(Collections.emptyList());
 		int testItemCount = 10;
 		analyzerService.analyze(launchId, createTestItems(testItemCount));
-		verify(logRepository, Mockito.times(testItemCount)).findByTestItemRef(Mockito.anyString());
+		verify(logRepository, Mockito.times(testItemCount)).findTestItemErrorLogs(Mockito.anyString());
 		verifyZeroInteractions(analyzerServiceClient);
 	}
 
@@ -96,14 +97,20 @@ public class IssuesAnalyzerServiceTest {
 	public void testAnalyze() {
 		String launchId = "4";
 		when(launchRepository.findOne(Mockito.eq(launchId))).thenReturn(createLaunch(launchId));
-		when(logRepository.findByTestItemRef(Mockito.anyString())).thenReturn(Collections.singletonList(new Log()));
+		when(logRepository.findTestItemErrorLogs(Mockito.anyString())).thenReturn(Collections.singletonList(createErrorLog()));
 		int testItemCount = 2;
 		when(analyzerServiceClient.analyze(Mockito.any(IndexLaunch.class))).thenReturn(crateAnalyzeRs(testItemCount));
 		List<TestItem> rs = analyzerService.analyze(launchId, createTestItems(testItemCount));
 		rs.forEach(ti -> Assert.assertEquals("ISSUE" + ti.getId(), ti.getIssue().getIssueType()));
-		verify(logRepository, Mockito.times(testItemCount)).findByTestItemRef(Mockito.anyString());
+		verify(logRepository, Mockito.times(testItemCount)).findTestItemErrorLogs(Mockito.anyString());
 		verify(analyzerServiceClient).analyze(Mockito.any(IndexLaunch.class));
 		verifyZeroInteractions(analyzerServiceClient);
+	}
+
+	private Log createErrorLog() {
+		Log log = new Log();
+		log.setLevel(LogLevel.ERROR);
+		return log;
 	}
 
 	private Launch createLaunch(String id) {

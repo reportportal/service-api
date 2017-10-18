@@ -34,14 +34,17 @@ import java.util.List;
 public interface ILogIndexer {
 
 	/**
-	 * Index single log
+	 * Index single log if it's level greater than
+	 * {@link com.epam.ta.reportportal.database.entity.LogLevel#ERROR}
 	 *
 	 * @param log - log
 	 */
 	void indexLog(Log log);
 
 	/**
-	 * Index logs for all given test items within launch
+	 * Index logs with it's level greater than
+	 * {@link com.epam.ta.reportportal.database.entity.LogLevel#ERROR}
+	 * for all given test items within launch
 	 *
 	 * @param launchId  - ID of the launch
 	 * @param testItems - list of test items, for which log indexing will be performed
@@ -49,7 +52,8 @@ public interface ILogIndexer {
 	void indexLogs(String launchId, List<TestItem> testItems);
 
 	/**
-	 * Index all logs in repository
+	 * Index all logs with its' level greater than
+	 * {@link com.epam.ta.reportportal.database.entity.LogLevel#ERROR} in repository
 	 */
 	void indexAllLogs();
 }

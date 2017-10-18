@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Log;
+import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.util.analyzer.model.IndexRs;
@@ -131,10 +132,10 @@ public class LogIndexerServiceTest {
 	public void testIndexLogsTestItemsWithoutLogs() {
 		String launchId = "3";
 		when(launchRepository.findOne(eq(launchId))).thenReturn(createLaunch(launchId));
-		when(logRepository.findByTestItemRef(anyString())).thenReturn(Collections.emptyList());
+		when(logRepository.findTestItemErrorLogs(anyString())).thenReturn(Collections.emptyList());
 		int testItemCount = 10;
 		logIndexerService.indexLogs(launchId, createTestItems(testItemCount));
-		verify(logRepository, times(testItemCount)).findByTestItemRef(anyString());
+		verify(logRepository, times(testItemCount)).findTestItemErrorLogs(anyString());
 		verifyZeroInteractions(mongoOperations, analyzerServiceClient);
 	}
 
@@ -142,11 +143,11 @@ public class LogIndexerServiceTest {
 	public void testIndexLogs() {
 		String launchId = "4";
 		when(launchRepository.findOne(eq(launchId))).thenReturn(createLaunch(launchId));
-		when(logRepository.findByTestItemRef(anyString())).thenReturn(Collections.singletonList(new Log()));
+		when(logRepository.findTestItemErrorLogs(anyString())).thenReturn(Collections.singletonList(createLog("id")));
 		int testItemCount = 2;
 		when(analyzerServiceClient.index(anyListOf(IndexLaunch.class))).thenReturn(createIndexRs(testItemCount));
 		logIndexerService.indexLogs(launchId, createTestItems(testItemCount));
-		verify(logRepository, times(testItemCount)).findByTestItemRef(anyString());
+		verify(logRepository, times(testItemCount)).findTestItemErrorLogs(anyString());
 		verify(analyzerServiceClient).index(anyListOf(IndexLaunch.class));
 		verifyZeroInteractions(mongoOperations);
 	}
@@ -217,6 +218,7 @@ public class LogIndexerServiceTest {
 		Log l = new Log();
 		l.setId(id);
 		l.setTestItemRef("testItem" + id);
+		l.setLevel(LogLevel.ERROR);
 		return l;
 	}
 

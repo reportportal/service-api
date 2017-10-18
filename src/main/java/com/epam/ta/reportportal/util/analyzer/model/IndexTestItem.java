@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.util.analyzer.model;
 
 import com.epam.ta.reportportal.database.entity.Log;
+import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -54,7 +55,12 @@ public class IndexTestItem {
 		if (testItem.getIssue() != null) {
 			indexTestItem.setIssueType(testItem.getIssue().getIssueType());
 		}
-		indexTestItem.setLogs(logs.stream().map(IndexLog::fromLog).collect(Collectors.toList()));
+		if (!logs.isEmpty()) {
+			indexTestItem.setLogs(logs.stream()
+					.filter(it -> null != it.getLevel() && it.getLevel().isGreaterOrEqual(LogLevel.ERROR))
+					.map(IndexLog::fromLog)
+					.collect(Collectors.toList()));
+		}
 		return indexTestItem;
 	}
 

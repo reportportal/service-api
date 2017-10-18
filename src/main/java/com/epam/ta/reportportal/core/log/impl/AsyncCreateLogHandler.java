@@ -24,11 +24,12 @@ package com.epam.ta.reportportal.core.log.impl;
 import com.epam.ta.reportportal.core.log.ICreateLogHandler;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.job.SaveBinaryDataJob;
 import com.epam.ta.reportportal.util.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
@@ -47,6 +48,8 @@ import javax.inject.Provider;
  */
 @Service
 public class AsyncCreateLogHandler extends CreateLogHandler implements ICreateLogHandler {
+
+    private static final Logger LOGGER = LogManager.getLogger(AsyncCreateLogHandler.class);
 
     /**
      * We are using {@link Provider} there because we need
@@ -71,12 +74,12 @@ public class AsyncCreateLogHandler extends CreateLogHandler implements ICreateLo
         validate(testItem, createLogRQ);
 
         Log log = logBuilder.get().addSaveLogRQ(createLogRQ).addTestItem(testItem).build();
+		logRepository.save(log);
 
         try {
-            logRepository.save(log);
             logIndexer.indexLog(log);
-        } catch (Exception exc) {
-            throw new ReportPortalException("Error while Log instance creating.", exc);
+        } catch (Exception e) {
+            LOGGER.warn("Log '" + log.getId() + "' is not indexed. Error: \n{} ", e);
         }
 
         if (null != file) {

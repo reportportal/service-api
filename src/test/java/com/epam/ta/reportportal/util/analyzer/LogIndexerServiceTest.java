@@ -26,7 +26,10 @@ import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Log;
+import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
+import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.util.analyzer.model.IndexRs;
 import com.epam.ta.reportportal.util.analyzer.model.IndexRsIndex;
@@ -131,10 +134,10 @@ public class LogIndexerServiceTest {
 	public void testIndexLogsTestItemsWithoutLogs() {
 		String launchId = "3";
 		when(launchRepository.findOne(eq(launchId))).thenReturn(createLaunch(launchId));
-		when(logRepository.findByTestItemRef(anyString())).thenReturn(Collections.emptyList());
+		when(logRepository.findLogsGreaterThanLevel(anyString(), eq(LogLevel.ERROR))).thenReturn(Collections.emptyList());
 		int testItemCount = 10;
 		logIndexerService.indexLogs(launchId, createTestItems(testItemCount));
-		verify(logRepository, times(testItemCount)).findByTestItemRef(anyString());
+		verify(logRepository, times(testItemCount)).findLogsGreaterThanLevel(anyString(), eq(LogLevel.ERROR));
 		verifyZeroInteractions(mongoOperations, analyzerServiceClient);
 	}
 
@@ -142,11 +145,11 @@ public class LogIndexerServiceTest {
 	public void testIndexLogs() {
 		String launchId = "4";
 		when(launchRepository.findOne(eq(launchId))).thenReturn(createLaunch(launchId));
-		when(logRepository.findByTestItemRef(anyString())).thenReturn(Collections.singletonList(new Log()));
+		when(logRepository.findLogsGreaterThanLevel(anyString(), eq(LogLevel.ERROR))).thenReturn(Collections.singletonList(createLog("id")));
 		int testItemCount = 2;
 		when(analyzerServiceClient.index(anyListOf(IndexLaunch.class))).thenReturn(createIndexRs(testItemCount));
 		logIndexerService.indexLogs(launchId, createTestItems(testItemCount));
-		verify(logRepository, times(testItemCount)).findByTestItemRef(anyString());
+		verify(logRepository, times(testItemCount)).findLogsGreaterThanLevel(anyString(), eq(LogLevel.ERROR));
 		verify(analyzerServiceClient).index(anyListOf(IndexLaunch.class));
 		verifyZeroInteractions(mongoOperations);
 	}
@@ -199,6 +202,18 @@ public class LogIndexerServiceTest {
 		verify(analyzerServiceClient, times(batchCount)).index(anyListOf(IndexLaunch.class));
 	}
 
+	@Test
+	public void testIndexTIItems() {
+		DBCollection checkpointColl = mock(DBCollection.class);
+		when(mongoOperations.getCollection(eq("logIndexingCheckpoint"))).thenReturn(checkpointColl);
+		when(checkpointColl.findOne(any(Query.class))).thenReturn(null);
+		when(mongoOperations.stream(any(Query.class), eq(Log.class))).thenReturn(createLogIterator(5));
+		when(testItemRepository.findOne(anyString())).thenReturn(createToInvestigateItem("testItemId"));
+		logIndexerService.indexAllLogs();
+		verify(checkpointColl, times(0)).save(any(DBObject.class));
+		verify(analyzerServiceClient, times(0)).index(anyListOf(IndexLaunch.class));
+	}
+
 	private Launch createLaunch(String id) {
 		Launch l = new Launch();
 		l.setId(id);
@@ -210,6 +225,15 @@ public class LogIndexerServiceTest {
 		TestItem ti = new TestItem();
 		ti.setId(id);
 		ti.setLaunchRef("launch" + id);
+		ti.setIssue(new TestItemIssue(TestItemIssueType.PRODUCT_BUG.getLocator(), null));
+		return ti;
+	}
+
+	private TestItem createToInvestigateItem(String id) {
+		TestItem ti = new TestItem();
+		ti.setId(id);
+		ti.setLaunchRef("launch" + id);
+		ti.setIssue(new TestItemIssue());
 		return ti;
 	}
 
@@ -217,6 +241,7 @@ public class LogIndexerServiceTest {
 		Log l = new Log();
 		l.setId(id);
 		l.setTestItemRef("testItem" + id);
+		l.setLevel(LogLevel.ERROR);
 		return l;
 	}
 
@@ -262,6 +287,7 @@ public class LogIndexerServiceTest {
 				Log l = new Log();
 				String id = String.valueOf(count - i);
 				l.setId(id);
+				l.setLevel(LogLevel.ERROR);
 				l.setTestItemRef("testItem" + id);
 				return l;
 			}

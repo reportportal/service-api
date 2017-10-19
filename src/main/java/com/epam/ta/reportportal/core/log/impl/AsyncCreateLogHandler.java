@@ -28,8 +28,8 @@ import com.epam.ta.reportportal.job.SaveBinaryDataJob;
 import com.epam.ta.reportportal.util.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
@@ -49,7 +49,7 @@ import javax.inject.Provider;
 @Service
 public class AsyncCreateLogHandler extends CreateLogHandler implements ICreateLogHandler {
 
-    private static final Logger LOGGER = LogManager.getLogger(AsyncCreateLogHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AsyncCreateLogHandler.class);
 
     /**
      * We are using {@link Provider} there because we need
@@ -79,7 +79,7 @@ public class AsyncCreateLogHandler extends CreateLogHandler implements ICreateLo
         try {
             logIndexer.indexLog(log);
         } catch (Exception e) {
-            LOGGER.warn("Log '" + log.getId() + "' is not indexed. Error: \n{} ", e);
+            LOGGER.warn("Log {} is not indexed. Error: \n{} ", log.getId(), e);
         }
 
         if (null != file) {

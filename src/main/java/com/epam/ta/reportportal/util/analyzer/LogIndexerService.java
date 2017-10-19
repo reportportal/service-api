@@ -107,6 +107,7 @@ public class LogIndexerService implements ILogIndexer {
 		if (launch != null) {
 
 			List<IndexTestItem> rqTestItems = testItems.stream()
+					.filter(this::isItemSuitable)
 					.map(it -> IndexTestItem.fromTestItem(it, logRepository.findLogsGreaterThanLevel(it.getId(), LogLevel.ERROR)))
 					.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
 					.collect(Collectors.toList());
@@ -148,6 +149,9 @@ public class LogIndexerService implements ILogIndexer {
 						checkpoint = null;
 					}
 				}
+			}
+			if (!CollectionUtils.isEmpty(rq)) {
+				analyzerServiceClient.index(rq);
 			}
 		}
 

@@ -44,8 +44,6 @@ import java.util.stream.Collectors;
 @Service("analyzerService")
 public class IssuesAnalyzerService implements IIssuesAnalyzer {
 
-	private static final String DEFAULT_ISSUE_DESCRIPTION = "";
-
 	@Autowired
 	private AnalyzerServiceClient analyzerServiceClient;
 
@@ -95,7 +93,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 				.forEach(indexTestItem -> testItems.stream()
 						.filter(testItem -> testItem.getId().equals(indexTestItem.getTestItemId()))
 						.findFirst()
-						.ifPresent(it -> it.setIssue(new TestItemIssue(indexTestItem.getIssueType(), DEFAULT_ISSUE_DESCRIPTION))));
+						.ifPresent(it -> it.setIssue(new TestItemIssue(indexTestItem.getIssueType(), null))));
 		return testItems;
 	}
 }

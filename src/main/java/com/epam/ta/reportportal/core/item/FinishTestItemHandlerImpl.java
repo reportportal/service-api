@@ -39,7 +39,6 @@ import com.epam.ta.reportportal.util.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.base.Strings;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,8 +54,8 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.database.entity.Status.*;
-import static com.epam.ta.reportportal.database.entity.Status.fromValue;
-import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.*;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.NOT_ISSUE_FLAG;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.validValues;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -246,11 +245,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			} else {
 				testItem.setIssue(new TestItemIssue());
 				/* For AA saving reference initialization */
-				Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-				expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, testItem.getLaunchRef());
-				if (Mode.DEFAULT.equals(launch.getMode()) && project.getConfiguration().getIsAutoAnalyzerEnabled()) {
-					testItem = analyzeItem(launch.getId(), testItem, project.getConfiguration().getAnalyzeOnTheFly());
-				}
+//				Launch launch = launchRepository.findOne(testItem.getLaunchRef());
+//				expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, testItem.getLaunchRef());
+//				if (Mode.DEFAULT.equals(launch.getMode()) && project.getConfiguration().getIsAutoAnalyzerEnabled()) {
+//					testItem = analyzeItem(launch.getId(), testItem, project.getConfiguration().getAnalyzeOnTheFly());
+//				}
 			}
 		}
 		return testItem;
@@ -266,7 +265,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param analyzeOnTheFly
 	 * @return
 	 */
-	private TestItem analyzeItem(String launchId, TestItem testItem, Boolean analyzeOnTheFly) {
+/*	private TestItem analyzeItem(String launchId, TestItem testItem, Boolean analyzeOnTheFly) {
 		TestItemIssue issue = testItem.getIssue();
 		analyzeOnTheFly = Optional.ofNullable(analyzeOnTheFly).orElse(false);
 		if (null != issue && analyzeOnTheFly && TO_INVESTIGATE.getLocator().equals(issue.getIssueType())) {
@@ -274,5 +273,5 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			return analyzedItem.get(0);
 		}
 		return testItem;
-	}
+	}*/
 }

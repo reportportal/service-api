@@ -93,7 +93,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 				.forEach(indexTestItem -> testItems.stream()
 						.filter(testItem -> testItem.getId().equals(indexTestItem.getTestItemId()))
 						.findFirst()
-						.ifPresent(it -> it.setIssue(new TestItemIssue(indexTestItem.getIssueType(), null))));
+						.ifPresent(it -> it.setIssue(new TestItemIssue(indexTestItem.getIssueType(), null, true))));
 		return testItems;
 	}
 }

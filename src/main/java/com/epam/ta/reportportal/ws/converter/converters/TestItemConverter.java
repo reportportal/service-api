@@ -60,6 +60,7 @@ public final class TestItemConverter {
         if (null != testItemIssue) {
             Issue issue = new Issue();
             issue.setIssueType(testItemIssue.getIssueType());
+            issue.setAutoAnalyzed(String.valueOf(testItemIssue.isAutoAnalyzed()));
             issue.setComment(testItemIssue.getIssueDescription());
             Set<TestItemIssue.ExternalSystemIssue> externalSystemIssues = testItemIssue.getExternalSystemIssues();
             if (null != externalSystemIssues) {

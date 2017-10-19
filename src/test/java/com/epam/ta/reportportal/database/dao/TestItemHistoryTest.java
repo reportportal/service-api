@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.database.dao;
 
 import com.epam.ta.BaseTest;
@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @SpringFixture("testItemsHistroyTest")
-public class TestItemHistoryTest  extends BaseTest {
+public class TestItemHistoryTest extends BaseTest {
 
 	@Rule
 	@Autowired

@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.core.filter;
 
 import com.epam.ta.reportportal.database.entity.user.UserRole;
@@ -32,16 +32,15 @@ import java.util.List;
 
 /**
  * Update user filter handler
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 
 public interface IUpdateUserFilterHandler {
 
 	/**
 	 * Update user filter with specified id
-	 * 
+	 *
 	 * @param updateRQ
 	 * @param userFilterId
 	 * @param userName
@@ -50,19 +49,19 @@ public interface IUpdateUserFilterHandler {
 	 * @return OperationCompletionRS
 	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS updateUserFilter(String userFilterId, UpdateUserFilterRQ updateRQ, String userName,
-										   String projectName, UserRole userRole);
+	OperationCompletionRS updateUserFilter(String userFilterId, UpdateUserFilterRQ updateRQ, String userName, String projectName,
+			UserRole userRole);
 
 	/**
 	 * Update user filter
-	 * 
+	 *
 	 * @param updateRQ
 	 * @param userName
 	 * @param projectName
 	 * @param userRole
 	 * @return
 	 */
-	List<OperationCompletionRS> updateUserFilter(CollectionsRQ<BulkUpdateFilterRQ> updateRQ, String userName,
-												 String projectName, UserRole userRole);
+	List<OperationCompletionRS> updateUserFilter(CollectionsRQ<BulkUpdateFilterRQ> updateRQ, String userName, String projectName,
+			UserRole userRole);
 
 }

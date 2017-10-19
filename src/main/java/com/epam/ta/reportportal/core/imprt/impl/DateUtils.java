@@ -26,17 +26,17 @@ import java.util.Date;
 
 public final class DateUtils {
 
-    private DateUtils(){
-        //static only
-    }
+	private DateUtils() {
+		//static only
+	}
 
-    public static Date toDate(LocalDateTime startTime) {
-        return Date.from(startTime.atZone(ZoneId.systemDefault()).toInstant());
-    }
+	public static Date toDate(LocalDateTime startTime) {
+		return Date.from(startTime.atZone(ZoneId.systemDefault()).toInstant());
+	}
 
-    public static long toMillis(String duration) {
-        Double value = Double.valueOf(duration) * 1000;
-        return value.longValue();
-    }
+	public static long toMillis(String duration) {
+		Double value = Double.valueOf(duration) * 1000;
+		return value.longValue();
+	}
 
 }

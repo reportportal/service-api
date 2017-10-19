@@ -31,23 +31,23 @@ import org.junit.Test;
  */
 public class UserCreationBidConverterTest {
 
-    @Test(expected = NullPointerException.class)
-    public void testNull() {
-        UserCreationBidConverter.TO_USER.apply(null);
-    }
+	@Test(expected = NullPointerException.class)
+	public void testNull() {
+		UserCreationBidConverter.TO_USER.apply(null);
+	}
 
-    @Test
-    public void testConvert() {
-        CreateUserRQ rq = new CreateUserRQ();
-        rq.setDefaultProject("default_personal");
-        rq.setEmail("email@email.com");
-        rq.setRole("USER");
-        UserCreationBid bid = UserCreationBidConverter.TO_USER.apply(rq);
+	@Test
+	public void testConvert() {
+		CreateUserRQ rq = new CreateUserRQ();
+		rq.setDefaultProject("default_personal");
+		rq.setEmail("email@email.com");
+		rq.setRole("USER");
+		UserCreationBid bid = UserCreationBidConverter.TO_USER.apply(rq);
 
-        Assert.assertEquals(bid.getDefaultProject(), rq.getDefaultProject());
-        Assert.assertEquals(bid.getEmail(), rq.getEmail());
-        Assert.assertEquals(bid.getRole(), rq.getRole());
-        Assert.assertNotNull(bid.getId());
-    }
+		Assert.assertEquals(bid.getDefaultProject(), rq.getDefaultProject());
+		Assert.assertEquals(bid.getEmail(), rq.getEmail());
+		Assert.assertEquals(bid.getRole(), rq.getRole());
+		Assert.assertNotNull(bid.getId());
+	}
 
 }

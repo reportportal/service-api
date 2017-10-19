@@ -67,9 +67,10 @@ public class StrategyProvider {
 	private void validate(Optional<ExternalSystemType> externalSystem, String externalSystemName) {
 
 		// TODO consider to move this validation to spring security rule
-		expect(externalSystem, Preconditions.IS_PRESENT)
-				.verify(INCORRECT_EXTERNAL_SYSTEM_NAME, formattedSupplier("Unknown external system '{}'.", externalSystemName));
+		expect(externalSystem, Preconditions.IS_PRESENT).verify(
+				INCORRECT_EXTERNAL_SYSTEM_NAME, formattedSupplier("Unknown external system '{}'.", externalSystemName));
 		expect(externalSystem.get(), not(equalTo(ExternalSystemType.NONE))).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
-				formattedSupplier("External system is not defined in project settings.", externalSystemName));
+				formattedSupplier("External system is not defined in project settings.", externalSystemName)
+		);
 	}
 }

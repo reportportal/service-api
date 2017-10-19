@@ -37,7 +37,8 @@ public enum GadgetTypes {
 	LAUNCH_STATISTICS("launch_statistics"),
 	STATISTIC_TREND("statistic_trend"),
 	CASES_TREND("cases_trend"),
-	NOT_PASSED("not_passed"), //almost the same as cases_trend, so could be removed if UI handle this
+	NOT_PASSED("not_passed"),
+	//almost the same as cases_trend, so could be removed if UI handle this
 	OVERALL_STATISTICS("overall_statistics"),
 	UNIQUE_BUG_TABLE("unique_bug_table"),
 	BUG_TREND("bug_trend"),

@@ -81,7 +81,8 @@ public class TestItemsHistoryService implements ITestItemsHistoryService {
 			return Collections.singletonList(startingLaunch);
 		}
 		Filter filter = HistoryUtils.getLaunchSelectionFilter(startingLaunch.getName(), projectName, startingLaunch.getStartTime(),
-				showBrokenLaunches);
+				showBrokenLaunches
+		);
 		return launchRepository.findIdsByFilter(filter, new Sort(DESC, "start_time"), quantity);
 	}
 
@@ -89,8 +90,8 @@ public class TestItemsHistoryService implements ITestItemsHistoryService {
 	public TestItemHistoryElement buildHistoryElement(Launch launch, List<TestItem> testItems) {
 		List<TestItemResource> resources = new ArrayList<>();
 		if (testItems != null) {
-			resources = testItems.stream().map(item ->
-					itemResourceAssembler.toResource(item, launch.getStatus().name()))
+			resources = testItems.stream()
+					.map(item -> itemResourceAssembler.toResource(item, launch.getStatus().name()))
 					.collect(Collectors.toList());
 		}
 		TestItemHistoryElement testItemHistoryElement = new TestItemHistoryElement();
@@ -109,30 +110,33 @@ public class TestItemsHistoryService implements ITestItemsHistoryService {
 
 		Predicate<Integer> greaterThan = t -> t > MIN_HISTORY_DEPTH_BOUND;
 		Predicate<Integer> lessThan = t -> t < MAX_HISTORY_DEPTH_BOUND;
-		String historyDepthMessage = "Items history depth should be greater than '" + MIN_HISTORY_DEPTH_BOUND + "' and lower than '"
-				+ MAX_HISTORY_DEPTH_BOUND + "'";
+		String historyDepthMessage =
+				"Items history depth should be greater than '" + MIN_HISTORY_DEPTH_BOUND + "' and lower than '" + MAX_HISTORY_DEPTH_BOUND
+						+ "'";
 		BusinessRule.expect(historyDepth, greaterThan.and(lessThan)).verify(UNABLE_LOAD_TEST_ITEM_HISTORY, historyDepthMessage);
 
-		BusinessRule.expect(startPointsIds.length, t -> t < MAX_HISTORY_SIZE_BOUND).verify(UNABLE_LOAD_TEST_ITEM_HISTORY,
-				"History size should be less than '" + MAX_HISTORY_SIZE_BOUND + "' test items.");
+		BusinessRule.expect(startPointsIds.length, t -> t < MAX_HISTORY_SIZE_BOUND)
+				.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "History size should be less than '" + MAX_HISTORY_SIZE_BOUND + "' test items.");
 	}
 
 	@Override
 	public void validateItems(List<TestItem> itemsForHistory, List<String> ids, String projectName) {
 		// check all items loaded
-		BusinessRule.expect(itemsForHistory, Preconditions.NOT_EMPTY_COLLECTION).verify(UNABLE_LOAD_TEST_ITEM_HISTORY,
-				"Unable to find history for items '" + ids + "'.");
+		BusinessRule.expect(itemsForHistory, Preconditions.NOT_EMPTY_COLLECTION)
+				.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "Unable to find history for items '" + ids + "'.");
 
 		Set<String> projectIds = launchRepository.find(itemsForHistory.stream().map(TestItem::getLaunchRef).collect(toList()))
-				.stream().map(Launch::getProjectRef).collect(toSet());
+				.stream()
+				.map(Launch::getProjectRef)
+				.collect(toSet());
 
 		BusinessRule.expect((projectIds.size() == 1) && (projectIds.contains(projectName)), Predicates.equalTo(TRUE))
 				.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "Unable to find history for items '" + ids + "'.");
 
 		ids.removeAll(itemsForHistory.stream().map(TestItem::getId).collect(toList()));
 
-		BusinessRule.expect(ids.isEmpty(), Predicates.equalTo(TRUE)).verify(UNABLE_LOAD_TEST_ITEM_HISTORY,
-				"Unable to find history for items '" + ids + "'.");
+		BusinessRule.expect(ids.isEmpty(), Predicates.equalTo(TRUE))
+				.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "Unable to find history for items '" + ids + "'.");
 
 		// check all items is siblings
 		checkItemsIsSiblings(itemsForHistory);
@@ -147,13 +151,13 @@ public class TestItemsHistoryService implements ITestItemsHistoryService {
 		if (parentId == null) {
 			String launchRef = itemsForHistory.get(0).getLaunchRef();
 			for (TestItem testItem : itemsForHistory) {
-				BusinessRule.expect(testItem, Preconditions.hasSameLaunch(launchRef)).verify(UNABLE_LOAD_TEST_ITEM_HISTORY,
-						"All test items should be siblings.");
+				BusinessRule.expect(testItem, Preconditions.hasSameLaunch(launchRef))
+						.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "All test items should be siblings.");
 			}
 		} else {
 			/* Validate that items do not contains different parents */
-			BusinessRule
-					.expect(itemsForHistory, Predicates.not(Preconditions.contains(Predicates.not(Preconditions.hasSameParent(parentId)))))
+			BusinessRule.expect(
+					itemsForHistory, Predicates.not(Preconditions.contains(Predicates.not(Preconditions.hasSameParent(parentId)))))
 					.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "All test items should be siblings.");
 		}
 	}

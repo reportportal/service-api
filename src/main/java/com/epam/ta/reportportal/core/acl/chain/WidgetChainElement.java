@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.acl.chain;
 
@@ -42,37 +42,35 @@ import java.util.stream.Collectors;
 @Service("WidgetChainElement")
 public class WidgetChainElement extends ChainElement {
 
-    @Autowired
-    private UserFilterRepository userFilterRepository;
+	@Autowired
+	private UserFilterRepository userFilterRepository;
 
-    @Autowired
-    private WidgetRepository widgetRepository;
+	@Autowired
+	private WidgetRepository widgetRepository;
 
-    @Autowired
-    public WidgetChainElement(@Qualifier("UserFilterChainElement") IChainElement nextChainElement) {
-        super(nextChainElement);
-        // TODO Auto-generated constructor stub
-    }
+	@Autowired
+	public WidgetChainElement(@Qualifier("UserFilterChainElement") IChainElement nextChainElement) {
+		super(nextChainElement);
+		// TODO Auto-generated constructor stub
+	}
 
-    @Override
-    public boolean isCanHandle(List<? extends Shareable> elementsToProcess) {
-        return Widget.class.equals(elementsToProcess.get(0).getClass());
-    }
+	@Override
+	public boolean isCanHandle(List<? extends Shareable> elementsToProcess) {
+		return Widget.class.equals(elementsToProcess.get(0).getClass());
+	}
 
-    @Override
-    public List<? extends Shareable> getNextElements(List<? extends Shareable> elementsToProcess, String ownerId) {
-        Set<String> ids = elementsToProcess.stream().map(it -> (Widget) it).map(Widget::getApplyingFilterId)
-                .collect(Collectors.toSet());
-        if (!ids.isEmpty()) {
-            return userFilterRepository.findOnlyOwnedEntities(ids, ownerId);
-        }
-        return Collections.emptyList();
-    }
+	@Override
+	public List<? extends Shareable> getNextElements(List<? extends Shareable> elementsToProcess, String ownerId) {
+		Set<String> ids = elementsToProcess.stream().map(it -> (Widget) it).map(Widget::getApplyingFilterId).collect(Collectors.toSet());
+		if (!ids.isEmpty()) {
+			return userFilterRepository.findOnlyOwnedEntities(ids, ownerId);
+		}
+		return Collections.emptyList();
+	}
 
-    @Override
-    public void saveElements(List<? extends Shareable> elementsToProcess) {
-        widgetRepository.save(elementsToProcess.stream()
-                .map(input -> (Widget) input).collect(Collectors.toList()));
-    }
+	@Override
+	public void saveElements(List<? extends Shareable> elementsToProcess) {
+		widgetRepository.save(elementsToProcess.stream().map(input -> (Widget) input).collect(Collectors.toList()));
+	}
 
 }

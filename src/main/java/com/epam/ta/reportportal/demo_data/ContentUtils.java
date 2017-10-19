@@ -47,110 +47,107 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 final class ContentUtils {
 
-    private static final int MAX_ERROR_LOGS_COUNT = 2;
+	private static final int MAX_ERROR_LOGS_COUNT = 2;
 
-    private static final int ERRORS_COUNT = 9;
+	private static final int ERRORS_COUNT = 9;
 
-    private static final Range<Integer> PROBABILITY_RANGE = Range.openClosed(0, 100);
+	private static final Range<Integer> PROBABILITY_RANGE = Range.openClosed(0, 100);
 
-    private static SplittableRandom random = new SplittableRandom();
+	private static SplittableRandom random = new SplittableRandom();
 
-    private ContentUtils() {
-        //static only
-    }
+	private ContentUtils() {
+		//static only
+	}
 
-    static Set<String> getTagsInRange(int limit) {
-        List<String> content = readToList("demo/content/tags.txt");
-        int fromIndex = random.nextInt(content.size() - limit);
-        return ImmutableSet.<String>builder()
-                .addAll(content.subList(fromIndex, fromIndex + limit)).build();
-    }
+	static Set<String> getTagsInRange(int limit) {
+		List<String> content = readToList("demo/content/tags.txt");
+		int fromIndex = random.nextInt(content.size() - limit);
+		return ImmutableSet.<String>builder().addAll(content.subList(fromIndex, fromIndex + limit)).build();
+	}
 
-    static String getSuiteDescription() {
-        List<String> content = readToList("demo/content/suite-description.txt");
-        return content.get(random.nextInt(content.size()));
-    }
+	static String getSuiteDescription() {
+		List<String> content = readToList("demo/content/suite-description.txt");
+		return content.get(random.nextInt(content.size()));
+	}
 
-    static String getStepDescription() {
-        List<String> content = readToList("demo/content/step-description.txt");
-        return content.get(random.nextInt(content.size()));
-    }
+	static String getStepDescription() {
+		List<String> content = readToList("demo/content/step-description.txt");
+		return content.get(random.nextInt(content.size()));
+	}
 
-    static String getTestDescription() {
-        List<String> content = readToList("demo/content/test-description.txt");
-        return content.get(random.nextInt(content.size()));
-    }
+	static String getTestDescription() {
+		List<String> content = readToList("demo/content/test-description.txt");
+		return content.get(random.nextInt(content.size()));
+	}
 
-    static String getDefectDescription(String issueType) {
-        List<String> content = readToList("demo/content/defects.txt");
-        return content.get(random.nextInt(content.size()));
-    }
+	static String getDefectDescription(String issueType) {
+		List<String> content = readToList("demo/content/defects.txt");
+		return content.get(random.nextInt(content.size()));
+	}
 
-    static String getLaunchDescription() {
-        return readToString("demo/content/description.txt");
-    }
+	static String getLaunchDescription() {
+		return readToString("demo/content/description.txt");
+	}
 
-    static List<String> getErrorLogs() {
-        return IntStream.range(0, MAX_ERROR_LOGS_COUNT).mapToObj(i -> {
-            int errorNumber = random.nextInt(1, ERRORS_COUNT);
-            return readToString("demo/errors/" + errorNumber + ".txt");
-        }).collect(Collectors.toList());
-    }
+	static List<String> getErrorLogs() {
+		return IntStream.range(0, MAX_ERROR_LOGS_COUNT).mapToObj(i -> {
+			int errorNumber = random.nextInt(1, ERRORS_COUNT);
+			return readToString("demo/errors/" + errorNumber + ".txt");
+		}).collect(Collectors.toList());
+	}
 
-    static String getLogMessage() {
-        List<String> logs = readToList("demo/content/demo_logs.txt");
-        return logs.get(random.nextInt(logs.size()));
-    }
+	static String getLogMessage() {
+		List<String> logs = readToList("demo/content/demo_logs.txt");
+		return logs.get(random.nextInt(logs.size()));
+	}
 
-    static boolean getWithProbability(int probability) {
-        Preconditions.checkArgument(PROBABILITY_RANGE.contains(probability),
-                "%s is not in range [%s]", probability, PROBABILITY_RANGE);
-        return Range.closedOpen(PROBABILITY_RANGE.lowerEndpoint(), probability)
-                .contains(random.nextInt(PROBABILITY_RANGE.upperEndpoint()));
-    }
+	static boolean getWithProbability(int probability) {
+		Preconditions.checkArgument(PROBABILITY_RANGE.contains(probability), "%s is not in range [%s]", probability, PROBABILITY_RANGE);
+		return Range.closedOpen(PROBABILITY_RANGE.lowerEndpoint(), probability).contains(random.nextInt(PROBABILITY_RANGE.upperEndpoint()));
+	}
 
-    static TestItemIssue getProductBug() {
-        return new TestItemIssue("PB001", bugDescription("demo/content/comments/product.txt"));
-    }
+	static TestItemIssue getProductBug() {
+		return new TestItemIssue("PB001", bugDescription("demo/content/comments/product.txt"));
+	}
 
-    static TestItemIssue getAutomationBug() {
-        return new TestItemIssue("AB001", bugDescription("demo/content/comments/automation.txt"));
-    }
+	static TestItemIssue getAutomationBug() {
+		return new TestItemIssue("AB001", bugDescription("demo/content/comments/automation.txt"));
+	}
 
-    static TestItemIssue getSystemIssue() {
-        return new TestItemIssue("SI001", bugDescription("demo/content/comments/system.txt"));
-    }
+	static TestItemIssue getSystemIssue() {
+		return new TestItemIssue("SI001", bugDescription("demo/content/comments/system.txt"));
+	}
 
-    static TestItemIssue getInvestigate() {
-        return new TestItemIssue("TI001", bugDescription("demo/content/comments/investigate.txt"));
-    }
+	static TestItemIssue getInvestigate() {
+		return new TestItemIssue("TI001", bugDescription("demo/content/comments/investigate.txt"));
+	}
 
-    private static String bugDescription(String resource) {
-        String description = null;
-        if (random.nextBoolean()) {
-            List<String> descriptions = readToList(resource);
-            description = descriptions.get(random.nextInt(descriptions.size()));
-        }
-        return description;
-    }
+	private static String bugDescription(String resource) {
+		String description = null;
+		if (random.nextBoolean()) {
+			List<String> descriptions = readToList(resource);
+			description = descriptions.get(random.nextInt(descriptions.size()));
+		}
+		return description;
+	}
 
-    private static List<String> readToList(String resource) {
-        List<String> content;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ClassPathResource(resource).getInputStream(), UTF_8))){
-            content = reader.lines().collect(Collectors.toList());
-        }catch (IOException e) {
-            throw new ReportPortalException("Missing demo content.", e);
-        }
-        return content;
-    }
+	private static List<String> readToList(String resource) {
+		List<String> content;
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ClassPathResource(resource).getInputStream(), UTF_8))) {
+			content = reader.lines().collect(Collectors.toList());
+		} catch (IOException e) {
+			throw new ReportPortalException("Missing demo content.", e);
+		}
+		return content;
+	}
 
-    private static String readToString(String resource) {
-        String content;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ClassPathResource(resource).getInputStream(), UTF_8))){
-            content = reader.lines().collect(Collectors.joining("\n"));
-        }catch (IOException e) {
-            throw new ReportPortalException("Missing demo content.", e);
-        }
-        return content;
-    }
+	private static String readToString(String resource) {
+		String content;
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ClassPathResource(resource).getInputStream(), UTF_8))) {
+			content = reader.lines().collect(Collectors.joining("\n"));
+		} catch (IOException e) {
+			throw new ReportPortalException("Missing demo content.", e);
+		}
+		return content;
+	}
 }

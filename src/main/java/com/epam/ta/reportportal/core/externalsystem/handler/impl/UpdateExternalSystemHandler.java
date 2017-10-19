@@ -17,39 +17,37 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.externalsystem.handler.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.*;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-
-import java.util.Optional;
-
 import com.epam.ta.reportportal.core.externalsystem.ExternalSystemStrategy;
 import com.epam.ta.reportportal.core.externalsystem.StrategyProvider;
+import com.epam.ta.reportportal.core.externalsystem.handler.IUpdateExternalSystemHandler;
+import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.AuthType;
+import com.epam.ta.reportportal.database.entity.ExternalSystem;
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType;
 import com.epam.ta.reportportal.events.ExternalSystemUpdatedEvent;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.externalsystem.UpdateExternalSystemRQ;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 
-import com.epam.ta.reportportal.core.externalsystem.handler.IUpdateExternalSystemHandler;
-import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.entity.ExternalSystem;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.externalsystem.UpdateExternalSystemRQ;
+import static com.epam.ta.reportportal.commons.Predicates.*;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Initial realization for {@link IUpdateExternalSystemHandler} interface
- * 
+ *
  * @author Andrei_Ramanchuk
  */
 @Service
@@ -97,18 +95,21 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 		}
 		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(exist.getExternalSystemType().name());
 
-		if (null != request.getProject())
+		if (null != request.getProject()) {
 			exist.setProject(request.getProject());
+		}
 		/* Hard referenced project update */
 		exist.setProjectRef(projectName);
-		if (null != request.getFields())
+		if (null != request.getFields()) {
 			exist.setFields(request.getFields());
+		}
 
 		/* Check input params for avoid external system duplication */
-		if (!sysUrl.equalsIgnoreCase(exist.getUrl()) || !sysProject.equalsIgnoreCase(exist.getProject())
-				|| !rpProject.equalsIgnoreCase(exist.getProjectRef())) {
+		if (!sysUrl.equalsIgnoreCase(exist.getUrl()) || !sysProject.equalsIgnoreCase(exist.getProject()) || !rpProject.equalsIgnoreCase(
+				exist.getProjectRef())) {
 			ExternalSystem duplicate = externalSystemRepository.findByUrlAndProject(exist.getUrl(), exist.getProject(),
-					exist.getProjectRef());
+					exist.getProjectRef()
+			);
 			expect(duplicate, isNull()).verify(EXTERNAL_SYSTEM_ALREADY_EXISTS, request.getUrl() + " & " + request.getProject());
 		}
 
@@ -119,52 +120,53 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 			exist.setExternalSystemAuth(auth);
 			// Reset ext sys fields handler
 			switch (auth) {
-			case BASIC:
-				if ((null != request.getUsername()) && (null != request.getPassword())) {
-					exist = resetNTLMFields(exist);
-					exist = resetOAuthFields(exist);
-					exist.setUsername(request.getUsername());
-					String encryptedPass = simpleEncryptor.encrypt(request.getPassword());
-					exist.setPassword(encryptedPass);
-				}
-				break;
-			case NTLM:
-				if ((null != request.getUsername()) && (null != request.getPassword()) && (null != request.getDomain())) {
-					exist = resetBasicFields(exist);
-					exist = resetOAuthFields(exist);
-					exist.setUsername(request.getUsername());
-					String encryptedPass = simpleEncryptor.encrypt(request.getPassword());
-					exist.setPassword(encryptedPass);
-					exist.setDomain(request.getDomain());
-				}
-				break;
-			case OAUTH:
-				if (null != request.getAccessKey()) {
-					exist = resetBasicFields(exist);
-					exist = resetNTLMFields(exist);
-					exist.setAccessKey(request.getAccessKey());
-				}
-				break;
-			case APIKEY:
-				if (null != request.getAccessKey()) {
-					exist = resetBasicFields(exist);
-					exist = resetNTLMFields(exist);
-					exist.setAccessKey(request.getAccessKey());
-				}
-				break;
-			default:
-				//do nothing
+				case BASIC:
+					if ((null != request.getUsername()) && (null != request.getPassword())) {
+						exist = resetNTLMFields(exist);
+						exist = resetOAuthFields(exist);
+						exist.setUsername(request.getUsername());
+						String encryptedPass = simpleEncryptor.encrypt(request.getPassword());
+						exist.setPassword(encryptedPass);
+					}
+					break;
+				case NTLM:
+					if ((null != request.getUsername()) && (null != request.getPassword()) && (null != request.getDomain())) {
+						exist = resetBasicFields(exist);
+						exist = resetOAuthFields(exist);
+						exist.setUsername(request.getUsername());
+						String encryptedPass = simpleEncryptor.encrypt(request.getPassword());
+						exist.setPassword(encryptedPass);
+						exist.setDomain(request.getDomain());
+					}
+					break;
+				case OAUTH:
+					if (null != request.getAccessKey()) {
+						exist = resetBasicFields(exist);
+						exist = resetNTLMFields(exist);
+						exist.setAccessKey(request.getAccessKey());
+					}
+					break;
+				case APIKEY:
+					if (null != request.getAccessKey()) {
+						exist = resetBasicFields(exist);
+						exist = resetNTLMFields(exist);
+						exist.setAccessKey(request.getAccessKey());
+					}
+					break;
+				default:
+					//do nothing
 			}
 
 			if (auth.requiresPassword()) {
 				String decrypted = exist.getPassword();
 				exist.setPassword(simpleEncryptor.decrypt(exist.getPassword()));
 				expect(externalSystemStrategy.connectionTest(exist), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
-						projectName);
+						projectName
+				);
 				exist.setPassword(decrypted);
 			} else {
-				expect(externalSystemStrategy.connectionTest(exist), equalTo(true))
-						.verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, projectName);
+				expect(externalSystemStrategy.connectionTest(exist), equalTo(true)).verify(
+						UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, projectName);
 			}
 		}
 
@@ -203,14 +205,15 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 
 		}
 		expect(externalSystemStrategy.connectionTest(details), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
-				system.getProjectRef());
+				system.getProjectRef()
+		);
 
 		return new OperationCompletionRS("Conntection to ExternalSystem with ID = '" + id + "' is successfully performed.");
 	}
 
 	/**
 	 * Reset BASIC authentication fields for external system entity
-	 * 
+	 *
 	 * @param input
 	 * @return
 	 */
@@ -223,7 +226,7 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 	/**
 	 * Reset NTLM authentication fields for external system entity<br>
 	 * <b>TFS specific</b>
-	 * 
+	 *
 	 * @param input
 	 * @return
 	 */
@@ -236,7 +239,7 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 
 	/**
 	 * Reset OAuth authentication fields of external system entity
-	 * 
+	 *
 	 * @param input
 	 * @return
 	 */

@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.launch;
 
@@ -38,14 +38,10 @@ public interface IUpdateLaunchHandler {
 	/**
 	 * Update specified by id launch.
 	 *
-	 * @param launchId
-	 *            ID of Launch object
-	 * @param projectName
-	 *            Related project name value
-	 * @param userName
-	 *            Recipient user name
-	 * @param rq
-	 *            Request Data
+	 * @param launchId    ID of Launch object
+	 * @param projectName Related project name value
+	 * @param userName    Recipient user name
+	 * @param rq          Request Data
 	 * @return OperationCompletionRS - Response Data
 	 */
 	OperationCompletionRS updateLaunch(String launchId, String projectName, String userName, UpdateLaunchRQ rq);
@@ -53,14 +49,11 @@ public interface IUpdateLaunchHandler {
 	/**
 	 * Start launch analyzer on demand
 	 *
-	 * @param projectName
-	 *            related project name value
-	 * @param launchId
-	 *            ID of launch object
-	 * @param scope
-	 *            Scope (strategy name): possible values are SINGLE or HISTORY,
-	 *            please see for more info
-	 *            {@link com.epam.ta.reportportal.database.entity.launch.AutoAnalyzeStrategy}
+	 * @param projectName related project name value
+	 * @param launchId    ID of launch object
+	 * @param scope       Scope (strategy name): possible values are SINGLE or HISTORY,
+	 *                    please see for more info
+	 *                    {@link com.epam.ta.reportportal.database.entity.launch.AutoAnalyzeStrategy}
 	 * @return OperationCompletionRS - Response Data
 	 */
 	OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId, String scope);

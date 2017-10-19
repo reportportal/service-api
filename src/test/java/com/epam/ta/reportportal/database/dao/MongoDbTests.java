@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.database.dao;
 
 import com.epam.ta.BaseTest;
@@ -36,7 +36,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import java.util.Calendar;
 import java.util.Collections;
 
-public class MongoDbTests  extends BaseTest {
+public class MongoDbTests extends BaseTest {
 
 	@Autowired
 	private ProjectRepository projectRepository;
@@ -72,8 +72,10 @@ public class MongoDbTests  extends BaseTest {
 		project.setCustomer("some customer");
 		project.setName(DEFAULT_PROJECT);
 		project.setAddInfo("some additional info");
-		project.setUsers(Collections.singletonList(Project.UserConfig.newOne().withProjectRole(ProjectRole.MEMBER)
-				.withProposedRole(ProjectRole.MEMBER).withLogin(user.getId())));
+		project.setUsers(Collections.singletonList(Project.UserConfig.newOne()
+				.withProjectRole(ProjectRole.MEMBER)
+				.withProposedRole(ProjectRole.MEMBER)
+				.withLogin(user.getId())));
 		projectRepository.save(project);
 
 		Project savedProject = projectRepository.findOne(project.getName());

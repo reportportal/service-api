@@ -123,11 +123,11 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 				 * Calculate status from launch statistics and validate it
 				 */
 				Status fromStatistics = StatisticsHelper.getStatusFromStatistics(launch.getStatistics());
-				expect(fromStatistics, Preconditions.statusIn(IN_PROGRESS, PASSED)).verify(INCORRECT_FINISH_STATUS, formattedSupplier(
-						"Cannot finish launch '{}' with calculated automatically status '{}' as 'PASSED'",
-						launchId,
-						fromStatistics
-				));
+				expect(fromStatistics, Preconditions.statusIn(IN_PROGRESS, PASSED)).verify(INCORRECT_FINISH_STATUS,
+						formattedSupplier("Cannot finish launch '{}' with calculated automatically status '{}' as 'PASSED'", launchId,
+								fromStatistics
+						)
+				);
 			}
 		});
 		launch.setStatus(status.orElse(StatisticsHelper.getStatusFromStatistics(launch.getStatistics())));
@@ -180,7 +180,10 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 
 	@Override
 	public List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, String projectName, String userName) {
-		return bulkRQ.getEntities().entrySet().stream().map(entry -> stopLaunch(entry.getKey(), entry.getValue(), projectName, userName))
+		return bulkRQ.getEntities()
+				.entrySet()
+				.stream()
+				.map(entry -> stopLaunch(entry.getKey(), entry.getValue(), projectName, userName))
 				.collect(toList());
 	}
 
@@ -192,9 +195,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		);
 
 		expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(launch.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
-				finishExecutionRQ.getEndTime(),
-				launch.getStartTime(),
-				launchId
+				finishExecutionRQ.getEndTime(), launch.getStartTime(), launchId
 		);
 
 		final List<TestItem> items = testItemRepository.findByLaunch(launch);

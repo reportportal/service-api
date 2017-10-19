@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
@@ -54,9 +54,8 @@ import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 /**
  * Controller implementation for
  * {@link com.epam.ta.reportportal.database.entity.widget.Widget} entity
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 @Controller
 @RequestMapping("/{projectName}/widget")
@@ -91,9 +90,9 @@ public class WidgetController implements IWidgetController {
 		return createHandler.createWidget(createWidgetRQ, normalizeId(projectName), principal.getName());
 	}
 
-    @Override
-    @RequestMapping(value = "/{widgetId}", method = RequestMethod.GET)
-    @ResponseStatus(HttpStatus.OK)
+	@Override
+	@RequestMapping(value = "/{widgetId}", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	@ApiOperation("Get widget by ID")
 	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable String widgetId, Principal principal) {
@@ -105,8 +104,8 @@ public class WidgetController implements IWidgetController {
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	@ApiOperation("Get widget preview")
-	public Map<String, ?> getWidgetPreview(@PathVariable String projectName,
-			@RequestBody @Validated WidgetPreviewRQ previewRQ, Principal principal) {
+	public Map<String, ?> getWidgetPreview(@PathVariable String projectName, @RequestBody @Validated WidgetPreviewRQ previewRQ,
+			Principal principal) {
 		return getHandler.getWidgetPreview(normalizeId(projectName), principal.getName(), previewRQ);
 	}
 

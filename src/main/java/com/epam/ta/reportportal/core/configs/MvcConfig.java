@@ -156,10 +156,10 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
 		configurer.favorPathExtension(false);
 	}
 
-    @Override
-    public void configurePathMatch(PathMatchConfigurer configurer) {
-        configurer.setUseSuffixPatternMatch(false);
-    }
+	@Override
+	public void configurePathMatch(PathMatchConfigurer configurer) {
+		configurer.setUseSuffixPatternMatch(false);
+	}
 
 	@Bean
 	public BeanValidationPostProcessor beanValidationPostProcessor() {
@@ -178,7 +178,7 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
 
 	@Bean(name = DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME)
 	public CommonsMultipartResolver multipartResolver(MultipartConfig multipartConfig) {
-		CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver(){
+		CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver() {
 			@Override
 			protected DiskFileItemFactory newFileItemFactory() {
 				DiskFileItemFactory diskFileItemFactory = super.newFileItemFactory();

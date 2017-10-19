@@ -17,15 +17,12 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.resolver;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
-
-import java.io.IOException;
-
+import com.epam.ta.BaseTest;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -35,15 +32,15 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.http.MockHttpOutputMessage;
 
-import com.epam.ta.BaseTest;
+import java.io.IOException;
 
-import com.fasterxml.jackson.annotation.JsonView;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 
 /**
  * Validates Jackson views behaviour
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class JacksonViewAwareSerializationTest extends BaseTest {
 	private static final String FIELD_WITH_VIEW = "field with view";

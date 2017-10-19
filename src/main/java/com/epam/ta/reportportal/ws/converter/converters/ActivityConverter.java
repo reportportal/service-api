@@ -38,37 +38,37 @@ import java.util.stream.Collectors;
  */
 public final class ActivityConverter {
 
-    private ActivityConverter() {
-        //static only
-    }
+	private ActivityConverter() {
+		//static only
+	}
 
-    public final static Function<Activity, ActivityResource> TO_RESOURCE = activity -> {
-        Preconditions.checkNotNull(activity);
-        ActivityResource resource = new ActivityResource();
-        resource.setUserRef(activity.getUserRef());
-        resource.setProjectRef(activity.getProjectRef());
-        resource.setActivityId(activity.getId());
-        resource.setLoggedObjectRef(activity.getLoggedObjectRef());
-        resource.setLastModifiedDate(activity.getLastModified());
-        resource.setObjectType(activity.getObjectType().getValue());
-        resource.setActionType(activity.getActionType().getValue());
-        resource.setObjectName(activity.getName());
-        List<ActivityResource.FieldValues> history =
-                Optional.ofNullable(activity.getHistory())
-                        .orElseGet(Collections::emptyList).stream()
-                        .map(ActivityConverter.TO_FIELD_RESOURCE)
-                        .collect(Collectors.toList());
-        resource.setHistory(history);
-        return resource;
+	public final static Function<Activity, ActivityResource> TO_RESOURCE = activity -> {
+		Preconditions.checkNotNull(activity);
+		ActivityResource resource = new ActivityResource();
+		resource.setUserRef(activity.getUserRef());
+		resource.setProjectRef(activity.getProjectRef());
+		resource.setActivityId(activity.getId());
+		resource.setLoggedObjectRef(activity.getLoggedObjectRef());
+		resource.setLastModifiedDate(activity.getLastModified());
+		resource.setObjectType(activity.getObjectType().getValue());
+		resource.setActionType(activity.getActionType().getValue());
+		resource.setObjectName(activity.getName());
+		List<ActivityResource.FieldValues> history = Optional.ofNullable(activity.getHistory())
+				.orElseGet(Collections::emptyList)
+				.stream()
+				.map(ActivityConverter.TO_FIELD_RESOURCE)
+				.collect(Collectors.toList());
+		resource.setHistory(history);
+		return resource;
 
-    };
+	};
 
-    private static final Function<Activity.FieldValues, ActivityResource.FieldValues> TO_FIELD_RESOURCE = db -> {
-        ActivityResource.FieldValues fieldValues = new ActivityResource.FieldValues();
-        fieldValues.setField(db.getField());
-        fieldValues.setOldValue(db.getOldValue());
-        fieldValues.setNewValue(db.getNewValue());
-        return fieldValues;
-    };
+	private static final Function<Activity.FieldValues, ActivityResource.FieldValues> TO_FIELD_RESOURCE = db -> {
+		ActivityResource.FieldValues fieldValues = new ActivityResource.FieldValues();
+		fieldValues.setField(db.getField());
+		fieldValues.setOldValue(db.getOldValue());
+		fieldValues.setNewValue(db.getNewValue());
+		return fieldValues;
+	};
 
 }

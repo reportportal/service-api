@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.auth.permissions;
 
@@ -33,9 +33,8 @@ import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.find
 /**
  * Validates this is {@link ProjectRole#PROJECT_MANAGER} or higher authority in the
  * authentication context
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @Component
 @LookupPermission({ "projectManagerPermission" })
@@ -47,7 +46,6 @@ public class ProjectManagerPermission extends BaseProjectPermission {
 	 */
 	@Override
 	protected boolean checkAllowed(@NotNull Authentication authentication, @NotNull Project project) {
-		return findUserConfigByLogin(project, authentication.getName()).getProjectRole()
-				.sameOrHigherThan(ProjectRole.PROJECT_MANAGER);
+		return findUserConfigByLogin(project, authentication.getName()).getProjectRole().sameOrHigherThan(ProjectRole.PROJECT_MANAGER);
 	}
 }

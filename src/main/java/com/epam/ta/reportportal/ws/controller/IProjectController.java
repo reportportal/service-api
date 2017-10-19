@@ -41,13 +41,12 @@ import java.util.Map;
 
 /**
  * @author Hanna_Sukhadolava
- * 
  */
 public interface IProjectController {
 
 	/**
 	 * Create new {@link Project} instance
-	 * 
+	 *
 	 * @param createProjectRQ
 	 * @param principal
 	 * @return
@@ -57,7 +56,7 @@ public interface IProjectController {
 
 	/**
 	 * Update {@link Project} instance
-	 * 
+	 *
 	 * @param projectName
 	 * @param updateProjectRQ
 	 * @param principal
@@ -68,20 +67,19 @@ public interface IProjectController {
 
 	/**
 	 * Update {@link Project} instance with specified email configuration
-	 * 
-	 * @see {@link ProjectEmailConfigDTO}}
-	 * 
+	 *
 	 * @param projectName
 	 * @param updateProjectRQ
 	 * @param principal
 	 * @return
 	 * @throws ReportPortalException
+	 * @see {@link ProjectEmailConfigDTO}}
 	 */
 	OperationCompletionRS updateProjectEmailConfig(String projectName, ProjectEmailConfigDTO updateProjectRQ, Principal principal);
 
 	/**
 	 * Delete {@link Project} instance
-	 * 
+	 *
 	 * @param projectName
 	 * @param principal
 	 * @return
@@ -92,7 +90,7 @@ public interface IProjectController {
 	/**
 	 * Get list of {@link com.epam.ta.reportportal.ws.model.user.UserResource}
 	 * for UI page
-	 * 
+	 *
 	 * @param projectName
 	 * @return
 	 */
@@ -100,7 +98,7 @@ public interface IProjectController {
 
 	/**
 	 * Get {@link ProjectResource} instance
-	 * 
+	 *
 	 * @param project
 	 * @return
 	 */
@@ -108,7 +106,7 @@ public interface IProjectController {
 
 	/**
 	 * Un-assign users from project
-	 * 
+	 *
 	 * @param projectName
 	 * @param unassignUsersRQ
 	 * @param principal
@@ -118,7 +116,7 @@ public interface IProjectController {
 
 	/**
 	 * Assign users to project
-	 * 
+	 *
 	 * @param projectName
 	 * @param assignUsersRQ
 	 * @param principal
@@ -128,7 +126,7 @@ public interface IProjectController {
 
 	/**
 	 * Get users available for assign to specified project
-	 * 
+	 *
 	 * @param filter
 	 * @param projectName
 	 * @param principal
@@ -138,7 +136,7 @@ public interface IProjectController {
 
 	/**
 	 * Get specified project usernames
-	 * 
+	 *
 	 * @param projectName
 	 * @param value
 	 * @param principal
@@ -148,27 +146,27 @@ public interface IProjectController {
 
 	/**
 	 * Searches for user across all db
+	 *
 	 * @param projectName Project Name
-	 * @param term Search Term
-	 * @param pageable Page request
+	 * @param term        Search Term
+	 * @param pageable    Page request
 	 * @return Page of users
 	 */
 	Page<UserResource> searchForUser(String projectName, String term, Pageable pageable);
 
-
-		/**
-		 * Get user preference
-		 *
-		 * @param projectName
-		 * @param userName
-		 * @param principal
-		 * @return
-		 */
+	/**
+	 * Get user preference
+	 *
+	 * @param projectName
+	 * @param userName
+	 * @param principal
+	 * @return
+	 */
 	PreferenceResource getUserPreference(String projectName, String userName, Principal principal);
 
 	/**
 	 * Update user preference
-	 * 
+	 *
 	 * @param projectName
 	 * @param rq
 	 * @param login
@@ -179,7 +177,7 @@ public interface IProjectController {
 
 	/**
 	 * Get information about all projects
-	 * 
+	 *
 	 * @param principal
 	 * @return
 	 */
@@ -187,7 +185,7 @@ public interface IProjectController {
 
 	/**
 	 * Get project information
-	 * 
+	 *
 	 * @param projectId
 	 * @return
 	 */
@@ -197,7 +195,7 @@ public interface IProjectController {
 
 	/**
 	 * Get names of all projects
-	 * 
+	 *
 	 * @param principal
 	 * @return
 	 */

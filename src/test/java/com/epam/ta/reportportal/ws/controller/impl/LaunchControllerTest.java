@@ -90,7 +90,8 @@ public class LaunchControllerTest extends BaseMvcTest {
 		startLaunchRQ.setMode(DEFAULT);
 
 		ResultActions resultActions = mvcMock.perform(post(PROJECT_BASE_URL + "/launch/").principal(authentication())
-				.content(objectMapper.writeValueAsBytes(startLaunchRQ)).contentType(APPLICATION_JSON));
+				.content(objectMapper.writeValueAsBytes(startLaunchRQ))
+				.contentType(APPLICATION_JSON));
 		resultActions.andExpect(status().isCreated());
 		MvcResult mvcResult = resultActions.andReturn();
 		EntryCreatedRS entryCreatedRS = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), EntryCreatedRS.class);
@@ -103,14 +104,15 @@ public class LaunchControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void importLaunch() throws Exception{
+	public void importLaunch() throws Exception {
 		Path file = Paths.get("src/test/resources/test-results.zip");
-		MockMultipartFile multipartFile = new MockMultipartFile("test-results.zip", "test-results.zip",
-				"application/zip", Files.readAllBytes(file));
-		OperationCompletionRS response = launchController
-				.importLaunch("project1", multipartFile, authentication());
-		String id = response.getResultMessage().substring(response.getResultMessage().indexOf("=") + 1,
-				response.getResultMessage().indexOf("is")).trim();
+		MockMultipartFile multipartFile = new MockMultipartFile("test-results.zip", "test-results.zip", "application/zip",
+				Files.readAllBytes(file)
+		);
+		OperationCompletionRS response = launchController.importLaunch("project1", multipartFile, authentication());
+		String id = response.getResultMessage()
+				.substring(response.getResultMessage().indexOf("=") + 1, response.getResultMessage().indexOf("is"))
+				.trim();
 		Launch launch = launchRepository.findOne(id);
 		assertNotNull(launch);
 		assertTrue(launchRepository.hasItems(launch, Status.FAILED));
@@ -130,7 +132,8 @@ public class LaunchControllerTest extends BaseMvcTest {
 		});
 		rq.setDescription("description");
 		this.mvcMock.perform(put(PROJECT_BASE_URL + "/launch/51824cc1553de743b3e5aa2c/update").principal(authentication())
-				.content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)).andExpect(status().is(200));
+				.content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)).andExpect(status().is(200));
 	}
 
 	@Test
@@ -167,7 +170,8 @@ public class LaunchControllerTest extends BaseMvcTest {
 		rq.setMergeStrategyType("BASIC");
 		rq.setStartTime(new Date());
 		rq.setEndTime(new Date());
-		this.mvcMock.perform(post(PROJECT_BASE_URL + "/launch/merge").contentType(APPLICATION_JSON).principal(authentication())
+		this.mvcMock.perform(post(PROJECT_BASE_URL + "/launch/merge").contentType(APPLICATION_JSON)
+				.principal(authentication())
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
 	}
 
@@ -188,10 +192,9 @@ public class LaunchControllerTest extends BaseMvcTest {
 		final FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(new Date());
 		finishExecutionRQ.setStatus(Status.PASSED.name());
-		this.mvcMock
-				.perform(put(PROJECT_BASE_URL + "/launch/51824cc1553de743b4e5aa2c/finish").contentType(APPLICATION_JSON)
-						.principal(authentication()).content(objectMapper.writeValueAsBytes(finishExecutionRQ)))
-				.andExpect(status().is(200));
+		this.mvcMock.perform(put(PROJECT_BASE_URL + "/launch/51824cc1553de743b4e5aa2c/finish").contentType(APPLICATION_JSON)
+				.principal(authentication())
+				.content(objectMapper.writeValueAsBytes(finishExecutionRQ))).andExpect(status().is(200));
 	}
 
 	@Test
@@ -199,10 +202,9 @@ public class LaunchControllerTest extends BaseMvcTest {
 		final FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(new Date());
 		finishExecutionRQ.setStatus(Status.PASSED.name());
-		this.mvcMock
-				.perform(put(PROJECT_BASE_URL + "/launch/5187cba4553d2fdd93969fcd/stop").contentType(APPLICATION_JSON)
-						.principal(authentication()).content(objectMapper.writeValueAsBytes(finishExecutionRQ)))
-				.andExpect(status().is(200));
+		this.mvcMock.perform(put(PROJECT_BASE_URL + "/launch/5187cba4553d2fdd93969fcd/stop").contentType(APPLICATION_JSON)
+				.principal(authentication())
+				.content(objectMapper.writeValueAsBytes(finishExecutionRQ))).andExpect(status().is(200));
 	}
 
 	@Test
@@ -237,8 +239,11 @@ public class LaunchControllerTest extends BaseMvcTest {
 
 	@Test
 	public void bulkMoveToDebug() throws Exception {
-		final List<String> ids = launchRepository.findLaunchIdsByProjectId(USER_PROJECT).stream().filter(it -> it.getMode() == DEFAULT)
-				.map(Launch::getId).collect(toList());
+		final List<String> ids = launchRepository.findLaunchIdsByProjectId(USER_PROJECT)
+				.stream()
+				.filter(it -> it.getMode() == DEFAULT)
+				.map(Launch::getId)
+				.collect(toList());
 		final Map<String, UpdateLaunchRQ> entities = ids.stream().collect(toMap(it -> it, it -> {
 			final UpdateLaunchRQ updateLaunchRQ = new UpdateLaunchRQ();
 			updateLaunchRQ.setMode(DEBUG);
@@ -246,15 +251,16 @@ public class LaunchControllerTest extends BaseMvcTest {
 		}));
 		final BulkRQ<UpdateLaunchRQ> bulkRQ = new BulkRQ<>();
 		bulkRQ.setEntities(entities);
-		mvcMock.perform(put(PROJECT_BASE_URL + "/launch/update").principal(authentication()).content(objectMapper.writeValueAsBytes(bulkRQ))
+		mvcMock.perform(put(PROJECT_BASE_URL + "/launch/update").principal(authentication())
+				.content(objectMapper.writeValueAsBytes(bulkRQ))
 				.contentType(APPLICATION_JSON)).andExpect(status().is(200));
 		launchRepository.find(ids).forEach(it -> assertTrue(it.getMode() == DEBUG));
 	}
 
 	@Test
 	public void getLaunches() throws Exception {
-		mvcMock.perform(get(PROJECT_BASE_URL + "/launch?page.page=1&page.size=50&page.sort=statistics$defects$product_bug,ASC")
-				.contentType(APPLICATION_JSON).principal(authentication())).andExpect(status().is(200));
+		mvcMock.perform(get(PROJECT_BASE_URL + "/launch?page.page=1&page.size=50&page.sort=statistics$defects$product_bug,ASC").contentType(
+				APPLICATION_JSON).principal(authentication())).andExpect(status().is(200));
 	}
 
 	@Override

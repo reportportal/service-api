@@ -17,22 +17,11 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.database.dao;
 
-import java.util.List;
-import java.util.Set;
-
 import com.epam.ta.BaseTest;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.domain.Sort.Order;
-
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.fixture.SpringFixture;
@@ -42,10 +31,20 @@ import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants;
 import com.google.common.collect.Sets;
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.domain.Sort.Order;
+
+import java.util.List;
+import java.util.Set;
 
 @SpringFixture("userFilterRepositoryTest")
-public class UserFilterRepositoryTest  extends BaseTest {
-	
+public class UserFilterRepositoryTest extends BaseTest {
+
 	@Rule
 	@Autowired
 	public SpringFixtureRule dfRule;
@@ -60,25 +59,24 @@ public class UserFilterRepositoryTest  extends BaseTest {
 	public void testSaveLoadUserFilter() {
 		UserFilter userFilter = new UserFilter();
 		userFilter.setName("testName");
-		Filter filter = new Filter(Launch.class, Condition.EQUALS, false,
-				"test_value", "name");
+		Filter filter = new Filter(Launch.class, Condition.EQUALS, false, "test_value", "name");
 		userFilter.setFilter(filter);
 		filterRepository.save(userFilter);
 		UserFilter loadedFilter = filterRepository.findOne(userFilter.getId());
 		Assert.assertEquals(userFilter, loadedFilter);
 	}
-	
+
 	@Test
 	public void testFindOneLoadId() {
 		UserFilter filter = filterRepository.findOneLoadId(BuilderTestsConstants.USER, ID_1, BuilderTestsConstants.PROJECT);
 		Assert.assertNotNull(filter);
 		Assert.assertEquals(ID_1, filter.getId());
 		Assert.assertNull(filter.getName());
-		
+
 		Assert.assertNull(filterRepository.findOneLoadId("1", ID_1, BuilderTestsConstants.PROJECT));
 		Assert.assertNull(filterRepository.findOneLoadId(BuilderTestsConstants.USER, ID_1, "3"));
 	}
-	
+
 	@Test
 	public void testFindOne() {
 		UserFilter filter = filterRepository.findOne("user1", ID_2, "project1");
@@ -89,7 +87,7 @@ public class UserFilterRepositoryTest  extends BaseTest {
 		Assert.assertNull(filterRepository.findOne("user11", ID_2, "project1"));
 		Assert.assertNull(filterRepository.findOne("user1", ID_2, "project11"));
 	}
-	
+
 	@Test
 	public void testFindAllNames() {
 		Sort sort = new Sort(new Order(Direction.ASC, UserFilter.NAME));
@@ -110,7 +108,7 @@ public class UserFilterRepositoryTest  extends BaseTest {
 		Assert.assertNotNull(filters);
 		Assert.assertTrue(filters.isEmpty());
 	}
-	
+
 	@Test
 	public void testFindOneByName() {
 		UserFilter userFilter = filterRepository.findOneByName(BuilderTestsConstants.USER, "userFilter1", BuilderTestsConstants.PROJECT);
@@ -118,11 +116,10 @@ public class UserFilterRepositoryTest  extends BaseTest {
 		Assert.assertEquals(ID_1, userFilter.getId());
 		Assert.assertNull(userFilter.getName());
 	}
-	
+
 	@Test
 	public void testFindByFilter() {
-		FilterCondition secondCondition = new FilterCondition(Condition.EQUALS,
-				false, "userFilter1", "name");
+		FilterCondition secondCondition = new FilterCondition(Condition.EQUALS, false, "userFilter1", "name");
 		Set<FilterCondition> conditions = Sets.newHashSet(secondCondition);
 		Filter filter = new Filter(UserFilter.class, conditions);
 		List<UserFilter> filters = filterRepository.findByFilter(filter);

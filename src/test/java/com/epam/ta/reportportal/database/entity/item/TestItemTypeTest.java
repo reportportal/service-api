@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.database.entity.item;
 
 import org.junit.Assert;
@@ -26,9 +26,8 @@ import org.junit.Test;
 
 /**
  * Unit tests for test item comparator
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class TestItemTypeTest {
 

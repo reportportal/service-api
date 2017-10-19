@@ -144,40 +144,45 @@ public class EmailService extends JavaMailSenderImpl {
 		if (launch.getStatistics().getIssueCounter().getProductBug().entrySet().size() > 1) {
 			Map<StatisticSubType, String> pb = new LinkedHashMap<>();
 			launch.getStatistics().getIssueCounter().getProductBug().forEach((k, v) -> {
-				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
+				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL)) {
 					pb.put(settings.getByLocator(k), v.toString());
+				}
 			});
 			email.put("pbInfo", pb);
 		}
 		if (launch.getStatistics().getIssueCounter().getAutomationBug().entrySet().size() > 1) {
 			Map<StatisticSubType, String> ab = new LinkedHashMap<>();
 			launch.getStatistics().getIssueCounter().getAutomationBug().forEach((k, v) -> {
-				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
+				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL)) {
 					ab.put(settings.getByLocator(k), v.toString());
+				}
 			});
 			email.put("abInfo", ab);
 		}
 		if (launch.getStatistics().getIssueCounter().getSystemIssue().entrySet().size() > 1) {
 			Map<StatisticSubType, String> si = new LinkedHashMap<>();
 			launch.getStatistics().getIssueCounter().getSystemIssue().forEach((k, v) -> {
-				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
+				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL)) {
 					si.put(settings.getByLocator(k), v.toString());
+				}
 			});
 			email.put("siInfo", si);
 		}
 		if (launch.getStatistics().getIssueCounter().getNoDefect().entrySet().size() > 1) {
 			Map<StatisticSubType, String> nd = new LinkedHashMap<>();
 			launch.getStatistics().getIssueCounter().getNoDefect().forEach((k, v) -> {
-				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
+				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL)) {
 					nd.put(settings.getByLocator(k), v.toString());
+				}
 			});
 			email.put("ndInfo", nd);
 		}
 		if (launch.getStatistics().getIssueCounter().getToInvestigate().entrySet().size() > 1) {
 			Map<StatisticSubType, String> ti = new LinkedHashMap<>();
 			launch.getStatistics().getIssueCounter().getToInvestigate().forEach((k, v) -> {
-				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
+				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL)) {
 					ti.put(settings.getByLocator(k), v.toString());
+				}
 			});
 			email.put("tiInfo", ti);
 		}

@@ -27,14 +27,14 @@ import com.epam.ta.reportportal.database.entity.Dashboard;
  */
 public class DashboardDeletedEvent extends BeforeEvent<Dashboard> {
 
-    private final String removedBy;
+	private final String removedBy;
 
-    public DashboardDeletedEvent(Dashboard before, String removedBy) {
-        super(before);
-        this.removedBy = removedBy;
-    }
+	public DashboardDeletedEvent(Dashboard before, String removedBy) {
+		super(before);
+		this.removedBy = removedBy;
+	}
 
-    public String getRemovedBy() {
-        return removedBy;
-    }
+	public String getRemovedBy() {
+		return removedBy;
+	}
 }

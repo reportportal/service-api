@@ -44,109 +44,107 @@ import java.util.Map;
  */
 public interface IUserFilterController {
 
-    /**
-     * Create new filter
-     *
-     * @param createFilterRQ Create filter DTO
-     * @param projectName    Project Name
-     * @return EntryCreatedRS
-     */
-    List<EntryCreatedRS> createFilter(String projectName, CollectionsRQ<CreateUserFilterRQ> createFilterRQ,
-            Principal principal);
+	/**
+	 * Create new filter
+	 *
+	 * @param createFilterRQ Create filter DTO
+	 * @param projectName    Project Name
+	 * @return EntryCreatedRS
+	 */
+	List<EntryCreatedRS> createFilter(String projectName, CollectionsRQ<CreateUserFilterRQ> createFilterRQ, Principal principal);
 
-    /**
-     * Get filter by id
-     *
-     * @param filterId    ID of filter
-     * @param projectName Project Name
-     * @param principal   User performing this request
-     * @return FilterResource
-     */
-    UserFilterResource getFilter(String projectName, String filterId, Principal principal);
+	/**
+	 * Get filter by id
+	 *
+	 * @param filterId    ID of filter
+	 * @param projectName Project Name
+	 * @param principal   User performing this request
+	 * @return FilterResource
+	 */
+	UserFilterResource getFilter(String projectName, String filterId, Principal principal);
 
-    /**
-     * Get all filters
-     *
-     * @param projectName Project Name
-     * @param principal   User performing this request
-     * @param filter      Filter
-     * @param pageable    Paging details
-     * @return Iterable of filters
-     */
-    Iterable<UserFilterResource> getAllFilters(String projectName, Pageable pageable, Filter filter,
-            Principal principal);
+	/**
+	 * Get all filters
+	 *
+	 * @param projectName Project Name
+	 * @param principal   User performing this request
+	 * @param filter      Filter
+	 * @param pageable    Paging details
+	 * @return Iterable of filters
+	 */
+	Iterable<UserFilterResource> getAllFilters(String projectName, Pageable pageable, Filter filter, Principal principal);
 
-    /**
-     * Get all owned filters by user for project
-     *
-     * @param projectName Project Name
-     * @param principal   User performing this request
-     * @param filter      Filter
-     * @return Iterable of filters
-     */
-    Iterable<UserFilterResource> getOwnFilters(String projectName, Filter filter, Principal principal);
+	/**
+	 * Get all owned filters by user for project
+	 *
+	 * @param projectName Project Name
+	 * @param principal   User performing this request
+	 * @param filter      Filter
+	 * @return Iterable of filters
+	 */
+	Iterable<UserFilterResource> getOwnFilters(String projectName, Filter filter, Principal principal);
 
-    /**
-     * Get all shared filters for specified project
-     *
-     * @param projectName Project Name
-     * @param principal   User performing this request
-     * @param filter      Filter
-     * @return Iterable of filters
-     */
-    Iterable<UserFilterResource> getSharedFilters(String projectName, Filter filter, Principal principal);
+	/**
+	 * Get all shared filters for specified project
+	 *
+	 * @param projectName Project Name
+	 * @param principal   User performing this request
+	 * @param filter      Filter
+	 * @return Iterable of filters
+	 */
+	Iterable<UserFilterResource> getSharedFilters(String projectName, Filter filter, Principal principal);
 
-    /**
-     * Delete filter with specified id
-     *
-     * @param filterId    ID of filter
-     * @param projectName Project Name
-     * @param principal   User performing this request
-     * @param userRole
-     * @return OperationCompletionRS
-     */
-    OperationCompletionRS deleteFilter(String projectName, String filterId, UserRole userRole, Principal principal);
+	/**
+	 * Delete filter with specified id
+	 *
+	 * @param filterId    ID of filter
+	 * @param projectName Project Name
+	 * @param principal   User performing this request
+	 * @param userRole
+	 * @return OperationCompletionRS
+	 */
+	OperationCompletionRS deleteFilter(String projectName, String filterId, UserRole userRole, Principal principal);
 
-    /**
-     * Get all user filter's names
-     *
-     * @param projectName Project Name
-     * @param principal   User performing this request
-     * @param isShared    whether filter is shared
-     * @return Map String-String key - filter id, value - filter name
-     */
-    Map<String, SharedEntity> getAllFiltersNames(String projectName, Principal principal, boolean isShared);
+	/**
+	 * Get all user filter's names
+	 *
+	 * @param projectName Project Name
+	 * @param principal   User performing this request
+	 * @param isShared    whether filter is shared
+	 * @return Map String-String key - filter id, value - filter name
+	 */
+	Map<String, SharedEntity> getAllFiltersNames(String projectName, Principal principal, boolean isShared);
 
-    /**
-     * Update user filter with specified id
-     *
-     * @param projectName  Project Name
-     * @param principal    User performing this request
-     * @param userFilterId , updateRQ
-     * @return {@link OperationCompletionRS}
-     */
-    OperationCompletionRS updateUserFilter(String projectName, String userFilterId, UpdateUserFilterRQ updateRQ,
-            Principal principal, UserRole userRole);
+	/**
+	 * Update user filter with specified id
+	 *
+	 * @param projectName  Project Name
+	 * @param principal    User performing this request
+	 * @param userFilterId , updateRQ
+	 * @return {@link OperationCompletionRS}
+	 */
+	OperationCompletionRS updateUserFilter(String projectName, String userFilterId, UpdateUserFilterRQ updateRQ, Principal principal,
+			UserRole userRole);
 
-    /**
-     * Get user filters
-     *
-     * @param ids         Filter IDs
-     * @param projectName Project Name
-     * @param principal   User performing this request
-     * @return List of found filters
-     */
-    List<UserFilterResource> getUserFilters(String projectName, String[] ids, Principal principal);
+	/**
+	 * Get user filters
+	 *
+	 * @param ids         Filter IDs
+	 * @param projectName Project Name
+	 * @param principal   User performing this request
+	 * @return List of found filters
+	 */
+	List<UserFilterResource> getUserFilters(String projectName, String[] ids, Principal principal);
 
-    /**
-     * Update user filters
-     *
-     * @param projectName Project Name
-     * @param principal   User performing this request
-     * @param updateRQ    Update DTO
-     * @return Operation result
-     */
-    List<OperationCompletionRS> updateUserFilters(String projectName, CollectionsRQ<BulkUpdateFilterRQ> updateRQ,
-            Principal principal, UserRole userRole);
+	/**
+	 * Update user filters
+	 *
+	 * @param projectName Project Name
+	 * @param principal   User performing this request
+	 * @param updateRQ    Update DTO
+	 * @return Operation result
+	 */
+	List<OperationCompletionRS> updateUserFilters(String projectName, CollectionsRQ<BulkUpdateFilterRQ> updateRQ, Principal principal,
+			UserRole userRole);
 
 }

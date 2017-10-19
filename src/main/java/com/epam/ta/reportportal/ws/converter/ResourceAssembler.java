@@ -31,36 +31,36 @@ import java.util.function.Function;
  */
 public abstract class ResourceAssembler<T, R> implements Function<T, R> {
 
-    /**
-     * Converts all given entities into resources.
-     *
-     * @param entities must not be {@literal null}.
-     * @return
-     * @see #toResource(Object)
-     */
-    public List<R> toResources(Iterable<? extends T> entities) {
+	/**
+	 * Converts all given entities into resources.
+	 *
+	 * @param entities must not be {@literal null}.
+	 * @return
+	 * @see #toResource(Object)
+	 */
+	public List<R> toResources(Iterable<? extends T> entities) {
 
-        Preconditions.checkNotNull(entities);
-        List<R> result = new ArrayList<>();
+		Preconditions.checkNotNull(entities);
+		List<R> result = new ArrayList<>();
 
-        for (T entity : entities) {
-            result.add(toResource(entity));
-        }
+		for (T entity : entities) {
+			result.add(toResource(entity));
+		}
 
-        return result;
-    }
+		return result;
+	}
 
-    @Override
-    public R apply(T t) {
-        return toResource(t);
-    }
+	@Override
+	public R apply(T t) {
+		return toResource(t);
+	}
 
-    /**
-     * Converts the given entity into an another one
-     *
-     * @param entity Entity to convert
-     * @return Converted entity
-     */
-    abstract R toResource(T entity);
+	/**
+	 * Converts the given entity into an another one
+	 *
+	 * @param entity Entity to convert
+	 * @return Converted entity
+	 */
+	abstract R toResource(T entity);
 
 }

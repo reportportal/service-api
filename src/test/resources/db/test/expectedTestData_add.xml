@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataset>
-	<Test idTest = "0" idTestSuite = "0" name = "test0" description = "test 0" startTime = "2013-02-19 16:02:33.0" endTime = "2013-02-19 16:10:33.0" status = "PASSED" />
-	<Test idTest = "1" idTestSuite = "1" name = "test1" description = "test 1" startTime = "2013-02-19 16:03:33.0" endTime = "2013-02-19 16:20:33.0" status = "IN_PROGRESS" />
-	<Test idTest = "2" idTestSuite = "0" name = "test2" description = "test 2" startTime = "2013-03-19 16:10:33.0" endTime = "2013-03-19 16:20:33.0" status = "PASSED" />
+    <Test idTest="0" idTestSuite="0" name="test0" description="test 0" startTime="2013-02-19 16:02:33.0" endTime="2013-02-19 16:10:33.0"
+          status="PASSED"/>
+    <Test idTest="1" idTestSuite="1" name="test1" description="test 1" startTime="2013-02-19 16:03:33.0" endTime="2013-02-19 16:20:33.0"
+          status="IN_PROGRESS"/>
+    <Test idTest="2" idTestSuite="0" name="test2" description="test 2" startTime="2013-03-19 16:10:33.0" endTime="2013-03-19 16:20:33.0"
+          status="PASSED"/>
 </dataset>

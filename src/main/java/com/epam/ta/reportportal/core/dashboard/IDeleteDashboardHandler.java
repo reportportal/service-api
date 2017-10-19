@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.core.dashboard;
 
 import com.epam.ta.reportportal.database.entity.Dashboard;
@@ -28,15 +28,14 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 /**
  * Create dashboard handler
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 public interface IDeleteDashboardHandler {
 
 	/**
 	 * Delete {@link Dashboard} instance with specified id
-	 * 
+	 *
 	 * @param dashboardId
 	 * @param userName
 	 * @param projectName

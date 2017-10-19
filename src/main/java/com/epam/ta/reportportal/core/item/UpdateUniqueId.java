@@ -123,7 +123,8 @@ class UpdateUniqueId {
 								updateTestItems(testItems);
 								counter++;
 								if (counter == 1000) {
-									LOGGER.info("Generated uniqueId for " + update + " items. " + "It is " + ((update / (float) forUpdate) * 100) + "% done");
+									LOGGER.info("Generated uniqueId for " + update + " items. " + "It is " + ((update / (float) forUpdate)
+											* 100) + "% done");
 									counter = 0;
 								}
 								update += testItems.size();

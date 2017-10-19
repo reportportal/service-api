@@ -17,10 +17,14 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.auth;
 
+import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.auth.permissions.Permission;
+import com.epam.ta.reportportal.database.fixture.SpringFixture;
+import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,16 +34,10 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
-import com.epam.ta.BaseTest;
-import com.epam.ta.reportportal.auth.permissions.Permission;
-import com.epam.ta.reportportal.database.fixture.SpringFixture;
-import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
-
 /**
  * ProjectPermissionTest
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @TestExecutionListeners({ DependencyInjectionTestExecutionListener.class, DirtiesContextTestExecutionListener.class })
 @SpringFixture("authTests")
@@ -56,7 +54,8 @@ public class ProjectPermissionTest extends BaseTest {
 	@Test
 	public void testProjectPermission() {
 		Assert.assertTrue("Correct permission is not allowed",
-				projectPermission.isAllowed(AuthConstants.ADMINISTRATOR, AuthConstants.USER_PROJECT));
+				projectPermission.isAllowed(AuthConstants.ADMINISTRATOR, AuthConstants.USER_PROJECT)
+		);
 	}
 
 	@Test
@@ -67,6 +66,7 @@ public class ProjectPermissionTest extends BaseTest {
 	@Test
 	public void testNotAuthenticatedPermission() {
 		Assert.assertFalse("Correct permission is not allowed",
-				projectPermission.isAllowed(AuthConstants.NOT_AUTHENTIFICATED, AuthConstants.USER_PROJECT));
+				projectPermission.isAllowed(AuthConstants.NOT_AUTHENTIFICATED, AuthConstants.USER_PROJECT)
+		);
 	}
 }

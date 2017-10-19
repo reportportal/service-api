@@ -17,15 +17,14 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.exception;
 
 /**
  * Exceptions related to data storage
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 // TODO add binding to this exception
 public class DataStorageException extends ReportPortalException {

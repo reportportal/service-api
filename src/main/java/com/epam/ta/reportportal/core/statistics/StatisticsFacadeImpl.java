@@ -36,7 +36,7 @@ import java.util.List;
 
 /**
  * Default implementation of {@link StatisticsFacade}
- * 
+ *
  * @author Dzianis Shlychkou
  * @author Andrei_Ramanchuk
  */
@@ -117,8 +117,7 @@ public class StatisticsFacadeImpl implements StatisticsFacade {
 	@Override
 	public void recalculateStatistics(Launch launch) {
 		deleteLaunchStatistics(launch);
-		testItemRepository.findByLaunch(launch)
-				.forEach(this::recalculateTestItemStatistics);
+		testItemRepository.findByLaunch(launch).forEach(this::recalculateTestItemStatistics);
 
 		List<TestItem> withIssues = testItemRepository.findTestItemWithIssues(launch.getId());
 		withIssues.forEach(this::updateIssueStatistics);

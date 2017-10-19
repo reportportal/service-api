@@ -36,28 +36,28 @@ import java.util.Calendar;
 @SpringFixture("itemsUnitTestsSorting")
 public class AsyncCreateLogHandlerTest extends BaseTest {
 
-    public static final String ITEM_ID = "44524cc1524de753b3e5aa2f";
+	public static final String ITEM_ID = "44524cc1524de753b3e5aa2f";
 
-    @Rule
-    @Autowired
-    public SpringFixtureRule dfRule;
+	@Rule
+	@Autowired
+	public SpringFixtureRule dfRule;
 
-    @Autowired
-    private ICreateLogHandler logHandler;
+	@Autowired
+	private ICreateLogHandler logHandler;
 
-    /**
-     * Added for for covering EPMCDP-700 bug fixes.
-     * Start time of log shouldn't be earlier than
-     * start time of testItem
-     */
-    @Test(expected = ReportPortalException.class)
-    public void testCreateLogIncorrectTime() {
-        SaveLogRQ saveLogRQ = new SaveLogRQ();
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(1980, 2, 3);
-        saveLogRQ.setLogTime(calendar.getTime());
-        saveLogRQ.setMessage("Log message");
-        saveLogRQ.setTestItemId(ITEM_ID);
-        logHandler.createLog(saveLogRQ, null, null);
-    }
+	/**
+	 * Added for for covering EPMCDP-700 bug fixes.
+	 * Start time of log shouldn't be earlier than
+	 * start time of testItem
+	 */
+	@Test(expected = ReportPortalException.class)
+	public void testCreateLogIncorrectTime() {
+		SaveLogRQ saveLogRQ = new SaveLogRQ();
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(1980, 2, 3);
+		saveLogRQ.setLogTime(calendar.getTime());
+		saveLogRQ.setMessage("Log message");
+		saveLogRQ.setTestItemId(ITEM_ID);
+		logHandler.createLog(saveLogRQ, null, null);
+	}
 }

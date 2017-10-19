@@ -68,6 +68,7 @@ public class Utils {
 	static {
 		tags = new HashSet<String>() {
 			private static final long serialVersionUID = 1L;
+
 			{
 				add(TAG);
 			}

@@ -28,14 +28,14 @@ import com.epam.ta.reportportal.database.entity.filter.UserFilter;
  */
 public class FilterUpdatedEvent extends AroundEvent<UserFilter> {
 
-    private final String updatedBy;
+	private final String updatedBy;
 
-    public FilterUpdatedEvent(UserFilter before, UserFilter after, String updatedBy) {
-        super(before, after);
-        this.updatedBy = updatedBy;
-    }
+	public FilterUpdatedEvent(UserFilter before, UserFilter after, String updatedBy) {
+		super(before, after);
+		this.updatedBy = updatedBy;
+	}
 
-    public String getUpdatedBy() {
-        return updatedBy;
-    }
+	public String getUpdatedBy() {
+		return updatedBy;
+	}
 }

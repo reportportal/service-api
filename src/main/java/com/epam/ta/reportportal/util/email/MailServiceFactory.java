@@ -94,7 +94,7 @@ public class MailServiceFactory {
 	 */
 	public Optional<EmailService> getEmailService(ServerEmailDetails serverConfig) {
 		return ofNullable(serverConfig).flatMap(serverConf -> {
-			if (BooleanUtils.isFalse(serverConf.getEnabled())){
+			if (BooleanUtils.isFalse(serverConf.getEnabled())) {
 				return Optional.empty();
 			}
 			boolean authRequired = (null != serverConf.getAuthEnabled() && serverConf.getAuthEnabled());
@@ -129,8 +129,8 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	public Optional<EmailService> getDefaultEmailService() {
-		return ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE))
-				.flatMap(serverSettings -> getEmailService(serverSettings.getServerEmailDetails()));
+		return ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE)).flatMap(
+				serverSettings -> getEmailService(serverSettings.getServerEmailDetails()));
 
 	}
 
@@ -140,8 +140,8 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	public Optional<EmailService> getDefaultEmailService(ProjectEmailConfig projectEmailConfig) {
-		return ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE))
-				.flatMap(serverSettings -> getEmailService(projectEmailConfig, serverSettings.getServerEmailDetails()));
+		return ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE)).flatMap(
+				serverSettings -> getEmailService(projectEmailConfig, serverSettings.getServerEmailDetails()));
 	}
 
 	/**
@@ -150,8 +150,8 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	public EmailService getDefaultEmailService(ProjectEmailConfig projectEmailConfig, boolean checkConnection) {
-		EmailService emailService = ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE))
-				.flatMap(serverSettings -> getEmailService(projectEmailConfig, serverSettings.getServerEmailDetails()))
+		EmailService emailService = ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE)).flatMap(
+				serverSettings -> getEmailService(projectEmailConfig, serverSettings.getServerEmailDetails()))
 				.orElseThrow(() -> emailConfigurationFail(null));
 
 		if (checkConnection) {
@@ -166,9 +166,8 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	public EmailService getDefaultEmailService(boolean checkConnection) {
-		EmailService emailService = ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE))
-				.flatMap(serverSettings -> getEmailService(serverSettings.getServerEmailDetails()))
-				.orElseThrow(() -> emailConfigurationFail(null));
+		EmailService emailService = ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE)).flatMap(
+				serverSettings -> getEmailService(serverSettings.getServerEmailDetails())).orElseThrow(() -> emailConfigurationFail(null));
 
 		if (checkConnection) {
 			checkConnection(emailService);

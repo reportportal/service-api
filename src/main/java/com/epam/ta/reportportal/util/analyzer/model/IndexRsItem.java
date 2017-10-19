@@ -30,18 +30,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class IndexRsItem {
 
-    @JsonProperty("index")
-    private IndexRsIndex index;
+	@JsonProperty("index")
+	private IndexRsIndex index;
 
-    public IndexRsItem() {
-    }
+	public IndexRsItem() {
+	}
 
-    public IndexRsIndex getIndex() {
-        return index;
-    }
+	public IndexRsIndex getIndex() {
+		return index;
+	}
 
-    public void setIndex(IndexRsIndex index) {
-        this.index = index;
-    }
+	public void setIndex(IndexRsIndex index) {
+		this.index = index;
+	}
 
 }

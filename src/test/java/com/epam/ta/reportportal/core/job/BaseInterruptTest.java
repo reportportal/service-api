@@ -17,19 +17,10 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.job;
 
-import java.util.Calendar;
-
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.time.DateUtils;
-import org.bson.types.ObjectId;
-import org.junit.Ignore;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.epam.ta.reportportal.job.InterruptBrokenLaunchesJob;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -45,15 +36,22 @@ import com.epam.ta.reportportal.database.entity.project.KeepScreenshotsDelay;
 import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.entity.statistics.Statistics;
+import com.epam.ta.reportportal.job.InterruptBrokenLaunchesJob;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.time.DateUtils;
+import org.bson.types.ObjectId;
+import org.junit.Ignore;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Calendar;
 
 /**
  * Base class for tests related to interrupt launches job. Contains several
  * convenience methods as well as injected beans<br>
  * Pay attention: mongo auditing and annotation-based job configuration is
  * disabled here. You have to start job manual if you want it to be executed
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 // @RunWith(SpringJUnit4ClassRunner.class)
 // @ContextConfiguration(locations = { "classpath:report-portal-ws-servlet.xml"

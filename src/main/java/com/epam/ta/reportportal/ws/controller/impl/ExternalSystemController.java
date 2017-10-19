@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
@@ -44,7 +44,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * Controller implementation for working with external systems.
- * 
+ *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
  */
@@ -82,8 +82,7 @@ public class ExternalSystemController implements IExternalSystemController {
 	@ApiOperation("Register external system instance")
 	public EntryCreatedRS createExternalSystemInstance(@Validated @RequestBody CreateExternalSystemRQ createRQ,
 			@PathVariable String projectName, Principal principal) {
-		return createExternalSystemHandler.createExternalSystem(createRQ, EntityUtils.normalizeId(projectName),
-				principal.getName());
+		return createExternalSystemHandler.createExternalSystem(createRQ, EntityUtils.normalizeId(projectName), principal.getName());
 	}
 
 	@Override
@@ -103,8 +102,7 @@ public class ExternalSystemController implements IExternalSystemController {
 	@ApiOperation("Delete registered external system instance")
 	public OperationCompletionRS deleteExternalSystem(@PathVariable String projectName, @PathVariable String systemId,
 			Principal principal) {
-		return deleteExternalSystemHandler.deleteExternalSystem(EntityUtils.normalizeId(projectName), systemId,
-				principal.getName());
+		return deleteExternalSystemHandler.deleteExternalSystem(EntityUtils.normalizeId(projectName), systemId, principal.getName());
 	}
 
 	@Override
@@ -126,7 +124,8 @@ public class ExternalSystemController implements IExternalSystemController {
 	public OperationCompletionRS updateExternalSystem(@Validated @RequestBody UpdateExternalSystemRQ request,
 			@PathVariable String projectName, @PathVariable String systemId, Principal principal) {
 		return updateExternalSystemHandler.updateExternalSystem(request, EntityUtils.normalizeId(projectName), systemId,
-				principal.getName());
+				principal.getName()
+		);
 	}
 
 	@Override
@@ -140,7 +139,6 @@ public class ExternalSystemController implements IExternalSystemController {
 		return updateExternalSystemHandler.externalSystemConnect(systemId, updateRQ, principal.getName());
 	}
 
-
 	@Override
 	@RequestMapping(value = "/{systemId}/fields-set", method = RequestMethod.GET)
 	@ResponseBody
@@ -152,15 +150,15 @@ public class ExternalSystemController implements IExternalSystemController {
 		return getTicketHandler.getSubmitTicketFields(issuetype, EntityUtils.normalizeId(projectName), systemId);
 	}
 
-    @Override
-    @RequestMapping(value = "/{systemId}/issue_types", method = RequestMethod.GET)
-    @ResponseBody
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize(PROJECT_MANAGER)
-    @ApiOperation("Get list of fields required for posting ticket")
-    public List<String> getAllowableIssueTypes(@PathVariable String projectName, @PathVariable String systemId) {
-        return getTicketHandler.getAllowableIssueTypes(EntityUtils.normalizeId(projectName), systemId);
-    }
+	@Override
+	@RequestMapping(value = "/{systemId}/issue_types", method = RequestMethod.GET)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	@PreAuthorize(PROJECT_MANAGER)
+	@ApiOperation("Get list of fields required for posting ticket")
+	public List<String> getAllowableIssueTypes(@PathVariable String projectName, @PathVariable String systemId) {
+		return getTicketHandler.getAllowableIssueTypes(EntityUtils.normalizeId(projectName), systemId);
+	}
 
 	// ===================
 	// TICKETS BLOCK

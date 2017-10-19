@@ -80,8 +80,8 @@ public class UserFilterValidationService {
 	 */
 	public void isFilterNameUnique(String userName, String filterName, String projectName) {
 		UserFilter existingFilter = userFilterRepository.findOneByName(userName, filterName, projectName);
-		BusinessRule.expect(existingFilter, Predicates.isNull()).verify(ErrorType.USER_FILTER_ALREADY_EXISTS, filterName, userName,
-				projectName);
+		BusinessRule.expect(existingFilter, Predicates.isNull())
+				.verify(ErrorType.USER_FILTER_ALREADY_EXISTS, filterName, userName, projectName);
 	}
 
 	/**
@@ -95,35 +95,41 @@ public class UserFilterValidationService {
 	public Set<UserFilterEntity> validateUserFilterEntities(Class<?> type, Set<UserFilterEntity> filterEntities) {
 		CriteriaMap<?> ctriteriaMap = criteriaMapFactory.getCriteriaMap(type);
 		synchronized (this) {
-			for (Iterator<UserFilterEntity> it = filterEntities.iterator(); it.hasNext();) {
+			for (Iterator<UserFilterEntity> it = filterEntities.iterator(); it.hasNext(); ) {
 				UserFilterEntity userFilterEntity = it.next();
 
 				Optional<CriteriaHolder> holderOptional = ctriteriaMap.getCriteriaHolderUnchecked(userFilterEntity.getFilteringField());
 
-				BusinessRule.expect(holderOptional, Preconditions.IS_PRESENT).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-						Suppliers.formattedSupplier("Filter parameter {} is not defined", userFilterEntity.getFilteringField()));
+				BusinessRule.expect(holderOptional, Preconditions.IS_PRESENT)
+						.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+								Suppliers.formattedSupplier("Filter parameter {} is not defined", userFilterEntity.getFilteringField())
+						);
 
 				CriteriaHolder updated = null;
 				boolean reload = false;
 
-
-				BusinessRule.expect(holderOptional.isPresent(), Predicates.equalTo(Boolean.TRUE)).verify(
-						ErrorType.BAD_SAVE_USER_FILTER_REQUEST,
-						Suppliers.formattedSupplier("Filtering field '{}' is unknown.", userFilterEntity.getFilteringField()));
+				BusinessRule.expect(holderOptional.isPresent(), Predicates.equalTo(Boolean.TRUE))
+						.verify(ErrorType.BAD_SAVE_USER_FILTER_REQUEST,
+								Suppliers.formattedSupplier("Filtering field '{}' is unknown.", userFilterEntity.getFilteringField())
+						);
 				Condition condition = Condition.findByMarker(userFilterEntity.getCondition()).orElse(null);
-				BusinessRule.expect(condition, Predicates.notNull()).verify(ErrorType.BAD_SAVE_USER_FILTER_REQUEST,
-						Suppliers.formattedSupplier("Incorrect filter's entity condition '{}'.", userFilterEntity.getCondition()));
+				BusinessRule.expect(condition, Predicates.notNull())
+						.verify(ErrorType.BAD_SAVE_USER_FILTER_REQUEST,
+								Suppliers.formattedSupplier("Incorrect filter's entity condition '{}'.", userFilterEntity.getCondition())
+						);
 
 				//TODO bug?
 				if (!reload) {
 					condition.validate(holderOptional.get(), userFilterEntity.getValue(), Condition.isNegative(userFilterEntity.getValue()),
-							ErrorType.BAD_SAVE_USER_FILTER_REQUEST);
+							ErrorType.BAD_SAVE_USER_FILTER_REQUEST
+					);
 					// check is values have correct type(is it possible to cast user
 					// filter entity value to to type specified in criteria holder)
 					condition.castValue(holderOptional.get(), userFilterEntity.getValue(), ErrorType.BAD_SAVE_USER_FILTER_REQUEST);
 				} else {
 					condition.validate(updated, userFilterEntity.getValue(), Condition.isNegative(userFilterEntity.getValue()),
-							ErrorType.BAD_SAVE_USER_FILTER_REQUEST);
+							ErrorType.BAD_SAVE_USER_FILTER_REQUEST
+					);
 					// check is values have correct type(is it possible to cast user
 					// filter entity value to to type specified in criteria holder)
 					condition.castValue(updated, userFilterEntity.getValue(), ErrorType.BAD_SAVE_USER_FILTER_REQUEST);
@@ -138,7 +144,10 @@ public class UserFilterValidationService {
 	 */
 	public void validateSortingColumnName(Class<?> type, String sortingColumnName) {
 		BusinessRule.expect(criteriaMapFactory.getCriteriaMap(type).getCriteriaHolderUnchecked(sortingColumnName).isPresent(),
-				Predicates.equalTo(Boolean.TRUE)).verify(ErrorType.BAD_SAVE_USER_FILTER_REQUEST,
-						Suppliers.formattedSupplier("Column for sorting with name '{}' is unknown.", sortingColumnName));
+				Predicates.equalTo(Boolean.TRUE)
+		)
+				.verify(ErrorType.BAD_SAVE_USER_FILTER_REQUEST,
+						Suppliers.formattedSupplier("Column for sorting with name '{}' is unknown.", sortingColumnName)
+				);
 	}
 }

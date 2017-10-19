@@ -37,7 +37,6 @@ import static com.google.common.collect.Lists.newArrayList;
  * Builder for {@link Widget}
  *
  * @author Aliaksei_Makayed
- *
  */
 @Service
 @Scope("prototype")
@@ -58,10 +57,10 @@ public class WidgetBuilder extends ShareableEntityBuilder<Widget> {
 			ContentOptions contentOptions = new ContentOptions();
 			contentOptions.setType(parameters.getType());
 			contentOptions.setGadgetType(parameters.getGadget());
-			contentOptions.setContentFields(null != parameters.getContentFields()
-					? newArrayList(trimStrings(parameters.getContentFields())) : null);
-			contentOptions.setMetadataFields(null != parameters.getMetadataFields()
-					? newArrayList(trimStrings(parameters.getMetadataFields())) : null);
+			contentOptions.setContentFields(
+					null != parameters.getContentFields() ? newArrayList(trimStrings(parameters.getContentFields())) : null);
+			contentOptions.setMetadataFields(
+					null != parameters.getMetadataFields() ? newArrayList(trimStrings(parameters.getMetadataFields())) : null);
 			contentOptions.setItemsCount(parameters.getItemsCount());
 			contentOptions.setWidgetOptions(null != parameters.getWidgetOptions() ? Maps.newHashMap(parameters.getWidgetOptions()) : null);
 			getObject().setContentOptions(contentOptions);
@@ -80,11 +79,11 @@ public class WidgetBuilder extends ShareableEntityBuilder<Widget> {
 	}
 
 	public WidgetBuilder addDescription(String description) {
-	    if (!Strings.isNullOrEmpty(description)) {
-	        getObject().setDescription(description);
-        }
-        return this;
-    }
+		if (!Strings.isNullOrEmpty(description)) {
+			getObject().setDescription(description);
+		}
+		return this;
+	}
 
 	@Override
 	protected Widget initObject() {

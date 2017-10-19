@@ -27,31 +27,31 @@ import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
  */
 public class DashboardCreatedEvent {
 
-    private final CreateDashboardRQ createDashboardRQ;
-    private final String createdBy;
-    private final String projectRef;
-    private final String dashboardId;
+	private final CreateDashboardRQ createDashboardRQ;
+	private final String createdBy;
+	private final String projectRef;
+	private final String dashboardId;
 
-    public DashboardCreatedEvent(CreateDashboardRQ createDashboardRQ, String createdBy, String projectRef, String dashboardId) {
-        this.createDashboardRQ = createDashboardRQ;
-        this.createdBy = createdBy;
-        this.projectRef = projectRef;
-        this.dashboardId = dashboardId;
-    }
+	public DashboardCreatedEvent(CreateDashboardRQ createDashboardRQ, String createdBy, String projectRef, String dashboardId) {
+		this.createDashboardRQ = createDashboardRQ;
+		this.createdBy = createdBy;
+		this.projectRef = projectRef;
+		this.dashboardId = dashboardId;
+	}
 
-    public CreateDashboardRQ getCreateDashboardRQ() {
-        return createDashboardRQ;
-    }
+	public CreateDashboardRQ getCreateDashboardRQ() {
+		return createDashboardRQ;
+	}
 
-    public String getCreatedBy() {
-        return createdBy;
-    }
+	public String getCreatedBy() {
+		return createdBy;
+	}
 
-    public String getProjectRef() {
-        return projectRef;
-    }
+	public String getProjectRef() {
+		return projectRef;
+	}
 
-    public String getDashboardId() {
-        return dashboardId;
-    }
+	public String getDashboardId() {
+		return dashboardId;
+	}
 }

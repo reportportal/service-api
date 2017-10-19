@@ -17,23 +17,22 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.io.File;
-import java.io.FileInputStream;
-
+import com.epam.ta.reportportal.auth.AuthConstants;
+import com.epam.ta.reportportal.ws.BaseMvcTest;
 import org.junit.Test;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import com.epam.ta.reportportal.auth.AuthConstants;
-import com.epam.ta.reportportal.ws.BaseMvcTest;
+import java.io.File;
+import java.io.FileInputStream;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author Dzmitry_Kavalets
@@ -44,35 +43,40 @@ public class FileStorageControllerTest extends BaseMvcTest {
 	public void addPhotoWidthNegative() throws Exception {
 		File file = new File("src/test/resources/500x383.jpg");
 		MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.fileUpload("/data/photo")
-				.file(new MockMultipartFile("file", new FileInputStream(file))).principal(authentication());
+				.file(new MockMultipartFile("file", new FileInputStream(file)))
+				.principal(authentication());
 		this.mvcMock.perform(builder).andExpect(status().is(400));
 	}
 
 	@Test
 	public void addPhotoHeightNegative() throws Exception {
 		File file = new File("src/test/resources/209x505.png");
-		this.mvcMock.perform(MockMvcRequestBuilders.fileUpload("/data/photo").file(new MockMultipartFile("file", new FileInputStream(file)))
+		this.mvcMock.perform(MockMvcRequestBuilders.fileUpload("/data/photo")
+				.file(new MockMultipartFile("file", new FileInputStream(file)))
 				.principal(authentication())).andExpect(status().is(400));
 	}
 
 	@Test
 	public void addPhotoExtensionNegative() throws Exception {
 		File file = new File("src/test/resources/logback.xml");
-		this.mvcMock.perform(MockMvcRequestBuilders.fileUpload("/data/photo").file(new MockMultipartFile("file", new FileInputStream(file)))
+		this.mvcMock.perform(MockMvcRequestBuilders.fileUpload("/data/photo")
+				.file(new MockMultipartFile("file", new FileInputStream(file)))
 				.principal(authentication())).andExpect(status().is(400));
 	}
 
 	@Test
 	public void addPhotoSizeNegative() throws Exception {
 		File file = new File("src/test/resources/locators.pdf");
-		this.mvcMock.perform(MockMvcRequestBuilders.fileUpload("/data/photo").file(new MockMultipartFile("file", new FileInputStream(file)))
+		this.mvcMock.perform(MockMvcRequestBuilders.fileUpload("/data/photo")
+				.file(new MockMultipartFile("file", new FileInputStream(file)))
 				.principal(authentication())).andExpect(status().is(400));
 	}
 
 	@Test
 	public void addPhotoPositive() throws Exception {
 		File file = new File("src/test/resources/picture.png");
-		this.mvcMock.perform(MockMvcRequestBuilders.fileUpload("/data/photo").file(new MockMultipartFile("file", new FileInputStream(file)))
+		this.mvcMock.perform(MockMvcRequestBuilders.fileUpload("/data/photo")
+				.file(new MockMultipartFile("file", new FileInputStream(file)))
 				.principal(authentication())).andExpect(status().is(200));
 	}
 

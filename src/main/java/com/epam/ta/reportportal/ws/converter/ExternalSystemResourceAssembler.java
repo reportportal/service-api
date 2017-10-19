@@ -35,8 +35,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class ExternalSystemResourceAssembler extends ResourceAssembler<ExternalSystem, ExternalSystemResource> {
 
-    @Override
-    public ExternalSystemResource toResource(ExternalSystem entity) {
-        return ExternalSystemConverter.TO_RESOURCE.apply(entity);
-    }
+	@Override
+	public ExternalSystemResource toResource(ExternalSystem entity) {
+		return ExternalSystemConverter.TO_RESOURCE.apply(entity);
+	}
 }

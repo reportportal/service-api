@@ -46,7 +46,7 @@ import java.util.Optional;
  *
  * @author Andrei_Ramanchuk
  * @author Andrei Varabyeu
- *         Make content type part of ReportFormat enum
+ * Make content type part of ReportFormat enum
  */
 public enum ReportFormat {
 	//@formatter:off

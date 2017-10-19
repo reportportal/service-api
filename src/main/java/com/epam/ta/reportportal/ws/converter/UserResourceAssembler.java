@@ -43,29 +43,29 @@ import static java.util.Optional.ofNullable;
 @Service
 public class UserResourceAssembler extends PagedResourcesAssembler<User, UserResource> {
 
-    @Autowired
-    private Provider<UserResourceBuilder> builder;
+	@Autowired
+	private Provider<UserResourceBuilder> builder;
 
-    @Override
-    public UserResource toResource(User user) {
-        return builder.get().addUser(user).build();
-    }
+	@Override
+	public UserResource toResource(User user) {
+		return builder.get().addUser(user).build();
+	}
 
-    public com.epam.ta.reportportal.ws.model.Page<UserResource> toPagedResources(Page<User> content, Project project) {
-        String entryType = project.getConfiguration().getEntryType().name();
-        com.epam.ta.reportportal.ws.model.Page<UserResource> userResources = toPagedResources(content);
-        for (UserResource userResource : userResources) {
-            HashMap<String, UserResource.AssignedProject> assignedProjects = new HashMap<>();
-            UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-            Project.UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, userResource.getUserId());
+	public com.epam.ta.reportportal.ws.model.Page<UserResource> toPagedResources(Page<User> content, Project project) {
+		String entryType = project.getConfiguration().getEntryType().name();
+		com.epam.ta.reportportal.ws.model.Page<UserResource> userResources = toPagedResources(content);
+		for (UserResource userResource : userResources) {
+			HashMap<String, UserResource.AssignedProject> assignedProjects = new HashMap<>();
+			UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
+			Project.UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, userResource.getUserId());
 
-            ofNullable(userConfig.getProjectRole()).ifPresent(it -> assignedProject.setProjectRole(it.name()));
-            ofNullable(userConfig.getProposedRole()).ifPresent(it -> assignedProject.setProposedRole(it.name()));
+			ofNullable(userConfig.getProjectRole()).ifPresent(it -> assignedProject.setProjectRole(it.name()));
+			ofNullable(userConfig.getProposedRole()).ifPresent(it -> assignedProject.setProposedRole(it.name()));
 
-            assignedProject.setEntryType(entryType);
-            assignedProjects.put(project.getId(), assignedProject);
-            userResource.setAssignedProjects(assignedProjects);
-        }
-        return userResources;
-    }
+			assignedProject.setEntryType(entryType);
+			assignedProjects.put(project.getId(), assignedProject);
+			userResource.setAssignedProjects(assignedProjects);
+		}
+		return userResources;
+	}
 }

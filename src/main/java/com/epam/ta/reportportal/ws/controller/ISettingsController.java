@@ -57,12 +57,13 @@ public interface ISettingsController {
 	 */
 	OperationCompletionRS saveEmailSettings(String profileId, ServerEmailResource request, Principal principal);
 
-    /**
-     * Updates analytics settings for specified profile name
-     * @param profileId - name of the profile ('default' till additional
-     *                  implementations)
-     * @param request Analytics settings
-     * @return OperationCompletionRS
-     */
-    OperationCompletionRS saveAnalyticsSettings(String profileId, AnalyticsResource request);
+	/**
+	 * Updates analytics settings for specified profile name
+	 *
+	 * @param profileId - name of the profile ('default' till additional
+	 *                  implementations)
+	 * @param request   Analytics settings
+	 * @return OperationCompletionRS
+	 */
+	OperationCompletionRS saveAnalyticsSettings(String profileId, AnalyticsResource request);
 }

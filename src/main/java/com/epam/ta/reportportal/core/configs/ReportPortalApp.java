@@ -51,18 +51,16 @@ import org.springframework.context.annotation.Import;
  *
  * @author Andrei Varabyeu
  */
-@SpringBootApplication(exclude = {
-        MongoDataAutoConfiguration.class,
-        HypermediaAutoConfiguration.class,
-        /* configured explicitly for Apache Commons Multipart Resolver */  MultipartAutoConfiguration.class })
+@SpringBootApplication(exclude = { MongoDataAutoConfiguration.class, HypermediaAutoConfiguration.class,
+		/* configured explicitly for Apache Commons Multipart Resolver */  MultipartAutoConfiguration.class })
 @Import({ SecurityConfiguration.class, JobsConfiguration.class, MvcConfig.class, MongodbConfiguration.class,
-        SecurityConfiguration.SecurityServerConfiguration.class })
+		SecurityConfiguration.SecurityServerConfiguration.class })
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 @ComponentScan("com.epam.ta.reportportal")
 public class ReportPortalApp {
 
-    public static void main(String[] args) {
-        SpringApplication.run(ReportPortalApp.class, args);
-    }
+	public static void main(String[] args) {
+		SpringApplication.run(ReportPortalApp.class, args);
+	}
 
 }

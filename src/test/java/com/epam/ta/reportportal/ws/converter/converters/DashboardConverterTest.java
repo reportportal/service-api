@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.database.entity.Dashboard;
@@ -40,9 +40,9 @@ public class DashboardConverterTest {
 
 	@Test(expected = NullPointerException.class)
 	public void testNull() {
-        DashboardConverter.TO_RESOURCE.apply(null);
+		DashboardConverter.TO_RESOURCE.apply(null);
 	}
-	
+
 	@Test
 	public void testNullExtended() {
 		Dashboard dashboard = Utils.getDashboard();
@@ -51,7 +51,7 @@ public class DashboardConverterTest {
 		DashboardResource actualValue = DashboardConverter.TO_RESOURCE.apply(dashboard);
 		validate(Utils.getDashboardResource(), actualValue);
 	}
-	
+
 	@Test
 	public void testValues() {
 		Dashboard dashboard = Utils.getDashboard();
@@ -67,7 +67,7 @@ public class DashboardConverterTest {
 		WidgetObjectModel actualWidget = new WidgetObjectModel("12345678", size, position);
 		actualWidgets.add(actualWidget);
 		actualValue.setWidgets(actualWidgets);
-		
+
 		DashboardResource expectedValue = Utils.getDashboardResource();
 		List<WidgetObjectModel> widgets = new LinkedList<>();
 		WidgetObjectModel widget = new WidgetObjectModel("12345678", size, position);
@@ -79,12 +79,12 @@ public class DashboardConverterTest {
 	private void validate(DashboardResource expectedValue, DashboardResource actualValue) {
 		Assert.assertEquals(expectedValue.getDashboardId(), actualValue.getDashboardId());
 		Assert.assertEquals(expectedValue.getName(), actualValue.getName());
-		if(null != expectedValue.getWidgets() && !expectedValue.getWidgets().isEmpty()) {
+		if (null != expectedValue.getWidgets() && !expectedValue.getWidgets().isEmpty()) {
 			Assert.assertEquals(expectedValue.getWidgets().get(0).getWidgetId(), actualValue.getWidgets().get(0).getWidgetId());
 			Assert.assertEquals(expectedValue.getWidgets().get(0).getWidgetPosition(), actualValue.getWidgets().get(0).getWidgetPosition());
 			Assert.assertEquals(expectedValue.getWidgets().get(0).getWidgetSize(), actualValue.getWidgets().get(0).getWidgetSize());
-		}
-		else
+		} else {
 			Assert.assertEquals(expectedValue.getWidgets(), actualValue.getWidgets());
+		}
 	}
 }

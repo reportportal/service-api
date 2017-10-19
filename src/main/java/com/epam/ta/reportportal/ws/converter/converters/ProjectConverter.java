@@ -110,14 +110,10 @@ public final class ProjectConverter {
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 		// ============= External sub-types =================
-		Map<String, List<IssueSubTypeResource>> result = db.getConfiguration()
-				.getSubTypes()
-				.entrySet()
-				.stream()
-				.collect(Collectors.toMap(
-						entry -> entry.getKey().getValue(),
-						entry -> entry.getValue().stream().map(ProjectConverter.TO_SUBTYPE_RESOURCE).collect(Collectors.toList())
-				));
+		Map<String, List<IssueSubTypeResource>> result = db.getConfiguration().getSubTypes().entrySet().stream().collect(Collectors.toMap(
+				entry -> entry.getKey().getValue(),
+				entry -> entry.getValue().stream().map(ProjectConverter.TO_SUBTYPE_RESOURCE).collect(Collectors.toList())
+		));
 		configuration.setSubTypes(result);
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

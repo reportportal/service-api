@@ -51,90 +51,89 @@ import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
-
 @Service
 public class MergeTestItemHandlerImpl implements MergeTestItemHandler {
 
-    @Autowired
-    private TestItemRepository testItemRepository;
+	@Autowired
+	private TestItemRepository testItemRepository;
 
-    @Autowired
-    private StatisticsFacadeFactory statisticsFacadeFactory;
+	@Autowired
+	private StatisticsFacadeFactory statisticsFacadeFactory;
 
-    @Autowired
-    private UserRepository userRepository;
+	@Autowired
+	private UserRepository userRepository;
 
-    @Autowired
-    private ProjectRepository projectRepository;
+	@Autowired
+	private ProjectRepository projectRepository;
 
-    @Autowired
-    private LaunchRepository launchRepository;
+	@Autowired
+	private LaunchRepository launchRepository;
 
-    @Autowired
-    private MergeStrategyFactory mergeStrategyFactory;
+	@Autowired
+	private MergeStrategyFactory mergeStrategyFactory;
 
-    @Override
-    public OperationCompletionRS mergeTestItem(String projectName, String item, MergeTestItemRQ rq, String userName) {
-        TestItem testItemTarget = validateTestItem(item);
-        validateTestItemIsSuite(testItemTarget);
-        Launch launchTarget = validateLaunch(testItemTarget.getLaunchRef());
-        Project project = validateProject(launchTarget.getProjectRef());
-        validateLaunchInProject(launchTarget, project);
+	@Override
+	public OperationCompletionRS mergeTestItem(String projectName, String item, MergeTestItemRQ rq, String userName) {
+		TestItem testItemTarget = validateTestItem(item);
+		validateTestItemIsSuite(testItemTarget);
+		Launch launchTarget = validateLaunch(testItemTarget.getLaunchRef());
+		Project project = validateProject(launchTarget.getProjectRef());
+		validateLaunchInProject(launchTarget, project);
 
-        List<TestItem> itemsToMerge = new ArrayList<>(rq.getItems().size());
-        Set<String> sourceLaunches = new HashSet<>();
-        for (String id : rq.getItems()) {
-            TestItem itemToMerge = validateTestItem(id);
-            sourceLaunches.add(itemToMerge.getLaunchRef());
-            validateTestItemIsSuite(itemToMerge);
-            validateTestItemInProject(itemToMerge, project);
-            itemsToMerge.add(itemToMerge);
-        }
+		List<TestItem> itemsToMerge = new ArrayList<>(rq.getItems().size());
+		Set<String> sourceLaunches = new HashSet<>();
+		for (String id : rq.getItems()) {
+			TestItem itemToMerge = validateTestItem(id);
+			sourceLaunches.add(itemToMerge.getLaunchRef());
+			validateTestItemIsSuite(itemToMerge);
+			validateTestItemInProject(itemToMerge, project);
+			itemsToMerge.add(itemToMerge);
+		}
 
-        MergeStrategyType mergeStrategyType = MergeStrategyType.fromValue(rq.getMergeStrategyType());
-        expect(mergeStrategyType, Predicates.notNull()).verify(ErrorType.UNSUPPORTED_MERGE_STRATEGY_TYPE, rq.getMergeStrategyType());
-        MergeStrategy mergeStrategy = mergeStrategyFactory.getStrategy(mergeStrategyType);
-        mergeStrategy.mergeTestItems(testItemTarget, itemsToMerge);
+		MergeStrategyType mergeStrategyType = MergeStrategyType.fromValue(rq.getMergeStrategyType());
+		expect(mergeStrategyType, Predicates.notNull()).verify(ErrorType.UNSUPPORTED_MERGE_STRATEGY_TYPE, rq.getMergeStrategyType());
+		MergeStrategy mergeStrategy = mergeStrategyFactory.getStrategy(mergeStrategyType);
+		mergeStrategy.mergeTestItems(testItemTarget, itemsToMerge);
 
-        StatisticsFacade statisticsFacade = statisticsFacadeFactory
-                .getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
-        for (String launchID : sourceLaunches) {
-            Launch launch = launchRepository.findOne(launchID);
-            statisticsFacade.recalculateStatistics(launch);
-        }
-        statisticsFacade.recalculateStatistics(launchTarget);
+		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(
+				project.getConfiguration().getStatisticsCalculationStrategy());
+		for (String launchID : sourceLaunches) {
+			Launch launch = launchRepository.findOne(launchID);
+			statisticsFacade.recalculateStatistics(launch);
+		}
+		statisticsFacade.recalculateStatistics(launchTarget);
 
-        return new OperationCompletionRS("TestItem with ID = '" + item + "' successfully merged.");
-    }
+		return new OperationCompletionRS("TestItem with ID = '" + item + "' successfully merged.");
+	}
 
-    private void validateLaunchInProject(Launch launch, Project project) {
-        expect(launch.getProjectRef(), equalTo(project.getId())).verify(ACCESS_DENIED);
-    }
+	private void validateLaunchInProject(Launch launch, Project project) {
+		expect(launch.getProjectRef(), equalTo(project.getId())).verify(ACCESS_DENIED);
+	}
 
-    private void validateTestItemInProject(TestItem testItem, Project project) {
-        Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-        expect(launch.getProjectRef(), equalTo(project.getId())).verify(ACCESS_DENIED);
-    }
+	private void validateTestItemInProject(TestItem testItem, Project project) {
+		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
+		expect(launch.getProjectRef(), equalTo(project.getId())).verify(ACCESS_DENIED);
+	}
 
-    private TestItem validateTestItem(String testItemId) {
-        TestItem testItem = testItemRepository.findOne(testItemId);
-        expect(testItem, notNull()).verify(TEST_ITEM_NOT_FOUND, testItemId);
-        return testItem;
-    }
+	private TestItem validateTestItem(String testItemId) {
+		TestItem testItem = testItemRepository.findOne(testItemId);
+		expect(testItem, notNull()).verify(TEST_ITEM_NOT_FOUND, testItemId);
+		return testItem;
+	}
 
-    private Launch validateLaunch(String launchId) {
-        Launch launch = launchRepository.findOne(launchId);
-        expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);
-        return launch;
-    }
+	private Launch validateLaunch(String launchId) {
+		Launch launch = launchRepository.findOne(launchId);
+		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);
+		return launch;
+	}
 
-    private Project validateProject(String projectId) {
-        Project project = projectRepository.findOne(projectId);
-        expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectId);
-        return project;
-    }
+	private Project validateProject(String projectId) {
+		Project project = projectRepository.findOne(projectId);
+		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectId);
+		return project;
+	}
 
-    private void validateTestItemIsSuite(TestItem testItem) {
-        expect(true, equalTo(testItem.getType().sameLevel(TestItemType.SUITE))).verify(ErrorType.INCORRECT_REQUEST, testItem.getId());
-    }
+	private void validateTestItemIsSuite(TestItem testItem) {
+		expect(true, equalTo(testItem.getType().sameLevel(TestItemType.SUITE))).verify(ErrorType.INCORRECT_REQUEST, testItem.getId());
+	}
 }

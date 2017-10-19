@@ -69,9 +69,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 /**
  * Project controller implementation
- * 
+ *
  * @author Hanna_Sukhadolava
- * 
  */
 @Controller
 @RequestMapping("/project")
@@ -130,8 +129,7 @@ public class ProjectController implements IProjectController {
 	@ApiOperation("Update project email configuration")
 	public OperationCompletionRS updateProjectEmailConfig(@PathVariable String projectName,
 			@RequestBody @Validated ProjectEmailConfigDTO updateProjectRQ, Principal principal) {
-		return updateProjectHandler.updateProjectEmailConfig(normalizeId(projectName), principal.getName(),
-				updateProjectRQ);
+		return updateProjectHandler.updateProjectEmailConfig(normalizeId(projectName), principal.getName(), updateProjectRQ);
 	}
 
 	@Override
@@ -215,7 +213,8 @@ public class ProjectController implements IProjectController {
 	@ResponseBody
 	@ApiIgnore
 	@PreAuthorize(PROJECT_MANAGER)
-	public Page<UserResource> searchForUser(@SuppressWarnings("unused") @PathVariable String projectName, @PathVariable String term, Pageable pageable) {
+	public Page<UserResource> searchForUser(@SuppressWarnings("unused") @PathVariable String projectName, @PathVariable String term,
+			Pageable pageable) {
 		return getProjectHandler.getUserNames(term, pageable);
 	}
 
@@ -228,8 +227,7 @@ public class ProjectController implements IProjectController {
 	// Hide method cause results using for UI only and doesn't affect WS
 	public OperationCompletionRS updateUserPreference(@PathVariable String projectName,
 			@RequestBody @Validated UpdatePreferenceRQ updatePreferenceRQ, @PathVariable String login, Principal principal) {
-		return updatePreferenceHandler.updatePreference(principal.getName(), EntityUtils.normalizeId(projectName),
-				updatePreferenceRQ);
+		return updatePreferenceHandler.updatePreference(principal.getName(), EntityUtils.normalizeId(projectName), updatePreferenceRQ);
 	}
 
 	@Override

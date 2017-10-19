@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
 
@@ -53,19 +53,19 @@ public class BugTrendChartContentLoader extends StatisticBasedContentLoader impl
 	private LaunchRepository launchRepository;
 
 	@Override
-	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
-			List<String> metaDataFields, Map<String, List<String>> options) {
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity,
+			List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> options) {
 
 		StatisticsDocumentHandler statisticsDocumentHandler = new StatisticsDocumentHandler(contentFields, metaDataFields);
 		if (filter.getTarget().equals(TestItem.class)) {
 			return Collections.emptyMap();
 		}
 		List<String> allFields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
-		if (options.containsKey(LATEST_MODE)){
-		    launchRepository.findLatestWithCallback(filter, sorting, allFields, quantity, statisticsDocumentHandler);
-        } else {
-            launchRepository.loadWithCallback(filter, sorting, quantity, allFields, statisticsDocumentHandler, COLLECTION_NAME);
-        }
+		if (options.containsKey(LATEST_MODE)) {
+			launchRepository.findLatestWithCallback(filter, sorting, allFields, quantity, statisticsDocumentHandler);
+		} else {
+			launchRepository.loadWithCallback(filter, sorting, quantity, allFields, statisticsDocumentHandler, COLLECTION_NAME);
+		}
 		List<ChartObject> result = statisticsDocumentHandler.getResult();
 		if (WidgetUtils.needRevert(sorting)) {
 			Collections.reverse(result);
@@ -75,7 +75,7 @@ public class BugTrendChartContentLoader extends StatisticBasedContentLoader impl
 
 	/**
 	 * Calculate chart data (Total count of issues) for UI
-	 * 
+	 *
 	 * @param input
 	 * @return
 	 */
@@ -94,7 +94,7 @@ public class BugTrendChartContentLoader extends StatisticBasedContentLoader impl
 	 * - statistics.issueCounter.productBugs<br>
 	 * - statistics.issueCounter.testBugs<br>
 	 * - statistics.issueCounter.systemIssues
-	 * 
+	 *
 	 * @param single
 	 * @return
 	 */

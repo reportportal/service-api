@@ -56,9 +56,8 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 		if (CollectionUtils.isEmpty(launchHistory)) {
 			return Collections.emptyMap();
 		}
-		List<FlakyHistory> itemStatusHistory = itemRepository.getFlakyItemStatusHistory(launchHistory.stream()
-				.map(Launch::getId)
-				.collect(toList()));
+		List<FlakyHistory> itemStatusHistory = itemRepository.getFlakyItemStatusHistory(
+				launchHistory.stream().map(Launch::getId).collect(toList()));
 
 		if (CollectionUtils.isEmpty(itemStatusHistory)) {
 			return Collections.emptyMap();
@@ -72,9 +71,8 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 
 	private Map<String, List<?>> processHistory(Map<String, List<?>> result, List<FlakyHistory> itemStatusHistory) {
 		List<FlakyHistoryObject> flakyHistoryObjects = itemStatusHistory.stream().map(this::processItem).collect(toList());
-		flakyHistoryObjects.sort(comparing(FlakyHistoryObject::getSwitchCounter,
-				reverseOrder()
-		).thenComparing(FlakyHistoryObject::getTotal));
+		flakyHistoryObjects.sort(
+				comparing(FlakyHistoryObject::getSwitchCounter, reverseOrder()).thenComparing(FlakyHistoryObject::getTotal));
 		if (flakyHistoryObjects.size() > ITEMS_COUNT_VALUE) {
 			flakyHistoryObjects = flakyHistoryObjects.subList(0, ITEMS_COUNT_VALUE);
 		}

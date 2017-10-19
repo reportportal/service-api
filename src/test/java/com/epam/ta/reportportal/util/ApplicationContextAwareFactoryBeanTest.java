@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.util;
 
 import org.junit.Assert;
@@ -37,10 +37,8 @@ import static org.hamcrest.Matchers.is;
 /**
  * Checks {@link ApplicationContextAwareFactoryBean} <br>
  * Be aware that test uses yourself as demo bean
- * 
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { ApplicationContextAwareFactoryBeanTest.TestConfig.class })

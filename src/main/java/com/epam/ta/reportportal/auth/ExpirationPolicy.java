@@ -17,33 +17,32 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.auth;
 
-import java.util.Date;
-
 import com.epam.ta.reportportal.database.entity.user.User;
+
+import java.util.Date;
 
 /**
  * Expiration policy for ReportPortal Users
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public interface ExpirationPolicy {
 
 	/**
 	 * Returns date when account should be expired according to policy
 	 * implementation
-	 * 
+	 *
 	 * @return
 	 */
 	Date getExpirationDate();
 
 	/**
 	 * Check whether user account should be expired or not
-	 * 
+	 *
 	 * @param user
 	 * @return
 	 */

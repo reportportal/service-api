@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.auth.permissions;
 
@@ -32,9 +32,8 @@ import javax.validation.constraints.NotNull;
 /**
  * Validates this is {@link ProjectRole#MEMBER} or higher authority in the
  * authentication context
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @Component
 @LookupPermission({ "notCustomerPermission" })

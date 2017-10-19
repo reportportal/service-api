@@ -87,11 +87,11 @@ public class ProjectActivityHandler {
 	}
 
 	private void processStatisticsStrategy(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
-		if ((null != configuration.getStatisticCalculationStrategy())
-				&& (!configuration.getStatisticCalculationStrategy().equalsIgnoreCase((project.getConfiguration().getStatisticsCalculationStrategy().name())))){
+		if ((null != configuration.getStatisticCalculationStrategy()) && (!configuration.getStatisticCalculationStrategy()
+				.equalsIgnoreCase((project.getConfiguration().getStatisticsCalculationStrategy().name())))) {
 			Activity.FieldValues fieldValues = createHistoryField(STATISTICS_CALCULATION_STRATEGY,
-					project.getConfiguration().getStatisticsCalculationStrategy().name(),
-					configuration.getStatisticCalculationStrategy());
+					project.getConfiguration().getStatisticsCalculationStrategy().name(), configuration.getStatisticCalculationStrategy()
+			);
 			history.add(fieldValues);
 		}
 	}
@@ -104,8 +104,7 @@ public class ProjectActivityHandler {
 		}
 	}
 
-	private void processLaunchInactivityTimeout(List<Activity.FieldValues> history, Project project,
-			ProjectConfiguration configuration) {
+	private void processLaunchInactivityTimeout(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
 		if ((null != configuration.getInterruptJobTime()) && (!configuration.getInterruptJobTime()
 				.equals(project.getConfiguration().getInterruptJobTime()))) {
 			Activity.FieldValues fieldValues = createHistoryField(
@@ -117,10 +116,10 @@ public class ProjectActivityHandler {
 	private void processAutoAnalyze(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
 		if ((null != configuration.getIsAAEnabled()) && (!configuration.getIsAAEnabled()
 				.equals(project.getConfiguration().getIsAutoAnalyzerEnabled()))) {
-			String oldValue = project.getConfiguration().getIsAutoAnalyzerEnabled() == null ? "" :
+			String oldValue = project.getConfiguration().getIsAutoAnalyzerEnabled() == null ?
+					"" :
 					project.getConfiguration().getIsAutoAnalyzerEnabled().toString();
-			Activity.FieldValues fieldValues = createHistoryField(
-					AUTO_ANALYZE, oldValue, configuration.getIsAAEnabled().toString());
+			Activity.FieldValues fieldValues = createHistoryField(AUTO_ANALYZE, oldValue, configuration.getIsAAEnabled().toString());
 			history.add(fieldValues);
 		}
 	}
@@ -128,15 +127,15 @@ public class ProjectActivityHandler {
 	private void processAnalyzeOnTheFly(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
 		if ((null != configuration.getAnalyzeOnTheFly()) && (!configuration.getAnalyzeOnTheFly()
 				.equals(project.getConfiguration().getAnalyzeOnTheFly()))) {
-			String oldValue = project.getConfiguration().getAnalyzeOnTheFly() == null ? "" :
+			String oldValue = project.getConfiguration().getAnalyzeOnTheFly() == null ?
+					"" :
 					project.getConfiguration().getAnalyzeOnTheFly().toString();
 			Activity.FieldValues fieldValues = createHistoryField(ANALYZE_ON_FLY, oldValue, configuration.getAnalyzeOnTheFly().toString());
 			history.add(fieldValues);
 		}
 	}
 
-	private void processKeepScreenshots(List<Activity.FieldValues> history, Project project,
-			ProjectConfiguration configuration) {
+	private void processKeepScreenshots(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
 		if ((null != configuration.getKeepScreenshots()) && (!configuration.getKeepScreenshots()
 				.equals(project.getConfiguration().getKeepScreenshots()))) {
 			Activity.FieldValues fieldValues = createHistoryField(

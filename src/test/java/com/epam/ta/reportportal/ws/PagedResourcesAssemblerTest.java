@@ -50,64 +50,63 @@ import static org.hamcrest.Matchers.is;
 @SpringFixture("unitTestsProjectTriggers")
 public class PagedResourcesAssemblerTest extends BaseTest {
 
-    private static final String REQUEST_URI = "/default_project/item";
+	private static final String REQUEST_URI = "/default_project/item";
 
-    private static final String QUERY_STRING_PATTERN = "page.sort=start_time&page.sort.dir=DESC&filter.ex.parent=false&page.page=%d&page.size=%d";
+	private static final String QUERY_STRING_PATTERN = "page.sort=start_time&page.sort.dir=DESC&filter.ex.parent=false&page.page=%d&page.size=%d";
 
-    private static final String CURRENT_PAGE_PARAMETER = "page.page";
+	private static final String CURRENT_PAGE_PARAMETER = "page.page";
 
-    private static final String PAGE_SIZE_PARAMETER = "page.size";
+	private static final String PAGE_SIZE_PARAMETER = "page.size";
 
-    @Autowired
-    protected LaunchRepository launchRepository;
+	@Autowired
+	protected LaunchRepository launchRepository;
 
-    @Autowired
-    protected LaunchResourceAssembler launchResourceAssembler;
+	@Autowired
+	protected LaunchResourceAssembler launchResourceAssembler;
 
-    @Autowired
-    protected ProjectRepository projectRepository;
+	@Autowired
+	protected ProjectRepository projectRepository;
 
-    @Rule
-    @Autowired
-    public SpringFixtureRule dfRule;
+	@Rule
+	@Autowired
+	public SpringFixtureRule dfRule;
 
-    private void prepareRequestContext(int currentPage, int currentPageSize) {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        request.setRequestURI(REQUEST_URI);
-        request.setParameter(CURRENT_PAGE_PARAMETER, String.valueOf(currentPage));
-        request.setParameter(PAGE_SIZE_PARAMETER, String.valueOf(currentPageSize));
+	private void prepareRequestContext(int currentPage, int currentPageSize) {
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setRequestURI(REQUEST_URI);
+		request.setParameter(CURRENT_PAGE_PARAMETER, String.valueOf(currentPage));
+		request.setParameter(PAGE_SIZE_PARAMETER, String.valueOf(currentPageSize));
 
-        request.setQueryString(String.format(QUERY_STRING_PATTERN, currentPage, currentPageSize));
-        ServletRequestAttributes attributes = new ServletRequestAttributes(request);
-        RequestContextHolder.setRequestAttributes(attributes);
-    }
+		request.setQueryString(String.format(QUERY_STRING_PATTERN, currentPage, currentPageSize));
+		ServletRequestAttributes attributes = new ServletRequestAttributes(request);
+		RequestContextHolder.setRequestAttributes(attributes);
+	}
 
-    @Test
-    public void testFirst() {
+	@Test
+	public void testFirst() {
 
-        int currentPage = 1;
-        int pageSize = 2;
-        prepareRequestContext(currentPage, pageSize);
+		int currentPage = 1;
+		int pageSize = 2;
+		prepareRequestContext(currentPage, pageSize);
 
-        Page<Launch> savedLaunch = launchRepository.findAll(new PageRequest(currentPage - 1, pageSize));
+		Page<Launch> savedLaunch = launchRepository.findAll(new PageRequest(currentPage - 1, pageSize));
 
-        for (Launch l : savedLaunch) {
-            LoggerFactory.getLogger(getClass()).warn("Looking via ORM");
-            projectRepository.findOne(l.getProjectRef());
-        }
+		for (Launch l : savedLaunch) {
+			LoggerFactory.getLogger(getClass()).warn("Looking via ORM");
+			projectRepository.findOne(l.getProjectRef());
+		}
 
-        com.epam.ta.reportportal.ws.model.Page<LaunchResource> pagedResources = launchResourceAssembler
-                .toPagedResources(savedLaunch);
+		com.epam.ta.reportportal.ws.model.Page<LaunchResource> pagedResources = launchResourceAssembler.toPagedResources(savedLaunch);
 
 		/*
-         * Test Current
+		 * Test Current
 		 */
-        Assert.assertThat(pagedResources.getPage().getNumber(), is(1L));
+		Assert.assertThat(pagedResources.getPage().getNumber(), is(1L));
 
-    }
+	}
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testNegative() {
-        launchRepository.findAll(new PageRequest(-1, 1));
-    }
+	@Test(expected = IllegalArgumentException.class)
+	public void testNegative() {
+		launchRepository.findAll(new PageRequest(-1, 1));
+	}
 }

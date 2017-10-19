@@ -83,8 +83,7 @@ public class CasesTrendContentLoader extends StatisticBasedContentLoader impleme
 
 		Map<String, List<ChartObject>> result = new LinkedHashMap<>();
 		if ((options.get(TIMELINE) != null) && (Period.findByName(options.get(TIMELINE).get(0)) != null)) {
-			Map<String, List<ChartObject>> timeline = maxByDate(rawData,
-					Period.findByName(options.get(TIMELINE).get(0)),
+			Map<String, List<ChartObject>> timeline = maxByDate(rawData, Period.findByName(options.get(TIMELINE).get(0)),
 					getTotalFieldName()
 			);
 			result.putAll(calculateGroupedDiffs(timeline, sorting));

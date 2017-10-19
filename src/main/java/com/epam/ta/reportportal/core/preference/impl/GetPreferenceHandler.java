@@ -17,12 +17,9 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.preference.impl;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -33,11 +30,13 @@ import com.epam.ta.reportportal.database.entity.UserPreference;
 import com.epam.ta.reportportal.ws.converter.UserPreferenceResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * Default implementation of
  * {@link com.epam.ta.reportportal.core.preference.IGetPreferenceHandler}
- * 
+ *
  * @author Dzmitry_Kavalets
  */
 @Service
@@ -55,8 +54,8 @@ public class GetPreferenceHandler implements IGetPreferenceHandler {
 	@Override
 	public PreferenceResource getPreference(String projectName, String userName) {
 		boolean assignedToProject = projectRepository.isAssignedToProject(projectName, userName);
-		BusinessRule.expect(Boolean.TRUE, Predicates.equalTo(assignedToProject)).verify(ErrorType.PROJECT_DOESNT_CONTAIN_USER, projectName,
-				userName);
+		BusinessRule.expect(Boolean.TRUE, Predicates.equalTo(assignedToProject))
+				.verify(ErrorType.PROJECT_DOESNT_CONTAIN_USER, projectName, userName);
 		UserPreference preference = userPreferenceRepository.findByProjectAndUserName(projectName, userName);
 		if (null == preference) {
 			preference = new UserPreference();

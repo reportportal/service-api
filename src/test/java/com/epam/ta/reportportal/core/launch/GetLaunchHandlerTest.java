@@ -107,9 +107,8 @@ public class GetLaunchHandlerTest extends BaseTest {
 
 	private Project buildProject(String user) {
 		Project project = new Project();
-		List<Project.UserConfig> users = ImmutableList.<Project.UserConfig>builder().add(Project.UserConfig.newOne()
-				.withProjectRole(ProjectRole.CUSTOMER)
-				.withLogin(user)).build();
+		List<Project.UserConfig> users = ImmutableList.<Project.UserConfig>builder().add(
+				Project.UserConfig.newOne().withProjectRole(ProjectRole.CUSTOMER).withLogin(user)).build();
 		project.setUsers(users);
 		return project;
 	}

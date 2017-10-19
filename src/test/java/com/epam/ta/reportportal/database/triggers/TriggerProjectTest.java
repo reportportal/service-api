@@ -21,26 +21,22 @@
 
 package com.epam.ta.reportportal.database.triggers;
 
-import static java.util.Collections.singletonList;
-
+import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.database.fixture.SpringFixture;
+import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
 import com.epam.ta.reportportal.database.personal.PersonalProjectService;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.epam.ta.BaseTest;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.dao.UserRepository;
-import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.database.fixture.SpringFixture;
-import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
+import static java.util.Collections.singletonList;
 
 @SpringFixture("unitTestsProjectTriggers")
 public class TriggerProjectTest extends BaseTest {
-
 
 	@Autowired
 	private ProjectRepository projectRepository;

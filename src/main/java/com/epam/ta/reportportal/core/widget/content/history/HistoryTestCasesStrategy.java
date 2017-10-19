@@ -68,7 +68,8 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 			return Collections.emptyList();
 		}
 		List<Launch> launchHistory = historyServiceStrategy.loadLaunches(contentOptions.getItemsCount(), lastLaunchForProject.get().getId(),
-				projectName, false);
+				projectName, false
+		);
 		if (launchHistory.isEmpty()) {
 			return Collections.emptyList();
 		}
@@ -138,9 +139,8 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 				return false;
 			}
 			HistoryObject that = (HistoryObject) o;
-			return total == that.total && com.google.common.base.Objects.equal(name, that.name) && com.google.common.base.Objects.equal(lastTime,
-					that.lastTime
-			) && com.google.common.base.Objects.equal(percentage, that.percentage);
+			return total == that.total && com.google.common.base.Objects.equal(name, that.name) && com.google.common.base.Objects.equal(
+					lastTime, that.lastTime) && com.google.common.base.Objects.equal(percentage, that.percentage);
 		}
 
 		@Override

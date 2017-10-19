@@ -17,21 +17,11 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.database.dao;
 
-import java.util.List;
-import java.util.Set;
-
 import com.epam.ta.BaseTest;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-
 import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.sharing.Shareable;
 import com.epam.ta.reportportal.database.fixture.SpringFixture;
@@ -40,13 +30,22 @@ import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
+import java.util.List;
+import java.util.Set;
 
 @SpringFixture("shareableRepositoryTest")
-public class ShareableRepositoryTest  extends BaseTest {
-	
+public class ShareableRepositoryTest extends BaseTest {
+
 	@Autowired
 	private DashboardRepository dashboardRepository;
-	
+
 	@Rule
 	@Autowired
 	public SpringFixtureRule dfRule;
@@ -57,10 +56,11 @@ public class ShareableRepositoryTest  extends BaseTest {
 		Assert.assertNotNull(dashboards);
 		Assert.assertTrue(dashboards.isEmpty());
 	}
-	
+
 	@Test
 	public void testFindSharedEntities() {
-		List<Dashboard> dashboards = dashboardRepository.findSharedEntities("default", "default_project", Lists.newArrayList("_id","name"), Shareable.NAME_OWNER_SORT);
+		List<Dashboard> dashboards = dashboardRepository.findSharedEntities(
+				"default", "default_project", Lists.newArrayList("_id", "name"), Shareable.NAME_OWNER_SORT);
 		Assert.assertNotNull(dashboards);
 		Assert.assertEquals(1, dashboards.size());
 		Dashboard dashboard = dashboards.get(0);
@@ -71,10 +71,11 @@ public class ShareableRepositoryTest  extends BaseTest {
 		Assert.assertTrue(dashboard.getWidgets().isEmpty());
 		Assert.assertNull(dashboard.getCreationDate());
 	}
-	
+
 	@Test
 	public void testfindOnlyOwnedEntities() {
-		List<Dashboard> dashboards = dashboardRepository.findOnlyOwnedEntities(Sets.newHashSet("520e1f3818127ca383339f39","520e1f3818127cad83339f40","520e1f3818127ca383339341"), "default1");
+		List<Dashboard> dashboards = dashboardRepository.findOnlyOwnedEntities(
+				Sets.newHashSet("520e1f3818127ca383339f39", "520e1f3818127cad83339f40", "520e1f3818127ca383339341"), "default1");
 		Assert.assertNotNull(dashboards);
 		Assert.assertEquals(2, dashboards.size());
 		for (Dashboard dashboard : dashboards) {
@@ -85,20 +86,20 @@ public class ShareableRepositoryTest  extends BaseTest {
 			Assert.assertNotNull(dashboard.getCreationDate());
 		}
 	}
-	
+
 	@Test
 	public void testNullfindOnlyOwnedEntities() {
 		List<Dashboard> dashboards = dashboardRepository.findOnlyOwnedEntities(null, null);
 		Assert.assertNotNull(dashboards);
 		Assert.assertTrue(dashboards.isEmpty());
 	}
-	
+
 	@Test
 	public void testNullfindAllByFilter() {
-		Page<Dashboard> dashboards = dashboardRepository.findAllByFilter(null, null, null,null);
+		Page<Dashboard> dashboards = dashboardRepository.findAllByFilter(null, null, null, null);
 		Assert.assertNotNull(dashboards);
 	}
-	
+
 	@Test
 	public void testfindAllByFilter() {
 		Set<FilterCondition> conditions = Sets.newHashSet();
@@ -106,7 +107,7 @@ public class ShareableRepositoryTest  extends BaseTest {
 		Page<Dashboard> dashboards = dashboardRepository.findAllByFilter(filter, new PageRequest(0, 10), "default_project", "default1");
 		Assert.assertNotNull(dashboards);
 		Assert.assertEquals(3, dashboards.getContent().size());
-		List<String> expectedIds = Lists.newArrayList("520e1f3818127ca383339f39","520e1f3818127cad83339f40","520e1f3818127ca383339341");
+		List<String> expectedIds = Lists.newArrayList("520e1f3818127ca383339f39", "520e1f3818127cad83339f40", "520e1f3818127ca383339341");
 		for (Dashboard dashboard : dashboards) {
 			Assert.assertTrue(expectedIds.contains(dashboard.getId()));
 		}

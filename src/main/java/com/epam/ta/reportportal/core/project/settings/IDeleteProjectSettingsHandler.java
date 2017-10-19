@@ -17,22 +17,20 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.project.settings;
 
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 /**
- * 
  * @author Andrei_Ramanchuk
- *
  */
 public interface IDeleteProjectSettingsHandler {
 
 	/**
 	 * Remove specified issue sub-type for specified project
-	 * 
+	 *
 	 * @param projectName
 	 * @param id
 	 * @return

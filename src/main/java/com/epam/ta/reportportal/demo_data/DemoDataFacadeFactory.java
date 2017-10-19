@@ -30,11 +30,11 @@ import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
  * @author Pavel Bortnik
  */
 public interface DemoDataFacadeFactory {
-    /**
-     * Returns demo data facade for specified strategy
-     *
-     * @param strategy
-     * @return
-     */
-    DemoDataFacade getDemoDataFacade(StatisticsCalculationStrategy strategy);
+	/**
+	 * Returns demo data facade for specified strategy
+	 *
+	 * @param strategy
+	 * @return
+	 */
+	DemoDataFacade getDemoDataFacade(StatisticsCalculationStrategy strategy);
 }

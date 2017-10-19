@@ -36,56 +36,56 @@ import java.util.Iterator;
  */
 public class UserFilterConverterTest {
 
-    @Test(expected = NullPointerException.class)
-    public void testNull() {
-        UserFilterConverter.TO_RESOURCE.apply(null);
-    }
+	@Test(expected = NullPointerException.class)
+	public void testNull() {
+		UserFilterConverter.TO_RESOURCE.apply(null);
+	}
 
-    @Test
-    public void testNullExtended() {
-        UserFilter userFilter = Utils.getUserFilter();
-        userFilter.setFilter(null);
-        userFilter.setSelectionOptions(null);
-        UserFilterResource actualValue = UserFilterConverter.TO_RESOURCE.apply(userFilter);
-        UserFilterResource expectedValue = Utils.getUserFilterResource();
-        expectedValue.setEntities(null);
-        expectedValue.setObjectType(null);
-        expectedValue.setSelectionParameters(null);
-        validate(expectedValue, actualValue);
-    }
+	@Test
+	public void testNullExtended() {
+		UserFilter userFilter = Utils.getUserFilter();
+		userFilter.setFilter(null);
+		userFilter.setSelectionOptions(null);
+		UserFilterResource actualValue = UserFilterConverter.TO_RESOURCE.apply(userFilter);
+		UserFilterResource expectedValue = Utils.getUserFilterResource();
+		expectedValue.setEntities(null);
+		expectedValue.setObjectType(null);
+		expectedValue.setSelectionParameters(null);
+		validate(expectedValue, actualValue);
+	}
 
-    @Test
-    public void testValues() {
-        UserFilter userFilter = Utils.getUserFilter();
-        userFilter.setId(BuilderTestsConstants.BINARY_DATA_ID);
-        UserFilterResource actualValue = UserFilterConverter.TO_RESOURCE.apply(userFilter);
-        UserFilterResource expectedValue = Utils.getUserFilterResource();
-        expectedValue.setFilterId(BuilderTestsConstants.BINARY_DATA_ID);
-        validate(expectedValue, actualValue);
-    }
+	@Test
+	public void testValues() {
+		UserFilter userFilter = Utils.getUserFilter();
+		userFilter.setId(BuilderTestsConstants.BINARY_DATA_ID);
+		UserFilterResource actualValue = UserFilterConverter.TO_RESOURCE.apply(userFilter);
+		UserFilterResource expectedValue = Utils.getUserFilterResource();
+		expectedValue.setFilterId(BuilderTestsConstants.BINARY_DATA_ID);
+		validate(expectedValue, actualValue);
+	}
 
-    private void validate(UserFilterResource expectedValue, UserFilterResource actualValue) {
-        Assert.assertEquals(expectedValue.getFilterId(), actualValue.getFilterId());
-        Assert.assertEquals(expectedValue.getName(), actualValue.getName());
-        Assert.assertEquals(expectedValue.getObjectType(), actualValue.getObjectType());
-        if (expectedValue.getEntities() == null) {
-            return;
-        }
-        Iterator<UserFilterEntity> expectedEntityIter = expectedValue.getEntities().iterator();
-        Iterator<UserFilterEntity> actualEntityIter = actualValue.getEntities().iterator();
+	private void validate(UserFilterResource expectedValue, UserFilterResource actualValue) {
+		Assert.assertEquals(expectedValue.getFilterId(), actualValue.getFilterId());
+		Assert.assertEquals(expectedValue.getName(), actualValue.getName());
+		Assert.assertEquals(expectedValue.getObjectType(), actualValue.getObjectType());
+		if (expectedValue.getEntities() == null) {
+			return;
+		}
+		Iterator<UserFilterEntity> expectedEntityIter = expectedValue.getEntities().iterator();
+		Iterator<UserFilterEntity> actualEntityIter = actualValue.getEntities().iterator();
 
-        Assert.assertEquals(expectedValue.getSelectionParameters(), actualValue.getSelectionParameters());
+		Assert.assertEquals(expectedValue.getSelectionParameters(), actualValue.getSelectionParameters());
 
-        while (expectedEntityIter.hasNext()) {
-            UserFilterEntity expectedEntity = expectedEntityIter.next();
-            if (!actualEntityIter.hasNext()) {
-                Assert.fail("Filter entities aren't equal");
-            }
-            UserFilterEntity actualEntity = actualEntityIter.next();
-            Assert.assertEquals(expectedEntity.getCondition(), actualEntity.getCondition());
-            Assert.assertEquals(expectedEntity.getFilteringField(), actualEntity.getFilteringField());
-            Assert.assertEquals(expectedEntity.getValue(), actualEntity.getValue());
-        }
-    }
+		while (expectedEntityIter.hasNext()) {
+			UserFilterEntity expectedEntity = expectedEntityIter.next();
+			if (!actualEntityIter.hasNext()) {
+				Assert.fail("Filter entities aren't equal");
+			}
+			UserFilterEntity actualEntity = actualEntityIter.next();
+			Assert.assertEquals(expectedEntity.getCondition(), actualEntity.getCondition());
+			Assert.assertEquals(expectedEntity.getFilteringField(), actualEntity.getFilteringField());
+			Assert.assertEquals(expectedEntity.getValue(), actualEntity.getValue());
+		}
+	}
 
 }

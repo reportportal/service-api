@@ -17,21 +17,19 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.auth.ExpirationPolicy;
+import com.epam.ta.reportportal.database.dao.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.epam.ta.reportportal.database.dao.UserRepository;
-
 /**
  * Expires user account if there are not logged in many time
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @Component
 public class ExpireNotUsedAccountsJob implements Runnable {

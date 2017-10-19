@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.user;
 
@@ -26,18 +26,16 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 /**
  * Delete request handler
- * 
+ *
  * @author Aliaksandr_Kazantsau
- * 
  */
 public interface IDeleteUserHandler {
 	/**
 	 * Delete User
-	 * 
+	 *
 	 * @param login
 	 * @return
 	 * @throws ReportPortalException
-	 * 
 	 */
 	OperationCompletionRS deleteUser(String userId, String principal);
 }

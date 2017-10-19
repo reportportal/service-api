@@ -17,31 +17,29 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.core.log;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import com.epam.ta.reportportal.database.BinaryData;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * Create {@link Log} request handler
- * 
+ *
  * @author Henadzi_Vrubleuski
- * 
  */
 public interface ICreateLogHandler {
 
 	/**
 	 * Creates {@link Log} instance and save binary data related to this log
-	 * 
+	 *
 	 * @param createLogRQ
 	 * @return
 	 * @throws ReportPortalException

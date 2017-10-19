@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.project;
 
@@ -62,7 +62,6 @@ public class UpdateProjectHandlerTest extends BaseTest {
 
 	@Rule
 	public ExpectedException exception = ExpectedException.none();
-
 
 	@Autowired
 	private UpdateProjectHandler updateProjectHandler;

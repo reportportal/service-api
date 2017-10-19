@@ -17,16 +17,11 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import java.util.List;
-
 import com.epam.ta.reportportal.auth.UatClient;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.user.IDeleteUserHandler;
@@ -39,10 +34,14 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * Delete user handler
- * 
+ *
  * @author Aliaksandr_Kazantsau
  * @author Andrei_Ramanchuk
  */
@@ -62,8 +61,8 @@ public class DeleteUserHandler implements IDeleteUserHandler {
 	public OperationCompletionRS deleteUser(String userId, String principal) {
 		User user = userRepository.findOne(userId);
 		BusinessRule.expect(user, Predicates.notNull()).verify(ErrorType.USER_NOT_FOUND, userId);
-		BusinessRule.expect(userId.equalsIgnoreCase(principal), Predicates.equalTo(false)).verify(ErrorType.INCORRECT_REQUEST,
-				"You cannot delete own account");
+		BusinessRule.expect(userId.equalsIgnoreCase(principal), Predicates.equalTo(false))
+				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
 		try {
 			List<Project> userProjects = projectRepository.findUserProjects(userId);
 			userProjects.forEach(project -> ProjectUtils.excludeProjectRecipients(Lists.newArrayList(user), project));

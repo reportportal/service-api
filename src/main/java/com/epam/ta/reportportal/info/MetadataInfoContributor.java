@@ -44,10 +44,10 @@ public class MetadataInfoContributor extends MapInfoContributor {
 	}
 
 	private static Map<String, Object> getMetadata() {
-	    return ImmutableMap.<String, Object>builder()
-                .put("activitiesEventType", stream(ActivityEventType.values()).map(ActivityEventType::getValue).collect(toList()))
-                .put("activitiesObjectType", stream(ActivityObjectType.values()).map(ActivityObjectType::getValue).collect(toList()))
-                .put("keepLogsDelay", stream(values()).map(KeepLogsDelay::getValue).collect(toList()))
-                .build();
-    }
+		return ImmutableMap.<String, Object>builder().put(
+				"activitiesEventType", stream(ActivityEventType.values()).map(ActivityEventType::getValue).collect(toList()))
+				.put("activitiesObjectType", stream(ActivityObjectType.values()).map(ActivityObjectType::getValue).collect(toList()))
+				.put("keepLogsDelay", stream(values()).map(KeepLogsDelay::getValue).collect(toList()))
+				.build();
+	}
 }

@@ -17,22 +17,20 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.core.job;
 
+import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-
 /**
  * Validates statistics updates after execution of interrupt launches job
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @Ignore
 public class InterruptJobStatisticsTest extends BaseInterruptTest {
@@ -40,7 +38,7 @@ public class InterruptJobStatisticsTest extends BaseInterruptTest {
 	/**
 	 * Validates increment of total and failed statistics items after
 	 * interrupting
-	 * 
+	 *
 	 * @throws InterruptedException
 	 */
 	@Test
@@ -51,15 +49,23 @@ public class InterruptJobStatisticsTest extends BaseInterruptTest {
 
 		brokenLaunchesJob.run();
 
-		Assert.assertEquals("Total count of launch is expected to be == 1", Integer.valueOf(1), launchRepository.findOne(launch.getId())
-				.getStatistics().getExecutionCounter().getTotal());
-		Assert.assertEquals("Total count of item is expected to be == 1", Integer.valueOf(1), testItemRepository.findOne(item.getId())
-				.getStatistics().getExecutionCounter().getTotal());
+		Assert.assertEquals(
+				"Total count of launch is expected to be == 1", Integer.valueOf(1),
+				launchRepository.findOne(launch.getId()).getStatistics().getExecutionCounter().getTotal()
+		);
+		Assert.assertEquals(
+				"Total count of item is expected to be == 1", Integer.valueOf(1),
+				testItemRepository.findOne(item.getId()).getStatistics().getExecutionCounter().getTotal()
+		);
 
-		Assert.assertEquals("Failed count of launch is expected to be == 1", Integer.valueOf(1), launchRepository.findOne(launch.getId())
-				.getStatistics().getExecutionCounter().getFailed());
-		Assert.assertEquals("Failed count of item is expected to be == 1", Integer.valueOf(1), testItemRepository.findOne(item.getId())
-				.getStatistics().getExecutionCounter().getFailed());
+		Assert.assertEquals(
+				"Failed count of launch is expected to be == 1", Integer.valueOf(1),
+				launchRepository.findOne(launch.getId()).getStatistics().getExecutionCounter().getFailed()
+		);
+		Assert.assertEquals(
+				"Failed count of item is expected to be == 1", Integer.valueOf(1),
+				testItemRepository.findOne(item.getId()).getStatistics().getExecutionCounter().getFailed()
+		);
 	}
 
 }

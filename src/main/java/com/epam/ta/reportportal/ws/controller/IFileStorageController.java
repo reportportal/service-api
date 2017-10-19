@@ -17,29 +17,26 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.controller;
 
-import java.security.Principal;
-
-import javax.servlet.http.HttpServletResponse;
-
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import javax.servlet.http.HttpServletResponse;
+import java.security.Principal;
 
 /**
  * Controller for Internal File System
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public interface IFileStorageController {
 
 	/**
 	 * Retrieves file from file system
-	 * 
+	 *
 	 * @param projectName
 	 * @param dataId
 	 * @param httpServletResponse
@@ -49,15 +46,15 @@ public interface IFileStorageController {
 
 	/**
 	 * Retrieves avatar for current login user
-	 * 
+	 *
 	 * @param principal
 	 * @param response
 	 */
 	void getMyPhoto(Principal principal, HttpServletResponse response);
-	
+
 	/**
 	 * Get specified user photo as binary data from storage
-	 * 
+	 *
 	 * @param username
 	 * @param response
 	 * @param principal
@@ -75,7 +72,7 @@ public interface IFileStorageController {
 
 	/**
 	 * Delete user's photo
-	 * 
+	 *
 	 * @param principal
 	 * @return
 	 */

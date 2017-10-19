@@ -58,9 +58,7 @@ public class AnalyzerServiceClient {
 	}
 
 	public IndexLaunch analyze(IndexLaunch rq) {
-		ResponseEntity<IndexLaunch[]> rsEntity = restTemplate.postForEntity(
-				serviceUrl + ANALYZE_PATH,
-				Collections.singletonList(rq),
+		ResponseEntity<IndexLaunch[]> rsEntity = restTemplate.postForEntity(serviceUrl + ANALYZE_PATH, Collections.singletonList(rq),
 				IndexLaunch[].class
 		);
 		IndexLaunch[] rs = rsEntity.getBody();

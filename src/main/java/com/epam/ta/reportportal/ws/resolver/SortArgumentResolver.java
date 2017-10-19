@@ -48,47 +48,44 @@ import static java.util.stream.Collectors.toList;
  */
 public class SortArgumentResolver extends SortHandlerMethodArgumentResolver {
 
-    @Autowired
-    private CriteriaMapFactory criteriaMapFactory;
+	@Autowired
+	private CriteriaMapFactory criteriaMapFactory;
 
-    @Override
-    public Sort resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
-            NativeWebRequest webRequest,
-            WebDataBinderFactory binderFactory) {
+	@Override
+	public Sort resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest,
+			WebDataBinderFactory binderFactory) {
 
 		/*
-         * Resolve sort argument in default way
+		 * Resolve sort argument in default way
 		 */
-        Sort defaultSort = super.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
+		Sort defaultSort = super.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
 
 		/*
          * Try to find parameter to be sorted in internal-external mapping
 		 */
-        if (null != parameter.getParameterAnnotation(SortFor.class) && null != defaultSort) {
+		if (null != parameter.getParameterAnnotation(SortFor.class) && null != defaultSort) {
 
-            Class<?> domainModelType = parameter.getParameterAnnotation(SortFor.class).value();
-            CriteriaMap<?> map = criteriaMapFactory.getCriteriaMap(domainModelType);
+			Class<?> domainModelType = parameter.getParameterAnnotation(SortFor.class).value();
+			CriteriaMap<?> map = criteriaMapFactory.getCriteriaMap(domainModelType);
 
             /*
 			 * Build Sort with search criteria from internal domain model
 			 */
-            return new Sort(StreamSupport.stream(defaultSort.spliterator(), false)
-                    .map(order -> {
-                        Optional<CriteriaHolder> criteriaHolder = map.getCriteriaHolderUnchecked(order.getProperty());
+			return new Sort(StreamSupport.stream(defaultSort.spliterator(), false).map(order -> {
+				Optional<CriteriaHolder> criteriaHolder = map.getCriteriaHolderUnchecked(order.getProperty());
 
-                        BusinessRule.expect(criteriaHolder, Preconditions.IS_PRESENT)
-                                .verify(ErrorType.INCORRECT_SORTING_PARAMETERS,
-                                        order.getProperty());
-                        //noinspection ConstantConditions
-                        return new Order(order.getDirection(), criteriaHolder.get().getQueryCriteria());
-                    }).collect(toList()));
-        } else {
+				BusinessRule.expect(criteriaHolder, Preconditions.IS_PRESENT)
+						.verify(ErrorType.INCORRECT_SORTING_PARAMETERS, order.getProperty());
+				//noinspection ConstantConditions
+				return new Order(order.getDirection(), criteriaHolder.get().getQueryCriteria());
+			}).collect(toList()));
+		} else {
 			/*
 			 * Return default sort in case there are no SortFor annotation
 			 */
-            return defaultSort;
-        }
+			return defaultSort;
+		}
 
-    }
+	}
 
 }

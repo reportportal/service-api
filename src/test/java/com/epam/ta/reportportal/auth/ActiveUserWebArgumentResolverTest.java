@@ -17,10 +17,11 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.auth;
 
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.resolver.ActiveRole;
 import com.epam.ta.reportportal.ws.resolver.ActiveUserWebArgumentResolver;
 import org.junit.Assert;
@@ -28,14 +29,10 @@ import org.junit.Test;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 
-
-import com.epam.ta.reportportal.database.entity.user.UserRole;
-
 /**
  * Argument resolver tests
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class ActiveUserWebArgumentResolverTest {
 

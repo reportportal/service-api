@@ -28,6 +28,8 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
+import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.util.analyzer.model.IndexRs;
 import com.epam.ta.reportportal.util.analyzer.model.IndexRsIndex;
@@ -200,6 +202,18 @@ public class LogIndexerServiceTest {
 		verify(analyzerServiceClient, times(batchCount)).index(anyListOf(IndexLaunch.class));
 	}
 
+	@Test
+	public void testIndexTIItems() {
+		DBCollection checkpointColl = mock(DBCollection.class);
+		when(mongoOperations.getCollection(eq("logIndexingCheckpoint"))).thenReturn(checkpointColl);
+		when(checkpointColl.findOne(any(Query.class))).thenReturn(null);
+		when(mongoOperations.stream(any(Query.class), eq(Log.class))).thenReturn(createLogIterator(5));
+		when(testItemRepository.findOne(anyString())).thenReturn(createToInvestigateItem("testItemId"));
+		logIndexerService.indexAllLogs();
+		verify(checkpointColl, times(0)).save(any(DBObject.class));
+		verify(analyzerServiceClient, times(0)).index(anyListOf(IndexLaunch.class));
+	}
+
 	private Launch createLaunch(String id) {
 		Launch l = new Launch();
 		l.setId(id);
@@ -211,6 +225,15 @@ public class LogIndexerServiceTest {
 		TestItem ti = new TestItem();
 		ti.setId(id);
 		ti.setLaunchRef("launch" + id);
+		ti.setIssue(new TestItemIssue(TestItemIssueType.PRODUCT_BUG.getLocator(), null));
+		return ti;
+	}
+
+	private TestItem createToInvestigateItem(String id) {
+		TestItem ti = new TestItem();
+		ti.setId(id);
+		ti.setLaunchRef("launch" + id);
+		ti.setIssue(new TestItemIssue());
 		return ti;
 	}
 

@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.util.analyzer.model.IndexRs;
 import com.epam.ta.reportportal.util.analyzer.model.IndexTestItem;
@@ -165,12 +166,12 @@ public class LogIndexerService implements ILogIndexer {
 	}
 
 	private IndexLaunch createRqLaunch(Log log) {
-		if (!isLevelValid(log)) {
+		if (!isLevelSuitable(log)) {
 			return null;
 		}
 		IndexLaunch rqLaunch = null;
 		TestItem testItem = testItemRepository.findOne(log.getTestItemRef());
-		if (testItem != null) {
+		if (isItemSuitable(testItem)) {
 			Launch launch = launchRepository.findOne(testItem.getLaunchRef());
 			if (launch != null) {
 				rqLaunch = new IndexLaunch();
@@ -181,10 +182,6 @@ public class LogIndexerService implements ILogIndexer {
 			}
 		}
 		return rqLaunch;
-	}
-
-	private boolean isLevelValid(Log log) {
-		return null != log && null != log.getLevel() && log.getLevel().isGreaterOrEqual(LogLevel.ERROR);
 	}
 
 	private void retryFailed(IndexRs rs) {
@@ -206,6 +203,30 @@ public class LogIndexerService implements ILogIndexer {
 		BasicDBObject checkpoint = new BasicDBObject("_id", CHECKPOINT_ID).append(CHECKPOINT_LOG_ID, logId);
 		getCheckpointCollection().save(checkpoint);
 	}
+
+	/**
+	 * Checks if the log is suitable for analyzer. Log's level is greater or equal than
+	 * {@link LogLevel#ERROR}
+	 *
+	 * @param log Log for check
+	 * @return true if suitable
+	 */
+	private boolean isLevelSuitable(Log log) {
+		return null != log && null != log.getLevel() && log.getLevel().isGreaterOrEqual(LogLevel.ERROR);
+	}
+
+	/**
+	 * Checks if the test item is suitable for analyzer. Test item issue type should not be
+	 * {@link TestItemIssueType#TO_INVESTIGATE}
+	 *
+	 * @param testItem Test item for check
+	 * @return true if suitable
+	 */
+	private boolean isItemSuitable(TestItem testItem) {
+		return testItem != null && testItem.getIssue() != null && !TestItemIssueType.TO_INVESTIGATE.getLocator()
+				.equals(testItem.getIssue().getIssueType());
+	}
+
 }
 
 

@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 
 /**
  * Start Launch operation handler
@@ -39,5 +40,5 @@ public interface IStartLaunchHandler {
      * @param startLaunchRQ Request Data
      * @return StartLaunchRS
      */
-    EntryCreatedRS startLaunch(String user, String project, StartLaunchRQ startLaunchRQ);
+    StartLaunchRS startLaunch(String user, String project, StartLaunchRQ startLaunchRQ);
 }

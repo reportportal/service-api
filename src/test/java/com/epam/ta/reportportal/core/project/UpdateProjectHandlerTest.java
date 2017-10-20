@@ -107,7 +107,7 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		configuration.setKeepScreenshots("1 week");
 		configuration.setProjectSpecific("DEFAULT");
 		configuration.setIsAAEnabled(true);
-		configuration.setAnalyzeOnTheFly(true);
+		//configuration.setAnalyzeOnTheFly(true);
 		configuration.setStatisticCalculationStrategy("TEST_BASED");
 		updateProjectRQ.setConfiguration(configuration);
 
@@ -122,7 +122,7 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		assertEquals(configuration.getKeepScreenshots(), dbConfig.getKeepScreenshots());
 		assertEquals(configuration.getProjectSpecific(), dbConfig.getProjectSpecific().name());
 		assertEquals(configuration.getIsAAEnabled(), dbConfig.getIsAutoAnalyzerEnabled());
-		assertEquals(configuration.getAnalyzeOnTheFly(), dbConfig.getAnalyzeOnTheFly());
+		//assertEquals(configuration.getAnalyzeOnTheFly(), dbConfig.getAnalyzeOnTheFly());
 		assertEquals(configuration.getStatisticCalculationStrategy(), dbConfig.getStatisticsCalculationStrategy().name());
 	}
 

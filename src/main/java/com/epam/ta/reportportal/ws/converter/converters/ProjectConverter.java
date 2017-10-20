@@ -102,7 +102,7 @@ public final class ProjectConverter {
 		configuration.setInterruptJobTime(db.getConfiguration().getInterruptJobTime());
 		configuration.setKeepScreenshots(db.getConfiguration().getKeepScreenshots());
 		configuration.setIsAAEnabled(db.getConfiguration().getIsAutoAnalyzerEnabled());
-		configuration.setAnalyzeOnTheFly(db.getConfiguration().getAnalyzeOnTheFly());
+		//configuration.setAnalyzeOnTheFly(db.getConfiguration().getAnalyzeOnTheFly());
 		configuration.setStatisticCalculationStrategy(db.getConfiguration().getStatisticsCalculationStrategy().name());
 
 		// =============== EMAIL settings ===================

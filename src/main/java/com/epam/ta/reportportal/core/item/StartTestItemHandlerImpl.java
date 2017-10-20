@@ -24,7 +24,6 @@ package com.epam.ta.reportportal.core.item;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
@@ -54,7 +53,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	private TestItemRepository testItemRepository;
 	private LaunchRepository launchRepository;
 	private Provider<TestItemBuilder> testItemBuilder;
-	private LogRepository logRepository;
 	private UniqueIdGenerator identifierGenerator;
 
 	@Autowired
@@ -70,11 +68,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	@Autowired
 	public void setLaunchRepository(LaunchRepository launchRepository) {
 		this.launchRepository = launchRepository;
-	}
-
-	@Autowired
-	public void setLogRepository(LogRepository logRepository) {
-		this.logRepository = logRepository;
 	}
 
 	@Autowired
@@ -135,9 +128,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		expect(parentTestItem, notNull()).verify(TEST_ITEM_NOT_FOUND, parent);
 		expect(parentTestItem, Preconditions.IN_PROGRESS).verify(START_ITEM_NOT_ALLOWED,
 				Suppliers.formattedSupplier("Parent Item '{}' is not in progress", parentTestItem.getId()));
-		long logCount = logRepository.getNumberOfLogByTestItem(parentTestItem);
-		expect(logCount, equalTo(0L)).verify(START_ITEM_NOT_ALLOWED,
-				Suppliers.formattedSupplier("Parent Item '{}' already has log items", parentTestItem.getId()));
+//		long logCount = logRepository.getNumberOfLogByTestItem(parentTestItem);
+//		expect(logCount, equalTo(0L)).verify(START_ITEM_NOT_ALLOWED,
+//				Suppliers.formattedSupplier("Parent Item '{}' already has log items", parentTestItem.getId()));
 	}
 
 	private void validate(StartTestItemRQ rq, TestItem parent) {

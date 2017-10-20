@@ -162,6 +162,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				}
 
 				testItemIssue.setIssueDescription(comment);
+				testItemIssue.setAutoAnalyzed(false);
 				testItem.setIssue(testItemIssue);
 
 				testItemRepository.save(testItem);

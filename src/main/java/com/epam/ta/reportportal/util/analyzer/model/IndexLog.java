@@ -24,15 +24,14 @@ package com.epam.ta.reportportal.util.analyzer.model;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Objects;
+
 /**
  * Represents log container in index/analysis request/response.
  *
  * @author Ivan Sharamet
  */
 public class IndexLog {
-
-	@JsonProperty("logId")
-	private String logId;
 
 	@JsonProperty("logLevel")
 	private int logLevel;
@@ -42,7 +41,6 @@ public class IndexLog {
 
 	public static IndexLog fromLog(Log log) {
 		IndexLog indexLog = new IndexLog();
-		indexLog.setLogId(log.getId());
 		if (log.getLevel() != null) {
 			indexLog.setLogLevel(log.getLevel().toInt());
 		}
@@ -51,14 +49,6 @@ public class IndexLog {
 	}
 
 	public IndexLog() {
-	}
-
-	public String getLogId() {
-		return logId;
-	}
-
-	public void setLogId(String logId) {
-		this.logId = logId;
 	}
 
 	public int getLogLevel() {
@@ -75,5 +65,27 @@ public class IndexLog {
 
 	public void setMessage(String message) {
 		this.message = message;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		IndexLog indexLog = (IndexLog) o;
+		return logLevel == indexLog.logLevel && Objects.equals(message, indexLog.message);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(logLevel, message);
+	}
+
+	@Override
+	public String toString() {
+		return "IndexLog{" + "logLevel=" + logLevel + ", message='" + message + '\'' + '}';
 	}
 }

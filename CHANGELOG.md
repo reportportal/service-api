@@ -165,6 +165,7 @@
 * EPMRPP-26551 - Widget product status
 * reportportal/reportporatl#236 - Drop Redis
 * EPMRPP-29378 - Comulative ternd chart
+* Import - support <error> tag as failed test
 
 ### Bugfixes
 
@@ -187,3 +188,4 @@
 * EPMRPP-30984 - No data about previous new and old values of update of project
 * EPMRPP-31020 - Launches reported to DEFAULT mode are present in DEBUG as well
 * reportportal/reportportal#245 - Default TestNG xml report isn't compatible with RP report
+* EPMRPP-29701 - Tag prefix should be fully matched with the searched value

@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.util.analyzer;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
@@ -42,8 +43,6 @@ import java.util.stream.Collectors;
  */
 @Service("analyzerService")
 public class IssuesAnalyzerService implements IIssuesAnalyzer {
-
-	private static final String DEFAULT_ISSUE_DESCRIPTION = "";
 
 	@Autowired
 	private AnalyzerServiceClient analyzerServiceClient;
@@ -70,7 +69,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 		IndexLaunch rs = null;
 
 		List<IndexTestItem> rqTestItems = testItems.stream()
-				.map(it -> IndexTestItem.fromTestItem(it, logRepository.findByTestItemRef(it.getId())))
+				.map(it -> IndexTestItem.fromTestItem(it, logRepository.findLogsGreaterThanLevel(it.getId(), LogLevel.ERROR)))
 				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
 				.collect(Collectors.toList());
 
@@ -94,7 +93,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 				.forEach(indexTestItem -> testItems.stream()
 						.filter(testItem -> testItem.getId().equals(indexTestItem.getTestItemId()))
 						.findFirst()
-						.ifPresent(it -> it.setIssue(new TestItemIssue(indexTestItem.getIssueType(), DEFAULT_ISSUE_DESCRIPTION))));
+						.ifPresent(it -> it.setIssue(new TestItemIssue(indexTestItem.getIssueType(), null, true))));
 		return testItems;
 	}
 }

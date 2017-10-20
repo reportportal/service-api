@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -92,12 +93,16 @@ public class XunitImportHandler extends DefaultHandler {
 	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
 		switch (XunitReportTag.fromString(qName)) {
 			case TESTSUITE:
-				startRootItem(attributes.getValue(XunitReportTag.ATTR_NAME.getValue()),
-						attributes.getValue(XunitReportTag.TIMESTAMP.getValue())
-				);
+				if (itemsIds.isEmpty()) {
+					startRootItem(attributes.getValue(XunitReportTag.ATTR_NAME.getValue()),
+							attributes.getValue(XunitReportTag.TIMESTAMP.getValue())
+					);
+				} else {
+					startTestItem(attributes.getValue(XunitReportTag.ATTR_NAME.getValue()));
+				}
 				break;
 			case TESTCASE:
-				startTestItem(attributes.getValue(XunitReportTag.ATTR_NAME.getValue()),
+				startStepItem(attributes.getValue(XunitReportTag.ATTR_NAME.getValue()),
 						attributes.getValue(XunitReportTag.ATTR_TIME.getValue())
 				);
 				break;
@@ -156,11 +161,7 @@ public class XunitImportHandler extends DefaultHandler {
 		} else {
 			startItemTime = LocalDateTime.now();
 		}
-		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(launchId);
-		rq.setStartTime(toDate(startItemTime));
-		rq.setType(TestItemType.TEST.name());
-		rq.setName(name);
+		StartTestItemRQ rq = buildStartTestRq(name);
 		String id = startTestItemHandler.startRootItem(projectId, rq).getId();
 		itemsIds.push(id);
 	}
@@ -168,7 +169,6 @@ public class XunitImportHandler extends DefaultHandler {
 	private LocalDateTime parseTimeStamp(String timestamp) {
 		LocalDateTime localDateTime = null;
 		try {
-			long l = Long.parseLong(timestamp);
 			localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(timestamp)), ZoneId.systemDefault());
 		} catch (NumberFormatException e) {
 			//ignored
@@ -185,13 +185,19 @@ public class XunitImportHandler extends DefaultHandler {
 		return localDateTime;
 	}
 
-	private void startTestItem(String name, String duration) {
+	private void startTestItem(String name) {
+		StartTestItemRQ rq = buildStartTestRq(name);
+		String id = startTestItemHandler.startChildItem(projectId, rq, itemsIds.peek()).getId();
+		itemsIds.push(id);
+	}
+
+	private void startStepItem(String name, String duration) {
 		StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setLaunchId(launchId);
 		rq.setStartTime(toDate(startItemTime));
 		rq.setType(TestItemType.STEP.name());
 		rq.setName(name);
-		String id = startTestItemHandler.startChildItem(projectId, rq, itemsIds.peekLast()).getId();
+		String id = startTestItemHandler.startChildItem(projectId, rq, itemsIds.peek()).getId();
 		currentDuration = toMillis(duration);
 		currentId = id;
 		itemsIds.push(id);
@@ -243,6 +249,15 @@ public class XunitImportHandler extends DefaultHandler {
 		this.launchId = launchId;
 		this.userName = user;
 		return this;
+	}
+
+	private StartTestItemRQ buildStartTestRq(String name) {
+		StartTestItemRQ rq = new StartTestItemRQ();
+		rq.setLaunchId(launchId);
+		rq.setStartTime(toDate(startItemTime));
+		rq.setType(TestItemType.TEST.name());
+		rq.setName(Strings.isNullOrEmpty(name) ? "NoName" : name);
+		return rq;
 	}
 
 	LocalDateTime getStartSuiteTime() {

@@ -178,9 +178,9 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			dbConfig.setIsAutoAnalyzerEnabled(modelConfig.getIsAAEnabled());
 		}
 
-		if (null != modelConfig.getAnalyzeOnTheFly()) {
-			dbConfig.setAnalyzeOnTheFly(modelConfig.getAnalyzeOnTheFly());
-		}
+//		if (null != modelConfig.getAnalyzeOnTheFly()) {
+//			dbConfig.setAnalyzeOnTheFly(modelConfig.getAnalyzeOnTheFly());
+//		}
 
 		if (null != modelConfig.getStatisticCalculationStrategy()) {
 			dbConfig.setStatisticsCalculationStrategy(fromString(modelConfig.getStatisticCalculationStrategy()).orElseThrow(() -> new ReportPortalException(

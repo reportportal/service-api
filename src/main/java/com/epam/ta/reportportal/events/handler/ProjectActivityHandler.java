@@ -70,7 +70,7 @@ public class ProjectActivityHandler {
 			processKeepScreenshots(history, project, configuration);
 			processLaunchInactivityTimeout(history, project, configuration);
 			processAutoAnalyze(history, project, configuration);
-			processAnalyzeOnTheFly(history, project, configuration);
+			//processAnalyzeOnTheFly(history, project, configuration);
 			processStatisticsStrategy(history, project, configuration);
 		}
 
@@ -125,15 +125,15 @@ public class ProjectActivityHandler {
 		}
 	}
 
-	private void processAnalyzeOnTheFly(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
-		if ((null != configuration.getAnalyzeOnTheFly()) && (!configuration.getAnalyzeOnTheFly()
-				.equals(project.getConfiguration().getAnalyzeOnTheFly()))) {
-			String oldValue = project.getConfiguration().getAnalyzeOnTheFly() == null ? "" :
-					project.getConfiguration().getAnalyzeOnTheFly().toString();
-			Activity.FieldValues fieldValues = createHistoryField(ANALYZE_ON_FLY, oldValue, configuration.getAnalyzeOnTheFly().toString());
-			history.add(fieldValues);
-		}
-	}
+//	private void processAnalyzeOnTheFly(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
+//		if ((null != configuration.getAnalyzeOnTheFly()) && (!configuration.getAnalyzeOnTheFly()
+//				.equals(project.getConfiguration().getAnalyzeOnTheFly()))) {
+//			String oldValue = project.getConfiguration().getAnalyzeOnTheFly() == null ? "" :
+//					project.getConfiguration().getAnalyzeOnTheFly().toString();
+//			Activity.FieldValues fieldValues = createHistoryField(ANALYZE_ON_FLY, oldValue, configuration.getAnalyzeOnTheFly().toString());
+//			history.add(fieldValues);
+//		}
+//	}
 
 	private void processKeepScreenshots(List<Activity.FieldValues> history, Project project,
 			ProjectConfiguration configuration) {

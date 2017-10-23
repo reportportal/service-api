@@ -22,7 +22,6 @@ package com.epam.ta.reportportal.info;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.info.Info;
-import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -34,21 +33,21 @@ import java.util.stream.Collectors;
  */
 
 @Component
-public class InfoContributorComposite implements InfoContributor {
+public class InfoContributorComposite implements org.springframework.boot.actuate.info.InfoContributor {
 
     private static final String EXTENSIONS_KEY = "extensions";
 
-    private final List<ExtensionContributor> infoContributors;
+    private final List<InfoContributor> infoContributors;
 
     @Autowired
-    public InfoContributorComposite(List<ExtensionContributor> infoContributors) {
+    public InfoContributorComposite(List<InfoContributor> infoContributors) {
         this.infoContributors = infoContributors;
     }
 
     @Override
     public void contribute(Info.Builder builder) {
         builder.withDetail(EXTENSIONS_KEY, infoContributors.stream()
-                .map(ExtensionContributor::contribute).flatMap(map -> map.entrySet().stream())
+                .map(InfoContributor::contribute).flatMap(map -> map.entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 }

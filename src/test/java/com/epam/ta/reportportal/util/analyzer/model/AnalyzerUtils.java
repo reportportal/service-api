@@ -31,10 +31,12 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.epam.ta.reportportal.util.analyzer.AnalyzerUtils.fromTestItem;
+
 /**
  * @author Pavel Bortnik
  */
-public class IndexTestItemTest {
+public class AnalyzerUtils {
 
 	@Test
 	public void testConverting() {
@@ -42,7 +44,7 @@ public class IndexTestItemTest {
 		testItem.setId("item");
 		testItem.setUniqueId("uniqueId");
 		testItem.setIssue(new TestItemIssue());
-		IndexTestItem indexTestItem = IndexTestItem.fromTestItem(testItem, createSameLogs(5));
+		IndexTestItem indexTestItem = fromTestItem(testItem, createSameLogs(5));
 		Assert.assertEquals(testItem.getId(), indexTestItem.getTestItemId());
 		Assert.assertEquals(testItem.getUniqueId(), indexTestItem.getUniqueId());
 		Assert.assertEquals(testItem.getIssue().getIssueType(), indexTestItem.getIssueType());

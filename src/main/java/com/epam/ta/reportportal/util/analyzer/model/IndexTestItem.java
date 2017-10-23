@@ -21,14 +21,9 @@
 
 package com.epam.ta.reportportal.util.analyzer.model;
 
-import com.epam.ta.reportportal.database.entity.Log;
-import com.epam.ta.reportportal.database.entity.LogLevel;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Represents test item container in index/analysis request/response.
@@ -48,22 +43,6 @@ public class IndexTestItem {
 
 	@JsonProperty("uniqueId")
 	private String uniqueId;
-
-	public static IndexTestItem fromTestItem(TestItem testItem, List<Log> logs) {
-		IndexTestItem indexTestItem = new IndexTestItem();
-		indexTestItem.setTestItemId(testItem.getId());
-		indexTestItem.setUniqueId(testItem.getUniqueId());
-		if (testItem.getIssue() != null) {
-			indexTestItem.setIssueType(testItem.getIssue().getIssueType());
-		}
-		if (!logs.isEmpty()) {
-			indexTestItem.setLogs(logs.stream()
-					.filter(it -> null != it.getLevel() && it.getLevel().isGreaterOrEqual(LogLevel.ERROR))
-					.map(IndexLog::fromLog)
-					.collect(Collectors.toSet()));
-		}
-		return indexTestItem;
-	}
 
 	public IndexTestItem() {
 	}

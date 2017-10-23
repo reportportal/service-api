@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.util.analyzer.model.IndexRs;
 import com.epam.ta.reportportal.util.analyzer.model.IndexTestItem;
@@ -53,6 +52,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.util.analyzer.AnalyzerUtils.*;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 /**
@@ -107,8 +107,8 @@ public class LogIndexerService implements ILogIndexer {
 		if (launch != null) {
 
 			List<IndexTestItem> rqTestItems = testItems.stream()
-					.filter(this::isItemSuitable)
-					.map(it -> IndexTestItem.fromTestItem(it, logRepository.findLogsGreaterThanLevel(it.getId(), LogLevel.ERROR)))
+					.filter(AnalyzerUtils::isItemSuitable)
+					.map(it -> fromTestItem(it, logRepository.findLogsGreaterThanLevel(it.getId(), LogLevel.ERROR)))
 					.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
 					.collect(Collectors.toList());
 
@@ -182,7 +182,7 @@ public class LogIndexerService implements ILogIndexer {
 				rqLaunch.setLaunchId(launch.getId());
 				rqLaunch.setLaunchName(launch.getName());
 				rqLaunch.setProject(launch.getProjectRef());
-				rqLaunch.setTestItems(Collections.singletonList(IndexTestItem.fromTestItem(testItem, Collections.singletonList(log))));
+				rqLaunch.setTestItems(Collections.singletonList(fromTestItem(testItem, Collections.singletonList(log))));
 			}
 		}
 		return rqLaunch;
@@ -206,29 +206,6 @@ public class LogIndexerService implements ILogIndexer {
 	private void createCheckpoint(String logId) {
 		BasicDBObject checkpoint = new BasicDBObject("_id", CHECKPOINT_ID).append(CHECKPOINT_LOG_ID, logId);
 		getCheckpointCollection().save(checkpoint);
-	}
-
-	/**
-	 * Checks if the log is suitable for analyzer. Log's level is greater or equal than
-	 * {@link LogLevel#ERROR}
-	 *
-	 * @param log Log for check
-	 * @return true if suitable
-	 */
-	private boolean isLevelSuitable(Log log) {
-		return null != log && null != log.getLevel() && log.getLevel().isGreaterOrEqual(LogLevel.ERROR);
-	}
-
-	/**
-	 * Checks if the test item is suitable for analyzer. Test item issue type should not be
-	 * {@link TestItemIssueType#TO_INVESTIGATE}
-	 *
-	 * @param testItem Test item for check
-	 * @return true if suitable
-	 */
-	private boolean isItemSuitable(TestItem testItem) {
-		return testItem != null && testItem.getIssue() != null && !TestItemIssueType.TO_INVESTIGATE.getLocator()
-				.equals(testItem.getIssue().getIssueType());
 	}
 
 }

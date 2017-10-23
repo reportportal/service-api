@@ -36,6 +36,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.util.analyzer.AnalyzerUtils.fromTestItem;
+
 /**
  * Default implementation of {@link IIssuesAnalyzer}.
  *
@@ -69,7 +71,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 		IndexLaunch rs = null;
 
 		List<IndexTestItem> rqTestItems = testItems.stream()
-				.map(it -> IndexTestItem.fromTestItem(it, logRepository.findLogsGreaterThanLevel(it.getId(), LogLevel.ERROR)))
+				.map(it -> fromTestItem(it, logRepository.findLogsGreaterThanLevel(it.getId(), LogLevel.ERROR)))
 				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
 				.collect(Collectors.toList());
 

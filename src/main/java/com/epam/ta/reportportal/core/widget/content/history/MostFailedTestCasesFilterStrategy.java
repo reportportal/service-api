@@ -74,7 +74,7 @@ public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy 
 
 	private MostFailedHistoryObject processItem(MostFailedHistory historyItem) {
 		MostFailedHistoryObject mostFailed = new MostFailedHistoryObject();
-		mostFailed.setUniqueId(historyItem.getId());
+		mostFailed.setUniqueId(historyItem.getUniqueId());
 		mostFailed.setName(historyItem.getName());
 		mostFailed.setTotal(historyItem.getTotal());
 		mostFailed.setFailedCount(historyItem.getFailed());

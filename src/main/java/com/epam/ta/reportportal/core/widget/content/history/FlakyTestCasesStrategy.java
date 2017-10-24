@@ -98,7 +98,7 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 		}
 
 		FlakyHistoryObject flakyHistoryObject = new FlakyHistoryObject();
-		flakyHistoryObject.setUniqueId(historyItem.getId());
+		flakyHistoryObject.setUniqueId(historyItem.getUniqueId());
 		flakyHistoryObject.setName(historyItem.getName());
 		flakyHistoryObject.setTotal(potentialSwitches);
 		flakyHistoryObject.setSwitchCounter(switchCounter);

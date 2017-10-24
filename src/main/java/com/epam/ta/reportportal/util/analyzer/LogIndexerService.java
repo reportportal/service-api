@@ -96,7 +96,7 @@ public class LogIndexerService implements ILogIndexer {
 	public void indexLog(Log log) {
 		IndexLaunch rq = createRqLaunch(log);
 		if (rq != null) {
-			IndexRs rs = analyzerServiceClient.index(Collections.singletonList(rq));
+			List<IndexRs> rs = analyzerServiceClient.index(Collections.singletonList(rq));
 			retryFailed(rs);
 		}
 	}
@@ -118,7 +118,7 @@ public class LogIndexerService implements ILogIndexer {
 				rqLaunch.setLaunchName(launch.getName());
 				rqLaunch.setProject(launch.getProjectRef());
 				rqLaunch.setTestItems(rqTestItems);
-				IndexRs rs = analyzerServiceClient.index(Collections.singletonList(rqLaunch));
+				List<IndexRs> rs = analyzerServiceClient.index(Collections.singletonList(rqLaunch));
 				retryFailed(rs);
 			}
 		}
@@ -141,7 +141,7 @@ public class LogIndexerService implements ILogIndexer {
 					if (rq.size() == BATCH_SIZE || !logIterator.hasNext()) {
 						createCheckpoint(checkpoint);
 
-						IndexRs rs = analyzerServiceClient.index(rq);
+						List<IndexRs> rs = analyzerServiceClient.index(rq);
 
 						retryFailed(rs);
 
@@ -188,7 +188,7 @@ public class LogIndexerService implements ILogIndexer {
 		return rqLaunch;
 	}
 
-	private void retryFailed(IndexRs rs) {
+	private void retryFailed(List<IndexRs> rs) {
 		// TODO: Retry failed items!
 		//        List<IndexRsItem> failedItems =
 		//                rs.getItems().stream().filter(i -> i.failed()).collect(Collectors.toList());

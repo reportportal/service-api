@@ -21,16 +21,24 @@
 
 package com.epam.ta.reportportal.util.analyzer;
 
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.util.analyzer.model.IndexRs;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * Simple HTTP client for log indexing/analysis service.
@@ -42,28 +50,55 @@ public class AnalyzerServiceClient {
 
 	private static final String INDEX_PATH = "/_index";
 	private static final String ANALYZE_PATH = "/_analyze";
+	private static final String ANALYZER_KEY = "analyzer";
+	private static final String PRIORITY = "analyzer_priority";
+	private static final String DOES_NEED_INDEX = "analyzer_index";
 
 	private final RestTemplate restTemplate;
-	private final String serviceUrl;
+	private final DiscoveryClient discoveryClient;
 
 	@Autowired
-	public AnalyzerServiceClient(RestTemplate restTemplate, @Value("${rp.analyzer.url}") String serviceUrl) {
+	public AnalyzerServiceClient(RestTemplate restTemplate, DiscoveryClient discoveryClient) {
 		this.restTemplate = restTemplate;
-		this.serviceUrl = serviceUrl;
+		this.discoveryClient = discoveryClient;
 	}
 
-	public IndexRs index(List<IndexLaunch> rq) {
-		ResponseEntity<IndexRs> rsEntity = restTemplate.postForEntity(serviceUrl + INDEX_PATH, rq, IndexRs.class);
-		return rsEntity.getBody();
+	public void checkIfAnalyzerDeployed() {
+		BusinessRule.expect(getAnalyzerServiceInstances().isEmpty(), Predicate.isEqual(false))
+				.verify(ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer services are deployed.");
+	}
+
+	public List<IndexRs> index(List<IndexLaunch> rq) {
+		List<String> analyzerServiceInstances = getAnalyzerServiceInstances().stream()
+				.filter(it -> Boolean.valueOf(it.getMetadata().get(DOES_NEED_INDEX)))
+				.map(it -> it.getUri().toString())
+				.collect(toList());
+		return analyzerServiceInstances.stream()
+				.map(serviceUrl -> restTemplate.postForEntity(serviceUrl + INDEX_PATH, rq, IndexRs.class))
+				.map(HttpEntity::getBody)
+				.collect(toList());
 	}
 
 	public IndexLaunch analyze(IndexLaunch rq) {
-		ResponseEntity<IndexLaunch[]> rsEntity = restTemplate.postForEntity(
-				serviceUrl + ANALYZE_PATH,
-				Collections.singletonList(rq),
-				IndexLaunch[].class
-		);
-		IndexLaunch[] rs = rsEntity.getBody();
-		return rs.length > 0 ? rs[0] : null;
+		List<ServiceInstance> analyzerInstances = getAnalyzerServiceInstances();
+
+		analyzerInstances.sort(Comparator.comparingLong(it -> Long.parseLong(it.getMetadata().get(PRIORITY))));
+		Collections.reverse(analyzerInstances);
+
+		for (ServiceInstance instance : analyzerInstances) {
+			ResponseEntity<IndexLaunch[]> responseEntity = restTemplate.postForEntity(
+					instance.getUri().toString() + ANALYZE_PATH, Collections.singletonList(rq), IndexLaunch[].class);
+			IndexLaunch[] body = responseEntity.getBody();
+			rq = body[0];
+		}
+		return rq;
+	}
+
+	private List<ServiceInstance> getAnalyzerServiceInstances() {
+		return discoveryClient.getServices()
+				.stream()
+				.flatMap(service -> discoveryClient.getInstances(service).stream())
+				.filter(instance -> instance.getMetadata().containsKey(ANALYZER_KEY))
+				.collect(toList());
 	}
 }

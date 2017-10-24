@@ -21,6 +21,8 @@
 
 package com.epam.ta.reportportal.util.analyzer;
 
+import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 
 import java.util.List;
@@ -39,5 +41,5 @@ public interface IIssuesAnalyzer {
 	 * @param testItems - current test items with failed\skipped status and issue
 	 * @return list of test items with updated issue type
 	 */
-	List<TestItem> analyze(String launchId, List<TestItem> testItems);
+	List<TestItem> analyze(Launch launch, Project project, List<TestItem> testItems);
 }

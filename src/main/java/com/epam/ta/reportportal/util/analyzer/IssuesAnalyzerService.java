@@ -21,10 +21,13 @@
 
 package com.epam.ta.reportportal.util.analyzer;
 
+import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.LogRepository;
+import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.LogLevel;
+import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
@@ -34,8 +37,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.util.analyzer.AnalyzerUtils.fromTestItem;
 
 /**
@@ -53,15 +58,20 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	private LaunchRepository launchRepository;
 
 	@Autowired
+	private TestItemRepository testItemRepository;
+
+	@Autowired
+	private StatisticsFacadeFactory statisticsFacadeFactory;
+
+	@Autowired
 	private LogRepository logRepository;
 
 	@Override
-	public List<TestItem> analyze(String launchId, List<TestItem> testItems) {
-		Launch launch = launchRepository.findOne(launchId);
+	public List<TestItem> analyze(Launch launch, Project project, List<TestItem> testItems) {
 		if (launch != null) {
 			IndexLaunch rs = analyze(launch, testItems);
 			if (rs != null) {
-				updateTestItems(rs, testItems);
+				updateTestItems(rs, launch, project);
 			}
 		}
 		return testItems;
@@ -88,14 +98,17 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 		return rs;
 	}
 
-	private List<TestItem> updateTestItems(IndexLaunch rs, List<TestItem> testItems) {
-		rs.getTestItems()
+	private void updateTestItems(IndexLaunch rs, Launch launch, Project project) {
+		Map<String, TestItemIssue> forUpdate = rs.getTestItems()
 				.stream()
-				.filter(it -> it.getIssueType() != null)
-				.forEach(indexTestItem -> testItems.stream()
-						.filter(testItem -> testItem.getId().equals(indexTestItem.getTestItemId()))
-						.findFirst()
-						.ifPresent(it -> it.setIssue(new TestItemIssue(indexTestItem.getIssueType(), null, true))));
-		return testItems;
+				.filter(it -> it.getIssueType() != null && !it.getIssueType().equals(TO_INVESTIGATE.getLocator()))
+				.collect(Collectors.toMap(IndexTestItem::getTestItemId,
+						indexTestItem -> new TestItemIssue(indexTestItem.getIssueType(), null, true)
+				));
+		if (!forUpdate.isEmpty()) {
+			testItemRepository.updateItemsIssues(forUpdate);
+			statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
+					.recalculateStatistics(launch);
+		}
 	}
 }

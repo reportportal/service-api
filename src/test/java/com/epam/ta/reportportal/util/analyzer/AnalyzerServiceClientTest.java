@@ -27,6 +27,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -43,12 +44,14 @@ public class AnalyzerServiceClientTest {
 	private static final String SERVICE_URL = "http://analyzer";
 
 	private RestTemplate restTemplate;
+	private DiscoveryClient discoveryClient;
 	private AnalyzerServiceClient client;
 
 	@Before
 	public void setup() {
 		restTemplate = Mockito.mock(RestTemplate.class);
-		client = new AnalyzerServiceClient(restTemplate, SERVICE_URL);
+		discoveryClient = Mockito.mock(DiscoveryClient.class);
+		client = new AnalyzerServiceClient(restTemplate,discoveryClient);
 	}
 
 	@Test

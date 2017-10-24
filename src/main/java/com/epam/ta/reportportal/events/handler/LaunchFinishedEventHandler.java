@@ -128,10 +128,7 @@ public class LaunchFinishedEventHandler {
 				launch.getId()
 		);
 
-		List<TestItem> testItems = analyzerService.analyze(launch.getId(), toInvestigateItems);
-		testItemRepository.save(testItems);
-		statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
-				.recalculateStatistics(launch);
+		analyzerService.analyze(launch, project, toInvestigateItems);
 
 		/* Previous email sending cycle was skipped due waiting AA results */
 		if (waitForAutoAnalysis) {

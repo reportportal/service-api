@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
-import com.google.common.base.MoreObjects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -89,6 +88,8 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 
 	protected static class HistoryObject {
 
+		private String uniqueId;
+
 		protected int total;
 
 		protected String name;
@@ -96,6 +97,14 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 		protected Date lastTime;
 
 		protected String percentage;
+
+		public String getUniqueId() {
+			return uniqueId;
+		}
+
+		public void setUniqueId(String uniqueId) {
+			this.uniqueId = uniqueId;
+		}
 
 		public int getTotal() {
 			return total;
@@ -138,24 +147,13 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 				return false;
 			}
 			HistoryObject that = (HistoryObject) o;
-			return total == that.total && com.google.common.base.Objects.equal(name, that.name) && com.google.common.base.Objects.equal(lastTime,
-					that.lastTime
-			) && com.google.common.base.Objects.equal(percentage, that.percentage);
+			return total == that.total && Objects.equals(uniqueId, that.uniqueId) && Objects.equals(name, that.name) && Objects.equals(
+					lastTime, that.lastTime) && Objects.equals(percentage, that.percentage);
 		}
 
 		@Override
 		public int hashCode() {
-			return com.google.common.base.Objects.hashCode(total, name, lastTime, percentage);
-		}
-
-		@Override
-		public String toString() {
-			return MoreObjects.toStringHelper(this)
-					.add("total", total)
-					.add("name", name)
-					.add("lastTime", lastTime)
-					.add("percentage", percentage)
-					.toString();
+			return Objects.hash(uniqueId, total, name, lastTime, percentage);
 		}
 	}
 

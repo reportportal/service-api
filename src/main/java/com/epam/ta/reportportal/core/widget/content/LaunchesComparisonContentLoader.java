@@ -38,6 +38,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.epam.ta.reportportal.core.widget.impl.WidgetUtils.START_TIME;
+
 /**
  * ContentLoader implementation for <b>Different launches comparison chart
  * widget</b>
@@ -63,7 +65,9 @@ public class LaunchesComparisonContentLoader extends StatisticBasedContentLoader
 		}
 		StatisticsDocumentHandler documentHandler = new StatisticsDocumentHandler(contentFields, metaDataFields);
 		List<String> allFields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
-
+		
+		//fixed sorting
+		sorting = new Sort(Sort.Direction.DESC, START_TIME);
 		String collectionName = getCollectionName(filter.getTarget());
         launchRepository.loadWithCallback(filter, sorting, QUANTITY, allFields, documentHandler, collectionName);
 		List<ChartObject> result = documentHandler.getResult();

@@ -189,3 +189,5 @@
 * EPMRPP-31020 - Launches reported to DEFAULT mode are present in DEBUG as well
 * reportportal/reportportal#245 - Default TestNG xml report isn't compatible with RP report
 * EPMRPP-29701 - Tag prefix should be fully matched with the searched value
+* EPMRPP-31156 - Different launches comparison chart should include only last 2 launches despite sorting of the filter
+* EPMRPP-31039 - WS: Results of items on history table do not have sorting in Asc order

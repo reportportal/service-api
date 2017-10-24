@@ -50,6 +50,7 @@ public class AnalyzerServiceClient {
 
 	private static final String INDEX_PATH = "/_index";
 	private static final String ANALYZE_PATH = "/_analyze";
+
 	private static final String ANALYZER_KEY = "analyzer";
 	private static final String PRIORITY = "analyzer_priority";
 	private static final String DOES_NEED_INDEX = "analyzer_index";
@@ -63,7 +64,7 @@ public class AnalyzerServiceClient {
 		this.discoveryClient = discoveryClient;
 	}
 
-	public void checkIfAnalyzerDeployed() {
+	public void checkAccess() {
 		BusinessRule.expect(getAnalyzerServiceInstances().isEmpty(), Predicate.isEqual(false))
 				.verify(ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer services are deployed.");
 	}
@@ -88,8 +89,7 @@ public class AnalyzerServiceClient {
 		for (ServiceInstance instance : analyzerInstances) {
 			ResponseEntity<IndexLaunch[]> responseEntity = restTemplate.postForEntity(
 					instance.getUri().toString() + ANALYZE_PATH, Collections.singletonList(rq), IndexLaunch[].class);
-			IndexLaunch[] body = responseEntity.getBody();
-			rq = body[0];
+			rq = responseEntity.getBody()[0];
 		}
 		return rq;
 	}

@@ -129,7 +129,8 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	public OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId, String scope) {
 		AutoAnalyzeStrategy type = AutoAnalyzeStrategy.fromValue(scope);
 		expect(type, notNull()).verify(INCORRECT_FILTER_PARAMETERS, scope);
-		analyzerServiceClient.checkIfAnalyzerDeployed();
+
+		analyzerServiceClient.checkAccess();
 
 		Launch launch = launchRepository.findOne(launchId);
 		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);

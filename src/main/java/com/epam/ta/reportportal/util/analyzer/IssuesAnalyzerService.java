@@ -42,13 +42,15 @@ import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.util.analyzer.AnalyzerUtils.fromTestItem;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Default implementation of {@link IIssuesAnalyzer}.
  *
  * @author Ivan Sharamet
+ * @author Pavel Bortnik
  */
-@Service("analyzerService")
+@Service
 public class IssuesAnalyzerService implements IIssuesAnalyzer {
 
 	@Autowired
@@ -67,44 +69,56 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	private LogRepository logRepository;
 
 	@Override
-	public List<TestItem> analyze(Launch launch, Project project, List<TestItem> testItems) {
+	public void analyze(Launch launch, Project project, List<TestItem> testItems) {
 		if (launch != null) {
-			IndexLaunch rs = analyze(launch, testItems);
+			List<IndexTestItem> rqTestItems = prepareItems(testItems);
+			IndexLaunch rs = analyze(launch, rqTestItems);
 			if (rs != null) {
 				updateTestItems(rs, launch, project);
 			}
 		}
-		return testItems;
 	}
 
-	private IndexLaunch analyze(Launch launch, List<TestItem> testItems) {
+	private IndexLaunch analyze(Launch launch, List<IndexTestItem> rqTestItems) {
 		IndexLaunch rs = null;
-
-		List<IndexTestItem> rqTestItems = testItems.stream()
-				.map(it -> fromTestItem(it, logRepository.findLogsGreaterThanLevel(it.getId(), LogLevel.ERROR)))
-				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
-				.collect(Collectors.toList());
-
 		if (!rqTestItems.isEmpty()) {
 			IndexLaunch rqLaunch = new IndexLaunch();
 			rqLaunch.setLaunchId(launch.getId());
 			rqLaunch.setLaunchName(launch.getName());
 			rqLaunch.setProject(launch.getProjectRef());
 			rqLaunch.setTestItems(rqTestItems);
-
 			rs = analyzerServiceClient.analyze(rqLaunch);
 		}
-
 		return rs;
 	}
 
-	private void updateTestItems(IndexLaunch rs, Launch launch, Project project) {
-		Map<String, TestItemIssue> forUpdate = rs.getTestItems()
+	/**
+	 * Filter items with logs greater than {@link LogLevel#ERROR} level
+	 * and convert them to {@link IndexTestItem} analyzer model
+	 *
+	 * @param testItems Test items for preparing
+	 * @return Prepared items for analyzer
+	 */
+	private List<IndexTestItem> prepareItems(List<TestItem> testItems) {
+		return testItems.stream()
+				.map(it -> fromTestItem(it, logRepository.findLogsGreaterThanLevel(it.getId(), LogLevel.ERROR)))
+				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
+				.collect(Collectors.toList());
+	}
+
+	/**
+	 * Updates issues of investigated item and recalculates
+	 * the whole launch's statistics
+	 *
+	 * @param indexLaunch Launch with investigated items
+	 * @param launch      Launch of investigated items
+	 * @param project     Project
+	 */
+	private void updateTestItems(IndexLaunch indexLaunch, Launch launch, Project project) {
+		Map<String, TestItemIssue> forUpdate = indexLaunch.getTestItems()
 				.stream()
 				.filter(it -> it.getIssueType() != null && !it.getIssueType().equals(TO_INVESTIGATE.getLocator()))
-				.collect(Collectors.toMap(IndexTestItem::getTestItemId,
-						indexTestItem -> new TestItemIssue(indexTestItem.getIssueType(), null, true)
-				));
+				.collect(toMap(IndexTestItem::getTestItemId, indexTestItem -> new TestItemIssue(indexTestItem.getIssueType(), null, true)));
 		if (!forUpdate.isEmpty()) {
 			testItemRepository.updateItemsIssues(forUpdate);
 			statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())

@@ -41,9 +41,21 @@ import java.util.function.Predicate;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Simple HTTP client for log indexing/analysis service.
+ * HTTP client for all log indexing/analysis services. Such services are
+ * those that have tag {@link AnalyzerServiceClient#ANALYZER_KEY} in
+ * service's metadata.
+ * <p>
+ * To define that service indexes data before analyzing that it should
+ * be indicated by tag {@link AnalyzerServiceClient#DOES_NEED_INDEX}
+ * with <code>true</code> in metadata.
+ * <p>
+ * Items are analyzed in order of priority specified in tag
+ * {@link AnalyzerServiceClient#PRIORITY} in metadata. If several analyzers
+ * provided different issues for one item, it would be overwritten with
+ * results of more priority service.
  *
  * @author Ivan Sharamet
+ * @author Pavel Bortnik
  */
 @Service("analyzerServiceClient")
 public class AnalyzerServiceClient {
@@ -70,11 +82,11 @@ public class AnalyzerServiceClient {
 	}
 
 	public List<IndexRs> index(List<IndexLaunch> rq) {
-		List<String> analyzerServiceInstances = getAnalyzerServiceInstances().stream()
+		List<String> urls = getAnalyzerServiceInstances().stream()
 				.filter(it -> Boolean.valueOf(it.getMetadata().get(DOES_NEED_INDEX)))
 				.map(it -> it.getUri().toString())
 				.collect(toList());
-		return analyzerServiceInstances.stream()
+		return urls.stream()
 				.map(serviceUrl -> restTemplate.postForEntity(serviceUrl + INDEX_PATH, rq, IndexRs.class))
 				.map(HttpEntity::getBody)
 				.collect(toList());
@@ -82,10 +94,7 @@ public class AnalyzerServiceClient {
 
 	public IndexLaunch analyze(IndexLaunch rq) {
 		List<ServiceInstance> analyzerInstances = getAnalyzerServiceInstances();
-
-		analyzerInstances.sort(Comparator.comparingLong(it -> Long.parseLong(it.getMetadata().get(PRIORITY))));
-		Collections.reverse(analyzerInstances);
-
+		analyzerInstances.sort(Comparator.comparingLong((ServiceInstance it) -> Long.parseLong(it.getMetadata().get(PRIORITY))).reversed());
 		for (ServiceInstance instance : analyzerInstances) {
 			ResponseEntity<IndexLaunch[]> responseEntity = restTemplate.postForEntity(
 					instance.getUri().toString() + ANALYZE_PATH, Collections.singletonList(rq), IndexLaunch[].class);

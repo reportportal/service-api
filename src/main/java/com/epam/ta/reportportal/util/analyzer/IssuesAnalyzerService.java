@@ -103,7 +103,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	 */
 	private List<IndexTestItem> prepareItems(List<TestItem> testItems) {
 		return testItems.stream()
-				.map(it -> fromTestItem(it, logRepository.findLogsGreaterThanLevel(it.getId(), LogLevel.ERROR)))
+				.map(it -> fromTestItem(it, logRepository.findGreaterOrEqualLevel(it.getId(), LogLevel.ERROR)))
 				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
 				.collect(Collectors.toList());
 	}

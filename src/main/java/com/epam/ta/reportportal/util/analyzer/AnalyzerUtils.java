@@ -22,13 +22,12 @@
 package com.epam.ta.reportportal.util.analyzer;
 
 import com.epam.ta.reportportal.database.entity.Log;
-import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.util.analyzer.model.IndexLog;
 import com.epam.ta.reportportal.util.analyzer.model.IndexTestItem;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +40,22 @@ public class AnalyzerUtils {
 	private AnalyzerUtils() {
 		//static only
 	}
+
+	/**
+	 * Creates {@link IndexLog} model for log for further
+	 * sending that into analyzer
+	 *
+	 * @param log Log to be created from
+	 * @return {@link IndexLog} object
+	 */
+	private static Function<Log, IndexLog> TO_INDEX_LOG = log -> {
+		IndexLog indexLog = new IndexLog();
+		if (log.getLevel() != null) {
+			indexLog.setLogLevel(log.getLevel().toInt());
+		}
+		indexLog.setMessage(log.getLogMsg());
+		return indexLog;
+	};
 
 	/**
 	 * Creates {@link IndexTestItem} model for test item and it's logs
@@ -58,47 +73,8 @@ public class AnalyzerUtils {
 			indexTestItem.setIssueType(testItem.getIssue().getIssueType());
 		}
 		if (!logs.isEmpty()) {
-			indexTestItem.setLogs(logs.stream().map(AnalyzerUtils::fromLog).collect(Collectors.toSet()));
+			indexTestItem.setLogs(logs.stream().map(TO_INDEX_LOG).collect(Collectors.toSet()));
 		}
 		return indexTestItem;
-	}
-
-	/**
-	 * Creates {@link IndexLog} model for log for further
-	 * sending that into analyzer
-	 *
-	 * @param log Log to be created from
-	 * @return {@link IndexLog} object
-	 */
-	static IndexLog fromLog(Log log) {
-		IndexLog indexLog = new IndexLog();
-		if (log.getLevel() != null) {
-			indexLog.setLogLevel(log.getLevel().toInt());
-		}
-		indexLog.setMessage(log.getLogMsg());
-		return indexLog;
-	}
-
-	/**
-	 * Checks if the log is suitable for indexing in analyzer.
-	 * Log's level is greater or equal than {@link LogLevel#ERROR}
-	 *
-	 * @param log Log for check
-	 * @return true if suitable
-	 */
-	static boolean isLevelSuitable(Log log) {
-		return null != log && null != log.getLevel() && log.getLevel().isGreaterOrEqual(LogLevel.ERROR);
-	}
-
-	/**
-	 * Checks if the test item is suitable for indexing in analyzer.
-	 * Test item issue type should not be {@link TestItemIssueType#TO_INVESTIGATE}
-	 *
-	 * @param testItem Test item for check
-	 * @return true if suitable
-	 */
-	static boolean isItemSuitable(TestItem testItem) {
-		return testItem != null && testItem.getIssue() != null && !TestItemIssueType.TO_INVESTIGATE.getLocator()
-				.equals(testItem.getIssue().getIssueType());
 	}
 }

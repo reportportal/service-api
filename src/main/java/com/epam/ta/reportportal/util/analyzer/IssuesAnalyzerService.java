@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.util.analyzer;
 
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
@@ -55,9 +54,6 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 
 	@Autowired
 	private AnalyzerServiceClient analyzerServiceClient;
-
-	@Autowired
-	private LaunchRepository launchRepository;
 
 	@Autowired
 	private TestItemRepository testItemRepository;

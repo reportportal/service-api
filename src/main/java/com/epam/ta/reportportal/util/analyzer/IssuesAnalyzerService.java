@@ -37,10 +37,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.util.analyzer.AnalyzerUtils.fromTestItem;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 /**
@@ -64,13 +65,18 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	@Autowired
 	private LogRepository logRepository;
 
+	@Autowired
+	private ILogIndexer logIndexer;
+
 	@Override
 	public void analyze(Launch launch, Project project, List<TestItem> testItems) {
 		if (launch != null) {
 			List<IndexTestItem> rqTestItems = prepareItems(testItems);
 			IndexLaunch rs = analyze(launch, rqTestItems);
 			if (rs != null) {
-				updateTestItems(rs, launch, project);
+				List<TestItem> updatedItems = updateTestItems(rs, testItems);
+				saveUpdatedItems(updatedItems, launch, project);
+				logIndexer.indexLogs(launch.getId(), updatedItems);
 			}
 		}
 	}
@@ -103,18 +109,38 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	}
 
 	/**
+	 * Update issue types for analyzed items
+	 *
+	 * @param rs        Results of analyzing
+	 * @param testItems items to be updated
+	 * @return List of updated items
+	 */
+	//@formatter:off
+	private List<TestItem> updateTestItems(IndexLaunch rs, List<TestItem> testItems) {
+		return rs.getTestItems().stream().filter(it -> it.getIssueType() != null)
+				.map(indexTestItem -> {
+					TestItem toUpdate = testItems.stream()
+							.filter(item -> item.getId().equals(indexTestItem.getTestItemId()))
+							.findFirst()
+							.orElse(null);
+					if (toUpdate != null) {
+						toUpdate.setIssue(new TestItemIssue(indexTestItem.getIssueType(), null, true));
+					}
+					return toUpdate;
+		}).filter(Objects::nonNull).collect(toList());
+	}
+	//@formatter:on
+
+	/**
 	 * Updates issues of investigated item and recalculates
 	 * the whole launch's statistics
 	 *
-	 * @param indexLaunch Launch with investigated items
-	 * @param launch      Launch of investigated items
-	 * @param project     Project
+	 * @param items   Items for update
+	 * @param launch  Launch of investigated items
+	 * @param project Project
 	 */
-	private void updateTestItems(IndexLaunch indexLaunch, Launch launch, Project project) {
-		Map<String, TestItemIssue> forUpdate = indexLaunch.getTestItems()
-				.stream()
-				.filter(it -> it.getIssueType() != null && !it.getIssueType().equals(TO_INVESTIGATE.getLocator()))
-				.collect(toMap(IndexTestItem::getTestItemId, indexTestItem -> new TestItemIssue(indexTestItem.getIssueType(), null, true)));
+	private void saveUpdatedItems(List<TestItem> items, Launch launch, Project project) {
+		Map<String, TestItemIssue> forUpdate = items.stream().collect(toMap(TestItem::getId, TestItem::getIssue));
 		if (!forUpdate.isEmpty()) {
 			testItemRepository.updateItemsIssues(forUpdate);
 			statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())

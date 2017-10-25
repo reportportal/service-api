@@ -113,16 +113,18 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		}
 
 		if (rq.isRetry()) {
+			TestItem initialItem = testItemRepository.findByUniqueId(item.getUniqueId()).get(0);
 			//TODO change to update, do not save whole object
-			ofNullable(parentItem.getRetries()).orElse(new ArrayList<>()).add(item);
-			testItemRepository.save(parentItem);
+			ofNullable(initialItem.getRetries()).orElse(new ArrayList<>()).add(item);
+			testItemRepository.save(initialItem);
 		} else {
 			testItemRepository.save(item);
+
+			if (!parentItem.hasChilds()) {
+				testItemRepository.updateHasChilds(parentItem.getId(), true);
+			}
 		}
 
-		if (!parentItem.hasChilds()) {
-			testItemRepository.updateHasChilds(parentItem.getId(), true);
-		}
 		return new ItemCreatedRS(item.getId(), item.getUniqueId());
 	}
 

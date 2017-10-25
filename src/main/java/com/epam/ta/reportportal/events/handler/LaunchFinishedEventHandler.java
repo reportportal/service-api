@@ -128,7 +128,7 @@ public class LaunchFinishedEventHandler {
 				launch.getId()
 		);
 
-		analyzerService.analyze(launch, project, toInvestigateItems);
+		analyzerService.analyze(launch, toInvestigateItems);
 
 		/* Previous email sending cycle was skipped due waiting AA results */
 		if (waitForAutoAnalysis) {

@@ -21,7 +21,6 @@
 
 package com.epam.ta.reportportal.util.analyzer;
 
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Log;
@@ -29,7 +28,6 @@ import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.util.analyzer.model.IndexTestItem;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -53,8 +51,6 @@ public class IssuesAnalyzerServiceTest {
 	@Mock
 	private AnalyzerServiceClient analyzerServiceClient;
 	@Mock
-	private LaunchRepository launchRepository;
-	@Mock
 	private LogRepository logRepository;
 
 	@InjectMocks
@@ -68,41 +64,36 @@ public class IssuesAnalyzerServiceTest {
 
 	@Test
 	public void testAnalyzeWithNonExistentLaunchId() {
-		String launchId = "1";
-		when(launchRepository.findEntryById(Mockito.eq(launchId))).thenReturn(null);
-		analyzerService.analyze(launchId, createTestItems(1));
+		Launch launch = createLaunch("1");
+		analyzerService.analyze(launch, createTestItems(1));
 		verifyZeroInteractions(logRepository, analyzerServiceClient);
 	}
 
 	@Test
 	public void testAnalyzeWithoutTestItems() {
-		String launchId = "2";
-		when(launchRepository.findEntryById(Mockito.eq(launchId))).thenReturn(createLaunch(launchId));
-		analyzerService.analyze(launchId, Collections.emptyList());
+		Launch launch = createLaunch("2");
+		analyzerService.analyze(launch, Collections.emptyList());
 		verifyZeroInteractions(logRepository, analyzerServiceClient);
 	}
 
 	@Test
 	public void testAnalyzeTestItemsWithoutLogs() {
-		String launchId = "3";
-		when(launchRepository.findOne(Mockito.eq(launchId))).thenReturn(createLaunch(launchId));
-		when(logRepository.findLogsGreaterThanLevel(Mockito.anyString(), eq(LogLevel.ERROR))).thenReturn(Collections.emptyList());
+		Launch launch = createLaunch("3");
+		when(logRepository.findGreaterOrEqualLevel(Mockito.anyString(), eq(LogLevel.ERROR))).thenReturn(Collections.emptyList());
 		int testItemCount = 10;
-		analyzerService.analyze(launchId, createTestItems(testItemCount));
-		verify(logRepository, Mockito.times(testItemCount)).findLogsGreaterThanLevel(Mockito.anyString(), eq(LogLevel.ERROR));
+		analyzerService.analyze(launch, createTestItems(testItemCount));
+		verify(logRepository, Mockito.times(testItemCount)).findGreaterOrEqualLevel(Mockito.anyString(), eq(LogLevel.ERROR));
 		verifyZeroInteractions(analyzerServiceClient);
 	}
 
 	@Test
 	public void testAnalyze() {
-		String launchId = "4";
-		when(launchRepository.findOne(Mockito.eq(launchId))).thenReturn(createLaunch(launchId));
-		when(logRepository.findLogsGreaterThanLevel(Mockito.anyString(), eq(LogLevel.ERROR))).thenReturn(Collections.singletonList(createErrorLog()));
+		Launch launch = createLaunch("4");
+		when(logRepository.findGreaterOrEqualLevel(Mockito.anyString(), eq(LogLevel.ERROR))).thenReturn(Collections.singletonList(createErrorLog()));
 		int testItemCount = 2;
 		when(analyzerServiceClient.analyze(Mockito.any(IndexLaunch.class))).thenReturn(crateAnalyzeRs(testItemCount));
-		List<TestItem> rs = analyzerService.analyze(launchId, createTestItems(testItemCount));
-		rs.forEach(ti -> Assert.assertEquals("ISSUE" + ti.getId(), ti.getIssue().getIssueType()));
-		verify(logRepository, Mockito.times(testItemCount)).findLogsGreaterThanLevel(Mockito.anyString(), eq(LogLevel.ERROR));
+		analyzerService.analyze(launch, createTestItems(testItemCount));
+		verify(logRepository, Mockito.times(testItemCount)).findGreaterOrEqualLevel(Mockito.anyString(), eq(LogLevel.ERROR));
 		verify(analyzerServiceClient).analyze(Mockito.any(IndexLaunch.class));
 		verifyZeroInteractions(analyzerServiceClient);
 	}

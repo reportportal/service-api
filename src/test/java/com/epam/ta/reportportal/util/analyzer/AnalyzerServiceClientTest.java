@@ -32,7 +32,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Tests for {@link AnalyzerServiceClient}
@@ -56,9 +58,11 @@ public class AnalyzerServiceClientTest {
 
 	@Test
 	public void testIndex() {
-		IndexRs expectedRs = new IndexRs();
-		responseWith("/_index", expectedRs);
-		IndexRs actualRs = client.index(Collections.singletonList(new IndexLaunch()));
+		List<IndexRs> expectedRs = new ArrayList<>();
+		IndexRs rs = new IndexRs();
+		expectedRs.add(rs);
+		responseWith("/_index", rs);
+		List<IndexRs> actualRs = client.index(Collections.singletonList(new IndexLaunch()));
 		Assert.assertSame(expectedRs, actualRs);
 	}
 

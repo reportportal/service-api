@@ -144,7 +144,7 @@ public class FinishTestItemHandlerImplTest {
 		analyzed.setType(TestItemType.STEP);
 
 		List<TestItem> forAnalyze = Collections.singletonList(testItem);
-		when(analyzerService.analyze(eq(launchRef), eq(forAnalyze))).thenReturn(Collections.singletonList(analyzed));
+		doNothing().when(analyzerService).analyze(eq(launch), eq(forAnalyze));
 
 		TestItem updatedTestItem = finishTestItemHandler.awareTestItemIssueTypeFromStatus(testItem, null, project, "someuser");
 
@@ -154,7 +154,7 @@ public class FinishTestItemHandlerImplTest {
 		Assert.assertNull(updatedTestItem.getIssue().getExternalSystemIssues());
 		Assert.assertEquals("PB001", updatedTestItem.getIssue().getIssueType());
 		verify(launchRepository, times(1)).findOne(launchRef);
-		verify(analyzerService, times(1)).analyze(launchRef, forAnalyze);
+		verify(analyzerService, times(1)).analyze(launch, forAnalyze);
 	}
 
 	@SuppressWarnings("unchecked")

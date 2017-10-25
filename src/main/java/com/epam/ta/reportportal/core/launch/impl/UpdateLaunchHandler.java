@@ -147,7 +147,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 
 		List<TestItem> toInvestigate = testItemRepository.findInIssueTypeItems(TestItemIssueType.TO_INVESTIGATE.getLocator(), launchId);
 
-		taskExecutor.execute(() -> analyzerService.analyze(launch, project, toInvestigate));
+		taskExecutor.execute(() -> analyzerService.analyze(launch, toInvestigate));
 
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launchId + "' started.");
 	}

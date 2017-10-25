@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.util.analyzer;
 
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LogRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.LogLevel;
@@ -60,6 +61,9 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	private TestItemRepository testItemRepository;
 
 	@Autowired
+	private ProjectRepository projectRepository;
+
+	@Autowired
 	private StatisticsFacadeFactory statisticsFacadeFactory;
 
 	@Autowired
@@ -69,19 +73,19 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	private ILogIndexer logIndexer;
 
 	@Override
-	public void analyze(Launch launch, Project project, List<TestItem> testItems) {
+	public void analyze(Launch launch, List<TestItem> testItems) {
 		if (launch != null) {
 			List<IndexTestItem> rqTestItems = prepareItems(testItems);
-			IndexLaunch rs = analyze(launch, rqTestItems);
+			IndexLaunch rs = analyze(rqTestItems, launch);
 			if (rs != null) {
 				List<TestItem> updatedItems = updateTestItems(rs, testItems);
-				saveUpdatedItems(updatedItems, launch, project);
+				saveUpdatedItems(updatedItems, launch);
 				logIndexer.indexLogs(launch.getId(), updatedItems);
 			}
 		}
 	}
 
-	private IndexLaunch analyze(Launch launch, List<IndexTestItem> rqTestItems) {
+	private IndexLaunch analyze(List<IndexTestItem> rqTestItems, Launch launch) {
 		IndexLaunch rs = null;
 		if (!rqTestItems.isEmpty()) {
 			IndexLaunch rqLaunch = new IndexLaunch();
@@ -137,12 +141,12 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	 *
 	 * @param items   Items for update
 	 * @param launch  Launch of investigated items
-	 * @param project Project
 	 */
-	private void saveUpdatedItems(List<TestItem> items, Launch launch, Project project) {
+	private void saveUpdatedItems(List<TestItem> items, Launch launch) {
 		Map<String, TestItemIssue> forUpdate = items.stream().collect(toMap(TestItem::getId, TestItem::getIssue));
 		if (!forUpdate.isEmpty()) {
 			testItemRepository.updateItemsIssues(forUpdate);
+			Project project = projectRepository.findByName(launch.getProjectRef());
 			statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 					.recalculateStatistics(launch);
 		}

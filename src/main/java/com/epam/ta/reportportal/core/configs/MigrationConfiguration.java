@@ -46,7 +46,7 @@ public class MigrationConfiguration {
 
 
     @Autowired
-    private MongodbConfiguration.MongoProperies mongoProperties;
+    private MongodbConfiguration.MongoProperties mongoProperties;
     @Autowired
     private Environment environment;
 
@@ -55,7 +55,7 @@ public class MigrationConfiguration {
     @Profile({"!unittest"})
     public Mongobee mongobee(MongoClient mongoClient) {
         Mongobee runner = new Mongobee(mongoClient);
-        runner.setDbName(mongoProperties.getDbName());
+        runner.setDbName(mongoProperties.getDatabase());
         runner.setChangeLogsScanPackage("com.epam.ta.reportportal.migration");
         runner.setSpringEnvironment(environment);
 

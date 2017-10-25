@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.util.analyzer;
 
 import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 
 import java.util.List;
@@ -37,10 +36,10 @@ public interface IIssuesAnalyzer {
 
 	/**
 	 * Analyze history to find similar issues and updates items if some were found
+	 * Indexes investigated issues as well.
 	 *
 	 * @param launch    Initial launch for history
-	 * @param project   Project
 	 * @param testItems - current test items with failed status and issue
 	 */
-	void analyze(Launch launch, Project project, List<TestItem> testItems);
+	void analyze(Launch launch, List<TestItem> testItems);
 }

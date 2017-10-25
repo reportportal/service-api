@@ -43,9 +43,21 @@ import static java.util.Comparator.comparingLong;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Simple HTTP client for log indexing/analysis service.
+ * HTTP client for all log indexing/analysis services. Such services are
+ * those that have tag {@link AnalyzerServiceClient#ANALYZER_KEY} in
+ * service's metadata.
+ * <p>
+ * To define that service indexes data before analyzing that it should
+ * be indicated by tag {@link AnalyzerServiceClient#DOES_NEED_INDEX}
+ * with <code>true</code> in metadata.
+ * <p>
+ * Items are analyzed in order of priority specified in tag
+ * {@link AnalyzerServiceClient#PRIORITY} in metadata. If several analyzers
+ * provided different issues for one item, it would be overwritten with
+ * results of more priority service.
  *
  * @author Ivan Sharamet
+ * @author Pavel Bortnik
  */
 @Service("analyzerServiceClient")
 public class AnalyzerServiceClient {

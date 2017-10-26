@@ -22,6 +22,7 @@ package com.epam.ta.reportportal.info;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.info.Info;
+import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
  */
 
 @Component
-public class InfoContributorComposite implements org.springframework.boot.actuate.info.InfoContributor {
+public class InfoContributorComposite implements InfoContributor {
 
     private static final String EXTENSIONS_KEY = "extensions";
 

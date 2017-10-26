@@ -61,7 +61,7 @@ public final class ClientUtils {
 		try {
 			return Boolean.valueOf(it.getMetadata().get(ANALYZER_INDEX));
 		} catch (Exception e) {
-			LOGGER.warn("Incorrect specification of tag '{}' for service '{}'. Using default value", ANALYZER_INDEX,
+			LOGGER.warn("Incorrect specification of tag '{}' for service '{}'. Using 'false' as default value.", ANALYZER_INDEX,
 					it.getMetadata().get(ANALYZER_KEY), e
 			);
 			return false;

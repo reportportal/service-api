@@ -124,7 +124,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 				return Optional.ofNullable(rs[0]);
 			}
 		} catch (Exception e) {
-			LOGGER.warn("Analyzing failed. Cannot interact with {} analyzer. Error: {}", analyzer.getMetadata().get(ANALYZER_KEY), e);
+			LOGGER.warn("Analyzing failed. Cannot interact with {} analyzer.", analyzer.getMetadata().get(ANALYZER_KEY), e);
 		}
 		return Optional.empty();
 	}

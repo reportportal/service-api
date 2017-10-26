@@ -25,6 +25,6 @@ import java.util.Map;
 /**
  * @author Pavel_Bortnik
  */
-public interface ExtensionContibutor {
+public interface ExtensionContributor {
     Map<String, ?> contribute();
 }

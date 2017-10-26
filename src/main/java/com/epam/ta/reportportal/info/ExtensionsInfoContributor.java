@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  */
 
 @Component
-public class ExtensionsInfoContributor implements ExtensionContibutor {
+public class ExtensionsInfoContributor implements ExtensionContributor {
 
     private static final String EXTENSION_KEY = "extension";
 

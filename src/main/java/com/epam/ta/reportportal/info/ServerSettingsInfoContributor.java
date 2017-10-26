@@ -38,7 +38,7 @@ import static java.util.Optional.ofNullable;
  */
 
 @Component
-public class ServerSettingsInfoContributor implements InfoContributor {
+public class ServerSettingsInfoContributor implements ExtensionContibutor {
 
 	private static final String ANALYTICS_KEY = "analytics";
 	private static final String INSTANCE_ID_KEY = "instanceId";

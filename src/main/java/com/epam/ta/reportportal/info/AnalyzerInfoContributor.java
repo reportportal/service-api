@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * @author Pavel Bortnik
  */
 @Component
-public class AnalyzerInfoContributor implements InfoContributor {
+public class AnalyzerInfoContributor implements ExtensionContibutor {
 
 	private static final String ANALYZER_KEY = "analyzer";
 

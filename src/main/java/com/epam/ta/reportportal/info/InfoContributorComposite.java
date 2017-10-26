@@ -37,17 +37,17 @@ public class InfoContributorComposite implements org.springframework.boot.actuat
 
     private static final String EXTENSIONS_KEY = "extensions";
 
-    private final List<InfoContributor> infoContributors;
+    private final List<ExtensionContibutor> infoContributors;
 
     @Autowired
-    public InfoContributorComposite(List<InfoContributor> infoContributors) {
+    public InfoContributorComposite(List<ExtensionContibutor> infoContributors) {
         this.infoContributors = infoContributors;
     }
 
     @Override
     public void contribute(Info.Builder builder) {
         builder.withDetail(EXTENSIONS_KEY, infoContributors.stream()
-                .map(InfoContributor::contribute).flatMap(map -> map.entrySet().stream())
+                .map(ExtensionContibutor::contribute).flatMap(map -> map.entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 }

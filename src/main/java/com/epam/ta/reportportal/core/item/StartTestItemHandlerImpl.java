@@ -35,18 +35,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
+import java.util.ArrayList;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.Optional.ofNullable;
 
 /**
  * Start Launch operation default implementation
  *
  * @author Andrei Varabyeu
  * @author Andrei_Ramanchuk
- *
  */
 @Service
 class StartTestItemHandlerImpl implements StartTestItemHandler {
@@ -100,16 +101,30 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		validate(parentItem, parent);
 		validate(rq, parentItem);
 
-		TestItem item = testItemBuilder.get().addStartItemRequest(rq).addParent(parentItem).addPath(parentItem)
-				.addStatus(Status.IN_PROGRESS).build();
+		TestItem item = testItemBuilder.get()
+				.addStartItemRequest(rq)
+				.addParent(parentItem)
+				.addPath(parentItem)
+				.addStatus(Status.IN_PROGRESS)
+				.build();
+
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item));
 		}
-		testItemRepository.save(item);
 
-		if (!parentItem.hasChilds()) {
-			testItemRepository.updateHasChilds(parentItem.getId(), true);
+		if (rq.isRetry()) {
+			TestItem initialItem = testItemRepository.findByUniqueId(item.getUniqueId()).get(0);
+			//TODO change to update, do not save whole object
+			ofNullable(initialItem.getRetries()).orElse(new ArrayList<>()).add(item);
+			testItemRepository.save(initialItem);
+		} else {
+			testItemRepository.save(item);
+
+			if (!parentItem.hasChilds()) {
+				testItemRepository.updateHasChilds(parentItem.getId(), true);
+			}
 		}
+
 		return new ItemCreatedRS(item.getId(), item.getUniqueId());
 	}
 
@@ -117,24 +132,32 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, rq.getLaunchId());
 		expect(projectName.toLowerCase(), equalTo(launch.getProjectRef())).verify(ACCESS_DENIED);
 		expect(launch, Preconditions.IN_PROGRESS).verify(START_ITEM_NOT_ALLOWED,
-				Suppliers.formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId()));
+				Suppliers.formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId())
+		);
 
 		expect(rq, Preconditions.startSameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(), launch.getStartTime(), launch.getId());
+				rq.getStartTime(),
+				launch.getStartTime(),
+				launch.getId()
+		);
 
 	}
 
 	private void validate(TestItem parentTestItem, String parent) {
 		expect(parentTestItem, notNull()).verify(TEST_ITEM_NOT_FOUND, parent);
 		expect(parentTestItem, Preconditions.IN_PROGRESS).verify(START_ITEM_NOT_ALLOWED,
-				Suppliers.formattedSupplier("Parent Item '{}' is not in progress", parentTestItem.getId()));
-//		long logCount = logRepository.getNumberOfLogByTestItem(parentTestItem);
-//		expect(logCount, equalTo(0L)).verify(START_ITEM_NOT_ALLOWED,
-//				Suppliers.formattedSupplier("Parent Item '{}' already has log items", parentTestItem.getId()));
+				Suppliers.formattedSupplier("Parent Item '{}' is not in progress", parentTestItem.getId())
+		);
+		//		long logCount = logRepository.getNumberOfLogByTestItem(parentTestItem);
+		//		expect(logCount, equalTo(0L)).verify(START_ITEM_NOT_ALLOWED,
+		//				Suppliers.formattedSupplier("Parent Item '{}' already has log items", parentTestItem.getId()));
 	}
 
 	private void validate(StartTestItemRQ rq, TestItem parent) {
 		expect(rq, Preconditions.startSameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(), parent.getStartTime(), parent.getId());
+				rq.getStartTime(),
+				parent.getStartTime(),
+				parent.getId()
+		);
 	}
 }

@@ -21,32 +21,34 @@
 
 package com.epam.ta.reportportal.util.analyzer;
 
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.google.common.base.Strings;
+import org.springframework.cloud.client.ServiceInstance;
 
-import java.util.List;
+import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 
 /**
- * Service for issue type analysis based on historical data.
- *
- * @author Ivan Sharamet
  * @author Pavel Bortnik
  */
-public interface IIssuesAnalyzer {
+final class AnalyzerClientUtils {
 
-	/**
-	 * Analyze history to find similar issues and updates items if some were found
-	 * Indexes investigated issues as well.
-	 *
-	 * @param launch    Initial launch for history
-	 * @param testItems - current test items with failed status and issue
-	 */
-	void analyze(Launch launch, List<TestItem> testItems);
+	private static final String PRIORITY = "analyzer_priority";
+	private static final String ANALYZER_INDEX = "analyzer_index";
 
-	/**
-	 * Checks if any analyzer is available
-	 *
-	 * @return <code>true</code> if some exists
-	 */
-	boolean hasAnalyzers();
+	static final ToIntFunction<ServiceInstance> SERVICE_PRIORITY = it -> {
+		String priority = it.getMetadata().get(PRIORITY);
+		if (priority != null) {
+			return Integer.parseInt(priority);
+		}
+		return Integer.MAX_VALUE;
+	};
+
+	static final Predicate<ServiceInstance> DOES_NEED_INDEX = it -> {
+		String index = it.getMetadata().get(ANALYZER_INDEX);
+		if (!Strings.isNullOrEmpty(index)) {
+			return Boolean.valueOf(index);
+		}
+		return false;
+	};
+
 }

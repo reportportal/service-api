@@ -21,10 +21,8 @@
 
 package com.epam.ta.reportportal.util.analyzer;
 
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.util.analyzer.model.IndexRs;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,9 +35,8 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Predicate;
 
-import static java.util.Comparator.comparingLong;
+import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -48,11 +45,11 @@ import static java.util.stream.Collectors.toList;
  * service's metadata.
  * <p>
  * To define that service indexes data before analyzing that it should
- * be indicated by tag {@link AnalyzerServiceClient#DOES_NEED_INDEX}
+ * be indicated by tag {@link AnalyzerClientUtils#ANALYZER_INDEX}
  * with <code>true</code> in metadata.
  * <p>
  * Items are analyzed in order of priority specified in tag
- * {@link AnalyzerServiceClient#PRIORITY} in metadata. If several analyzers
+ * {@link AnalyzerClientUtils#PRIORITY} in metadata. If several analyzers
  * provided different issues for one item, it would be overwritten with
  * results of more priority service.
  *
@@ -61,17 +58,14 @@ import static java.util.stream.Collectors.toList;
  */
 @Service("analyzerServiceClient")
 public class AnalyzerServiceClient {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(AnalyzerServiceClient.class);
 
 	private static final String INDEX_PATH = "/_index";
 	private static final String ANALYZE_PATH = "/_analyze";
-
 	private static final String ANALYZER_KEY = "analyzer";
-	private static final String PRIORITY = "analyzer_priority";
-	private static final String DOES_NEED_INDEX = "analyzer_index";
 
 	private final RestTemplate restTemplate;
+
 	private final DiscoveryClient discoveryClient;
 
 	@Autowired
@@ -80,24 +74,24 @@ public class AnalyzerServiceClient {
 		this.discoveryClient = discoveryClient;
 	}
 
-	public void checkAccess() {
-		BusinessRule.expect(getAnalyzerServiceInstances().isEmpty(), Predicate.isEqual(false))
-				.verify(ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer services are deployed.");
+	public boolean hasClients() {
+		return !getAnalyzerServiceInstances().isEmpty();
 	}
 
 	public List<IndexRs> index(List<IndexLaunch> rq) {
 		List<ServiceInstance> analyzerInstances = getAnalyzerServiceInstances();
 		return analyzerInstances.stream()
-				.filter(instance -> Boolean.valueOf(instance.getMetadata().get(DOES_NEED_INDEX)))
+				.filter(AnalyzerClientUtils.DOES_NEED_INDEX)
 				.map(instance -> index(instance, rq))
 				.filter(Optional::isPresent)
 				.map(Optional::get)
 				.collect(toList());
 	}
 
+	//Make services return only updated items and refactor this
 	public IndexLaunch analyze(IndexLaunch rq) {
 		List<ServiceInstance> analyzerInstances = getAnalyzerServiceInstances();
-		analyzerInstances.sort(comparingLong((ServiceInstance it) -> Long.parseLong(it.getMetadata().get(PRIORITY))).reversed());
+		analyzerInstances.sort(comparingInt(AnalyzerClientUtils.SERVICE_PRIORITY).reversed());
 		for (ServiceInstance instance : analyzerInstances) {
 			Optional<IndexLaunch> analyzed = analyze(instance, rq);
 			if (analyzed.isPresent()) {

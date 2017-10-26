@@ -39,6 +39,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.util.analyzer.AnalyzerUtils.fromTestItem;
@@ -71,6 +72,13 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 
 	@Autowired
 	private ILogIndexer logIndexer;
+
+	private static final Predicate<IndexTestItem> IS_ANALYZED = it -> it.getIssueType() != null;
+
+	@Override
+	public boolean hasAnalyzers() {
+		return analyzerServiceClient.hasClients();
+	}
 
 	@Override
 	public void analyze(Launch launch, List<TestItem> testItems) {
@@ -119,28 +127,25 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	 * @param testItems items to be updated
 	 * @return List of updated items
 	 */
-	//@formatter:off
 	private List<TestItem> updateTestItems(IndexLaunch rs, List<TestItem> testItems) {
-		return rs.getTestItems().stream().filter(it -> it.getIssueType() != null)
-				.map(indexTestItem -> {
-					TestItem toUpdate = testItems.stream()
-							.filter(item -> item.getId().equals(indexTestItem.getTestItemId()))
-							.findFirst()
-							.orElse(null);
-					if (toUpdate != null) {
-						toUpdate.setIssue(new TestItemIssue(indexTestItem.getIssueType(), null, true));
-					}
-					return toUpdate;
+		return rs.getTestItems().stream().filter(IS_ANALYZED).map(indexTestItem -> {
+			TestItem toUpdate = testItems.stream()
+					.filter(item -> item.getId().equals(indexTestItem.getTestItemId()))
+					.findFirst()
+					.orElse(null);
+			if (toUpdate != null) {
+				toUpdate.setIssue(new TestItemIssue(indexTestItem.getIssueType(), null, true));
+			}
+			return toUpdate;
 		}).filter(Objects::nonNull).collect(toList());
 	}
-	//@formatter:on
 
 	/**
 	 * Updates issues of investigated item and recalculates
 	 * the whole launch's statistics
 	 *
-	 * @param items   Items for update
-	 * @param launch  Launch of investigated items
+	 * @param items  Items for update
+	 * @param launch Launch of investigated items
 	 */
 	private void saveUpdatedItems(List<TestItem> items, Launch launch) {
 		Map<String, TestItemIssue> forUpdate = items.stream().collect(toMap(TestItem::getId, TestItem::getIssue));

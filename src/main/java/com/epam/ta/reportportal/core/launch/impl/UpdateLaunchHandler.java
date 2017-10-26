@@ -36,9 +36,9 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.launch.AutoAnalyzeStrategy;
 import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.util.analyzer.AnalyzerServiceClient;
 import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
@@ -49,6 +49,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
@@ -82,9 +83,6 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 
 	@Autowired
 	private IIssuesAnalyzer analyzerService;
-
-	@Autowired
-	private AnalyzerServiceClient analyzerServiceClient;
 
 	@Autowired
 	@Qualifier("autoAnalyzeTaskExecutor")
@@ -130,7 +128,8 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		AutoAnalyzeStrategy type = AutoAnalyzeStrategy.fromValue(scope);
 		expect(type, notNull()).verify(INCORRECT_FILTER_PARAMETERS, scope);
 
-		analyzerServiceClient.checkAccess();
+		expect(analyzerService.hasAnalyzers(), Predicate.isEqual(true)).verify(
+				ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer services are deployed.");
 
 		Launch launch = launchRepository.findOne(launchId);
 		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);

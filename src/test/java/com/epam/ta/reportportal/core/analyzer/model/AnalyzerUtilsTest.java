@@ -19,9 +19,8 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.util.analyzer.model;
+package com.epam.ta.reportportal.core.analyzer.model;
 
-import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
@@ -37,7 +36,7 @@ import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils.fromTest
 /**
  * @author Pavel Bortnik
  */
-public class AnalyzerUtils {
+public class AnalyzerUtilsTest {
 
 	@Test
 	public void testConverting() {

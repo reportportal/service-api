@@ -19,7 +19,7 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.util.analyzer;
+package com.epam.ta.reportportal.core.analyzer;
 
 import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.impl.LogIndexerService;

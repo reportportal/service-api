@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.analyzer.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -77,5 +78,23 @@ public class IndexTestItem {
 
 	public void setLogs(Set<IndexLog> logs) {
 		this.logs = logs;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		IndexTestItem that = (IndexTestItem) o;
+		return Objects.equals(testItemId, that.testItemId) && Objects.equals(issueType, that.issueType) && Objects.equals(logs, that.logs)
+				&& Objects.equals(uniqueId, that.uniqueId);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(testItemId, issueType, logs, uniqueId);
 	}
 }

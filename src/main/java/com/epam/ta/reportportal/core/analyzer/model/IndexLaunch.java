@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.core.analyzer.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents launch container in index/analysis request/response.
@@ -77,5 +78,23 @@ public class IndexLaunch {
 
 	public void setTestItems(List<IndexTestItem> testItems) {
 		this.testItems = testItems;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		IndexLaunch that = (IndexLaunch) o;
+		return Objects.equals(launchId, that.launchId) && Objects.equals(launchName, that.launchName) && Objects.equals(
+				project, that.project) && Objects.equals(testItems, that.testItems);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(launchId, launchName, project, testItems);
 	}
 }

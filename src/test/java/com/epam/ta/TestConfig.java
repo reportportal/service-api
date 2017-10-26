@@ -22,9 +22,9 @@
 package com.epam.ta;
 
 import com.epam.ta.reportportal.auth.UatClient;
+import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.database.fixture.MongoFixtureImporter;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
-import com.epam.ta.reportportal.util.analyzer.client.AnalyzerServiceClient;
 import com.github.fakemongo.Fongo;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;

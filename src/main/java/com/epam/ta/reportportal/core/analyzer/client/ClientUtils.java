@@ -35,9 +35,9 @@ public final class ClientUtils {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ClientUtils.class);
 
-	private static final String ANALYZER_KEY = "analyzer";
-	private static final String ANALYZER_PRIORITY = "analyzer_priority";
-	private static final String ANALYZER_INDEX = "analyzer_index";
+	static final String ANALYZER_KEY = "analyzer";
+	static final String ANALYZER_PRIORITY = "analyzer_priority";
+	static final String ANALYZER_INDEX = "analyzer_index";
 
 	/**
 	 * Comparing by client service priority

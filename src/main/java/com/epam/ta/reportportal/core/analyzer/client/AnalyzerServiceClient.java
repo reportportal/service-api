@@ -37,8 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.DOES_NEED_INDEX;
-import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.SERVICE_PRIORITY;
+import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.*;
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 
@@ -46,12 +45,10 @@ import static java.util.stream.Collectors.toList;
 public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AnalyzerServiceClient.class);
 
-	private static final String INDEX_PATH = "/_index";
-	private static final String ANALYZE_PATH = "/_analyze";
-	private static final String ANALYZER_KEY = "analyzer";
+	static final String INDEX_PATH = "/_index";
+	static final String ANALYZE_PATH = "/_analyze";
 
 	private final RestTemplate restTemplate;
-
 	private final DiscoveryClient discoveryClient;
 
 	@Autowired

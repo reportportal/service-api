@@ -42,7 +42,6 @@ import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -134,18 +133,6 @@ public class MergeLaunchHandlerTest extends BaseTest {
 
         mergeLaunchHandler.mergeLaunches(PROJECT1, USER1, getDeepMergeRequest(
                 ImmutableList.<String>builder().add(MERGE_LAUNCH_2).build()));
-    }
-
-    @Test
-    @Ignore
-    public void unsupportedStrategy(){
-        thrown.expect(ReportPortalException.class);
-        thrown.expectMessage("Merge Strategy type UNSUPPORTED is unsupported");
-
-        ImmutableList<String> ids = ImmutableList.<String>builder().add(MERGE_LAUNCH_2).add(MERGE_LAUNCH_1).build();
-        MergeLaunchesRQ deepMergeRequest = getDeepMergeRequest(ids);
-        deepMergeRequest.setMergeStrategyType("UNSUPPORTED");
-        mergeLaunchHandler.mergeLaunches(PROJECT1, USER1, deepMergeRequest);
     }
 
     @Test

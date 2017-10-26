@@ -172,12 +172,6 @@ public class LaunchControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void startLaunchAnalyzerPositive() throws Exception {
-		this.mvcMock.perform(post(PROJECT_BASE_URL + "/launch/88624678053de743b3e5aa3e/analyze/history").principal(authentication()))
-				.andExpect(status().is(200));
-	}
-
-	@Test
 	public void getStatus() throws Exception {
 		this.mvcMock.perform(get(PROJECT_BASE_URL + "/launch/status?ids=88624678053de743b3e5aa3e").principal(authentication()))
 				.andExpect(status().is(200));

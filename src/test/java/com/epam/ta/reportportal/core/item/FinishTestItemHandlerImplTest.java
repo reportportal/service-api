@@ -21,8 +21,6 @@
 
 package com.epam.ta.reportportal.core.item;
 
-import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
-import com.epam.ta.reportportal.core.analyzer.impl.IssuesAnalyzerService;
 import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
@@ -37,14 +35,12 @@ import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.collect.Sets;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -53,7 +49,8 @@ import static com.epam.ta.reportportal.database.entity.Status.SKIPPED;
 import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.PRODUCT_BUG;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.not;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class FinishTestItemHandlerImplTest {
 
@@ -114,47 +111,6 @@ public class FinishTestItemHandlerImplTest {
 		TestItem updated = finishTestItemHandler.awareTestItemIssueTypeFromStatus(testItem, providedIssue, new Project(), "user");
 		TestItemIssue issue = updated.getIssue();
 		Assert.assertNull(issue);
-	}
-
-	@Test
-	@Ignore
-	public void analyzeOnFinish() {
-		String launchRef = "launchRef";
-		LaunchRepository launchRepository = mock(LaunchRepository.class);
-		IIssuesAnalyzer analyzerService = mock(IssuesAnalyzerService.class);
-		Launch launch = new Launch();
-		launch.setId(launchRef);
-		when(launchRepository.findOne(launchRef)).thenReturn(launch);
-		finishTestItemHandler.setLaunchRepository(launchRepository);
-		finishTestItemHandler.setIssuesAnalyzer(analyzerService);
-		TestItem testItem = new TestItem();
-		testItem.setLaunchRef(launchRef);
-		testItem.setStatus(FAILED);
-		testItem.setType(TestItemType.STEP);
-		Project project = new Project();
-		Project.Configuration configuration = new Project.Configuration();
-		configuration.setIsAutoAnalyzerEnabled(true);
-		configuration.setAnalyzeOnTheFly(true);
-		project.setConfiguration(configuration);
-
-		TestItem analyzed = new TestItem();
-		analyzed.setLaunchRef(launchRef);
-		analyzed.setStatus(FAILED);
-		analyzed.setIssue(new TestItemIssue(TestItemIssueType.PRODUCT_BUG.getLocator(), null));
-		analyzed.setType(TestItemType.STEP);
-
-		List<TestItem> forAnalyze = Collections.singletonList(testItem);
-		doNothing().when(analyzerService).analyze(eq(launch), eq(forAnalyze));
-
-		TestItem updatedTestItem = finishTestItemHandler.awareTestItemIssueTypeFromStatus(testItem, null, project, "someuser");
-
-		Assert.assertNotNull(updatedTestItem);
-		Assert.assertNotNull(updatedTestItem.getIssue());
-		Assert.assertNull(updatedTestItem.getIssue().getIssueDescription());
-		Assert.assertNull(updatedTestItem.getIssue().getExternalSystemIssues());
-		Assert.assertEquals("PB001", updatedTestItem.getIssue().getIssueType());
-		verify(launchRepository, times(1)).findOne(launchRef);
-		verify(analyzerService, times(1)).analyze(launch, forAnalyze);
 	}
 
 	@SuppressWarnings("unchecked")

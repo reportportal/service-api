@@ -21,9 +21,9 @@
 
 package com.epam.ta.reportportal.core.analyzer.impl;
 
+import com.epam.ta.reportportal.core.analyzer.IAnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
-import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
@@ -58,7 +58,7 @@ import static java.util.stream.Collectors.toMap;
 public class IssuesAnalyzerService implements IIssuesAnalyzer {
 
 	@Autowired
-	private AnalyzerServiceClient analyzerServiceClient;
+	private IAnalyzerServiceClient analyzerServiceClient;
 
 	@Autowired
 	private TestItemRepository testItemRepository;

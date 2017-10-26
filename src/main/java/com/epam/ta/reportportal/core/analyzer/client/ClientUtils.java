@@ -21,7 +21,8 @@
 
 package com.epam.ta.reportportal.core.analyzer.client;
 
-import com.google.common.base.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.ServiceInstance;
 
 import java.util.function.Predicate;
@@ -32,18 +33,24 @@ import java.util.function.ToIntFunction;
  */
 public final class ClientUtils {
 
-	private static final String PRIORITY = "analyzer_priority";
+	private static final Logger LOGGER = LoggerFactory.getLogger(ClientUtils.class);
+
+	private static final String ANALYZER_KEY = "analyzer";
+	private static final String ANALYZER_PRIORITY = "analyzer_priority";
 	private static final String ANALYZER_INDEX = "analyzer_index";
 
 	/**
 	 * Comparing by client service priority
 	 */
 	static final ToIntFunction<ServiceInstance> SERVICE_PRIORITY = it -> {
-		String priority = it.getMetadata().get(PRIORITY);
-		if (priority != null) {
-			return Integer.parseInt(priority);
+		try {
+			return Integer.parseInt(it.getMetadata().get(ANALYZER_PRIORITY));
+		} catch (Exception e) {
+			LOGGER.warn("Incorrect specification of tag '{}' for service '{}'. Using the lowest priority", ANALYZER_PRIORITY,
+					it.getMetadata().get(ANALYZER_KEY), e
+			);
+			return Integer.MAX_VALUE;
 		}
-		return Integer.MAX_VALUE;
 	};
 
 	/**
@@ -51,11 +58,14 @@ public final class ClientUtils {
 	 * by default
 	 */
 	static final Predicate<ServiceInstance> DOES_NEED_INDEX = it -> {
-		String index = it.getMetadata().get(ANALYZER_INDEX);
-		if (!Strings.isNullOrEmpty(index)) {
-			return Boolean.valueOf(index);
+		try {
+			return Boolean.valueOf(it.getMetadata().get(ANALYZER_INDEX));
+		} catch (Exception e) {
+			LOGGER.warn("Incorrect specification of tag '{}' for service '{}'. Using default value", ANALYZER_INDEX,
+					it.getMetadata().get(ANALYZER_KEY), e
+			);
+			return false;
 		}
-		return true;
 	};
 
 }

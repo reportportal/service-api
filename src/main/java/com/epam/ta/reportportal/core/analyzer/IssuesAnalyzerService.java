@@ -19,8 +19,11 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.util.analyzer;
+package com.epam.ta.reportportal.core.analyzer;
 
+import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
+import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
@@ -30,8 +33,6 @@ import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
-import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
-import com.epam.ta.reportportal.util.analyzer.model.IndexTestItem;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,7 +43,6 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.util.analyzer.AnalyzerUtils.fromTestItem;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -115,7 +115,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	 */
 	private List<IndexTestItem> prepareItems(List<TestItem> testItems) {
 		return testItems.stream()
-				.map(it -> fromTestItem(it, logRepository.findGreaterOrEqualLevel(it.getId(), LogLevel.ERROR)))
+				.map(it -> AnalyzerUtils.fromTestItem(it, logRepository.findGreaterOrEqualLevel(it.getId(), LogLevel.ERROR)))
 				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
 				.collect(Collectors.toList());
 	}

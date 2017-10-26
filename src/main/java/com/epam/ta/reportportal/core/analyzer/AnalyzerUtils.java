@@ -19,12 +19,12 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.util.analyzer;
+package com.epam.ta.reportportal.core.analyzer;
 
+import com.epam.ta.reportportal.core.analyzer.model.IndexLog;
+import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.util.analyzer.model.IndexLog;
-import com.epam.ta.reportportal.util.analyzer.model.IndexTestItem;
 
 import java.util.List;
 import java.util.function.Function;
@@ -44,9 +44,6 @@ public class AnalyzerUtils {
 	/**
 	 * Creates {@link IndexLog} model for log for further
 	 * sending that into analyzer
-	 *
-	 * @param log Log to be created from
-	 * @return {@link IndexLog} object
 	 */
 	private static Function<Log, IndexLog> TO_INDEX_LOG = log -> {
 		IndexLog indexLog = new IndexLog();

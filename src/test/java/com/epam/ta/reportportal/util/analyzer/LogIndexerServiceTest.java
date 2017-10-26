@@ -21,6 +21,12 @@
 
 package com.epam.ta.reportportal.util.analyzer;
 
+import com.epam.ta.reportportal.core.analyzer.LogIndexerService;
+import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
+import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
+import com.epam.ta.reportportal.core.analyzer.model.IndexRsIndex;
+import com.epam.ta.reportportal.core.analyzer.model.IndexRsItem;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -30,10 +36,6 @@ import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
-import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
-import com.epam.ta.reportportal.util.analyzer.model.IndexRs;
-import com.epam.ta.reportportal.util.analyzer.model.IndexRsIndex;
-import com.epam.ta.reportportal.util.analyzer.model.IndexRsItem;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import org.junit.Before;
@@ -49,7 +51,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.epam.ta.reportportal.util.analyzer.LogIndexerService.BATCH_SIZE;
+import static com.epam.ta.reportportal.core.analyzer.LogIndexerService.BATCH_SIZE;
 import static org.mockito.Mockito.*;
 
 /**

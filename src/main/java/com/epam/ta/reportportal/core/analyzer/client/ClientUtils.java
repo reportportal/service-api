@@ -19,7 +19,7 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.util.analyzer;
+package com.epam.ta.reportportal.core.analyzer.client;
 
 import com.google.common.base.Strings;
 import org.springframework.cloud.client.ServiceInstance;
@@ -30,11 +30,14 @@ import java.util.function.ToIntFunction;
 /**
  * @author Pavel Bortnik
  */
-final class AnalyzerClientUtils {
+final class ClientUtils {
 
 	private static final String PRIORITY = "analyzer_priority";
 	private static final String ANALYZER_INDEX = "analyzer_index";
 
+	/**
+	 * Comparing by client service priority
+	 */
 	static final ToIntFunction<ServiceInstance> SERVICE_PRIORITY = it -> {
 		String priority = it.getMetadata().get(PRIORITY);
 		if (priority != null) {
@@ -43,12 +46,16 @@ final class AnalyzerClientUtils {
 		return Integer.MAX_VALUE;
 	};
 
+	/**
+	 * Checks if service support items indexing. <code>false</code>
+	 * by default
+	 */
 	static final Predicate<ServiceInstance> DOES_NEED_INDEX = it -> {
 		String index = it.getMetadata().get(ANALYZER_INDEX);
 		if (!Strings.isNullOrEmpty(index)) {
 			return Boolean.valueOf(index);
 		}
-		return false;
+		return true;
 	};
 
 }

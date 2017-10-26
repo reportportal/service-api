@@ -21,6 +21,8 @@
 
 package com.epam.ta.reportportal.core.item;
 
+import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.IssuesAnalyzerService;
 import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
@@ -31,8 +33,6 @@ import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
-import com.epam.ta.reportportal.util.analyzer.IssuesAnalyzerService;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.collect.Sets;
 import org.hamcrest.Matchers;

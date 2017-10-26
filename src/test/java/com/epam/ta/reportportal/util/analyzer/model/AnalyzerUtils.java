@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.util.analyzer.model;
 
+import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
@@ -31,7 +32,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.epam.ta.reportportal.util.analyzer.AnalyzerUtils.fromTestItem;
+import static com.epam.ta.reportportal.core.analyzer.AnalyzerUtils.fromTestItem;
 
 /**
  * @author Pavel Bortnik

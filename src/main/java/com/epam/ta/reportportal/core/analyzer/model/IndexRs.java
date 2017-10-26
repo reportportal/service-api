@@ -19,29 +19,52 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.util.analyzer.model;
+package com.epam.ta.reportportal.core.analyzer.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+
 /**
- * Represents single item in indexing operation response.
+ * Represents indexing operation response.
  *
  * @author Ivan Sharamet
  */
-public class IndexRsItem {
+public class IndexRs {
 
-    @JsonProperty("index")
-    private IndexRsIndex index;
+	@JsonProperty("took")
+	private int took;
 
-    public IndexRsItem() {
-    }
+	@JsonProperty("errors")
+	private boolean errors;
 
-    public IndexRsIndex getIndex() {
-        return index;
-    }
+	@JsonProperty("items")
+	private List<IndexRsItem> items;
 
-    public void setIndex(IndexRsIndex index) {
-        this.index = index;
-    }
+	public IndexRs() {
+	}
 
+	public int getTook() {
+		return took;
+	}
+
+	public void setTook(int took) {
+		this.took = took;
+	}
+
+	public boolean isErrors() {
+		return errors;
+	}
+
+	public void setErrors(boolean errors) {
+		this.errors = errors;
+	}
+
+	public List<IndexRsItem> getItems() {
+		return items;
+	}
+
+	public void setItems(List<IndexRsItem> items) {
+		this.items = items;
+	}
 }

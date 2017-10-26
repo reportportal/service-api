@@ -19,10 +19,10 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.util.analyzer;
+package com.epam.ta.reportportal.core.analyzer.client;
 
-import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
-import com.epam.ta.reportportal.util.analyzer.model.IndexRs;
+import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
+import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +36,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.DOES_NEED_INDEX;
+import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.SERVICE_PRIORITY;
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 
@@ -44,14 +46,15 @@ import static java.util.stream.Collectors.toList;
  * those that have tag {@link AnalyzerServiceClient#ANALYZER_KEY} in
  * service's metadata.
  * <p>
- * To define that service indexes data before analyzing that it should
- * be indicated by tag {@link AnalyzerClientUtils#ANALYZER_INDEX}
- * with <code>true</code> in metadata.
+ * To define that service indexes/collecting data it should be indicated by tag
+ * {@link ClientUtils#ANALYZER_INDEX} with <code>true</code> in metadata.
+ * If tag is not provided it is <code>false</code> by default
  * <p>
  * Items are analyzed in order of priority specified in tag
- * {@link AnalyzerClientUtils#PRIORITY} in metadata. If several analyzers
- * provided different issues for one item, it would be overwritten with
- * results of more priority service.
+ * {@link ClientUtils#PRIORITY} in metadata. If priority is not provided
+ * service gets the lowest one. If several analyzers provided different
+ * issues for one item, it would be overwritten with results of more priority
+ * service.
  *
  * @author Ivan Sharamet
  * @author Pavel Bortnik
@@ -81,7 +84,7 @@ public class AnalyzerServiceClient {
 	public List<IndexRs> index(List<IndexLaunch> rq) {
 		List<ServiceInstance> analyzerInstances = getAnalyzerServiceInstances();
 		return analyzerInstances.stream()
-				.filter(AnalyzerClientUtils.DOES_NEED_INDEX)
+				.filter(DOES_NEED_INDEX)
 				.map(instance -> index(instance, rq))
 				.filter(Optional::isPresent)
 				.map(Optional::get)
@@ -91,7 +94,7 @@ public class AnalyzerServiceClient {
 	//Make services return only updated items and refactor this
 	public IndexLaunch analyze(IndexLaunch rq) {
 		List<ServiceInstance> analyzerInstances = getAnalyzerServiceInstances();
-		analyzerInstances.sort(comparingInt(AnalyzerClientUtils.SERVICE_PRIORITY).reversed());
+		analyzerInstances.sort(comparingInt(SERVICE_PRIORITY).reversed());
 		for (ServiceInstance instance : analyzerInstances) {
 			Optional<IndexLaunch> analyzed = analyze(instance, rq);
 			if (analyzed.isPresent()) {

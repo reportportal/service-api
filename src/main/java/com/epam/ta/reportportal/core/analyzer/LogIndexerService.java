@@ -19,8 +19,12 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.util.analyzer;
+package com.epam.ta.reportportal.core.analyzer;
 
+import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
+import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
+import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -29,9 +33,6 @@ import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
-import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
-import com.epam.ta.reportportal.util.analyzer.model.IndexRs;
-import com.epam.ta.reportportal.util.analyzer.model.IndexTestItem;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -53,7 +54,6 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.util.analyzer.AnalyzerUtils.fromTestItem;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 /**
@@ -174,7 +174,7 @@ public class LogIndexerService implements ILogIndexer {
 				rqLaunch.setLaunchId(launch.getId());
 				rqLaunch.setLaunchName(launch.getName());
 				rqLaunch.setProject(launch.getProjectRef());
-				rqLaunch.setTestItems(Collections.singletonList(fromTestItem(testItem, Collections.singletonList(log))));
+				rqLaunch.setTestItems(Collections.singletonList(AnalyzerUtils.fromTestItem(testItem, Collections.singletonList(log))));
 			}
 		}
 		return rqLaunch;
@@ -190,7 +190,7 @@ public class LogIndexerService implements ILogIndexer {
 	private List<IndexTestItem> prepareItemsForIndexing(List<TestItem> testItems) {
 		return testItems.stream()
 				.filter(this::isItemSuitable)
-				.map(it -> fromTestItem(it, logRepository.findGreaterOrEqualLevel(it.getId(), LogLevel.ERROR)))
+				.map(it -> AnalyzerUtils.fromTestItem(it, logRepository.findGreaterOrEqualLevel(it.getId(), LogLevel.ERROR)))
 				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
 				.collect(Collectors.toList());
 	}

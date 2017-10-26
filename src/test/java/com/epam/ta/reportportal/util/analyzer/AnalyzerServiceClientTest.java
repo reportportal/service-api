@@ -21,8 +21,9 @@
 
 package com.epam.ta.reportportal.util.analyzer;
 
-import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
-import com.epam.ta.reportportal.util.analyzer.model.IndexRs;
+import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
+import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

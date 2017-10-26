@@ -24,7 +24,7 @@ package com.epam.ta.reportportal.core.item;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.analyzer.LogIndexerService;
+import com.epam.ta.reportportal.core.analyzer.impl.LogIndexerService;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;

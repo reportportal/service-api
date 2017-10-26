@@ -21,8 +21,8 @@
 
 package com.epam.ta.reportportal.util.analyzer;
 
-import com.epam.ta.reportportal.core.analyzer.LogIndexerService;
 import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.impl.LogIndexerService;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRsIndex;
@@ -51,7 +51,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.epam.ta.reportportal.core.analyzer.LogIndexerService.BATCH_SIZE;
+import static com.epam.ta.reportportal.core.analyzer.impl.LogIndexerService.BATCH_SIZE;
 import static org.mockito.Mockito.*;
 
 /**

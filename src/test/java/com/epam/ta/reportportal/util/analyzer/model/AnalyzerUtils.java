@@ -32,7 +32,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.epam.ta.reportportal.core.analyzer.AnalyzerUtils.fromTestItem;
+import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils.fromTestItem;
 
 /**
  * @author Pavel Bortnik

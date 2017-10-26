@@ -30,7 +30,7 @@ import java.util.function.ToIntFunction;
 /**
  * @author Pavel Bortnik
  */
-final class ClientUtils {
+public final class ClientUtils {
 
 	private static final String PRIORITY = "analyzer_priority";
 	private static final String ANALYZER_INDEX = "analyzer_index";

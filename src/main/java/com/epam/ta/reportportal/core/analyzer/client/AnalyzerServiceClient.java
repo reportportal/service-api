@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.analyzer.client;
 
+import com.epam.ta.reportportal.core.analyzer.IAnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 import org.slf4j.Logger;
@@ -41,26 +42,8 @@ import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.SERVICE_
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 
-/**
- * HTTP client for all log indexing/analysis services. Such services are
- * those that have tag {@link AnalyzerServiceClient#ANALYZER_KEY} in
- * service's metadata.
- * <p>
- * To define that service indexes/collecting data it should be indicated by tag
- * {@link ClientUtils#ANALYZER_INDEX} with <code>true</code> in metadata.
- * If tag is not provided it is <code>false</code> by default
- * <p>
- * Items are analyzed in order of priority specified in tag
- * {@link ClientUtils#PRIORITY} in metadata. If priority is not provided
- * service gets the lowest one. If several analyzers provided different
- * issues for one item, it would be overwritten with results of more priority
- * service.
- *
- * @author Ivan Sharamet
- * @author Pavel Bortnik
- */
-@Service("analyzerServiceClient")
-public class AnalyzerServiceClient {
+@Service
+public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AnalyzerServiceClient.class);
 
 	private static final String INDEX_PATH = "/_index";
@@ -77,10 +60,12 @@ public class AnalyzerServiceClient {
 		this.discoveryClient = discoveryClient;
 	}
 
+	@Override
 	public boolean hasClients() {
 		return !getAnalyzerServiceInstances().isEmpty();
 	}
 
+	@Override
 	public List<IndexRs> index(List<IndexLaunch> rq) {
 		List<ServiceInstance> analyzerInstances = getAnalyzerServiceInstances();
 		return analyzerInstances.stream()
@@ -92,6 +77,7 @@ public class AnalyzerServiceClient {
 	}
 
 	//Make services return only updated items and refactor this
+	@Override
 	public IndexLaunch analyze(IndexLaunch rq) {
 		List<ServiceInstance> analyzerInstances = getAnalyzerServiceInstances();
 		analyzerInstances.sort(comparingInt(SERVICE_PRIORITY).reversed());

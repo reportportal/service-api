@@ -157,9 +157,12 @@ public class LogIndexerServiceTest {
 
 	@Test
 	public void testIndexAllLogsNegative() {
+		DBCollection checkpointColl = mock(DBCollection.class);
+		when(mongoOperations.getCollection(eq("logIndexingCheckpoint"))).thenReturn(checkpointColl);
 		when(analyzerServiceClient.hasClients()).thenReturn(false);
+		logIndexerService.indexAllLogs();
 		verify(analyzerServiceClient, times(1)).hasClients();
-		verifyZeroInteractions(testItemRepository, launchRepository, logRepository, mongoOperations);
+		verifyZeroInteractions(testItemRepository, launchRepository, logRepository);
 	}
 
 	@Test

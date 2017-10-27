@@ -19,8 +19,13 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.util.analyzer;
+package com.epam.ta.reportportal.core.analyzer.impl;
 
+import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
+import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
+import com.epam.ta.reportportal.core.analyzer.model.IndexRsIndex;
+import com.epam.ta.reportportal.core.analyzer.model.IndexRsItem;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -30,10 +35,6 @@ import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
-import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
-import com.epam.ta.reportportal.util.analyzer.model.IndexRs;
-import com.epam.ta.reportportal.util.analyzer.model.IndexRsIndex;
-import com.epam.ta.reportportal.util.analyzer.model.IndexRsItem;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import org.junit.Before;
@@ -49,7 +50,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.epam.ta.reportportal.util.analyzer.LogIndexerService.BATCH_SIZE;
+import static com.epam.ta.reportportal.core.analyzer.impl.LogIndexerService.BATCH_SIZE;
 import static org.mockito.Mockito.*;
 
 /**
@@ -134,10 +135,10 @@ public class LogIndexerServiceTest {
 	public void testIndexLogsTestItemsWithoutLogs() {
 		String launchId = "3";
 		when(launchRepository.findOne(eq(launchId))).thenReturn(createLaunch(launchId));
-		when(logRepository.findLogsGreaterThanLevel(anyString(), eq(LogLevel.ERROR))).thenReturn(Collections.emptyList());
+		when(logRepository.findGreaterOrEqualLevel(anyString(), eq(LogLevel.ERROR))).thenReturn(Collections.emptyList());
 		int testItemCount = 10;
 		logIndexerService.indexLogs(launchId, createTestItems(testItemCount));
-		verify(logRepository, times(testItemCount)).findLogsGreaterThanLevel(anyString(), eq(LogLevel.ERROR));
+		verify(logRepository, times(testItemCount)).findGreaterOrEqualLevel(anyString(), eq(LogLevel.ERROR));
 		verifyZeroInteractions(mongoOperations, analyzerServiceClient);
 	}
 
@@ -145,11 +146,11 @@ public class LogIndexerServiceTest {
 	public void testIndexLogs() {
 		String launchId = "4";
 		when(launchRepository.findOne(eq(launchId))).thenReturn(createLaunch(launchId));
-		when(logRepository.findLogsGreaterThanLevel(anyString(), eq(LogLevel.ERROR))).thenReturn(Collections.singletonList(createLog("id")));
+		when(logRepository.findGreaterOrEqualLevel(anyString(), eq(LogLevel.ERROR))).thenReturn(Collections.singletonList(createLog("id")));
 		int testItemCount = 2;
-		when(analyzerServiceClient.index(anyListOf(IndexLaunch.class))).thenReturn(createIndexRs(testItemCount));
+		when(analyzerServiceClient.index(anyListOf(IndexLaunch.class))).thenReturn(Collections.singletonList(createIndexRs(testItemCount)));
 		logIndexerService.indexLogs(launchId, createTestItems(testItemCount));
-		verify(logRepository, times(testItemCount)).findLogsGreaterThanLevel(anyString(), eq(LogLevel.ERROR));
+		verify(logRepository, times(testItemCount)).findGreaterOrEqualLevel(anyString(), eq(LogLevel.ERROR));
 		verify(analyzerServiceClient).index(anyListOf(IndexLaunch.class));
 		verifyZeroInteractions(mongoOperations);
 	}

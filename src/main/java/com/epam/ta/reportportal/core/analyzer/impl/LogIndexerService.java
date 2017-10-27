@@ -19,8 +19,13 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.util.analyzer;
+package com.epam.ta.reportportal.core.analyzer.impl;
 
+import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
+import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
+import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
+import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -29,9 +34,6 @@ import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
-import com.epam.ta.reportportal.util.analyzer.model.IndexLaunch;
-import com.epam.ta.reportportal.util.analyzer.model.IndexRs;
-import com.epam.ta.reportportal.util.analyzer.model.IndexTestItem;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -59,6 +61,7 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
  * Default implementation of {@link ILogIndexer}.
  *
  * @author Ivan Sharamet
+ * @author Pavel Bortnik
  */
 @Service("indexerService")
 public class LogIndexerService implements ILogIndexer {
@@ -96,7 +99,7 @@ public class LogIndexerService implements ILogIndexer {
 	public void indexLog(Log log) {
 		IndexLaunch rq = createRqLaunch(log);
 		if (rq != null) {
-			IndexRs rs = analyzerServiceClient.index(Collections.singletonList(rq));
+			List<IndexRs> rs = analyzerServiceClient.index(Collections.singletonList(rq));
 			retryFailed(rs);
 		}
 	}
@@ -105,20 +108,14 @@ public class LogIndexerService implements ILogIndexer {
 	public void indexLogs(String launchId, List<TestItem> testItems) {
 		Launch launch = launchRepository.findOne(launchId);
 		if (launch != null) {
-
-			List<IndexTestItem> rqTestItems = testItems.stream()
-					.filter(this::isItemSuitable)
-					.map(it -> IndexTestItem.fromTestItem(it, logRepository.findLogsGreaterThanLevel(it.getId(), LogLevel.ERROR)))
-					.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
-					.collect(Collectors.toList());
-
-			if (!rqTestItems.isEmpty()) {
+			List<IndexTestItem> rqTestItems = prepareItemsForIndexing(testItems);
+			if (!CollectionUtils.isEmpty(rqTestItems)) {
 				IndexLaunch rqLaunch = new IndexLaunch();
 				rqLaunch.setLaunchId(launchId);
 				rqLaunch.setLaunchName(launch.getName());
 				rqLaunch.setProject(launch.getProjectRef());
 				rqLaunch.setTestItems(rqTestItems);
-				IndexRs rs = analyzerServiceClient.index(Collections.singletonList(rqLaunch));
+				List<IndexRs> rs = analyzerServiceClient.index(Collections.singletonList(rqLaunch));
 				retryFailed(rs);
 			}
 		}
@@ -141,7 +138,7 @@ public class LogIndexerService implements ILogIndexer {
 					if (rq.size() == BATCH_SIZE || !logIterator.hasNext()) {
 						createCheckpoint(checkpoint);
 
-						IndexRs rs = analyzerServiceClient.index(rq);
+						List<IndexRs> rs = analyzerServiceClient.index(rq);
 
 						retryFailed(rs);
 
@@ -158,17 +155,13 @@ public class LogIndexerService implements ILogIndexer {
 		getCheckpointCollection().drop();
 	}
 
-	private CloseableIterator<Log> getLogIterator(String checkpoint) {
-		Sort sort = new Sort(new Sort.Order(Sort.Direction.ASC, "_id"));
-		Query query = new Query().with(sort).addCriteria(where(LOG_LEVEL).gte(LogLevel.ERROR_INT)).noCursorTimeout();
-
-		if (checkpoint != null) {
-			query.addCriteria(Criteria.where("_id").gte(new ObjectId(checkpoint)));
-		}
-
-		return mongoOperations.stream(query, Log.class);
-	}
-
+	/**
+	 * Creates {@link IndexLaunch} for specified log if
+	 * it is suitable for indexing or else returns <code>null</code>
+	 *
+	 * @param log Log to be converted
+	 * @return Prepared {@link IndexLaunch} rq for indexing
+	 */
 	private IndexLaunch createRqLaunch(Log log) {
 		if (!isLevelSuitable(log)) {
 			return null;
@@ -182,16 +175,65 @@ public class LogIndexerService implements ILogIndexer {
 				rqLaunch.setLaunchId(launch.getId());
 				rqLaunch.setLaunchName(launch.getName());
 				rqLaunch.setProject(launch.getProjectRef());
-				rqLaunch.setTestItems(Collections.singletonList(IndexTestItem.fromTestItem(testItem, Collections.singletonList(log))));
+				rqLaunch.setTestItems(Collections.singletonList(AnalyzerUtils.fromTestItem(testItem, Collections.singletonList(log))));
 			}
 		}
 		return rqLaunch;
 	}
 
-	private void retryFailed(IndexRs rs) {
+	/**
+	 * Creates {@link IndexTestItem} from suitable {@link TestItem}
+	 * for indexing with logs greater than {@link LogLevel#ERROR}
+	 *
+	 * @param testItems Test item for preparing
+	 * @return Prepared list of {@link IndexTestItem} for indexing
+	 */
+	private List<IndexTestItem> prepareItemsForIndexing(List<TestItem> testItems) {
+		return testItems.stream()
+				.filter(this::isItemSuitable)
+				.map(it -> AnalyzerUtils.fromTestItem(it, logRepository.findGreaterOrEqualLevel(it.getId(), LogLevel.ERROR)))
+				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
+				.collect(Collectors.toList());
+	}
+
+	/**
+	 * Checks if the log is suitable for indexing in analyzer.
+	 * Log's level is greater or equal than {@link LogLevel#ERROR}
+	 *
+	 * @param log Log for check
+	 * @return true if suitable
+	 */
+	private boolean isLevelSuitable(Log log) {
+		return null != log && null != log.getLevel() && log.getLevel().isGreaterOrEqual(LogLevel.ERROR);
+	}
+
+	/**
+	 * Checks if the test item is suitable for indexing in analyzer.
+	 * Test item issue type should not be {@link TestItemIssueType#TO_INVESTIGATE}
+	 *
+	 * @param testItem Test item for check
+	 * @return true if suitable
+	 */
+	private boolean isItemSuitable(TestItem testItem) {
+		return testItem != null && testItem.getIssue() != null && !TestItemIssueType.TO_INVESTIGATE.getLocator()
+				.equals(testItem.getIssue().getIssueType());
+	}
+
+	private void retryFailed(List<IndexRs> rs) {
 		// TODO: Retry failed items!
 		//        List<IndexRsItem> failedItems =
 		//                rs.getItems().stream().filter(i -> i.failed()).collect(Collectors.toList());
+	}
+
+	private CloseableIterator<Log> getLogIterator(String checkpoint) {
+		Sort sort = new Sort(new Sort.Order(Sort.Direction.ASC, "_id"));
+		Query query = new Query().with(sort).addCriteria(where(LOG_LEVEL).gte(LogLevel.ERROR_INT)).noCursorTimeout();
+
+		if (checkpoint != null) {
+			query.addCriteria(Criteria.where("_id").gte(new ObjectId(checkpoint)));
+		}
+
+		return mongoOperations.stream(query, Log.class);
 	}
 
 	private DBCollection getCheckpointCollection() {
@@ -206,29 +248,6 @@ public class LogIndexerService implements ILogIndexer {
 	private void createCheckpoint(String logId) {
 		BasicDBObject checkpoint = new BasicDBObject("_id", CHECKPOINT_ID).append(CHECKPOINT_LOG_ID, logId);
 		getCheckpointCollection().save(checkpoint);
-	}
-
-	/**
-	 * Checks if the log is suitable for analyzer. Log's level is greater or equal than
-	 * {@link LogLevel#ERROR}
-	 *
-	 * @param log Log for check
-	 * @return true if suitable
-	 */
-	private boolean isLevelSuitable(Log log) {
-		return null != log && null != log.getLevel() && log.getLevel().isGreaterOrEqual(LogLevel.ERROR);
-	}
-
-	/**
-	 * Checks if the test item is suitable for analyzer. Test item issue type should not be
-	 * {@link TestItemIssueType#TO_INVESTIGATE}
-	 *
-	 * @param testItem Test item for check
-	 * @return true if suitable
-	 */
-	private boolean isItemSuitable(TestItem testItem) {
-		return testItem != null && testItem.getIssue() != null && !TestItemIssueType.TO_INVESTIGATE.getLocator()
-				.equals(testItem.getIssue().getIssueType());
 	}
 
 }

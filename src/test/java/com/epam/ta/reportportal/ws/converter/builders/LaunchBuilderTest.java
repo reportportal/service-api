@@ -25,7 +25,6 @@ import com.epam.ta.BaseTest;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -54,13 +53,6 @@ public class LaunchBuilderTest extends BaseTest {
 				.addUser(Utils.getUser().getId()).get();
 		Launch expectedLaunch = Utils.getLaunch();
 		validateLaunches(expectedLaunch, actualLaunch);
-	}
-
-	@Test
-	@Ignore
-	public void testBeanScope() {
-		Assert.assertTrue("Launch builder should be prototype bean because it's not stateless",
-				applicationContext.isPrototype(applicationContext.getBeanNamesForType(LaunchBuilder.class)[0]));
 	}
 
 	private void validateLaunches(Launch expectedLaunch, Launch actualLaunch) {

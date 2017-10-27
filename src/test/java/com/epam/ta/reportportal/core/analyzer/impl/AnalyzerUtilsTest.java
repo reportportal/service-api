@@ -19,8 +19,9 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.util.analyzer.model;
+package com.epam.ta.reportportal.core.analyzer.impl;
 
+import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
@@ -31,10 +32,12 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils.fromTestItem;
+
 /**
  * @author Pavel Bortnik
  */
-public class IndexTestItemTest {
+public class AnalyzerUtilsTest {
 
 	@Test
 	public void testConverting() {
@@ -42,7 +45,7 @@ public class IndexTestItemTest {
 		testItem.setId("item");
 		testItem.setUniqueId("uniqueId");
 		testItem.setIssue(new TestItemIssue());
-		IndexTestItem indexTestItem = IndexTestItem.fromTestItem(testItem, createSameLogs(5));
+		IndexTestItem indexTestItem = fromTestItem(testItem, createSameLogs(5));
 		Assert.assertEquals(testItem.getId(), indexTestItem.getTestItemId());
 		Assert.assertEquals(testItem.getUniqueId(), indexTestItem.getUniqueId());
 		Assert.assertEquals(testItem.getIssue().getIssueType(), indexTestItem.getIssueType());

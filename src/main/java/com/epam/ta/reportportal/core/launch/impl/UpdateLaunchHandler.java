@@ -24,8 +24,8 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.core.launch.IUpdateLaunchHandler;
-import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -34,22 +34,22 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.launch.AutoAnalyzeStrategy;
 import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
@@ -82,10 +82,11 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	private UserRepository userRepository;
 
 	@Autowired
-	private StatisticsFacadeFactory statisticsFacadeFactory;
+	private IIssuesAnalyzer analyzerService;
 
 	@Autowired
-	private IIssuesAnalyzer analyzerService;
+	@Qualifier("autoAnalyzeTaskExecutor")
+	private TaskExecutor taskExecutor;
 
 	@Autowired
 	public void setLaunchRepository(LaunchRepository launchRepository) {
@@ -127,6 +128,9 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		AutoAnalyzeStrategy type = AutoAnalyzeStrategy.fromValue(scope);
 		expect(type, notNull()).verify(INCORRECT_FILTER_PARAMETERS, scope);
 
+		expect(analyzerService.hasAnalyzers(), Predicate.isEqual(true)).verify(
+				ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer services are deployed.");
+
 		Launch launch = launchRepository.findOne(launchId);
 		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);
 
@@ -141,17 +145,9 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
 		List<TestItem> toInvestigate = testItemRepository.findInIssueTypeItems(TestItemIssueType.TO_INVESTIGATE.getLocator(), launchId);
-		List<TestItem> analyzed = analyzerService.analyze(launchId, toInvestigate);
 
-		Map<String, TestItemIssue> forUpdate = analyzed.stream()
-				.filter(item -> !TestItemIssueType.TO_INVESTIGATE.getLocator().equals(item.getIssue().getIssueType()))
-				.collect(Collectors.toMap(TestItem::getId, TestItem::getIssue));
+		taskExecutor.execute(() -> analyzerService.analyze(launch, toInvestigate));
 
-		if (!forUpdate.isEmpty()) {
-			testItemRepository.updateItemsIssues(forUpdate);
-			statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
-					.recalculateStatistics(launch);
-		}
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launchId + "' started.");
 	}
 

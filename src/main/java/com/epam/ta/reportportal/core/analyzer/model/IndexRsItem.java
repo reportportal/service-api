@@ -19,7 +19,7 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.util.analyzer.model;
+package com.epam.ta.reportportal.core.analyzer.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

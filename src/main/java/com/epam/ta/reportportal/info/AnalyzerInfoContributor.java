@@ -18,6 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.epam.ta.reportportal.info;
 
 import com.google.common.collect.ImmutableMap;
@@ -31,30 +32,27 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
- * Shows list of supported extensions providers.
+ * Shows list of supported analyzers
  *
  * @author Pavel Bortnik
  */
-
 @Component
-public class ExtensionsInfoContributor implements ExtensionContributor {
+public class AnalyzerInfoContributor implements ExtensionContributor {
 
-    private static final String EXTENSION_KEY = "extension";
+	private static final String ANALYZER_KEY = "analyzer";
 
-    private static final String BUGTRACKING_KEY = "bugtracking";
+	private final DiscoveryClient discoveryClient;
 
-    private final DiscoveryClient discoveryClient;
+	@Autowired
+	public AnalyzerInfoContributor(DiscoveryClient discoveryClient) {
+		this.discoveryClient = discoveryClient;
+	}
 
-    @Autowired
-    public ExtensionsInfoContributor(DiscoveryClient discoveryClient) {
-        this.discoveryClient = discoveryClient;
-    }
-
-    @Override
-    public Map<String, ?> contribute() {
-        Set<String> collect = discoveryClient.getServices().stream().flatMap(service -> discoveryClient.getInstances(service).stream())
-                .filter(instance -> instance.getMetadata().containsKey(EXTENSION_KEY))
-                .map(instance -> instance.getMetadata().get(EXTENSION_KEY)).collect(Collectors.toCollection(TreeSet::new));
-        return ImmutableMap.<String, Object>builder().put(BUGTRACKING_KEY, collect).build();
-    }
+	@Override
+	public Map<String, ?> contribute() {
+		Set<String> collect = discoveryClient.getServices().stream().flatMap(service -> discoveryClient.getInstances(service).stream())
+				.filter(instance -> instance.getMetadata().containsKey(ANALYZER_KEY))
+				.map(instance -> instance.getMetadata().get(ANALYZER_KEY)).collect(Collectors.toCollection(TreeSet::new));
+		return ImmutableMap.<String, Object>builder().put(ANALYZER_KEY, collect).build();
+	}
 }

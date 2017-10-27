@@ -56,7 +56,8 @@ import static java.util.stream.Collectors.toMap;
 public class EmailService extends JavaMailSenderImpl {
 
 	private static final String FINISH_LAUNCH_EMAIL_SUBJECT = " Report Portal Notification: launch '%s' #%s finished";
-	private static final String FILTER_TAG_FORMAT = "%s/launch?filter.has.tags=%s";
+	private static final String URL_FORMAT = "%s/launches/all";
+	private static final String FILTER_TAG_FORMAT = "%s?filter.has.tags=%s";
 	private static final String EMAIL_TEMPLATE_PREFIX = "templates/email/";
 	private TemplateEngine templateEngine;
 
@@ -121,11 +122,12 @@ public class EmailService extends JavaMailSenderImpl {
 	String mergeFinishLaunchText(String url, Launch launch, Project.Configuration settings) {
 		Map<String, Object> email = new HashMap<>();
 			/* Email fields values */
+		String basicUrl = format(URL_FORMAT, url);
 		email.put("name", launch.getName());
 		email.put("number", String.valueOf(launch.getNumber()));
-		email.put("tags", launch.getTags().stream().collect(toMap(tag -> tag, tag -> format(FILTER_TAG_FORMAT, url, tag))));
+		email.put("tags", launch.getTags().stream().collect(toMap(tag -> tag, tag -> format(FILTER_TAG_FORMAT, basicUrl, tag))));
 		email.put("description", launch.getDescription());
-		email.put("url", format("%s/launches/all/%s", url, launch.getId()));
+		email.put("url", format("%s/%s", basicUrl, launch.getId()));
 
 			/* Launch execution statistics */
 		email.put("total", launch.getStatistics().getExecutionCounter().getTotal().toString());

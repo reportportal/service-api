@@ -156,13 +156,23 @@ public class LogIndexerServiceTest {
 	}
 
 	@Test
+	public void testIndexAllLogsNegative() {
+		when(analyzerServiceClient.hasClients()).thenReturn(false);
+		verify(analyzerServiceClient, times(1)).hasClients();
+		verifyZeroInteractions(testItemRepository, launchRepository, logRepository, mongoOperations);
+	}
+
+	@Test
 	public void testIndexAllLogsWithoutLogs() {
 		DBCollection checkpointColl = mock(DBCollection.class);
 		when(mongoOperations.getCollection(eq("logIndexingCheckpoint"))).thenReturn(checkpointColl);
 		when(checkpointColl.findOne(any(Query.class))).thenReturn(null);
 		when(mongoOperations.stream(any(Query.class), eq(Log.class))).thenReturn(createLogIterator(0));
+		when(analyzerServiceClient.hasClients()).thenReturn(true);
 		logIndexerService.indexAllLogs();
-		verifyZeroInteractions(launchRepository, testItemRepository, analyzerServiceClient);
+		verifyZeroInteractions(launchRepository, testItemRepository);
+		verify(analyzerServiceClient, times(0)).index(any());
+		verify(analyzerServiceClient, times(1)).hasClients();
 	}
 
 	@Test
@@ -172,8 +182,11 @@ public class LogIndexerServiceTest {
 		when(checkpointColl.findOne(any(Query.class))).thenReturn(null);
 		when(mongoOperations.stream(any(Query.class), eq(Log.class))).thenReturn(createLogIterator(0));
 		when(launchRepository.findOne(anyString())).thenReturn(null);
+		when(analyzerServiceClient.hasClients()).thenReturn(true);
 		logIndexerService.indexAllLogs();
-		verifyZeroInteractions(testItemRepository, analyzerServiceClient);
+		verifyZeroInteractions(testItemRepository);
+		verify(analyzerServiceClient, times(0)).index(any());
+		verify(analyzerServiceClient, times(1)).hasClients();
 	}
 
 	@Test
@@ -184,8 +197,10 @@ public class LogIndexerServiceTest {
 		when(mongoOperations.stream(any(Query.class), eq(Log.class))).thenReturn(createLogIterator(0));
 		when(launchRepository.findOne(anyString())).thenReturn(createLaunch("launchId"));
 		when(testItemRepository.findOne(anyString())).thenReturn(createTestItem("testItemId"));
+		when(analyzerServiceClient.hasClients()).thenReturn(true);
 		logIndexerService.indexAllLogs();
-		verifyZeroInteractions(analyzerServiceClient);
+		verify(analyzerServiceClient, times(1)).hasClients();
+		verify(analyzerServiceClient, times(0)).index(any());
 	}
 
 	@Test
@@ -198,6 +213,7 @@ public class LogIndexerServiceTest {
 		when(mongoOperations.stream(any(Query.class), eq(Log.class))).thenReturn(createLogIterator(logCount));
 		when(launchRepository.findOne(anyString())).thenReturn(createLaunch("launchId"));
 		when(testItemRepository.findOne(anyString())).thenReturn(createTestItem("testItemId"));
+		when(analyzerServiceClient.hasClients()).thenReturn(true);
 		logIndexerService.indexAllLogs();
 		verify(checkpointColl, times(batchCount)).save(any(DBObject.class));
 		verify(analyzerServiceClient, times(batchCount)).index(anyListOf(IndexLaunch.class));

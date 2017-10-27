@@ -37,7 +37,7 @@ import java.util.stream.StreamSupport;
 import static java.util.stream.Collectors.toList;
 
 @Service
-public class TestItemResourceAssembler extends PagedResourcesAssembler<TestItem, TestItemResource> {
+public class  TestItemResourceAssembler extends PagedResourcesAssembler<TestItem, TestItemResource> {
 
     @Autowired
     private TestItemRepository testItemRepository;

@@ -19,36 +19,49 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.util.analyzer.model;
+package com.epam.ta.reportportal.core.analyzer.impl;
 
+import com.epam.ta.reportportal.core.analyzer.model.IndexLog;
+import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.database.entity.Log;
-import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
-import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Represents test item container in index/analysis request/response.
+ * Useful utils methods for basic analyzer
  *
- * @author Ivan Sharamet
+ * @author Pavel Bortnik
  */
-public class IndexTestItem {
+public class AnalyzerUtils {
 
-	@JsonProperty("testItemId")
-	private String testItemId;
+	private AnalyzerUtils() {
+		//static only
+	}
 
-	@JsonProperty("issueType")
-	private String issueType;
+	/**
+	 * Creates {@link IndexLog} model for log for further
+	 * sending that into analyzer
+	 */
+	private static Function<Log, IndexLog> TO_INDEX_LOG = log -> {
+		IndexLog indexLog = new IndexLog();
+		if (log.getLevel() != null) {
+			indexLog.setLogLevel(log.getLevel().toInt());
+		}
+		indexLog.setMessage(log.getLogMsg());
+		return indexLog;
+	};
 
-	@JsonProperty("logs")
-	private Set<IndexLog> logs;
-
-	@JsonProperty("uniqueId")
-	private String uniqueId;
-
+	/**
+	 * Creates {@link IndexTestItem} model for test item and it's logs
+	 * for further sending that into analyzer.
+	 *
+	 * @param testItem Test item to be created from
+	 * @param logs     Test item's logs
+	 * @return {@link IndexTestItem} object
+	 */
 	public static IndexTestItem fromTestItem(TestItem testItem, List<Log> logs) {
 		IndexTestItem indexTestItem = new IndexTestItem();
 		indexTestItem.setTestItemId(testItem.getId());
@@ -57,46 +70,8 @@ public class IndexTestItem {
 			indexTestItem.setIssueType(testItem.getIssue().getIssueType());
 		}
 		if (!logs.isEmpty()) {
-			indexTestItem.setLogs(logs.stream()
-					.filter(it -> null != it.getLevel() && it.getLevel().isGreaterOrEqual(LogLevel.ERROR))
-					.map(IndexLog::fromLog)
-					.collect(Collectors.toSet()));
+			indexTestItem.setLogs(logs.stream().map(TO_INDEX_LOG).collect(Collectors.toSet()));
 		}
 		return indexTestItem;
-	}
-
-	public IndexTestItem() {
-	}
-
-	public String getTestItemId() {
-		return testItemId;
-	}
-
-	public void setTestItemId(String testItemId) {
-		this.testItemId = testItemId;
-	}
-
-	public String getUniqueId() {
-		return uniqueId;
-	}
-
-	public void setUniqueId(String uniqueId) {
-		this.uniqueId = uniqueId;
-	}
-
-	public String getIssueType() {
-		return issueType;
-	}
-
-	public void setIssueType(String issueType) {
-		this.issueType = issueType;
-	}
-
-	public Set<IndexLog> getLogs() {
-		return logs;
-	}
-
-	public void setLogs(Set<IndexLog> logs) {
-		this.logs = logs;
 	}
 }

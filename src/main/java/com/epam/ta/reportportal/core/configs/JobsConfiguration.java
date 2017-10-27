@@ -74,4 +74,15 @@ public class JobsConfiguration {
 	public static class SchedulingConfiguration {
 	}
 
+	@Bean(name = "autoAnalyzeTaskExecutor")
+	public TaskExecutor autoAnalyzeTaskExecutor() {
+		final ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+		threadPoolTaskExecutor.setCorePoolSize(10);
+		threadPoolTaskExecutor.setMaxPoolSize(30);
+		threadPoolTaskExecutor.setQueueCapacity(200);
+		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
+		threadPoolTaskExecutor.setThreadNamePrefix("auto-analyze-exec");
+		return threadPoolTaskExecutor;
+	}
+
 }

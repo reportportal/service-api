@@ -19,9 +19,8 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.util.analyzer.model;
+package com.epam.ta.reportportal.core.analyzer.model;
 
-import com.epam.ta.reportportal.database.entity.Log;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Objects;
@@ -38,15 +37,6 @@ public class IndexLog {
 
 	@JsonProperty("message")
 	private String message;
-
-	public static IndexLog fromLog(Log log) {
-		IndexLog indexLog = new IndexLog();
-		if (log.getLevel() != null) {
-			indexLog.setLogLevel(log.getLevel().toInt());
-		}
-		indexLog.setMessage(log.getLogMsg());
-		return indexLog;
-	}
 
 	public IndexLog() {
 	}

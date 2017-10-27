@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.Preconditions;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -29,19 +30,21 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
+import com.google.common.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
-import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.Optional.ofNullable;
 
 /**
  * Start Launch operation default implementation
@@ -113,10 +116,13 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		}
 
 		if (rq.isRetry()) {
-			TestItem initialItem = testItemRepository.findByUniqueId(item.getUniqueId()).get(0);
-			//TODO change to update, do not save whole object
-			ofNullable(initialItem.getRetries()).orElse(new ArrayList<>()).add(item);
-			testItemRepository.save(initialItem);
+			TestItem retryRoot = getRetryRoot(rq.getUniqueId(), parent);
+			String retryID = UUID.randomUUID().toString();
+
+			item.setParent(null);
+			item.setId(generateRetryID(retryRoot.getId(), retryID));
+			testItemRepository.addRetry(retryRoot.getId(), item);
+
 		} else {
 			testItemRepository.save(item);
 
@@ -126,6 +132,29 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		}
 
 		return new ItemCreatedRS(item.getId(), item.getUniqueId());
+	}
+
+	@VisibleForTesting
+	TestItem getRetryRoot(String uniqueID, String parent) {
+		List<TestItem> retryItems = testItemRepository.findByUniqueId(uniqueID, parent);
+		BusinessRule.expect(retryItems, Preconditions.NOT_EMPTY_COLLECTION)
+				.verify(ErrorType.TEST_ITEM_IS_NOT_FINISHED, "Unable to find retry root");
+
+		TestItem retryRoot;
+
+		//first retry of some test item
+		if (1 == retryItems.size()) {
+			retryRoot = retryItems.get(0);
+		} else {
+			//second retry. Make sure we take the one that already has retries
+			retryRoot = retryItems.stream().filter(it -> null != it.getRetries()).findAny().get();
+		}
+		return retryRoot;
+	}
+
+	@VisibleForTesting
+	String generateRetryID(String rootID, String retryID) {
+		return "retry:" + rootID + ":" + retryID;
 	}
 
 	private void validate(String projectName, StartTestItemRQ rq, Launch launch) {

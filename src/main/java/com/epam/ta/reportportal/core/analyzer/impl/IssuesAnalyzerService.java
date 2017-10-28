@@ -45,6 +45,7 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.TO_INVESTIGATE;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -75,7 +76,8 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	@Autowired
 	private ILogIndexer logIndexer;
 
-	private static final Predicate<IndexTestItem> IS_ANALYZED = it -> it.getIssueType() != null;
+	private static final Predicate<IndexTestItem> IS_ANALYZED = it -> it.getIssueType() != null && it.getIssueType()
+			.equals(TO_INVESTIGATE.getLocator());
 
 	@Override
 	public boolean hasAnalyzers() {

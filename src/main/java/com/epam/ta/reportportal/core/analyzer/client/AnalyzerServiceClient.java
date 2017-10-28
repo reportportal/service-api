@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.analyzer.client;
 
+import com.epam.ta.reportportal.ConsulUpdateEvent;
 import com.epam.ta.reportportal.core.analyzer.IAnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -36,6 +38,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.*;
 import static java.util.Comparator.comparingInt;
@@ -51,20 +54,21 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	private final RestTemplate restTemplate;
 	private final DiscoveryClient discoveryClient;
 
+	private List<ServiceInstance> analyzerInstances;
+
 	@Autowired
-	public AnalyzerServiceClient(RestTemplate restTemplate, DiscoveryClient discoveryClient) {
+	public AnalyzerServiceClient(RestTemplate restTemplate, DiscoveryClient consulDiscoveryClient) {
 		this.restTemplate = restTemplate;
-		this.discoveryClient = discoveryClient;
+		this.discoveryClient = consulDiscoveryClient;
 	}
 
 	@Override
 	public boolean hasClients() {
-		return !getAnalyzerServiceInstances().isEmpty();
+		return !analyzerInstances.isEmpty();
 	}
 
 	@Override
 	public List<IndexRs> index(List<IndexLaunch> rq) {
-		List<ServiceInstance> analyzerInstances = getAnalyzerServiceInstances();
 		return analyzerInstances.stream()
 				.filter(DOES_NEED_INDEX)
 				.map(instance -> index(instance, rq))
@@ -76,8 +80,6 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	//Make services return only updated items and refactor this
 	@Override
 	public IndexLaunch analyze(IndexLaunch rq) {
-		List<ServiceInstance> analyzerInstances = getAnalyzerServiceInstances();
-		analyzerInstances.sort(comparingInt(SERVICE_PRIORITY).reversed());
 		for (ServiceInstance instance : analyzerInstances) {
 			Optional<IndexLaunch> analyzed = analyze(instance, rq);
 			if (analyzed.isPresent()) {
@@ -131,11 +133,15 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	 *
 	 * @return {@link List} of instances
 	 */
-	private List<ServiceInstance> getAnalyzerServiceInstances() {
-		return discoveryClient.getServices()
+	@EventListener
+	private void getAnalyzerServiceInstances(ConsulUpdateEvent event) {
+		analyzerInstances = new CopyOnWriteArrayList<>();
+		discoveryClient.getServices()
 				.stream()
 				.flatMap(service -> discoveryClient.getInstances(service).stream())
 				.filter(instance -> instance.getMetadata().containsKey(ANALYZER_KEY))
-				.collect(toList());
+				.sorted(comparingInt(SERVICE_PRIORITY).reversed())
+				.forEach(it -> analyzerInstances.add(it));
+		System.out.println("Instances updated, size: " + analyzerInstances.size());
 	}
 }

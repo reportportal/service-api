@@ -21,10 +21,11 @@
 
 package com.epam.ta.reportportal.core.analyzer.client;
 
-import com.epam.ta.reportportal.ConsulUpdateEvent;
 import com.epam.ta.reportportal.core.analyzer.IAnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
+import com.epam.ta.reportportal.events.ConsulUpdateEvent;
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +61,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	public AnalyzerServiceClient(RestTemplate restTemplate, DiscoveryClient consulDiscoveryClient) {
 		this.restTemplate = restTemplate;
 		this.discoveryClient = consulDiscoveryClient;
+		getAnalyzerServiceInstances(null);
 	}
 
 	@Override
@@ -134,6 +136,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	 * @return {@link List} of instances
 	 */
 	@EventListener
+	@VisibleForTesting
 	private void getAnalyzerServiceInstances(ConsulUpdateEvent event) {
 		analyzerInstances = new CopyOnWriteArrayList<>();
 		discoveryClient.getServices()
@@ -142,6 +145,5 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 				.filter(instance -> instance.getMetadata().containsKey(ANALYZER_KEY))
 				.sorted(comparingInt(SERVICE_PRIORITY).reversed())
 				.forEach(it -> analyzerInstances.add(it));
-		System.out.println("Instances updated, size: " + analyzerInstances.size());
 	}
 }

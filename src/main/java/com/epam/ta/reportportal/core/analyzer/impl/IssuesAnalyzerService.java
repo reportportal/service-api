@@ -41,7 +41,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -76,7 +76,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	@Autowired
 	private ILogIndexer logIndexer;
 
-	private static final Predicate<IndexTestItem> IS_ANALYZED = it -> it.getIssueType() != null && it.getIssueType()
+	private static final Predicate<IndexTestItem> IS_ANALYZED = it -> it.getIssueType() != null && !it.getIssueType()
 			.equals(TO_INVESTIGATE.getLocator());
 
 	@Override
@@ -133,15 +133,10 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	 */
 	private List<TestItem> updateTestItems(IndexLaunch rs, List<TestItem> testItems) {
 		return rs.getTestItems().stream().filter(IS_ANALYZED).map(indexTestItem -> {
-			TestItem toUpdate = testItems.stream()
-					.filter(item -> item.getId().equals(indexTestItem.getTestItemId()))
-					.findFirst()
-					.orElse(null);
-			if (toUpdate != null) {
-				toUpdate.setIssue(new TestItemIssue(indexTestItem.getIssueType(), null, true));
-			}
+			Optional<TestItem> toUpdate = testItems.stream().filter(item -> item.getId().equals(indexTestItem.getTestItemId())).findFirst();
+			toUpdate.ifPresent(testItem -> testItem.setIssue(new TestItemIssue(indexTestItem.getIssueType(), null, true)));
 			return toUpdate;
-		}).filter(Objects::nonNull).collect(toList());
+		}).filter(Optional::isPresent).map(Optional::get).collect(toList());
 	}
 
 	/**

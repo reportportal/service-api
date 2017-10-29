@@ -1,7 +1,8 @@
-package com.epam.ta.reportportal;
+package com.epam.ta.reportportal.job;
 
 import com.ecwid.consul.v1.QueryParams;
 import com.ecwid.consul.v1.catalog.CatalogClient;
+import com.epam.ta.reportportal.events.ConsulUpdateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
@@ -20,10 +20,7 @@ public class ConsulUpdateListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConsulUpdateListener.class);
 
 	private final ApplicationEventPublisher eventPublisher;
-
-	@Autowired
 	private CatalogClient catalogClient;
-
 	private AtomicLong xConsulIndex = new AtomicLong();
 
 	@Autowired
@@ -34,10 +31,8 @@ public class ConsulUpdateListener {
 
 	@EventListener
 	public void onApplicationRefresh(ContextRefreshedEvent event) {
-		eventPublisher.publishEvent(new ConsulUpdateEvent());
 		xConsulIndex.set(catalogClient.getCatalogServices(QueryParams.DEFAULT).getConsulIndex());
 		Executors.newSingleThreadExecutor().execute(this::watch);
-
 	}
 
 	private void watch() {
@@ -45,7 +40,6 @@ public class ConsulUpdateListener {
 			try {
 				xConsulIndex.set(catalogClient.getCatalogServices(QueryParams.Builder.builder()
 						.setIndex(xConsulIndex.get())
-						.setWaitTime(TimeUnit.SECONDS.toMillis(1))
 						.build()).getConsulIndex());
 				eventPublisher.publishEvent(new ConsulUpdateEvent());
 			} catch (Exception ignored) {

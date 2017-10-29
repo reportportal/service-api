@@ -51,7 +51,6 @@ import static org.mockito.Mockito.*;
  * @author Pavel Bortnik
  */
 public class IssuesAnalyzerServiceTest {
-
 	@Mock
 	private IAnalyzerServiceClient analyzerServiceClient;
 	@Mock

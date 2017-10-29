@@ -57,13 +57,17 @@ public class ConsulUpdateListener {
 
 	@EventListener
 	public void onApplicationRefresh(ContextRefreshedEvent event) {
-		xConsulIndex.set(catalogClient.getCatalogServices(QueryParams.DEFAULT).getConsulIndex());
+		try {
+			xConsulIndex.set(catalogClient.getCatalogServices(QueryParams.DEFAULT).getConsulIndex());
+		} catch (Exception e) {
+			LOGGER.error("Problem connection to consul.", e);
+		}
 		Executors.newSingleThreadExecutor().execute(this::watch);
 	}
 
 	private void watch() {
-		while (true) {
-			try {
+		try {
+			while (true) {
 				System.out.println("waiting");
 				xConsulIndex.set(catalogClient.getCatalogServices(QueryParams.Builder.builder()
 						.setIndex(xConsulIndex.get())
@@ -71,9 +75,9 @@ public class ConsulUpdateListener {
 						.build()).getConsulIndex());
 				eventPublisher.publishEvent(new ConsulUpdateEvent());
 				System.out.println("publish");
-			} catch (Exception ignored) {
-				LOGGER.info(ignored.getMessage());
 			}
+		} catch (Exception ex) {
+			LOGGER.error("Problem with connection to consul. ", ex);
 		}
 	}
 }

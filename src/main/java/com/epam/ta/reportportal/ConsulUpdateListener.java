@@ -41,16 +41,16 @@ public class ConsulUpdateListener {
 	}
 
 	private void watch() {
-		try {
-			xConsulIndex.set(catalogClient.getCatalogServices(QueryParams.Builder.builder()
-					.setIndex(xConsulIndex.get())
-					.setWaitTime(TimeUnit.MINUTES.toMillis(3))
-					.build()).getConsulIndex());
-			eventPublisher.publishEvent(new ConsulUpdateEvent());
-			watch();
-		} catch (Exception ignored) {
-			LOGGER.info(ignored.getMessage());
-			watch();
+		while (true) {
+			try {
+				xConsulIndex.set(catalogClient.getCatalogServices(QueryParams.Builder.builder()
+						.setIndex(xConsulIndex.get())
+						.setWaitTime(TimeUnit.SECONDS.toMillis(1))
+						.build()).getConsulIndex());
+				eventPublisher.publishEvent(new ConsulUpdateEvent());
+			} catch (Exception ignored) {
+				LOGGER.info(ignored.getMessage());
+			}
 		}
 	}
 }

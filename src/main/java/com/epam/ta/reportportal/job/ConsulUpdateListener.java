@@ -43,6 +43,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class ConsulUpdateListener {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConsulUpdateListener.class);
+	private static final int TIMEOUT_IN_SEC = 50;
 
 	private final ApplicationEventPublisher eventPublisher;
 	private CatalogClient catalogClient;
@@ -63,8 +64,13 @@ public class ConsulUpdateListener {
 	private void watch() {
 		while (true) {
 			try {
-				xConsulIndex.set(catalogClient.getCatalogServices(QueryParams.Builder.builder().setIndex(xConsulIndex.get()).build()).getConsulIndex());
+				System.out.println("waiting");
+				xConsulIndex.set(catalogClient.getCatalogServices(QueryParams.Builder.builder()
+						.setIndex(xConsulIndex.get())
+						.setWaitTime(TIMEOUT_IN_SEC)
+						.build()).getConsulIndex());
 				eventPublisher.publishEvent(new ConsulUpdateEvent());
+				System.out.println("publish");
 			} catch (Exception ignored) {
 				LOGGER.info(ignored.getMessage());
 			}

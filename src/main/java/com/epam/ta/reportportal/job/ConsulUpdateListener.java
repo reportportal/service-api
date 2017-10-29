@@ -59,22 +59,20 @@ public class ConsulUpdateListener {
 	public void onApplicationRefresh(ContextRefreshedEvent event) {
 		try {
 			xConsulIndex.set(catalogClient.getCatalogServices(QueryParams.DEFAULT).getConsulIndex());
+			Executors.newSingleThreadExecutor().execute(this::watch);
 		} catch (Exception e) {
-			LOGGER.error("Problem connection to consul.", e);
+			LOGGER.error("Problem with connection to consul.", e);
 		}
-		Executors.newSingleThreadExecutor().execute(this::watch);
 	}
 
 	private void watch() {
 		try {
 			while (true) {
-				System.out.println("waiting");
 				xConsulIndex.set(catalogClient.getCatalogServices(QueryParams.Builder.builder()
 						.setIndex(xConsulIndex.get())
 						.setWaitTime(TIMEOUT_IN_SEC)
 						.build()).getConsulIndex());
 				eventPublisher.publishEvent(new ConsulUpdateEvent());
-				System.out.println("publish");
 			}
 		} catch (Exception ex) {
 			LOGGER.error("Problem with connection to consul. ", ex);

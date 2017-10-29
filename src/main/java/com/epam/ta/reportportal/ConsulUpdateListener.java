@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 public class ConsulUpdateListener {
@@ -23,7 +24,7 @@ public class ConsulUpdateListener {
 	@Autowired
 	private CatalogClient catalogClient;
 
-	private Long xConsulIndex;
+	private AtomicLong xConsulIndex = new AtomicLong();
 
 	@Autowired
 	public ConsulUpdateListener(CatalogClient catalogClient, ApplicationEventPublisher eventPublisher) {
@@ -34,25 +35,22 @@ public class ConsulUpdateListener {
 	@EventListener
 	public void onApplicationRefresh(ContextRefreshedEvent event) {
 		eventPublisher.publishEvent(new ConsulUpdateEvent());
-		xConsulIndex = catalogClient.getCatalogServices(QueryParams.DEFAULT).getConsulIndex();
-		Executors.newSingleThreadScheduledExecutor().schedule(this::doTheStuff, 3, TimeUnit.MINUTES);
+		xConsulIndex.set(catalogClient.getCatalogServices(QueryParams.DEFAULT).getConsulIndex());
+		Executors.newSingleThreadExecutor().execute(this::watch);
+
 	}
 
-	private void doTheStuff() {
-		while (true) {
-			LOGGER.info("WAITING FOR CONSUL UPDATING");
-			try {
-				xConsulIndex = catalogClient.getCatalogServices(QueryParams.Builder.builder()
-						.setIndex(xConsulIndex)
-						.setWaitTime(3000)
-						.build()).getConsulIndex();
-				LOGGER.info("CONSUL HAS CHANGED" + xConsulIndex);
-				eventPublisher.publishEvent(new ConsulUpdateEvent());
-			} catch (Exception ignored) {
-				System.out.println("exception");
-				//ignore
-			}
+	private void watch() {
+		try {
+			xConsulIndex.set(catalogClient.getCatalogServices(QueryParams.Builder.builder()
+					.setIndex(xConsulIndex.get())
+					.setWaitTime(TimeUnit.MINUTES.toMillis(3))
+					.build()).getConsulIndex());
+			eventPublisher.publishEvent(new ConsulUpdateEvent());
+			watch();
+		} catch (Exception ignored) {
+			LOGGER.info(ignored.getMessage());
+			watch();
 		}
 	}
-
 }

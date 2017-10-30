@@ -153,7 +153,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	@VisibleForTesting
 	TestItem getRetryRoot(String uniqueID, String parent) {
-		LOGGER.info("Looking for retry root. Parent: {}. Unique ID: {}", parent, uniqueID);
+		LOGGER.debug("Looking for retry root. Parent: {}. Unique ID: {}", parent, uniqueID);
 
 		/*
 		 * Due to async nature of RP clients and some TestNG
@@ -164,7 +164,15 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		 * results will be returned from first attempt
 		 */
 		TestItem retryRoot = retrier.execute(context -> {
+
+			/* search for the item with the same unique ID and parent. Since retries do not contain
+			 * parentID, there should be only one result
+			 */
 			List<TestItem> retryItems = testItemRepository.findByUniqueId(uniqueID, parent);
+
+			/* make sure at least one item is present already.
+			 *  If not, this exception will be handled by retry handler
+			 */
 			BusinessRule.expect(retryItems, Preconditions.NOT_EMPTY_COLLECTION)
 					.verify(ErrorType.INCORRECT_REQUEST, "Unable to find retry root");
 

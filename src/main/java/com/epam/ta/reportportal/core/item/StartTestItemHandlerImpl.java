@@ -65,6 +65,13 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	private LaunchRepository launchRepository;
 	private Provider<TestItemBuilder> testItemBuilder;
 	private UniqueIdGenerator identifierGenerator;
+	private RetryTemplate retrier;
+
+	public StartTestItemHandlerImpl() {
+		retrier = new RetryTemplate();
+		retrier.setRetryPolicy(new SimpleRetryPolicy(10));
+		retrier.setThrowLastExceptionOnExhausted(true);
+	}
 
 	@Autowired
 	public void setIdentifierGenerator(UniqueIdGenerator identifierGenerator) {
@@ -148,11 +155,15 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	TestItem getRetryRoot(String uniqueID, String parent) {
 		LOGGER.info("Looking for retry root. Parent: {}. Unique ID: {}", parent, uniqueID);
 
-		RetryTemplate rt = new RetryTemplate();
-		rt.setRetryPolicy(new SimpleRetryPolicy(10));
-		rt.setThrowLastExceptionOnExhausted(true);
-
-		TestItem retryRoot = rt.execute(context -> {
+		/*
+		 * Due to async nature of RP clients and some TestNG
+		 * implementation details both 'start item' of root of retry and 'start item' events
+		 * may come at the same time (almost). To simplify client side we don't introduce requirement
+		 * that 1st retry item have to wait until item that cause (root) of retry. Instead, we
+		 * just introduce some wait on server side. Case if extremely specific in 99% cases
+		 * results will be returned from first attempt
+		 */
+		TestItem retryRoot = retrier.execute(context -> {
 			List<TestItem> retryItems = testItemRepository.findByUniqueId(uniqueID, parent);
 			BusinessRule.expect(retryItems, Preconditions.NOT_EMPTY_COLLECTION)
 					.verify(ErrorType.INCORRECT_REQUEST, "Unable to find retry root");

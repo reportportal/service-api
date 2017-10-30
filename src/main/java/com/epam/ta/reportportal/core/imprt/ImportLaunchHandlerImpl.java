@@ -82,5 +82,5 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
         } catch (IOException e) {
             throw new ReportPortalException("Error during transferring multipart file", e);
         }
-    }
+	}
 }

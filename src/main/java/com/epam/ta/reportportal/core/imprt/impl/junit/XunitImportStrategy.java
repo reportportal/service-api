@@ -79,6 +79,10 @@ public class XunitImportStrategy implements ImportStrategy {
             return processZipFile(file, projectId, userName);
         } catch (IOException e) {
             throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, file.getName(), e);
+        } finally {
+            if (null != file) {
+                file.delete();
+            }
         }
     }
 

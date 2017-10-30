@@ -29,17 +29,21 @@ import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.util.RetryId;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import com.google.common.annotations.VisibleForTesting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
 import java.util.List;
-import java.util.UUID;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
@@ -54,6 +58,9 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
  */
 @Service
 class StartTestItemHandlerImpl implements StartTestItemHandler {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(StartTestItemHandlerImpl.class);
+
 	private TestItemRepository testItemRepository;
 	private LaunchRepository launchRepository;
 	private Provider<TestItemBuilder> testItemBuilder;
@@ -116,11 +123,14 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		}
 
 		if (rq.isRetry()) {
-			TestItem retryRoot = getRetryRoot(rq.getUniqueId(), parent);
-			String retryID = UUID.randomUUID().toString();
+			TestItem retryRoot = getRetryRoot(item.getUniqueId(), parent);
 
+			RetryId retryId = RetryId.newID(retryRoot.getId());
+
+			item.setId(retryId.toString());
 			item.setParent(null);
-			item.setId(generateRetryID(retryRoot.getId(), retryID));
+
+			LOGGER.debug("Adding retry with ID '{}' to item '{}'", item.getId(), retryRoot.getId());
 			testItemRepository.addRetry(retryRoot.getId(), item);
 
 		} else {
@@ -136,25 +146,32 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	@VisibleForTesting
 	TestItem getRetryRoot(String uniqueID, String parent) {
-		List<TestItem> retryItems = testItemRepository.findByUniqueId(uniqueID, parent);
-		BusinessRule.expect(retryItems, Preconditions.NOT_EMPTY_COLLECTION)
-				.verify(ErrorType.TEST_ITEM_IS_NOT_FINISHED, "Unable to find retry root");
+		LOGGER.info("Looking for retry root. Parent: {}. Unique ID: {}", parent, uniqueID);
 
-		TestItem retryRoot;
+		RetryTemplate rt = new RetryTemplate();
+		rt.setRetryPolicy(new SimpleRetryPolicy(10));
+		rt.setThrowLastExceptionOnExhausted(true);
 
-		//first retry of some test item
-		if (1 == retryItems.size()) {
-			retryRoot = retryItems.get(0);
-		} else {
-			//second retry. Make sure we take the one that already has retries
-			retryRoot = retryItems.stream().filter(it -> null != it.getRetries()).findAny().get();
-		}
+		TestItem retryRoot = rt.execute(context -> {
+			List<TestItem> retryItems = testItemRepository.findByUniqueId(uniqueID, parent);
+			BusinessRule.expect(retryItems, Preconditions.NOT_EMPTY_COLLECTION)
+					.verify(ErrorType.INCORRECT_REQUEST, "Unable to find retry root");
+
+			LOGGER.info("Found {} retry root candidates", retryItems.size());
+			TestItem item;
+
+			//first retry of some test item
+			if (1 == retryItems.size()) {
+				item = retryItems.get(0);
+			} else {
+				//second retry. Make sure we take the one that already has retries
+				item = retryItems.stream().filter(it -> null != it.getRetries()).findAny().get();
+			}
+			return item;
+		});
+
+		LOGGER.debug("Found retry root:" + retryRoot.getId());
 		return retryRoot;
-	}
-
-	@VisibleForTesting
-	String generateRetryID(String rootID, String retryID) {
-		return "retry:" + rootID + ":" + retryID;
 	}
 
 	private void validate(String projectName, StartTestItemRQ rq, Launch launch) {

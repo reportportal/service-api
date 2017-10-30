@@ -103,7 +103,6 @@ public class WidgetContentProvider {
 		int itemsCount = options.getItemsCount();
 		result = loadingStrategy.loadContent(projectName, filter, sort, itemsCount, contentFields, metaDataFields, widgetOptions);
 		if (null != options.getContentFields()) {
-			//result = transformToFilterStyle(criteriaMap, result, options.getContentFields());
 			result = transformNamesForUI(criteriaMap, options.getContentFields(), result);
 		}
 		return result;
@@ -118,15 +117,15 @@ public class WidgetContentProvider {
 	private Map<String, List<ChartObject>> transformNamesForUI(CriteriaMap<?> criteriaMap, List<String> chartFields,
 			Map<String, List<ChartObject>> input) {
 		Map<String, String> reversedCriteriaMap = new HashMap<>();
-		chartFields.forEach(it -> {
-			String queryCriteria = criteriaMap.getCriteriaHolder(it).getQueryCriteria();
-			reversedCriteriaMap.put(queryCriteria, it);
+		chartFields.forEach(field -> {
+			String queryCriteria = criteriaMap.getCriteriaHolder(field).getQueryCriteria();
+			reversedCriteriaMap.put(queryCriteria, field);
 		});
 
-		input.entrySet().stream().flatMap(it -> it.getValue().stream()).forEach(it -> {
+		input.entrySet().stream().flatMap(it -> it.getValue().stream()).forEach(chartObject -> {
 			Map<String, String> values = new LinkedHashMap<>();
-			it.getValues().keySet().forEach(key -> {
-				String value = it.getValues().get(key);
+			chartObject.getValues().keySet().forEach(key -> {
+				String value = chartObject.getValues().get(key);
 				String queryCriteria = reversedCriteriaMap.get(key);
 				if (queryCriteria != null) {
 					values.put(queryCriteria, value);
@@ -134,7 +133,7 @@ public class WidgetContentProvider {
 					values.put(key, value);
 				}
 			});
-			it.setValues(values);
+			chartObject.setValues(values);
 		});
 
 		return input;

@@ -159,8 +159,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		 * Due to async nature of RP clients and some TestNG
 		 * implementation details both 'start item' of root of retry and 'start item' events
 		 * may come at the same time (almost). To simplify client side we don't introduce requirement
-		 * that 1st retry item have to wait until item that cause (root) of retry. Instead, we
-		 * just introduce some wait on server side. Case if extremely specific in 99% cases
+		 * that 1st retry item have to wait for the item that causes of retry (retry root). Instead, we
+		 * just introduce some wait on server side. This case if extremely specific, in 99% real-world cases
 		 * results will be returned from first attempt
 		 */
 		TestItem retryRoot = retrier.execute(context -> {

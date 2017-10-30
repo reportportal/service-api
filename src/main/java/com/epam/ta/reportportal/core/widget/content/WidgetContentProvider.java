@@ -116,11 +116,9 @@ public class WidgetContentProvider {
 	 */
 	private Map<String, List<ChartObject>> transformNamesForUI(CriteriaMap<?> criteriaMap, List<String> chartFields,
 			Map<String, List<ChartObject>> input) {
+
 		Map<String, String> reversedCriteriaMap = new HashMap<>();
-		chartFields.forEach(field -> {
-			String queryCriteria = criteriaMap.getCriteriaHolder(field).getQueryCriteria();
-			reversedCriteriaMap.put(queryCriteria, field);
-		});
+		chartFields.forEach(field -> reversedCriteriaMap.put(criteriaMap.getCriteriaHolder(field).getQueryCriteria(), field));
 
 		input.entrySet().stream().flatMap(it -> it.getValue().stream()).forEach(chartObject -> {
 			Map<String, String> values = new LinkedHashMap<>();

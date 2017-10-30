@@ -103,35 +103,8 @@ public class WidgetContentProvider {
 		int itemsCount = options.getItemsCount();
 		result = loadingStrategy.loadContent(projectName, filter, sort, itemsCount, contentFields, metaDataFields, widgetOptions);
 		if (null != options.getContentFields()) {
-			result = transformToFilterStyle(criteriaMap, result, options.getContentFields());
-			result = transformNamesForUI(result);
-		}
-		return result;
-	}
-
-	/**
-	 * Transform chart data fields names to ui known names using criteria
-	 * holder.
-	 */
-	private Map<String, List<ChartObject>> transformToFilterStyle(CriteriaMap<?> criteriaMap, Map<String, List<ChartObject>> input,
-			List<String> chartFields) {
-		Map<String, List<ChartObject>> result = new LinkedHashMap<>();
-
-		for (Map.Entry<String, List<ChartObject>> entry : input.entrySet()) {
-			boolean isConverted = false;
-			List<ChartObject> data = entry.getValue();
-			for (String field : chartFields) {
-
-				String queryCriteria = criteriaMap.getCriteriaHolder(field).getQueryCriteria();
-				if (queryCriteria.equals(entry.getKey())) {
-					result.put(criteriaMap.getCriteriaHolder(queryCriteria).getFilterCriteria(), data);
-					isConverted = true;
-					break;
-				}
-			}
-			if (!isConverted) {
-				result.put(entry.getKey(), data);
-			}
+			//result = transformToFilterStyle(criteriaMap, result, options.getContentFields());
+			result = transformNamesForUI(criteriaMap, options.getContentFields(), result);
 		}
 		return result;
 	}
@@ -142,18 +115,28 @@ public class WidgetContentProvider {
 	 * @param input
 	 * @return
 	 */
-	private Map<String, List<ChartObject>> transformNamesForUI(Map<String, List<ChartObject>> input) {
-		// TODO RECREATE with Java 8 streaming!
-		for (Map.Entry<String, List<ChartObject>> entry : input.entrySet()) {
-			for (ChartObject exist : entry.getValue()) {
-				Map<String, String> values = new HashMap<>();
-				for (String key : exist.getValues().keySet()) {
-					String keyValue = exist.getValues().get(key);
-					values.put(key.replaceAll("\\.", "\\$"), keyValue);
+	private Map<String, List<ChartObject>> transformNamesForUI(CriteriaMap<?> criteriaMap, List<String> chartFields,
+			Map<String, List<ChartObject>> input) {
+		Map<String, String> reversedCriteriaMap = new HashMap<>();
+		chartFields.forEach(it -> {
+			String queryCriteria = criteriaMap.getCriteriaHolder(it).getQueryCriteria();
+			reversedCriteriaMap.put(queryCriteria, it);
+		});
+
+		input.entrySet().stream().flatMap(it -> it.getValue().stream()).forEach(it -> {
+			Map<String, String> values = new LinkedHashMap<>();
+			it.getValues().keySet().forEach(key -> {
+				String value = it.getValues().get(key);
+				String queryCriteria = reversedCriteriaMap.get(key);
+				if (queryCriteria != null) {
+					values.put(queryCriteria, value);
+				} else {
+					values.put(key, value);
 				}
-				exist.setValues(values);
-			}
-		}
+			});
+			it.setValues(values);
+		});
+
 		return input;
 	}
 
@@ -165,10 +148,7 @@ public class WidgetContentProvider {
 		if (chartFields == null) {
 			return new ArrayList<>();
 		}
-		return chartFields.stream().map(it -> {
-			return criteriaMap.getCriteriaHolder(it).getQueryCriteria();
-			//+ ((filterCriteria.getExtension() != null) ? "." + filterCriteria.getExtension() : "");
-		}).collect(toList());
+		return chartFields.stream().map(it -> criteriaMap.getCriteriaHolder(it).getQueryCriteria()).collect(toList());
 	}
 
 }

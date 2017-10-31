@@ -40,6 +40,7 @@ import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_LOAD_WIDGET_CONTENT;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Widget content strategy context.<br>
@@ -117,8 +118,8 @@ public class WidgetContentProvider {
 	private Map<String, List<ChartObject>> transformNamesForUI(CriteriaMap<?> criteriaMap, List<String> chartFields,
 			Map<String, List<ChartObject>> input) {
 
-		Map<String, String> reversedCriteriaMap = new HashMap<>();
-		chartFields.forEach(field -> reversedCriteriaMap.put(criteriaMap.getCriteriaHolder(field).getQueryCriteria(), field));
+		Map<String, String> reversedCriteriaMap = chartFields.stream()
+				.collect(toMap(field -> criteriaMap.getCriteriaHolder(field).getQueryCriteria(), field -> field));
 
 		input.entrySet().stream().flatMap(it -> it.getValue().stream()).forEach(chartObject -> {
 			Map<String, String> values = new LinkedHashMap<>();

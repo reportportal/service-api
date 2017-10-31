@@ -64,6 +64,7 @@ public class WidgetContentProvider {
 	private Map<GadgetTypes, IContentLoadingStrategy> contentLoader;
 
 	public static final Function<String, String> TO_UI_STYLE = db -> db.replace('.', '$');
+	public static final Function<String, String> TO_DB_STYLE = model -> model.replace('$', '.');
 
 	/**
 	 * Load content according input parameters
@@ -125,7 +126,10 @@ public class WidgetContentProvider {
 			Map<String, String> values = new LinkedHashMap<>();
 			chartObject.getValues().keySet().forEach(key -> {
 				String value = chartObject.getValues().get(key);
-				String queryCriteria = reversedCriteriaMap.get(key);
+
+				// was reverted to ui style in reason of further grouping by those fields,
+				// so need to be reverted back into db style to find ui representation
+				String queryCriteria = reversedCriteriaMap.get(TO_DB_STYLE.apply(key));
 				if (queryCriteria != null) {
 					values.put(queryCriteria, value);
 				} else {

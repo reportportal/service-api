@@ -31,6 +31,8 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +48,8 @@ import java.util.zip.ZipFile;
 
 @Service
 public class XunitImportStrategy implements ImportStrategy {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(XunitImportStrategy.class);
 
     @Autowired
     private Provider<XunitParseJob> xmlParseJobProvider;
@@ -77,7 +81,9 @@ public class XunitImportStrategy implements ImportStrategy {
             throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, file.getName(), e);
         } finally {
             if (null != file) {
-                file.delete();
+                if (!file.delete()) {
+                    LOGGER.error("File '{}' was not successfully deleted.", file.getName());
+                }
             }
         }
     }

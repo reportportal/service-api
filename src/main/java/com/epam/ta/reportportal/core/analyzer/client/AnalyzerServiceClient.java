@@ -39,7 +39,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.*;
 import static java.util.Comparator.comparingInt;
@@ -55,7 +55,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	private final RestTemplate restTemplate;
 	private final DiscoveryClient discoveryClient;
 
-	private List<ServiceInstance> analyzerInstances;
+	private AtomicReference<List<ServiceInstance>> analyzerInstances;
 
 	@Autowired
 	public AnalyzerServiceClient(RestTemplate restTemplate, DiscoveryClient consulDiscoveryClient) {
@@ -66,12 +66,12 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 
 	@Override
 	public boolean hasClients() {
-		return !analyzerInstances.isEmpty();
+		return !analyzerInstances.get().isEmpty();
 	}
 
 	@Override
 	public List<IndexRs> index(List<IndexLaunch> rq) {
-		return analyzerInstances.stream()
+		return analyzerInstances.get().stream()
 				.filter(DOES_NEED_INDEX)
 				.map(instance -> index(instance, rq))
 				.filter(Optional::isPresent)
@@ -82,7 +82,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	//Make services return only updated items and refactor this
 	@Override
 	public IndexLaunch analyze(IndexLaunch rq) {
-		for (ServiceInstance instance : analyzerInstances) {
+		for (ServiceInstance instance : analyzerInstances.get()) {
 			Optional<IndexLaunch> analyzed = analyze(instance, rq);
 			if (analyzed.isPresent()) {
 				rq = analyzed.get();
@@ -138,12 +138,12 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	@EventListener
 	@VisibleForTesting
 	private void getAnalyzerServiceInstances(ConsulUpdateEvent event) {
-		analyzerInstances = new CopyOnWriteArrayList<>();
-		discoveryClient.getServices()
+		List<ServiceInstance> collect = discoveryClient.getServices()
 				.stream()
 				.flatMap(service -> discoveryClient.getInstances(service).stream())
 				.filter(instance -> instance.getMetadata().containsKey(ANALYZER_KEY))
 				.sorted(comparingInt(SERVICE_PRIORITY).reversed())
-				.forEach(it -> analyzerInstances.add(it));
+				.collect(toList());
+		analyzerInstances.set(collect);
 	}
 }

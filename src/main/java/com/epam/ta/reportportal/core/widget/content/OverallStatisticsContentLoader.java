@@ -75,21 +75,10 @@ public class  OverallStatisticsContentLoader extends StatisticBasedContentLoader
 	 */
 	private Map<String, List<ChartObject>> assembleData(Map<String, Integer> data) {
 		Map<String, String> values = data.keySet().stream()
-				.collect(Collectors.toMap(this::getFieldName, key -> data.get(key).toString()));
+				.collect(Collectors.toMap(key -> key, key -> data.get(key).toString()));
 		ChartObject chartObject = new ChartObject();
 		chartObject.setValues(values);
 		return Collections.singletonMap(RESULT, Collections.singletonList(chartObject));
-	}
-
-	/**
-	 * Field name parser
-	 * 
-	 * @param fieldName
-	 * @return
-	 */
-	private String getFieldName(String fieldName) {
-		String[] split = fieldName.split("\\.");
-		return split[split.length - 1];
 	}
 
 }

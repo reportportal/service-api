@@ -127,8 +127,7 @@ public class WidgetContentProvider {
 			chartObject.getValues().keySet().forEach(key -> {
 				String value = chartObject.getValues().get(key);
 
-				// was reverted to ui style in reason of further grouping by those fields,
-				// so need to be reverted back into db style to find ui representation
+				// keys could not be in db style, so should be reverted
 				String queryCriteria = reversedCriteriaMap.get(TO_DB_STYLE.apply(key));
 				if (queryCriteria != null) {
 					values.put(queryCriteria, value);

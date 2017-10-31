@@ -224,14 +224,14 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 
 	@SuppressWarnings("serial")
 	private Map<String, List<ChartObject>> getLastLaunchStatistics(String projectId) {
-		String total = "statistics$executionCounter$total";
-		String productBug = "statistics$issueCounter$productBug";
-		String toInvestigate = "statistics$issueCounter$toInvestigate";
-		String systemIssue = "statistics$issueCounter$systemIssue";
-		String automationBug = "statistics$issueCounter$automationBug";
-		String failed = "statistics$executionCounter$failed";
-		String passed = "statistics$executionCounter$passed";
-		String skipped = "statistics$executionCounter$skipped";
+		String total = "statistics$executions$total";
+		String productBug = "statistics$defects$product_bug";
+		String toInvestigate = "statistics$defects$to_investigate";
+		String systemIssue = "statistics$defects$system_issue";
+		String automationBug = "statistics$defects$automation_bug";
+		String failed = "statistics$executions$failed";
+		String passed = "statistics$executions$passed";
+		String skipped = "statistics$executions$skipped";
 		Optional<Launch> launchOptional = launchRepository.findLastLaunch(projectId, DEFAULT.name());
 
 		if (!launchOptional.isPresent()) {

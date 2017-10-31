@@ -22,7 +22,6 @@ package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
-import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
@@ -36,11 +35,12 @@ import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.RetryId;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
-import com.google.common.base.Strings;
-import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -57,6 +57,8 @@ import static com.epam.ta.reportportal.database.entity.Status.*;
 import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.NOT_ISSUE_FLAG;
 import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.validValues;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 /**
  * Default implementation of {@link FinishTestItemHandler}
@@ -68,6 +70,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
  */
 @Service
 class FinishTestItemHandlerImpl implements FinishTestItemHandler {
+	private static final Logger LOGGER = LoggerFactory.getLogger(StartTestItemHandlerImpl.class);
 
 	private ProjectRepository projectRepository;
 	private LaunchRepository launchRepository;
@@ -75,7 +78,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private StatisticsFacadeFactory statisticsFacadeFactory;
 	private ExternalSystemRepository externalSystemRepository;
 	private ILogIndexer logIndexer;
-	private IIssuesAnalyzer issuesAnalyzer;
 
 	@Autowired
 	public void setProjectRepository(ProjectRepository projectRepository) {
@@ -107,19 +109,30 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		this.logIndexer = logIndexer;
 	}
 
-	@Autowired
-	public void setIssuesAnalyzer(IIssuesAnalyzer issuesAnalyzer) {
-		this.issuesAnalyzer = issuesAnalyzer;
-	}
-
 	@Override
 	public OperationCompletionRS finishTestItem(String testItemId, FinishTestItemRQ finishExecutionRQ, String username) {
-		TestItem testItem = verifyTestItem(testItemId, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()));
+
+		TestItem testItem;
+		TestItem retryRoot = null;
+		if (RetryId.isRetry(testItemId)) {
+
+			RetryId retryID = RetryId.parse(testItemId);
+			LOGGER.debug("Finishing retry with ID: {} for parent {}", testItemId, retryID);
+			retryRoot = testItemRepository.findOne(retryID.getRootID());
+
+			LOGGER.debug("Retry root with {} childs has found", retryRoot.getRetries());
+			testItem = retryRoot.getRetries().stream().filter(it -> it.getId().equals(testItemId)).findAny().get();
+		} else {
+			testItem = testItemRepository.findOne(testItemId);
+		}
+
+		verifyTestItem(testItem, testItemId, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()));
+
 		testItem.setEndTime(finishExecutionRQ.getEndTime());
-		if (!Strings.isNullOrEmpty(finishExecutionRQ.getDescription())) {
+		if (!isNullOrEmpty(finishExecutionRQ.getDescription())) {
 			testItem.setItemDescription(finishExecutionRQ.getDescription());
 		}
-		if (!CollectionUtils.isEmpty(finishExecutionRQ.getTags())) {
+		if (!isEmpty(finishExecutionRQ.getTags())) {
 			testItem.setTags(finishExecutionRQ.getTags());
 		}
 		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
@@ -132,8 +145,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		Optional<Status> actualStatus = fromValue(finishExecutionRQ.getStatus());
 		Issue providedIssue = finishExecutionRQ.getIssue();
 
-		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(
-				project.getConfiguration().getStatisticsCalculationStrategy());
+		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration()
+				.getStatisticsCalculationStrategy());
 
 		/*
 		 * If test item has descendants, it's status is resolved from statistics
@@ -151,11 +164,33 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		}
 
 		try {
-			testItemRepository.save(testItem);
-			testItem = statisticsFacade.updateExecutionStatistics(testItem);
-			if (null != testItem.getIssue()) {
-				statisticsFacade.updateIssueStatistics(testItem);
+			//retry mode
+			if (null != retryRoot) {
+				testItemRepository.updateRetry(testItem.getId(), testItem);
+				if (retryRoot.getStatus() != testItem.getStatus()) {
+					/* reset current statistics */
+					statisticsFacade.resetExecutionStatistics(retryRoot);
+
+					/* copy statistics from last retry attempt */
+					retryRoot.setStatus(testItem.getStatus());
+					retryRoot.setIssue(testItem.getIssue());
+					retryRoot.setStatistics(testItem.getStatistics());
+
+					/* update statistics */
+					statisticsFacade.updateExecutionStatistics(retryRoot);
+					if (null != testItem.getIssue()) {
+						statisticsFacade.updateIssueStatistics(testItem);
+					}
+
+				}
+			} else {
+				testItemRepository.save(testItem);
+				testItem = statisticsFacade.updateExecutionStatistics(testItem);
+				if (null != testItem.getIssue()) {
+					statisticsFacade.updateIssueStatistics(testItem);
+				}
 			}
+
 			logIndexer.indexLogs(launch.getId(), Collections.singletonList(testItem));
 		} catch (Exception e) {
 			throw new ReportPortalException("Error during updating TestItem " + e.getMessage(), e);
@@ -172,8 +207,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param actualStatus      Actual status of item
 	 * @return TestItem updated item
 	 */
-	private TestItem verifyTestItem(final String testItemId, FinishTestItemRQ finishExecutionRQ, Optional<Status> actualStatus) {
-		TestItem testItem = testItemRepository.findOne(testItemId);
+	private void verifyTestItem(TestItem testItem, final String testItemId, FinishTestItemRQ finishExecutionRQ,
+			Optional<Status> actualStatus) {
 		try {
 			expect(testItem, notNull()).verify(TEST_ITEM_NOT_FOUND, testItemId);
 			expect(testItem, not(Preconditions.TEST_ITEM_FINISHED)).verify(REPORTING_ITEM_ALREADY_FINISHED, testItem.getId());
@@ -187,12 +222,17 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				descendants = testItemRepository.findDescendants(testItem.getId());
 			}
 			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED,
-					formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'", testItemId,
-							IN_PROGRESS.name(), descendants
+					formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'",
+							testItemId,
+							IN_PROGRESS.name(),
+							descendants
 					)
 			);
-			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime())).verify(
-					FINISH_TIME_EARLIER_THAN_START_TIME, finishExecutionRQ.getEndTime(), testItem.getStartTime(), testItemId);
+			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
+					finishExecutionRQ.getEndTime(),
+					testItem.getStartTime(),
+					testItemId
+			);
 
 			/*
 			 * If there is issue provided we have to be sure issue type is
@@ -201,16 +241,16 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		} catch (BusinessRuleViolationException e) {
 			fail().withError(AMBIGUOUS_TEST_ITEM_STATUS, e.getMessage());
 		}
-		return testItem;
 	}
 
 	void verifyIssue(String testItemId, Issue issue, Project.Configuration projectSettings) {
 		if (issue != null && !NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(issue.getIssueType())) {
-			expect(projectSettings.getByLocator(issue.getIssueType()), notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS,
-					formattedSupplier("Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types are: {}",
-							issue.getIssueType(), testItemId, validValues()
-					)
-			);
+			expect(projectSettings.getByLocator(issue.getIssueType()), notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
+					"Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types are: {}",
+					issue.getIssueType(),
+					testItemId,
+					validValues()
+			));
 		}
 	}
 
@@ -233,12 +273,14 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 					);
 
 					//set provided external issues if any present
-					issue.setExternalSystemIssues(
-							Optional.ofNullable(providedIssue.getExternalSystemIssues()).map(issues -> issues.stream().peek(it -> {
+					issue.setExternalSystemIssues(Optional.ofNullable(providedIssue.getExternalSystemIssues())
+							.map(issues -> issues.stream().peek(it -> {
 								//not sure if it propogates exception correctly
-								expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true)).verify(
-										EXTERNAL_SYSTEM_NOT_FOUND, it.getExternalSystemId());
-							}).map(TestItemUtils.externalIssueDtoConverter(submitter)).collect(Collectors.toSet())).orElse(null));
+								expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true)).verify(EXTERNAL_SYSTEM_NOT_FOUND,
+										it.getExternalSystemId()
+								);
+							}).map(TestItemUtils.externalIssueDtoConverter(submitter)).collect(Collectors.toSet()))
+							.orElse(null));
 
 					testItem.setIssue(issue);
 				}

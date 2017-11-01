@@ -184,7 +184,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				item = retryItems.get(0);
 			} else {
 				//second retry. Make sure we take the one that already has retries
-				item = retryItems.stream().filter(it -> null != it.getRetries()).findAny().get();
+				item = retryItems.stream().filter(it -> null != it.getRetries()).findFirst().get();
 			}
 			return item;
 		});

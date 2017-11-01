@@ -80,13 +80,13 @@ public class XunitImportStrategy implements ImportStrategy {
         } catch (IOException e) {
             throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, file.getName(), e);
         } finally {
-            if (null != file) {
-                try {
-                    file.delete();
-                } catch (Exception e) {
-                    LOGGER.error("File '{}' was not successfully deleted.", file.getName(), e);
-                }
-            }
+			try {
+				if (null != file) {
+					file.delete();
+				}
+			} catch (Exception e) {
+				LOGGER.error("File '{}' was not successfully deleted.", file.getName(), e);
+			}
         }
     }
 

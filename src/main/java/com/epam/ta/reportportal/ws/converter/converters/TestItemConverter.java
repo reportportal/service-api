@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.base.Preconditions;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -110,6 +111,10 @@ public final class TestItemConverter {
             }
             resource.setStatistics(statisticsCounters);
         }
+
+        Optional.ofNullable(item.getRetries())
+                .map(items -> items.stream().map(TestItemConverter.TO_RESOURCE).collect(Collectors.toList()))
+                .ifPresent(resource::setRetries);
         return resource;
     };
 }

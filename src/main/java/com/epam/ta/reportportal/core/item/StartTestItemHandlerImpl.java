@@ -22,26 +22,33 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.Preconditions;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.util.RetryId;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
+import com.google.common.annotations.VisibleForTesting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
-import java.util.ArrayList;
+import java.util.List;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.Optional.ofNullable;
 
 /**
  * Start Launch operation default implementation
@@ -51,10 +58,20 @@ import static java.util.Optional.ofNullable;
  */
 @Service
 class StartTestItemHandlerImpl implements StartTestItemHandler {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(StartTestItemHandlerImpl.class);
+
 	private TestItemRepository testItemRepository;
 	private LaunchRepository launchRepository;
 	private Provider<TestItemBuilder> testItemBuilder;
 	private UniqueIdGenerator identifierGenerator;
+	private RetryTemplate retrier;
+
+	public StartTestItemHandlerImpl() {
+		retrier = new RetryTemplate();
+		retrier.setRetryPolicy(new SimpleRetryPolicy(10));
+		retrier.setThrowLastExceptionOnExhausted(true);
+	}
 
 	@Autowired
 	public void setIdentifierGenerator(UniqueIdGenerator identifierGenerator) {
@@ -113,10 +130,16 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		}
 
 		if (rq.isRetry()) {
-			TestItem initialItem = testItemRepository.findByUniqueId(item.getUniqueId()).get(0);
-			//TODO change to update, do not save whole object
-			ofNullable(initialItem.getRetries()).orElse(new ArrayList<>()).add(item);
-			testItemRepository.save(initialItem);
+			TestItem retryRoot = getRetryRoot(item.getUniqueId(), parent);
+
+			RetryId retryId = RetryId.newID(retryRoot.getId());
+
+			item.setId(retryId.toString());
+			item.setParent(null);
+
+			LOGGER.debug("Adding retry with ID '{}' to item '{}'", item.getId(), retryRoot.getId());
+			testItemRepository.addRetry(retryRoot.getId(), item);
+
 		} else {
 			testItemRepository.save(item);
 
@@ -126,6 +149,48 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		}
 
 		return new ItemCreatedRS(item.getId(), item.getUniqueId());
+	}
+
+	@VisibleForTesting
+	TestItem getRetryRoot(String uniqueID, String parent) {
+		LOGGER.debug("Looking for retry root. Parent: {}. Unique ID: {}", parent, uniqueID);
+
+		/*
+		 * Due to async nature of RP clients and some TestNG
+		 * implementation details both 'start item' of root of retry and 'start item' events
+		 * may come at the same time (almost). To simplify client side we don't introduce requirement
+		 * that 1st retry item have to wait for the item that causes of retry (retry root). Instead, we
+		 * just introduce some wait on server side. This case if extremely specific, in 99% real-world cases
+		 * results will be returned from first attempt
+		 */
+		TestItem retryRoot = retrier.execute(context -> {
+
+			/* search for the item with the same unique ID and parent. Since retries do not contain
+			 * parentID, there should be only one result
+			 */
+			List<TestItem> retryItems = testItemRepository.findByUniqueId(uniqueID, parent);
+
+			/* make sure at least one item is present already.
+			 *  If not, this exception will be handled by retry handler
+			 */
+			BusinessRule.expect(retryItems, Preconditions.NOT_EMPTY_COLLECTION)
+					.verify(ErrorType.INCORRECT_REQUEST, "Unable to find retry root");
+
+			LOGGER.info("Found {} retry root candidates", retryItems.size());
+			TestItem item;
+
+			//first retry of some test item
+			if (1 == retryItems.size()) {
+				item = retryItems.get(0);
+			} else {
+				//second retry. Make sure we take the one that already has retries
+				item = retryItems.stream().filter(it -> Preconditions.NOT_EMPTY_COLLECTION.test(it.getRetries())).findFirst().get();
+			}
+			return item;
+		});
+
+		LOGGER.debug("Found retry root:" + retryRoot.getId());
+		return retryRoot;
 	}
 
 	private void validate(String projectName, StartTestItemRQ rq, Launch launch) {

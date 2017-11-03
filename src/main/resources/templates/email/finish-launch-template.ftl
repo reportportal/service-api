@@ -99,6 +99,13 @@
                             finished</h2>
                         <p style="font-size: 14px; color: #777777;">To view it on Report Portal just visit this <a
                                 href="${url}" target="_blank">link</a>.</p>
+                    <#if tags??>
+                        <p style="font-size: 14px; color: #777777;">Tags to launch:
+                            <#list tags as name, link>
+                                <a href="${link}" target="_blank" style="padding-left:5px;">${name}</a>
+                            </#list>
+                        </p>
+                    </#if>
                         <!-- Launch name, link and description (if exists) -->
                     <#if description??>
                         <p style="font-size: 14px; color: #777777;">Description of launch:<br>${description}</p>

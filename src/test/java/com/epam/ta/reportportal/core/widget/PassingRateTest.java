@@ -67,8 +67,8 @@ public class PassingRateTest extends BaseTest {
         Assert.assertEquals(GadgetTypes.PASSING_RATE_SUMMARY.getType(), widgetResource.getContentParameters().getGadget());
         Assert.assertEquals(WidgetDataTypes.BAR_CHART.getType(), widgetResource.getContentParameters().getType());
         Assert.assertTrue(chartObject.getValues().size() == 2);
-        Assert.assertEquals(chartObject.getValues().get(TOTAL_FIELD), String.valueOf(8));
-        Assert.assertEquals(chartObject.getValues().get(PASSED_FIELD), String.valueOf(6));
+        Assert.assertEquals(chartObject.getValues().get("statistics$executions$total"), String.valueOf(8));
+        Assert.assertEquals(chartObject.getValues().get("statistics$executions$passed"), String.valueOf(6));
     }
 
     private WidgetRQ widgetRQ(){

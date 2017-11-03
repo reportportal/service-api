@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import java.util.List;
 
 /**
- * Handler for delete test item operation
+ * Handler for deleteLogs test item operation
  * 
  * @author Andrei Varabyeu
  * @author Aliaksei Makayed

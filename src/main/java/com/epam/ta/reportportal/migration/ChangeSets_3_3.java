@@ -81,7 +81,7 @@ public class ChangeSets_3_3 {
 
     @ChangeSet(order = "3.3-2", id = "v3.3-Update activity types with new values", author = "pbortnik")
     public void updateActivityTypes(MongoTemplate mongoTemplate) {
-        final Query q = new Query(Criteria.where(ACTION_TYPE).in("start", "finish", "delete", "share", "unshare"));
+        final Query q = new Query(Criteria.where(ACTION_TYPE).in("start", "finish", "deleteLogs", "share", "unshare"));
         mongoTemplate.stream(q, DBObject.class, COLLECTION).forEachRemaining(dbo -> {
             String type = (String) dbo.get(ACTION_TYPE);
             Update u = new Update();
@@ -92,7 +92,7 @@ public class ChangeSets_3_3 {
                 case "finish":
                     u.set(ACTION_TYPE, FINISH_LAUNCH.getValue());
                     break;
-                case "delete":
+                case "deleteLogs":
                     u.set(ACTION_TYPE, DELETE_LAUNCH.getValue());
                     break;
                 case "share":

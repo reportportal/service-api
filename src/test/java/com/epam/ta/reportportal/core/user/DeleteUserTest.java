@@ -75,7 +75,7 @@ public class DeleteUserTest extends BaseTest {
 	public void negativeDeleteUserTest() {
 		String delUserId = "user1";
 		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage(formattedSupplier(INCORRECT_REQUEST.getDescription(), "You cannot delete own account").get());
+		thrown.expectMessage(formattedSupplier(INCORRECT_REQUEST.getDescription(), "You cannot deleteLogs own account").get());
 		deleteUserHandler.deleteUser(delUserId, delUserId);
 	}
 }

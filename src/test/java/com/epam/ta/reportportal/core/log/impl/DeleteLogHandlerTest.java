@@ -75,7 +75,7 @@ public class DeleteLogHandlerTest {
         deleteLogHandler.setTestItemRepository(itemRepositoryMock(logId, launchId, testId));
         deleteLogHandler.setLogRepository(logRepositoryMock(logId, testId));
 
-        String message = formattedSupplier("Unable to delete log '{}' when test item '{}' in progress state", logId,
+        String message = formattedSupplier("Unable to deleteLogs log '{}' when test item '{}' in progress state", logId,
                 testId).get();
         String errorMessage = formattedSupplier(TEST_ITEM_IS_NOT_FINISHED.getDescription(), message).get();
         thrown.expect(ReportPortalException.class);

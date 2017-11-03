@@ -168,6 +168,6 @@ public class DeleteProjectSettingsHandler implements IDeleteProjectSettingsHandl
 		}
 
 		eventPublisher.publishEvent(new DefectTypeDeletedEvent(id, projectsClone, user));
-		return new OperationCompletionRS("Issue sub-type delete operation completed successfully.");
+		return new OperationCompletionRS("Issue sub-type deleteLogs operation completed successfully.");
 	}
 }

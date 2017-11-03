@@ -120,7 +120,7 @@ public class DeleteLogHandler implements IDeleteLogHandler {
 
 		final TestItem testItem = testItemRepository.findOne(log.getTestItemRef());
 		expect(testItem, not(Preconditions.IN_PROGRESS)).verify(ErrorType.TEST_ITEM_IS_NOT_FINISHED,
-				formattedSupplier("Unable to delete log '{}' when test item '{}' in progress state", log.getId(), testItem.getId()));
+				formattedSupplier("Unable to deleteLogs log '{}' when test item '{}' in progress state", log.getId(), testItem.getId()));
 
 		final String expectedProjectName = launchRepository.findOne(testItem.getLaunchRef()).getProjectRef();
 		expect(expectedProjectName, equalTo(projectName)).verify(ErrorType.FORBIDDEN_OPERATION,
@@ -134,7 +134,7 @@ public class DeleteLogHandler implements IDeleteLogHandler {
 		final Launch launch = launchRepository.findOne(testItem.getLaunchRef());
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
 			/*
-			 * Only PROJECT_MANAGER roles could delete launches
+			 * Only PROJECT_MANAGER roles could deleteLogs launches
 			 */
 			UserConfig userConfig = findUserConfigByLogin(project, user.getId());
 			expect(userConfig, hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);

@@ -94,7 +94,7 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 		validate(launch, user, project);
 		try {
 			launchRepository.delete(singletonList(launchId));
-			logIndexer.delete(projectName, itemRepository.findIdsNotInIssueType(TO_INVESTIGATE.getLocator(), launchId));
+			logIndexer.deleteLogs(projectName, itemRepository.findIdsNotInIssueType(TO_INVESTIGATE.getLocator(), launchId));
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while Launch deleting.", exp);
 		}
@@ -120,11 +120,11 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 		);
 
 		expect(launch, not(IN_PROGRESS)).verify(LAUNCH_IS_NOT_FINISHED,
-				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId())
+				formattedSupplier("Unable to deleteLogs launch '{}' in progress state", launch.getId())
 		);
 
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
-			/* Only PROJECT_MANAGER roles could delete launches */
+			/* Only PROJECT_MANAGER roles could deleteLogs launches */
 			UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, user.getId());
 			expect(userConfig, hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
 		}

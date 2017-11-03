@@ -101,7 +101,7 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 			testItemRepository.delete(itemId);
 			if (!isBatch) {
-				logIndexer.delete(projectName, singletonList(itemId));
+				logIndexer.deleteLogs(projectName, singletonList(itemId));
 			}
 
 			if (null != item.getParent()) {
@@ -131,17 +131,17 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 	@Override
 	public List<OperationCompletionRS> deleteTestItem(String[] ids, String project, String user) {
-		logIndexer.delete(project, Arrays.asList(ids));
+		logIndexer.deleteLogs(project, Arrays.asList(ids));
 		return Stream.of(ids).map(it -> deleteTestItem(it, project, user, true)).collect(toList());
 	}
 
 	private void validate(String testItemId, TestItem testItem, String projectName) {
 		expect(testItem, notNull()).verify(TEST_ITEM_NOT_FOUND, testItemId);
 		expect(testItem, not(IN_PROGRESS)).verify(TEST_ITEM_IS_NOT_FINISHED,
-				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getId()));
+				formattedSupplier("Unable to deleteLogs test item ['{}'] in progress state", testItem.getId()));
 		Launch parentLaunch = launchRepository.findOne(testItem.getLaunchRef());
 		expect(parentLaunch, not(IN_PROGRESS)).verify(LAUNCH_IS_NOT_FINISHED,
-				formattedSupplier("Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state", testItem.getId(),
+				formattedSupplier("Unable to deleteLogs test item ['{}'] under launch ['{}'] with 'In progress' state", testItem.getId(),
 						testItem.getLaunchRef()));
 		expect(projectName, equalTo(parentLaunch.getProjectRef())).verify(FORBIDDEN_OPERATION,
 				formattedSupplier("Deleting testItem '{}' is not under specified project '{}'", testItem.getId(), projectName));
@@ -151,7 +151,7 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
 			/*
-			 * Only PROJECT_MANAGER roles could delete testItems
+			 * Only PROJECT_MANAGER roles could deleteLogs testItems
 			 */
 			UserConfig userConfig = findUserConfigByLogin(project, user.getId());
 			expect(userConfig, hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);

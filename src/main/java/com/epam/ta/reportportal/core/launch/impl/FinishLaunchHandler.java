@@ -223,7 +223,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
 			expect(launch.getProjectRef(), equalTo(projectName)).verify(ACCESS_DENIED);
 			/*
-			 * Only PROJECT_MANAGER roles could delete launches
+			 * Only PROJECT_MANAGER roles could deleteLogs launches
 			 */
 			UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, user.getId());
 			expect(userConfig, hasProjectRoles(Collections.singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);

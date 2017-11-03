@@ -122,8 +122,13 @@ public class LogIndexerService implements ILogIndexer {
 	}
 
 	@Override
-	public void delete(String project, List<String> ids) {
-		analyzerServiceClient.delete(project, ids);
+	public void deleteIndex(String project) {
+		analyzerServiceClient.deleteIndex(project);
+	}
+
+	@Override
+	public void deleteLogs(String project, List<String> ids) {
+		analyzerServiceClient.deleteLogs(project, ids);
 	}
 
 	@Override

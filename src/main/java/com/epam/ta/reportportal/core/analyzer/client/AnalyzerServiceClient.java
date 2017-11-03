@@ -71,7 +71,8 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 
 	@Override
 	public List<IndexRs> index(List<IndexLaunch> rq) {
-		return analyzerInstances.get().stream()
+		return analyzerInstances.get()
+				.stream()
 				.filter(DOES_NEED_INDEX)
 				.map(instance -> index(instance, rq))
 				.filter(Optional::isPresent)
@@ -92,17 +93,28 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	}
 
 	@Override
-	public void delete(String project, List<String> items) {
-		analyzerInstances.get().stream()
-				.filter(DOES_NEED_INDEX)
-				.forEach(instance -> delete(instance, project, items));
+	public void deleteLogs(String project, List<String> items) {
+		analyzerInstances.get().stream().filter(DOES_NEED_INDEX).forEach(instance -> deleteLogs(instance, project, items));
 	}
 
-	private void delete(ServiceInstance instance, String project, List<String> items) {
+	@Override
+	public void deleteIndex(String project) {
+		analyzerInstances.get().stream().filter(DOES_NEED_INDEX).forEach(instance -> deleteIndex(instance, project));
+	}
+
+	private void deleteIndex(ServiceInstance instance, String project) {
+		try {
+			restTemplate.delete(instance.getUri().toString() + DELETE_PATH, project);
+		} catch (Exception e) {
+			LOGGER.error("Index deleting failed. Cannot interact with {} analyzer. Error: {}", instance.getMetadata().get(ANALYZER_KEY), e);
+		}
+	}
+
+	private void deleteLogs(ServiceInstance instance, String project, List<String> items) {
 		try {
 			restTemplate.put(instance.getUri().toString() + DELETE_PATH, project, items);
 		} catch (Exception e) {
-			LOGGER.error("Deleting failed. Cannot interact with {} analyzer. Error: {}", instance.getMetadata().get(ANALYZER_KEY), e);
+			LOGGER.error("Logs deleting failed. Cannot interact with {} analyzer. Error: {}", instance.getMetadata().get(ANALYZER_KEY), e);
 		}
 	}
 

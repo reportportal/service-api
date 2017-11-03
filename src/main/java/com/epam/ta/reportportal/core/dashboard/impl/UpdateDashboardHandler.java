@@ -106,7 +106,7 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 
 		expect(null != rq.getAddWidget() && null != rq.getDeleteWidgetId() && rq.getDeleteWidgetId()
 				.equalsIgnoreCase(rq.getAddWidget().getWidgetId()), equalTo(Boolean.FALSE))
-				.verify(DASHBOARD_UPDATE_ERROR, "Unable delete and add the same widget simultaneously.");
+				.verify(DASHBOARD_UPDATE_ERROR, "Unable deleteLogs and add the same widget simultaneously.");
 
 		// update widget (or list of widgets if one of them change position on
 		// dashboard)

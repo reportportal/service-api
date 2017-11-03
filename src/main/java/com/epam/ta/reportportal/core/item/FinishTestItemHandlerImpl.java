@@ -184,7 +184,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 				}
 			} else {
-				testItemRepository.save(testItem);
+				/* do not touch retries */
+				testItem.setRetries(null);
+				testItemRepository.partialUpdate(testItem);
 				testItem = statisticsFacade.updateExecutionStatistics(testItem);
 				if (null != testItem.getIssue()) {
 					statisticsFacade.updateIssueStatistics(testItem);
@@ -221,13 +223,12 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			if (testItem.hasChilds()) {
 				descendants = testItemRepository.findDescendants(testItem.getId());
 			}
-			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED,
-					formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'",
-							testItemId,
-							IN_PROGRESS.name(),
-							descendants
-					)
-			);
+			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED, formattedSupplier(
+					"Test item '{}' has descendants with '{}' status. All descendants '{}'",
+					testItemId,
+					IN_PROGRESS.name(),
+					descendants
+			));
 			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
 					finishExecutionRQ.getEndTime(),
 					testItem.getStartTime(),
@@ -287,11 +288,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			} else {
 				testItem.setIssue(new TestItemIssue());
 				/* For AA saving reference initialization */
-//				Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-//				expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, testItem.getLaunchRef());
-//				if (Mode.DEFAULT.equals(launch.getMode()) && project.getConfiguration().getIsAutoAnalyzerEnabled()) {
-//					testItem = analyzeItem(launch.getId(), testItem, project.getConfiguration().getAnalyzeOnTheFly());
-//				}
+				//				Launch launch = launchRepository.findOne(testItem.getLaunchRef());
+				//				expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, testItem.getLaunchRef());
+				//				if (Mode.DEFAULT.equals(launch.getMode()) && project.getConfiguration().getIsAutoAnalyzerEnabled()) {
+				//					testItem = analyzeItem(launch.getId(), testItem, project.getConfiguration().getAnalyzeOnTheFly());
+				//				}
 			}
 		}
 		return testItem;

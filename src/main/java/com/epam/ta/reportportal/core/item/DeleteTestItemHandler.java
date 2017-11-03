@@ -43,7 +43,7 @@ public interface DeleteTestItemHandler {
 	 * @param username
 	 * @return
 	 */
-	OperationCompletionRS deleteTestItem(String itemId, String project, String username);
+	OperationCompletionRS deleteTestItem(String itemId, String project, String username, boolean isBatch);
 
 	List<OperationCompletionRS> deleteTestItem(String[] ids, String project, String user);
 }

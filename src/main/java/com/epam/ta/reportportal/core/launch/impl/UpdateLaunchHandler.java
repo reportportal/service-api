@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.launch.IUpdateLaunchHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
@@ -34,7 +35,6 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.launch.AutoAnalyzeStrategy;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
@@ -43,6 +43,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.google.common.collect.Sets;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
@@ -56,6 +57,7 @@ import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.CUSTOMER;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -85,6 +87,9 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	private IIssuesAnalyzer analyzerService;
 
 	@Autowired
+	private ILogIndexer logIndexer;
+
+	@Autowired
 	@Qualifier("autoAnalyzeTaskExecutor")
 	private TaskExecutor taskExecutor;
 
@@ -108,16 +113,8 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		Launch launch = launchRepository.findOne(launchId);
 		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);
 		validate(launch, userName, projectName, rq.getMode());
-		if ((null != rq.getMode()) || (null != rq.getDescription()) || (null != rq.getTags())) {
-			if (null != rq.getMode()) {
-				launch.setMode(rq.getMode());
-			}
-			if (null != rq.getDescription()) {
-				launch.setDescription(rq.getDescription().trim());
-			}
-			if (null != rq.getTags()) {
-				launch.setTags(Sets.newHashSet(EntityUtils.trimStrings(EntityUtils.update(rq.getTags()))));
-			}
+		boolean launchUpdated = checkLaunchUpdated(launch, rq);
+		if (launchUpdated) {
 			launchRepository.save(launch);
 		}
 		return new OperationCompletionRS("Launch with ID = '" + launch.getId() + "' successfully updated.");
@@ -144,7 +141,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		Project project = projectRepository.findOne(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
-		List<TestItem> toInvestigate = testItemRepository.findInIssueTypeItems(TestItemIssueType.TO_INVESTIGATE.getLocator(), launchId);
+		List<TestItem> toInvestigate = testItemRepository.findInIssueTypeItems(TO_INVESTIGATE.getLocator(), launchId);
 
 		taskExecutor.execute(() -> analyzerService.analyze(launch, toInvestigate));
 
@@ -158,6 +155,47 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 				.stream()
 				.map(entry -> updateLaunch(entry.getKey(), projectName, userName, entry.getValue()))
 				.collect(toList());
+	}
+
+	/**
+	 * If launch mode has changed - reindex items
+	 *
+	 * @param launch Update launch
+	 */
+	private void indexLogs(Launch launch) {
+		List<TestItem> investigatedItems = testItemRepository.findIdsNotInIssueType(TO_INVESTIGATE.getLocator(), launch.getId());
+		if (!CollectionUtils.isEmpty(investigatedItems)) {
+			if (Mode.DEBUG.equals(launch.getMode())) {
+				logIndexer.delete(launch.getProjectRef(), investigatedItems.stream().map(TestItem::getId).collect(toList()));
+			} else {
+				logIndexer.indexLogs(launch.getId(), investigatedItems);
+			}
+		}
+	}
+
+	/**
+	 * Update launch if it was changed
+	 *
+	 * @param launch Launch
+	 * @param rq     Update launch request
+	 * @return <code>true</code> if updated
+	 */
+	private boolean checkLaunchUpdated(Launch launch, UpdateLaunchRQ rq) {
+		boolean isUpdated = false;
+		if (null != rq.getMode()) {
+			launch.setMode(rq.getMode());
+			indexLogs(launch);
+			isUpdated = true;
+		}
+		if (null != rq.getDescription()) {
+			launch.setDescription(rq.getDescription().trim());
+			isUpdated = true;
+		}
+		if (null != rq.getTags()) {
+			launch.setTags(Sets.newHashSet(EntityUtils.trimStrings(EntityUtils.update(rq.getTags()))));
+			isUpdated = true;
+		}
+		return isUpdated;
 	}
 
 	private void validate(Launch launch, String userName, String projectName, Mode mode) {

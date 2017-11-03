@@ -122,6 +122,11 @@ public class LogIndexerService implements ILogIndexer {
 	}
 
 	@Override
+	public void delete(String project, List<String> ids) {
+		analyzerServiceClient.delete(project, ids);
+	}
+
+	@Override
 	public void indexAllLogs() {
 		String checkpoint = getLastCheckpoint();
 		if (!analyzerServiceClient.hasClients()) {

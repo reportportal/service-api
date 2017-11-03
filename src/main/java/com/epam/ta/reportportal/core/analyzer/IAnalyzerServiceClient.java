@@ -70,9 +70,9 @@ public interface IAnalyzerServiceClient {
 	IndexLaunch analyze(IndexLaunch rq);
 
 	/**
-	 * Delete specified items from specified index
+	 * Delete specified items from specified index/project
 	 *
-	 * @param project Project
+	 * @param project Project/index to delete from
 	 * @param items   Items ids to delete
 	 */
 	void delete(String project, List<String> items);

@@ -50,6 +50,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 
 	static final String INDEX_PATH = "/_index";
 	static final String ANALYZE_PATH = "/_analyze";
+	static final String DELETE_PATH = "/_delete";
 
 	private final RestTemplate restTemplate;
 	private final DiscoveryClient discoveryClient;
@@ -58,9 +59,9 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 
 	@Autowired
 	public AnalyzerServiceClient(RestTemplate restTemplate, DiscoveryClient consulDiscoveryClient) {
+		this.analyzerInstances = new AtomicReference<>();
 		this.restTemplate = restTemplate;
 		this.discoveryClient = consulDiscoveryClient;
-		this.analyzerInstances = new AtomicReference<>();
 	}
 
 	@Override
@@ -88,6 +89,21 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 			}
 		}
 		return rq;
+	}
+
+	@Override
+	public void delete(String project, List<String> items) {
+		analyzerInstances.get().stream()
+				.filter(DOES_NEED_INDEX)
+				.forEach(instance -> delete(instance, project, items));
+	}
+
+	private void delete(ServiceInstance instance, String project, List<String> items) {
+		try {
+			restTemplate.put(instance.getUri().toString() + DELETE_PATH, project, items);
+		} catch (Exception e) {
+			LOGGER.warn("Indexing failed. Cannot interact with {} analyzer. Error: {}", instance.getMetadata().get(ANALYZER_KEY), e);
+		}
 	}
 
 	/**

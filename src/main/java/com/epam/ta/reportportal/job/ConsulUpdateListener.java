@@ -27,8 +27,9 @@ import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.ContextStartedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -54,10 +55,11 @@ public class ConsulUpdateListener extends AbstractExecutionThreadService {
 		this.eventPublisher = eventPublisher;
 	}
 
-	public void onApplicationRefresh(ContextStartedEvent event) {
+	@EventListener
+	public void onApplicationRefresh(ApplicationReadyEvent event) {
 		try {
 			xConsulIndex.set(catalogClient.getCatalogServices(QueryParams.DEFAULT).getConsulIndex());
-			startAsync();
+			this.startAsync();
 		} catch (Exception e) {
 			LOGGER.error("Problem with connection to consul.", e);
 		}

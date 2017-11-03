@@ -134,7 +134,12 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	private List<TestItem> updateTestItems(IndexLaunch rs, List<TestItem> testItems) {
 		return rs.getTestItems().stream().filter(IS_ANALYZED).map(indexTestItem -> {
 			Optional<TestItem> toUpdate = testItems.stream().filter(item -> item.getId().equals(indexTestItem.getTestItemId())).findFirst();
-			toUpdate.ifPresent(testItem -> testItem.setIssue(new TestItemIssue(indexTestItem.getIssueType(), null, true)));
+			toUpdate.ifPresent(testItem -> {
+				TestItem donorItem = testItemRepository.findOne(indexTestItem.getDonorItemId());
+				TestItemIssue issue = new TestItemIssue(indexTestItem.getIssueType(), donorItem.getIssue().getIssueDescription(), true);
+				issue.setExternalSystemIssues(donorItem.getIssue().getExternalSystemIssues());
+				testItem.setIssue(issue);
+			});
 			return toUpdate;
 		}).filter(Optional::isPresent).map(Optional::get).collect(toList());
 	}

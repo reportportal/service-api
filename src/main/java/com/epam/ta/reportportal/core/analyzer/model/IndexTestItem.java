@@ -45,6 +45,9 @@ public class IndexTestItem {
 	@JsonProperty("uniqueId")
 	private String uniqueId;
 
+	@JsonProperty("donorItemId")
+	private String donorItemId;
+
 	public IndexTestItem() {
 	}
 
@@ -80,6 +83,14 @@ public class IndexTestItem {
 		this.logs = logs;
 	}
 
+	public String getDonorItemId() {
+		return donorItemId;
+	}
+
+	public void setDonorItemId(String donorItemId) {
+		this.donorItemId = donorItemId;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -90,11 +101,11 @@ public class IndexTestItem {
 		}
 		IndexTestItem that = (IndexTestItem) o;
 		return Objects.equals(testItemId, that.testItemId) && Objects.equals(issueType, that.issueType) && Objects.equals(logs, that.logs)
-				&& Objects.equals(uniqueId, that.uniqueId);
+				&& Objects.equals(uniqueId, that.uniqueId) && Objects.equals(donorItemId, that.donorItemId);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(testItemId, issueType, logs, uniqueId);
+		return Objects.hash(testItemId, issueType, logs, uniqueId, donorItemId);
 	}
 }

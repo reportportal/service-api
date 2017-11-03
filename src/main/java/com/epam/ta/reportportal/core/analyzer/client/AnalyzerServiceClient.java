@@ -102,7 +102,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 		try {
 			restTemplate.put(instance.getUri().toString() + DELETE_PATH, project, items);
 		} catch (Exception e) {
-			LOGGER.warn("Indexing failed. Cannot interact with {} analyzer. Error: {}", instance.getMetadata().get(ANALYZER_KEY), e);
+			LOGGER.error("Deleting failed. Cannot interact with {} analyzer. Error: {}", instance.getMetadata().get(ANALYZER_KEY), e);
 		}
 	}
 
@@ -119,7 +119,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 					analyzer.getUri().toString() + INDEX_PATH, rq, IndexRs.class);
 			return Optional.ofNullable(responseEntity.getBody());
 		} catch (Exception e) {
-			LOGGER.warn("Indexing failed. Cannot interact with {} analyzer. Error: {}", analyzer.getMetadata().get(ANALYZER_KEY), e);
+			LOGGER.error("Indexing failed. Cannot interact with {} analyzer. Error: {}", analyzer.getMetadata().get(ANALYZER_KEY), e);
 		}
 		return Optional.empty();
 	}
@@ -140,7 +140,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 				return Optional.ofNullable(rs[0]);
 			}
 		} catch (Exception e) {
-			LOGGER.warn("Analyzing failed. Cannot interact with {} analyzer.", analyzer.getMetadata().get(ANALYZER_KEY), e);
+			LOGGER.error("Analyzing failed. Cannot interact with {} analyzer.", analyzer.getMetadata().get(ANALYZER_KEY), e);
 		}
 		return Optional.empty();
 	}

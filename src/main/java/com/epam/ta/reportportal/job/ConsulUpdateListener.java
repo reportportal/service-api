@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.ContextStartedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -55,13 +54,10 @@ public class ConsulUpdateListener extends AbstractExecutionThreadService {
 		this.eventPublisher = eventPublisher;
 	}
 
-	@EventListener(ContextStartedEvent.class)
-	public void onApplicationRefresh() {
+	public void onApplicationRefresh(ContextStartedEvent event) {
 		try {
-			if (state().equals(State.NEW)) {
-				xConsulIndex.set(catalogClient.getCatalogServices(QueryParams.DEFAULT).getConsulIndex());
-				startAsync();
-			}
+			xConsulIndex.set(catalogClient.getCatalogServices(QueryParams.DEFAULT).getConsulIndex());
+			startAsync();
 		} catch (Exception e) {
 			LOGGER.error("Problem with connection to consul.", e);
 		}
@@ -70,10 +66,8 @@ public class ConsulUpdateListener extends AbstractExecutionThreadService {
 	@Override
 	protected void run() throws Exception {
 		while (isRunning()) {
-			xConsulIndex.set(catalogClient.getCatalogServices(QueryParams.Builder.builder()
-					.setIndex(xConsulIndex.get())
-					.setWaitTime(TIMEOUT_IN_SEC)
-					.build()).getConsulIndex());
+			xConsulIndex.set(catalogClient.getCatalogServices(
+					QueryParams.Builder.builder().setIndex(xConsulIndex.get()).setWaitTime(TIMEOUT_IN_SEC).build()).getConsulIndex());
 			eventPublisher.publishEvent(new ConsulUpdateEvent());
 		}
 	}

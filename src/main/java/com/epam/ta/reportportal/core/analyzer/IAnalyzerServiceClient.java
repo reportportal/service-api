@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.analyzer;
 
+import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 
@@ -67,7 +68,7 @@ public interface IAnalyzerServiceClient {
 	 * @param rq Launch
 	 * @return Analyzed Launch
 	 */
-	IndexLaunch analyze(IndexLaunch rq);
+	List<AnalyzedItemRs> analyze(IndexLaunch rq);
 
 	/**
 	 * Delete specified items from specified index/project

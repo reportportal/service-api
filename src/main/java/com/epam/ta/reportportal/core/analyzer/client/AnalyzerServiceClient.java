@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.analyzer.client;
 
 import com.epam.ta.reportportal.core.analyzer.IAnalyzerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 import com.epam.ta.reportportal.events.ConsulUpdateEvent;
@@ -35,9 +36,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.*;
@@ -81,14 +80,10 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 
 	//Make services return only updated items and refactor this
 	@Override
-	public IndexLaunch analyze(IndexLaunch rq) {
-		for (ServiceInstance instance : analyzerInstances.get()) {
-			Optional<IndexLaunch> analyzed = analyze(instance, rq);
-			if (analyzed.isPresent()) {
-				rq = analyzed.get();
-			}
-		}
-		return rq;
+	public List<AnalyzedItemRs> analyze(IndexLaunch rq) {
+		List<AnalyzedItemRs> rs = new ArrayList<>();
+		analyzerInstances.get().forEach(instance -> rs.addAll(analyze(instance, rq)));
+		return rs;
 	}
 
 	@Override
@@ -142,18 +137,16 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	 * @param rq       Request {@link IndexLaunch} to analyze
 	 * @return {@link Optional} of {@link IndexLaunch} with analyzed items
 	 */
-	private Optional<IndexLaunch> analyze(ServiceInstance analyzer, IndexLaunch rq) {
+	private List<AnalyzedItemRs> analyze(ServiceInstance analyzer, IndexLaunch rq) {
 		try {
-			ResponseEntity<IndexLaunch[]> responseEntity = restTemplate.postForEntity(
-					analyzer.getUri().toString() + ANALYZE_PATH, Collections.singletonList(rq), IndexLaunch[].class);
-			IndexLaunch[] rs = responseEntity.getBody();
-			if (rs.length > 0) {
-				return Optional.ofNullable(rs[0]);
-			}
+			ResponseEntity<AnalyzedItemRs[]> responseEntity = restTemplate.postForEntity(
+					analyzer.getUri().toString() + ANALYZE_PATH, Collections.singletonList(rq), AnalyzedItemRs[].class);
+			AnalyzedItemRs[] rs = responseEntity.getBody();
+			return Arrays.asList(rs);
 		} catch (Exception e) {
 			LOGGER.error("Analyzing failed. Cannot interact with {} analyzer.", analyzer.getMetadata().get(ANALYZER_KEY), e);
 		}
-		return Optional.empty();
+		return Collections.emptyList();
 	}
 
 	/**

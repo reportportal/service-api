@@ -48,9 +48,6 @@ public class IndexTestItem {
 	@JsonProperty("isAutoAnalyzed")
 	private boolean isAutoAnalyzed;
 
-	@JsonProperty("relevantItemId")
-	private String relevantItemId;
-
 	public IndexTestItem() {
 	}
 
@@ -86,14 +83,6 @@ public class IndexTestItem {
 		this.logs = logs;
 	}
 
-	public String getRelevantItemId() {
-		return relevantItemId;
-	}
-
-	public void setRelevantItemId(String relevantItemId) {
-		this.relevantItemId = relevantItemId;
-	}
-
 	public boolean isAutoAnalyzed() {
 		return isAutoAnalyzed;
 	}
@@ -112,12 +101,11 @@ public class IndexTestItem {
 		}
 		IndexTestItem that = (IndexTestItem) o;
 		return isAutoAnalyzed == that.isAutoAnalyzed && Objects.equals(testItemId, that.testItemId) && Objects.equals(
-				issueType, that.issueType) && Objects.equals(logs, that.logs) && Objects.equals(uniqueId, that.uniqueId) && Objects.equals(
-				relevantItemId, that.relevantItemId);
+				issueType, that.issueType) && Objects.equals(logs, that.logs) && Objects.equals(uniqueId, that.uniqueId);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(testItemId, issueType, logs, uniqueId, isAutoAnalyzed, relevantItemId);
+		return Objects.hash(testItemId, issueType, logs, uniqueId, isAutoAnalyzed);
 	}
 }

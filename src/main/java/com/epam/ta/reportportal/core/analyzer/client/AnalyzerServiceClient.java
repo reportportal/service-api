@@ -50,7 +50,6 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 
 	static final String INDEX_PATH = "/_index";
 	static final String ANALYZE_PATH = "/_analyze";
-	static final String DELETE_PATH = "/_delete";
 
 	private final RestTemplate restTemplate;
 	private final DiscoveryClient discoveryClient;
@@ -104,7 +103,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 
 	private void deleteIndex(ServiceInstance instance, String project) {
 		try {
-			restTemplate.delete(instance.getUri().toString() + DELETE_PATH, project);
+			restTemplate.delete(instance.getUri().toString() + INDEX_PATH + "/" + project);
 		} catch (Exception e) {
 			LOGGER.error("Index deleting failed. Cannot interact with {} analyzer. Error: {}", instance.getMetadata().get(ANALYZER_KEY), e);
 		}
@@ -112,7 +111,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 
 	private void deleteLogs(ServiceInstance instance, String project, List<String> items) {
 		try {
-			restTemplate.put(instance.getUri().toString() + DELETE_PATH, project, items);
+			//restTemplate.put(instance.getUri().toString() + DELETE_PATH, project, items);
 		} catch (Exception e) {
 			LOGGER.error("Logs deleting failed. Cannot interact with {} analyzer. Error: {}", instance.getMetadata().get(ANALYZER_KEY), e);
 		}

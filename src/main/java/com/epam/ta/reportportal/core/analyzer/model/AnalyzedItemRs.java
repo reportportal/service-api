@@ -28,13 +28,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class AnalyzedItemRs {
 
-	@JsonProperty("itemId")
+	@JsonProperty("test_item")
 	private String itemId;
 
-	@JsonProperty("relevantItemId")
+	@JsonProperty("relevant_item")
 	private String relevantItemId;
 
-	@JsonProperty("issueType")
+	@JsonProperty("issue_type")
 	private String issueType;
 
 	public String getItemId() {

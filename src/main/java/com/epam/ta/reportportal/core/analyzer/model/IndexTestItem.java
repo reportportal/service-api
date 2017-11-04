@@ -45,6 +45,9 @@ public class IndexTestItem {
 	@JsonProperty("uniqueId")
 	private String uniqueId;
 
+	@JsonProperty("investigation_type")
+	private InvestigationType investigationType;
+
 	@JsonProperty("donorItemId")
 	private String donorItemId;
 
@@ -91,6 +94,14 @@ public class IndexTestItem {
 		this.donorItemId = donorItemId;
 	}
 
+	public InvestigationType getInvestigationType() {
+		return investigationType;
+	}
+
+	public void setInvestigationType(InvestigationType investigationType) {
+		this.investigationType = investigationType;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -101,11 +112,12 @@ public class IndexTestItem {
 		}
 		IndexTestItem that = (IndexTestItem) o;
 		return Objects.equals(testItemId, that.testItemId) && Objects.equals(issueType, that.issueType) && Objects.equals(logs, that.logs)
-				&& Objects.equals(uniqueId, that.uniqueId) && Objects.equals(donorItemId, that.donorItemId);
+				&& Objects.equals(uniqueId, that.uniqueId) && investigationType == that.investigationType && Objects.equals(
+				donorItemId, that.donorItemId);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(testItemId, issueType, logs, uniqueId, donorItemId);
+		return Objects.hash(testItemId, issueType, logs, uniqueId, investigationType, donorItemId);
 	}
 }

@@ -292,14 +292,13 @@ public class LaunchController implements ILaunchController {
 	}
 
 	@Override
-	@RequestMapping(value = "/{launchId}/analyze/{strategy}", method = POST)
+	@RequestMapping(value = "/{launchId}/analyze", method = POST)
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Start launch auto-analyzer on demand")
-	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName, @PathVariable String launchId,
-			@ApiParam(allowableValues = "single, history") @PathVariable String strategy, Principal principal)
+	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName, @PathVariable String launchId, Principal principal)
 			throws InterruptedException, ExecutionException {
-		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), launchId, strategy);
+		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), launchId);
 	}
 
 	@Override

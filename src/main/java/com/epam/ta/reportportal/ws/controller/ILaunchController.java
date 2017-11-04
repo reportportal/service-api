@@ -199,6 +199,7 @@ public interface ILaunchController {
 	/**
 	 * Merge specified launches in common one
 	 * Could be merged in different ways
+	 *
 	 * @param projectName
 	 * @param mergeLaunchesRQ request data
 	 * @param principal
@@ -209,15 +210,14 @@ public interface ILaunchController {
 	/**
 	 * Start auto-analyzer for specified launch
 	 *
-	 * @param projectName
-	 * @param launchId
-	 * @param scope
-	 * @param principal
-	 * @return
+	 * @param projectName Project name
+	 * @param launchId    Launch id
+	 * @param principal   Principal
+	 * @return Result message
 	 * @throws ExecutionException
 	 * @throws InterruptedException
 	 */
-	OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId, String scope, Principal principal)
+	OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId, Principal principal)
 			throws InterruptedException, ExecutionException;
 
 	/**
@@ -230,20 +230,19 @@ public interface ILaunchController {
 	 */
 	Map<String, String> getStatuses(String projectName, String[] ids, Principal principal);
 
-    /**
-     * Imports test results of zip archive with xml reports inside
-     *
-     * @param projectId
-     * @param file
-     * @param principal
-     * @return
-     */
-    OperationCompletionRS importLaunch(String projectId, MultipartFile file, Principal principal);
+	/**
+	 * Imports test results of zip archive with xml reports inside
+	 *
+	 * @param projectId
+	 * @param file
+	 * @param principal
+	 * @return
+	 */
+	OperationCompletionRS importLaunch(String projectId, MultipartFile file, Principal principal);
 
 	void getLaunchReport(String projectName, String launchId, String view, Principal principal, HttpServletResponse response)
 			throws IOException;
 
 	OperationCompletionRS deleteLaunches(String projectName, String[] ids, Principal principal);
-
 
 }

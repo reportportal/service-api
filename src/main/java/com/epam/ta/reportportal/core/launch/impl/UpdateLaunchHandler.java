@@ -35,7 +35,6 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.launch.AutoAnalyzeStrategy;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -121,10 +120,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	}
 
 	@Override
-	public OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId, String scope) {
-		AutoAnalyzeStrategy type = AutoAnalyzeStrategy.fromValue(scope);
-		expect(type, notNull()).verify(INCORRECT_FILTER_PARAMETERS, scope);
-
+	public OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId) {
 		expect(analyzerService.hasAnalyzers(), Predicate.isEqual(true)).verify(
 				ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer services are deployed.");
 

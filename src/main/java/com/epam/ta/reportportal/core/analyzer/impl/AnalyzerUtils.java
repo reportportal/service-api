@@ -23,7 +23,6 @@ package com.epam.ta.reportportal.core.analyzer.impl;
 
 import com.epam.ta.reportportal.core.analyzer.model.IndexLog;
 import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
-import com.epam.ta.reportportal.core.analyzer.model.InvestigationType;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 
@@ -69,7 +68,7 @@ public class AnalyzerUtils {
 		indexTestItem.setUniqueId(testItem.getUniqueId());
 		if (testItem.getIssue() != null) {
 			indexTestItem.setIssueType(testItem.getIssue().getIssueType());
-			indexTestItem.setInvestigationType(testItem.getIssue().isAutoAnalyzed() ? InvestigationType.ANALYZER : InvestigationType.HUMAN);
+			indexTestItem.setAutoAnalyzed(testItem.getIssue().isAutoAnalyzed());
 		}
 		if (!logs.isEmpty()) {
 			indexTestItem.setLogs(logs.stream().map(TO_INDEX_LOG).collect(Collectors.toSet()));

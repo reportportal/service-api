@@ -45,11 +45,11 @@ public class IndexTestItem {
 	@JsonProperty("uniqueId")
 	private String uniqueId;
 
-	@JsonProperty("investigation_type")
-	private InvestigationType investigationType;
+	@JsonProperty("isAutoAnalyzed")
+	private boolean isAutoAnalyzed;
 
-	@JsonProperty("donorItemId")
-	private String donorItemId;
+	@JsonProperty("relevantItemId")
+	private String relevantItemId;
 
 	public IndexTestItem() {
 	}
@@ -86,20 +86,20 @@ public class IndexTestItem {
 		this.logs = logs;
 	}
 
-	public String getDonorItemId() {
-		return donorItemId;
+	public String getRelevantItemId() {
+		return relevantItemId;
 	}
 
-	public void setDonorItemId(String donorItemId) {
-		this.donorItemId = donorItemId;
+	public void setRelevantItemId(String relevantItemId) {
+		this.relevantItemId = relevantItemId;
 	}
 
-	public InvestigationType getInvestigationType() {
-		return investigationType;
+	public boolean isAutoAnalyzed() {
+		return isAutoAnalyzed;
 	}
 
-	public void setInvestigationType(InvestigationType investigationType) {
-		this.investigationType = investigationType;
+	public void setAutoAnalyzed(boolean autoAnalyzed) {
+		isAutoAnalyzed = autoAnalyzed;
 	}
 
 	@Override
@@ -111,13 +111,13 @@ public class IndexTestItem {
 			return false;
 		}
 		IndexTestItem that = (IndexTestItem) o;
-		return Objects.equals(testItemId, that.testItemId) && Objects.equals(issueType, that.issueType) && Objects.equals(logs, that.logs)
-				&& Objects.equals(uniqueId, that.uniqueId) && investigationType == that.investigationType && Objects.equals(
-				donorItemId, that.donorItemId);
+		return isAutoAnalyzed == that.isAutoAnalyzed && Objects.equals(testItemId, that.testItemId) && Objects.equals(
+				issueType, that.issueType) && Objects.equals(logs, that.logs) && Objects.equals(uniqueId, that.uniqueId) && Objects.equals(
+				relevantItemId, that.relevantItemId);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(testItemId, issueType, logs, uniqueId, investigationType, donorItemId);
+		return Objects.hash(testItemId, issueType, logs, uniqueId, isAutoAnalyzed, relevantItemId);
 	}
 }

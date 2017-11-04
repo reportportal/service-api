@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.core.analyzer.impl;
 
 import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
-import com.epam.ta.reportportal.core.analyzer.model.InvestigationType;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
@@ -49,7 +48,7 @@ public class AnalyzerUtilsTest {
 		Assert.assertEquals(testItem.getUniqueId(), indexTestItem.getUniqueId());
 		Assert.assertEquals(testItem.getIssue().getIssueType(), indexTestItem.getIssueType());
 		Assert.assertEquals(1, indexTestItem.getLogs().size());
-		Assert.assertEquals(InvestigationType.HUMAN, indexTestItem.getInvestigationType());
+		Assert.assertEquals(false, indexTestItem.isAutoAnalyzed());
 	}
 
 	@Test
@@ -57,7 +56,7 @@ public class AnalyzerUtilsTest {
 		TestItem test = createTest();
 		test.setIssue(createIssue(true));
 		IndexTestItem indexTestItem = fromTestItem(test, createSameLogs(1));
-		Assert.assertEquals(InvestigationType.ANALYZER, indexTestItem.getInvestigationType());
+		Assert.assertEquals(true, indexTestItem.isAutoAnalyzed());
 	}
 
 	private TestItem createTest(){

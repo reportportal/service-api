@@ -57,7 +57,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 
 	@Autowired
 	public AnalyzerServiceClient(RestTemplate restTemplate, DiscoveryClient consulDiscoveryClient) {
-		this.analyzerInstances = new AtomicReference<>();
+		this.analyzerInstances = new AtomicReference<>(Collections.emptyList());
 		this.restTemplate = restTemplate;
 		this.discoveryClient = consulDiscoveryClient;
 	}

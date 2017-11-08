@@ -77,7 +77,7 @@ dependencies {
         compile('com.github.reportportal:commons-dao:460e458')
         compile('com.github.reportportal:commons-rules:3.3.0')
         compile 'com.github.reportportal:commons-model:594407d'
-        compile ('com.github.reportportal:commons:3.1.0')
+        compile('com.github.reportportal:commons:3.1.0')
     }
 
     compile 'org.jasypt:jasypt:1.9.2'
@@ -228,8 +228,8 @@ test {
     }
 
     if (System.env.TRAVIS == 'true') {
-            maxParallelForks = 2
-            minHeapSize = "128m"
-            maxHeapSize = "1g"
+        maxParallelForks = 2
+        minHeapSize = "128m"
+        maxHeapSize = "1g"
     }
 }

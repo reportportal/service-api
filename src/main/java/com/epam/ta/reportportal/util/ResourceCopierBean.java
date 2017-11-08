@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.util;
 
 import com.google.common.base.StandardSystemProperty;
@@ -36,9 +36,8 @@ import java.io.InputStream;
 /**
  * Convenience class for working with resources. Copies {@link #source} input
  * stream to {@link #destination}
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class ResourceCopierBean implements InitializingBean {
 
@@ -51,7 +50,7 @@ public class ResourceCopierBean implements InitializingBean {
 
 	/**
 	 * Sets destination as simple file name
-	 * 
+	 *
 	 * @param filename
 	 */
 	public void setDestination(String filename) {
@@ -61,7 +60,7 @@ public class ResourceCopierBean implements InitializingBean {
 
 	/**
 	 * Sets destination as folder and filename
-	 * 
+	 *
 	 * @param directory
 	 * @param to
 	 */
@@ -71,7 +70,7 @@ public class ResourceCopierBean implements InitializingBean {
 
 	/**
 	 * Sets destination as system temp directory and specified file name into
-	 * 
+	 *
 	 * @param to
 	 */
 	public void setTempDirDestination(String to) {
@@ -80,7 +79,7 @@ public class ResourceCopierBean implements InitializingBean {
 
 	/**
 	 * Sets source as springs {@link org.springframework.core.io.Resource}
-	 * 
+	 *
 	 * @param from
 	 */
 	public void setSource(final String from) {

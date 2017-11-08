@@ -30,7 +30,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-
 /**
  * Converts internal DB model to DTO
  *
@@ -38,33 +37,34 @@ import java.util.stream.Collectors;
  */
 public final class DashboardConverter {
 
-    private DashboardConverter() {
-        //static only
-    }
+	private DashboardConverter() {
+		//static only
+	}
 
-    public static final Function<Dashboard, DashboardResource> TO_RESOURCE = dashboard -> {
-        Preconditions.checkNotNull(dashboard);
-        DashboardResource resource = new DashboardResource();
-        resource.setDashboardId(dashboard.getId());
-        resource.setName(dashboard.getName());
-        resource.setDescription(dashboard.getDescription());
-        resource.setWidgets(Optional.ofNullable(dashboard.getWidgets())
-                .orElseGet(Collections::emptyList).stream()
-                .map(DashboardConverter.TO_WIDGET_RESOURCE)
-                .collect(Collectors.toList()));
-        Optional.ofNullable(dashboard.getAcl()).ifPresent(acl -> {
-            resource.setOwner(acl.getOwnerUserId());
-            resource.setShare(!acl.getEntries().isEmpty());
-        });
-        return resource;
-    };
+	public static final Function<Dashboard, DashboardResource> TO_RESOURCE = dashboard -> {
+		Preconditions.checkNotNull(dashboard);
+		DashboardResource resource = new DashboardResource();
+		resource.setDashboardId(dashboard.getId());
+		resource.setName(dashboard.getName());
+		resource.setDescription(dashboard.getDescription());
+		resource.setWidgets(Optional.ofNullable(dashboard.getWidgets())
+				.orElseGet(Collections::emptyList)
+				.stream()
+				.map(DashboardConverter.TO_WIDGET_RESOURCE)
+				.collect(Collectors.toList()));
+		Optional.ofNullable(dashboard.getAcl()).ifPresent(acl -> {
+			resource.setOwner(acl.getOwnerUserId());
+			resource.setShare(!acl.getEntries().isEmpty());
+		});
+		return resource;
+	};
 
-    private static final Function<Dashboard.WidgetObject, DashboardResource.WidgetObjectModel> TO_WIDGET_RESOURCE = widgetObject -> {
-        DashboardResource.WidgetObjectModel resource = new DashboardResource.WidgetObjectModel();
-        resource.setWidgetId(widgetObject.getWidgetId());
-        resource.setWidgetPosition(widgetObject.getWidgetPosition());
-        resource.setWidgetSize(widgetObject.getWidgetSize());
-        return resource;
-    };
+	private static final Function<Dashboard.WidgetObject, DashboardResource.WidgetObjectModel> TO_WIDGET_RESOURCE = widgetObject -> {
+		DashboardResource.WidgetObjectModel resource = new DashboardResource.WidgetObjectModel();
+		resource.setWidgetId(widgetObject.getWidgetId());
+		resource.setWidgetPosition(widgetObject.getWidgetPosition());
+		resource.setWidgetSize(widgetObject.getWidgetSize());
+		return resource;
+	};
 
 }

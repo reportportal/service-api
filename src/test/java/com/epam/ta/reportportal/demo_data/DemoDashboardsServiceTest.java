@@ -59,7 +59,8 @@ public class DemoDashboardsServiceTest {
 
 		when(userFilterRepository.findOneByName(user, filter, project)).thenReturn(new UserFilter());
 		DemoDashboardsService demoDashboardsService = new DemoDashboardsService(userFilterRepository, mock(DashboardRepository.class),
-				mock(WidgetRepository.class), mock(ObjectMapper.class));
+				mock(WidgetRepository.class), mock(ObjectMapper.class)
+		);
 		expectedException.expect(ReportPortalException.class);
 		expectedException.expectMessage("Resource '" + filter + "' already exists. You couldn't create the duplicate.");
 		demoDashboardsService.createDemoFilter(filter, user, project);
@@ -70,7 +71,8 @@ public class DemoDashboardsServiceTest {
 		final DashboardRepository dashboardRepository = mock(DashboardRepository.class);
 		when(dashboardRepository.findOneByUserProject(user, project, dashboard)).thenReturn(new Dashboard());
 		final DemoDashboardsService demoDashboardsService = new DemoDashboardsService(mock(UserFilterRepository.class), dashboardRepository,
-				mock(WidgetRepository.class), mock(ObjectMapper.class));
+				mock(WidgetRepository.class), mock(ObjectMapper.class)
+		);
 		expectedException.expect(ReportPortalException.class);
 		expectedException.expectMessage("Resource '" + dashboard + "' already exists. You couldn't create the duplicate");
 		demoDashboardsService.createDemoDashboard(emptyList(), user, project, dashboard);
@@ -89,7 +91,8 @@ public class DemoDashboardsServiceTest {
 		existing.setName(widget + "#" + postfix);
 		when(widgetRepository.findByProjectAndUser(project, user)).thenReturn(singletonList(existing));
 		final DemoDashboardsService dashboardsService = new DemoDashboardsService(mock(UserFilterRepository.class),
-				mock(DashboardRepository.class), widgetRepository, objectMapper);
+				mock(DashboardRepository.class), widgetRepository, objectMapper
+		);
 
 		dashboardsService.setResource(resource);
 		expectedException.expect(ReportPortalException.class);

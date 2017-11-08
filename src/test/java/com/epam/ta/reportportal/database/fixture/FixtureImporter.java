@@ -17,21 +17,20 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.database.fixture;
 
 /**
  * Base interface for fixture importers
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public interface FixtureImporter {
 
 	/**
 	 * Imports provided fixture
-	 * 
+	 *
 	 * @param fixture
 	 */
 	void importFixture(Object fixture);

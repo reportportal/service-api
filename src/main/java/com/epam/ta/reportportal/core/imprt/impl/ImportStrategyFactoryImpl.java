@@ -30,16 +30,15 @@ import java.util.Map;
 @Service
 public class ImportStrategyFactoryImpl implements ImportStrategyFactory {
 
-    private final Map<ImportType, ImportStrategy> MAPPING;
+	private final Map<ImportType, ImportStrategy> MAPPING;
 
-    @Autowired
-    public ImportStrategyFactoryImpl(XunitImportStrategy xunitImportStrategy) {
-        MAPPING = ImmutableMap.<ImportType, ImportStrategy>builder()
-                .put(ImportType.XUNIT, xunitImportStrategy).build();
-    }
+	@Autowired
+	public ImportStrategyFactoryImpl(XunitImportStrategy xunitImportStrategy) {
+		MAPPING = ImmutableMap.<ImportType, ImportStrategy>builder().put(ImportType.XUNIT, xunitImportStrategy).build();
+	}
 
-    @Override
-    public ImportStrategy getImportLaunch(ImportType type) {
-        return MAPPING.get(type);
-    }
+	@Override
+	public ImportStrategy getImportLaunch(ImportType type) {
+		return MAPPING.get(type);
+	}
 }

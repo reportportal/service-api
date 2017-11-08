@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.auth.permissions;
 
@@ -42,7 +42,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Project controller permissions test
  *
  * @author Andrei Varabyeu
- *
  */
 public class ProjectManagerPermissionTest extends BaseMvcTest {
 
@@ -57,10 +56,9 @@ public class ProjectManagerPermissionTest extends BaseMvcTest {
 	 */
 	@Test
 	public void projectNotFound() throws Exception {
-		this.mvcMock
-				.perform(put("/project/notexisting").principal(AuthConstants.PROJECT_USER)
-						.content(objectMapper.writeValueAsBytes(getUpdateRequest())).contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isNotFound());
+		this.mvcMock.perform(put("/project/notexisting").principal(AuthConstants.PROJECT_USER)
+				.content(objectMapper.writeValueAsBytes(getUpdateRequest()))
+				.contentType(MediaType.APPLICATION_JSON)).andExpect(status().isNotFound());
 	}
 
 	/**
@@ -72,9 +70,11 @@ public class ProjectManagerPermissionTest extends BaseMvcTest {
 	@Test
 	public void userNotAssigned() throws Exception {
 		Authentication vasia = AuthConstants.newAuthentication("Vasia", AuthConstants.USER_PASSWORD, true,
-				new SimpleGrantedAuthority(UserRole.USER.name()));
+				new SimpleGrantedAuthority(UserRole.USER.name())
+		);
 		SecurityContextHolder.getContext().setAuthentication(vasia);
-		this.mvcMock.perform(put("/project" + PROJECT_BASE_URL).principal(vasia).content(objectMapper.writeValueAsBytes(getUpdateRequest()))
+		this.mvcMock.perform(put("/project" + PROJECT_BASE_URL).principal(vasia)
+				.content(objectMapper.writeValueAsBytes(getUpdateRequest()))
 				.contentType(MediaType.APPLICATION_JSON)).andExpect(status().isForbidden());
 	}
 

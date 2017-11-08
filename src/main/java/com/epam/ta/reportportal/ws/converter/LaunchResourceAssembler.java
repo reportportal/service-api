@@ -37,19 +37,19 @@ import javax.inject.Provider;
 @Service
 public class LaunchResourceAssembler extends PagedResourcesAssembler<Launch, LaunchResource> {
 
-    @Autowired
-    private Provider<LaunchResourceBuilder> launchRecordBuilder;
+	@Autowired
+	private Provider<LaunchResourceBuilder> launchRecordBuilder;
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * org.springframework.hateoas.ResourceAssembler#toResource(java.lang.Object
-     * )
-     */
-    @Override
-    public LaunchResource toResource(Launch launch) {
-        return launchRecordBuilder.get().addLaunch(launch).build();
-    }
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see
+	 * org.springframework.hateoas.ResourceAssembler#toResource(java.lang.Object
+	 * )
+	 */
+	@Override
+	public LaunchResource toResource(Launch launch) {
+		return launchRecordBuilder.get().addLaunch(launch).build();
+	}
 
 }

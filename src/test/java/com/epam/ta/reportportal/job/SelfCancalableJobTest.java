@@ -37,26 +37,26 @@ import org.springframework.scheduling.TriggerContext;
 @RunWith(MockitoJUnitRunner.class)
 public class SelfCancalableJobTest {
 
-    @Mock
-    private Trigger triggerDelegate;
-    @Mock
-    private TriggerContext triggerContext;
+	@Mock
+	private Trigger triggerDelegate;
+	@Mock
+	private TriggerContext triggerContext;
 
-    @Test
-    public void selfCancalableJobTest() {
-        SelfCancalableJob selfCancalableJob = new SelfCancalableJob(triggerDelegate) {
-            @Override
-            public void run() {
-            }
-        };
-        Assert.assertEquals(true, Whitebox.getInternalState(selfCancalableJob,"oneMoreTime" ));
-        Assert.assertEquals(triggerDelegate, Whitebox.getInternalState(selfCancalableJob,"triggerDelegate" ));
-        selfCancalableJob.oneMoreTime(true);
-        selfCancalableJob.nextExecutionTime(triggerContext);
-        Assert.assertEquals(true, Whitebox.getInternalState(selfCancalableJob,"oneMoreTime" ));
-        selfCancalableJob.oneMoreTime(false);
-        selfCancalableJob.nextExecutionTime(triggerContext);
-        Assert.assertEquals(false, Whitebox.getInternalState(selfCancalableJob,"oneMoreTime" ));
-    }
+	@Test
+	public void selfCancalableJobTest() {
+		SelfCancalableJob selfCancalableJob = new SelfCancalableJob(triggerDelegate) {
+			@Override
+			public void run() {
+			}
+		};
+		Assert.assertEquals(true, Whitebox.getInternalState(selfCancalableJob, "oneMoreTime"));
+		Assert.assertEquals(triggerDelegate, Whitebox.getInternalState(selfCancalableJob, "triggerDelegate"));
+		selfCancalableJob.oneMoreTime(true);
+		selfCancalableJob.nextExecutionTime(triggerContext);
+		Assert.assertEquals(true, Whitebox.getInternalState(selfCancalableJob, "oneMoreTime"));
+		selfCancalableJob.oneMoreTime(false);
+		selfCancalableJob.nextExecutionTime(triggerContext);
+		Assert.assertEquals(false, Whitebox.getInternalState(selfCancalableJob, "oneMoreTime"));
+	}
 
 }

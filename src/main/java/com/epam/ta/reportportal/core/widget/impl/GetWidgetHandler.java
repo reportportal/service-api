@@ -115,7 +115,7 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 			if (isFilterUnShared(userName, project, userFilter)) {
 				widgetResource.setContent(new HashMap<>());
 			} else {
-			    widgetResource.setContent(loadContentByFilterType(userFilter, project, widget.getContentOptions()));
+				widgetResource.setContent(loadContentByFilterType(userFilter, project, widget.getContentOptions()));
 			}
 		}
 		return widgetResource;
@@ -124,15 +124,18 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 	@Override
 	public Map<String, SharedEntity> getSharedWidgetNames(String userName, String projectName) {
 		List<Widget> widgets = widgetRepository.findSharedEntities(userName, projectName,
-				Arrays.asList(Widget.ID, Widget.NAME, Widget.OWNER), Shareable.NAME_OWNER_SORT);
+				Arrays.asList(Widget.ID, Widget.NAME, Widget.OWNER), Shareable.NAME_OWNER_SORT
+		);
 		return toMap(widgets);
 	}
 
 	@Override
 	public List<WidgetResource> getSharedWidgetsList(String userName, String projectName) {
 		List<Widget> widgets = widgetRepository.findSharedEntities(userName, projectName,
-				Arrays.asList(Widget.ID, Widget.NAME, "description", Widget.OWNER, Widget.GADGET_TYPE, Widget.CONTENT_FIELDS, Widget.ENTRIES),
-				Shareable.NAME_OWNER_SORT);
+				Arrays.asList(Widget.ID, Widget.NAME, "description", Widget.OWNER, Widget.GADGET_TYPE, Widget.CONTENT_FIELDS,
+						Widget.ENTRIES
+				), Shareable.NAME_OWNER_SORT
+		);
 		return resourceAssembler.toResources(widgets);
 	}
 
@@ -150,7 +153,8 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 		if (isFilterUnShared(userName, projectName, userFilter)) {
 			return Collections.emptyMap();
 		} else {
-			ContentOptions contentOptions = new WidgetBuilder().addContentParameters(previewRQ.getContentParameters()).build()
+			ContentOptions contentOptions = new WidgetBuilder().addContentParameters(previewRQ.getContentParameters())
+					.build()
 					.getContentOptions();
 			return loadContentByFilterType(userFilter, projectName, contentOptions);
 		}
@@ -194,8 +198,7 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 	 * @param contentOptions
 	 * @return
 	 */
-	Map<String, ?> loadContentByFilterType(Optional<UserFilter> userFilter, String projectName,
-			ContentOptions contentOptions) {
+	Map<String, ?> loadContentByFilterType(Optional<UserFilter> userFilter, String projectName, ContentOptions contentOptions) {
 		// Log doesn't have any statistics, so currently unable to create any
 		// widget with valid content for log
 		Map<String, ?> content;

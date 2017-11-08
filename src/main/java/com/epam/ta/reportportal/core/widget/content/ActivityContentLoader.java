@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
 
@@ -48,8 +48,8 @@ public class ActivityContentLoader implements IContentLoadingStrategy {
 	private ActivityRepository activityRepository;
 
 	@Override
-	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
-			List<String> metaDataFields, Map<String, List<String>> options) {
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity,
+			List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> options) {
 		ActivityDocumentHandler activityDocumentHandler = new ActivityDocumentHandler();
 		List<String> fields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
 		activityRepository.loadWithCallback(filter, sorting, quantity, fields, activityDocumentHandler, COLLECTION_NAME);

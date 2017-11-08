@@ -30,27 +30,27 @@ import java.util.List;
 
 public class TestMergeStrategy extends AbstractSuiteMergeStrategy {
 
-    @Autowired
-    public TestMergeStrategy(TestItemRepository testItemRepository) {
-        super(testItemRepository);
-    }
+	@Autowired
+	public TestMergeStrategy(TestItemRepository testItemRepository) {
+		super(testItemRepository);
+	}
 
-    @Override
-    public TestItem mergeTestItems(TestItem itemTarget, List<TestItem> items) {
-        return moveAllChildTestItems(itemTarget, items);
-    }
+	@Override
+	public TestItem mergeTestItems(TestItem itemTarget, List<TestItem> items) {
+		return moveAllChildTestItems(itemTarget, items);
+	}
 
-    @Override
-    public boolean isTestItemAcceptableToMerge(TestItem item) {
-        if (!item.getType().sameLevel(TestItemType.SUITE)) {
-            return false;
-        }
-        List<TestItem> childItems = testItemRepository.findAllDescendants(item.getId());
-        for (TestItem testItem : childItems) {
-            if (!testItem.getType().sameLevel(TestItemType.SUITE)) {
-                return false;
-            }
-        }
-        return true;
-    }
+	@Override
+	public boolean isTestItemAcceptableToMerge(TestItem item) {
+		if (!item.getType().sameLevel(TestItemType.SUITE)) {
+			return false;
+		}
+		List<TestItem> childItems = testItemRepository.findAllDescendants(item.getId());
+		for (TestItem testItem : childItems) {
+			if (!testItem.getType().sameLevel(TestItemType.SUITE)) {
+				return false;
+			}
+		}
+		return true;
+	}
 }

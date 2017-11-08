@@ -57,10 +57,9 @@ import static java.util.stream.Collectors.toList;
 
 /**
  * Default implementation of {@link DeleteTestItemHandler}
- * 
+ *
  * @author Andrei Varabyeu
  * @author Andrei_Ramanchuk
- * 
  */
 @Service
 class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
@@ -91,8 +90,8 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		validateRoles(item, user, project);
 		try {
 
-			StatisticsFacade statisticsFacade = statisticsFacadeFactory
-					.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
+			StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(
+					project.getConfiguration().getStatisticsCalculationStrategy());
 			statisticsFacade.deleteExecutionStatistics(item);
 
 			if (!item.getStatistics().getIssueCounter().isEmpty()) {
@@ -138,20 +137,24 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	private void validate(String testItemId, TestItem testItem, String projectName) {
 		expect(testItem, notNull()).verify(TEST_ITEM_NOT_FOUND, testItemId);
 		expect(testItem, not(IN_PROGRESS)).verify(TEST_ITEM_IS_NOT_FINISHED,
-				formattedSupplier("Unable to deleteLogs test item ['{}'] in progress state", testItem.getId()));
+				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getId())
+		);
 		Launch parentLaunch = launchRepository.findOne(testItem.getLaunchRef());
 		expect(parentLaunch, not(IN_PROGRESS)).verify(LAUNCH_IS_NOT_FINISHED,
-				formattedSupplier("Unable to deleteLogs test item ['{}'] under launch ['{}'] with 'In progress' state", testItem.getId(),
-						testItem.getLaunchRef()));
+				formattedSupplier("Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state", testItem.getId(),
+						testItem.getLaunchRef()
+				)
+		);
 		expect(projectName, equalTo(parentLaunch.getProjectRef())).verify(FORBIDDEN_OPERATION,
-				formattedSupplier("Deleting testItem '{}' is not under specified project '{}'", testItem.getId(), projectName));
+				formattedSupplier("Deleting testItem '{}' is not under specified project '{}'", testItem.getId(), projectName)
+		);
 	}
 
 	private void validateRoles(TestItem testItem, User user, Project project) {
 		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
 			/*
-			 * Only PROJECT_MANAGER roles could deleteLogs testItems
+			 * Only PROJECT_MANAGER roles could delete testItems
 			 */
 			UserConfig userConfig = findUserConfigByLogin(project, user.getId());
 			expect(userConfig, hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);

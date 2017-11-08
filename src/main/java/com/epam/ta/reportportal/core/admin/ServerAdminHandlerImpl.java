@@ -97,8 +97,9 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 				ofNullable(request.getHost()).ifPresent(serverEmailConfig::setHost);
 
 				int port = Optional.ofNullable(request.getPort()).orElse(25);
-				if ((port <= 0) || (port > 65535))
+				if ((port <= 0) || (port > 65535)) {
 					BusinessRule.fail().withError(ErrorType.INCORRECT_REQUEST, "Incorrect 'Port' value. Allowed value is [1..65535]");
+				}
 				serverEmailConfig.setPort(port);
 
 				serverEmailConfig.setProtocol(ofNullable(request.getProtocol()).orElse("smtp"));
@@ -125,7 +126,8 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 				} catch (MessagingException ex) {
 					LOGGER.error("Cannot send email to user", ex);
 					fail().withError(FORBIDDEN_OPERATION,
-							"Email configuration is incorrect. Please, check your configuration. " + ex.getMessage());
+							"Email configuration is incorrect. Please, check your configuration. " + ex.getMessage()
+					);
 				}
 
 			}
@@ -142,8 +144,8 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 	}
 
 	public OperationCompletionRS deleteEmailSettings(String profileId) {
-		WriteResult result = mongoOperations
-				.updateFirst(query(Criteria.where("_id").is(profileId)), Update.update("serverEmailDetails", null), ServerSettings.class);
+		WriteResult result = mongoOperations.updateFirst(
+				query(Criteria.where("_id").is(profileId)), Update.update("serverEmailDetails", null), ServerSettings.class);
 		BusinessRule.expect(result.getN(), not(equalTo(0))).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, profileId);
 
 		return new OperationCompletionRS("Server Settings with profile '" + profileId + "' is successfully updated.");

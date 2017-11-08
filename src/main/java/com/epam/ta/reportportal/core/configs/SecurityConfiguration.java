@@ -142,14 +142,24 @@ class SecurityConfiguration {
 
 		@Override
 		public void configure(HttpSecurity http) throws Exception {
-			http.authorizeRequests().accessDecisionManager(webAccessDecisionManager())
+			http.authorizeRequests()
+					.accessDecisionManager(webAccessDecisionManager())
 					.antMatchers("/**/user/registration/info*", "/**/user/registration**", "/**/user/password/reset/*",
 							"/**/user/password/reset**", "/**/user/password/restore**",
 
-							"/documentation.html").permitAll()
-					/* set of special endpoints for another microservices from RP ecosystem */.antMatchers("/api-internal/**")
-					.hasRole("COMPONENT").antMatchers("/v2/**", "/swagger-resources", "/certificate/**", "/api/**", "/**").hasRole("USER")
-					.anyRequest().authenticated().and().csrf().disable();
+							"/documentation.html"
+					)
+					.permitAll()
+					/* set of special endpoints for another microservices from RP ecosystem */
+					.antMatchers("/api-internal/**")
+					.hasRole("COMPONENT")
+					.antMatchers("/v2/**", "/swagger-resources", "/certificate/**", "/api/**", "/**")
+					.hasRole("USER")
+					.anyRequest()
+					.authenticated()
+					.and()
+					.csrf()
+					.disable();
 		}
 
 	}
@@ -159,8 +169,11 @@ class SecurityConfiguration {
 		public List<GrantedAuthority> extractAuthorities(Map<String, Object> map) {
 			List<GrantedAuthority> userRoles = super.extractAuthorities(map);
 			Optional.ofNullable(map.get("projects"))
-					.map(p -> ((Map<String, String>) p).entrySet().stream().map(e -> new ProjectAuthority(e.getKey(), e.getValue()))
-							.collect(Collectors.toList())).ifPresent(userRoles::addAll);
+					.map(p -> ((Map<String, String>) p).entrySet()
+							.stream()
+							.map(e -> new ProjectAuthority(e.getKey(), e.getValue()))
+							.collect(Collectors.toList()))
+					.ifPresent(userRoles::addAll);
 			return userRoles;
 		}
 	}

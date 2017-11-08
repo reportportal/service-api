@@ -84,5 +84,4 @@ public class AnalyzerUtilsTest {
 		return logs;
 	}
 
-
 }

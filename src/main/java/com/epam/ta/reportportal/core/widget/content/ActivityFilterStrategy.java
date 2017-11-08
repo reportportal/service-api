@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
 
@@ -40,7 +40,7 @@ import java.util.Map;
  * Implementation of
  * {@link com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy} for
  * activity stream widget
- * 
+ *
  * @author Dzmitry_Kavalets
  */
 @Service("ActivityFilterStrategy")
@@ -56,7 +56,8 @@ public class ActivityFilterStrategy implements BuildFilterStrategy {
 	private WidgetContentProvider widgetContentProvider;
 
 	@Override
-	public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+	public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions,
+			String projectName) {
 
 		Filter searchFilter = new Filter(Activity.class, Condition.EQUALS, false, projectName, Activity.PROJECT_REF);
 
@@ -77,7 +78,7 @@ public class ActivityFilterStrategy implements BuildFilterStrategy {
 		return widgetContentProvider.getChartContent(projectName, searchFilter, selectionOptions, contentOptions);
 	}
 
-    private FilterCondition buildFilterCondition(String searchCriteria, List<String> values) {
+	private FilterCondition buildFilterCondition(String searchCriteria, List<String> values) {
 		Condition condition;
 		if (null != values && values.size() > 1) {
 			condition = Condition.IN;

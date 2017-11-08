@@ -17,24 +17,22 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.converter.builders;
-
-import java.util.List;
-
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
 
 import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.Dashboard.WidgetObject;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * Builder for {@link Dashboard} persistence layer object.
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 
 @Service
@@ -47,7 +45,7 @@ public class DashboardBuilder extends ShareableEntityBuilder<Dashboard> {
 		}
 		return this;
 	}
-	
+
 	public DashboardBuilder addProject(String projectName) {
 		getObject().setProjectName(projectName);
 		return this;
@@ -57,7 +55,7 @@ public class DashboardBuilder extends ShareableEntityBuilder<Dashboard> {
 		getObject().setWidgets(widgets);
 		return this;
 	}
-	
+
 	public DashboardBuilder addSharing(String owner, String project, String description, boolean isShare) {
 		super.addAcl(owner, project, description, isShare);
 		return this;

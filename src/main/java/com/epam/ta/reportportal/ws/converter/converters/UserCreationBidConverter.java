@@ -36,17 +36,17 @@ import java.util.function.Function;
  */
 public final class UserCreationBidConverter {
 
-    private UserCreationBidConverter() {
-        //static only
-    }
+	private UserCreationBidConverter() {
+		//static only
+	}
 
-    public static final Function<CreateUserRQ, UserCreationBid> TO_USER = request -> {
-        Preconditions.checkNotNull(request);
-        UserCreationBid user = new UserCreationBid();
-        user.setId(UUID.randomUUID().toString());
-        user.setEmail(EntityUtils.normalizeId(request.getEmail().trim()));
-        user.setDefaultProject(EntityUtils.normalizeId(request.getDefaultProject()));
-        user.setRole(request.getRole());
-        return user;
-    };
+	public static final Function<CreateUserRQ, UserCreationBid> TO_USER = request -> {
+		Preconditions.checkNotNull(request);
+		UserCreationBid user = new UserCreationBid();
+		user.setId(UUID.randomUUID().toString());
+		user.setEmail(EntityUtils.normalizeId(request.getEmail().trim()));
+		user.setDefaultProject(EntityUtils.normalizeId(request.getDefaultProject()));
+		user.setRole(request.getRole());
+		return user;
+	};
 }

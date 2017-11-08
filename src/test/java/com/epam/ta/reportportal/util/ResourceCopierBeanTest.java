@@ -17,14 +17,14 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.util;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-
+import com.google.common.base.Charsets;
+import com.google.common.base.StandardSystemProperty;
+import com.google.common.io.CharStreams;
+import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
@@ -36,19 +36,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-
-import com.google.common.base.Charsets;
-import com.google.common.base.StandardSystemProperty;
-import com.google.common.io.CharStreams;
-import com.google.common.io.Files;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 /**
  * Resource copier bean test
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { ResourceCopierBeanTest.TestConfig.class })

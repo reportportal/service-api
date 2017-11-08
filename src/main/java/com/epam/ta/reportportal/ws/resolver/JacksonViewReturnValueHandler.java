@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.resolver;
 
@@ -30,9 +30,8 @@ import org.springframework.web.method.support.ModelAndViewContainer;
  * Wraps {@link HandlerMethodReturnValueHandler}. Checks if {@link ResponseView}
  * annotation present, and if yes wraps bean to be serialized with view mapped
  * to it on controller's level class
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 class JacksonViewReturnValueHandler implements HandlerMethodReturnValueHandler {
 
@@ -66,7 +65,7 @@ class JacksonViewReturnValueHandler implements HandlerMethodReturnValueHandler {
 
 	/**
 	 * Returns assigned view or null
-	 * 
+	 *
 	 * @param returnType
 	 * @return
 	 */

@@ -65,8 +65,7 @@ abstract class BaseProjectPermission implements Permission {
 		Project p = projectRepository.get().findOne(project);
 		BusinessRule.expect(p, Predicates.notNull()).verify(ErrorType.PROJECT_NOT_FOUND, project);
 
-		BusinessRule.expect(ProjectUtils.doesHaveUser(p, authentication.getName()), equalTo(true))
-				.verify(ErrorType.ACCESS_DENIED);
+		BusinessRule.expect(ProjectUtils.doesHaveUser(p, authentication.getName()), equalTo(true)).verify(ErrorType.ACCESS_DENIED);
 		return checkAllowed(authentication, p);
 	}
 

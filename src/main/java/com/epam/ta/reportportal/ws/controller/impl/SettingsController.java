@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
@@ -42,7 +42,7 @@ import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 
 /**
  * Basic implementation of administrator interface {@link ISettingsController}
- * 
+ *
  * @author Andrei_Ramanchuk
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
  */
@@ -64,7 +64,7 @@ public class SettingsController implements ISettingsController {
 	}
 
 	@Override
-	@RequestMapping(value = "/{profileId}/email", method = {RequestMethod.POST, RequestMethod.PUT} )
+	@RequestMapping(value = "/{profileId}/email", method = { RequestMethod.POST, RequestMethod.PUT })
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation(value = "Set server email settings for specified profile", notes = "'default' profile is using till additional UI implementations")
@@ -81,12 +81,11 @@ public class SettingsController implements ISettingsController {
 		return serverHandler.deleteEmailSettings(profileId);
 	}
 
-
-    @RequestMapping(value = "/{profileId}/analytics", method = {RequestMethod.PUT, RequestMethod.POST})
-    @ResponseBody
-    @ResponseStatus(HttpStatus.OK)
-    @ApiOperation(value = "Updates analytics settings for specified profile")
-    public OperationCompletionRS saveAnalyticsSettings(@PathVariable String profileId, @RequestBody @Validated AnalyticsResource request){
-	    return serverHandler.saveAnalyticsSettings(normalizeId(profileId), request);
-    }
+	@RequestMapping(value = "/{profileId}/analytics", method = { RequestMethod.PUT, RequestMethod.POST })
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation(value = "Updates analytics settings for specified profile")
+	public OperationCompletionRS saveAnalyticsSettings(@PathVariable String profileId, @RequestBody @Validated AnalyticsResource request) {
+		return serverHandler.saveAnalyticsSettings(normalizeId(profileId), request);
+	}
 }

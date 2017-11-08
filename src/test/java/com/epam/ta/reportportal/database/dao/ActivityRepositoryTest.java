@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.database.dao;
 
 import com.epam.ta.BaseTest;
@@ -38,7 +38,7 @@ import java.util.List;
  * @author Dzmitry_Kavalets
  */
 @SpringFixture("activityRepositoryTest")
-public class ActivityRepositoryTest extends BaseTest{
+public class ActivityRepositoryTest extends BaseTest {
 
 	public static final String TEST_ITEM_ID = "44524cc1553de753b3e5bb2f";
 
@@ -51,8 +51,8 @@ public class ActivityRepositoryTest extends BaseTest{
 
 	@Test
 	public void findActivitiesByTestItem() {
-		List<Activity> activities = activityRepository.findActivitiesByTestItemId(TEST_ITEM_ID, new Filter(Activity.class,
-				new HashSet<>()), null);
+		List<Activity> activities = activityRepository.findActivitiesByTestItemId(
+				TEST_ITEM_ID, new Filter(Activity.class, new HashSet<>()), null);
 		Assert.assertNotNull(activities);
 		Assert.assertEquals(4, activities.size());
 	}

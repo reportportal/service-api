@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
@@ -36,21 +36,19 @@ public class LaunchBuilderTest extends BaseTest {
 
 	@Test
 	public void testNull() {
-		Launch actualLaunch = new LaunchBuilder()
-				.addUser(null).addStatus(null)
-				.addStartRQ(null).addProject(null)
-				.addEndTime(null)
-				.get();
+		Launch actualLaunch = new LaunchBuilder().addUser(null).addStatus(null).addStartRQ(null).addProject(null).addEndTime(null).get();
 		Launch expectedLaunch = new Launch();
 		validateLaunches(expectedLaunch, actualLaunch);
 	}
 
 	@Test
 	public void testValues() {
-		Launch actualLaunch = new LaunchBuilder()
-				.addStartRQ(Utils.getStartLaunchRQ()).addEndTime(BuilderTestsConstants.DATE_END)
-				.addProject(Utils.getProject().getId()).addStatus(Status.IN_PROGRESS)
-				.addUser(Utils.getUser().getId()).get();
+		Launch actualLaunch = new LaunchBuilder().addStartRQ(Utils.getStartLaunchRQ())
+				.addEndTime(BuilderTestsConstants.DATE_END)
+				.addProject(Utils.getProject().getId())
+				.addStatus(Status.IN_PROGRESS)
+				.addUser(Utils.getUser().getId())
+				.get();
 		Launch expectedLaunch = Utils.getLaunch();
 		validateLaunches(expectedLaunch, actualLaunch);
 	}

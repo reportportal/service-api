@@ -39,10 +39,10 @@ public class ReportPortalAuthorityExtractorTest {
 
 	@Test
 	public void extractAuthorities() throws Exception {
-		Map<String, Object> authorities = ImmutableMap.<String, Object>builder()
-				.put("projects", ImmutableMap.builder().put("some_project", "PROJECT_MANAGER").build()).build();
-		List<GrantedAuthority> grantedAuthorities = new SecurityConfiguration.ReportPortalAuthorityExtractor()
-				.extractAuthorities(authorities);
+		Map<String, Object> authorities = ImmutableMap.<String, Object>builder().put(
+				"projects", ImmutableMap.builder().put("some_project", "PROJECT_MANAGER").build()).build();
+		List<GrantedAuthority> grantedAuthorities = new SecurityConfiguration.ReportPortalAuthorityExtractor().extractAuthorities(
+				authorities);
 
 		Assert.assertThat(grantedAuthorities, hasItem(is(new ProjectAuthority("some_project", "PROJECT_MANAGER"))));
 	}

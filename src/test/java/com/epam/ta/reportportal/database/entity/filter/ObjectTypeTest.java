@@ -17,26 +17,23 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
-package com.epam.ta.reportportal.database.entity.filter;
+ */
 
-import org.junit.Assert;
-import org.junit.Test;
+package com.epam.ta.reportportal.database.entity.filter;
 
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link UserFilter}'s {@link ObjectType}
- * 
  */
 public class ObjectTypeTest {
 
 	@Test
 	public void testGetType() {
-		Class<?> classObject = ObjectType.getTypeByName(ObjectType.Launch
-				.toString());
+		Class<?> classObject = ObjectType.getTypeByName(ObjectType.Launch.toString());
 		Assert.assertEquals(Launch.class, classObject);
 	}
 

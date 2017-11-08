@@ -41,7 +41,7 @@ import static java.util.Collections.singletonList;
 /**
  * Initial implementation of
  * {@link com.epam.ta.reportportal.core.project.IDeleteProjectHandler}
- * 
+ *
  * @author Hanna_Sukhadolava
  * @author Andrei_Ramanchuk
  */
@@ -63,8 +63,10 @@ public class DeleteProjectHandler implements IDeleteProjectHandler {
 
 		Project project = projectRepository.findOne(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
-		expect(project.getConfiguration().getEntryType(), and(asList(not(equalTo(EntryType.PERSONAL)), not(equalTo(EntryType.UPSA)))))
-				.verify(ErrorType.PROJECT_UPDATE_NOT_ALLOWED, project.getConfiguration().getEntryType());
+		expect(
+				project.getConfiguration().getEntryType(),
+				and(asList(not(equalTo(EntryType.PERSONAL)), not(equalTo(EntryType.UPSA))))
+		).verify(ErrorType.PROJECT_UPDATE_NOT_ALLOWED, project.getConfiguration().getEntryType());
 		try {
 			projectRepository.delete(singletonList(projectName));
 			logIndexer.deleteIndex(projectName);

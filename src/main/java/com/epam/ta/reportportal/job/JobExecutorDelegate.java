@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.job;
 
@@ -27,16 +27,15 @@ import org.springframework.stereotype.Service;
 
 /**
  * Job executor delegate. Adds possibility to submit self cancallable jobs
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @Service
 public class JobExecutorDelegate {
 
 	/**
 	 * Default TaskScheduler
-	 * 
+	 *
 	 * @see org.springframework.scheduling.TaskScheduler
 	 */
 	@Autowired
@@ -44,7 +43,7 @@ public class JobExecutorDelegate {
 
 	/**
 	 * Submits self cancallable job
-	 * 
+	 *
 	 * @param SelfCancalableJob
 	 */
 	public void submitJob(SelfCancalableJob SelfCancalableJob) {

@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.database.fixture;
 
@@ -38,13 +38,14 @@ import java.lang.reflect.Method;
  * JUnit's rule. Imports demo data for testing purposes. Implements
  * {@link ApplicationContextAware} and that's why contains
  * {@link ApplicationContext} automatically
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class SpringFixtureRule extends ExternalResource implements ApplicationContextAware {
 
-	/** Spring's Application context */
+	/**
+	 * Spring's Application context
+	 */
 	private ApplicationContext applicationContext;
 
 	@Autowired
@@ -71,7 +72,7 @@ public class SpringFixtureRule extends ExternalResource implements ApplicationCo
 	/**
 	 * Looking for {@link SpringFixture} annotation on test method and test
 	 * class
-	 * 
+	 *
 	 * @param description
 	 * @return
 	 */
@@ -106,7 +107,7 @@ public class SpringFixtureRule extends ExternalResource implements ApplicationCo
 
 	/**
 	 * Is annotated with fixture
-	 * 
+	 *
 	 * @param fixture
 	 * @return
 	 */

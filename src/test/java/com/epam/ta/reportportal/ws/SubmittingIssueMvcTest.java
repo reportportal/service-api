@@ -17,21 +17,20 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import com.epam.ta.reportportal.auth.AuthConstants;
+import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 
-import com.epam.ta.reportportal.auth.AuthConstants;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class SubmittingIssueMvcTest extends BaseMvcTest {
 
@@ -43,14 +42,11 @@ public class SubmittingIssueMvcTest extends BaseMvcTest {
 	@Test
 	@Ignore
 	public void testDesc() throws Exception {
-		this.mvcMock
-				.perform(
-						put(PROJECT_BASE_URL + RESOURCE)
-								.secure(true)
-								.contentType(MediaType.APPLICATION_JSON)
-								.content(
-										"{\"submit_new\": true,\"issues\": [{\"test_item_id\": \"44524cc1553de753b3e5bb2f\",\"issue\": {\"issue_type\": \"Automation bug\",\"comment\": \"test\"}},{\"test_item_id\": \"44524cc1553de753b3e5cc2f\",\"issue\": {\"issue_type\": \"Automation bug\",\"comment\": \"test\"}}]}")
-								.accept(MediaType.parseMediaType("application/json;charset=UTF-8"))).andExpect(status().isOk());
+		this.mvcMock.perform(put(PROJECT_BASE_URL + RESOURCE).secure(true)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(
+						"{\"submit_new\": true,\"issues\": [{\"test_item_id\": \"44524cc1553de753b3e5bb2f\",\"issue\": {\"issue_type\": \"Automation bug\",\"comment\": \"test\"}},{\"test_item_id\": \"44524cc1553de753b3e5cc2f\",\"issue\": {\"issue_type\": \"Automation bug\",\"comment\": \"test\"}}]}")
+				.accept(MediaType.parseMediaType("application/json;charset=UTF-8"))).andExpect(status().isOk());
 
 	}
 

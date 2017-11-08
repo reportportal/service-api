@@ -17,20 +17,19 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.database.fixture;
-
-import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
+import java.util.Collection;
+
 /**
  * Mongo Fixture Importer. Imports fixtures into mongo db
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class MongoFixtureImporter implements FixtureImporter {
 

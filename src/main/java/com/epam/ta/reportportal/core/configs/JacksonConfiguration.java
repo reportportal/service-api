@@ -17,28 +17,24 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.configs;
-import com.epam.ta.reportportal.ws.resolver.JacksonViewAwareModule;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
+import com.epam.ta.reportportal.ws.resolver.JacksonViewAwareModule;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * 
  * @author Andrei Varabyeu
- * 
  */
 @Configuration
 public class JacksonConfiguration {
 
 	/**
-	 * 
-	 * 
 	 * @return
 	 */
 	@Bean(name = "objectMapper")

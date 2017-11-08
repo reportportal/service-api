@@ -39,22 +39,25 @@ import java.util.stream.Collectors;
 @Component
 public class ExtensionsInfoContributor implements ExtensionContributor {
 
-    private static final String EXTENSION_KEY = "extension";
+	private static final String EXTENSION_KEY = "extension";
 
-    private static final String BUGTRACKING_KEY = "bugtracking";
+	private static final String BUGTRACKING_KEY = "bugtracking";
 
-    private final DiscoveryClient discoveryClient;
+	private final DiscoveryClient discoveryClient;
 
-    @Autowired
-    public ExtensionsInfoContributor(DiscoveryClient discoveryClient) {
-        this.discoveryClient = discoveryClient;
-    }
+	@Autowired
+	public ExtensionsInfoContributor(DiscoveryClient discoveryClient) {
+		this.discoveryClient = discoveryClient;
+	}
 
-    @Override
-    public Map<String, ?> contribute() {
-        Set<String> collect = discoveryClient.getServices().stream().flatMap(service -> discoveryClient.getInstances(service).stream())
-                .filter(instance -> instance.getMetadata().containsKey(EXTENSION_KEY))
-                .map(instance -> instance.getMetadata().get(EXTENSION_KEY)).collect(Collectors.toCollection(TreeSet::new));
-        return ImmutableMap.<String, Object>builder().put(BUGTRACKING_KEY, collect).build();
-    }
+	@Override
+	public Map<String, ?> contribute() {
+		Set<String> collect = discoveryClient.getServices()
+				.stream()
+				.flatMap(service -> discoveryClient.getInstances(service).stream())
+				.filter(instance -> instance.getMetadata().containsKey(EXTENSION_KEY))
+				.map(instance -> instance.getMetadata().get(EXTENSION_KEY))
+				.collect(Collectors.toCollection(TreeSet::new));
+		return ImmutableMap.<String, Object>builder().put(BUGTRACKING_KEY, collect).build();
+	}
 }

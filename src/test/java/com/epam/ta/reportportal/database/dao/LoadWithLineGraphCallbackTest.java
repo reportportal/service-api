@@ -17,24 +17,11 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.database.dao;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.epam.ta.BaseTest;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
-
 import com.epam.ta.reportportal.database.StatisticsDocumentHandler;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
@@ -43,11 +30,18 @@ import com.epam.ta.reportportal.database.search.CriteriaMap;
 import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.google.common.collect.Lists;
+import org.junit.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Ignore
 // TODO FIX REQUIRED!!!
-public class LoadWithLineGraphCallbackTest  extends BaseTest {
+public class LoadWithLineGraphCallbackTest extends BaseTest {
 
 	@Autowired
 	private LaunchRepository launchRepository;

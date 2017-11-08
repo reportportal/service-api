@@ -34,37 +34,37 @@ import org.junit.Test;
  */
 public class ExternalSystemConverterTest {
 
-    @Test(expected = NullPointerException.class)
-    public void testNull() {
-        ExternalSystemConverter.TO_RESOURCE.apply(null);
-    }
+	@Test(expected = NullPointerException.class)
+	public void testNull() {
+		ExternalSystemConverter.TO_RESOURCE.apply(null);
+	}
 
-    @Test
-    public void testConvertToResource() {
-        ExternalSystem externalSystem = new ExternalSystem();
-        externalSystem.setId("id");
-        externalSystem.setProjectRef("project");
-        externalSystem.setProject("extProject");
-        externalSystem.setExternalSystemType(ExternalSystemType.JIRA);
-        externalSystem.setAccessKey("a31aa6de3e27c11d90762cad11936727d6b0759e");
-        externalSystem.setDomain("github.com");
-        externalSystem.setExternalSystemAuth(AuthType.OAUTH);
-        externalSystem.setFields(Lists.newArrayList());
-        externalSystem.setUsername("user");
-        externalSystem.setUrl("url");
-        validate(externalSystem, ExternalSystemConverter.TO_RESOURCE.apply(externalSystem));
-    }
+	@Test
+	public void testConvertToResource() {
+		ExternalSystem externalSystem = new ExternalSystem();
+		externalSystem.setId("id");
+		externalSystem.setProjectRef("project");
+		externalSystem.setProject("extProject");
+		externalSystem.setExternalSystemType(ExternalSystemType.JIRA);
+		externalSystem.setAccessKey("a31aa6de3e27c11d90762cad11936727d6b0759e");
+		externalSystem.setDomain("github.com");
+		externalSystem.setExternalSystemAuth(AuthType.OAUTH);
+		externalSystem.setFields(Lists.newArrayList());
+		externalSystem.setUsername("user");
+		externalSystem.setUrl("url");
+		validate(externalSystem, ExternalSystemConverter.TO_RESOURCE.apply(externalSystem));
+	}
 
-    private void validate(ExternalSystem db, ExternalSystemResource resource) {
-        Assert.assertEquals(db.getProjectRef(), resource.getProjectRef());
-        Assert.assertEquals(db.getProject(), resource.getProject());
-        Assert.assertEquals(db.getUsername(), resource.getUsername());
-        Assert.assertEquals(db.getExternalSystemType().name(), resource.getExternalSystemType());
-        Assert.assertEquals(db.getUrl(), resource.getUrl());
-        Assert.assertEquals(db.getDomain(), resource.getDomain());
-        Assert.assertEquals(db.getAccessKey(), resource.getAccessKey());
-        Assert.assertEquals(db.getExternalSystemAuth().name(), resource.getExternalSystemAuth());
-        Assert.assertEquals(db.getId(), resource.getSystemId());
-        Assert.assertEquals(db.getFields(), resource.getFields());
-    }
+	private void validate(ExternalSystem db, ExternalSystemResource resource) {
+		Assert.assertEquals(db.getProjectRef(), resource.getProjectRef());
+		Assert.assertEquals(db.getProject(), resource.getProject());
+		Assert.assertEquals(db.getUsername(), resource.getUsername());
+		Assert.assertEquals(db.getExternalSystemType().name(), resource.getExternalSystemType());
+		Assert.assertEquals(db.getUrl(), resource.getUrl());
+		Assert.assertEquals(db.getDomain(), resource.getDomain());
+		Assert.assertEquals(db.getAccessKey(), resource.getAccessKey());
+		Assert.assertEquals(db.getExternalSystemAuth().name(), resource.getExternalSystemAuth());
+		Assert.assertEquals(db.getId(), resource.getSystemId());
+		Assert.assertEquals(db.getFields(), resource.getFields());
+	}
 }

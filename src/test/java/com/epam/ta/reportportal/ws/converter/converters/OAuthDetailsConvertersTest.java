@@ -66,7 +66,8 @@ public class OAuthDetailsConvertersTest {
 		Assert.assertThat("Incorrect token uri", resource.getAccessTokenUri(), Matchers.equalTo(db.getAccessTokenUri()));
 		Assert.assertThat("Incorrect auth scheme", resource.getAuthenticationScheme(), Matchers.equalTo(db.getAuthenticationScheme()));
 		Assert.assertThat("Incorrect client auth scheme", resource.getClientAuthenticationScheme(),
-				Matchers.equalTo(db.getClientAuthenticationScheme()));
+				Matchers.equalTo(db.getClientAuthenticationScheme())
+		);
 		Assert.assertThat("Incorrect client ID", resource.getClientId(), Matchers.equalTo(db.getClientId()));
 		Assert.assertThat("Incorrect client secret", resource.getClientSecret(), Matchers.equalTo(db.getClientSecret()));
 		Assert.assertThat("Incorrect grant type", resource.getGrantType(), Matchers.equalTo(db.getGrantType()));
@@ -74,7 +75,8 @@ public class OAuthDetailsConvertersTest {
 		Assert.assertThat("Incorrect scope", resource.getScope(), Matchers.equalTo(db.getScope()));
 		Assert.assertThat("Incorrect token name", resource.getTokenName(), Matchers.equalTo(db.getTokenName()));
 		Assert.assertThat("Incorrect user authorization uri", resource.getUserAuthorizationUri(),
-				Matchers.equalTo(db.getUserAuthorizationUri()));
+				Matchers.equalTo(db.getUserAuthorizationUri())
+		);
 
 	}
 

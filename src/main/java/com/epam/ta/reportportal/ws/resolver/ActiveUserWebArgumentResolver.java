@@ -17,12 +17,11 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.resolver;
 
-import java.util.Optional;
-
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.support.WebArgumentResolver;
@@ -31,15 +30,14 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import com.epam.ta.reportportal.database.entity.user.UserRole;
+import java.util.Optional;
 
 /**
  * {@link org.springframework.web.bind.support.WebArgumentResolver} for
  * ReportPortal User Roles. Will resolve {@link UserRole} in case if method
  * parameter annotated by {@link ActiveRole} annotation
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class ActiveUserWebArgumentResolver implements HandlerMethodArgumentResolver {
 
@@ -49,8 +47,8 @@ public class ActiveUserWebArgumentResolver implements HandlerMethodArgumentResol
 	 */
 	@Override
 	public boolean supportsParameter(MethodParameter methodParameter) {
-		return methodParameter.getParameterType().equals(UserRole.class)
-				&& null != methodParameter.getParameterAnnotation(ActiveRole.class);
+		return methodParameter.getParameterType().equals(UserRole.class) && null != methodParameter.getParameterAnnotation(
+				ActiveRole.class);
 	}
 
 	/*

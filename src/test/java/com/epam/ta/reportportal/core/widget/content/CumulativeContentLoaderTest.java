@@ -57,30 +57,38 @@ public class CumulativeContentLoaderTest extends BaseTest {
 
 	@Test(expected = ReportPortalException.class)
 	public void testNullOrWithoutTagPrefix() {
-		Filter filter = Filter.builder().withTarget(Launch.class)
-				.withCondition(new FilterCondition(Condition.CONTAINS, false, "name", "name")).build();
-		Map<String, List<ChartObject>> content = contentLoader
-				.loadContent("project", filter, null, 10, emptyList(), emptyList(), emptyMap());
+		Filter filter = Filter.builder()
+				.withTarget(Launch.class)
+				.withCondition(new FilterCondition(Condition.CONTAINS, false, "name", "name"))
+				.build();
+		Map<String, List<ChartObject>> content = contentLoader.loadContent(
+				"project", filter, null, 10, emptyList(), emptyList(), emptyMap());
 		Assert.fail("Error in handled Request. Please, check specified parameters: 'widgetOptions'");
 	}
 
 	@Test(expected = ReportPortalException.class)
 	public void testWithoutTagPrefix() {
-		Filter filter = Filter.builder().withTarget(Launch.class)
-				.withCondition(new FilterCondition(Condition.CONTAINS, false, "name", "name")).build();
-		Map<String, List<ChartObject>> content = contentLoader
-				.loadContent("project", filter, null, 10, emptyList(), emptyList(), singletonMap("prefix", emptyList()));
+		Filter filter = Filter.builder()
+				.withTarget(Launch.class)
+				.withCondition(new FilterCondition(Condition.CONTAINS, false, "name", "name"))
+				.build();
+		Map<String, List<ChartObject>> content = contentLoader.loadContent(
+				"project", filter, null, 10, emptyList(), emptyList(), singletonMap("prefix", emptyList()));
 		Assert.fail("Error in handled Request. Please, check specified parameters: 'prefix'");
 	}
 
 	@Test
 	@Ignore(value = "Fongo doesn't support $addFields operation")
 	public void testCumulative() {
-		Filter filter = Filter.builder().withTarget(Launch.class).withCondition(new FilterCondition(Condition.CONTAINS, false, "l", "name"))
+		Filter filter = Filter.builder()
+				.withTarget(Launch.class)
+				.withCondition(new FilterCondition(Condition.CONTAINS, false, "l", "name"))
 				.build();
 		ImmutableList<String> contentField = ImmutableList.<String>builder().add("statistics.executionCounter.failed")
-				.add("statistics.executionCounter.passed").add("statistics.executionCounter.skipped")
-				.add("statistics.issueCounter.productBug.total").build();
+				.add("statistics.executionCounter.passed")
+				.add("statistics.executionCounter.skipped")
+				.add("statistics.issueCounter.productBug.total")
+				.build();
 		List<String> metadata = emptyList();
 		ImmutableMap<String, List<String>> options = ImmutableMap.<String, List<String>>builder().put("prefix", singletonList("job"))
 				.build();

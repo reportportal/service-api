@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.project.settings;
 
@@ -25,15 +25,13 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
 
 /**
- * 
  * @author Andrei_Ramanchuk
- *
  */
 public interface IUpdateProjectSettingsHandler {
 
 	/**
 	 * Update issue sub-type for specified project
-	 * 
+	 *
 	 * @param projectName
 	 * @param rq
 	 * @return OperationCompletionRS

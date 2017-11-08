@@ -71,12 +71,12 @@ public interface ExternalSystemStrategy {
 	 */
 	List<PostFormField> getTicketFields(String issueType, ExternalSystem system);
 
-    /**
-     * Get list of allowable issue types for external system
-     *
-     * @param system    External system
-     * @return List of issue types
-     */
-    List<String> getIssueTypes(ExternalSystem system);
+	/**
+	 * Get list of allowable issue types for external system
+	 *
+	 * @param system External system
+	 * @return List of issue types
+	 */
+	List<String> getIssueTypes(ExternalSystem system);
 
 }

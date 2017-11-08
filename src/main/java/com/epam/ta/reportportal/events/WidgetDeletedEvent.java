@@ -28,14 +28,14 @@ import com.epam.ta.reportportal.database.entity.widget.Widget;
  */
 public class WidgetDeletedEvent extends BeforeEvent<Widget> {
 
-    private final String removedBy;
+	private final String removedBy;
 
-    public WidgetDeletedEvent(Widget widget, String removerId) {
-        super(widget);
-        this.removedBy = removerId;
-    }
+	public WidgetDeletedEvent(Widget widget, String removerId) {
+		super(widget);
+		this.removedBy = removerId;
+	}
 
-    public String getRemovedBy() {
-        return removedBy;
-    }
+	public String getRemovedBy() {
+		return removedBy;
+	}
 }

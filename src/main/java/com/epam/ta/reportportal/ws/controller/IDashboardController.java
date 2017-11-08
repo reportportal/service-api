@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller;
 
@@ -40,68 +40,68 @@ import java.util.Map;
  */
 public interface IDashboardController {
 
-    /**
-     * Create new dashboard object
-     *
-     * @param projectName Project Name
-     * @param createRQ    Request Data
-     * @param principal   Login
-     * @return EntryCreatedRS
-     * @throws ReportPortalException
-     */
-    EntryCreatedRS createDashboard(String projectName, CreateDashboardRQ createRQ, Principal principal);
+	/**
+	 * Create new dashboard object
+	 *
+	 * @param projectName Project Name
+	 * @param createRQ    Request Data
+	 * @param principal   Login
+	 * @return EntryCreatedRS
+	 * @throws ReportPortalException
+	 */
+	EntryCreatedRS createDashboard(String projectName, CreateDashboardRQ createRQ, Principal principal);
 
-    /**
-     * Get all dashboards for current user
-     *
-     * @param projectName Project Name
-     * @param principal   Login
-     * @return Iterable<DashboardResource>
-     * @throws ReportPortalException
-     */
-    Iterable<DashboardResource> getAllDashboards(String projectName, Principal principal);
+	/**
+	 * Get all dashboards for current user
+	 *
+	 * @param projectName Project Name
+	 * @param principal   Login
+	 * @return Iterable<DashboardResource>
+	 * @throws ReportPortalException
+	 */
+	Iterable<DashboardResource> getAllDashboards(String projectName, Principal principal);
 
-    /**
-     * Get specified dashboard by its ID for specified project
-     *
-     * @param projectName Project Name
-     * @param dashboardId Dashboard ID
-     * @param principal   Login
-     * @return Found Dashboard
-     */
-    DashboardResource getDashboard(String projectName, String dashboardId, Principal principal);
+	/**
+	 * Get specified dashboard by its ID for specified project
+	 *
+	 * @param projectName Project Name
+	 * @param dashboardId Dashboard ID
+	 * @param principal   Login
+	 * @return Found Dashboard
+	 */
+	DashboardResource getDashboard(String projectName, String dashboardId, Principal principal);
 
-    /**
-     * Update dashboard with specified id.
-     *
-     * @param dashboardId Dashboard ID
-     * @param projectName Project Name
-     * @param principal   Login
-     * @param updateRQ    Request Data
-     * @return OperationCompletionRS
-     * @throws ReportPortalException
-     */
-    OperationCompletionRS updateDashboard(String projectName, String dashboardId, UpdateDashboardRQ updateRQ,
-            Principal principal, UserRole userRole);
+	/**
+	 * Update dashboard with specified id.
+	 *
+	 * @param dashboardId Dashboard ID
+	 * @param projectName Project Name
+	 * @param principal   Login
+	 * @param updateRQ    Request Data
+	 * @return OperationCompletionRS
+	 * @throws ReportPortalException
+	 */
+	OperationCompletionRS updateDashboard(String projectName, String dashboardId, UpdateDashboardRQ updateRQ, Principal principal,
+			UserRole userRole);
 
-    /**
-     * Delete dashboard with specified id.
-     *
-     * @param dashboardId Dashboard ID
-     * @param projectName Project Name
-     * @param principal   Login
-     * @return OperationCompletionRS
-     * @throws ReportPortalException
-     */
-    OperationCompletionRS deleteDashboard(String projectName, String dashboardId, UserRole userRole, Principal principal);
+	/**
+	 * Delete dashboard with specified id.
+	 *
+	 * @param dashboardId Dashboard ID
+	 * @param projectName Project Name
+	 * @param principal   Login
+	 * @return OperationCompletionRS
+	 * @throws ReportPortalException
+	 */
+	OperationCompletionRS deleteDashboard(String projectName, String dashboardId, UserRole userRole, Principal principal);
 
-    /**
-     * Get all dashboards for current user
-     *
-     * @param projectName Project Name
-     * @param principal   Login
-     * @return Iterable<DashboardResource>
-     * @throws ReportPortalException
-     */
-    Map<String, SharedEntity> getSharedDashboardsNames(String projectName, Principal principal);
+	/**
+	 * Get all dashboards for current user
+	 *
+	 * @param projectName Project Name
+	 * @param principal   Login
+	 * @return Iterable<DashboardResource>
+	 * @throws ReportPortalException
+	 */
+	Map<String, SharedEntity> getSharedDashboardsNames(String projectName, Principal principal);
 }

@@ -34,40 +34,40 @@ import org.junit.Test;
  */
 public class WidgetConverterTest {
 
-    @Test(expected = NullPointerException.class)
-    public void testNull() {
-        WidgetConverter.TO_RESOURCE.apply(null);
-    }
+	@Test(expected = NullPointerException.class)
+	public void testNull() {
+		WidgetConverter.TO_RESOURCE.apply(null);
+	}
 
-    @Test
-    public void testNullExtended() {
-        Widget widget = Utils.getWidget();
-        widget.setId(BuilderTestsConstants.BINARY_DATA_ID);
-        widget.setApplyingFilterId(null);
-        widget.setContentOptions(null);
-        WidgetResource actualValue = WidgetConverter.TO_RESOURCE.apply(widget);
-        WidgetResource expectedValue = new WidgetResource();
-        expectedValue.setName(BuilderTestsConstants.NAME);
-        expectedValue.setWidgetId(BuilderTestsConstants.BINARY_DATA_ID);
-        validate(expectedValue, actualValue);
-    }
+	@Test
+	public void testNullExtended() {
+		Widget widget = Utils.getWidget();
+		widget.setId(BuilderTestsConstants.BINARY_DATA_ID);
+		widget.setApplyingFilterId(null);
+		widget.setContentOptions(null);
+		WidgetResource actualValue = WidgetConverter.TO_RESOURCE.apply(widget);
+		WidgetResource expectedValue = new WidgetResource();
+		expectedValue.setName(BuilderTestsConstants.NAME);
+		expectedValue.setWidgetId(BuilderTestsConstants.BINARY_DATA_ID);
+		validate(expectedValue, actualValue);
+	}
 
-    @Test
-    public void testValues() {
-        WidgetResource actualValue = WidgetConverter.TO_RESOURCE.apply(Utils.getWidget());
-        WidgetResource expectedValue = new WidgetResource();
-        expectedValue.setContentParameters(new ContentParameters());
-        expectedValue.setName(BuilderTestsConstants.NAME);
+	@Test
+	public void testValues() {
+		WidgetResource actualValue = WidgetConverter.TO_RESOURCE.apply(Utils.getWidget());
+		WidgetResource expectedValue = new WidgetResource();
+		expectedValue.setContentParameters(new ContentParameters());
+		expectedValue.setName(BuilderTestsConstants.NAME);
 		expectedValue.setFilterId("1234");
 		validate(expectedValue, actualValue);
 	}
 
-    private void validate(WidgetResource expectedValue, WidgetResource actualValue) {
+	private void validate(WidgetResource expectedValue, WidgetResource actualValue) {
 		Assert.assertEquals(expectedValue.getFilterId(), actualValue.getFilterId());
 		Assert.assertEquals(expectedValue.getName(), actualValue.getName());
 		Assert.assertEquals(expectedValue.getWidgetId(), actualValue.getWidgetId());
-        Assert.assertEquals(expectedValue.getContentParameters(), actualValue.getContentParameters());
-        Assert.assertEquals(expectedValue.getDescription(), actualValue.getDescription());
+		Assert.assertEquals(expectedValue.getContentParameters(), actualValue.getContentParameters());
+		Assert.assertEquals(expectedValue.getDescription(), actualValue.getDescription());
 
-    }
+	}
 }

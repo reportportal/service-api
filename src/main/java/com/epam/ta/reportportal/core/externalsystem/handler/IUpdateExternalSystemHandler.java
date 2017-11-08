@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.externalsystem.handler;
 
@@ -36,14 +36,10 @@ public interface IUpdateExternalSystemHandler {
 	/**
 	 * Update method for {@link ExternalSystem} entity
 	 *
-	 * @param request
-	 *            Request Data
-	 * @param projectName
-	 *            Project Name
-	 * @param id
-	 *            System ID
-	 * @param principalName
-	 *            Login
+	 * @param request       Request Data
+	 * @param projectName   Project Name
+	 * @param id            System ID
+	 * @param principalName Login
 	 * @return Operation result
 	 */
 	OperationCompletionRS updateExternalSystem(UpdateExternalSystemRQ request, String projectName, String id, String principalName);
@@ -51,12 +47,9 @@ public interface IUpdateExternalSystemHandler {
 	/**
 	 * Validate connection of provided ExternalSystem configuration
 	 *
-	 * @param projectName
-	 *            Project Name
-	 * @param updateRQ
-	 *            Request Data
-	 * @param principalName
-	 *            Login
+	 * @param projectName   Project Name
+	 * @param updateRQ      Request Data
+	 * @param principalName Login
 	 * @return Operation result
 	 */
 	OperationCompletionRS externalSystemConnect(String projectName, UpdateExternalSystemRQ updateRQ, String principalName);

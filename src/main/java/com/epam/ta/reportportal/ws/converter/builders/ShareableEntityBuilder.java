@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.database.entity.sharing.AclEntry;
@@ -27,15 +27,14 @@ import com.epam.ta.reportportal.database.entity.sharing.Shareable;
 
 /**
  * Extension of {@link Builder}. This builder add possibility to build sharable resources
- *  
- * @author Aliaksei_Makayed
  *
  * @param <T>
+ * @author Aliaksei_Makayed
  */
 public abstract class ShareableEntityBuilder<T extends Shareable> extends Builder<T> {
-	
+
 	public abstract ShareableEntityBuilder<T> addSharing(String owner, String project, String description, boolean isShare);
-	
+
 	protected void addAcl(String owner, String project, String description, boolean isShare) {
 		if (owner != null && project != null) {
 			getObject().setOwner(owner);

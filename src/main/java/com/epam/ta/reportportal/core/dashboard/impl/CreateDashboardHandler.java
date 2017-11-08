@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
@@ -39,9 +39,8 @@ import javax.inject.Provider;
 
 /**
  * Default implementation of {@link ICreateDashboardHandler}
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 @Service
 public class CreateDashboardHandler implements ICreateDashboardHandler {
@@ -53,7 +52,7 @@ public class CreateDashboardHandler implements ICreateDashboardHandler {
 	private Provider<DashboardBuilder> dashboardBuilder;
 
 	@Autowired
-    private ApplicationEventPublisher eventPublisher;
+	private ApplicationEventPublisher eventPublisher;
 
 	@Override
 	public EntryCreatedRS createDashboard(String projectName, CreateDashboardRQ rq, String userName) {
@@ -68,8 +67,11 @@ public class CreateDashboardHandler implements ICreateDashboardHandler {
 		Dashboard isExist = dashboardRepository.findOneByUserProject(userName, projectName, rq.getName());
 		BusinessRule.expect(isExist, Predicates.isNull()).verify(ErrorType.RESOURCE_ALREADY_EXISTS, rq.getName());
 
-		Dashboard dashboard = dashboardBuilder.get().addCreateDashboardRQ(rq)
-				.addSharing(userName, projectName, rq.getDescription(), rq.getShare() == null ? false : rq.getShare()).addProject(projectName).build();
+		Dashboard dashboard = dashboardBuilder.get()
+				.addCreateDashboardRQ(rq)
+				.addSharing(userName, projectName, rq.getDescription(), rq.getShare() == null ? false : rq.getShare())
+				.addProject(projectName)
+				.build();
 		dashboardRepository.save(dashboard);
 		eventPublisher.publishEvent(new DashboardCreatedEvent(rq, userName, projectName, dashboard.getId()));
 		return new EntryCreatedRS(dashboard.getId());

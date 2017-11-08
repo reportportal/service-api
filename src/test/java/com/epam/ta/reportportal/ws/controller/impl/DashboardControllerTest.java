@@ -20,18 +20,6 @@
  */
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.ArrayList;
-
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.test.web.servlet.MvcResult;
-
 import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.database.dao.DashboardRepository;
 import com.epam.ta.reportportal.database.entity.Dashboard;
@@ -41,10 +29,20 @@ import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.test.web.servlet.MvcResult;
+
+import java.util.ArrayList;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author Dzmitry_Kavalets
- *
  */
 public class DashboardControllerTest extends BaseMvcTest {
 
@@ -58,10 +56,9 @@ public class DashboardControllerTest extends BaseMvcTest {
 		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
 		createDashboardRQ.setName("dashboard");
 		createDashboardRQ.setDescription("description");
-		final MvcResult mvcResult = mvcMock
-				.perform(post(PROJECT_BASE_URL + "/dashboard").principal(authentication())
-						.content(objectMapper.writeValueAsBytes(createDashboardRQ)).contentType(APPLICATION_JSON))
-				.andExpect(status().isCreated()).andReturn();
+		final MvcResult mvcResult = mvcMock.perform(post(PROJECT_BASE_URL + "/dashboard").principal(authentication())
+				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
+				.contentType(APPLICATION_JSON)).andExpect(status().isCreated()).andReturn();
 		final EntryCreatedRS entryCreatedRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), EntryCreatedRS.class);
 		final Dashboard dashboard = dashboardRepository.findOne(entryCreatedRS.getId());
 		Assert.assertNotNull(dashboard);
@@ -85,11 +82,11 @@ public class DashboardControllerTest extends BaseMvcTest {
 		final UpdateDashboardRQ rq = new UpdateDashboardRQ();
 		rq.setName("name");
 		rq.setDescription("description");
-		rq.setAddWidget(
-				new DashboardResource.WidgetObjectModel("613e1f3818127ca356339f38", new ArrayList<>(), new ArrayList<>()));
+		rq.setAddWidget(new DashboardResource.WidgetObjectModel("613e1f3818127ca356339f38", new ArrayList<>(), new ArrayList<>()));
 		rq.setShare(true);
 		this.mvcMock.perform(put(PROJECT_BASE_URL + "/dashboard/520e1f3818127ca383464342").principal(authentication())
-				.content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)).andExpect(status().is(200));
+				.content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)).andExpect(status().is(200));
 		final Dashboard dashboard = dashboardRepository.findOne("520e1f3818127ca383464342");
 		Assert.assertEquals("description", dashboard.getDescription());
 	}

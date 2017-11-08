@@ -40,36 +40,37 @@ import java.util.Map;
  */
 public class ProjectSettingsConverterTest {
 
-    @Test
-    public void testConvert() {
-        Project project = new Project();
-        Project.Configuration configuration = new Project.Configuration();
-        StatisticSubType subType = new StatisticSubType();
-        subType.setHexColor("#ec3900");
-        subType.setLocator("PB001");
-        subType.setLongName("Product bug");
-        subType.setShortName("PB");
-        subType.setTypeRef("PRODUCT_BUG");
-        configuration.setSubTypes(ImmutableMap.<TestItemIssueType, List<StatisticSubType>>builder()
-                .put(TestItemIssueType.PRODUCT_BUG, ImmutableList.<StatisticSubType>builder().add(subType).build()).build());
-        configuration.setStatisticsCalculationStrategy(StatisticsCalculationStrategy.TEST_BASED);
-        project.setConfiguration(configuration);
+	@Test
+	public void testConvert() {
+		Project project = new Project();
+		Project.Configuration configuration = new Project.Configuration();
+		StatisticSubType subType = new StatisticSubType();
+		subType.setHexColor("#ec3900");
+		subType.setLocator("PB001");
+		subType.setLongName("Product bug");
+		subType.setShortName("PB");
+		subType.setTypeRef("PRODUCT_BUG");
+		configuration.setSubTypes(ImmutableMap.<TestItemIssueType, List<StatisticSubType>>builder().put(TestItemIssueType.PRODUCT_BUG,
+				ImmutableList.<StatisticSubType>builder().add(subType).build()
+		).build());
+		configuration.setStatisticsCalculationStrategy(StatisticsCalculationStrategy.TEST_BASED);
+		project.setConfiguration(configuration);
 
-        Map<TestItemIssueType, List<StatisticSubType>> subTypes = configuration.getSubTypes();
+		Map<TestItemIssueType, List<StatisticSubType>> subTypes = configuration.getSubTypes();
 
-        ProjectSettingsResource resource = ProjectSettingsConverter.TO_RESOURCE.apply(project);
-        Assert.assertNull(resource.getProjectId());
-        Assert.assertEquals(configuration.getStatisticsCalculationStrategy().name(), resource.getStatisticsStrategy());
-        Assert.assertTrue(subTypes.size() == resource.getSubTypes().size());
+		ProjectSettingsResource resource = ProjectSettingsConverter.TO_RESOURCE.apply(project);
+		Assert.assertNull(resource.getProjectId());
+		Assert.assertEquals(configuration.getStatisticsCalculationStrategy().name(), resource.getStatisticsStrategy());
+		Assert.assertTrue(subTypes.size() == resource.getSubTypes().size());
 
-        Assert.assertTrue(resource.getSubTypes().containsKey(TestItemIssueType.PRODUCT_BUG.name()));
-        IssueSubTypeResource subTypeResource = resource.getSubTypes().get(TestItemIssueType.PRODUCT_BUG.name()).get(0);
-        Assert.assertEquals(subType.getHexColor(), subTypeResource.getColor());
-        Assert.assertEquals(subType.getLocator(), subTypeResource.getLocator());
-        Assert.assertEquals(subType.getLongName(), subTypeResource.getLongName());
-        Assert.assertEquals(subType.getShortName(), subTypeResource.getShortName());
-        Assert.assertEquals(subType.getTypeRef(), subTypeResource.getTypeRef());
+		Assert.assertTrue(resource.getSubTypes().containsKey(TestItemIssueType.PRODUCT_BUG.name()));
+		IssueSubTypeResource subTypeResource = resource.getSubTypes().get(TestItemIssueType.PRODUCT_BUG.name()).get(0);
+		Assert.assertEquals(subType.getHexColor(), subTypeResource.getColor());
+		Assert.assertEquals(subType.getLocator(), subTypeResource.getLocator());
+		Assert.assertEquals(subType.getLongName(), subTypeResource.getLongName());
+		Assert.assertEquals(subType.getShortName(), subTypeResource.getShortName());
+		Assert.assertEquals(subType.getTypeRef(), subTypeResource.getTypeRef());
 
-    }
+	}
 
 }

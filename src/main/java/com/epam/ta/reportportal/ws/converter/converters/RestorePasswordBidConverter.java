@@ -35,15 +35,15 @@ import java.util.function.Function;
  */
 public final class RestorePasswordBidConverter {
 
-    private RestorePasswordBidConverter() {
-        //static only
-    }
+	private RestorePasswordBidConverter() {
+		//static only
+	}
 
-    public static final Function<RestorePasswordRQ, RestorePasswordBid> TO_BID = request -> {
-        Preconditions.checkNotNull(request);
-        RestorePasswordBid bid = new RestorePasswordBid();
-        bid.setEmail(request.getEmail());
-        bid.setId(UUID.randomUUID().toString());
-        return bid;
-    };
+	public static final Function<RestorePasswordRQ, RestorePasswordBid> TO_BID = request -> {
+		Preconditions.checkNotNull(request);
+		RestorePasswordBid bid = new RestorePasswordBid();
+		bid.setEmail(request.getEmail());
+		bid.setId(UUID.randomUUID().toString());
+		return bid;
+	};
 }

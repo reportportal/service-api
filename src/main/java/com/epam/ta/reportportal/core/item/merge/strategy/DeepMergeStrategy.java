@@ -13,30 +13,36 @@ import static java.util.stream.Collectors.toList;
 
 public class DeepMergeStrategy extends AbstractSuiteMergeStrategy {
 
-    @Autowired
-    public DeepMergeStrategy(TestItemRepository testItemRepository) {
-        super(testItemRepository);
-    }
+	@Autowired
+	public DeepMergeStrategy(TestItemRepository testItemRepository) {
+		super(testItemRepository);
+	}
 
-    @Override
-    public TestItem mergeTestItems(TestItem itemTarget, List<TestItem> items) {
-        return moveAllChildTestItems(itemTarget, items);
-    }
+	@Override
+	public TestItem mergeTestItems(TestItem itemTarget, List<TestItem> items) {
+		return moveAllChildTestItems(itemTarget, items);
+	}
 
-    @Override
-    protected void mergeAllChildItems(TestItem testItemParent) {
-        List<TestItem> childItems = testItemRepository.findAllDescendants(testItemParent.getId());
-        List<TestItem> testItems = childItems.stream().filter(this::isTestItemAcceptableToMerge).collect(toList());
+	@Override
+	protected void mergeAllChildItems(TestItem testItemParent) {
+		List<TestItem> childItems = testItemRepository.findAllDescendants(testItemParent.getId());
+		List<TestItem> testItems = childItems.stream().filter(this::isTestItemAcceptableToMerge).collect(toList());
 
-        testItems.stream()
-                .collect(groupingBy(TestItem::getType, groupingBy(TestItem::getName)))
-                .entrySet().stream().map(Map.Entry::getValue).collect(HashMap<String, List<TestItem>>::new, HashMap::putAll, HashMap::putAll)
-                .entrySet().stream().map(Map.Entry::getValue).collect(toList())
-                .forEach(items -> moveAllChildTestItems(items.get(0), items.subList(1, items.size())));
-    }
+		testItems.stream()
+				.collect(groupingBy(TestItem::getType, groupingBy(TestItem::getName)))
+				.entrySet()
+				.stream()
+				.map(Map.Entry::getValue)
+				.collect(HashMap<String, List<TestItem>>::new, HashMap::putAll, HashMap::putAll)
+				.entrySet()
+				.stream()
+				.map(Map.Entry::getValue)
+				.collect(toList())
+				.forEach(items -> moveAllChildTestItems(items.get(0), items.subList(1, items.size())));
+	}
 
-    @Override
-    public boolean isTestItemAcceptableToMerge(TestItem item) {
-        return item.hasChilds();
-    }
+	@Override
+	public boolean isTestItemAcceptableToMerge(TestItem item) {
+		return item.hasChilds();
+	}
 }

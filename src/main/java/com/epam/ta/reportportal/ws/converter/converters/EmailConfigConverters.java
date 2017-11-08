@@ -39,47 +39,53 @@ import java.util.stream.Collectors;
  */
 public final class EmailConfigConverters {
 
-    private EmailConfigConverters() {
-        //static only
-    }
+	private EmailConfigConverters() {
+		//static only
+	}
 
-    public final static Function<ProjectEmailConfigDTO, ProjectEmailConfig> TO_MODEL = resource -> {
-        Preconditions.checkNotNull(resource);
-        ProjectEmailConfig db = new ProjectEmailConfig();
-        db.setEmailCases(Optional.ofNullable(resource.getEmailCases()).orElseGet(Collections::emptyList).stream()
-                        .map(EmailConfigConverters.TO_CASE_MODEL).collect(Collectors.toList()));
-        db.setEmailEnabled(resource.getEmailEnabled());
-        db.setFrom(resource.getFrom());
-        return db;
-    };
+	public final static Function<ProjectEmailConfigDTO, ProjectEmailConfig> TO_MODEL = resource -> {
+		Preconditions.checkNotNull(resource);
+		ProjectEmailConfig db = new ProjectEmailConfig();
+		db.setEmailCases(Optional.ofNullable(resource.getEmailCases())
+				.orElseGet(Collections::emptyList)
+				.stream()
+				.map(EmailConfigConverters.TO_CASE_MODEL)
+				.collect(Collectors.toList()));
+		db.setEmailEnabled(resource.getEmailEnabled());
+		db.setFrom(resource.getFrom());
+		return db;
+	};
 
-    public final static Function<ProjectEmailConfig, ProjectEmailConfigDTO> TO_RESOURCE = model -> {
-        Preconditions.checkNotNull(model);
-        ProjectEmailConfigDTO resource = new ProjectEmailConfigDTO();
-        resource.setEmailCases(Optional.ofNullable(model.getEmailCases()).orElseGet(Collections::emptyList).stream()
-                        .map(EmailConfigConverters.TO_CASE_RESOURCE).collect(Collectors.toList()));
-        resource.setEmailEnabled(model.getEmailEnabled());
-        resource.setFrom(model.getFrom());
-        return resource;
-    };
+	public final static Function<ProjectEmailConfig, ProjectEmailConfigDTO> TO_RESOURCE = model -> {
+		Preconditions.checkNotNull(model);
+		ProjectEmailConfigDTO resource = new ProjectEmailConfigDTO();
+		resource.setEmailCases(Optional.ofNullable(model.getEmailCases())
+				.orElseGet(Collections::emptyList)
+				.stream()
+				.map(EmailConfigConverters.TO_CASE_RESOURCE)
+				.collect(Collectors.toList()));
+		resource.setEmailEnabled(model.getEmailEnabled());
+		resource.setFrom(model.getFrom());
+		return resource;
+	};
 
-    public final static Function<EmailSenderCaseDTO, EmailSenderCase> TO_CASE_MODEL = resource -> {
-        Preconditions.checkNotNull(resource);
-        EmailSenderCase db = new EmailSenderCase();
-        db.setLaunchNames(resource.getLaunchNames());
-        db.setRecipients(resource.getRecipients());
-        db.setSendCase(resource.getSendCase());
-        db.setTags(resource.getTags());
-        return db;
-    };
+	public final static Function<EmailSenderCaseDTO, EmailSenderCase> TO_CASE_MODEL = resource -> {
+		Preconditions.checkNotNull(resource);
+		EmailSenderCase db = new EmailSenderCase();
+		db.setLaunchNames(resource.getLaunchNames());
+		db.setRecipients(resource.getRecipients());
+		db.setSendCase(resource.getSendCase());
+		db.setTags(resource.getTags());
+		return db;
+	};
 
-    private final static Function<EmailSenderCase, EmailSenderCaseDTO> TO_CASE_RESOURCE = model -> {
-        Preconditions.checkNotNull(model);
-        EmailSenderCaseDTO resource = new EmailSenderCaseDTO();
-        resource.setLaunchNames(model.getLaunchNames());
-        resource.setTags(model.getTags());
-        resource.setSendCase(model.getSendCase());
-        resource.setRecipients(model.getRecipients());
-        return resource;
-    };
+	private final static Function<EmailSenderCase, EmailSenderCaseDTO> TO_CASE_RESOURCE = model -> {
+		Preconditions.checkNotNull(model);
+		EmailSenderCaseDTO resource = new EmailSenderCaseDTO();
+		resource.setLaunchNames(model.getLaunchNames());
+		resource.setTags(model.getTags());
+		resource.setSendCase(model.getSendCase());
+		resource.setRecipients(model.getRecipients());
+		return resource;
+	};
 }

@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.user.event;
 
@@ -26,9 +26,8 @@ import org.springframework.context.ApplicationEvent;
 /**
  * Update User role event for handling situations with already logged-in
  * accounts using tokens.
- * 
- * @author Andrei_Ramanchuk
  *
+ * @author Andrei_Ramanchuk
  */
 public class UpdateUserRoleEvent extends ApplicationEvent {
 

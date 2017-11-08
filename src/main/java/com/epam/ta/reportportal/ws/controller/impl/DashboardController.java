@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
@@ -52,7 +52,7 @@ import static org.springframework.http.HttpStatus.OK;
 /**
  * Controller implementation for
  * {@link com.epam.ta.reportportal.database.entity.Dashboard} entity
- * 
+ *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
  */
@@ -117,7 +117,7 @@ public class DashboardController implements IDashboardController {
 	@ResponseBody
 	@ApiOperation("Delete specified dashboard by ID for specified project")
 	public OperationCompletionRS deleteDashboard(@PathVariable String projectName, @PathVariable String dashboardId,
-												 @ActiveRole UserRole userRole, Principal principal) {
+			@ActiveRole UserRole userRole, Principal principal) {
 		return deleteHandler.deleteDashboard(dashboardId, principal.getName(), normalizeId(projectName), userRole);
 	}
 

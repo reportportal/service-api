@@ -36,42 +36,41 @@ import java.util.Date;
  */
 public class ActivityConverterTest {
 
-    private static final String KEY = "key";
+	private static final String KEY = "key";
 
-    @Test(expected = NullPointerException.class)
-    public void testNull() {
-        ActivityConverter.TO_RESOURCE.apply(null);
-    }
+	@Test(expected = NullPointerException.class)
+	public void testNull() {
+		ActivityConverter.TO_RESOURCE.apply(null);
+	}
 
-    @Test
-    public void testConvert() {
-        Activity activity = new Activity();
-        activity.setId("id");
-        activity.setActionType(ActivityEventType.START_LAUNCH);
-        activity.setLastModifiedDate(new Date(0));
-        activity.setHistory(ImmutableList.<Activity.FieldValues>builder()
-                .add(new Activity.FieldValues().withField(KEY)
-                        .withOldValue("old").withNewValue("new")).build());
-        activity.setLoggedObjectRef("objectRef");
-        activity.setObjectType(ActivityObjectType.LAUNCH);
-        activity.setProjectRef("project");
-        activity.setUserRef("user");
-        validate(activity, ActivityConverter.TO_RESOURCE.apply(activity));
-    }
+	@Test
+	public void testConvert() {
+		Activity activity = new Activity();
+		activity.setId("id");
+		activity.setActionType(ActivityEventType.START_LAUNCH);
+		activity.setLastModifiedDate(new Date(0));
+		activity.setHistory(ImmutableList.<Activity.FieldValues>builder().add(
+				new Activity.FieldValues().withField(KEY).withOldValue("old").withNewValue("new")).build());
+		activity.setLoggedObjectRef("objectRef");
+		activity.setObjectType(ActivityObjectType.LAUNCH);
+		activity.setProjectRef("project");
+		activity.setUserRef("user");
+		validate(activity, ActivityConverter.TO_RESOURCE.apply(activity));
+	}
 
-    private void validate(Activity db, ActivityResource resource) {
-        Assert.assertEquals(db.getLastModified(), resource.getLastModifiedDate());
-        Assert.assertEquals(db.getId(), resource.getActivityId());
-        Assert.assertEquals(db.getActionType(), ActivityEventType.fromString(resource.getActionType()).get());
-        Assert.assertEquals(db.getLoggedObjectRef(), resource.getLoggedObjectRef());
-        Assert.assertEquals(db.getObjectType(), ActivityObjectType.fromString(resource.getObjectType()).get());
-        Assert.assertEquals(db.getProjectRef(), resource.getProjectRef());
-        Assert.assertEquals(db.getUserRef(), resource.getUserRef());
-        Activity.FieldValues expected = db.getHistory().get(0);
-        ActivityResource.FieldValues actual = resource.getHistory().get(0);
-        Assert.assertEquals(expected.getField(), actual.getField());
-        Assert.assertEquals(expected.getNewValue(), actual.getNewValue());
-        Assert.assertEquals(expected.getOldValue(), actual.getOldValue());
-    }
+	private void validate(Activity db, ActivityResource resource) {
+		Assert.assertEquals(db.getLastModified(), resource.getLastModifiedDate());
+		Assert.assertEquals(db.getId(), resource.getActivityId());
+		Assert.assertEquals(db.getActionType(), ActivityEventType.fromString(resource.getActionType()).get());
+		Assert.assertEquals(db.getLoggedObjectRef(), resource.getLoggedObjectRef());
+		Assert.assertEquals(db.getObjectType(), ActivityObjectType.fromString(resource.getObjectType()).get());
+		Assert.assertEquals(db.getProjectRef(), resource.getProjectRef());
+		Assert.assertEquals(db.getUserRef(), resource.getUserRef());
+		Activity.FieldValues expected = db.getHistory().get(0);
+		ActivityResource.FieldValues actual = resource.getHistory().get(0);
+		Assert.assertEquals(expected.getField(), actual.getField());
+		Assert.assertEquals(expected.getNewValue(), actual.getNewValue());
+		Assert.assertEquals(expected.getOldValue(), actual.getOldValue());
+	}
 
 }

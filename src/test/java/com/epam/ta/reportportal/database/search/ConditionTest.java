@@ -17,24 +17,22 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.database.search;
 
-import java.io.IOException;
-
+import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.data.mongodb.core.query.Criteria;
 
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import java.io.IOException;
 
 /**
  * Unit tests for {@link Condition}
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class ConditionTest {
 
@@ -48,19 +46,19 @@ public class ConditionTest {
 
 	@Test(expected = ReportPortalException.class)
 	public void checkNotEquals() {
-		Filter filter = new Filter(TestItem.class,  Condition.EQUALS, true, "toFind",
-				criteriaMap.getCriteriaHolder("name").getFilterCriteria());
+		Filter filter = new Filter(TestItem.class, Condition.EQUALS, true, "toFind",
+				criteriaMap.getCriteriaHolder("name").getFilterCriteria()
+		);
 		Criteria criteria = Criteria.where("name");
-		Condition.EQUALS.addCondition(criteria, filter.getFilterConditions()
-				.iterator().next(), criteriaMap.getCriteriaHolder("name"));
+		Condition.EQUALS.addCondition(criteria, filter.getFilterConditions().iterator().next(), criteriaMap.getCriteriaHolder("name"));
 	}
 
 	@Test
 	public void checkNotContains() {
-		Filter filter = new Filter(TestItem.class,  Condition.EQUALS, true, "toFind",
-				criteriaMap.getCriteriaHolder("name").getFilterCriteria());
+		Filter filter = new Filter(TestItem.class, Condition.EQUALS, true, "toFind",
+				criteriaMap.getCriteriaHolder("name").getFilterCriteria()
+		);
 		Criteria criteria = Criteria.where("name");
-		Condition.CONTAINS.addCondition(criteria, filter.getFilterConditions()
-				.iterator().next(), criteriaMap.getCriteriaHolder("name"));
+		Condition.CONTAINS.addCondition(criteria, filter.getFilterConditions().iterator().next(), criteriaMap.getCriteriaHolder("name"));
 	}
 }

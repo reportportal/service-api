@@ -71,8 +71,9 @@ public class UniqueBugFilterStrategy implements BuildFilterStrategy {
 			CriteriaMap<?> criteriaMap = criteriaMapFactory.getCriteriaMap(filter.getTarget());
 			List<Launch> launches = launchRepository.findIdsByFilter(filter,
 					new Sort(userFilter.getSelectionOptions().isAsc() ? Sort.Direction.ASC : Sort.Direction.DESC,
-							criteriaMap.getCriteriaHolder(userFilter.getSelectionOptions().getSortingColumnName()).getQueryCriteria()),
-					limit);
+							criteriaMap.getCriteriaHolder(userFilter.getSelectionOptions().getSortingColumnName()).getQueryCriteria()
+					), limit
+			);
 			final String value = launches.stream().map(Launch::getId).collect(Collectors.joining(SEPARATOR));
 			filter = new Filter(TestItem.class, Sets.newHashSet(new FilterCondition(Condition.IN, false, value, TestItem.LAUNCH_CRITERIA)));
 		}

@@ -35,21 +35,21 @@ import java.util.function.Function;
  */
 public final class PreferenceConverter {
 
-    private PreferenceConverter() {
-        //static only
-    }
+	private PreferenceConverter() {
+		//static only
+	}
 
-    public static final Function<UserPreference, PreferenceResource> TO_RESOURCE = preference -> {
-        Preconditions.checkNotNull(preference);
-        PreferenceResource preferenceResource = new PreferenceResource();
-        preferenceResource.setUserRef(preference.getUserRef());
-        preferenceResource.setProjectRef(preference.getProjectRef());
-        UserPreference.LaunchTabs tabs = preference.getLaunchTabs();
-        Optional.ofNullable(tabs).ifPresent(it -> {
-            preferenceResource.setActive(it.getActive());
-            preferenceResource.setFilters(it.getFilters());
-        });
-        return preferenceResource;
-    };
+	public static final Function<UserPreference, PreferenceResource> TO_RESOURCE = preference -> {
+		Preconditions.checkNotNull(preference);
+		PreferenceResource preferenceResource = new PreferenceResource();
+		preferenceResource.setUserRef(preference.getUserRef());
+		preferenceResource.setProjectRef(preference.getProjectRef());
+		UserPreference.LaunchTabs tabs = preference.getLaunchTabs();
+		Optional.ofNullable(tabs).ifPresent(it -> {
+			preferenceResource.setActive(it.getActive());
+			preferenceResource.setFilters(it.getFilters());
+		});
+		return preferenceResource;
+	};
 
 }

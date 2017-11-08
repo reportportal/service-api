@@ -82,8 +82,8 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 	}
 
 	@Override
-	public OperationCompletionRS updateDashboard(UpdateDashboardRQ rq, String dashboardId, String userName,
-												 String projectName, UserRole userRole) {
+	public OperationCompletionRS updateDashboard(UpdateDashboardRQ rq, String dashboardId, String userName, String projectName,
+			UserRole userRole) {
 
 		StringBuilder additionalInfo = new StringBuilder();
 		Dashboard dashboard = dashboardRepository.findOne(dashboardId);
@@ -91,22 +91,22 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 		expect(dashboard, notNull()).verify(DASHBOARD_NOT_FOUND, dashboardId);
 
 		Map<String, ProjectRole> projectRoles = projectRepository.findProjectRoles(userName);
-		AclUtils.isAllowedToEdit(dashboard.getAcl(), userName, projectRoles,
-				dashboard.getName(), userRole);
+		AclUtils.isAllowedToEdit(dashboard.getAcl(), userName, projectRoles, dashboard.getName(), userRole);
 		expect(dashboard.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
 
 		ofNullable(rq.getName()).ifPresent(it -> {
 			Dashboard isExist = dashboardRepository.findOneByUserProject(userName, projectName, rq.getName());
-			if (isExist != null && !dashboardId.equalsIgnoreCase(isExist.getId()))
+			if (isExist != null && !dashboardId.equalsIgnoreCase(isExist.getId())) {
 				fail().withError(RESOURCE_ALREADY_EXISTS, rq.getName());
+			}
 			dashboard.setName(it.trim());
 		});
 
 		ofNullable(rq.getDescription()).ifPresent(dashboard::setDescription);
 
 		expect(null != rq.getAddWidget() && null != rq.getDeleteWidgetId() && rq.getDeleteWidgetId()
-				.equalsIgnoreCase(rq.getAddWidget().getWidgetId()), equalTo(Boolean.FALSE))
-				.verify(DASHBOARD_UPDATE_ERROR, "Unable deleteLogs and add the same widget simultaneously.");
+				.equalsIgnoreCase(rq.getAddWidget().getWidgetId()), equalTo(Boolean.FALSE)).verify(
+				DASHBOARD_UPDATE_ERROR, "Unable delete and add the same widget simultaneously.");
 
 		// update widget (or list of widgets if one of them change position on
 		// dashboard)
@@ -161,11 +161,12 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 			//remove from dashboard
 			dashboard.getWidgets().removeIf(w -> w.getWidgetId().equals(it));
 			Widget widget = widgetRepository.findOneLoadACL(it);
-            if (null != widget && AclUtils.isAllowedToDeleteWidget(dashboard.getAcl(), widget.getAcl(),
-                    userName, projectRoles.get(projectName), userRole)) {
-                widgetRepository.delete(it);
-                eventPublisher.publishEvent(new WidgetDeletedEvent(widget, userName));
-            }
+			if (null != widget && AclUtils.isAllowedToDeleteWidget(dashboard.getAcl(), widget.getAcl(), userName,
+					projectRoles.get(projectName), userRole
+			)) {
+				widgetRepository.delete(it);
+				eventPublisher.publishEvent(new WidgetDeletedEvent(widget, userName));
+			}
 		});
 
 		ofNullable(rq.getShare()).ifPresent(it -> sharingService.modifySharing(Lists.newArrayList(dashboard), userName, projectName, it));
@@ -182,11 +183,11 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 
 		expect(widgetFromDB, notNull()).verify(WIDGET_NOT_FOUND, widgetId);
 
-		expect(widgetFromDB.getProjectName(), equalTo(projectName))
-				.verify(ErrorType.FORBIDDEN_OPERATION, "Impossible to add widget from another project");
+		expect(widgetFromDB.getProjectName(), equalTo(projectName)).verify(
+				ErrorType.FORBIDDEN_OPERATION, "Impossible to add widget from another project");
 
-		expect(allWidgets, hasWidget(widgetId).negate())
-				.verify(DASHBOARD_UPDATE_ERROR, formattedSupplier("Widget with ID '{}' already added to the current dashboard.", widgetId));
+		expect(allWidgets, hasWidget(widgetId).negate()).verify(
+				DASHBOARD_UPDATE_ERROR, formattedSupplier("Widget with ID '{}' already added to the current dashboard.", widgetId));
 
 		AclUtils.isPossibleToRead(widgetFromDB.getAcl(), userName, projectName);
 	}

@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.core.widget;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -27,15 +27,14 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 
 /**
  * Create widget handler
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 public interface ICreateWidgetHandler {
 
 	/**
 	 * Creates new widget
-	 * 
+	 *
 	 * @param createWidgetRQ
 	 * @param userName
 	 * @param project

@@ -1,7 +1,7 @@
 var APP = APP || {};
 APP.Views.People = Backbone.View.extend({
     template: APP.getTemplate('people-list-template'),
-    initialize: function() {
+    initialize: function () {
         this.render();
         var peopleControls = new APP.Views.PeopleControls({
             el: '#controls'
@@ -18,22 +18,22 @@ APP.Views.People = Backbone.View.extend({
         'click .deleteAll': 'deleteAll',
         'click .addPerson': 'addPerson'
     },
-    convertToJSON: function() {
+    convertToJSON: function () {
         this.$('#JSON-output').html(JSON.stringify(this.collection.toJSON()));
     },
-    renderPerson: function(person) {
+    renderPerson: function (person) {
         var personView = new APP.Views.Person({
             model: person,
             //el: '#peopleList' затирает el при каждом вызове
         });
         this.$el.find('#peopleList').append(personView.render().el);
     },
-    deleteAll: function() {
+    deleteAll: function () {
         if (confirm('Delete all data?')) {
             this.collection.reset();
         }
     },
-    addPerson: function() {
+    addPerson: function () {
         var personModel = new APP.Models.Person({
             'name': this.$el.find('#name').val().trim(),
             'age': +this.$el.find('#age').val().trim(),
@@ -48,14 +48,14 @@ APP.Views.People = Backbone.View.extend({
             alert(personModel.validationError);
         }
     },
-    renderPeopleList: function() {
+    renderPeopleList: function () {
         this.$el.find('#peopleList').html('');
         this.collection.each(this.renderCollection, this);
     },
-    showPeopleCount: function() {
+    showPeopleCount: function () {
         this.$el.find('#peopleCount').html(this.collection.length);
     },
-    render: function() {
+    render: function () {
         this.$el.html(this.template);
         this.collection.each(this.renderPerson, this);
     }

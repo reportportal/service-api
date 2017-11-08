@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.database.entity.Launch;
@@ -35,7 +35,7 @@ import java.util.function.Supplier;
 import static com.epam.ta.reportportal.commons.EntityUtils.trimStrings;
 import static com.epam.ta.reportportal.commons.EntityUtils.update;
 
-public class LaunchBuilder implements Supplier<Launch>{
+public class LaunchBuilder implements Supplier<Launch> {
 
 	private Launch launch;
 

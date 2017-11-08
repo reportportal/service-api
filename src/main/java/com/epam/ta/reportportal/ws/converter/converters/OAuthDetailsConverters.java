@@ -34,8 +34,8 @@ import java.util.function.Function;
  */
 public final class OAuthDetailsConverters {
 
-	private OAuthDetailsConverters(){
-        //static only
+	private OAuthDetailsConverters() {
+		//static only
 	}
 
 	public final static Function<OAuthDetailsResource, OAuth2LoginDetails> FROM_RESOURCE = resource -> {

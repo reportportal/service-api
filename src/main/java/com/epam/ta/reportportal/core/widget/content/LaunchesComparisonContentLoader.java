@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
 
@@ -57,19 +57,19 @@ public class LaunchesComparisonContentLoader extends StatisticBasedContentLoader
 	private LaunchRepository launchRepository;
 
 	@Override
-	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
-			List<String> metaDataFields, Map<String, List<String>> options) {
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity,
+			List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> options) {
 
 		if (filter.getTarget().equals(TestItem.class)) {
 			return Collections.emptyMap();
 		}
 		StatisticsDocumentHandler documentHandler = new StatisticsDocumentHandler(contentFields, metaDataFields);
 		List<String> allFields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
-		
+
 		//fixed sorting
 		sorting = new Sort(Sort.Direction.DESC, START_TIME);
 		String collectionName = getCollectionName(filter.getTarget());
-        launchRepository.loadWithCallback(filter, sorting, QUANTITY, allFields, documentHandler, collectionName);
+		launchRepository.loadWithCallback(filter, sorting, QUANTITY, allFields, documentHandler, collectionName);
 		List<ChartObject> result = documentHandler.getResult();
 		return convertResult(result, sorting);
 	}
@@ -88,13 +88,13 @@ public class LaunchesComparisonContentLoader extends StatisticBasedContentLoader
 			values.put(getTotalFieldName(), formatter.format(totalValue));
 
 			/* Failed */
-			Double failedItems = totalValue.intValue() == 0 ? 0.0
-					: Double.valueOf(object.getValues().get(getFailedFieldName())) / totalValue * 100;
+			Double failedItems =
+					totalValue.intValue() == 0 ? 0.0 : Double.valueOf(object.getValues().get(getFailedFieldName())) / totalValue * 100;
 			values.put(getFailedFieldName(), formatter.format(failedItems));
 
 			/* Skipped */
-			Double skippedItems = totalValue.intValue() == 0 ? 0.0
-					: Double.valueOf(object.getValues().get(getSkippedFieldName())) / totalValue * 100;
+			Double skippedItems =
+					totalValue.intValue() == 0 ? 0.0 : Double.valueOf(object.getValues().get(getSkippedFieldName())) / totalValue * 100;
 			values.put(getSkippedFieldName(), formatter.format(skippedItems));
 
 			/* Passed */
@@ -129,8 +129,10 @@ public class LaunchesComparisonContentLoader extends StatisticBasedContentLoader
 				Double noDefectItems = (double) noDefectQuantity / failedQuantity * 100;
 				values.put(getNoDefectFieldName(), formatter.format(noDefectItems));
 
-				values.put(getAutomationBugFieldName(),
-						formatter.format(100 - investigatedItems - productBugItems - systemIssueItems - noDefectItems));
+				values.put(
+						getAutomationBugFieldName(),
+						formatter.format(100 - investigatedItems - productBugItems - systemIssueItems - noDefectItems)
+				);
 			} else {
 				String formatted = formatter.format(0.0);
 				values.put(getToInvestigateFieldName(), formatted);

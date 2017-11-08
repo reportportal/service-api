@@ -17,27 +17,23 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import com.epam.ta.reportportal.auth.AuthConstants;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.ResultActions;
 
-import com.epam.ta.reportportal.auth.AuthConstants;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * MVC Pageable test
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class MvcPageableTest extends BaseMvcTest {
 
@@ -45,10 +41,10 @@ public class MvcPageableTest extends BaseMvcTest {
 
 	@Test
 	public void testPageableZero() throws Exception {
-		this.mvcMock
-				.perform(
-						get(PROJECT_BASE_URL + getPageUrl("1")).principal(AuthConstants.ADMINISTRATOR).secure(true)
-								.accept(MediaType.parseMediaType("application/json;charset=UTF-8"))).andExpect(status().isOk())
+		this.mvcMock.perform(get(PROJECT_BASE_URL + getPageUrl("1")).principal(AuthConstants.ADMINISTRATOR)
+				.secure(true)
+				.accept(MediaType.parseMediaType("application/json;charset=UTF-8")))
+				.andExpect(status().isOk())
 				.andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andExpect(jsonPath("$.page.number").value(1));
 
@@ -56,12 +52,11 @@ public class MvcPageableTest extends BaseMvcTest {
 
 	@Test
 	public void testPageableLast() throws Exception {
-		ResultActions resultActions = this.mvcMock.perform(
-				get(PROJECT_BASE_URL + getPageUrl("3")).principal(AuthConstants.ADMINISTRATOR).secure(true)
-						.accept(MediaType.parseMediaType("application/json;charset=UTF-8"))).andExpect(status().isOk());
+		ResultActions resultActions = this.mvcMock.perform(get(PROJECT_BASE_URL + getPageUrl("3")).principal(AuthConstants.ADMINISTRATOR)
+				.secure(true)
+				.accept(MediaType.parseMediaType("application/json;charset=UTF-8"))).andExpect(status().isOk());
 
-		resultActions.andExpect(content().contentType("application/json;charset=UTF-8"))
-				.andExpect(jsonPath("$.page.number").value(3));
+		resultActions.andExpect(content().contentType("application/json;charset=UTF-8")).andExpect(jsonPath("$.page.number").value(3));
 	}
 
 	private String getPageUrl(String pageNumber) {

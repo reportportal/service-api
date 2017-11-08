@@ -85,10 +85,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	private final LogIndexerService logIndexer;
 
 	@Autowired
-	public UpdateTestItemHandlerImpl(TestItemRepository testItemRepository,
-			StatisticsFacadeFactory statisticsFacadeFactory, UserRepository userRepository,
-			ProjectRepository projectRepository, LaunchRepository launchRepository, ExternalSystemRepository externalSystemRepository,
-			ApplicationEventPublisher eventPublisher, LogIndexerService logIndexer) {
+	public UpdateTestItemHandlerImpl(TestItemRepository testItemRepository, StatisticsFacadeFactory statisticsFacadeFactory,
+			UserRepository userRepository, ProjectRepository projectRepository, LaunchRepository launchRepository,
+			ExternalSystemRepository externalSystemRepository, ApplicationEventPublisher eventPublisher, LogIndexerService logIndexer) {
 		this.eventPublisher = eventPublisher;
 		this.testItemRepository = testItemRepository;
 		this.statisticsFacadeFactory = statisticsFacadeFactory;
@@ -136,8 +135,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				if (null != issue.getExternalSystemIssues()) {
 					Set<TestItemIssue.ExternalSystemIssue> issuesFromDB =
 							null == testItemIssue.getExternalSystemIssues() ? new HashSet<>() : testItemIssue.getExternalSystemIssues();
-					Set<TestItemIssue.ExternalSystemIssue> issuesFromRequest = issue.getExternalSystemIssues().stream()
-							.map(TestItemUtils.externalIssueDtoConverter(userName)).collect(toSet());
+					Set<TestItemIssue.ExternalSystemIssue> issuesFromRequest = issue.getExternalSystemIssues()
+							.stream()
+							.map(TestItemUtils.externalIssueDtoConverter(userName))
+							.collect(toSet());
 					Set<TestItemIssue.ExternalSystemIssue> difference = Sets.newHashSet(Sets.difference(issuesFromRequest, issuesFromDB));
 					if (!difference.isEmpty()) {
 						for (TestItemIssue.ExternalSystemIssue externalSystemIssue : difference) {
@@ -210,9 +211,11 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		StreamSupport.stream(testItems.spliterator(), false).forEach(testItem -> {
 			try {
 				verifyTestItem(testItem, testItem.getId());
-				Set<TestItemIssue.ExternalSystemIssue> tiIssues = rq.getIssues().stream()
+				Set<TestItemIssue.ExternalSystemIssue> tiIssues = rq.getIssues()
+						.stream()
 						.filter(issue -> !issue.getTicketId().trim().isEmpty())
-						.map(TestItemUtils.externalIssueDtoConverter(rq.getExternalSystemId(), userName)).collect(toSet());
+						.map(TestItemUtils.externalIssueDtoConverter(rq.getExternalSystemId(), userName))
+						.collect(toSet());
 				if (null == testItem.getIssue().getExternalSystemIssues()) {
 					testItem.getIssue().setExternalSystemIssues(tiIssues);
 				} else {
@@ -250,7 +253,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		return testItem;
 	}
 
-
 	/**
 	 * Verifies that provided test item issue type is valid, and test item
 	 * domain object could be processed correctly
@@ -273,24 +275,26 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @throws BusinessRuleViolationException when business rule violation
 	 */
 	private void verifyTestItem(TestItem testItem, String id) throws BusinessRuleViolationException {
-		expect(testItem, notNull(), Suppliers.formattedSupplier("Cannot update issue type for test item '{}', cause it is not found.", id))
+		expect(
+				testItem, notNull(), Suppliers.formattedSupplier("Cannot update issue type for test item '{}', cause it is not found.", id))
 				.verify();
 
-		expect(testItem.getStatus(), not(equalTo(PASSED)), Suppliers
-				.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.", PASSED.name()))
-				.verify();
+		expect(
+				testItem.getStatus(), not(equalTo(PASSED)),
+				Suppliers.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
+						PASSED.name()
+				)
+		).verify();
 
-		expect(testItem.hasChilds(), not(equalTo(TRUE)), Suppliers
-				.formattedSupplier("It is not allowed to udpate issue type for items with descendants. Test item '{}' has descendants.",
-						id)).verify();
+		expect(testItem.hasChilds(), not(equalTo(TRUE)), Suppliers.formattedSupplier(
+				"It is not allowed to udpate issue type for items with descendants. Test item '{}' has descendants.", id)).verify();
 
-		expect(testItem.getIssue(), notNull(), Suppliers
-				.formattedSupplier("Cannot update issue type for test item '{}', cause there is no info about actual issue type value.",
-						id)).verify();
+		expect(testItem.getIssue(), notNull(), Suppliers.formattedSupplier(
+				"Cannot update issue type for test item '{}', cause there is no info about actual issue type value.", id)).verify();
 
-		expect(testItem.getIssue().getIssueType(), notNull(), Suppliers
-				.formattedSupplier("Cannot update issue type for test item {}, cause it's actual issue type value is not provided.", id))
-				.verify();
+		expect(
+				testItem.getIssue().getIssueType(), notNull(), Suppliers.formattedSupplier(
+						"Cannot update issue type for test item {}, cause it's actual issue type value is not provided.", id)).verify();
 	}
 
 }

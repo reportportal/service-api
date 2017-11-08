@@ -76,9 +76,12 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 @Service
 public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandler {
 
-	private static final Map<String, String> PREFIX = ImmutableMap.<String, String> builder().put(AUTOMATION_BUG.getValue(), "ab_")
-			.put(PRODUCT_BUG.getValue(), "pb_").put(SYSTEM_ISSUE.getValue(), "si_").put(NO_DEFECT.getValue(), "nd_")
-			.put(TO_INVESTIGATE.getValue(), "ti_").build();
+	private static final Map<String, String> PREFIX = ImmutableMap.<String, String>builder().put(AUTOMATION_BUG.getValue(), "ab_")
+			.put(PRODUCT_BUG.getValue(), "pb_")
+			.put(SYSTEM_ISSUE.getValue(), "si_")
+			.put(NO_DEFECT.getValue(), "nd_")
+			.put(TO_INVESTIGATE.getValue(), "ti_")
+			.build();
 
 	private final ProjectRepository projectRepo;
 
@@ -100,9 +103,11 @@ public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandl
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
 		expect(TO_INVESTIGATE.getValue().equalsIgnoreCase(rq.getTypeRef()), equalTo(false)).verify(BAD_REQUEST_ERROR,
-				"Impossible to create sub-type for 'To Investigate' type.");
+				"Impossible to create sub-type for 'To Investigate' type."
+		);
 		expect(NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(rq.getTypeRef()), equalTo(false)).verify(BAD_REQUEST_ERROR,
-				"Impossible to create sub-type for 'Not Issue' type.");
+				"Impossible to create sub-type for 'Not Issue' type."
+		);
 
 		/* Check if global issue type reference is valid */
 		TestItemIssueType expectedType = fromValue(rq.getTypeRef());
@@ -114,25 +119,32 @@ public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandl
 		Map<TestItemIssueType, List<StatisticSubType>> subTypes = project.getConfiguration().getSubTypes();
 
 		expect(subTypes.get(expectedType).size() < ValidationConstraints.MAX_ISSUE_SUBTYPES, equalTo(true)).verify(BAD_REQUEST_ERROR,
-				"Sub Issues count is bound of size limit");
+				"Sub Issues count is bound of size limit"
+		);
 
 		/* Request fields should be validated till here already */
 		String newID = PREFIX.get(expectedType.getValue()) + shortUUID();
 		StatisticSubType subType = new StatisticSubType(newID, expectedType.getValue(), rq.getLongName(), rq.getShortName().toUpperCase(),
-				rq.getColor());
+				rq.getColor()
+		);
 		subTypes.get(expectedType).add(subType);
 		project.getConfiguration().setSubTypes(subTypes);
 
 		/* May be change on direct Update operation */
 		try {
 			projectRepo.save(project);
-			widgetRepository.findByProject(projectName).stream()
-					.filter(it -> it.getContentOptions().getType().equals(PIE_CHART.getType())
-							|| it.getContentOptions().getType().equals(LAUNCHES_TABLE.getType()))
-                    .filter(it -> it.getContentOptions().getContentFields()
-                            .stream().anyMatch(s -> s.contains(subType.getTypeRef().toLowerCase())))
+			widgetRepository.findByProject(projectName)
+					.stream()
+					.filter(it -> it.getContentOptions().getType().equals(PIE_CHART.getType()) || it.getContentOptions()
+							.getType()
+							.equals(LAUNCHES_TABLE.getType()))
+					.filter(it -> it.getContentOptions()
+							.getContentFields()
+							.stream()
+							.anyMatch(s -> s.contains(subType.getTypeRef().toLowerCase())))
 					.forEach(it -> widgetRepository.addContentField(it.getId(),
-							"statistics$defects$" + subType.getTypeRef().toLowerCase() + "$" + subType.getLocator()));
+							"statistics$defects$" + subType.getTypeRef().toLowerCase() + "$" + subType.getLocator()
+					));
 		} catch (Exception e) {
 			throw new ReportPortalException("Error during creation of custom project sub-type", e);
 		}

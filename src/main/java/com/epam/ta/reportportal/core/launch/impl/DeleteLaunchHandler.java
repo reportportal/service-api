@@ -124,7 +124,7 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 		);
 
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
-			/* Only PROJECT_MANAGER roles could deleteLogs launches */
+			/* Only PROJECT_MANAGER roles could delete launches */
 			UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, user.getId());
 			expect(userConfig, hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
 		}

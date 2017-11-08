@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.log.impl;
 
@@ -49,7 +49,7 @@ import static java.util.Collections.singletonList;
 /**
  * Delete Logs handler. Basic implementation of
  * {@link com.epam.ta.reportportal.core.log.IDeleteLogHandler} interface.
- * 
+ *
  * @author Henadzi_Vrubleuski
  * @author Andrei_Ramanchuk
  */
@@ -107,11 +107,9 @@ public class DeleteLogHandler implements IDeleteLogHandler {
 
 	/**
 	 * Validate specified log against parent objects and project
-	 * 
-	 * @param logId
-	 *            - validated log ID value
-	 * @param projectName
-	 *            - specified project name
+	 *
+	 * @param logId       - validated log ID value
+	 * @param projectName - specified project name
 	 * @return Log
 	 */
 	private Log validate(String logId, String projectName) {
@@ -120,11 +118,13 @@ public class DeleteLogHandler implements IDeleteLogHandler {
 
 		final TestItem testItem = testItemRepository.findOne(log.getTestItemRef());
 		expect(testItem, not(Preconditions.IN_PROGRESS)).verify(ErrorType.TEST_ITEM_IS_NOT_FINISHED,
-				formattedSupplier("Unable to deleteLogs log '{}' when test item '{}' in progress state", log.getId(), testItem.getId()));
+				formattedSupplier("Unable to delete log '{}' when test item '{}' in progress state", log.getId(), testItem.getId())
+		);
 
 		final String expectedProjectName = launchRepository.findOne(testItem.getLaunchRef()).getProjectRef();
 		expect(expectedProjectName, equalTo(projectName)).verify(ErrorType.FORBIDDEN_OPERATION,
-				formattedSupplier("Log '{}' not under specified '{}' project", logId, projectName));
+				formattedSupplier("Log '{}' not under specified '{}' project", logId, projectName)
+		);
 
 		return log;
 	}
@@ -134,7 +134,7 @@ public class DeleteLogHandler implements IDeleteLogHandler {
 		final Launch launch = launchRepository.findOne(testItem.getLaunchRef());
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
 			/*
-			 * Only PROJECT_MANAGER roles could deleteLogs launches
+			 * Only PROJECT_MANAGER roles could delete launches
 			 */
 			UserConfig userConfig = findUserConfigByLogin(project, user.getId());
 			expect(userConfig, hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);

@@ -28,10 +28,12 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import java.util.*;
+
+import java.util.Date;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Created by Andrey_Ivanov1 on 01-Jun-17.
@@ -39,21 +41,19 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class ExpireNotUsedAccountsJobTest {
 
-    @InjectMocks
-    private ExpireNotUsedAccountsJob expireNotUsedAccountsJob = new ExpireNotUsedAccountsJob();
-    @Mock
-    private ExpirationPolicy expirationPolicy;
-    @Mock
-    private UserRepository userRepository;
+	@InjectMocks
+	private ExpireNotUsedAccountsJob expireNotUsedAccountsJob = new ExpireNotUsedAccountsJob();
+	@Mock
+	private ExpirationPolicy expirationPolicy;
+	@Mock
+	private UserRepository userRepository;
 
-    @Test
-    public void runTest() {
-        expireNotUsedAccountsJob.run();
-        verify(expirationPolicy, times(1))
-                .getExpirationDate();
-        verify(userRepository, times(1))
-                .expireUsersLoggedOlderThan(any(Date.class));
+	@Test
+	public void runTest() {
+		expireNotUsedAccountsJob.run();
+		verify(expirationPolicy, times(1)).getExpirationDate();
+		verify(userRepository, times(1)).expireUsersLoggedOlderThan(any(Date.class));
 
-    }
+	}
 
 }

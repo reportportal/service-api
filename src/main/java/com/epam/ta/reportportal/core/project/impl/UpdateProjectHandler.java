@@ -178,15 +178,15 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			dbConfig.setIsAutoAnalyzerEnabled(modelConfig.getIsAAEnabled());
 		}
 
-//		if (null != modelConfig.getAnalyzeOnTheFly()) {
-//			dbConfig.setAnalyzeOnTheFly(modelConfig.getAnalyzeOnTheFly());
-//		}
+		//		if (null != modelConfig.getAnalyzeOnTheFly()) {
+		//			dbConfig.setAnalyzeOnTheFly(modelConfig.getAnalyzeOnTheFly());
+		//		}
 
 		if (null != modelConfig.getStatisticCalculationStrategy()) {
-			dbConfig.setStatisticsCalculationStrategy(fromString(modelConfig.getStatisticCalculationStrategy()).orElseThrow(() -> new ReportPortalException(
-					ErrorType.BAD_REQUEST_ERROR,
-					"Incorrect statistics calculation type: " + modelConfig.getStatisticCalculationStrategy()
-			)));
+			dbConfig.setStatisticsCalculationStrategy(fromString(modelConfig.getStatisticCalculationStrategy()).orElseThrow(
+					() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+							"Incorrect statistics calculation type: " + modelConfig.getStatisticCalculationStrategy()
+					)));
 		}
 
 		if (null != modelConfig.getEmailConfig()) {
@@ -207,8 +207,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		List<EmailSenderCaseDTO> cases = configUpdate.getEmailCases();
 
 		Optional.ofNullable(configUpdate.getFrom()).ifPresent(from -> {
-			expect(isEmailValid(configUpdate.getFrom()), equalTo(true)).verify(
-					BAD_REQUEST_ERROR,
+			expect(isEmailValid(configUpdate.getFrom()), equalTo(true)).verify(BAD_REQUEST_ERROR,
 					formattedSupplier("Provided FROM value '{}' is invalid", configUpdate.getFrom())
 			);
 			project.getConfiguration().getEmailConfig().setFrom(configUpdate.getFrom());
@@ -218,8 +217,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		cases.forEach(sendCase -> {
 			expect(findByName(sendCase.getSendCase()).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, sendCase.getSendCase());
 			expect(sendCase.getRecipients(), notNull()).verify(BAD_REQUEST_ERROR, "Recipients list should not be null");
-			expect(sendCase.getRecipients().isEmpty(), equalTo(false)).verify(
-					BAD_REQUEST_ERROR,
+			expect(sendCase.getRecipients().isEmpty(), equalTo(false)).verify(BAD_REQUEST_ERROR,
 					formattedSupplier("Empty recipients list for email case '{}' ", sendCase)
 			);
 			sendCase.setRecipients(sendCase.getRecipients().stream().map(it -> {
@@ -236,8 +234,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 
 			if (null != sendCase.getTags()) {
 				sendCase.setTags(sendCase.getTags().stream().map(tag -> {
-					expect(isNullOrEmpty(tag), equalTo(false)).verify(
-							BAD_REQUEST_ERROR,
+					expect(isNullOrEmpty(tag), equalTo(false)).verify(BAD_REQUEST_ERROR,
 							"Tags values cannot be empty. Please specify it or not include in request."
 					);
 					return tag.trim();
@@ -273,8 +270,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		User principal = userRepository.findOne(modifier);
 		if (UserRole.ADMINISTRATOR != principal.getRole()) {
 			/* user shouldn't have possibility un-assign himself */
-			expect(unassignUsersRQ.getUsernames(), not(contains(equalTo(modifier)))).verify(
-					UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+			expect(unassignUsersRQ.getUsernames(), not(contains(equalTo(modifier)))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 					"User should not unassign himself from project."
 			);
 		}
@@ -345,8 +341,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		}
 
 		for (String username : assignUsersRQ.getUserNames().keySet()) {
-			expect(
-					username.toLowerCase(),
+			expect(username.toLowerCase(),
 					not(in(project.getUsers().stream().map(UserConfig::getLogin).collect(Collectors.toList())))
 			).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, formattedSupplier("User '{}' cannot be assigned to project twice.", username));
 		}
@@ -405,19 +400,16 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 	void validateRecipient(Project project, String recipient) {
 		expect(recipient, notNull()).verify(BAD_REQUEST_ERROR, formattedSupplier("Provided recipient email '{}' is invalid", recipient));
 		if (recipient.contains("@")) {
-			expect(isEmailValid(recipient), equalTo(true)).verify(
-					BAD_REQUEST_ERROR,
+			expect(isEmailValid(recipient), equalTo(true)).verify(BAD_REQUEST_ERROR,
 					formattedSupplier("Provided recipient email '{}' is invalid", recipient)
 			);
 		} else {
 			final String login = recipient.trim();
-			expect(MIN_LOGIN_LENGTH <= login.length() && login.length() <= MAX_LOGIN_LENGTH, equalTo(true)).verify(
-					BAD_REQUEST_ERROR,
+			expect(MIN_LOGIN_LENGTH <= login.length() && login.length() <= MAX_LOGIN_LENGTH, equalTo(true)).verify(BAD_REQUEST_ERROR,
 					"Acceptable login length  [" + MIN_LOGIN_LENGTH + ".." + MAX_LOGIN_LENGTH + "]"
 			);
 			if (!getOwner().equals(login)) {
-				expect(ProjectUtils.doesHaveUser(project, login.toLowerCase()), equalTo(true)).verify(USER_NOT_FOUND,
-						login,
+				expect(ProjectUtils.doesHaveUser(project, login.toLowerCase()), equalTo(true)).verify(USER_NOT_FOUND, login,
 						String.format("User not found in project %s", project.getId())
 				);
 			}
@@ -425,8 +417,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 	}
 
 	void validateLaunchName(String name) {
-		expect(isNullOrEmpty(name), equalTo(false)).verify(
-				BAD_REQUEST_ERROR,
+		expect(isNullOrEmpty(name), equalTo(false)).verify(BAD_REQUEST_ERROR,
 				"Launch name values cannot be empty. Please specify it or not include in request."
 		);
 		expect(name.length() <= MAX_NAME_LENGTH, equalTo(true)).verify(BAD_REQUEST_ERROR,

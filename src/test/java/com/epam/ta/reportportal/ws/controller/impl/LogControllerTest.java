@@ -17,26 +17,23 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller.impl;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.Date;
-
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
 
 import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
+
+import java.util.Date;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author Dzmitry_Kavalets
@@ -51,7 +48,8 @@ public class LogControllerTest extends BaseMvcTest {
 		SaveLogRQ rq = new SaveLogRQ();
 		rq.setTestItemId("44524cc1553de753b3e5bb2f");
 		rq.setLogTime(new Date(2014, 5, 7));
-		this.mvcMock.perform(post(PROJECT_BASE_URL + "/log").principal(authentication()).contentType(MediaType.APPLICATION_JSON)
+		this.mvcMock.perform(post(PROJECT_BASE_URL + "/log").principal(authentication())
+				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated());
 	}
 

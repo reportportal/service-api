@@ -26,13 +26,14 @@ import java.util.List;
  * @author Pavel Bortnik
  */
 public interface DemoDataFacade {
-    /**
-     * Generates demo launches based on project statistics
-     * calculation strategy.
-     * @param demoDataRq
-     * @param user
-     * @param projectName
-     * @return
-     */
-    List<String> generateDemoLaunches(DemoDataRq demoDataRq, String user, String projectName);
+	/**
+	 * Generates demo launches based on project statistics
+	 * calculation strategy.
+	 *
+	 * @param demoDataRq
+	 * @param user
+	 * @param projectName
+	 * @return
+	 */
+	List<String> generateDemoLaunches(DemoDataRq demoDataRq, String user, String projectName);
 }

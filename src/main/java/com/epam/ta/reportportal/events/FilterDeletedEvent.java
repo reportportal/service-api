@@ -28,14 +28,14 @@ import com.epam.ta.reportportal.database.entity.filter.UserFilter;
  */
 public class FilterDeletedEvent extends BeforeEvent<UserFilter> {
 
-    private final String removedBy;
+	private final String removedBy;
 
-    public FilterDeletedEvent(UserFilter before, String removedBy) {
-        super(before);
-        this.removedBy = removedBy;
-    }
+	public FilterDeletedEvent(UserFilter before, String removedBy) {
+		super(before);
+		this.removedBy = removedBy;
+	}
 
-    public String getRemovedBy() {
-        return removedBy;
-    }
+	public String getRemovedBy() {
+		return removedBy;
+	}
 }

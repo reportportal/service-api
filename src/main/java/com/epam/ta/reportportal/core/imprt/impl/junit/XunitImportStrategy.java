@@ -31,8 +31,8 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -49,85 +49,91 @@ import java.util.zip.ZipFile;
 @Service
 public class XunitImportStrategy implements ImportStrategy {
 
-    private static final Logger LOGGER = LogManager.getLogger(XunitImportStrategy.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(XunitImportStrategy.class);
 
-    @Autowired
-    private Provider<XunitParseJob> xmlParseJobProvider;
+	@Autowired
+	private Provider<XunitParseJob> xmlParseJobProvider;
 
-    @Autowired
-    private IStartLaunchHandler startLaunchHandler;
+	@Autowired
+	private IStartLaunchHandler startLaunchHandler;
 
-    @Autowired
-    private IFinishLaunchHandler finishLaunchHandler;
+	@Autowired
+	private IFinishLaunchHandler finishLaunchHandler;
 
-    @Autowired
-    private LaunchRepository launchRepository;
+	@Autowired
+	private LaunchRepository launchRepository;
 
-    private static final Date initialStartTime = new Date(0);
+	private static final Date initialStartTime = new Date(0);
 
-    private static final ExecutorService service = Executors.newFixedThreadPool(5);
+	private static final ExecutorService service = Executors.newFixedThreadPool(5);
 
-    private static final String XML_REGEX = ".*xml";
+	private static final String XML_REGEX = ".*xml";
 
-    private static final Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
+	private static final Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
 
-    private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName().matches(XML_REGEX);
+	private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName().matches(XML_REGEX);
 
-    @Override
-    public String importLaunch(String projectId, String userName, File file) {
-        try {
-            return processZipFile(file, projectId, userName);
-        } catch (IOException e) {
-            throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, file.getName(), e);
-        }
-    }
+	@Override
+	public String importLaunch(String projectId, String userName, File file) {
+		try {
+			return processZipFile(file, projectId, userName);
+		} catch (IOException e) {
+			throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, file.getName(), e);
+		} finally {
+			try {
+				if (null != file) {
+					file.delete();
+				}
+			} catch (Exception e) {
+				LOGGER.error("File '{}' was not successfully deleted.", file.getName(), e);
+			}
+		}
+	}
 
-    private String processZipFile(File zip, String projectId, String userName) throws IOException {
-        try (ZipFile zipFile = new ZipFile(zip)) {
-            String launchId = startLaunch(projectId, userName, zip.getName().substring(0, zip.getName().indexOf(".zip")));
-            CompletableFuture[] futures = zipFile.stream()
-                    .filter(isFile.and(isXml))
-                    .map(zipEntry -> {
-                        try {
-                            XunitParseJob job = xmlParseJobProvider.get()
-                                    .withParameters(projectId, launchId, userName, zipFile.getInputStream(zipEntry));
-                            return CompletableFuture.supplyAsync(job::call, service);
-                        } catch (IOException e) {
-                            throw new ReportPortalException("There was a problem while parsing file : " + zipEntry.getName(), e);
-                        }
-                    }).toArray(CompletableFuture[]::new);
-            CompletableFuture.allOf(futures).get(30, TimeUnit.MINUTES);
-            finishLaunch(launchId, projectId, userName, processResults(futures));
-            return launchId;
-        } catch (InterruptedException | ExecutionException | TimeoutException | IllegalArgumentException e) {
-            LOGGER.error(e.getMessage());
-            throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, "There are invalid xml files inside.", e);
-        }
-    }
+	private String processZipFile(File zip, String projectId, String userName) throws IOException {
+		try (ZipFile zipFile = new ZipFile(zip)) {
+			String launchId = startLaunch(projectId, userName, zip.getName().substring(0, zip.getName().indexOf(".zip")));
+			CompletableFuture[] futures = zipFile.stream().filter(isFile.and(isXml)).map(zipEntry -> {
+				try {
+					XunitParseJob job = xmlParseJobProvider.get()
+							.withParameters(projectId, launchId, userName, zipFile.getInputStream(zipEntry));
+					return CompletableFuture.supplyAsync(job::call, service);
+				} catch (IOException e) {
+					throw new ReportPortalException("There was a problem while parsing file : " + zipEntry.getName(), e);
+				}
+			}).toArray(CompletableFuture[]::new);
+			CompletableFuture.allOf(futures).get(30, TimeUnit.MINUTES);
+			finishLaunch(launchId, projectId, userName, processResults(futures));
+			return launchId;
+		} catch (InterruptedException | ExecutionException | TimeoutException | IllegalArgumentException e) {
+			LOGGER.error(e.getMessage());
+			throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, "There are invalid xml files inside.", e);
+		}
+	}
 
-    private ParseResults processResults(CompletableFuture[] futures) {
-        ParseResults results = new ParseResults();
-        Arrays.stream(futures).map(it -> (ParseResults) it.join()).forEach(res -> {
-            results.checkAndSetStartLaunchTime(res.getStartTime());
-            results.increaseDuration(res.getDuration());
-        });
-        return results;
-    }
+	private ParseResults processResults(CompletableFuture[] futures) {
+		ParseResults results = new ParseResults();
+		Arrays.stream(futures).map(it -> (ParseResults) it.join()).forEach(res -> {
+			results.checkAndSetStartLaunchTime(res.getStartTime());
+			results.increaseDuration(res.getDuration());
+		});
+		return results;
+	}
 
-    private String startLaunch(String projectId, String userName, String launchName) {
-        StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
-        startLaunchRQ.setStartTime(initialStartTime);
-        startLaunchRQ.setName(launchName);
-        startLaunchRQ.setMode(Mode.DEFAULT);
-        return startLaunchHandler.startLaunch(userName, projectId, startLaunchRQ).getId();
-    }
+	private String startLaunch(String projectId, String userName, String launchName) {
+		StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
+		startLaunchRQ.setStartTime(initialStartTime);
+		startLaunchRQ.setName(launchName);
+		startLaunchRQ.setMode(Mode.DEFAULT);
+		return startLaunchHandler.startLaunch(userName, projectId, startLaunchRQ).getId();
+	}
 
-    private void finishLaunch(String launchId, String projectId, String userName, ParseResults results) {
-        FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-        finishExecutionRQ.setEndTime(results.getEndTime());
-        finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectId, userName);
-        Launch launch = launchRepository.findOne(launchId);
-        launch.setStartTime(DateUtils.toDate(results.getStartTime()));
-        launchRepository.partialUpdate(launch);
-    }
+	private void finishLaunch(String launchId, String projectId, String userName, ParseResults results) {
+		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
+		finishExecutionRQ.setEndTime(results.getEndTime());
+		finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectId, userName);
+		Launch launch = launchRepository.findOne(launchId);
+		launch.setStartTime(DateUtils.toDate(results.getStartTime()));
+		launchRepository.partialUpdate(launch);
+	}
 }

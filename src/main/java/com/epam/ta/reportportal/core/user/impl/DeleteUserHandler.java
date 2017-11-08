@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.user.impl;
 
@@ -41,7 +41,7 @@ import java.util.List;
 
 /**
  * Delete user handler
- * 
+ *
  * @author Aliaksandr_Kazantsau
  * @author Andrei_Ramanchuk
  */
@@ -61,8 +61,8 @@ public class DeleteUserHandler implements IDeleteUserHandler {
 	public OperationCompletionRS deleteUser(String userId, String principal) {
 		User user = userRepository.findOne(userId);
 		BusinessRule.expect(user, Predicates.notNull()).verify(ErrorType.USER_NOT_FOUND, userId);
-		BusinessRule.expect(userId.equalsIgnoreCase(principal), Predicates.equalTo(false)).verify(ErrorType.INCORRECT_REQUEST,
-				"You cannot deleteLogs own account");
+		BusinessRule.expect(userId.equalsIgnoreCase(principal), Predicates.equalTo(false))
+				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
 		try {
 			List<Project> userProjects = projectRepository.findUserProjects(userId);
 			userProjects.forEach(project -> ProjectUtils.excludeProjectRecipients(Lists.newArrayList(user), project));

@@ -44,8 +44,9 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		configuration.setEmailConfig(new ProjectEmailConfig());
 		project.setConfiguration(configuration);
 		when(projectRepository.findOne(this.project)).thenReturn(project);
-		updateProjectHandler = new UpdateProjectHandler(projectRepository, mock(UserRepository.class),
-				mock(UserPreferenceRepository.class), mock(ApplicationEventPublisher.class));
+		updateProjectHandler = new UpdateProjectHandler(projectRepository, mock(UserRepository.class), mock(UserPreferenceRepository.class),
+				mock(ApplicationEventPublisher.class)
+		);
 	}
 
 	@Test
@@ -118,8 +119,9 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		projectEmailConfigDTO.setEmailEnabled(true);
 
 		expected.expect(ReportPortalException.class);
-		expected.expectMessage("Error in handled Request. Please, check specified parameters: 'Empty recipients list for email case '"
-				+ emailSenderCase + "' '");
+		expected.expectMessage(
+				"Error in handled Request. Please, check specified parameters: 'Empty recipients list for email case '" + emailSenderCase
+						+ "' '");
 		updateProjectHandler.updateProjectEmailConfig(project, user, projectEmailConfigDTO);
 	}
 
@@ -168,8 +170,9 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		projectEmailConfig.setFrom("user1@fake.com");
 		projectEmailConfig.setEmailEnabled(true);
 		expected.expect(ReportPortalException.class);
-		expected.expectMessage("Error in handled Request. Please, check specified parameters: 'Acceptable login length  ["
-				+ MIN_LOGIN_LENGTH + ".." + MAX_LOGIN_LENGTH + "]'");
+		expected.expectMessage(
+				"Error in handled Request. Please, check specified parameters: 'Acceptable login length  [" + MIN_LOGIN_LENGTH + ".."
+						+ MAX_LOGIN_LENGTH + "]'");
 		updateProjectHandler.updateProjectEmailConfig(project, user, projectEmailConfig);
 	}
 

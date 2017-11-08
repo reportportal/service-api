@@ -40,14 +40,15 @@ public class LaunchResourceBuilderTest extends BaseTest {
 
 	@Test
 	public void testBeanScope() {
-		Assert.assertTrue("Launch resource builder should be prototype bean because it's not stateless",
-				applicationContext.isPrototype(applicationContext.getBeanNamesForType(LaunchResourceBuilder.class)[0]));
+		Assert.assertTrue(
+				"Launch resource builder should be prototype bean because it's not stateless",
+				applicationContext.isPrototype(applicationContext.getBeanNamesForType(LaunchResourceBuilder.class)[0])
+		);
 	}
 
 	@Test(expected = NullPointerException.class)
 	public void testNull() {
-		LaunchResource actualResource = launchResourceBuilderProvider.get().addLaunch(null)
-				.build();
+		LaunchResource actualResource = launchResourceBuilderProvider.get().addLaunch(null).build();
 		LaunchResource expectedResource = new LaunchResource();
 		validateResources(expectedResource, actualResource);
 	}
@@ -63,8 +64,10 @@ public class LaunchResourceBuilderTest extends BaseTest {
 		Assert.assertEquals(expectedResource.getLaunchId(), actualResource.getLaunchId());
 		Assert.assertEquals(expectedResource.getName(), actualResource.getName());
 		Assert.assertEquals(expectedResource.getDescription(), actualResource.getDescription());
-		Assert.assertEquals(expectedResource.getStatus() == null ? null : expectedResource.getStatus(),
-				expectedResource.getStatus() == null ? null : expectedResource.getStatus());
+		Assert.assertEquals(
+				expectedResource.getStatus() == null ? null : expectedResource.getStatus(),
+				expectedResource.getStatus() == null ? null : expectedResource.getStatus()
+		);
 		Assert.assertEquals(expectedResource.getStartTime(), actualResource.getStartTime());
 		Assert.assertEquals(expectedResource.getEndTime(), actualResource.getEndTime());
 		Assert.assertEquals(expectedResource.getOwner(), actualResource.getOwner());

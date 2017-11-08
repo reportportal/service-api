@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.auth;
 
@@ -33,9 +33,8 @@ import java.util.Date;
 /**
  * Last Login time based expiration policy. If user don't login during provided
  * amount of time, we need to expire his account
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @Component
 public class LoginTimeBasedExpirationPolicy implements ExpirationPolicy {

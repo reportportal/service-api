@@ -86,8 +86,10 @@ public class FinishItemTest {
 		finishTestItemHandler.setTestItemRepository(testItemRepository);
 
 		exception.expect(ReportPortalException.class);
-		exception.expectMessage(Suppliers.formattedSupplier(ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME.getDescription(),
-				finishExecutionRQ.getEndTime(), date, testItemId).get());
+		exception.expectMessage(
+				Suppliers.formattedSupplier(ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME.getDescription(), finishExecutionRQ.getEndTime(),
+						date, testItemId
+				).get());
 
 		finishTestItemHandler.finishTestItem(testItemId, finishExecutionRQ, owner);
 	}
@@ -108,16 +110,26 @@ public class FinishItemTest {
 
 		Map<TestItemIssueType, List<StatisticSubType>> types = new HashMap<TestItemIssueType, List<StatisticSubType>>() {
 			{
-				put(TestItemIssueType.AUTOMATION_BUG, Lists.newArrayList(new StatisticSubType(TestItemIssueType.AUTOMATION_BUG.getLocator(),
-						TestItemIssueType.AUTOMATION_BUG.getValue(), "Automation Bug", "AB", "#f5d752")));
-				put(TestItemIssueType.PRODUCT_BUG, Lists.newArrayList(new StatisticSubType(TestItemIssueType.PRODUCT_BUG.getLocator(),
-						TestItemIssueType.PRODUCT_BUG.getValue(), "Product Bug", "PB", "#e93416")));
-				put(TestItemIssueType.SYSTEM_ISSUE, Lists.newArrayList(new StatisticSubType(TestItemIssueType.SYSTEM_ISSUE.getLocator(),
-						TestItemIssueType.SYSTEM_ISSUE.getValue(), "System Issue", "SI", "#2273cd")));
-				put(TestItemIssueType.NO_DEFECT, Lists.newArrayList(new StatisticSubType(TestItemIssueType.NO_DEFECT.getLocator(),
-						TestItemIssueType.NO_DEFECT.getValue(), "No Defect", "ND", "#777")));
-				put(TestItemIssueType.TO_INVESTIGATE, Lists.newArrayList(new StatisticSubType(TestItemIssueType.TO_INVESTIGATE.getLocator(),
-						TestItemIssueType.TO_INVESTIGATE.getValue(), "To Investigate", "TI", "#ffa500")));
+				put(TestItemIssueType.AUTOMATION_BUG, Lists.newArrayList(
+						new StatisticSubType(TestItemIssueType.AUTOMATION_BUG.getLocator(), TestItemIssueType.AUTOMATION_BUG.getValue(),
+								"Automation Bug", "AB", "#f5d752"
+						)));
+				put(TestItemIssueType.PRODUCT_BUG, Lists.newArrayList(
+						new StatisticSubType(TestItemIssueType.PRODUCT_BUG.getLocator(), TestItemIssueType.PRODUCT_BUG.getValue(),
+								"Product Bug", "PB", "#e93416"
+						)));
+				put(TestItemIssueType.SYSTEM_ISSUE, Lists.newArrayList(
+						new StatisticSubType(TestItemIssueType.SYSTEM_ISSUE.getLocator(), TestItemIssueType.SYSTEM_ISSUE.getValue(),
+								"System Issue", "SI", "#2273cd"
+						)));
+				put(TestItemIssueType.NO_DEFECT, Lists.newArrayList(
+						new StatisticSubType(TestItemIssueType.NO_DEFECT.getLocator(), TestItemIssueType.NO_DEFECT.getValue(), "No Defect",
+								"ND", "#777"
+						)));
+				put(TestItemIssueType.TO_INVESTIGATE, Lists.newArrayList(
+						new StatisticSubType(TestItemIssueType.TO_INVESTIGATE.getLocator(), TestItemIssueType.TO_INVESTIGATE.getValue(),
+								"To Investigate", "TI", "#ffa500"
+						)));
 			}
 		};
 
@@ -148,8 +160,7 @@ public class FinishItemTest {
 		StepBasedStatisticsFacade facadeMock = mock(StepBasedStatisticsFacade.class);
 		when(facadeMock.updateExecutionStatistics(any())).thenReturn(testItem);
 
-		when(facadeFactoryMock.getStatisticsFacade(any()))
-				.thenReturn(facadeMock);
+		when(facadeFactoryMock.getStatisticsFacade(any())).thenReturn(facadeMock);
 		finishTestItemHandler.setStatisticsFacadeFactory(facadeFactoryMock);
 
 		final FinishTestItemRQ finishExecutionRQ = new FinishTestItemRQ();

@@ -173,11 +173,11 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 
 			IssueCounter issueCounter = launch.getStatistics().getIssueCounter();
 			Map<String, Integer> issuesData = ImmutableMap.<String, Integer>builder()
-					.put("statistics$defects$product_bug", issueCounter.getProductBugTotal())
-					.put("statistics$defects$system_issue", issueCounter.getSystemIssueTotal())
-					.put("statistics$defects$automation_bug", issueCounter.getAutomationBugTotal())
-					.put("statistics$defects$to_investigate", issueCounter.getToInvestigateTotal())
-					.put("statistics$defects$no_defect", issueCounter.getNoDefectTotal())
+					.put("statistics$defects$product_bug$total", issueCounter.getProductBugTotal())
+					.put("statistics$defects$system_issue$total", issueCounter.getSystemIssueTotal())
+					.put("statistics$defects$automation_bug$total", issueCounter.getAutomationBugTotal())
+					.put("statistics$defects$to_investigate$total", issueCounter.getToInvestigateTotal())
+					.put("statistics$defects$no_defect$total", issueCounter.getNoDefectTotal())
 					.build();
 
 			ExecutionCounter executionCounter = launch.getStatistics().getExecutionCounter();

@@ -23,7 +23,9 @@ package com.epam.ta.reportportal.job;
 import com.ecwid.consul.v1.QueryParams;
 import com.ecwid.consul.v1.catalog.CatalogClient;
 import com.epam.ta.reportportal.events.ConsulUpdateEvent;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
+import com.google.common.util.concurrent.ServiceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +34,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Collections;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Listens if any services updates are made in consul
@@ -47,30 +51,40 @@ public class ConsulUpdateListener extends AbstractExecutionThreadService {
 
 	private ApplicationEventPublisher eventPublisher;
 	private CatalogClient catalogClient;
-	private AtomicLong xConsulIndex;
+	private ServiceManager serviceManager;
+	private long xConsulIndex;
 
 	@Autowired
 	public ConsulUpdateListener(CatalogClient catalogClient, ApplicationEventPublisher eventPublisher) {
 		this.catalogClient = catalogClient;
 		this.eventPublisher = eventPublisher;
-		xConsulIndex = new AtomicLong(catalogClient.getCatalogServices(QueryParams.DEFAULT).getConsulIndex());
+		this.serviceManager = new ServiceManager(Collections.singletonList(this));
 	}
 
 	@EventListener
 	public void onApplicationReady(ApplicationReadyEvent event) {
-		startAsync();
+		try {
+			serviceManager.startAsync().awaitHealthy(5, TimeUnit.MINUTES);
+		} catch (TimeoutException e) {
+			throw new ReportPortalException("Cannot start consul listener.", e);
+		}
 	}
 
 	@Override
 	protected void run() {
-		try {
-			while (isRunning()) {
-				xConsulIndex.set(catalogClient.getCatalogServices(
-						QueryParams.Builder.builder().setIndex(xConsulIndex.get()).setWaitTime(TIMEOUT_IN_SEC).build()).getConsulIndex());
+		while (isRunning()) {
+			try {
+				xConsulIndex = catalogClient.getCatalogServices(
+						QueryParams.Builder.builder().setIndex(xConsulIndex).setWaitTime(TIMEOUT_IN_SEC).build()).getConsulIndex();
 				eventPublisher.publishEvent(new ConsulUpdateEvent());
+			} catch (Exception e) {
+				xConsulIndex = 0;
+				LOGGER.error("Problem interacting with consul. Trying again.", e);
 			}
-		} catch (Exception e) {
-			LOGGER.error("Problem interacting with consul. Trying again.", e);
 		}
+	}
+
+	public ServiceManager getServiceManager() {
+		return serviceManager;
 	}
 }

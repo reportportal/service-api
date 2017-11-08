@@ -24,8 +24,8 @@ package com.epam.ta.reportportal.core.analyzer.impl;
 import com.epam.ta.reportportal.core.analyzer.IAnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
+import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
-import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.core.statistics.StepBasedStatisticsFacade;
 import com.epam.ta.reportportal.database.dao.LogRepository;
@@ -40,9 +40,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.PRODUCT_BUG;
 import static org.mockito.Mockito.*;
@@ -97,7 +95,7 @@ public class IssuesAnalyzerServiceTest {
 		List<TestItem> items = testItemsTI(itemsCount);
 
 		when(logRepository.findGreaterOrEqualLevel(anyString(), eq(LogLevel.ERROR))).thenReturn(errorLogs(2));
-		when(analyzerServiceClient.analyze(any())).thenReturn(analyzedLaunch(itemsCount));
+		when(analyzerServiceClient.analyze(any())).thenReturn(analyzedItems(itemsCount));
 		when(projectRepository.findByName(launch.getProjectRef())).thenReturn(project);
 
 		StepBasedStatisticsFacade mock = mock(StepBasedStatisticsFacade.class);
@@ -158,15 +156,14 @@ public class IssuesAnalyzerServiceTest {
 		indexLaunch.setLaunchId("indexLaunch");
 		indexLaunch.setLaunchName("launch");
 		indexLaunch.setProject("project");
-		indexLaunch.setTestItems(analyzedItems(itemsCount));
 		return indexLaunch;
 	}
 
-	private List<IndexTestItem> analyzedItems(int itemsCount) {
-		List<IndexTestItem> list = new ArrayList<>();
+	private Set<AnalyzedItemRs> analyzedItems(int itemsCount) {
+		Set<AnalyzedItemRs> list = new HashSet<>();
 		for (int i = 0; i < itemsCount; i++) {
-			IndexTestItem testItem = new IndexTestItem();
-			testItem.setTestItemId(String.valueOf(i));
+			AnalyzedItemRs testItem = new AnalyzedItemRs();
+			testItem.setItemId(String.valueOf(i));
 			testItem.setIssueType(PRODUCT_BUG.getLocator());
 			list.add(testItem);
 		}

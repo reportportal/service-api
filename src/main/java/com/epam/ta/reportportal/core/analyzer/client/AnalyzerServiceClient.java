@@ -86,10 +86,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 
 	@Override
 	public Set<AnalyzedItemRs> analyze(IndexLaunch rq) {
-		return analyzerInstances.get()
-				.stream()
-				.flatMap(instance -> analyze(instance, rq).stream())
-				.collect(toSet());
+		return analyzerInstances.get().stream().flatMap(instance -> analyze(instance, rq).stream()).collect(toSet());
 	}
 
 	@Override

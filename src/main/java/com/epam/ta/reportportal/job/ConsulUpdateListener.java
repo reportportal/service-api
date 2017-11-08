@@ -45,32 +45,32 @@ public class ConsulUpdateListener extends AbstractExecutionThreadService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConsulUpdateListener.class);
 	private static final int TIMEOUT_IN_SEC = 50;
 
-	private final ApplicationEventPublisher eventPublisher;
+	private ApplicationEventPublisher eventPublisher;
 	private CatalogClient catalogClient;
-	private AtomicLong xConsulIndex = new AtomicLong();
+	private AtomicLong xConsulIndex;
 
 	@Autowired
 	public ConsulUpdateListener(CatalogClient catalogClient, ApplicationEventPublisher eventPublisher) {
 		this.catalogClient = catalogClient;
 		this.eventPublisher = eventPublisher;
+		xConsulIndex = new AtomicLong(catalogClient.getCatalogServices(QueryParams.DEFAULT).getConsulIndex());
 	}
 
 	@EventListener
-	public void onApplicationRefresh(ApplicationReadyEvent event) {
-		try {
-			xConsulIndex.set(catalogClient.getCatalogServices(QueryParams.DEFAULT).getConsulIndex());
-			this.startAsync();
-		} catch (Exception e) {
-			LOGGER.error("Problem with connection to consul.", e);
-		}
+	public void onApplicationReady(ApplicationReadyEvent event) {
+		startAsync();
 	}
 
 	@Override
-	protected void run() throws Exception {
-		while (isRunning()) {
-			xConsulIndex.set(catalogClient.getCatalogServices(
-					QueryParams.Builder.builder().setIndex(xConsulIndex.get()).setWaitTime(TIMEOUT_IN_SEC).build()).getConsulIndex());
-			eventPublisher.publishEvent(new ConsulUpdateEvent());
+	protected void run() {
+		try {
+			while (isRunning()) {
+				xConsulIndex.set(catalogClient.getCatalogServices(
+						QueryParams.Builder.builder().setIndex(xConsulIndex.get()).setWaitTime(TIMEOUT_IN_SEC).build()).getConsulIndex());
+				eventPublisher.publishEvent(new ConsulUpdateEvent());
+			}
+		} catch (Exception e) {
+			LOGGER.error("Problem interacting with consul. Trying again.", e);
 		}
 	}
 }

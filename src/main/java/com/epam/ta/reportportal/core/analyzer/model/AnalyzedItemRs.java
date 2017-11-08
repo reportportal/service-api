@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Pavel Bortnik
  */
-public class AnalyzedItemRs {
+public class AnalyzedItemRs implements Comparable<AnalyzedItemRs> {
 
 	@JsonProperty("test_item")
 	private String itemId;
@@ -36,6 +36,11 @@ public class AnalyzedItemRs {
 
 	@JsonProperty("issue_type")
 	private String issueType;
+
+	@Override
+	public int compareTo(AnalyzedItemRs o) {
+		return itemId.compareTo(o.getItemId());
+	}
 
 	public String getItemId() {
 		return itemId;

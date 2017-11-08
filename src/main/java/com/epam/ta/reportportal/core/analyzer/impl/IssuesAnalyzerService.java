@@ -39,10 +39,7 @@ import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
@@ -85,7 +82,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	public void analyze(Launch launch, List<TestItem> testItems) {
 		if (launch != null) {
 			List<IndexTestItem> rqTestItems = prepareItems(testItems);
-			List<AnalyzedItemRs> rs = analyze(rqTestItems, launch);
+			Set<AnalyzedItemRs> rs = analyze(rqTestItems, launch);
 			if (!isEmpty(rs)) {
 				List<TestItem> updatedItems = updateTestItems(rs, testItems);
 				saveUpdatedItems(updatedItems, launch);
@@ -94,7 +91,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 		}
 	}
 
-	private List<AnalyzedItemRs> analyze(List<IndexTestItem> rqTestItems, Launch launch) {
+	private Set<AnalyzedItemRs> analyze(List<IndexTestItem> rqTestItems, Launch launch) {
 		if (!rqTestItems.isEmpty()) {
 			IndexLaunch rqLaunch = new IndexLaunch();
 			rqLaunch.setLaunchId(launch.getId());
@@ -103,7 +100,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 			rqLaunch.setTestItems(rqTestItems);
 			return analyzerServiceClient.analyze(rqLaunch);
 		}
-		return Collections.emptyList();
+		return Collections.emptySet();
 	}
 
 	/**
@@ -127,7 +124,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	 * @param testItems items to be updated
 	 * @return List of updated items
 	 */
-	private List<TestItem> updateTestItems(List<AnalyzedItemRs> rs, List<TestItem> testItems) {
+	private List<TestItem> updateTestItems(Set<AnalyzedItemRs> rs, List<TestItem> testItems) {
 		return rs.stream().map(analyzed -> {
 			Optional<TestItem> toUpdate = testItems.stream().filter(item -> item.getId().equals(analyzed.getItemId())).findFirst();
 			toUpdate.ifPresent(testItem -> {

@@ -37,15 +37,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.*;
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 @Service
 public class AnalyzerServiceClient implements IAnalyzerServiceClient {
@@ -87,8 +85,11 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	}
 
 	@Override
-	public List<AnalyzedItemRs> analyze(IndexLaunch rq) {
-		return analyzerInstances.get().stream().flatMap(instance -> analyze(instance, rq).stream()).collect(toList());
+	public Set<AnalyzedItemRs> analyze(IndexLaunch rq) {
+		return analyzerInstances.get()
+				.stream()
+				.flatMap(instance -> analyze(instance, rq).stream())
+				.collect(toSet());
 	}
 
 	@Override

@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * HTTP client for all log indexing/analysis services. Such services are those that have
@@ -68,7 +69,7 @@ public interface IAnalyzerServiceClient {
 	 * @param rq Launch
 	 * @return Analyzed Launch
 	 */
-	List<AnalyzedItemRs> analyze(IndexLaunch rq);
+	Set<AnalyzedItemRs> analyze(IndexLaunch rq);
 
 	/**
 	 * Delete specified items from specified index/project

@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.core.filter;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -30,15 +30,14 @@ import java.util.List;
 
 /**
  * Create filter handler
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 public interface ICreateUserFilterHandler {
 
 	/**
 	 * Creates new filter
-	 * 
+	 *
 	 * @param userName
 	 * @param createFilterRQ
 	 * @param project

@@ -17,24 +17,22 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.validation;
-
-import com.epam.ta.reportportal.commons.validation.Suppliers;
-import org.junit.Test;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.junit.Test;
 
 /**
  * Unit test for business rule logic
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class BusinessRuleTest {
 

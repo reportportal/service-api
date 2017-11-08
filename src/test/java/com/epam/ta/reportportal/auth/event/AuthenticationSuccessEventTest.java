@@ -17,14 +17,14 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.auth.event;
 
-import static org.hamcrest.Matchers.nullValue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import com.epam.ta.reportportal.auth.AuthConstants;
+import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.ws.BaseMvcTest;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -33,16 +33,14 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
-import com.epam.ta.reportportal.auth.AuthConstants;
-import com.epam.ta.reportportal.database.dao.UserRepository;
-import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.ws.BaseMvcTest;
+import static org.hamcrest.Matchers.nullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Test last login auth event
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @Ignore
 public class AuthenticationSuccessEventTest extends BaseMvcTest {
@@ -59,10 +57,9 @@ public class AuthenticationSuccessEventTest extends BaseMvcTest {
 		User userBeforeLogin = userRepository.findOne(AuthConstants.TEST_USER);
 		Assert.assertThat(userBeforeLogin.getMetaInfo().getLastLogin(), nullValue());
 
-		this.mvcMock
-				.perform(get(PROJECT_BASE_URL + "/launch/51824cc1553de743b3e5aa2c").secure(true)
-						.accept(MediaType.parseMediaType("application/json;charset=UTF-8")).principal(authentication()))
-				.andExpect(status().is(200));
+		this.mvcMock.perform(get(PROJECT_BASE_URL + "/launch/51824cc1553de743b3e5aa2c").secure(true)
+				.accept(MediaType.parseMediaType("application/json;charset=UTF-8"))
+				.principal(authentication())).andExpect(status().is(200));
 
 		User userAfterLogin = userRepository.findOne(AuthConstants.TEST_USER);
 

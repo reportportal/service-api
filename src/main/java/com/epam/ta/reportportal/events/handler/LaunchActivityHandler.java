@@ -71,13 +71,13 @@ public class LaunchActivityHandler {
 		if (Mode.DEBUG != event.getLaunch().getMode()) {
 			String name = launch.getName() + DELIMITER + launch.getNumber();
 			Activity activityLog = new ActivityBuilder().addUserRef(launch.getUserRef())
-                    .addProjectRef(launch.getProjectRef().toLowerCase())
+					.addProjectRef(launch.getProjectRef().toLowerCase())
 					.addActionType(START_LAUNCH)
-                    .addObjectType(LAUNCH)
-                    .addLoggedObjectRef(launch.getId())
-                    .addObjectName(name)
+					.addObjectType(LAUNCH)
+					.addLoggedObjectRef(launch.getId())
+					.addObjectName(name)
 					.addHistory(Collections.singletonList(createHistoryField(NAME, EMPTY_FIELD, name)))
-                    .get();
+					.get();
 			activityRepository.save(activityLog);
 		}
 	}
@@ -87,15 +87,14 @@ public class LaunchActivityHandler {
 		Launch launch = event.getLaunch();
 		if (null != launch && launch.getMode() == Mode.DEFAULT) {
 			String name = launch.getName() + DELIMITER + launch.getNumber();
-			Activity activity = new ActivityBuilder()
-                    .addUserRef(event.getDeletedBy())
-                    .addProjectRef(event.getLaunch().getProjectRef())
+			Activity activity = new ActivityBuilder().addUserRef(event.getDeletedBy())
+					.addProjectRef(event.getLaunch().getProjectRef())
 					.addActionType(DELETE_LAUNCH)
-                    .addObjectType(LAUNCH)
-                    .addLoggedObjectRef(launch.getId())
-                    .addObjectName(name)
+					.addObjectType(LAUNCH)
+					.addLoggedObjectRef(launch.getId())
+					.addObjectName(name)
 					.addHistory(Collections.singletonList(createHistoryField(NAME, name, EMPTY_FIELD)))
-                    .get();
+					.get();
 			activityRepository.save(activity);
 		}
 	}
@@ -103,15 +102,14 @@ public class LaunchActivityHandler {
 	private void afterLaunchFinished(Launch launch, String finishedBy) {
 		if (launch.getMode() != Mode.DEBUG) {
 			String name = launch.getName() + DELIMITER + launch.getNumber();
-			Activity activityLog = new ActivityBuilder()
-                    .addUserRef(finishedBy)
-                    .addProjectRef(launch.getProjectRef())
-                    .addActionType(FINISH_LAUNCH)
+			Activity activityLog = new ActivityBuilder().addUserRef(finishedBy)
+					.addProjectRef(launch.getProjectRef())
+					.addActionType(FINISH_LAUNCH)
 					.addObjectType(LAUNCH)
-                    .addLoggedObjectRef(launch.getId())
-                    .addObjectName(name)
+					.addLoggedObjectRef(launch.getId())
+					.addObjectName(name)
 					.addHistory(Collections.singletonList(createHistoryField(NAME, name, name)))
-                    .get();
+					.get();
 			activityRepository.save(activityLog);
 		}
 	}

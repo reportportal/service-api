@@ -48,40 +48,37 @@ import javax.inject.Provider;
 @Service
 public class AsyncCreateLogHandler extends CreateLogHandler implements ICreateLogHandler {
 
-    /**
-     * We are using {@link Provider} there because we need
-     * {@link SaveBinaryDataJob} with scope prototype. Since current class is in
-     * singleton scope, we have to find a way to get new instance of job for new
-     * execution
-     */
-    @Autowired
-    private Provider<SaveBinaryDataJob> saveBinaryDataJob;
+	/**
+	 * We are using {@link Provider} there because we need
+	 * {@link SaveBinaryDataJob} with scope prototype. Since current class is in
+	 * singleton scope, we have to find a way to get new instance of job for new
+	 * execution
+	 */
+	@Autowired
+	private Provider<SaveBinaryDataJob> saveBinaryDataJob;
 
-    @Autowired
-    @Qualifier("saveLogsTaskExecutor")
-    private TaskExecutor taskExecutor;
+	@Autowired
+	@Qualifier("saveLogsTaskExecutor")
+	private TaskExecutor taskExecutor;
 
-    @Autowired
-    private ILogIndexer logIndexer;
+	@Autowired
+	private ILogIndexer logIndexer;
 
-    @Override
-    @Nonnull
-    public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, String projectName) {
-        TestItem testItem = testItemRepository.findOne(createLogRQ.getTestItemId());
-        validate(testItem, createLogRQ);
+	@Override
+	@Nonnull
+	public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, String projectName) {
+		TestItem testItem = testItemRepository.findOne(createLogRQ.getTestItemId());
+		validate(testItem, createLogRQ);
 
-        Log log = logBuilder.get().addSaveLogRQ(createLogRQ).addTestItem(testItem).build();
-        try {
-            logRepository.save(log);
-        } catch (Exception exc) {
-            throw new ReportPortalException("Error while Log instance creating.", exc);
-        }
-        if (null != file) {
-            taskExecutor.execute(
-					saveBinaryDataJob.get().withProject(projectName)
-							.withFile(file)
-							.withLog(log));
-        }
-        return new EntryCreatedRS(log.getId());
-    }
+		Log log = logBuilder.get().addSaveLogRQ(createLogRQ).addTestItem(testItem).build();
+		try {
+			logRepository.save(log);
+		} catch (Exception exc) {
+			throw new ReportPortalException("Error while Log instance creating.", exc);
+		}
+		if (null != file) {
+			taskExecutor.execute(saveBinaryDataJob.get().withProject(projectName).withFile(file).withLog(log));
+		}
+		return new EntryCreatedRS(log.getId());
+	}
 }

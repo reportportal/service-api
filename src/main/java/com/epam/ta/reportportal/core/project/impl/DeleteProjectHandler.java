@@ -21,15 +21,6 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.*;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.project.IDeleteProjectHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
@@ -37,11 +28,19 @@ import com.epam.ta.reportportal.database.entity.project.EntryType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import static com.epam.ta.reportportal.commons.Predicates.*;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 /**
  * Initial implementation of
  * {@link com.epam.ta.reportportal.core.project.IDeleteProjectHandler}
- * 
+ *
  * @author Hanna_Sukhadolava
  * @author Andrei_Ramanchuk
  */
@@ -60,8 +59,10 @@ public class DeleteProjectHandler implements IDeleteProjectHandler {
 
 		Project project = projectRepository.findOne(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
-		expect(project.getConfiguration().getEntryType(), and(asList(not(equalTo(EntryType.PERSONAL)), not(equalTo(EntryType.UPSA)))))
-				.verify(ErrorType.PROJECT_UPDATE_NOT_ALLOWED, project.getConfiguration().getEntryType());
+		expect(
+				project.getConfiguration().getEntryType(),
+				and(asList(not(equalTo(EntryType.PERSONAL)), not(equalTo(EntryType.UPSA))))
+		).verify(ErrorType.PROJECT_UPDATE_NOT_ALLOWED, project.getConfiguration().getEntryType());
 		try {
 			projectRepository.delete(singletonList(projectName));
 		} catch (Exception e) {

@@ -21,15 +21,14 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import org.jasypt.util.text.BasicTextEncryptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.entity.AuthType;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType;
 import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
+import org.jasypt.util.text.BasicTextEncryptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 /**
  * Builder for {@link ExternalSystem} entity
@@ -40,27 +39,27 @@ import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
 @Scope("prototype")
 public class ExternalSystemBuilder extends Builder<ExternalSystem> {
 
-    @Autowired
-    private BasicTextEncryptor simpleEncryptor;
+	@Autowired
+	private BasicTextEncryptor simpleEncryptor;
 
-    public ExternalSystemBuilder addExternalSystem(CreateExternalSystemRQ request, String rpProject) {
-        // TODO null check
-        getObject().setExternalSystemType(ExternalSystemType.findByName(request.getExternalSystemType()).orElse(null));
-        getObject().setUrl(request.getUrl());
-        getObject().setExternalSystemAuth(AuthType.findByName(request.getExternalSystemAuth()));
-        getObject().setProjectRef(rpProject);
+	public ExternalSystemBuilder addExternalSystem(CreateExternalSystemRQ request, String rpProject) {
+		// TODO null check
+		getObject().setExternalSystemType(ExternalSystemType.findByName(request.getExternalSystemType()).orElse(null));
+		getObject().setUrl(request.getUrl());
+		getObject().setExternalSystemAuth(AuthType.findByName(request.getExternalSystemAuth()));
+		getObject().setProjectRef(rpProject);
 
-        getObject().setProject(request.getProject());
-        getObject().setUsername(request.getUsername());
-        String encryptedPass = simpleEncryptor.encrypt(request.getPassword());
-        getObject().setPassword(encryptedPass);
-        getObject().setAccessKey(request.getAccessKey());
-        getObject().setDomain(request.getDomain());
-        return this;
-    }
+		getObject().setProject(request.getProject());
+		getObject().setUsername(request.getUsername());
+		String encryptedPass = simpleEncryptor.encrypt(request.getPassword());
+		getObject().setPassword(encryptedPass);
+		getObject().setAccessKey(request.getAccessKey());
+		getObject().setDomain(request.getDomain());
+		return this;
+	}
 
-    @Override
-    protected ExternalSystem initObject() {
-        return new ExternalSystem();
-    }
+	@Override
+	protected ExternalSystem initObject() {
+		return new ExternalSystem();
+	}
 }

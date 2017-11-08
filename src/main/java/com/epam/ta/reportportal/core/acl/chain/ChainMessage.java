@@ -17,19 +17,18 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
-package com.epam.ta.reportportal.core.acl.chain;
+ */
 
-import java.util.List;
+package com.epam.ta.reportportal.core.acl.chain;
 
 import com.epam.ta.reportportal.database.entity.sharing.Shareable;
 
+import java.util.List;
+
 /**
  * Specify message which should be transmitted throw sharing chain.
- * 
- * @author Aliaksei_Makayed
  *
+ * @author Aliaksei_Makayed
  */
 
 public class ChainMessage {

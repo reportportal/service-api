@@ -20,25 +20,6 @@
  */
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static com.epam.ta.reportportal.auth.AuthConstants.ADMINISTRATOR;
-import static com.epam.ta.reportportal.auth.AuthConstants.USER_PROJECT;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.IntStream.range;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.test.web.servlet.MvcResult;
-
 import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
@@ -47,6 +28,24 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.filter.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.test.web.servlet.MvcResult;
+
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.epam.ta.reportportal.auth.AuthConstants.ADMINISTRATOR;
+import static com.epam.ta.reportportal.auth.AuthConstants.USER_PROJECT;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.IntStream.range;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author Dzmitry_Kavalets
@@ -73,10 +72,12 @@ public class UserFilterControllerTest extends BaseMvcTest {
 		CollectionsRQ<CreateUserFilterRQ> rq = new CollectionsRQ<>();
 		rq.setElements(Collections.singletonList(createUserFilterRQ));
 		MvcResult mvcResult = this.mvcMock.perform(post(PROJECT_BASE_URL + "/filter").principal(authentication())
-				.content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)).andExpect(status().isCreated()).andReturn();
+				.content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)).andExpect(status().isCreated()).andReturn();
 		List<EntryCreatedRS> entries = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
 				new TypeReference<List<EntryCreatedRS>>() {
-				});
+				}
+		);
 		Assert.assertEquals(1, entries.size());
 		UserFilter userFilter = userFilterRepository.findOne(entries.get(0).getId());
 		Assert.assertEquals(name, userFilter.getName());
@@ -122,10 +123,9 @@ public class UserFilterControllerTest extends BaseMvcTest {
 		updateUserFilterRQ.setObjectType("Launch");
 		updateUserFilterRQ.setEntities(generateFilterEntities());
 		updateUserFilterRQ.setDescription("new description");
-		this.mvcMock
-				.perform(put(PROJECT_BASE_URL + "/filter/566e1f3818177ca344439d38").principal(authentication())
-						.content(objectMapper.writeValueAsBytes(updateUserFilterRQ)).contentType(APPLICATION_JSON))
-				.andExpect(status().is(200));
+		this.mvcMock.perform(put(PROJECT_BASE_URL + "/filter/566e1f3818177ca344439d38").principal(authentication())
+				.content(objectMapper.writeValueAsBytes(updateUserFilterRQ))
+				.contentType(APPLICATION_JSON)).andExpect(status().is(200));
 		Assert.assertEquals("new description", userFilterRepository.findOne("566e1f3818177ca344439d38").getDescription());
 	}
 
@@ -145,7 +145,8 @@ public class UserFilterControllerTest extends BaseMvcTest {
 		bulkUpdateFilterRQ.setDescription("new description");
 		bulkUpdateFilterRQ.setEntities(generateFilterEntities());
 		rq.setElements(Collections.singletonList(bulkUpdateFilterRQ));
-		this.mvcMock.perform(put(PROJECT_BASE_URL + "/filter").principal(authentication()).contentType(APPLICATION_JSON)
+		this.mvcMock.perform(put(PROJECT_BASE_URL + "/filter").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
 		UserFilter userFilter = userFilterRepository.findOne(id);
 		Assert.assertEquals("new description", userFilter.getDescription());
@@ -162,7 +163,8 @@ public class UserFilterControllerTest extends BaseMvcTest {
 		filterRQ.setIsLink(false);
 		filterRQ.setDescription(range(0, 257).mapToObj(String::valueOf).collect(joining()));
 		createRq.setElements(Collections.singletonList(filterRQ));
-		mvcMock.perform(post(PROJECT_BASE_URL + "/filter").principal(authentication()).contentType(APPLICATION_JSON)
+		mvcMock.perform(post(PROJECT_BASE_URL + "/filter").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(createRq))).andExpect(status().is4xxClientError());
 	}
 
@@ -177,7 +179,8 @@ public class UserFilterControllerTest extends BaseMvcTest {
 		filterRQ.setIsLink(false);
 		filterRQ.setDescription("");
 		createRq.setElements(Collections.singletonList(filterRQ));
-		mvcMock.perform(post(PROJECT_BASE_URL + "/filter").principal(authentication()).contentType(APPLICATION_JSON)
+		mvcMock.perform(post(PROJECT_BASE_URL + "/filter").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(createRq))).andExpect(status().is4xxClientError());
 	}
 

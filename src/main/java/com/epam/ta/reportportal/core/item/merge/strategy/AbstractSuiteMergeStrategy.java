@@ -37,112 +37,109 @@ import static java.util.stream.Collectors.toList;
 
 public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
 
-    protected final TestItemRepository testItemRepository;
+	protected final TestItemRepository testItemRepository;
 
-    AbstractSuiteMergeStrategy(TestItemRepository testItemRepository) {
-        this.testItemRepository = testItemRepository;
-    }
+	AbstractSuiteMergeStrategy(TestItemRepository testItemRepository) {
+		this.testItemRepository = testItemRepository;
+	}
 
-    @Override
-    public abstract TestItem mergeTestItems(TestItem itemTarget, List<TestItem> items);
+	@Override
+	public abstract TestItem mergeTestItems(TestItem itemTarget, List<TestItem> items);
 
-    public abstract boolean isTestItemAcceptableToMerge(TestItem item);
+	public abstract boolean isTestItemAcceptableToMerge(TestItem item);
 
-    private TestItem moveAllChildTestItems(TestItem itemTarget, TestItem itemSource) {
-        for (TestItem childItem : testItemRepository.findAllDescendants(itemSource.getId())) {
-            childItem.setParent(itemTarget.getId());
-            childItem.setLaunchRef(itemTarget.getLaunchRef());
+	private TestItem moveAllChildTestItems(TestItem itemTarget, TestItem itemSource) {
+		for (TestItem childItem : testItemRepository.findAllDescendants(itemSource.getId())) {
+			childItem.setParent(itemTarget.getId());
+			childItem.setLaunchRef(itemTarget.getLaunchRef());
 
-            List<String> path = new ArrayList<>(itemTarget.getPath());
-            path.add(itemTarget.getId());
-            childItem.setPath(path);
+			List<String> path = new ArrayList<>(itemTarget.getPath());
+			path.add(itemTarget.getId());
+			childItem.setPath(path);
 
-            setLaunchRefForChilds(childItem, itemTarget.getLaunchRef());
-            testItemRepository.save(childItem);
-        }
-        updateTargetItemInfo(itemTarget, itemSource);
-        testItemRepository.delete(itemSource);
-        return itemTarget;
-    }
+			setLaunchRefForChilds(childItem, itemTarget.getLaunchRef());
+			testItemRepository.save(childItem);
+		}
+		updateTargetItemInfo(itemTarget, itemSource);
+		testItemRepository.delete(itemSource);
+		return itemTarget;
+	}
 
-    TestItem moveAllChildTestItems(TestItem itemTarget, List<TestItem> items) {
-        TestItem result = items.stream().reduce(itemTarget, this::moveAllChildTestItems);
-        mergeAllChildItems(result);
-        return result;
-    }
+	TestItem moveAllChildTestItems(TestItem itemTarget, List<TestItem> items) {
+		TestItem result = items.stream().reduce(itemTarget, this::moveAllChildTestItems);
+		mergeAllChildItems(result);
+		return result;
+	}
 
-    private void setLaunchRefForChilds(TestItem testItemParent, String launchRef) {
-        List<TestItem> childItems = testItemRepository.findAllDescendants(testItemParent.getId());
-        for (TestItem child : childItems) {
-            child.setLaunchRef(launchRef);
-            List<String> path = new ArrayList<>(testItemParent.getPath());
-            path.add(testItemParent.getId());
-            child.setPath(path);
-            testItemRepository.save(child);
-            if (child.hasChilds()) {
-                setLaunchRefForChilds(child, launchRef);
-            }
-        }
-    }
+	private void setLaunchRefForChilds(TestItem testItemParent, String launchRef) {
+		List<TestItem> childItems = testItemRepository.findAllDescendants(testItemParent.getId());
+		for (TestItem child : childItems) {
+			child.setLaunchRef(launchRef);
+			List<String> path = new ArrayList<>(testItemParent.getPath());
+			path.add(testItemParent.getId());
+			child.setPath(path);
+			testItemRepository.save(child);
+			if (child.hasChilds()) {
+				setLaunchRefForChilds(child, launchRef);
+			}
+		}
+	}
 
-    protected void mergeAllChildItems(TestItem testItemParent) {
-        List<TestItem> childItems = testItemRepository.findAllDescendants(testItemParent.getId());
-        List<TestItem> suites = childItems.stream().filter(this::isTestItemAcceptableToMerge).collect(toList());
+	protected void mergeAllChildItems(TestItem testItemParent) {
+		List<TestItem> childItems = testItemRepository.findAllDescendants(testItemParent.getId());
+		List<TestItem> suites = childItems.stream().filter(this::isTestItemAcceptableToMerge).collect(toList());
 
-        suites.stream()
-                .collect(Collectors.groupingBy(TestItem::getName))
-                .forEach((key, value) -> moveAllChildTestItems(value.get(0),
-                        value.subList(1, value.size())));
-    }
+		suites.stream()
+				.collect(Collectors.groupingBy(TestItem::getName))
+				.forEach((key, value) -> moveAllChildTestItems(value.get(0), value.subList(1, value.size())));
+	}
 
-    /**
-     * Collects tags, parameters and descriptions from source and add them to target. Same tags
-     * are added only once. Updates start and end times of target. Updates item identifier.
-     * @param target item to be merged
-     * @param source item to merge
-     */
-    private void updateTargetItemInfo(TestItem target, TestItem source) {
-        target = updateTime(target, source);
-        Set<String> tags = mergeTags(target.getTags(), source.getTags());
-        if (!tags.isEmpty()){
-            target.setTags(tags);
-        }
-        String result = mergeDescriptions(target.getItemDescription(), source.getItemDescription());
-        if (!result.isEmpty()) {
-            target.setItemDescription(result);
-        }
-        List<Parameter> parameters = mergeParameters(target.getParameters(), source.getParameters());
+	/**
+	 * Collects tags, parameters and descriptions from source and add them to target. Same tags
+	 * are added only once. Updates start and end times of target. Updates item identifier.
+	 *
+	 * @param target item to be merged
+	 * @param source item to merge
+	 */
+	private void updateTargetItemInfo(TestItem target, TestItem source) {
+		target = updateTime(target, source);
+		Set<String> tags = mergeTags(target.getTags(), source.getTags());
+		if (!tags.isEmpty()) {
+			target.setTags(tags);
+		}
+		String result = mergeDescriptions(target.getItemDescription(), source.getItemDescription());
+		if (!result.isEmpty()) {
+			target.setItemDescription(result);
+		}
+		List<Parameter> parameters = mergeParameters(target.getParameters(), source.getParameters());
 
-        //since merge based on unique id
-        if (parameters.equals(source.getParameters())) {
-            target.setUniqueId(source.getUniqueId());
-        }
-        testItemRepository.save(target);
-    }
+		//since merge based on unique id
+		if (parameters.equals(source.getParameters())) {
+			target.setUniqueId(source.getUniqueId());
+		}
+		testItemRepository.save(target);
+	}
 
-    /**
-     * Defines start time as the earliest and the end time as latest
-     */
-    private TestItem updateTime(TestItem target, TestItem source) {
-        target.setStartTime(target.getStartTime().before(source.getStartTime()) ?
-                target.getStartTime() : source.getStartTime());
-        target.setEndTime(target.getEndTime().after(source.getEndTime()) ?
-                target.getEndTime() : source.getEndTime());
-        return target;
-    }
+	/**
+	 * Defines start time as the earliest and the end time as latest
+	 */
+	private TestItem updateTime(TestItem target, TestItem source) {
+		target.setStartTime(target.getStartTime().before(source.getStartTime()) ? target.getStartTime() : source.getStartTime());
+		target.setEndTime(target.getEndTime().after(source.getEndTime()) ? target.getEndTime() : source.getEndTime());
+		return target;
+	}
 
-    private Set<String> mergeTags(@Nullable Set<String> first, @Nullable Set<String> second) {
-        return Stream.concat(first != null ? first.stream() : Stream.empty(),
-                second != null ? second.stream() : Stream.empty()).collect(Collectors.toSet());
-    }
+	private Set<String> mergeTags(@Nullable Set<String> first, @Nullable Set<String> second) {
+		return Stream.concat(first != null ? first.stream() : Stream.empty(), second != null ? second.stream() : Stream.empty())
+				.collect(Collectors.toSet());
+	}
 
-    private String mergeDescriptions(@Nullable String first, @Nullable String second) {
-        return new StringJoiner("\r\n").add(first != null ? first : "")
-                .add(second != null ? second : "").toString();
-    }
+	private String mergeDescriptions(@Nullable String first, @Nullable String second) {
+		return new StringJoiner("\r\n").add(first != null ? first : "").add(second != null ? second : "").toString();
+	}
 
-    private List<Parameter> mergeParameters(@Nullable List<Parameter> first, @Nullable List<Parameter> second) {
-        return Stream.concat(first != null ? first.stream() : Stream.empty(),
-                second != null ? second.stream() : Stream.empty()).collect(Collectors.toList());
-    }
+	private List<Parameter> mergeParameters(@Nullable List<Parameter> first, @Nullable List<Parameter> second) {
+		return Stream.concat(first != null ? first.stream() : Stream.empty(), second != null ? second.stream() : Stream.empty())
+				.collect(Collectors.toList());
+	}
 }

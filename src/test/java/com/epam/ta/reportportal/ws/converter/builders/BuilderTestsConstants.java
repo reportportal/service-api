@@ -17,14 +17,13 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import java.util.Date;
-
-
 import com.epam.ta.reportportal.database.entity.BinaryContent;
+
+import java.util.Date;
 
 public final class BuilderTestsConstants {
 
@@ -49,13 +48,12 @@ public final class BuilderTestsConstants {
 	public static final String NAME = "Name";
 	public static final String PASSWORD = "testvalue";
 
-
 	public static final String NAME_CRITERIA = "name";
 	public static final String LAUNCH = "Launch";
-	
-	public static final String PROJECT = "default_project"; 
+
+	public static final String PROJECT = "default_project";
 	public static final String USER = "user2";
-	
+
 	private BuilderTestsConstants() {
 		// do not create instance. Just holder for constants
 	}

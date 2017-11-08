@@ -40,18 +40,18 @@ import java.util.stream.Collectors;
 @Service
 public class ProjectResourceAssembler extends PagedResourcesAssembler<Project, ProjectResource> {
 
-    @Override
-    public ProjectResource toResource(Project entity) {
-        ProjectResource resource = ProjectConverter.TO_RESOURCE.apply(entity);
-        resource.getConfiguration().setExternalSystem(Lists.newArrayList());
-        return resource;
-    }
+	@Override
+	public ProjectResource toResource(Project entity) {
+		ProjectResource resource = ProjectConverter.TO_RESOURCE.apply(entity);
+		resource.getConfiguration().setExternalSystem(Lists.newArrayList());
+		return resource;
+	}
 
-    public ProjectResource toResource(Project project, Iterable<ExternalSystem> systems) {
-        ProjectResource resource = ProjectConverter.TO_RESOURCE.apply(project);
-        resource.getConfiguration().setExternalSystem(Lists.newArrayList(systems)
-                .stream().map(ExternalSystemConverter.TO_RESOURCE).collect(Collectors.toList())
-        );
-        return resource;
-    }
+	public ProjectResource toResource(Project project, Iterable<ExternalSystem> systems) {
+		ProjectResource resource = ProjectConverter.TO_RESOURCE.apply(project);
+		resource.getConfiguration()
+				.setExternalSystem(
+						Lists.newArrayList(systems).stream().map(ExternalSystemConverter.TO_RESOURCE).collect(Collectors.toList()));
+		return resource;
+	}
 }

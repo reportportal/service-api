@@ -92,19 +92,22 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 	 * Photo avatar for non-existing users
 	 */
 	public static final Supplier<BinaryData> NONAME_USER_PHOTO = Suppliers.memoize(() -> new BinaryData(MediaType.IMAGE_JPEG_VALUE, null,
-			AddDemoProjectEventHandler.class.getClassLoader().getResourceAsStream("nonameUserPhoto.jpg")));
+			AddDemoProjectEventHandler.class.getClassLoader().getResourceAsStream("nonameUserPhoto.jpg")
+	));
 
 	/**
 	 * Default user avatar
 	 */
 	public static final Supplier<BinaryData> DEMO_USER_PHOTO = Suppliers.memoize(() -> new BinaryData(MediaType.IMAGE_JPEG_VALUE, null,
-			AddDemoProjectEventHandler.class.getClassLoader().getResourceAsStream("defaultUserPhoto.jpg")));
+			AddDemoProjectEventHandler.class.getClassLoader().getResourceAsStream("defaultUserPhoto.jpg")
+	));
 
 	/**
 	 * Administrator avatar
 	 */
 	public static final Supplier<BinaryData> DEFAULT_ADMIN_PHOTO = Suppliers.memoize(() -> new BinaryData(MediaType.IMAGE_JPEG_VALUE, null,
-			AddDemoProjectEventHandler.class.getClassLoader().getResourceAsStream("superAdminPhoto.jpg")));
+			AddDemoProjectEventHandler.class.getClassLoader().getResourceAsStream("superAdminPhoto.jpg")
+	));
 
 	public static final Supplier<User> DEFAULT_ADMIN = Suppliers.memoize(() -> {
 		LOGGER.info("========== DEFAULT ADMINISTRATOR CREATION ==========");
@@ -201,7 +204,6 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 						ImmutableMap.<String, AnalyticsDetails>builder().put("all", new AnalyticsDetails(enableByDefault)).build());
 				serverSettingsRepository.save(serverSettings);
 			}
-
 
 		}
 	}

@@ -28,7 +28,6 @@ import java.util.Objects;
  * Project authority
  *
  * @author Andrei Varabyeu
- *
  */
 public class ProjectAuthority implements GrantedAuthority {
 
@@ -55,10 +54,12 @@ public class ProjectAuthority implements GrantedAuthority {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (o == null || getClass() != o.getClass())
+		}
+		if (o == null || getClass() != o.getClass()) {
 			return false;
+		}
 		ProjectAuthority that = (ProjectAuthority) o;
 		return Objects.equals(project, that.project) && Objects.equals(projectRole, that.projectRole);
 	}

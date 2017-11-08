@@ -17,30 +17,27 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.item;
 
-import java.util.List;
-
+import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.search.Queryable;
+import com.epam.ta.reportportal.ws.model.TestItemResource;
 import org.springframework.data.domain.Pageable;
 
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.search.Filter;
-import com.epam.ta.reportportal.ws.model.TestItemResource;
+import java.util.List;
 
 /**
  * GET operations for {@link TestItem}
- * 
+ *
  * @author Andrei Varabyeu
  * @author Aliaksei Makayed
- * 
  */
 public interface GetTestItemHandler {
 	/**
 	 * Get {@link TestItem} instance
-	 * 
+	 *
 	 * @param testItemId
 	 * @return
 	 */
@@ -48,7 +45,7 @@ public interface GetTestItemHandler {
 
 	/**
 	 * Gets {@link TestItem} instances
-	 * 
+	 *
 	 * @param filterable
 	 * @param pageable
 	 * @return
@@ -57,7 +54,7 @@ public interface GetTestItemHandler {
 
 	/**
 	 * Get specified tags
-	 * 
+	 *
 	 * @param launchId
 	 * @param value
 	 * @return

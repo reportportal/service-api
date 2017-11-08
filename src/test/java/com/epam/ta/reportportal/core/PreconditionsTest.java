@@ -17,20 +17,14 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core;
-
-import java.util.List;
-import java.util.function.Supplier;
-
-import com.epam.ta.reportportal.commons.validation.Suppliers;
-import org.junit.Assert;
-import org.junit.Test;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
@@ -43,6 +37,11 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Bunch of unit tests for internal preconditions and predicates
@@ -80,10 +79,11 @@ public class PreconditionsTest {
 	@Test(expected = ReportPortalException.class)
 	public void testHasAnyModePrecondition() {
 		Filter filter = new Filter(Launch.class, Sets.newHashSet(new FilterCondition(Condition.EQUALS, false, "test", "name"),
-				new FilterCondition(Condition.EQUALS, false, "mode", Launch.MODE_CRITERIA)));
-		BusinessRule
-				.expect(filter.getFilterConditions().stream().filter(Preconditions.HAS_ANY_MODE).findFirst().isPresent(),
-						Predicates.equalTo(false))
+				new FilterCondition(Condition.EQUALS, false, "mode", Launch.MODE_CRITERIA)
+		));
+		BusinessRule.expect(filter.getFilterConditions().stream().filter(Preconditions.HAS_ANY_MODE).findFirst().isPresent(),
+				Predicates.equalTo(false)
+		)
 				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS, "Filters for 'mode' aren't applicable for project's launches.");
 	}
 
@@ -103,10 +103,10 @@ public class PreconditionsTest {
 		TestItem secondItem = new TestItem();
 		secondItem.setParent("1234");
 
-		BusinessRule
-				.expect(Preconditions.contains(Predicates.not(Preconditions.hasSameParent("12345")))
-						.test(Lists.newArrayList(item, secondItem)), Predicates.equalTo(false))
-				.verify(ErrorType.UNABLE_LOAD_TEST_ITEM_HISTORY, "All test items should be siblings.");
+		BusinessRule.expect(
+				Preconditions.contains(Predicates.not(Preconditions.hasSameParent("12345"))).test(Lists.newArrayList(item, secondItem)),
+				Predicates.equalTo(false)
+		).verify(ErrorType.UNABLE_LOAD_TEST_ITEM_HISTORY, "All test items should be siblings.");
 	}
 
 	@Test(expected = ReportPortalException.class)
@@ -117,20 +117,20 @@ public class PreconditionsTest {
 		TestItem secondItem = new TestItem();
 		secondItem.setLaunchRef("12345");
 		secondItem.setType(TestItemType.SUITE);
-		BusinessRule
-				.expect(Preconditions.contains(Predicates.not(Preconditions.hasSameLaunch("1234").and(Preconditions.IS_SUITE)))
-						.test(Lists.newArrayList(item, secondItem)), Predicates.equalTo(false))
+		BusinessRule.expect(Preconditions.contains(Predicates.not(Preconditions.hasSameLaunch("1234").and(Preconditions.IS_SUITE)))
+				.test(Lists.newArrayList(item, secondItem)), Predicates.equalTo(false))
 				.verify(ErrorType.UNABLE_LOAD_TEST_ITEM_HISTORY, "All test items should be siblings.");
 	}
 
 	@Test
 	public void checkNotEmptyCollection() {
-		List<String> fullList = ImmutableList.<String> builder().add("one").add("two").build();
-		List<String> emptyList = ImmutableList.<String> builder().build();
+		List<String> fullList = ImmutableList.<String>builder().add("one").add("two").build();
+		List<String> emptyList = ImmutableList.<String>builder().build();
 
 		Assert.assertTrue("'Not empty collection' predicate doesn't work on full list", Preconditions.NOT_EMPTY_COLLECTION.test(fullList));
 		Assert.assertFalse("'Not empty collection' predicate doesn't work on empty list",
-				Preconditions.NOT_EMPTY_COLLECTION.test(emptyList));
+				Preconditions.NOT_EMPTY_COLLECTION.test(emptyList)
+		);
 		Assert.assertFalse("'Not empty collection' predicate doesn't work on null", Preconditions.NOT_EMPTY_COLLECTION.test(null));
 	}
 }

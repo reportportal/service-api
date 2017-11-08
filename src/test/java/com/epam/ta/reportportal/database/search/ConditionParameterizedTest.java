@@ -17,29 +17,27 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.database.search;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.List;
-
+import com.epam.ta.reportportal.database.entity.Status;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.springframework.data.mongodb.core.query.Criteria;
 
-import com.epam.ta.reportportal.database.entity.Status;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.List;
 
 /**
  * Positive tests for filter conditions and different data types
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @RunWith(Parameterized.class)
 public class ConditionParameterizedTest {
@@ -56,7 +54,7 @@ public class ConditionParameterizedTest {
 
 	/**
 	 * Parameters list
-	 * 
+	 *
 	 * @param fieldName
 	 * @param condition
 	 * @param toFind
@@ -75,11 +73,9 @@ public class ConditionParameterizedTest {
 
 	@Test
 	public void checkEquals() {
-		Filter filter = new Filter(TestItem.class, condition, false, toFind,
-				criteriaMap.getCriteriaHolder(fieldName).getFilterCriteria());
+		Filter filter = new Filter(TestItem.class, condition, false, toFind, criteriaMap.getCriteriaHolder(fieldName).getFilterCriteria());
 		Criteria criteria = Criteria.where(TEST_QUERY_FIELD);
-		condition.addCondition(criteria, filter.getFilterConditions()
-				.iterator().next(), criteriaMap.getCriteriaHolder(fieldName));
+		condition.addCondition(criteria, filter.getFilterConditions().iterator().next(), criteriaMap.getCriteriaHolder(fieldName));
 	}
 
 	@Parameterized.Parameters(name = "{index}:{0},{1},{2}")
@@ -88,12 +84,13 @@ public class ConditionParameterizedTest {
 		/*
 		 * String
 		 */
-		{ "name", Condition.EQUALS, "test value" }, { "name", Condition.CONTAINS, "test value" }, { "name", Condition.EXISTS, "true" },
+				{ "name", Condition.EQUALS, "test value" }, { "name", Condition.CONTAINS, "test value" },
+				{ "name", Condition.EXISTS, "true" },
 
 		/*
 		 * Date
 		 */
-		{ "start_time", Condition.EXISTS, currentDate() }, { "start_time", Condition.EQUALS, currentDate() },
+				{ "start_time", Condition.EXISTS, currentDate() }, { "start_time", Condition.EQUALS, currentDate() },
 				{ "start_time", Condition.GREATER_THAN, currentDate() }, { "start_time", Condition.GREATER_THAN_OR_EQUALS, currentDate() },
 				{ "start_time", Condition.BETWEEN, currentDate() + "," + currentDate() },
 				/*

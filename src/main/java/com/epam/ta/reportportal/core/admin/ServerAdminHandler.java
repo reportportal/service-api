@@ -33,37 +33,37 @@ import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
  */
 public interface ServerAdminHandler {
 
-    /**
-     * Get server settings for specified profile
-     *
-     * @param profileId Profile ID
-     * @return Settings
-     */
-    ServerSettingsResource getServerSettings(String profileId);
+	/**
+	 * Get server settings for specified profile
+	 *
+	 * @param profileId Profile ID
+	 * @return Settings
+	 */
+	ServerSettingsResource getServerSettings(String profileId);
 
-    /**
-     * Updates email settings for specified profile
-     *
-     * @param profileId Profile ID
-     * @param request   Update data
-     * @return Operation results
-     */
-    OperationCompletionRS saveEmailSettings(String profileId, ServerEmailResource request);
+	/**
+	 * Updates email settings for specified profile
+	 *
+	 * @param profileId Profile ID
+	 * @param request   Update data
+	 * @return Operation results
+	 */
+	OperationCompletionRS saveEmailSettings(String profileId, ServerEmailResource request);
 
-    /**
-     * Deletes email settings for specified profile
-     *
-     * @param profileId Profile ID
-     * @return Operation results
-     */
-    OperationCompletionRS deleteEmailSettings(String profileId);
+	/**
+	 * Deletes email settings for specified profile
+	 *
+	 * @param profileId Profile ID
+	 * @return Operation results
+	 */
+	OperationCompletionRS deleteEmailSettings(String profileId);
 
-    /**
-     * Updates analytics settings for specified profile
-     *
-     * @param profileId Profile ID
-     * @param request   Analytics settings
-     * @return Operation results
-     */
-    OperationCompletionRS saveAnalyticsSettings(String profileId, AnalyticsResource request);
+	/**
+	 * Updates analytics settings for specified profile
+	 *
+	 * @param profileId Profile ID
+	 * @param request   Analytics settings
+	 * @return Operation results
+	 */
+	OperationCompletionRS saveAnalyticsSettings(String profileId, AnalyticsResource request);
 }

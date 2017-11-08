@@ -44,89 +44,90 @@ import static java.util.stream.Collectors.toList;
 
 @Service
 class DemoLogsService {
-    private SplittableRandom random;
+	private SplittableRandom random;
 
-    private LogRepository logRepository;
+	private LogRepository logRepository;
 
-    private DataStorage dataStorage;
+	private DataStorage dataStorage;
 
-    private static final int MIN_LOGS_COUNT = 5;
+	private static final int MIN_LOGS_COUNT = 5;
 
-    private static final int MAX_LOGS_COUNT = 30;
+	private static final int MAX_LOGS_COUNT = 30;
 
-    private static final int BINARY_CONTENT_PROBABILITY = 20;
+	private static final int BINARY_CONTENT_PROBABILITY = 20;
 
-    @Autowired
-    DemoLogsService(DataStorage dataStorage, LogRepository logRepository) {
-        this.dataStorage = dataStorage;
-        this.logRepository = logRepository;
-        this.random = new SplittableRandom();
-    }
+	@Autowired
+	DemoLogsService(DataStorage dataStorage, LogRepository logRepository) {
+		this.dataStorage = dataStorage;
+		this.logRepository = logRepository;
+		this.random = new SplittableRandom();
+	}
 
-    List<Log> generateDemoLogs(String itemId, String status, String projectName) {
-        int logsCount = random.nextInt(MIN_LOGS_COUNT, MAX_LOGS_COUNT);
-        List<Log> logs = IntStream.range(1, logsCount).mapToObj(it -> {
-            Log log = new Log();
-            log.setLevel(logLevel());
-            log.setLogTime(new Date());
-            if (ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
-                log.setBinaryContent(attachBinaryContent(projectName));
-            }
-            log.setTestItemRef(itemId);
-            log.setLogMsg(ContentUtils.getLogMessage());
-            return log;
-        }).collect(toList());
-        if (FAILED.name().equals(status)) {
-            List<String> errors = ContentUtils.getErrorLogs();
-            logs.addAll(errors.stream().map(msg -> {
-                Log log = new Log();
-                log.setLevel(ERROR);
-                log.setLogTime(new Date());
-                log.setTestItemRef(itemId);
-                log.setLogMsg(msg);
-                BinaryContent binaryContent = attachBinaryContent(projectName);
-                log.setBinaryContent(binaryContent);
-                return log;
-            }).collect(toList()));
-        }
-        return logRepository.save(logs);
-    }
+	List<Log> generateDemoLogs(String itemId, String status, String projectName) {
+		int logsCount = random.nextInt(MIN_LOGS_COUNT, MAX_LOGS_COUNT);
+		List<Log> logs = IntStream.range(1, logsCount).mapToObj(it -> {
+			Log log = new Log();
+			log.setLevel(logLevel());
+			log.setLogTime(new Date());
+			if (ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
+				log.setBinaryContent(attachBinaryContent(projectName));
+			}
+			log.setTestItemRef(itemId);
+			log.setLogMsg(ContentUtils.getLogMessage());
+			return log;
+		}).collect(toList());
+		if (FAILED.name().equals(status)) {
+			List<String> errors = ContentUtils.getErrorLogs();
+			logs.addAll(errors.stream().map(msg -> {
+				Log log = new Log();
+				log.setLevel(ERROR);
+				log.setLogTime(new Date());
+				log.setTestItemRef(itemId);
+				log.setLogMsg(msg);
+				BinaryContent binaryContent = attachBinaryContent(projectName);
+				log.setBinaryContent(binaryContent);
+				return log;
+			}).collect(toList()));
+		}
+		return logRepository.save(logs);
+	}
 
-    private BinaryContent attachBinaryContent(String projectName) {
-        try {
-            Attachment attachment = randomAttachment();
-            String file = saveResource(attachment.getContentType(), attachment.getResource(), projectName);
-            if (attachment.equals(Attachment.PNG)) {
-                String thumbnail = saveResource(attachment.getContentType(),
-                        new ClassPathResource("demo/attachments/img_tn.png"), projectName);
-                return new BinaryContent(file, thumbnail, attachment.getContentType());
-            }
-            return new BinaryContent(file, file, attachment.getContentType());
-        } catch (IOException e) {
-            throw new ReportPortalException("Unable to save binary data", e);
-        }
-    }
+	private BinaryContent attachBinaryContent(String projectName) {
+		try {
+			Attachment attachment = randomAttachment();
+			String file = saveResource(attachment.getContentType(), attachment.getResource(), projectName);
+			if (attachment.equals(Attachment.PNG)) {
+				String thumbnail = saveResource(attachment.getContentType(), new ClassPathResource("demo/attachments/img_tn.png"),
+						projectName
+				);
+				return new BinaryContent(file, thumbnail, attachment.getContentType());
+			}
+			return new BinaryContent(file, file, attachment.getContentType());
+		} catch (IOException e) {
+			throw new ReportPortalException("Unable to save binary data", e);
+		}
+	}
 
-    private String saveResource(String contentType, ClassPathResource resource, String projectName) throws IOException {
-        return dataStorage.saveData(new BinaryData(contentType,
-                resource.contentLength(), resource.getInputStream()),
-                resource.getFilename(), Collections.singletonMap("project", projectName));
-    }
+	private String saveResource(String contentType, ClassPathResource resource, String projectName) throws IOException {
+		return dataStorage.saveData(new BinaryData(contentType, resource.contentLength(), resource.getInputStream()),
+				resource.getFilename(), Collections.singletonMap("project", projectName)
+		);
+	}
 
-    private Attachment randomAttachment() {
-        return Attachment.values()[random.nextInt(Attachment.values().length)];
-    }
+	private Attachment randomAttachment() {
+		return Attachment.values()[random.nextInt(Attachment.values().length)];
+	}
 
-    private LogLevel logLevel() {
-        int i = random.nextInt(50);
-        if (i < 10) {
-            return DEBUG;
-        } else if (i < 20) {
-            return WARN;
-        } else if (i < 30) {
-            return TRACE;
-        } else {
-            return INFO;
-        }
-    }
+	private LogLevel logLevel() {
+		int i = random.nextInt(50);
+		if (i < 10) {
+			return DEBUG;
+		} else if (i < 20) {
+			return WARN;
+		} else if (i < 30) {
+			return TRACE;
+		} else {
+			return INFO;
+		}
+	}
 }

@@ -21,17 +21,17 @@
 
 package com.epam.ta.reportportal.core.acl.chain;
 
-import java.util.List;
-import java.util.Objects;
-
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.acl.AclUtils;
 import com.epam.ta.reportportal.database.entity.sharing.Shareable;
 
+import java.util.List;
+import java.util.Objects;
+
 /**
  * Abstract chain element, contains common behavior(logic) for all chain
  * elements.
- * 
+ *
  * @author Aliaksei_Makayed
  */
 abstract class ChainElement implements IChainElement {
@@ -53,8 +53,12 @@ abstract class ChainElement implements IChainElement {
 			}
 			return nextChainElement.process(message);
 		}
-		message.getElements().stream().filter(Objects::nonNull).forEach(
-				shareable -> AclUtils.modifyACL(shareable.getAcl(), message.getProjectName(), message.getUserName(), message.isShare()));
+		message.getElements()
+				.stream()
+				.filter(Objects::nonNull)
+				.forEach(shareable -> AclUtils.modifyACL(shareable.getAcl(), message.getProjectName(), message.getUserName(),
+						message.isShare()
+				));
 		if (message.isSave()) {
 			saveElements(message.getElements());
 		}
@@ -81,7 +85,7 @@ abstract class ChainElement implements IChainElement {
 
 	/**
 	 * Save elements related to current chain element
-	 * 
+	 *
 	 * @param elementsToProcess
 	 */
 	public abstract void saveElements(List<? extends Shareable> elementsToProcess);

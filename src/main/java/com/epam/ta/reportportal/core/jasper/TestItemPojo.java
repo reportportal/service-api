@@ -45,7 +45,6 @@ import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
  * Jasper Reports collection {@link TestItem} POJO
  *
  * @author Andrei_Ramanchuk
- *
  */
 public class TestItemPojo {
 	private String type;
@@ -66,8 +65,9 @@ public class TestItemPojo {
 		String issueDescription = "";
 		if (input.getIssue() != null) {
 			final TestItemIssue issue = input.getIssue();
-			if (issue.getIssueDescription() != null)
+			if (issue.getIssueDescription() != null) {
 				issueDescription = "\r\n" + " DEFECT COMMENT: " + issue.getIssueDescription();
+			}
 		}
 		String description = "";
 		if (input.getItemDescription() != null) {

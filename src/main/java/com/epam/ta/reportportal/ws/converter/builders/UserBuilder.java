@@ -17,23 +17,22 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import java.util.Calendar;
-
+import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.entity.user.UserType;
+import com.epam.ta.reportportal.ws.model.user.CreateUserRQConfirm;
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
-import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.database.entity.user.UserRole;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQConfirm;
+import java.util.Calendar;
 
 @Service
 @Scope("prototype")

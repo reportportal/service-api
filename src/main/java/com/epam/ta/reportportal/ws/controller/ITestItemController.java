@@ -21,25 +21,24 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import java.security.Principal;
-import java.util.List;
-
-import com.epam.ta.reportportal.database.search.Queryable;
-import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
-import org.springframework.data.domain.Pageable;
-
 import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.database.search.Queryable;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.item.AddExternalIssueRQ;
+import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
+import org.springframework.data.domain.Pageable;
+
+import java.security.Principal;
+import java.util.List;
 
 public interface ITestItemController {
 
 	/**
 	 * Starts root test item (root item for launch)
-	 * 
+	 *
 	 * @param projectName
 	 * @param testItem
 	 * @param principal
@@ -49,7 +48,7 @@ public interface ITestItemController {
 
 	/**
 	 * Starts child test item
-	 * 
+	 *
 	 * @param projectName
 	 * @param parentItem
 	 * @param startLaunch
@@ -60,7 +59,7 @@ public interface ITestItemController {
 
 	/**
 	 * Finishes specified test item
-	 * 
+	 *
 	 * @param finishExecutionRQ
 	 * @param principal
 	 * @return OperationCompletionRS
@@ -69,7 +68,7 @@ public interface ITestItemController {
 
 	/**
 	 * Gets Test Item by ID
-	 * 
+	 *
 	 * @param projectName
 	 * @param item
 	 * @param principal
@@ -79,18 +78,19 @@ public interface ITestItemController {
 
 	/**
 	 * Gets all Test Items of specified launch
-	 * 
+	 *
 	 * @param projectName
 	 * @param filter
 	 * @param pageble
 	 * @param principal
 	 * @return Iterable<TestItemResource>
 	 */
-	Iterable<TestItemResource> getTestItems(String projectName, Filter filter, Queryable predefinedFilter, Pageable pageble, Principal principal);
+	Iterable<TestItemResource> getTestItems(String projectName, Filter filter, Queryable predefinedFilter, Pageable pageble,
+			Principal principal);
 
 	/**
 	 * Deletes Test Item
-	 * 
+	 *
 	 * @param projectName
 	 * @param item
 	 * @param principal
@@ -102,7 +102,7 @@ public interface ITestItemController {
 
 	/**
 	 * Update test item issue block (defects) and updated statistics
-	 * 
+	 *
 	 * @param projectName
 	 * @param request
 	 * @return List<Issue>
@@ -115,18 +115,17 @@ public interface ITestItemController {
 	 * <li>key - launch number.
 	 * <li>value - list of testItemResources in current launch.
 	 * </ul>
-	 * 
+	 *
 	 * @param projectName
 	 * @param historyDepth
 	 * @param principal
 	 * @param ids
-	 * @param showBrokenLaunches
-	 *            - <b>boolean</b> should in_progress and interrupted launches
-	 *            been included in history:<br>
-	 *            <code>true</code> - if history should contain all launch
-	 *            statuses<br>
-	 *            <code>false</code> - if history should contain only passed and
-	 *            failed launches
+	 * @param showBrokenLaunches - <b>boolean</b> should in_progress and interrupted launches
+	 *                           been included in history:<br>
+	 *                           <code>true</code> - if history should contain all launch
+	 *                           statuses<br>
+	 *                           <code>false</code> - if history should contain only passed and
+	 *                           failed launches
 	 * @return Map<String, List<TestItemResource>>
 	 */
 	List<TestItemHistoryElement> getItemsHistory(String projectName, int historyDepth, String[] ids, boolean showBrokenLaunches,
@@ -134,7 +133,7 @@ public interface ITestItemController {
 
 	/**
 	 * Get specified tags
-	 * 
+	 *
 	 * @param project
 	 * @param launchId
 	 * @param value
@@ -145,7 +144,7 @@ public interface ITestItemController {
 
 	/**
 	 * Update test items
-	 * 
+	 *
 	 * @param projectName
 	 * @param item
 	 * @param rq

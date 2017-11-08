@@ -17,15 +17,14 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 package com.epam.ta.reportportal.core.config;
 
-import java.util.Random;
-
+import com.epam.ta.reportportal.config.CacheConfiguration;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
-import com.epam.ta.reportportal.config.CacheConfiguration;
+import java.util.Random;
 
 @Component
 class TestServiceImpl implements TestService {

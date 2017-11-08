@@ -17,18 +17,17 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.core.acl.chain;
 
 /**
  * Define operations for sharing chain element.
- * 
- * @author Aliaksei_Makayed
  *
+ * @author Aliaksei_Makayed
  */
 public interface IChainElement {
-	
+
 	boolean process(ChainMessage message);
 
 }

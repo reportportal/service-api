@@ -49,16 +49,14 @@ public class UserActivityHandler {
 
 	@EventListener
 	public void onUserCreated(UserCreatedEvent event) {
-		Activity activity = new ActivityBuilder()
-                .addActionType(CREATE_USER)
-                .addLoggedObjectRef(event.getUser().getLogin())
+		Activity activity = new ActivityBuilder().addActionType(CREATE_USER)
+				.addLoggedObjectRef(event.getUser().getLogin())
 				.addObjectName(event.getUser().getLogin())
-                .addObjectType(USER)
-                .addUserRef(event.getCreatedBy())
+				.addObjectType(USER)
+				.addUserRef(event.getCreatedBy())
 				.addProjectRef(event.getUser().getDefaultProject().toLowerCase())
-				.addHistory(Collections.singletonList(
-						createHistoryField(NAME, EMPTY_FIELD, event.getUser().getLogin())))
-                .get();
+				.addHistory(Collections.singletonList(createHistoryField(NAME, EMPTY_FIELD, event.getUser().getLogin())))
+				.get();
 		activityRepository.save(activity);
 	}
 }

@@ -51,106 +51,105 @@ import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
 @Component
 public class WidgetActivityEventHandler {
 
-    private static final String ITEMS_COUNT = "items_count";
-    private static final String CONTENT_FIELDS = "content_fields";
-    private static final String METADATA_FIELDS = "metadata_fields";
-    private static final String WIDGET_OPTIONS = "widget_options";
+	private static final String ITEMS_COUNT = "items_count";
+	private static final String CONTENT_FIELDS = "content_fields";
+	private static final String METADATA_FIELDS = "metadata_fields";
+	private static final String WIDGET_OPTIONS = "widget_options";
 
-    private ActivityRepository activityRepository;
+	private ActivityRepository activityRepository;
 
-    @Autowired
-    public WidgetActivityEventHandler(ActivityRepository activityRepository) {
-        this.activityRepository = activityRepository;
-    }
+	@Autowired
+	public WidgetActivityEventHandler(ActivityRepository activityRepository) {
+		this.activityRepository = activityRepository;
+	}
 
-    @EventListener
-    public void onWidgetUpdated(WidgetUpdatedEvent event) {
-        Widget widget = event.getBefore();
-        WidgetRQ widgetRQ = event.getWidgetRQ();
-        List<Activity.FieldValues> history = Lists.newArrayList();
-        if (widget != null) {
-            processShare(history, widget, widgetRQ.getShare());
-            processName(history, widget.getName(), widgetRQ.getName());
-            processDescription(history, widget.getDescription(), widgetRQ.getDescription());
-            processContentParameters(history, widget.getContentOptions(), widgetRQ.getContentParameters());
-            if (!history.isEmpty()) {
-                Activity activityLog = new ActivityBuilder()
-                        .addProjectRef(widget.getProjectName())
-                        .addObjectName(widget.getName())
-                        .addObjectType(WIDGET)
-                        .addActionType(UPDATE_WIDGET)
-                        .addLoggedObjectRef(widget.getId())
-                        .addUserRef(event.getUpdatedBy())
-                        .addHistory(history)
-                        .get();
-                activityRepository.save(activityLog);
-            }
-        }
-    }
+	@EventListener
+	public void onWidgetUpdated(WidgetUpdatedEvent event) {
+		Widget widget = event.getBefore();
+		WidgetRQ widgetRQ = event.getWidgetRQ();
+		List<Activity.FieldValues> history = Lists.newArrayList();
+		if (widget != null) {
+			processShare(history, widget, widgetRQ.getShare());
+			processName(history, widget.getName(), widgetRQ.getName());
+			processDescription(history, widget.getDescription(), widgetRQ.getDescription());
+			processContentParameters(history, widget.getContentOptions(), widgetRQ.getContentParameters());
+			if (!history.isEmpty()) {
+				Activity activityLog = new ActivityBuilder().addProjectRef(widget.getProjectName())
+						.addObjectName(widget.getName())
+						.addObjectType(WIDGET)
+						.addActionType(UPDATE_WIDGET)
+						.addLoggedObjectRef(widget.getId())
+						.addUserRef(event.getUpdatedBy())
+						.addHistory(history)
+						.get();
+				activityRepository.save(activityLog);
+			}
+		}
+	}
 
-    @EventListener
-    public void onCreateWidget(WidgetCreatedEvent event) {
-        WidgetRQ widgetRQ = event.getWidgetRQ();
-        Activity activityLog = new ActivityBuilder()
-                .addActionType(CREATE_WIDGET)
-                .addObjectType(WIDGET)
-                .addObjectName(widgetRQ.getName())
-                .addProjectRef(event.getProjectRef())
-                .addUserRef(event.getCreatedBy())
-                .addLoggedObjectRef(event.getWidgetId())
-                .addHistory(Collections.singletonList(createHistoryField(NAME, EMPTY_FIELD, widgetRQ.getName())))
-                .get();
-        activityRepository.save(activityLog);
+	@EventListener
+	public void onCreateWidget(WidgetCreatedEvent event) {
+		WidgetRQ widgetRQ = event.getWidgetRQ();
+		Activity activityLog = new ActivityBuilder().addActionType(CREATE_WIDGET)
+				.addObjectType(WIDGET)
+				.addObjectName(widgetRQ.getName())
+				.addProjectRef(event.getProjectRef())
+				.addUserRef(event.getCreatedBy())
+				.addLoggedObjectRef(event.getWidgetId())
+				.addHistory(Collections.singletonList(createHistoryField(NAME, EMPTY_FIELD, widgetRQ.getName())))
+				.get();
+		activityRepository.save(activityLog);
 
-    }
+	}
 
-    @EventListener
-    public void onDeleteWidget(WidgetDeletedEvent event) {
-        Widget widget = event.getBefore();
-        Activity activityLog = new ActivityBuilder()
-                .addActionType(DELETE_WIDGET)
-                .addObjectType(WIDGET)
-                .addObjectName(widget.getName())
-                .addProjectRef(widget.getProjectName())
-                .addUserRef(event.getRemovedBy())
-                .addHistory(Collections.singletonList(createHistoryField(NAME, widget.getName(), EMPTY_FIELD)))
-                .get();
-        activityRepository.save(activityLog);
-    }
+	@EventListener
+	public void onDeleteWidget(WidgetDeletedEvent event) {
+		Widget widget = event.getBefore();
+		Activity activityLog = new ActivityBuilder().addActionType(DELETE_WIDGET)
+				.addObjectType(WIDGET)
+				.addObjectName(widget.getName())
+				.addProjectRef(widget.getProjectName())
+				.addUserRef(event.getRemovedBy())
+				.addHistory(Collections.singletonList(createHistoryField(NAME, widget.getName(), EMPTY_FIELD)))
+				.get();
+		activityRepository.save(activityLog);
+	}
 
-    private void processContentParameters(List<Activity.FieldValues> history, ContentOptions old, ContentParameters newContent) {
-        processItemsCount(history, old.getItemsCount(), newContent.getItemsCount());
-        processFields(history, old.getContentFields(), newContent.getContentFields(), CONTENT_FIELDS);
-        processFields(history, old.getMetadataFields(), newContent.getMetadataFields(), METADATA_FIELDS);
-        processWidgetOptions(history, old.getWidgetOptions(), newContent.getWidgetOptions());
-    }
+	private void processContentParameters(List<Activity.FieldValues> history, ContentOptions old, ContentParameters newContent) {
+		processItemsCount(history, old.getItemsCount(), newContent.getItemsCount());
+		processFields(history, old.getContentFields(), newContent.getContentFields(), CONTENT_FIELDS);
+		processFields(history, old.getMetadataFields(), newContent.getMetadataFields(), METADATA_FIELDS);
+		processWidgetOptions(history, old.getWidgetOptions(), newContent.getWidgetOptions());
+	}
 
-    private void processItemsCount(List<Activity.FieldValues> history, int oldItemsCount, int newItemsCount) {
-        if (oldItemsCount != newItemsCount) {
-            history.add(createHistoryField(ITEMS_COUNT, String.valueOf(oldItemsCount), String.valueOf(newItemsCount)));
-        }
-    }
+	private void processItemsCount(List<Activity.FieldValues> history, int oldItemsCount, int newItemsCount) {
+		if (oldItemsCount != newItemsCount) {
+			history.add(createHistoryField(ITEMS_COUNT, String.valueOf(oldItemsCount), String.valueOf(newItemsCount)));
+		}
+	}
 
-    private void processWidgetOptions(List<Activity.FieldValues> history, Map<String, List<String>> oldOptions,
-                                      Map<String, List<String>> newOptions) {
-        if (null != oldOptions && null != newOptions && !oldOptions.equals(newOptions)) {
-            String oldValue = oldOptions.entrySet().stream()
-                    .map(it -> it.getKey() + ":" + it.getValue().toString())
-                    .collect(Collectors.joining(", "));
-            String newValue = newOptions.entrySet().stream()
-                    .map(it -> it.getKey() + ":" + it.getValue().toString())
-                    .collect(Collectors.joining(", "));
-            history.add(createHistoryField(WIDGET_OPTIONS, oldValue, newValue));
-        }
-    }
+	private void processWidgetOptions(List<Activity.FieldValues> history, Map<String, List<String>> oldOptions,
+			Map<String, List<String>> newOptions) {
+		if (null != oldOptions && null != newOptions && !oldOptions.equals(newOptions)) {
+			String oldValue = oldOptions.entrySet()
+					.stream()
+					.map(it -> it.getKey() + ":" + it.getValue().toString())
+					.collect(Collectors.joining(", "));
+			String newValue = newOptions.entrySet()
+					.stream()
+					.map(it -> it.getKey() + ":" + it.getValue().toString())
+					.collect(Collectors.joining(", "));
+			history.add(createHistoryField(WIDGET_OPTIONS, oldValue, newValue));
+		}
+	}
 
-    private void processFields(List<Activity.FieldValues> history, List<String> oldFields, List<String> newFields, String field) {
-        if (null != oldFields && null != newFields && !oldFields.equals(newFields)) {
-            String oldValue = oldFields.stream().collect(Collectors.joining(", "));
-            String newValue = newFields.stream().collect(Collectors.joining(", "));
-            history.add(createHistoryField(field, oldValue, newValue));
-        }
-    }
+	private void processFields(List<Activity.FieldValues> history, List<String> oldFields, List<String> newFields, String field) {
+		if (null != oldFields && null != newFields && !oldFields.equals(newFields)) {
+			String oldValue = oldFields.stream().collect(Collectors.joining(", "));
+			String newValue = newFields.stream().collect(Collectors.joining(", "));
+			history.add(createHistoryField(field, oldValue, newValue));
+		}
+	}
 
 }
 

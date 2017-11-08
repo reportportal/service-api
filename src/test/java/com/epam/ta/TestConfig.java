@@ -118,8 +118,7 @@ public class TestConfig {
 	}
 
 	@Bean
-	public AnalyzerServiceClient analyzerServiceClient()
-	{
+	public AnalyzerServiceClient analyzerServiceClient() {
 		return mock(AnalyzerServiceClient.class);
 	}
 
@@ -128,15 +127,26 @@ public class TestConfig {
 	public CacheManager getGlobalCacheManager() {
 		SimpleCacheManager cacheManager = new SimpleCacheManager();
 
-		GuavaCache tickets = new GuavaCache(EXTERNAL_SYSTEM_TICKET_CACHE,
-				CacheBuilder.newBuilder().maximumSize(ticketCacheSize).softValues()
-						.expireAfterAccess(ticketCacheExpiration, TimeUnit.MINUTES).build());
-		GuavaCache projects = new GuavaCache(JIRA_PROJECT_CACHE, CacheBuilder.newBuilder().maximumSize(projectCacheSize).softValues()
-				.expireAfterAccess(projectCacheExpiration, TimeUnit.DAYS).build());
-		GuavaCache users = new GuavaCache(USERS_CACHE,
-				CacheBuilder.newBuilder().maximumSize(userCacheSize).expireAfterWrite(userCacheExpiration, TimeUnit.MINUTES).build());
-		GuavaCache projectInfo = new GuavaCache(PROJECT_INFO_CACHE, CacheBuilder.newBuilder().maximumSize(projectCacheSize).softValues()
-				.expireAfterWrite(projectInfoCacheExpiration, TimeUnit.MINUTES).build());
+		GuavaCache tickets = new GuavaCache(
+				EXTERNAL_SYSTEM_TICKET_CACHE, CacheBuilder.newBuilder()
+				.maximumSize(ticketCacheSize)
+				.softValues()
+				.expireAfterAccess(ticketCacheExpiration, TimeUnit.MINUTES)
+				.build());
+		GuavaCache projects = new GuavaCache(JIRA_PROJECT_CACHE, CacheBuilder.newBuilder()
+				.maximumSize(projectCacheSize)
+				.softValues()
+				.expireAfterAccess(projectCacheExpiration, TimeUnit.DAYS)
+				.build());
+		GuavaCache users = new GuavaCache(
+				USERS_CACHE,
+				CacheBuilder.newBuilder().maximumSize(userCacheSize).expireAfterWrite(userCacheExpiration, TimeUnit.MINUTES).build()
+		);
+		GuavaCache projectInfo = new GuavaCache(PROJECT_INFO_CACHE, CacheBuilder.newBuilder()
+				.maximumSize(projectCacheSize)
+				.softValues()
+				.expireAfterWrite(projectInfoCacheExpiration, TimeUnit.MINUTES)
+				.build());
 		//		GuavaCache assignedUsers = new GuavaCache(ASSIGNED_USERS_CACHE, CacheBuilder.newBuilder().maximumSize(userCacheSize).weakKeys()
 		//				.expireAfterWrite(userCacheExpiration, TimeUnit.MINUTES).build());
 

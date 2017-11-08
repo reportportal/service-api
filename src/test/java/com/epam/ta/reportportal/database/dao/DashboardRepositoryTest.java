@@ -17,13 +17,15 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.database.dao;
 
-import java.util.Date;
-import java.util.List;
-
+import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.database.entity.Dashboard;
+import com.epam.ta.reportportal.database.fixture.SpringFixture;
+import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
+import com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,11 +34,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 
-import com.epam.ta.BaseTest;
-import com.epam.ta.reportportal.database.entity.Dashboard;
-import com.epam.ta.reportportal.database.fixture.SpringFixture;
-import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
-import com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants;
+import java.util.Date;
+import java.util.List;
 
 @SpringFixture("dashboardTriggerTest")
 public class DashboardRepositoryTest extends BaseTest {
@@ -78,7 +77,8 @@ public class DashboardRepositoryTest extends BaseTest {
 	public void testFindAll() {
 		Sort creationDateSort = new Sort(new Order(Direction.DESC, Dashboard.CREATION_DATE));
 		List<Dashboard> dashboards = dashboardRepository.findAll(BuilderTestsConstants.USER, creationDateSort,
-				BuilderTestsConstants.PROJECT);
+				BuilderTestsConstants.PROJECT
+		);
 		Assert.assertEquals(dashboards.size(), 4);
 		Date currentDate = null;
 		for (Dashboard dashboard : dashboards) {

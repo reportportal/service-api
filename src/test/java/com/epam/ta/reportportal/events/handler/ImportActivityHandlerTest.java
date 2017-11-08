@@ -53,35 +53,38 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 public class ImportActivityHandlerTest extends BaseMvcTest {
 
-    @Autowired
-    private ActivityRepository activityRepository;
+	@Autowired
+	private ActivityRepository activityRepository;
 
-    @Test
-    public void onImportEvents() throws Exception{
-        Path file = Paths.get("src/test/resources/test-results.zip");
-        MockMultipartFile multipartFile = new MockMultipartFile("file", "test-results.zip",
-                "application/zip", Files.readAllBytes(file));
+	@Test
+	public void onImportEvents() throws Exception {
+		Path file = Paths.get("src/test/resources/test-results.zip");
+		MockMultipartFile multipartFile = new MockMultipartFile("file", "test-results.zip", "application/zip", Files.readAllBytes(file));
 
-        this.mvcMock.perform(fileUpload("/project1/launch/import").file(multipartFile)
-                .contentType(MediaType.APPLICATION_JSON).principal(authentication())).andExpect(status().is(200));
+		this.mvcMock.perform(fileUpload("/project1/launch/import").file(multipartFile)
+				.contentType(MediaType.APPLICATION_JSON)
+				.principal(authentication())).andExpect(status().is(200));
 
-        String activityTypes = ActivityEventType.START_IMPORT.getValue() + "," + ActivityEventType.START_LAUNCH.getValue() + ","
-                + ActivityEventType.FINISH_IMPORT.getValue() + "," + ActivityEventType.FINISH_LAUNCH.getValue();
-        Filter filter = new Filter(Activity.class,
-                new HashSet<>(Arrays.asList(new FilterCondition(Condition.EQUALS, false, "project1", "projectRef"),
-                        new FilterCondition(Condition.IN, false, activityTypes, "actionType"))));
-        List<Activity> activities = activityRepository.findByFilter(filter);
-        List<String> newValues = activities.stream()
-                .map(Activity::getHistory).flatMap(Collection::stream)
-                .map(Activity.FieldValues::getNewValue).collect(toList());
+		String activityTypes = ActivityEventType.START_IMPORT.getValue() + "," + ActivityEventType.START_LAUNCH.getValue() + ","
+				+ ActivityEventType.FINISH_IMPORT.getValue() + "," + ActivityEventType.FINISH_LAUNCH.getValue();
+		Filter filter = new Filter(Activity.class, new HashSet<>(
+				Arrays.asList(new FilterCondition(Condition.EQUALS, false, "project1", "projectRef"),
+						new FilterCondition(Condition.IN, false, activityTypes, "actionType")
+				)));
+		List<Activity> activities = activityRepository.findByFilter(filter);
+		List<String> newValues = activities.stream()
+				.map(Activity::getHistory)
+				.flatMap(Collection::stream)
+				.map(Activity.FieldValues::getNewValue)
+				.collect(toList());
 
-        Assert.assertEquals("Some activities were not created", 4, activities.size());
-        Assert.assertTrue("History doesn't contain file name value", newValues.contains("test-results.zip"));
-        Assert.assertTrue("History doesn't contain launch name value", newValues.contains("test-results #1"));
-    }
+		Assert.assertEquals("Some activities were not created", 4, activities.size());
+		Assert.assertTrue("History doesn't contain file name value", newValues.contains("test-results.zip"));
+		Assert.assertTrue("History doesn't contain launch name value", newValues.contains("test-results #1"));
+	}
 
-    @Override
-    protected Authentication authentication() {
-        return AuthConstants.ADMINISTRATOR;
-    }
+	@Override
+	protected Authentication authentication() {
+		return AuthConstants.ADMINISTRATOR;
+	}
 }

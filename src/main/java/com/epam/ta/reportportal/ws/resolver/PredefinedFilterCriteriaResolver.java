@@ -52,61 +52,63 @@ import java.util.stream.Collectors;
  */
 public class PredefinedFilterCriteriaResolver implements HandlerMethodArgumentResolver {
 
-    /**
-     * Default prefix for filter conditions. Since Request contains a lot of
-     * parameters (some of them may not be related to filtering), we have to
-     * introduce this
-     */
-    public static final String FILTER_PARAMETER_NAME = "predefined_filter";
+	/**
+	 * Default prefix for filter conditions. Since Request contains a lot of
+	 * parameters (some of them may not be related to filtering), we have to
+	 * introduce this
+	 */
+	public static final String FILTER_PARAMETER_NAME = "predefined_filter";
 
-    /**
-     * Returns TRUE only for {@link List} marked with {@link FilterFor}
-     * annotations
-     */
-    @Override
-    public boolean supportsParameter(MethodParameter methodParameter) {
-        return Queryable.class.isAssignableFrom(methodParameter.getParameterType()) && null != methodParameter
-                .getParameterAnnotation(FilterFor.class);
-    }
+	/**
+	 * Returns TRUE only for {@link List} marked with {@link FilterFor}
+	 * annotations
+	 */
+	@Override
+	public boolean supportsParameter(MethodParameter methodParameter) {
+		return Queryable.class.isAssignableFrom(methodParameter.getParameterType()) && null != methodParameter.getParameterAnnotation(
+				FilterFor.class);
+	}
 
-    @Override
-    public Queryable resolveArgument(MethodParameter methodParameter,
-            ModelAndViewContainer paramModelAndViewContainer,
-            NativeWebRequest webRequest, WebDataBinderFactory paramWebDataBinderFactory) throws Exception {
-        Class<?> domainModelType = methodParameter.getParameterAnnotation(FilterFor.class).value();
+	@Override
+	public Queryable resolveArgument(MethodParameter methodParameter, ModelAndViewContainer paramModelAndViewContainer,
+			NativeWebRequest webRequest, WebDataBinderFactory paramWebDataBinderFactory) throws Exception {
+		Class<?> domainModelType = methodParameter.getParameterAnnotation(FilterFor.class).value();
 
-        List<Queryable> filterConditions = webRequest.getParameterMap().entrySet().stream()
-                .filter(parameter -> FILTER_PARAMETER_NAME.equals(parameter.getKey()))
-                .map(parameter -> {
-                    BusinessRule.expect(parameter.getValue(), v -> null != v && v.length == 1)
-                            .verify(ErrorType.INCORRECT_REQUEST, "Incorrect filter value");
+		List<Queryable> filterConditions = webRequest.getParameterMap()
+				.entrySet()
+				.stream()
+				.filter(parameter -> FILTER_PARAMETER_NAME.equals(parameter.getKey()))
+				.map(parameter -> {
+					BusinessRule.expect(parameter.getValue(), v -> null != v && v.length == 1)
+							.verify(ErrorType.INCORRECT_REQUEST, "Incorrect filter value");
 
-                    String filterName = parameter.getValue()[0];
+					String filterName = parameter.getValue()[0];
 
-                    BusinessRule.expect(PredefinedFilters.hasFilter(filterName), Predicate.isEqual(true))
-                            .verify(ErrorType.INCORRECT_REQUEST, "Unknown filter '" + filterName + "'");
+					BusinessRule.expect(PredefinedFilters.hasFilter(filterName), Predicate.isEqual(true))
+							.verify(ErrorType.INCORRECT_REQUEST, "Unknown filter '" + filterName + "'");
 
-                    final Queryable queryable = PredefinedFilters.buildFilter(filterName, parameter.getValue());
-                    BusinessRule.expect(queryable.getTarget(), Predicate.isEqual(domainModelType))
-                            .verify(ErrorType.INCORRECT_REQUEST, "Incorrect filter");
+					final Queryable queryable = PredefinedFilters.buildFilter(filterName, parameter.getValue());
+					BusinessRule.expect(queryable.getTarget(), Predicate.isEqual(domainModelType))
+							.verify(ErrorType.INCORRECT_REQUEST, "Incorrect filter");
 
-                    return queryable;
+					return queryable;
 
-                }).collect(Collectors.toList());
-        return filterConditions.isEmpty() ? nop(domainModelType) : new CompositeFilter(filterConditions);
-    }
+				})
+				.collect(Collectors.toList());
+		return filterConditions.isEmpty() ? nop(domainModelType) : new CompositeFilter(filterConditions);
+	}
 
-    private Queryable nop(Class<?> type) {
-        return new Queryable() {
-            @Override
-            public List<Criteria> toCriteria() {
-                return Collections.emptyList();
-            }
+	private Queryable nop(Class<?> type) {
+		return new Queryable() {
+			@Override
+			public List<Criteria> toCriteria() {
+				return Collections.emptyList();
+			}
 
-            @Override
-            public Class<?> getTarget() {
-                return type;
-            }
-        };
-    }
+			@Override
+			public Class<?> getTarget() {
+				return type;
+			}
+		};
+	}
 }

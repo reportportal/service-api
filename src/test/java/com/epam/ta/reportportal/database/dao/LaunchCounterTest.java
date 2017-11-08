@@ -17,22 +17,21 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
-package com.epam.ta.reportportal.database.dao;
+ */
 
-import static org.hamcrest.Matchers.is;
+package com.epam.ta.reportportal.database.dao;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static org.hamcrest.Matchers.is;
+
 /**
  * Unit test for launch meta info repository
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class LaunchCounterTest extends BaseDaoContextTest {
 
@@ -41,7 +40,8 @@ public class LaunchCounterTest extends BaseDaoContextTest {
 
 	@Test
 	public void testLaunchCounterForNewName() throws Exception {
-		long number = launchMetaInfoRepository.getLaunchNumber(RandomStringUtils.randomAlphabetic(5), RandomStringUtils.randomAlphabetic(5));
+		long number = launchMetaInfoRepository.getLaunchNumber(
+				RandomStringUtils.randomAlphabetic(5), RandomStringUtils.randomAlphabetic(5));
 		Assert.assertThat(number, is(1L));
 	}
 }

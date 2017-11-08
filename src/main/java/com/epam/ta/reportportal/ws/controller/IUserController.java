@@ -17,16 +17,9 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller;
-
-import java.security.Principal;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.springframework.data.domain.Pageable;
 
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.search.Filter;
@@ -34,9 +27,13 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.*;
+import org.springframework.data.domain.Pageable;
+
+import javax.servlet.http.HttpServletRequest;
+import java.security.Principal;
+import java.util.Map;
 
 /**
- * 
  * @author Aliaksandr_Kazantsau
  * @author Andrei_Ramanchuk
  */
@@ -44,7 +41,7 @@ public interface IUserController {
 
 	/**
 	 * Create new user from scratch (without invitation)
-	 * 
+	 *
 	 * @param createUserRQ
 	 * @param principal
 	 * @return instance of {@link CreateUserRS}
@@ -53,7 +50,7 @@ public interface IUserController {
 
 	/**
 	 * Create new User (invite user)
-	 * 
+	 *
 	 * @param createUserRQ
 	 * @param principal
 	 * @return instance of {@link OperationCompletionRS}
@@ -63,7 +60,7 @@ public interface IUserController {
 
 	/**
 	 * Create new User (confirm user invitation)
-	 * 
+	 *
 	 * @param request
 	 * @param uuid
 	 * @param principal
@@ -82,7 +79,7 @@ public interface IUserController {
 
 	/**
 	 * Edit User by admin
-	 * 
+	 *
 	 * @param login
 	 * @param editUserRQ
 	 * @param userRole
@@ -94,7 +91,7 @@ public interface IUserController {
 
 	/**
 	 * Delete User
-	 * 
+	 *
 	 * @param login
 	 * @param principal
 	 * @return instance of {@link OperationCompletionRS}
@@ -104,7 +101,7 @@ public interface IUserController {
 
 	/**
 	 * Get user by userId
-	 * 
+	 *
 	 * @param userId
 	 * @param principal
 	 * @return
@@ -121,7 +118,7 @@ public interface IUserController {
 
 	/**
 	 * Get all users list
-	 * 
+	 *
 	 * @param filter
 	 * @param principal
 	 * @return
@@ -130,7 +127,7 @@ public interface IUserController {
 
 	/**
 	 * Verify username or email existance
-	 * 
+	 *
 	 * @param username
 	 * @param email
 	 * @return
@@ -139,7 +136,7 @@ public interface IUserController {
 
 	/**
 	 * Start reset password functionality (send reset password email)
-	 * 
+	 *
 	 * @param rq
 	 * @param request
 	 */
@@ -147,7 +144,7 @@ public interface IUserController {
 
 	/**
 	 * Reset password
-	 * 
+	 *
 	 * @return
 	 */
 	OperationCompletionRS resetPassword(ResetPasswordRQ rq);
@@ -163,7 +160,7 @@ public interface IUserController {
 
 	/**
 	 * Verify restore password bid exist
-	 * 
+	 *
 	 * @param id
 	 * @return
 	 */

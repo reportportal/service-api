@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
@@ -40,9 +40,8 @@ import static java.util.Optional.ofNullable;
 
 /**
  * Response {@link UserResource} builder for controllers
- * 
+ *
  * @author Andrei_Ramanchuk
- * 
  */
 @Service
 @Scope("prototype")
@@ -52,7 +51,7 @@ public class UserResourceBuilder extends Builder<UserResource> {
 	private ProjectRepository projectRepository;
 
 	public UserResourceBuilder addUser(User user) {
-		if (null != user){
+		if (null != user) {
 			return addUser(user, projectRepository.findUserProjects(user.getLogin()));
 		}
 		return this;
@@ -73,7 +72,7 @@ public class UserResourceBuilder extends Builder<UserResource> {
 			resource.setIsLoaded(UserType.UPSA != user.getType());
 
 			if (null != projects) {
-				if (projects.size() > 1){
+				if (projects.size() > 1) {
 					projects.sort(PROJECT_NAME_ALPHABET);
 				}
 
@@ -102,7 +101,6 @@ public class UserResourceBuilder extends Builder<UserResource> {
 					resource.setDefaultProject(personalProject);
 				}
 			}
-
 
 		}
 		return this;

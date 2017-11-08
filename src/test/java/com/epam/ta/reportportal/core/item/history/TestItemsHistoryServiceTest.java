@@ -81,7 +81,6 @@ public class TestItemsHistoryServiceTest {
 		MockitoAnnotations.initMocks(this);
 	}
 
-
 	@Test
 	public void loadLaunchesNull() {
 		String launchId = "1";
@@ -116,7 +115,6 @@ public class TestItemsHistoryServiceTest {
 		verify(launchRepository, times(1)).findIdsByFilter(eq(filter), eq(start_time), eq(count));
 	}
 
-
 	@Test
 	public void buildHistoryElement() {
 		final int count = 3;
@@ -140,8 +138,8 @@ public class TestItemsHistoryServiceTest {
 		final int count = 3;
 		List<TestItem> items = fromItems(count);
 		List<String> ids = itemsIds(count);
-		when(launchRepository.find(items.stream().map(TestItem::getLaunchRef).collect(toList()))).thenReturn(Collections.singletonList(
-				launch()));
+		when(launchRepository.find(items.stream().map(TestItem::getLaunchRef).collect(toList()))).thenReturn(
+				Collections.singletonList(launch()));
 		historyService.validateItems(items, ids, PROJECT);
 	}
 
@@ -160,9 +158,8 @@ public class TestItemsHistoryServiceTest {
 		List<String> ids = itemsIds(count);
 		items.add(item);
 		ids.add(item.getId());
-		when(launchRepository.find(items.stream().map(TestItem::getLaunchRef).collect(toList()))).thenReturn(Lists.newArrayList(launch(),
-				anotherLaunch()
-		));
+		when(launchRepository.find(items.stream().map(TestItem::getLaunchRef).collect(toList()))).thenReturn(
+				Lists.newArrayList(launch(), anotherLaunch()));
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage("Unable to load test item history. Unable to find history for items");
 		historyService.validateItems(items, ids, PROJECT);

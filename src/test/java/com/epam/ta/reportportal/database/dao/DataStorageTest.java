@@ -17,24 +17,23 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.database.dao;
 
-import static org.hamcrest.Matchers.*;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-
+import com.epam.ta.reportportal.database.BinaryData;
+import com.epam.ta.reportportal.database.DataStorage;
+import com.epam.ta.reportportal.exception.DataStorageException;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.epam.ta.reportportal.database.BinaryData;
-import com.epam.ta.reportportal.database.DataStorage;
-import com.epam.ta.reportportal.exception.DataStorageException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import static org.hamcrest.Matchers.*;
 
 public class DataStorageTest extends BaseDaoContextTest {
 

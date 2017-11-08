@@ -71,11 +71,11 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 	public void run() {
 		try (Stream<Project> projects = projectRepository.streamAllIdsAndConfiguration()) {
 			projects.forEach(project -> {
-				Duration maxDuration = ofHours(InterruptionJobDelay
-                        .findByName(project.getConfiguration().getInterruptJobTime()).getPeriod());
+				Duration maxDuration = ofHours(
+						InterruptionJobDelay.findByName(project.getConfiguration().getInterruptJobTime()).getPeriod());
 				launchRepository.findModifiedLaterAgo(maxDuration, Status.IN_PROGRESS, project.getId()).forEach(launch -> {
 					if (!launchRepository.hasItems(launch, Status.IN_PROGRESS)) {
-                    /*
+					/*
                      * There are no test items for this launch. Just INTERRUPT
                      * this launch
                      */
@@ -113,8 +113,7 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 							/*
 							 * If not just INTERRUPT all found items and launch
 							 */
-								interruptItems(testItemRepository.findInStatusItems(Status.IN_PROGRESS.name(),
-                                        launch.getId()), launch);
+								interruptItems(testItemRepository.findInStatusItems(Status.IN_PROGRESS.name(), launch.getId()), launch);
 							}
 						}
 					}
@@ -151,12 +150,10 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 
 			if (!item.hasChilds()) {
 				Project project = projectRepository.findOne(launch.getProjectRef());
-				item = statisticsFacadeFactory
-						.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
+				item = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.updateExecutionStatistics(item);
 				if (null != item.getIssue()) {
-					item = statisticsFacadeFactory
-							.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
+					item = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 							.updateIssueStatistics(item);
 				}
 			}

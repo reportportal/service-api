@@ -21,25 +21,23 @@
 
 package com.epam.ta.reportportal.core.project.settings.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.project.settings.IGetProjectSettingsHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.ws.converter.ProjectSettingsResourceAssembler;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 
 /**
  * Initial implementation of
  * {@link com.epam.ta.reportportal.core.project.settings.IGetProjectSettingsHandler}
- * 
- * @author Andrei_Ramanchuk
  *
+ * @author Andrei_Ramanchuk
  */
 @Service
 public class GetProjectSettingsHandler implements IGetProjectSettingsHandler {

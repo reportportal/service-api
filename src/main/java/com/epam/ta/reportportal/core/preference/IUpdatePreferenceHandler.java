@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.core.preference;
 
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -26,7 +26,7 @@ import com.epam.ta.reportportal.ws.model.preference.UpdatePreferenceRQ;
 
 /**
  * Update user preference handler
- * 
+ *
  * @author Dzmitry_Kavalets
  */
 public interface IUpdatePreferenceHandler {

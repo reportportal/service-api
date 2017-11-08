@@ -28,16 +28,15 @@ import java.util.List;
 
 /**
  * Handler for delete test item operation
- * 
+ *
  * @author Andrei Varabyeu
  * @author Aliaksei Makayed
- * 
  */
 public interface DeleteTestItemHandler {
 
 	/**
 	 * Deletes {@link TestItem} instance
-	 * 
+	 *
 	 * @param itemId
 	 * @param project
 	 * @param username

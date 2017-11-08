@@ -35,8 +35,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class WidgetResourceAssembler extends ResourceAssembler<Widget, WidgetResource> {
 
-    @Override
-    public WidgetResource toResource(Widget widget) {
-        return WidgetConverter.TO_RESOURCE.apply(widget);
-    }
+	@Override
+	public WidgetResource toResource(Widget widget) {
+		return WidgetConverter.TO_RESOURCE.apply(widget);
+	}
 }

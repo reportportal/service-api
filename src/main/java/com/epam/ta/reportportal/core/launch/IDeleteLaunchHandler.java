@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.launch;
 
@@ -32,15 +32,15 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 public interface IDeleteLaunchHandler {
 
-    /**
-     * Delete {@link Launch} instance
-     *
-     * @param launchId    ID of launch
-     * @param projectName Project Name
-     * @param principal   Login
-     * @return Response Data
-     */
-    OperationCompletionRS deleteLaunch(String launchId, String projectName, String principal);
+	/**
+	 * Delete {@link Launch} instance
+	 *
+	 * @param launchId    ID of launch
+	 * @param projectName Project Name
+	 * @param principal   Login
+	 * @return Response Data
+	 */
+	OperationCompletionRS deleteLaunch(String launchId, String projectName, String principal);
 
-    OperationCompletionRS deleteLaunches(String[] ids, String projectName, String name);
+	OperationCompletionRS deleteLaunches(String[] ids, String projectName, String name);
 }

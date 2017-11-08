@@ -8,38 +8,38 @@ import java.util.Date;
 
 public class ParseResults {
 
-    private LocalDateTime startTime;
+	private LocalDateTime startTime;
 
-    private long duration;
+	private long duration;
 
-    ParseResults() {
-        startTime = LocalDateTime.now();
-    }
+	ParseResults() {
+		startTime = LocalDateTime.now();
+	}
 
-    ParseResults(LocalDateTime startTime, long duration) {
-        this.startTime = startTime;
-        this.duration = duration;
-    }
+	ParseResults(LocalDateTime startTime, long duration) {
+		this.startTime = startTime;
+		this.duration = duration;
+	}
 
-    public LocalDateTime getStartTime() {
-        return startTime;
-    }
+	public LocalDateTime getStartTime() {
+		return startTime;
+	}
 
-    public long getDuration() {
-        return duration;
-    }
+	public long getDuration() {
+		return duration;
+	}
 
-    void checkAndSetStartLaunchTime(LocalDateTime startSuiteTime) {
-        if (this.startTime.isAfter(startSuiteTime)) {
-            this.startTime = startSuiteTime;
-        }
-    }
+	void checkAndSetStartLaunchTime(LocalDateTime startSuiteTime) {
+		if (this.startTime.isAfter(startSuiteTime)) {
+			this.startTime = startSuiteTime;
+		}
+	}
 
-    void increaseDuration(long duration) {
-        this.duration += duration;
-    }
+	void increaseDuration(long duration) {
+		this.duration += duration;
+	}
 
-    Date getEndTime(){
-        return DateUtils.toDate(startTime.plus(duration, ChronoUnit.MILLIS));
-    }
+	Date getEndTime() {
+		return DateUtils.toDate(startTime.plus(duration, ChronoUnit.MILLIS));
+	}
 }

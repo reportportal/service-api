@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
@@ -48,9 +48,8 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_
  * Implementation of file storage controller. <br>
  * We do not use handlers there since there is no business logic and domain
  * model conversion
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @Controller
 public class FileStorageController implements IFileStorageController {
@@ -66,7 +65,7 @@ public class FileStorageController implements IFileStorageController {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.epam.ta.reportportal.ws.controller.IFileStorageController#getFile(String, String, HttpServletResponse, Principal)
 	 */
 	// TODO remove project from here
@@ -79,9 +78,9 @@ public class FileStorageController implements IFileStorageController {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.epam.ta.reportportal.ws.controller.IFileStorageController#getMyPhoto
-	 *      (java.security.Principal, javax.servlet.http.HttpServletResponse)
+	 * (java.security.Principal, javax.servlet.http.HttpServletResponse)
 	 */
 	@RequestMapping(value = "/data/photo", method = RequestMethod.GET)
 	@Override
@@ -92,9 +91,9 @@ public class FileStorageController implements IFileStorageController {
 
 	/**
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.epam.ta.reportportal.ws.controller.IFileStorageController#getMyPhoto
-	 *      (java.security.Principal, javax.servlet.http.HttpServletResponse)
+	 * (java.security.Principal, javax.servlet.http.HttpServletResponse)
 	 */
 	@RequestMapping(value = "/data/userphoto", method = RequestMethod.GET)
 	@Override
@@ -121,8 +120,8 @@ public class FileStorageController implements IFileStorageController {
 
 	/**
 	 * Copies provided {@link BinaryData} to Response
-	 * 
-	 * @param response Response
+	 *
+	 * @param response   Response
 	 * @param binaryData Binary data object
 	 */
 	private void toResponse(HttpServletResponse response, BinaryData binaryData) {

@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.externalsystem.handler;
 
@@ -31,13 +31,13 @@ import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
  */
 public interface IGetExternalSystemHandler {
 
-    /**
-     * Get external system resource
-     *
-     * @param projectName Project Name
-     * @param id          External System ID
-     * @return Found External System
-     */
-    ExternalSystemResource getExternalSystem(String projectName, String id);
+	/**
+	 * Get external system resource
+	 *
+	 * @param projectName Project Name
+	 * @param id          External System ID
+	 * @return Found External System
+	 */
+	ExternalSystemResource getExternalSystem(String projectName, String id);
 
 }

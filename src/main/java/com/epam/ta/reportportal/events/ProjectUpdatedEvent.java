@@ -30,7 +30,7 @@ import com.google.common.base.Strings;
  *
  * @author Andrei Varabyeu
  */
-public class ProjectUpdatedEvent extends AroundEvent<Project>{
+public class ProjectUpdatedEvent extends AroundEvent<Project> {
 
 	private final String updatedBy;
 	private final UpdateProjectRQ updateProjectRQ;

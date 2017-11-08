@@ -42,37 +42,35 @@ import org.springframework.core.env.Environment;
 @Configuration
 public class MigrationConfiguration {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MongodbConfiguration.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MongodbConfiguration.class);
 
+	@Autowired
+	private MongodbConfiguration.MongoProperties mongoProperties;
+	@Autowired
+	private Environment environment;
 
-    @Autowired
-    private MongodbConfiguration.MongoProperties mongoProperties;
-    @Autowired
-    private Environment environment;
+	@Bean
+	@Autowired
+	@Profile({ "!unittest" })
+	public Mongobee mongobee(MongoClient mongoClient) {
+		Mongobee runner = new Mongobee(mongoClient);
+		runner.setDbName(mongoProperties.getDatabase());
+		runner.setChangeLogsScanPackage("com.epam.ta.reportportal.migration");
+		runner.setSpringEnvironment(environment);
 
-    @Bean
-    @Autowired
-    @Profile({"!unittest"})
-    public Mongobee mongobee(MongoClient mongoClient) {
-        Mongobee runner = new Mongobee(mongoClient);
-        runner.setDbName(mongoProperties.getDatabase());
-        runner.setChangeLogsScanPackage("com.epam.ta.reportportal.migration");
-        runner.setSpringEnvironment(environment);
-
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                LOGGER.info("Making sure mongobee lock is removed...");
-                ChangeEntryDao dao = (ChangeEntryDao) Accessible.on(runner).field(Mongobee.class.getDeclaredField("dao")).getValue();
-                if (dao.isProccessLockHeld()) {
-                    LOGGER.warn("Mongobee lock is NOT removed. Removing...");
-                    dao.releaseProcessLock();
-                }
-                LOGGER.info("Mongobee lock has been removed");
-            } catch (Exception ignored) {
-                LOGGER.error("Cannot make sure mongobee lock has been removed", ignored);
-            }
-        }));
-        return runner;
-    }
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			try {
+				LOGGER.info("Making sure mongobee lock is removed...");
+				ChangeEntryDao dao = (ChangeEntryDao) Accessible.on(runner).field(Mongobee.class.getDeclaredField("dao")).getValue();
+				if (dao.isProccessLockHeld()) {
+					LOGGER.warn("Mongobee lock is NOT removed. Removing...");
+					dao.releaseProcessLock();
+				}
+				LOGGER.info("Mongobee lock has been removed");
+			} catch (Exception ignored) {
+				LOGGER.error("Cannot make sure mongobee lock has been removed", ignored);
+			}
+		}));
+		return runner;
+	}
 }

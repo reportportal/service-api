@@ -17,11 +17,9 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller;
-
-import java.security.Principal;
 
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -29,17 +27,19 @@ import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
 
+import java.security.Principal;
+
 /**
  * Project Settings controller provide functionality for manipulations of
  * specific project attributes like custom issue types, etc.
- * 
+ *
  * @author Andrei_Ramanchuk
  */
 public interface IProjectSettingsController {
 
 	/**
 	 * Create issue sub type for specified project
-	 * 
+	 *
 	 * @param projectName
 	 * @param request
 	 * @param principal
@@ -49,7 +49,7 @@ public interface IProjectSettingsController {
 
 	/**
 	 * Update specified issue sub-type for specified project
-	 * 
+	 *
 	 * @param projectName
 	 * @param request
 	 * @param principal
@@ -59,7 +59,7 @@ public interface IProjectSettingsController {
 
 	/**
 	 * Remove specified issue sub-type from specified project
-	 * 
+	 *
 	 * @param projectName
 	 * @param id
 	 * @param principal
@@ -69,7 +69,7 @@ public interface IProjectSettingsController {
 
 	/**
 	 * Get settings of specified project
-	 * 
+	 *
 	 * @param projectName
 	 * @param principal
 	 * @return ProjectSettingsResource

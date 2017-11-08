@@ -32,20 +32,20 @@ import java.util.Map;
 
 @Configuration
 public class MergeStrategyConfig {
-    @Autowired
-    private TestItemRepository testItemRepository;
+	@Autowired
+	private TestItemRepository testItemRepository;
 
-    @Bean
-    public Map<MergeStrategyType, MergeStrategy> mapping() {
-        Map<MergeStrategyType, MergeStrategy> mapping = new HashMap<>();
-        mapping.put(MergeStrategyType.TEST, new TestMergeStrategy(testItemRepository));
-        mapping.put(MergeStrategyType.SUITE, new SuiteMergeStrategy(testItemRepository));
-        mapping.put(MergeStrategyType.DEEP, new DeepMergeStrategy(testItemRepository));
-        return mapping;
-    }
+	@Bean
+	public Map<MergeStrategyType, MergeStrategy> mapping() {
+		Map<MergeStrategyType, MergeStrategy> mapping = new HashMap<>();
+		mapping.put(MergeStrategyType.TEST, new TestMergeStrategy(testItemRepository));
+		mapping.put(MergeStrategyType.SUITE, new SuiteMergeStrategy(testItemRepository));
+		mapping.put(MergeStrategyType.DEEP, new DeepMergeStrategy(testItemRepository));
+		return mapping;
+	}
 
-    @Bean
-    public MergeStrategyFactory factory() {
-        return new MergeStrategyFactory(mapping());
-    }
+	@Bean
+	public MergeStrategyFactory factory() {
+		return new MergeStrategyFactory(mapping());
+	}
 }

@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.filter.impl;
 
@@ -45,9 +45,8 @@ import java.util.Map;
 
 /**
  * Default implementation of {@link IGetUserFilterHandler}
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 
 @Service
@@ -105,7 +104,7 @@ public class GetUserFilterHandler implements IGetUserFilterHandler {
 	 * Convert {@code List<UserFilter> to Map<String, SharedEntity>}. Resulted
 	 * map:<br>
 	 * key - userFilter's id value - shared entity
-	 * 
+	 *
 	 * @param filters
 	 * @return Map<String, SharedEntity>
 	 */

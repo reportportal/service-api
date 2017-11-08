@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.database.search.Filter;
@@ -58,15 +58,15 @@ public interface IActivityController {
 	 */
 	List<ActivityResource> getTestItemActivities(String projectName, String itemId, Filter filter, Pageable pageable, Principal principal);
 
-    /**
-     * Get activities for specified project with filter
-     * and paging
-     *
-     * @param projectName
-     * @param filter
-     * @param pageable
-     * @return
-     */
+	/**
+	 * Get activities for specified project with filter
+	 * and paging
+	 *
+	 * @param projectName
+	 * @param filter
+	 * @param pageable
+	 * @return
+	 */
 	Page<ActivityResource> getActivities(String projectName, Filter filter, Pageable pageable);
 
 }

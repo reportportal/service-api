@@ -39,7 +39,6 @@ import java.util.List;
  * before post operation in the {@link com.epam.ta.reportportal.ws.controller.IWidgetController}
  *
  * @author Aliaksei_Makayed
- *
  */
 public class WidgetRQCustomValidator implements SmartValidator {
 

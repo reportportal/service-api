@@ -17,13 +17,9 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.resolver;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +27,15 @@ import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Initializing bean for wrapping {@link HandlerMethodReturnValueHandler} with
  * JSON view decorators
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class JsonViewSupportFactoryBean implements InitializingBean {
 

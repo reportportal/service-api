@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.core.widget;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -31,15 +31,14 @@ import java.util.Map;
 
 /**
  * Get Widget handler
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 public interface IGetWidgetHandler {
 
 	/**
 	 * Get widget by id
-	 * 
+	 *
 	 * @param widgetId
 	 * @param userName
 	 * @param project
@@ -50,16 +49,16 @@ public interface IGetWidgetHandler {
 
 	/**
 	 * Get names of shared widgets for specified used(only shared not owned)
-	 * 
+	 *
 	 * @param userName
 	 * @param projectName
 	 * @return
 	 */
 	Map<String, SharedEntity> getSharedWidgetNames(String userName, String projectName);
-	
+
 	/**
 	 * Get list of shared widget for specified project
-	 * 
+	 *
 	 * @param userName
 	 * @param projectName
 	 * @return
@@ -68,7 +67,7 @@ public interface IGetWidgetHandler {
 
 	/**
 	 * Get list of widget names for specified user
-	 * 
+	 *
 	 * @param userName
 	 * @param projectName
 	 * @return

@@ -33,27 +33,27 @@ import java.util.concurrent.Callable;
 
 public class XunitParseJob implements Callable<ParseResults> {
 
-    @Autowired
-    private Provider<XunitImportHandler> junitImportHandlerProvider;
+	@Autowired
+	private Provider<XunitImportHandler> junitImportHandlerProvider;
 
-    private XunitImportHandler handler;
+	private XunitImportHandler handler;
 
-    private InputStream xmlInputStream;
+	private InputStream xmlInputStream;
 
-    @Override
-    public ParseResults call() {
-        try {
-            SAXParserFactory.newInstance().newSAXParser().parse(xmlInputStream, handler);
-        } catch (SAXException | IOException | ParserConfigurationException e) {
-            throw new ReportPortalException("Xml parse job problem.", e);
-        }
-        return new ParseResults(handler.getStartSuiteTime(), handler.getCommonDuration());
-    }
+	@Override
+	public ParseResults call() {
+		try {
+			SAXParserFactory.newInstance().newSAXParser().parse(xmlInputStream, handler);
+		} catch (SAXException | IOException | ParserConfigurationException e) {
+			throw new ReportPortalException("Xml parse job problem.", e);
+		}
+		return new ParseResults(handler.getStartSuiteTime(), handler.getCommonDuration());
+	}
 
-    XunitParseJob withParameters(String projectId, String launchId, String user, InputStream xmlInputStream) {
-        this.xmlInputStream = xmlInputStream;
-        this.handler = junitImportHandlerProvider.get().withParameters(projectId, launchId, user);
-        return this;
-    }
+	XunitParseJob withParameters(String projectId, String launchId, String user, InputStream xmlInputStream) {
+		this.xmlInputStream = xmlInputStream;
+		this.handler = junitImportHandlerProvider.get().withParameters(projectId, launchId, user);
+		return this;
+	}
 
 }

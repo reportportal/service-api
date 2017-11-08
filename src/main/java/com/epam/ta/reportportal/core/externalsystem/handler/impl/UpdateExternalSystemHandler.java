@@ -95,18 +95,21 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 		}
 		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(exist.getExternalSystemType().name());
 
-		if (null != request.getProject())
+		if (null != request.getProject()) {
 			exist.setProject(request.getProject());
+		}
 		/* Hard referenced project update */
 		exist.setProjectRef(projectName);
-		if (null != request.getFields())
+		if (null != request.getFields()) {
 			exist.setFields(request.getFields());
+		}
 
 		/* Check input params for avoid external system duplication */
-		if (!sysUrl.equalsIgnoreCase(exist.getUrl()) || !sysProject.equalsIgnoreCase(exist.getProject())
-				|| !rpProject.equalsIgnoreCase(exist.getProjectRef())) {
+		if (!sysUrl.equalsIgnoreCase(exist.getUrl()) || !sysProject.equalsIgnoreCase(exist.getProject()) || !rpProject.equalsIgnoreCase(
+				exist.getProjectRef())) {
 			ExternalSystem duplicate = externalSystemRepository.findByUrlAndProject(exist.getUrl(), exist.getProject(),
-					exist.getProjectRef());
+					exist.getProjectRef()
+			);
 			expect(duplicate, isNull()).verify(EXTERNAL_SYSTEM_ALREADY_EXISTS, request.getUrl() + " & " + request.getProject());
 		}
 
@@ -117,52 +120,53 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 			exist.setExternalSystemAuth(auth);
 			// Reset ext sys fields handler
 			switch (auth) {
-			case BASIC:
-				if ((null != request.getUsername()) && (null != request.getPassword())) {
-					exist = resetNTLMFields(exist);
-					exist = resetOAuthFields(exist);
-					exist.setUsername(request.getUsername());
-					String encryptedPass = simpleEncryptor.encrypt(request.getPassword());
-					exist.setPassword(encryptedPass);
-				}
-				break;
-			case NTLM:
-				if ((null != request.getUsername()) && (null != request.getPassword()) && (null != request.getDomain())) {
-					exist = resetBasicFields(exist);
-					exist = resetOAuthFields(exist);
-					exist.setUsername(request.getUsername());
-					String encryptedPass = simpleEncryptor.encrypt(request.getPassword());
-					exist.setPassword(encryptedPass);
-					exist.setDomain(request.getDomain());
-				}
-				break;
-			case OAUTH:
-				if (null != request.getAccessKey()) {
-					exist = resetBasicFields(exist);
-					exist = resetNTLMFields(exist);
-					exist.setAccessKey(request.getAccessKey());
-				}
-				break;
-			case APIKEY:
-				if (null != request.getAccessKey()) {
-					exist = resetBasicFields(exist);
-					exist = resetNTLMFields(exist);
-					exist.setAccessKey(request.getAccessKey());
-				}
-				break;
-			default:
-				//do nothing
+				case BASIC:
+					if ((null != request.getUsername()) && (null != request.getPassword())) {
+						exist = resetNTLMFields(exist);
+						exist = resetOAuthFields(exist);
+						exist.setUsername(request.getUsername());
+						String encryptedPass = simpleEncryptor.encrypt(request.getPassword());
+						exist.setPassword(encryptedPass);
+					}
+					break;
+				case NTLM:
+					if ((null != request.getUsername()) && (null != request.getPassword()) && (null != request.getDomain())) {
+						exist = resetBasicFields(exist);
+						exist = resetOAuthFields(exist);
+						exist.setUsername(request.getUsername());
+						String encryptedPass = simpleEncryptor.encrypt(request.getPassword());
+						exist.setPassword(encryptedPass);
+						exist.setDomain(request.getDomain());
+					}
+					break;
+				case OAUTH:
+					if (null != request.getAccessKey()) {
+						exist = resetBasicFields(exist);
+						exist = resetNTLMFields(exist);
+						exist.setAccessKey(request.getAccessKey());
+					}
+					break;
+				case APIKEY:
+					if (null != request.getAccessKey()) {
+						exist = resetBasicFields(exist);
+						exist = resetNTLMFields(exist);
+						exist.setAccessKey(request.getAccessKey());
+					}
+					break;
+				default:
+					//do nothing
 			}
 
 			if (auth.requiresPassword()) {
 				String decrypted = exist.getPassword();
 				exist.setPassword(simpleEncryptor.decrypt(exist.getPassword()));
 				expect(externalSystemStrategy.connectionTest(exist), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
-						projectName);
+						projectName
+				);
 				exist.setPassword(decrypted);
 			} else {
-				expect(externalSystemStrategy.connectionTest(exist), equalTo(true))
-						.verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, projectName);
+				expect(externalSystemStrategy.connectionTest(exist), equalTo(true)).verify(
+						UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, projectName);
 			}
 		}
 
@@ -201,7 +205,8 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 
 		}
 		expect(externalSystemStrategy.connectionTest(details), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
-				system.getProjectRef());
+				system.getProjectRef()
+		);
 
 		return new OperationCompletionRS("Connection to ExternalSystem with ID = '" + id + "' is successfully performed.");
 	}

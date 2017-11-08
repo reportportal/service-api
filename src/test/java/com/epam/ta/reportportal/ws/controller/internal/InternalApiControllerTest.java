@@ -30,14 +30,15 @@ public class InternalApiControllerTest extends BaseMvcTest {
 	@Test
 	public void checkNotAllowedForAdminRole() throws Exception {
 		SecurityContextHolder.getContext().setAuthentication(AuthConstants.ADMINISTRATOR);
-		this.mvcMock
-				.perform(get(INTERNAL_API_BASE_URL + "/external-system/54958aec4e84859227150765").principal(AuthConstants.ADMINISTRATOR))
+		this.mvcMock.perform(
+				get(INTERNAL_API_BASE_URL + "/external-system/54958aec4e84859227150765").principal(AuthConstants.ADMINISTRATOR))
 				.andExpect(status().isForbidden());
 	}
 
 	protected Authentication authentication() {
 		return new UsernamePasswordAuthenticationToken("any", null,
-				ImmutableList.<org.springframework.security.core.GrantedAuthority>builder()
-						.add(new SimpleGrantedAuthority("ROLE_COMPONENT")).build());
+				ImmutableList.<org.springframework.security.core.GrantedAuthority>builder().add(
+						new SimpleGrantedAuthority("ROLE_COMPONENT")).build()
+		);
 	}
 }

@@ -17,20 +17,11 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.database.dao;
 
-import java.util.List;
-
 import com.epam.ta.BaseTest;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
-
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.fixture.SpringFixture;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
@@ -39,10 +30,18 @@ import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.collect.Sets;
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
+
+import java.util.List;
 
 @SpringFixture("unitTestsProjectTriggers")
-public class LaunchRepositoryTest  extends BaseTest {
-	
+public class LaunchRepositoryTest extends BaseTest {
+
 	public static final String LAUNCH_ID = "51824cc1553de743b3e5aa2c";
 
 	@Rule
@@ -64,7 +63,7 @@ public class LaunchRepositoryTest  extends BaseTest {
 		Assert.assertNotNull(launch.getStatus());
 		Assert.assertNull(launch.getTags());
 	}
-	
+
 	@Test
 	public void testFindIdsByFilter() {
 		FilterCondition nameCondition = new FilterCondition(Condition.CONTAINS, false, "Demo", "name");
@@ -94,8 +93,6 @@ public class LaunchRepositoryTest  extends BaseTest {
 			Assert.assertEquals(Mode.DEFAULT, launch.getMode());
 		}
 	}
-	
-
 
 	@Test
 	public void testFindByUserRef() {

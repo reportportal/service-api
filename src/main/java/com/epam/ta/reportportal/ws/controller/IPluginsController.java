@@ -17,32 +17,29 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller;
-
-import java.security.Principal;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.springframework.data.domain.Pageable;
 
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.SystemInfoRS;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import org.springframework.data.domain.Pageable;
+
+import javax.servlet.http.HttpServletRequest;
+import java.security.Principal;
 
 /**
  * External ReportPortal plug-ins controller interface.
- * 
- * @author Andrei_Ramanchuk
  *
+ * @author Andrei_Ramanchuk
  */
 public interface IPluginsController {
 
 	/**
 	 * Get Launch resource by specified launch Name (for Jenkins)
-	 * 
+	 *
 	 * @param projectName
 	 * @param request
 	 * @param principal
@@ -52,7 +49,7 @@ public interface IPluginsController {
 
 	/**
 	 * Heartbeat of ReportPortal server status
-	 * 
+	 *
 	 * @param request
 	 * @param principal
 	 * @return
@@ -61,7 +58,7 @@ public interface IPluginsController {
 
 	/**
 	 * Get server system information (for dashing)
-	 * 
+	 *
 	 * @return
 	 */
 	SystemInfoRS getSystemStatus();

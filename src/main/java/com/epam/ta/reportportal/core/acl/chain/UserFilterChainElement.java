@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.acl.chain;
 
@@ -38,32 +38,31 @@ import java.util.stream.Collectors;
 @Service("UserFilterChainElement")
 public class UserFilterChainElement extends ChainElement {
 
-    @Autowired
-    private UserFilterRepository userFilterRepository;
+	@Autowired
+	private UserFilterRepository userFilterRepository;
 
-    public UserFilterChainElement() {
-        super(null);
-    }
+	public UserFilterChainElement() {
+		super(null);
+	}
 
-    public UserFilterChainElement(IChainElement nextChainElement) {
-        super(nextChainElement);
-    }
+	public UserFilterChainElement(IChainElement nextChainElement) {
+		super(nextChainElement);
+	}
 
-    @Override
-    public boolean isCanHandle(List<? extends Shareable> elementsToProcess) {
-        return UserFilter.class.equals(elementsToProcess.get(0).getClass());
-    }
+	@Override
+	public boolean isCanHandle(List<? extends Shareable> elementsToProcess) {
+		return UserFilter.class.equals(elementsToProcess.get(0).getClass());
+	}
 
-    @Override
-    public List<? extends Shareable> getNextElements(List<? extends Shareable> elementsToProcess, String owner) {
-        //In current implementation user filter it's last element on chain so return null
-        return null;
-    }
+	@Override
+	public List<? extends Shareable> getNextElements(List<? extends Shareable> elementsToProcess, String owner) {
+		//In current implementation user filter it's last element on chain so return null
+		return null;
+	}
 
-    @Override
-    public void saveElements(List<? extends Shareable> elementsToProcess) {
-        userFilterRepository.save(elementsToProcess.stream()
-                .map(i -> (UserFilter) i).collect(Collectors.toList()));
-    }
+	@Override
+	public void saveElements(List<? extends Shareable> elementsToProcess) {
+		userFilterRepository.save(elementsToProcess.stream().map(i -> (UserFilter) i).collect(Collectors.toList()));
+	}
 
 }

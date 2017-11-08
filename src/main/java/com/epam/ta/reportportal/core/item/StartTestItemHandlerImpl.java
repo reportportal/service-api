@@ -201,9 +201,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		);
 
 		expect(rq, Preconditions.startSameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(),
-				launch.getStartTime(),
-				launch.getId()
+				rq.getStartTime(), launch.getStartTime(), launch.getId()
 		);
 
 	}
@@ -220,9 +218,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	private void validate(StartTestItemRQ rq, TestItem parent) {
 		expect(rq, Preconditions.startSameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(),
-				parent.getStartTime(),
-				parent.getId()
+				rq.getStartTime(), parent.getStartTime(), parent.getId()
 		);
 	}
 }

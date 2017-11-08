@@ -21,25 +21,23 @@
 
 package com.epam.ta.reportportal.database.triggers;
 
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Rule;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.epam.ta.BaseTest;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.fixture.SpringFixture;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for TestItem triggers
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @SpringFixture("triggerTests")
 public class TestItemTriggerTest extends BaseTest {

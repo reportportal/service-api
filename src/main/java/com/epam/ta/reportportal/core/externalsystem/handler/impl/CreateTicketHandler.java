@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.externalsystem.handler.impl;
 
@@ -45,7 +45,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Default implementation of {@link ICreateTicketHandler}
- * 
+ *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
  */
@@ -77,24 +77,23 @@ public class CreateTicketHandler implements ICreateTicketHandler {
 		expect(ids, notNull()).verify(PROJECT_NOT_CONFIGURED, projectName);
 		ExternalSystem system = externalSystemRepository.findOne(systemId);
 		expect(system, notNull()).verify(EXTERNAL_SYSTEM_NOT_FOUND, systemId);
-		expect(system.getFields(), notNull()).verify(BAD_REQUEST_ERROR,
-				"There aren't any submitted BTS fields!");
+		expect(system.getFields(), notNull()).verify(BAD_REQUEST_ERROR, "There aren't any submitted BTS fields!");
 		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name());
 		Ticket ticket = externalSystemStrategy.submitTicket(postTicketRQ, system);
-		eventPublisher.publishEvent(new TicketPostedEvent(ticket, postTicketRQ.getTestItemId(), username,
-				projectName, testItem.getName()));
+		eventPublisher.publishEvent(new TicketPostedEvent(ticket, postTicketRQ.getTestItemId(), username, projectName, testItem.getName()));
 		return ticket;
 	}
 
 	/**
 	 * Additional validations to {@link PostTicketRQ}.
-	 * 
+	 *
 	 * @param postTicketRQ
 	 */
 	private void validatePostTicketRQ(PostTicketRQ postTicketRQ) {
 		if (postTicketRQ.getIsIncludeLogs() || postTicketRQ.getIsIncludeScreenshots()) {
 			expect(postTicketRQ.getBackLinks(), notNull()).verify(UNABLE_POST_TICKET,
-					"Test item id should be specified, when logs required in ticket description.");
+					"Test item id should be specified, when logs required in ticket description."
+			);
 		}
 	}
 }

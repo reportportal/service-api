@@ -17,13 +17,14 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.auth.event;
 
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-
+import com.epam.ta.reportportal.auth.AuthConstants;
+import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.ws.BaseMvcTest;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -32,17 +33,15 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
-import com.epam.ta.reportportal.auth.AuthConstants;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
+
 //import com.epam.ta.reportportal.commons.auth.event.UiUserSignedInEvent;
-import com.epam.ta.reportportal.database.dao.UserRepository;
-import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.ws.BaseMvcTest;
 
 /**
  * Checks UiUserSignedIn event
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @Ignore
 public class UiUserSignedInEventTest extends BaseMvcTest {

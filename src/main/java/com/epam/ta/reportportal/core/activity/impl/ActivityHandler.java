@@ -73,8 +73,10 @@ public class ActivityHandler implements IActivityHandler {
 	@Override
 	public List<ActivityResource> getActivitiesHistory(String projectName, Filter filter, Pageable pageable) {
 		expect(projectRepository.exists(projectName), equalTo(true)).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
-		return activityRepository.findActivitiesByProjectId(projectName, filter, pageable).stream()
-				.map(activityResourceAssembler::toResource).collect(Collectors.toList());
+		return activityRepository.findActivitiesByProjectId(projectName, filter, pageable)
+				.stream()
+				.map(activityResourceAssembler::toResource)
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -87,9 +89,10 @@ public class ActivityHandler implements IActivityHandler {
 	}
 
 	@Override
-	public com.epam.ta.reportportal.ws.model.Page<ActivityResource> getItemActivities(String projectName, Filter filter, Pageable pageable) {
+	public com.epam.ta.reportportal.ws.model.Page<ActivityResource> getItemActivities(String projectName, Filter filter,
+			Pageable pageable) {
 		expect(projectRepository.exists(projectName), equalTo(true)).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
-        filter.addCondition(new FilterCondition(EQUALS, false, projectName, PROJECT_REF));
+		filter.addCondition(new FilterCondition(EQUALS, false, projectName, PROJECT_REF));
 		Page<Activity> page = activityRepository.findByFilter(filter, pageable);
 		return activityResourceAssembler.toPagedResources(page);
 	}
@@ -100,7 +103,8 @@ public class ActivityHandler implements IActivityHandler {
 		expect(testItem, notNull()).verify(ErrorType.TEST_ITEM_NOT_FOUND, itemId);
 		String projectRef = launchRepository.findOne(testItem.getLaunchRef()).getProjectRef();
 		expect(projectName, equalTo(projectRef)).verify(ErrorType.TEST_ITEM_NOT_FOUND, itemId);
-		return activityRepository.findActivitiesByTestItemId(itemId, filter, pageable).stream()
+		return activityRepository.findActivitiesByTestItemId(itemId, filter, pageable)
+				.stream()
 				.map(activityResourceAssembler::toResource)
 				.collect(Collectors.toList());
 	}

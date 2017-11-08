@@ -17,16 +17,16 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.auth.permissions;
-
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * * Specifies list of permission names to be assigned to some
@@ -35,9 +35,8 @@ import java.lang.annotation.Target;
  * {@link com.epam.ta.reportportal.auth.permissions.LookupPermission} annotation
  * to be assigned to some permission name. Without this permission will be
  * ignored by {@link org.springframework.security.access.PermissionEvaluator}
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @Target(TYPE)
 @Retention(RUNTIME)

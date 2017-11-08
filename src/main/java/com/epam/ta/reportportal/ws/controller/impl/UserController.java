@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
@@ -62,10 +62,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 /**
  * Controller implementation for operations with users
- * 
+ *
  * @author Andrei Varabyeu
  * @author Andrei_Ramanchuk
- * 
  */
 @Controller
 @RequestMapping("/user")
@@ -90,7 +89,11 @@ public class UserController implements IUserController {
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Create specified user", notes = "Allowable only for users with administrator role")
 	public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq, Principal principal, HttpServletRequest request) {
-		String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request)).replacePath(null).replaceQuery(null).build().toUriString();
+		String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
+				.replacePath(null)
+				.replaceQuery(null)
+				.build()
+				.toUriString();
 		return createUserMessageHandler.createUserByAdmin(rq, principal.getName(), basicURL);
 	}
 
@@ -105,7 +108,11 @@ public class UserController implements IUserController {
 		/*
 		 * Use Uri components since they are aware of x-forwarded-host headers
 		 */
-		URI rqUrl = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request)).replacePath(null).replaceQuery(null).build().toUri();
+		URI rqUrl = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
+				.replacePath(null)
+				.replaceQuery(null)
+				.build()
+				.toUri();
 		return createUserMessageHandler.createUserBid(createUserRQ, principal, rqUrl.toASCIIString());
 	}
 
@@ -185,7 +192,6 @@ public class UserController implements IUserController {
 		return getUserHandler.validateInfo(username, email);
 	}
 
-
 	@Override
 	@RequestMapping(value = "/password/restore", method = POST)
 	@ResponseStatus(OK)
@@ -195,8 +201,11 @@ public class UserController implements IUserController {
 		/*
 		 * Use Uri components since they are aware of x-forwarded-host headers
 		 */
-		String baseUrl = UriComponentsBuilder
-				.fromHttpRequest(new ServletServerHttpRequest(request)).replacePath(null).replaceQuery(null).build().toUriString();
+		String baseUrl = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
+				.replacePath(null)
+				.replaceQuery(null)
+				.build()
+				.toUriString();
 		return createUserMessageHandler.createRestorePasswordBid(rq, baseUrl);
 	}
 

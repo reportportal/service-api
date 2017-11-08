@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
@@ -53,8 +53,10 @@ public class TestItemResourceBuilderTest extends BaseTest {
 	@Test
 	@Ignore
 	public void testBeanScope() {
-		Assert.assertTrue("User filter resource builder should be prototype bean because it's not stateless",
-				applicationContext.isPrototype(applicationContext.getBeanNamesForType(TestItemResourceAssembler.class)[0]));
+		Assert.assertTrue(
+				"User filter resource builder should be prototype bean because it's not stateless",
+				applicationContext.isPrototype(applicationContext.getBeanNamesForType(TestItemResourceAssembler.class)[0])
+		);
 	}
 
 	private void validate(TestItemResource actualValue, TestItemResource expectedValue) {

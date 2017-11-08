@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.job;
 
@@ -42,15 +42,12 @@ import org.springframework.data.domain.PageRequest;
 
 import java.util.Calendar;
 
-import static org.hamcrest.Matchers.emptyIterable;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.*;
 
 /**
  * Tests for {@link ExpireNotUsedAccountsJob}
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @SpringFixture("authTests")
 public class ExpireNotUsedAccountsJobTest extends BaseTest {

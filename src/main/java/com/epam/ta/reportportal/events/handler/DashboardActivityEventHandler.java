@@ -48,64 +48,58 @@ import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
 @Component
 public class DashboardActivityEventHandler {
 
-    @Autowired
-    private ActivityRepository activityRepository;
+	@Autowired
+	private ActivityRepository activityRepository;
 
-    @EventListener
-    public void onDashboardUpdate(DashboardUpdatedEvent event) {
-        Dashboard dashboard = event.getDashboard();
-        UpdateDashboardRQ updateRQ = event.getUpdateRQ();
-        List<Activity.FieldValues> history = Lists.newArrayList();
-        if (dashboard != null) {
-            processShare(history, dashboard, updateRQ.getShare());
-            processName(history, dashboard.getName(), updateRQ.getName());
-            processDescription(history, dashboard.getDescription(), updateRQ.getDescription());
-            if (!history.isEmpty()) {
-                Activity activityLog = new ActivityBuilder()
-                        .addActionType(UPDATE_DASHBOARD)
-                        .addObjectType(DASHBOARD)
-                        .addObjectName(dashboard.getName())
-                        .addProjectRef(dashboard.getProjectName())
-                        .addLoggedObjectRef(dashboard.getId())
-                        .addUserRef(event.getUpdatedBy())
-                        .addHistory(history)
-                        .get();
-                activityRepository.save(activityLog);
-            }
-        }
-    }
+	@EventListener
+	public void onDashboardUpdate(DashboardUpdatedEvent event) {
+		Dashboard dashboard = event.getDashboard();
+		UpdateDashboardRQ updateRQ = event.getUpdateRQ();
+		List<Activity.FieldValues> history = Lists.newArrayList();
+		if (dashboard != null) {
+			processShare(history, dashboard, updateRQ.getShare());
+			processName(history, dashboard.getName(), updateRQ.getName());
+			processDescription(history, dashboard.getDescription(), updateRQ.getDescription());
+			if (!history.isEmpty()) {
+				Activity activityLog = new ActivityBuilder().addActionType(UPDATE_DASHBOARD)
+						.addObjectType(DASHBOARD)
+						.addObjectName(dashboard.getName())
+						.addProjectRef(dashboard.getProjectName())
+						.addLoggedObjectRef(dashboard.getId())
+						.addUserRef(event.getUpdatedBy())
+						.addHistory(history)
+						.get();
+				activityRepository.save(activityLog);
+			}
+		}
+	}
 
-    @EventListener
-    public void onDashboardCreate(DashboardCreatedEvent event) {
-        CreateDashboardRQ createDashboardRQ = event.getCreateDashboardRQ();
-        Activity activityLog = new ActivityBuilder()
-                .addActionType(CREATE_DASHBOARD)
-                .addObjectType(DASHBOARD)
-                .addObjectName(createDashboardRQ.getName())
-                .addProjectRef(event.getProjectRef())
-                .addUserRef(event.getCreatedBy())
-                .addLoggedObjectRef(event.getDashboardId())
-                .addHistory(Collections.singletonList(
-                        createHistoryField(NAME, EMPTY_FIELD, createDashboardRQ.getName())))
-                .get();
-        activityRepository.save(activityLog);
-    }
+	@EventListener
+	public void onDashboardCreate(DashboardCreatedEvent event) {
+		CreateDashboardRQ createDashboardRQ = event.getCreateDashboardRQ();
+		Activity activityLog = new ActivityBuilder().addActionType(CREATE_DASHBOARD)
+				.addObjectType(DASHBOARD)
+				.addObjectName(createDashboardRQ.getName())
+				.addProjectRef(event.getProjectRef())
+				.addUserRef(event.getCreatedBy())
+				.addLoggedObjectRef(event.getDashboardId())
+				.addHistory(Collections.singletonList(createHistoryField(NAME, EMPTY_FIELD, createDashboardRQ.getName())))
+				.get();
+		activityRepository.save(activityLog);
+	}
 
-    @EventListener
-    public void onDashboardDelete(DashboardDeletedEvent event) {
-        Dashboard dashboard = event.getBefore();
-        Activity activityLog = new ActivityBuilder()
-                .addActionType(DELETE_DASHBOARD)
-                .addObjectType(DASHBOARD)
-                .addObjectName(dashboard.getName())
-                .addProjectRef(dashboard.getProjectName())
-                .addUserRef(event.getRemovedBy())
-                .addHistory(Collections.singletonList(
-                        createHistoryField(NAME, dashboard.getName(), EMPTY_FIELD)
-                ))
-                .get();
-        activityRepository.save(activityLog);
-    }
+	@EventListener
+	public void onDashboardDelete(DashboardDeletedEvent event) {
+		Dashboard dashboard = event.getBefore();
+		Activity activityLog = new ActivityBuilder().addActionType(DELETE_DASHBOARD)
+				.addObjectType(DASHBOARD)
+				.addObjectName(dashboard.getName())
+				.addProjectRef(dashboard.getProjectName())
+				.addUserRef(event.getRemovedBy())
+				.addHistory(Collections.singletonList(createHistoryField(NAME, dashboard.getName(), EMPTY_FIELD)))
+				.get();
+		activityRepository.save(activityLog);
+	}
 
 }
 

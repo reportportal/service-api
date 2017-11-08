@@ -20,21 +20,21 @@
  */
 package com.epam.ta.reportportal.core.project;
 
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
 import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.core.project.settings.impl.DeleteProjectSettingsHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.ws.model.ErrorType.ISSUE_TYPE_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DeleteProjectSettingsHandlerTest {
 
@@ -64,12 +64,12 @@ public class DeleteProjectSettingsHandlerTest {
 		deleteProjectSettingsHandler.deleteProjectIssueSubType(notExists, "", AuthConstants.TEST_USER);
 	}
 
-//	@Test
-//	public void settingsNotExists() {
-//		thrown.expect(ReportPortalException.class);
-//		thrown.expectMessage(formattedSupplier(PROJECT_SETTINGS_NOT_FOUND.getDescription(), withoutSettings).get());
-//		deleteProjectSettingsHandler.deleteProjectIssueSubType(withoutSettings, "", AuthConstants.TEST_USER);
-//	}
+	//	@Test
+	//	public void settingsNotExists() {
+	//		thrown.expect(ReportPortalException.class);
+	//		thrown.expectMessage(formattedSupplier(PROJECT_SETTINGS_NOT_FOUND.getDescription(), withoutSettings).get());
+	//		deleteProjectSettingsHandler.deleteProjectIssueSubType(withoutSettings, "", AuthConstants.TEST_USER);
+	//	}
 
 	@Test
 	public void subTypeNotExists() {

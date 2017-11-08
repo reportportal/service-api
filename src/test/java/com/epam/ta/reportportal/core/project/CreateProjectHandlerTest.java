@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.core.project;
 
 import com.epam.ta.BaseTest;
@@ -35,7 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Dzmitry_Kavalets
  */
-public class CreateProjectHandlerTest extends BaseTest{
+public class CreateProjectHandlerTest extends BaseTest {
 
 	@Autowired
 	private ICreateProjectHandler createProjectHandler;

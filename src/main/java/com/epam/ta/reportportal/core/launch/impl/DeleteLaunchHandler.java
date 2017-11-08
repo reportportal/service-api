@@ -106,10 +106,12 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 
 	private void validate(Launch launch, User user, Project project) {
 		expect(launch.getProjectRef(), equalTo(project.getName())).verify(FORBIDDEN_OPERATION,
-				formattedSupplier("Target launch '{}' not under specified project '{}'", launch.getId(), project.getName()));
+				formattedSupplier("Target launch '{}' not under specified project '{}'", launch.getId(), project.getName())
+		);
 
 		expect(launch, not(IN_PROGRESS)).verify(LAUNCH_IS_NOT_FINISHED,
-				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId()));
+				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId())
+		);
 
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
 			/* Only PROJECT_MANAGER roles could delete launches */

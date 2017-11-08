@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.externalsystem.handler;
 
@@ -34,12 +34,9 @@ public interface IDeleteExternalSystemHandler {
 	/**
 	 * Delete method for external system entity
 	 *
-	 * @param projectName
-	 *            Project Name
-	 * @param externalSystemId
-	 *            External System to be deleted
-	 * @param username
-	 *            Principal name
+	 * @param projectName      Project Name
+	 * @param externalSystemId External System to be deleted
+	 * @param username         Principal name
 	 * @return Operation result
 	 */
 	OperationCompletionRS deleteExternalSystem(String projectName, String externalSystemId, String username);
@@ -47,10 +44,8 @@ public interface IDeleteExternalSystemHandler {
 	/**
 	 * Delete all external system assigned to specified Report Portal project
 	 *
-	 * @param projectName
-	 *            Project Name
-	 * @param username
-	 *            Principal name
+	 * @param projectName Project Name
+	 * @param username    Principal name
 	 * @return Operation Result
 	 */
 	OperationCompletionRS deleteAllExternalSystems(String projectName, String username);

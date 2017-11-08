@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.auth;
 
@@ -31,8 +31,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
 
 import java.util.Arrays;
 import java.util.Map;
-
-
 
 public class PermissionsRegisterBean implements BeanDefinitionRegistryPostProcessor {
 

@@ -50,9 +50,12 @@ public class AnalyzerInfoContributor implements ExtensionContributor {
 
 	@Override
 	public Map<String, ?> contribute() {
-		Set<String> collect = discoveryClient.getServices().stream().flatMap(service -> discoveryClient.getInstances(service).stream())
+		Set<String> collect = discoveryClient.getServices()
+				.stream()
+				.flatMap(service -> discoveryClient.getInstances(service).stream())
 				.filter(instance -> instance.getMetadata().containsKey(ANALYZER_KEY))
-				.map(instance -> instance.getMetadata().get(ANALYZER_KEY)).collect(Collectors.toCollection(TreeSet::new));
+				.map(instance -> instance.getMetadata().get(ANALYZER_KEY))
+				.collect(Collectors.toCollection(TreeSet::new));
 		return ImmutableMap.<String, Object>builder().put(ANALYZER_KEY, collect).build();
 	}
 }

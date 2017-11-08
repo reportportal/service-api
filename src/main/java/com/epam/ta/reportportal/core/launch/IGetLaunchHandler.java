@@ -17,19 +17,18 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.launch;
 
-import java.util.List;
-import java.util.Map;
-
-import com.epam.ta.reportportal.ws.model.Page;
-import org.springframework.data.domain.Pageable;
-
 import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Get Launch operation handler
@@ -42,12 +41,9 @@ public interface IGetLaunchHandler {
 	/**
 	 * Get Launch resource by specified ID
 	 *
-	 * @param launchId
-	 *            ID of launch
-	 * @param userName
-	 *            Login
-	 * @param projectName
-	 *            Project Name
+	 * @param launchId    ID of launch
+	 * @param userName    Login
+	 * @param projectName Project Name
 	 * @return
 	 */
 	LaunchResource getLaunch(String launchId, String userName, String projectName);
@@ -55,12 +51,9 @@ public interface IGetLaunchHandler {
 	/**
 	 * Get Launch resource by specified Name (for Jenkins Plugin)
 	 *
-	 * @param project
-	 *            Project Name
-	 * @param pageable
-	 *            Page details
-	 * @param username
-	 *            User name
+	 * @param project  Project Name
+	 * @param pageable Page details
+	 * @param username User name
 	 * @return Response Data
 	 */
 	LaunchResource getLaunchByName(String project, Pageable pageable, Filter filter, String username);
@@ -68,14 +61,10 @@ public interface IGetLaunchHandler {
 	/**
 	 * Get list of Launch resources for specified project
 	 *
-	 * @param projectName
-	 *            Project Name
-	 * @param filter
-	 *            Filter data
-	 * @param pageable
-	 *            Page details
-	 * @param userName
-	 *            Name of User
+	 * @param projectName Project Name
+	 * @param filter      Filter data
+	 * @param pageable    Page details
+	 * @param userName    Name of User
 	 * @return Response Data
 	 */
 	Iterable<LaunchResource> getProjectLaunches(String projectName, Filter filter, Pageable pageable, String userName);
@@ -83,14 +72,10 @@ public interface IGetLaunchHandler {
 	/**
 	 * Get debug launches
 	 *
-	 * @param projectName
-	 *            Project Name
-	 * @param userName
-	 *            Name of User
-	 * @param filter
-	 *            Filter data
-	 * @param pageable
-	 *            Page details
+	 * @param projectName Project Name
+	 * @param userName    Name of User
+	 * @param filter      Filter data
+	 * @param pageable    Page details
 	 * @return Response Data
 	 */
 	Iterable<LaunchResource> getDebugLaunches(String projectName, String userName, Filter filter, Pageable pageable);
@@ -98,10 +83,8 @@ public interface IGetLaunchHandler {
 	/**
 	 * Get specified launch tags (auto-complete functionality)
 	 *
-	 * @param project
-	 *            Project Name
-	 * @param value
-	 *            Tag prefix to be searched
+	 * @param project Project Name
+	 * @param value   Tag prefix to be searched
 	 * @return List of found tags
 	 */
 	List<String> getTags(String project, String value);
@@ -109,10 +92,8 @@ public interface IGetLaunchHandler {
 	/**
 	 * Get launch names of specified project (auto-complete functionality)
 	 *
-	 * @param project
-	 *            Project Name
-	 * @param value
-	 *            Launch name prefix
+	 * @param project Project Name
+	 * @param value   Launch name prefix
 	 * @return List of found launches
 	 */
 	List<String> getLaunchNames(String project, String value);
@@ -120,14 +101,10 @@ public interface IGetLaunchHandler {
 	/**
 	 * Get unique owners of launches in specified mode
 	 *
-	 * @param project
-	 *            Project Name
-	 * @param value
-	 *            Owner name prefix
-	 * @param field
-	 *            Field
-	 * @param mode
-	 *            Mode
+	 * @param project Project Name
+	 * @param value   Owner name prefix
+	 * @param field   Field
+	 * @param mode    Mode
 	 * @return Response Data
 	 */
 	List<String> getOwners(String project, String value, String field, String mode);
@@ -135,10 +112,8 @@ public interface IGetLaunchHandler {
 	/**
 	 * Get launches comparison info
 	 *
-	 * @param projectName
-	 *            Name of project
-	 * @param ids
-	 *            IDs to be looked up
+	 * @param projectName Name of project
+	 * @param ids         IDs to be looked up
 	 * @return Response Data
 	 */
 	Map<String, List<ChartObject>> getLaunchesComparisonInfo(String projectName, String[] ids);
@@ -146,13 +121,11 @@ public interface IGetLaunchHandler {
 	/**
 	 * Get statuses of specified launches
 	 *
-	 * @param projectName
-	 *            Project Name
-	 * @param ids
-	 *            Launch IDs
+	 * @param projectName Project Name
+	 * @param ids         Launch IDs
 	 * @return Response Data
 	 */
 	Map<String, String> getStatuses(String projectName, String[] ids);
 
-    Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable);
+	Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable);
 }

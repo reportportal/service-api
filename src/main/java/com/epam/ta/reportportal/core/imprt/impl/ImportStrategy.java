@@ -28,13 +28,13 @@ import java.io.File;
  * @author Pavel_Bortnik
  */
 public interface ImportStrategy {
-    /**
-     * Processing launch importing.
-     *
-     * @param projectId project
-     * @param userName  user
-     * @param file      zip file that contains xml test reports
-     * @return launch id
-     */
-    String importLaunch(String projectId, String userName, File file);
+	/**
+	 * Processing launch importing.
+	 *
+	 * @param projectId project
+	 * @param userName  user
+	 * @param file      zip file that contains xml test reports
+	 * @return launch id
+	 */
+	String importLaunch(String projectId, String userName, File file);
 }

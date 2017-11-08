@@ -173,18 +173,18 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 
 			IssueCounter issueCounter = launch.getStatistics().getIssueCounter();
 			Map<String, Integer> issuesData = ImmutableMap.<String, Integer>builder()
-					.put(getProductBugFieldName().replaceAll("\\.", "\\$"), issueCounter.getProductBugTotal())
-					.put(getSystemIssueFieldName().replaceAll("\\.", "\\$"), issueCounter.getSystemIssueTotal())
-					.put(getAutomationBugFieldName().replaceAll("\\.", "\\$"), issueCounter.getAutomationBugTotal())
-					.put(getToInvestigateFieldName().replaceAll("\\.", "\\$"), issueCounter.getToInvestigateTotal())
-					.put(getNoDefectFieldName().replaceAll("\\.", "\\$"), issueCounter.getNoDefectTotal())
+					.put("statistics$defects$product_bug", issueCounter.getProductBugTotal())
+					.put("statistics$defects$system_issue", issueCounter.getSystemIssueTotal())
+					.put("statistics$defects$automation_bug", issueCounter.getAutomationBugTotal())
+					.put("statistics$defects$to_investigate", issueCounter.getToInvestigateTotal())
+					.put("statistics$defects$no_defect", issueCounter.getNoDefectTotal())
 					.build();
 
 			ExecutionCounter executionCounter = launch.getStatistics().getExecutionCounter();
 			Map<String, Integer> executionData = ImmutableMap.<String, Integer>builder()
-					.put(getFailedFieldName().replaceAll("\\.", "\\$"), executionCounter.getFailed())
-					.put(getPassedFieldName().replaceAll("\\.", "\\$"), executionCounter.getPassed())
-					.put(getSkippedFieldName().replaceAll("\\.", "\\$"), executionCounter.getSkipped())
+					.put("statistics$executions$failed", executionCounter.getFailed())
+					.put("statistics$executions$passed", executionCounter.getPassed())
+					.put("statistics$executions$skipped", executionCounter.getSkipped())
 					.build();
 
 			Map<String, String> computedStatistics = computeFraction(issuesData);

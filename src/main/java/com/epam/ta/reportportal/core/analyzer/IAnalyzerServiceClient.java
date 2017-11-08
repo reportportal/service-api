@@ -74,10 +74,10 @@ public interface IAnalyzerServiceClient {
 	/**
 	 * Delete specified items from specified index/project
 	 *
-	 * @param project Project/index to deleteLogs from
-	 * @param items   Items ids to deleteLogs
+	 * @param index Index to to be cleaned
+	 * @param ids Document ids to be deleted from index
 	 */
-	void deleteLogs(String project, List<String> items);
+	void cleanIndex(String index, List<String> ids);
 
 	/**
 	 * Delete project index

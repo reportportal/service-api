@@ -90,8 +90,8 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	}
 
 	@Override
-	public void deleteLogs(String project, List<String> items) {
-		analyzerInstances.get().stream().filter(DOES_NEED_INDEX).forEach(instance -> deleteLogs(instance, project, items));
+	public void cleanIndex(String index, List<String> ids) {
+		analyzerInstances.get().stream().filter(DOES_NEED_INDEX).forEach(instance -> cleanIndex(instance, index, ids));
 	}
 
 	@Override
@@ -107,7 +107,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 		}
 	}
 
-	private void deleteLogs(ServiceInstance instance, String project, List<String> ids) {
+	private void cleanIndex(ServiceInstance instance, String project, List<String> ids) {
 		try {
 			restTemplate.put(instance.getUri().toString() + INDEX_PATH + "/delete",
 					ImmutableMap.<String, Object>builder().put(ITEM_IDS_KEY, ids).put(INDEX_NAME_KEY, project).build()

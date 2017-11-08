@@ -50,8 +50,10 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AnalyzerServiceClient.class);
+
 	static final String INDEX_PATH = "/_index";
 	static final String ANALYZE_PATH = "/_analyze";
+
 	private static final String ITEM_IDS_KEY = "ids";
 	private static final String INDEX_NAME_KEY = "project";
 
@@ -62,10 +64,10 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	private AtomicReference<List<ServiceInstance>> analyzerInstances;
 
 	@Autowired
-	public AnalyzerServiceClient(RestTemplate restTemplate, DiscoveryClient consulDiscoveryClient) {
+	public AnalyzerServiceClient(RestTemplate restTemplate, DiscoveryClient discoveryClient) {
 		this.analyzerInstances = new AtomicReference<>(Collections.emptyList());
 		this.restTemplate = restTemplate;
-		this.discoveryClient = consulDiscoveryClient;
+		this.discoveryClient = discoveryClient;
 	}
 
 	@Override

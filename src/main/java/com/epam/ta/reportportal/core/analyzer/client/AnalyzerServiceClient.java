@@ -165,7 +165,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 				.stream()
 				.flatMap(service -> discoveryClient.getInstances(service).stream())
 				.filter(instance -> instance.getMetadata().containsKey(ANALYZER_KEY))
-				.sorted(comparingInt(SERVICE_PRIORITY).reversed())
+				.sorted(comparingInt(SERVICE_PRIORITY))
 				.collect(toList());
 		analyzerInstances.set(collect);
 	}

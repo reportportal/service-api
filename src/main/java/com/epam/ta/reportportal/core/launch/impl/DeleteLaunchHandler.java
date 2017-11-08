@@ -120,7 +120,7 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 		);
 
 		expect(launch, not(IN_PROGRESS)).verify(LAUNCH_IS_NOT_FINISHED,
-				formattedSupplier("Unable to deleteLogs launch '{}' in progress state", launch.getId())
+				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId())
 		);
 
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {

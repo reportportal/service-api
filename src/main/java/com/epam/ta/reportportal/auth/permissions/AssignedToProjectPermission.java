@@ -54,12 +54,13 @@ class AssignedToProjectPermission implements Permission {
 	@Override
 	public boolean isAllowed(Authentication authentication, Object projectName) {
 		String project = (String) projectName;
- 		return authentication.isAuthenticated() && (hasProjectAuthority(authentication.getAuthorities(), project)
-				|| projectRepository.get().isAssignedToProject(project, authentication.getName()));
+		return authentication.isAuthenticated() && (hasProjectAuthority(authentication.getAuthorities(), project) || projectRepository.get()
+				.isAssignedToProject(project, authentication.getName()));
 	}
 
 	private boolean hasProjectAuthority(Collection<? extends GrantedAuthority> authorityList, String project) {
-		return authorityList.stream().filter(a -> a instanceof ProjectAuthority)
+		return authorityList.stream()
+				.filter(a -> a instanceof ProjectAuthority)
 				.anyMatch(pa -> ((ProjectAuthority) pa).getProject().equals(project));
 	}
 }

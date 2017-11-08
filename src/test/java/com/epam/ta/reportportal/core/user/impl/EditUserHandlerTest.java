@@ -1,16 +1,15 @@
 package com.epam.ta.reportportal.core.user.impl;
 
-import static com.epam.ta.reportportal.database.entity.user.UserType.UPSA;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
+import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import com.epam.ta.reportportal.database.dao.UserRepository;
-import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import static com.epam.ta.reportportal.database.entity.user.UserType.UPSA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class EditUserHandlerTest {
 

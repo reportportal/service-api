@@ -17,24 +17,22 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
-package com.epam.ta.reportportal.auth;
+ */
 
-import org.springframework.security.authentication.TestingAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+package com.epam.ta.reportportal.auth;
 
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.google.common.collect.ImmutableList;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
  * Set of test constants for AUTH tests. <br>
  * Data from {@link /ws/src/test/resources/db/setupData.xml} fixtures
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public abstract class AuthConstants {
 
@@ -61,19 +59,22 @@ public abstract class AuthConstants {
 	public static final UserRole ROLE = UserRole.ADMINISTRATOR;
 
 	public static final Authentication ADMINISTRATOR = newAuthentication(AuthConstants.TEST_USER, AuthConstants.USER_PASSWORD, true,
-			new SimpleGrantedAuthority(UserRole.ADMINISTRATOR.getAuthority()));
+			new SimpleGrantedAuthority(UserRole.ADMINISTRATOR.getAuthority())
+	);
 
 	public static final Authentication PROJECT_USER = newAuthentication(AuthConstants.TEST_USER, AuthConstants.USER_PASSWORD, true,
-			new SimpleGrantedAuthority(UserRole.ADMINISTRATOR.getAuthority()));
+			new SimpleGrantedAuthority(UserRole.ADMINISTRATOR.getAuthority())
+	);
 
 	public static final Authentication NOT_AUTHENTIFICATED = newAuthentication(AuthConstants.TEST_USER, AuthConstants.USER_PASSWORD, false);
 
 	public static final Authentication UPSA_USER = newAuthentication(AuthConstants.TEST_UPSA_USER, AuthConstants.USER_PASSWORD, true,
-			new SimpleGrantedAuthority(UserRole.ADMINISTRATOR.getAuthority()));
+			new SimpleGrantedAuthority(UserRole.ADMINISTRATOR.getAuthority())
+	);
 
 	/**
 	 * Constructrs authentification using provided credentials and authorities
-	 * 
+	 *
 	 * @param user
 	 * @param password
 	 * @param authenticated
@@ -82,8 +83,8 @@ public abstract class AuthConstants {
 	 */
 	public static Authentication newAuthentication(String user, String password, final boolean authenticated,
 			GrantedAuthority... authorities) {
-		return new TestingAuthenticationToken(user, password, ImmutableList.<org.springframework.security.core.GrantedAuthority> builder()
-				.add(authorities).build()) {
+		return new TestingAuthenticationToken(
+				user, password, ImmutableList.<org.springframework.security.core.GrantedAuthority>builder().add(authorities).build()) {
 			private static final long serialVersionUID = 1L;
 
 			{

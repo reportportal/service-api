@@ -47,7 +47,6 @@ import java.util.Map;
  * all 'To investigate' items.
  *
  * @author Andrei_Ramanchuk
- *
  */
 @Service("ChartInvestigatedContentLoader")
 public class ChartInvestigatedContentLoader extends StatisticBasedContentLoader implements IContentLoadingStrategy {
@@ -57,8 +56,8 @@ public class ChartInvestigatedContentLoader extends StatisticBasedContentLoader 
 
 	@SuppressFBWarnings("NP_NULL_PARAM_DEREF")
 	@Override
-	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
-			List<String> metaDataFields, Map<String, List<String>> options) {
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity,
+			List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> options) {
 		BusinessRule.expect(metaDataFields == null || metaDataFields.isEmpty(), Predicates.equalTo(Boolean.FALSE))
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Metadata fields should exist for providing content for 'column chart'.");
 		List<String> allFields = ImmutableList.<String>builder().addAll(contentFields).addAll(metaDataFields).build();
@@ -66,11 +65,11 @@ public class ChartInvestigatedContentLoader extends StatisticBasedContentLoader 
 		String collectionName = getCollectionName(filter.getTarget());
 
 		// here can be used any repository which extends ReportPortalRepository
-        if (options.containsKey(LATEST_MODE)) {
-            launchRepository.findLatestWithCallback(filter, sorting, allFields, quantity, handler);
-        } else {
-            launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, collectionName);
-        }
+		if (options.containsKey(LATEST_MODE)) {
+			launchRepository.findLatestWithCallback(filter, sorting, allFields, quantity, handler);
+		} else {
+			launchRepository.loadWithCallback(filter, sorting, quantity, allFields, handler, collectionName);
+		}
 		List<ChartObject> result = handler.getResult();
 		if (WidgetUtils.needRevert(sorting)) {
 			Collections.reverse(result);
@@ -91,8 +90,10 @@ public class ChartInvestigatedContentLoader extends StatisticBasedContentLoader 
 		if (initial.isEmpty()) {
 			return Collections.emptyMap();
 		}
-        initial.entrySet().stream().flatMap(entry -> entry.getValue().stream())
-                .forEach(chart -> chart = this.getInvestigationStatistic(chart));
+		initial.entrySet()
+				.stream()
+				.flatMap(entry -> entry.getValue().stream())
+				.forEach(chart -> chart = this.getInvestigationStatistic(chart));
 		return initial;
 	}
 
@@ -104,10 +105,12 @@ public class ChartInvestigatedContentLoader extends StatisticBasedContentLoader 
 		double investigated = 0;
 		double toInvestigate = 0;
 		for (String key : init.getValues().keySet()) {
-			if (getIssueStatFields().contains(key))
+			if (getIssueStatFields().contains(key)) {
 				investigated = investigated + Double.valueOf(init.getValues().get(key));
-			if (key.equalsIgnoreCase(getToInvestigateFieldName()))
+			}
+			if (key.equalsIgnoreCase(getToInvestigateFieldName())) {
 				toInvestigate = Double.valueOf(init.getValues().get(key));
+			}
 		}
 		/* DON'T USE COMPARE OPERANDS WITH DOUBLE!!! */
 		if ((investigated + toInvestigate) > 0) {

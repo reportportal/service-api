@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
@@ -72,7 +72,8 @@ public class TestItemControllerTest extends BaseMvcTest {
 		rq.setParameters(getParameters());
 		rq.setUniqueId(UUID.randomUUID().toString());
 		rq.setStartTime(new Date(2014, 5, 5));
-		this.mvcMock.perform(post(PROJECT_BASE_URL + "/item").contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq))
+		this.mvcMock.perform(post(PROJECT_BASE_URL + "/item").contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(rq))
 				.principal(authentication())).andExpect(status().isCreated());
 	}
 
@@ -86,7 +87,8 @@ public class TestItemControllerTest extends BaseMvcTest {
 		rq.setParameters(getParameters());
 		rq.setStartTime(new Date(2014, 5, 6));
 		this.mvcMock.perform(post(PROJECT_BASE_URL + "/item/44524cc1553de743b3e5aa30").content(objectMapper.writeValueAsBytes(rq))
-				.contentType(APPLICATION_JSON).principal(authentication())).andExpect(status().isCreated());
+				.contentType(APPLICATION_JSON)
+				.principal(authentication())).andExpect(status().isCreated());
 	}
 
 	@SuppressWarnings("deprecation")
@@ -96,7 +98,8 @@ public class TestItemControllerTest extends BaseMvcTest {
 		rq.setEndTime(new Date(2014, 5, 7));
 		rq.setStatus("PASSED");
 		this.mvcMock.perform(put(PROJECT_BASE_URL + "/item/44524cc1553de753b3e5bb2f").content(objectMapper.writeValueAsBytes(rq))
-				.contentType(APPLICATION_JSON).principal(authentication())).andExpect(status().is(200));
+				.contentType(APPLICATION_JSON)
+				.principal(authentication())).andExpect(status().is(200));
 	}
 
 	@Test
@@ -112,12 +115,14 @@ public class TestItemControllerTest extends BaseMvcTest {
 
 	@Test
 	public void getTestItemsPredefined() throws Exception {
-		this.mvcMock.perform(get(PROJECT_BASE_URL + "/item?predefined_filter=collapsed").principal(authentication())).andExpect(status().is(200));
+		this.mvcMock.perform(get(PROJECT_BASE_URL + "/item?predefined_filter=collapsed").principal(authentication()))
+				.andExpect(status().is(200));
 	}
 
 	@Test
 	public void getTestItemsPredefinedUnknown() throws Exception {
-		this.mvcMock.perform(get(PROJECT_BASE_URL + "/item?predefined_filter=unknown").principal(authentication())).andExpect(status().is(400));
+		this.mvcMock.perform(get(PROJECT_BASE_URL + "/item?predefined_filter=unknown").principal(authentication()))
+				.andExpect(status().is(400));
 	}
 
 	@Test
@@ -144,7 +149,8 @@ public class TestItemControllerTest extends BaseMvcTest {
 		issue.setIssueType("PRODUCT_BUG");
 		issueDefinition.setIssue(issue);
 		rq.setIssues(Collections.singletonList(issueDefinition));
-		mvcMock.perform(put(PROJECT_BASE_URL + "/item").principal(authentication()).contentType(APPLICATION_JSON)
+		mvcMock.perform(put(PROJECT_BASE_URL + "/item").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
 		List<Activity> activities = activityRepository.findByLoggedObjectRef(id);
 		assertNotNull(activities);
@@ -152,7 +158,8 @@ public class TestItemControllerTest extends BaseMvcTest {
 		assertTrue(isHistoryPresent(activities, "To Investigate", "Product Bug"));
 
 		issue.setIssueType("AB002");
-		mvcMock.perform(put(PROJECT_BASE_URL + "/item").principal(authentication()).contentType(APPLICATION_JSON)
+		mvcMock.perform(put(PROJECT_BASE_URL + "/item").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
 		List<Activity> newActivities = activityRepository.findByLoggedObjectRef(id);
 		assertNotNull(newActivities);
@@ -164,7 +171,8 @@ public class TestItemControllerTest extends BaseMvcTest {
 	public void updateTestItemPositive() throws Exception {
 		UpdateTestItemRQ rq = new UpdateTestItemRQ();
 		this.mvcMock.perform(put(PROJECT_BASE_URL + "/item/44524cc1553de743b3e5aa30/update").principal(authentication())
-				.contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
 	}
 
 	@Test
@@ -175,14 +183,16 @@ public class TestItemControllerTest extends BaseMvcTest {
 		rq.setExternalSystemId("54958aec4e84859227150765");
 		rq.setTestItemIds(testItemIds);
 		rq.setIssues(issues);
-		this.mvcMock.perform(put(PROJECT_BASE_URL + "/item/issue/add").principal(authentication()).contentType(APPLICATION_JSON)
+		this.mvcMock.perform(put(PROJECT_BASE_URL + "/item/issue/add").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
 	}
 
 	@Test
 	public void getAllTags() throws Exception {
-		this.mvcMock.perform(get(PROJECT_BASE_URL + "/item/tags?launch=51824cc1553de743b3e5aa2c&filter.cnt.tags=tags")
-				.principal(authentication()).contentType(APPLICATION_JSON)).andExpect(status().is(200));
+		this.mvcMock.perform(
+				get(PROJECT_BASE_URL + "/item/tags?launch=51824cc1553de743b3e5aa2c&filter.cnt.tags=tags").principal(authentication())
+						.contentType(APPLICATION_JSON)).andExpect(status().is(200));
 	}
 
 	@Test
@@ -196,7 +206,8 @@ public class TestItemControllerTest extends BaseMvcTest {
 		issue.setTicketId("TICKET1");
 		issue.setUrl(newUrl);
 		rq.setIssues(Collections.singletonList(issue));
-		this.mvcMock.perform(put(PROJECT_BASE_URL + "/item/issue/add").principal(authentication()).contentType(APPLICATION_JSON)
+		this.mvcMock.perform(put(PROJECT_BASE_URL + "/item/issue/add").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
 		final String url = testItemRepository.findOne(testItemId).getIssue().getExternalSystemIssues().iterator().next().getUrl();
 		assertEquals(newUrl, url);
@@ -208,9 +219,11 @@ public class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	private boolean isHistoryPresent(List<Activity> activities, String oldValue, String newValue) {
-	    return activities.stream().map(Activity::getHistory)
-                .flatMap(Collection::stream).anyMatch(it -> it.getField().equals("issueType")
-                        && it.getOldValue().equals(oldValue) && it.getNewValue().equals(newValue));
+		return activities.stream()
+				.map(Activity::getHistory)
+				.flatMap(Collection::stream)
+				.anyMatch(
+						it -> it.getField().equals("issueType") && it.getOldValue().equals(oldValue) && it.getNewValue().equals(newValue));
 	}
 
 	private List<ParameterResource> getParameters() {

@@ -21,7 +21,6 @@
       "Then user gets the Project Manager role "
     ]
   },
-
   "Launch story": {
     "Start launch": [
       "Given logged as user assigned to the project",
@@ -42,41 +41,39 @@
       "Then got error that launch in progress couldn't be updated"
     ]
   },
-
   "Filtering launch tests story": {
-    "Filtering tests by error log":[
+    "Filtering tests by error log": [
       "Given logged as user assigned to the project",
       "And launch with a pack of tests that has error logs",
       "When user filters tests by error log",
       "The got list of tests with error log"
     ],
-    "Filtering tests by debug log":[
+    "Filtering tests by debug log": [
       "Given logged as user assigned to the project",
       "And launch with a pack of tests that has error logs",
       "When user filters tests by debug log",
       "The got list of tests with debug log"
     ],
-    "Filtering tests by info log":[
+    "Filtering tests by info log": [
       "Given logged as user assigned to the project",
       "And launch with a pack of tests that has info logs",
       "When user filters tests by info log",
       "The got list of tests with info log"
     ],
-    "Filtering tests by trace log":[
+    "Filtering tests by trace log": [
       "Given logged as user assigned to the project",
       "And launch with a pack of tests that has trace logs",
       "When user filters tests by trace log",
       "The got list of tests with trace log"
     ],
-    "Filtering tests by fatal log":[
+    "Filtering tests by fatal log": [
       "Given logged as user assigned to the project",
       "And launch with a pack of tests that has fatal logs",
       "When user filters tests by fatal log",
       "The got list of tests with fatal log"
     ]
   },
-
-  "Test entity story":{
+  "Test entity story": {
     "Start test item": [
       "Given logged as user assigned to the project",
       "And test item structure is correct",
@@ -89,7 +86,7 @@
       "When user finishes the test item",
       "Then launch is correctly finished"
     ],
-    "Edit test item issue":[
+    "Edit test item issue": [
       "Given failed test item",
       "And logged as user assigned to the project",
       "And test item has To Investigate issue",
@@ -97,8 +94,7 @@
       "Then test item's issue changes to Product Bug"
     ]
   },
-
-  "Widgets story":{
+  "Widgets story": {
     "Create a new widget": [
       "Given dashboard panel with widgets",
       "And logged as user assigned to the project",
@@ -114,19 +110,18 @@
       "Then widget gets to the dashboard"
     ]
   },
-
-  "Sharing tests story":{
-    "Get shared filter to own project":[
+  "Sharing tests story": {
+    "Get shared filter to own project": [
       "Given a list of shared filters from different project",
       "When user adds shared filter to his own project",
       "Then user can filter his tests using the shared filter"
     ],
-    "Get shared widget to own project":[
+    "Get shared widget to own project": [
       "Given a list of shared widgets from different project",
       "When user adds shared widget to his own project",
       "Then user can use shared widget in his own project"
     ],
-    "Get shared dashboard to own project":[
+    "Get shared dashboard to own project": [
       "Given a list of shared dashboard from different project",
       "When user adds shared dashboard to his own project",
       "Then user can use shared dashboard in his own project"

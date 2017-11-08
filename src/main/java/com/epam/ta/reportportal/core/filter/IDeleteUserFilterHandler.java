@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.core.filter;
 
 import com.epam.ta.reportportal.database.entity.user.UserRole;
@@ -27,15 +27,14 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 /**
  * Delete complex filter handler
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 public interface IDeleteUserFilterHandler {
 
 	/**
 	 * Delete complex filter by id
-	 * 
+	 *
 	 * @param id
 	 * @param userName
 	 * @param projectName

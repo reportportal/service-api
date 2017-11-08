@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.user;
 
@@ -38,7 +38,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 
 /**
  * Delete user related tests
- * 
+ *
  * @author Dzmitry_Kavalets
  */
 @SpringFixture("deleteUserHandlerTest")
@@ -56,7 +56,6 @@ public class DeleteUserTest extends BaseTest {
 
 	@Autowired
 	private LaunchRepository launchRepository;
-
 
 	@Test
 	public void positiveDeleteUserTest() {

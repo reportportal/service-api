@@ -17,24 +17,22 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.auth.permissions;
+
+import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBean;
+import org.springframework.security.access.PermissionEvaluator;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.springframework.security.access.PermissionEvaluator;
-
-import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBean;
-
 /**
  * Factory bean for providing permissions marked with {@link LookupPermission}
  * annotation
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class PermissionEvaluatorFactoryBean extends ApplicationContextAwareFactoryBean<PermissionEvaluator> {
 

@@ -17,15 +17,14 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.exception;
 
 /**
  * Internal error in case some permission is not defined
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 // TODO add exception mapping
 public class PermissionNotDefinedException extends RuntimeException {

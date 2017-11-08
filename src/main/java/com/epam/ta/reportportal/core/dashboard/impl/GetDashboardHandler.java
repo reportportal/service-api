@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
@@ -47,7 +47,6 @@ import java.util.Map;
  * Default implementation of {@link IGetDashboardHandler}
  *
  * @author Aliaksei_Makayed
- *
  */
 @Service
 public class GetDashboardHandler implements IGetDashboardHandler {
@@ -84,7 +83,8 @@ public class GetDashboardHandler implements IGetDashboardHandler {
 	@Override
 	public Map<String, SharedEntity> getSharedDashboardsNames(String ownerName, String projectName) {
 		List<Dashboard> dashboards = dashboardRepository.findSharedEntities(ownerName, projectName,
-				Lists.newArrayList(Shareable.ID, Dashboard.NAME, Dashboard.OWNER, "description"), Shareable.NAME_OWNER_SORT);
+				Lists.newArrayList(Shareable.ID, Dashboard.NAME, Dashboard.OWNER, "description"), Shareable.NAME_OWNER_SORT
+		);
 		return toMap(dashboards);
 	}
 
@@ -97,16 +97,15 @@ public class GetDashboardHandler implements IGetDashboardHandler {
 	 * @return Transformed map
 	 */
 	private Map<String, SharedEntity> toMap(List<Dashboard> dashboards) {
-		return dashboards.stream()
-				.collect(MoreCollectors.toLinkedMap(Dashboard::getId, dashboard -> {
-					SharedEntity sharedEntity = new SharedEntity();
-					sharedEntity.setName(dashboard.getName());
-					sharedEntity.setDescription(dashboard.getDescription());
-					if (null != dashboard.getAcl()) {
-						sharedEntity.setOwner(dashboard.getAcl().getOwnerUserId());
-					}
-					return sharedEntity;
-				}));
+		return dashboards.stream().collect(MoreCollectors.toLinkedMap(Dashboard::getId, dashboard -> {
+			SharedEntity sharedEntity = new SharedEntity();
+			sharedEntity.setName(dashboard.getName());
+			sharedEntity.setDescription(dashboard.getDescription());
+			if (null != dashboard.getAcl()) {
+				sharedEntity.setOwner(dashboard.getAcl().getOwnerUserId());
+			}
+			return sharedEntity;
+		}));
 	}
 
 }

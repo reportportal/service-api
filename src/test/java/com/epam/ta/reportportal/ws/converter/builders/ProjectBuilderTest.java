@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
@@ -40,8 +40,10 @@ public class ProjectBuilderTest extends BaseTest {
 	@Test
 	@Ignore
 	public void testBeanScope() {
-		Assert.assertTrue("Test builder should be prototype bean because it's not stateless",
-				applicationContext.isPrototype(applicationContext.getBeanNamesForType(ProjectConverter.class)[0]));
+		Assert.assertTrue(
+				"Test builder should be prototype bean because it's not stateless",
+				applicationContext.isPrototype(applicationContext.getBeanNamesForType(ProjectConverter.class)[0])
+		);
 	}
 
 	@Test
@@ -74,8 +76,9 @@ public class ProjectBuilderTest extends BaseTest {
 		Assert.assertEquals(expectedValue.getId(), actualValue.getId());
 		Assert.assertEquals(expectedValue.getName(), actualValue.getName());
 		Assert.assertEquals(expectedValue.getUsers(), actualValue.getUsers());
-		if ((null != expectedValue.getConfiguration().getEntryType()) && (null != actualValue.getConfiguration().getEntryType()))
+		if ((null != expectedValue.getConfiguration().getEntryType()) && (null != actualValue.getConfiguration().getEntryType())) {
 			Assert.assertEquals(expectedValue.getConfiguration().getEntryType(), actualValue.getConfiguration().getEntryType());
+		}
 	}
 
 }

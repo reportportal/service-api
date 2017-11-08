@@ -30,26 +30,25 @@ import java.util.List;
  */
 public class FiltersCreatedEvent {
 
-    private final List<UserFilter> createdFilters;
-    private final String createdBy;
-    private final String projectRef;
+	private final List<UserFilter> createdFilters;
+	private final String createdBy;
+	private final String projectRef;
 
+	public FiltersCreatedEvent(List<UserFilter> createdFilters, String createdBy, String projectRef) {
+		this.createdFilters = createdFilters;
+		this.createdBy = createdBy;
+		this.projectRef = projectRef;
+	}
 
-    public FiltersCreatedEvent(List<UserFilter> createdFilters, String createdBy, String projectRef) {
-        this.createdFilters = createdFilters;
-        this.createdBy = createdBy;
-        this.projectRef = projectRef;
-    }
+	public List<UserFilter> getCreatedFilters() {
+		return createdFilters;
+	}
 
-    public List<UserFilter> getCreatedFilters() {
-        return createdFilters;
-    }
+	public String getCreatedBy() {
+		return createdBy;
+	}
 
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public String getProjectRef() {
-        return projectRef;
-    }
+	public String getProjectRef() {
+		return projectRef;
+	}
 }

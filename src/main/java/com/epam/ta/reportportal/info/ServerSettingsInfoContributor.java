@@ -58,12 +58,9 @@ public class ServerSettingsInfoContributor implements ExtensionContributor {
 
 		Optional<ServerSettings> serverSettings = ofNullable(settingsRepository.findOne("default"));
 
-		serverSettings
-				.flatMap(settings -> ofNullable(settings.getAnalyticsDetails()))
-				.ifPresent(it -> info.put(ANALYTICS_KEY, it));
+		serverSettings.flatMap(settings -> ofNullable(settings.getAnalyticsDetails())).ifPresent(it -> info.put(ANALYTICS_KEY, it));
 
-		serverSettings
-				.flatMap(settings -> ofNullable(settings.getInstanceId()))
+		serverSettings.flatMap(settings -> ofNullable(settings.getInstanceId()))
 				.ifPresent(instanceId -> info.put(INSTANCE_ID_KEY, instanceId));
 
 		return info;

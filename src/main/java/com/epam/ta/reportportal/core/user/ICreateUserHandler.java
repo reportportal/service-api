@@ -17,27 +17,27 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.user;
-
-import java.security.Principal;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.*;
 
+import java.security.Principal;
+
 /**
  * Post request handler
- * 
+ *
  * @author Andrei_Ramanchuk
  */
 public interface ICreateUserHandler {
 
 	/**
 	 * Create completed user object by administrator
-	 * 
+	 *
 	 * @param request
 	 * @param principal
 	 * @return
@@ -46,7 +46,7 @@ public interface ICreateUserHandler {
 
 	/**
 	 * Create new User (confirm invitation)
-	 * 
+	 *
 	 * @param request
 	 * @param uuid
 	 * @param principal
@@ -57,7 +57,7 @@ public interface ICreateUserHandler {
 
 	/**
 	 * Create user bid (send invitation)
-	 * 
+	 *
 	 * @param request
 	 * @param principal
 	 * @return
@@ -66,7 +66,7 @@ public interface ICreateUserHandler {
 
 	/**
 	 * Create restore password bid
-	 * 
+	 *
 	 * @param rq
 	 * @param baseUrl
 	 * @return
@@ -75,7 +75,7 @@ public interface ICreateUserHandler {
 
 	/**
 	 * Reset password
-	 * 
+	 *
 	 * @param rq
 	 * @return
 	 */
@@ -83,7 +83,7 @@ public interface ICreateUserHandler {
 
 	/**
 	 * Verify reset password bid exist
-	 * 
+	 *
 	 * @param id
 	 * @return
 	 */

@@ -33,9 +33,8 @@ import java.time.Duration;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.time.Duration.ofDays;
-
 import static com.epam.ta.reportportal.database.entity.project.KeepLogsDelay.findByName;
+import static java.time.Duration.ofDays;
 
 /**
  * Clean logs job in accordance with project settings
@@ -76,8 +75,7 @@ public class CleanLogsJob implements Runnable {
 		try (Stream<Launch> launchStream = launchRepo.streamIdsByProject(projectId)) {
 			launchStream.forEach(launch -> {
 				try (Stream<TestItem> testItemStream = testItemRepo.streamIdsByLaunch(launch.getId())) {
-					logRepo.deleteByPeriodAndItemsRef(period, testItemStream.map(TestItem::getId)
-							.collect(Collectors.toList()));
+					logRepo.deleteByPeriodAndItemsRef(period, testItemStream.map(TestItem::getId).collect(Collectors.toList()));
 				}
 			});
 		}

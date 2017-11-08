@@ -55,11 +55,11 @@ public class PassingRateFilterStrategy implements BuildFilterStrategy {
 	public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions,
 			String projectName) {
 		Map<String, List<ChartObject>> emptyResult = Collections.emptyMap();
-		if (contentOptions.getWidgetOptions() == null || contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD) == null)
+		if (contentOptions.getWidgetOptions() == null || contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD) == null) {
 			return emptyResult;
-		Launch lastLaunchForProject = launchRepository
-				.findLatestLaunch(projectName, contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD).get(0), Mode.DEFAULT.name())
-				.orElse(null);
+		}
+		Launch lastLaunchForProject = launchRepository.findLatestLaunch(
+				projectName, contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD).get(0), Mode.DEFAULT.name()).orElse(null);
 		if (null == lastLaunchForProject) {
 			return emptyResult;
 		}
@@ -69,9 +69,11 @@ public class PassingRateFilterStrategy implements BuildFilterStrategy {
 
 	private ChartObject processStatistics(Launch lastLaunch) {
 		ChartObject chartObject = new ChartObject();
-		chartObject.setValues(ImmutableMap.<String, String>builder()
-				.put(TOTAL_FIELD, String.valueOf(lastLaunch.getStatistics().getExecutionCounter().getTotal()))
-				.put(PASSED_FIELD, String.valueOf(lastLaunch.getStatistics().getExecutionCounter().getPassed())).build());
+		chartObject.setValues(ImmutableMap.<String, String>builder().put(TOTAL_FIELD,
+				String.valueOf(lastLaunch.getStatistics().getExecutionCounter().getTotal())
+		)
+				.put(PASSED_FIELD, String.valueOf(lastLaunch.getStatistics().getExecutionCounter().getPassed()))
+				.build());
 		return chartObject;
 	}
 

@@ -67,7 +67,8 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 			return Collections.emptyList();
 		}
 		List<Launch> launchHistory = historyServiceStrategy.loadLaunches(contentOptions.getItemsCount(), lastLaunchForProject.get().getId(),
-				projectName, false);
+				projectName, false
+		);
 		if (launchHistory.isEmpty()) {
 			return Collections.emptyList();
 		}

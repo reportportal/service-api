@@ -41,80 +41,79 @@ import java.util.stream.Collectors;
  * @author Pavel Bortnik
  */
 public final class TestItemConverter {
-    private TestItemConverter() {
-        //static only
-    }
+	private TestItemConverter() {
+		//static only
+	}
 
-    public static final Function<TestItem, TestItemResource> TO_RESOURCE = item -> {
-        Preconditions.checkNotNull(item);
-        TestItemResource resource = new TestItemResource();
-        resource.setDescription(item.getItemDescription());
-        resource.setUniqueId(item.getUniqueId());
-        resource.setTags(item.getTags());
-        resource.setEndTime(item.getEndTime());
-        resource.setItemId(item.getId());
-        if (null != item.getParameters()) {
-            resource.setParameters(item.getParameters().stream().map(ParametersConverter.TO_RESOURCE)
-                    .collect(Collectors.toList()));
-        }
-        TestItemIssue testItemIssue = item.getIssue();
-        if (null != testItemIssue) {
-            Issue issue = new Issue();
-            issue.setIssueType(testItemIssue.getIssueType());
-            issue.setAutoAnalyzed(String.valueOf(testItemIssue.isAutoAnalyzed()));
-            issue.setComment(testItemIssue.getIssueDescription());
-            Set<TestItemIssue.ExternalSystemIssue> externalSystemIssues = testItemIssue.getExternalSystemIssues();
-            if (null != externalSystemIssues) {
-                Set<Issue.ExternalSystemIssue> issuesResource = externalSystemIssues.stream().map(externalSystemIssue -> {
-                    Issue.ExternalSystemIssue issueResource = new Issue.ExternalSystemIssue();
-                    issueResource.setSubmitDate(externalSystemIssue.getSubmitDate());
-                    issueResource.setTicketId(externalSystemIssue.getTicketId());
-                    issueResource.setSubmitter(externalSystemIssue.getSubmitter());
-                    issueResource.setExternalSystemId(externalSystemIssue.getExternalSystemId());
-                    issueResource.setUrl(externalSystemIssue.getUrl());
-                    return issueResource;
-                }).collect(Collectors.toSet());
-                issue.setExternalSystemIssues(issuesResource);
-            }
-            resource.setIssue(issue);
-        }
+	public static final Function<TestItem, TestItemResource> TO_RESOURCE = item -> {
+		Preconditions.checkNotNull(item);
+		TestItemResource resource = new TestItemResource();
+		resource.setDescription(item.getItemDescription());
+		resource.setUniqueId(item.getUniqueId());
+		resource.setTags(item.getTags());
+		resource.setEndTime(item.getEndTime());
+		resource.setItemId(item.getId());
+		if (null != item.getParameters()) {
+			resource.setParameters(item.getParameters().stream().map(ParametersConverter.TO_RESOURCE).collect(Collectors.toList()));
+		}
+		TestItemIssue testItemIssue = item.getIssue();
+		if (null != testItemIssue) {
+			Issue issue = new Issue();
+			issue.setIssueType(testItemIssue.getIssueType());
+			issue.setAutoAnalyzed(String.valueOf(testItemIssue.isAutoAnalyzed()));
+			issue.setComment(testItemIssue.getIssueDescription());
+			Set<TestItemIssue.ExternalSystemIssue> externalSystemIssues = testItemIssue.getExternalSystemIssues();
+			if (null != externalSystemIssues) {
+				Set<Issue.ExternalSystemIssue> issuesResource = externalSystemIssues.stream().map(externalSystemIssue -> {
+					Issue.ExternalSystemIssue issueResource = new Issue.ExternalSystemIssue();
+					issueResource.setSubmitDate(externalSystemIssue.getSubmitDate());
+					issueResource.setTicketId(externalSystemIssue.getTicketId());
+					issueResource.setSubmitter(externalSystemIssue.getSubmitter());
+					issueResource.setExternalSystemId(externalSystemIssue.getExternalSystemId());
+					issueResource.setUrl(externalSystemIssue.getUrl());
+					return issueResource;
+				}).collect(Collectors.toSet());
+				issue.setExternalSystemIssues(issuesResource);
+			}
+			resource.setIssue(issue);
+		}
 
-        resource.setName(item.getName());
-        resource.setStartTime(item.getStartTime());
-        resource.setStatus(item.getStatus() != null ? item.getStatus().toString() : null);
-        resource.setType(item.getType() != null ? item.getType().name() : null);
-        resource.setParent(item.getParent());
-        resource.setHasChilds(item.hasChilds());
-        resource.setLaunchId(item.getLaunchRef());
+		resource.setName(item.getName());
+		resource.setStartTime(item.getStartTime());
+		resource.setStatus(item.getStatus() != null ? item.getStatus().toString() : null);
+		resource.setType(item.getType() != null ? item.getType().name() : null);
+		resource.setParent(item.getParent());
+		resource.setHasChilds(item.hasChilds());
+		resource.setLaunchId(item.getLaunchRef());
 
-        Statistics statistics = item.getStatistics();
-        if (statistics != null) {
-            com.epam.ta.reportportal.ws.model.statistics.Statistics statisticsCounters = new com.epam.ta.reportportal.ws.model.statistics.Statistics();
-            ExecutionCounter executionCounter = statistics.getExecutionCounter();
-            if (executionCounter != null) {
-                com.epam.ta.reportportal.ws.model.statistics.ExecutionCounter execution = new com.epam.ta.reportportal.ws.model.statistics.ExecutionCounter();
-                execution.setTotal(executionCounter.getTotal().toString());
-                execution.setPassed(executionCounter.getPassed().toString());
-                execution.setFailed(executionCounter.getFailed().toString());
-                execution.setSkipped(executionCounter.getSkipped().toString());
-                statisticsCounters.setExecutions(execution);
-            }
-            IssueCounter issueCounter = statistics.getIssueCounter();
-            if (issueCounter != null) {
-                com.epam.ta.reportportal.ws.model.statistics.IssueCounter issues = new com.epam.ta.reportportal.ws.model.statistics.IssueCounter();
-                issues.setProductBug(issueCounter.getProductBug());
-                issues.setSystemIssue(issueCounter.getSystemIssue());
-                issues.setAutomationBug(issueCounter.getAutomationBug());
-                issues.setToInvestigate(issueCounter.getToInvestigate());
-                issues.setNoDefect(issueCounter.getNoDefect());
-                statisticsCounters.setDefects(issues);
-            }
-            resource.setStatistics(statisticsCounters);
-        }
+		Statistics statistics = item.getStatistics();
+		if (statistics != null) {
+			com.epam.ta.reportportal.ws.model.statistics.Statistics statisticsCounters = new com.epam.ta.reportportal.ws.model.statistics.Statistics();
+			ExecutionCounter executionCounter = statistics.getExecutionCounter();
+			if (executionCounter != null) {
+				com.epam.ta.reportportal.ws.model.statistics.ExecutionCounter execution = new com.epam.ta.reportportal.ws.model.statistics.ExecutionCounter();
+				execution.setTotal(executionCounter.getTotal().toString());
+				execution.setPassed(executionCounter.getPassed().toString());
+				execution.setFailed(executionCounter.getFailed().toString());
+				execution.setSkipped(executionCounter.getSkipped().toString());
+				statisticsCounters.setExecutions(execution);
+			}
+			IssueCounter issueCounter = statistics.getIssueCounter();
+			if (issueCounter != null) {
+				com.epam.ta.reportportal.ws.model.statistics.IssueCounter issues = new com.epam.ta.reportportal.ws.model.statistics.IssueCounter();
+				issues.setProductBug(issueCounter.getProductBug());
+				issues.setSystemIssue(issueCounter.getSystemIssue());
+				issues.setAutomationBug(issueCounter.getAutomationBug());
+				issues.setToInvestigate(issueCounter.getToInvestigate());
+				issues.setNoDefect(issueCounter.getNoDefect());
+				statisticsCounters.setDefects(issues);
+			}
+			resource.setStatistics(statisticsCounters);
+		}
 
-        Optional.ofNullable(item.getRetries())
-                .map(items -> items.stream().map(TestItemConverter.TO_RESOURCE).collect(Collectors.toList()))
-                .ifPresent(resource::setRetries);
-        return resource;
-    };
+		Optional.ofNullable(item.getRetries())
+				.map(items -> items.stream().map(TestItemConverter.TO_RESOURCE).collect(Collectors.toList()))
+				.ifPresent(resource::setRetries);
+		return resource;
+	};
 }

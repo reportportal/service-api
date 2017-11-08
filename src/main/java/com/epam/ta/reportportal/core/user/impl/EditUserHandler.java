@@ -21,35 +21,6 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.core.user.impl.CreateUserHandler.HASH_FUNCTION;
-import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
-import static com.epam.ta.reportportal.database.entity.user.UserType.INTERNAL;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
-
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-
-import javax.imageio.ImageIO;
-
-import com.google.common.base.Charsets;
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
-import org.apache.tika.io.TikaInputStream;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.mime.MediaType;
-import org.apache.tika.parser.AutoDetectParser;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.epam.ta.reportportal.core.user.IEditUserHandler;
 import com.epam.ta.reportportal.core.user.event.UpdateUserRoleEvent;
 import com.epam.ta.reportportal.core.user.event.UpdatedRole;
@@ -67,10 +38,35 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.user.ChangePasswordRQ;
 import com.epam.ta.reportportal.ws.model.user.EditUserRQ;
+import com.google.common.base.Charsets;
+import org.apache.tika.io.TikaInputStream;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.mime.MediaType;
+import org.apache.tika.parser.AutoDetectParser;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.core.user.impl.CreateUserHandler.HASH_FUNCTION;
+import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
+import static com.epam.ta.reportportal.database.entity.user.UserType.INTERNAL;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
 
 /**
  * Edit user handler
- * 
+ *
  * @author Aliaksandr_Kazantsau
  * @author Andrei_Ramanchuk
  */
@@ -114,8 +110,9 @@ public class EditUserHandler implements IEditUserHandler {
 	public OperationCompletionRS deletePhoto(String login) {
 		User user = userRepository.findOne(login);
 		expect(user.getType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change photo for external user");
-		if (null != user.getPhotoId())
+		if (null != user.getPhotoId()) {
 			dataStorage.deleteData(user.getPhotoId());
+		}
 		return new OperationCompletionRS("Profile photo has been deleted successfully");
 	}
 
@@ -124,8 +121,8 @@ public class EditUserHandler implements IEditUserHandler {
 		User user = userRepository.findOne(userName);
 		expect(user.getType(), equalTo(INTERNAL)).verify(FORBIDDEN_OPERATION, "Impossible to change password for external users.");
 
-		expect(user.getPassword(), equalTo(HASH_FUNCTION.hashString(changePasswordRQ.getOldPassword(), Charsets.UTF_8).toString())).verify(FORBIDDEN_OPERATION,
-				"Old password not match with stored.");
+		expect(user.getPassword(), equalTo(HASH_FUNCTION.hashString(changePasswordRQ.getOldPassword(), Charsets.UTF_8).toString())).verify(
+				FORBIDDEN_OPERATION, "Old password not match with stored.");
 		user.setPassword(HASH_FUNCTION.hashString(changePasswordRQ.getNewPassword(), Charsets.UTF_8).toString());
 		userRepository.save(user);
 		return new OperationCompletionRS("Password has been changed successfully");
@@ -158,8 +155,9 @@ public class EditUserHandler implements IEditUserHandler {
 			expect(user.getType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change email for external user");
 			expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR, " wrong email: " + updEmail);
 			User byEmail = userRepository.findByEmail(updEmail);
-			if (null != byEmail)
+			if (null != byEmail) {
 				expect(username, equalTo(byEmail.getId())).verify(USER_ALREADY_EXISTS, updEmail);
+			}
 			expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR, updEmail);
 
 			List<Project> userProjects = projectRepository.findUserProjects(username);
@@ -194,9 +192,10 @@ public class EditUserHandler implements IEditUserHandler {
 		MediaType mediaType = new AutoDetectParser().getDetector().detect(TikaInputStream.get(file.getBytes()), new Metadata());
 		String subtype = mediaType.getSubtype();
 		expect(ImageFormat.fromValue(subtype), notNull()).verify(BINARY_DATA_CANNOT_BE_SAVED,
-				"Image format should be " + ImageFormat.getValues());
+				"Image format should be " + ImageFormat.getValues()
+		);
 		BufferedImage read = ImageIO.read(file.getInputStream());
-		expect((read.getHeight() <= MAX_PHOTO_HEIGHT) && (read.getWidth() <= MAX_PHOTO_WIDTH), equalTo(true))
-				.verify(BINARY_DATA_CANNOT_BE_SAVED, "Image size should be 300x500px or less");
+		expect((read.getHeight() <= MAX_PHOTO_HEIGHT) && (read.getWidth() <= MAX_PHOTO_WIDTH), equalTo(true)).verify(
+				BINARY_DATA_CANNOT_BE_SAVED, "Image size should be 300x500px or less");
 	}
 }

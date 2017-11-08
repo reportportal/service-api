@@ -17,35 +17,34 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.database.dao;
 
-import java.util.List;
-
 import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.database.entity.Log;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.fixture.SpringFixture;
+import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.epam.ta.reportportal.database.entity.Log;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.fixture.SpringFixture;
-import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
+import java.util.List;
 
 @SpringFixture("logRepositoryTests")
-public class LogRepositoryTest  extends BaseTest {
-	
+public class LogRepositoryTest extends BaseTest {
+
 	public static final String TEST_ITEM_ID = "44524cc1553de753b3e5ab2f";
-	
+
 	@Rule
 	@Autowired
 	public SpringFixtureRule dfRule;
-	
+
 	@Autowired
 	private LogRepository logRepository;
-	
+
 	@Test
 	public void testGetNumberOfLogByTestItem() {
 		TestItem testItem = new TestItem();
@@ -53,7 +52,7 @@ public class LogRepositoryTest  extends BaseTest {
 		long count = logRepository.getNumberOfLogByTestItem(testItem);
 		Assert.assertEquals(3, count);
 	}
-	
+
 	@Test
 	public void testFindByTestItemRef() {
 		List<Log> result = logRepository.findByTestItemRef(TEST_ITEM_ID, 2, false);
@@ -62,7 +61,7 @@ public class LogRepositoryTest  extends BaseTest {
 		Assert.assertTrue(result.get(0).getLogTime().before(result.get(1).getLogTime()));
 		Assert.assertNull(result.get(0).getBinaryContent());
 	}
-	
+
 	@Test
 	public void testFindByTestItemRefNull() {
 		List<Log> resultEmptyLogs = logRepository.findByTestItemRef(null, 2, false);

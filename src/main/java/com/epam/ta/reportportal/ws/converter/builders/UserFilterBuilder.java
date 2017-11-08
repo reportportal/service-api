@@ -21,12 +21,6 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.database.entity.filter.ObjectType;
 import com.epam.ta.reportportal.database.entity.filter.SelectionOptions;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
@@ -36,12 +30,16 @@ import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.SelectionParameters;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterEntity;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Builder for {@link UserFilter}
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 @Service
 @Scope("prototype")
@@ -88,7 +86,7 @@ public class UserFilterBuilder extends ShareableEntityBuilder<UserFilter> {
 
 	/**
 	 * Convert Set<{@link UserFilterEntity}> to {@link Filter} object
-	 * 
+	 *
 	 * @param filterEntities
 	 * @return
 	 */
@@ -101,7 +99,8 @@ public class UserFilterBuilder extends ShareableEntityBuilder<UserFilter> {
 		for (UserFilterEntity filterEntity : filterEntities) {
 			Condition conditionObject = Condition.findByMarker(filterEntity.getCondition()).orElse(null);
 			FilterCondition filterCondition = new FilterCondition(conditionObject, Condition.isNegative(filterEntity.getCondition()),
-					filterEntity.getValue().trim(), filterEntity.getFilteringField().trim());
+					filterEntity.getValue().trim(), filterEntity.getFilteringField().trim()
+			);
 			filterConditions.add(filterCondition);
 		}
 		return new Filter(ObjectType.getTypeByName(objectType), filterConditions);

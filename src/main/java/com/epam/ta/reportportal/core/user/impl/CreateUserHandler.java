@@ -116,11 +116,11 @@ public class CreateUserHandler implements ICreateUserHandler {
 	public CreateUserRS createUserByAdmin(CreateUserRQFull request, String userName, String basicUrl) {
 		String newUsername = EntityUtils.normalizeId(request.getLogin());
 
-		expect(userRepository.exists(newUsername), equalTo(false))
-				.verify(USER_ALREADY_EXISTS, formattedSupplier("login='{}'", newUsername));
+		expect(userRepository.exists(newUsername), equalTo(false)).verify(
+				USER_ALREADY_EXISTS, formattedSupplier("login='{}'", newUsername));
 
-		expect(newUsername, Predicates.SPECIAL_CHARS_ONLY.negate())
-				.verify(ErrorType.INCORRECT_REQUEST, formattedSupplier("Username '{}' consists only of special characters", newUsername));
+		expect(newUsername, Predicates.SPECIAL_CHARS_ONLY.negate()).verify(
+				ErrorType.INCORRECT_REQUEST, formattedSupplier("Username '{}' consists only of special characters", newUsername));
 
 		String projectName = EntityUtils.normalizeId(request.getDefaultProject());
 		Project defaultProject = projectRepository.findOne(projectName);
@@ -145,8 +145,8 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 		List<UserConfig> projectUsers = defaultProject.getUsers();
 		//noinspection ConstantConditions
-		projectUsers
-				.add(UserConfig.newOne().withProjectRole(projectRole.get()).withProposedRole(projectRole.get()).withLogin(user.getId()));
+		projectUsers.add(
+				UserConfig.newOne().withProjectRole(projectRole.get()).withProposedRole(projectRole.get()).withLogin(user.getId()));
 		defaultProject.setUsers(projectUsers);
 
 		CreateUserRS response = new CreateUserRS();
@@ -164,7 +164,8 @@ public class CreateUserHandler implements ICreateUserHandler {
 			}
 
 			safe(() -> emailServiceFactory.getDefaultEmailService(true).sendCreateUserConfirmationEmail(request, basicUrl),
-					e -> response.setWarning(e.getMessage()));
+					e -> response.setWarning(e.getMessage())
+			);
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {
@@ -217,10 +218,12 @@ public class CreateUserHandler implements ICreateUserHandler {
 			emailLink.append("/ui/#registration?uuid=");
 			emailLink.append(bid.getId());
 			emailService.sendCreateUserConfirmationEmail("User registration confirmation", new String[] { bid.getEmail() },
-					emailLink.toString());
+					emailLink.toString()
+			);
 		} catch (Exception e) {
 			fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
-					formattedSupplier("Unable to send email for bid '{}'." + e.getMessage(), bid.getId()));
+					formattedSupplier("Unable to send email for bid '{}'." + e.getMessage(), bid.getId())
+			);
 		}
 
 		CreateUserBidRS response = new CreateUserBidRS();
@@ -242,7 +245,8 @@ public class CreateUserHandler implements ICreateUserHandler {
 		expect(user, isNull()).verify(USER_ALREADY_EXISTS, formattedSupplier("login='{}'", request.getLogin()));
 
 		expect(request.getLogin(), Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
-				formattedSupplier("Username '{}' consists only of special characters", request.getLogin()));
+				formattedSupplier("Username '{}' consists only of special characters", request.getLogin())
+		);
 
 		// synchronized (this)
 		Project defaultProject = projectRepository.findOne(bid.getDefaultProject());
@@ -310,9 +314,9 @@ public class CreateUserHandler implements ICreateUserHandler {
 		restorePasswordBidRepository.save(bid);
 		try {
 			// TODO use default 'from' param or project specified?
-			emailService
-					.sendRestorePasswordEmail("Password recovery", new String[] { email }, baseUrl + "#login?reset=" + bid.getId(),
-							user.getLogin());
+			emailService.sendRestorePasswordEmail("Password recovery", new String[] { email }, baseUrl + "#login?reset=" + bid.getId(),
+					user.getLogin()
+			);
 		} catch (Exception e) {
 			fail().withError(FORBIDDEN_OPERATION, formattedSupplier("Unable to send email for bid '{}'.", bid.getId()));
 		}

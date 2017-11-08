@@ -1,55 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
-	   xmlns:aop="http://www.springframework.org/schema/aop" xmlns:util="http://www.springframework.org/schema/util"
-	   xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:p="http://www.springframework.org/schema/p"
-	   xmlns:c="http://www.springframework.org/schema/c"
-	   xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
-		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd		
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<!--<import resource="classpath:spring-properties-context.xml" />-->
-	<!--<import resource="classpath:spring-dao-context.xml" />-->
+    <!--<import resource="classpath:spring-properties-context.xml" />-->
+    <!--<import resource="classpath:spring-dao-context.xml" />-->
 
-	<context:component-scan base-package="com.epam.ta.reportportal.core.configs" />
-	<!-- Import general configs before initialization, and components scanning -->
-	<import resource="classpath:spring-additional-context.xml" />
+    <context:component-scan base-package="com.epam.ta.reportportal.core.configs"/>
+    <!-- Import general configs before initialization, and components scanning -->
+    <import resource="classpath:spring-additional-context.xml"/>
 
-	<!--<import resource="classpath:spring-security-context.xml" />-->
-
-
-	<!-- Component scan for REST-related stuff -->
-	<context:component-scan base-package="com.epam.ta.reportportal.ws" />
-
-	<!-- Component scan for core business logic -->
-	<!--<context:component-scan base-package="com.epam.ta.reportportal.core" />-->
-
-	<util:list id="messageConverters">
-		<ref bean="jsonConverter" />
-	</util:list>
-
-	<bean id="jacksonRequestValidator" class="com.epam.ta.reportportal.ws.validation.JaskonRequiredPropertiesValidator" />
+    <!--<import resource="classpath:spring-security-context.xml" />-->
 
 
-	<bean class="com.epam.ta.reportportal.database.search.CriteriaMapFactory">
-		<constructor-arg name="basePackage"
-						 value="com.epam.ta.reportportal.database.entity" />
-	</bean>
+    <!-- Component scan for REST-related stuff -->
+    <context:component-scan base-package="com.epam.ta.reportportal.ws"/>
 
-	<bean id="contentTypeResolver" class="com.epam.reportportal.commons.TikaContentTypeResolver" />
+    <!-- Component scan for core business logic -->
+    <!--<context:component-scan base-package="com.epam.ta.reportportal.core" />-->
 
-	<bean id="thumbnailatorImpl" class="com.epam.reportportal.commons.ThumbnailatorImpl" />
+    <util:list id="messageConverters">
+        <ref bean="jsonConverter"/>
+    </util:list>
 
-	<bean id="widgetRQCustomValidator"
-		  class="com.epam.ta.reportportal.ws.validation.WidgetRQCustomValidator" />
+    <bean id="jacksonRequestValidator" class="com.epam.ta.reportportal.ws.validation.JaskonRequiredPropertiesValidator"/>
 
-	<bean id="validator"
-		  class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean" />
 
-	<!--<bean class="com.epam.ta.reportportal.aop.logging.ActivityLoggingAspect" factory-method="aspectOf"/>-->
-	<!--<bean class="com.epam.ta.reportportal.aop.logging.ProjectActivitiesAspect" factory-method="aspectOf"/>-->
-	<!--<bean class="com.epam.ta.reportportal.aop.logging.ExternalSystemActivitiesAspect" factory-method="aspectOf"/>-->
-	<!--<bean class="com.epam.ta.reportportal.aop.dbops.LaunchRelatedAspect" factory-method="aspectOf" />-->
+    <bean class="com.epam.ta.reportportal.database.search.CriteriaMapFactory">
+        <constructor-arg name="basePackage"
+                         value="com.epam.ta.reportportal.database.entity"/>
+    </bean>
+
+    <bean id="contentTypeResolver" class="com.epam.reportportal.commons.TikaContentTypeResolver"/>
+
+    <bean id="thumbnailatorImpl" class="com.epam.reportportal.commons.ThumbnailatorImpl"/>
+
+    <bean id="widgetRQCustomValidator"
+          class="com.epam.ta.reportportal.ws.validation.WidgetRQCustomValidator"/>
+
+    <bean id="validator"
+          class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"/>
+
+    <!--<bean class="com.epam.ta.reportportal.aop.logging.ActivityLoggingAspect" factory-method="aspectOf"/>-->
+    <!--<bean class="com.epam.ta.reportportal.aop.logging.ProjectActivitiesAspect" factory-method="aspectOf"/>-->
+    <!--<bean class="com.epam.ta.reportportal.aop.logging.ExternalSystemActivitiesAspect" factory-method="aspectOf"/>-->
+    <!--<bean class="com.epam.ta.reportportal.aop.dbops.LaunchRelatedAspect" factory-method="aspectOf" />-->
 </beans>

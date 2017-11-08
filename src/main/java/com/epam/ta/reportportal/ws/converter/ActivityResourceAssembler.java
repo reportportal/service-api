@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.database.entity.item.Activity;
@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
 /**
  * Resource assembler for the
  * {@link com.epam.ta.reportportal.database.entity.item.Activity} db entity
- * 
+ *
  * @author Dzmitry_Kavalets
  * @author Pavel_Bortnik
  */

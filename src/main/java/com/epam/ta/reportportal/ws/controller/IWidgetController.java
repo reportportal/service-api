@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.database.entity.user.UserRole;
@@ -35,17 +35,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 
  * Report Portal WS Interface. Widget controller
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 public interface IWidgetController {
 
 	/**
 	 * Create new widget
-	 * 
+	 *
 	 * @param createWidgetRQ
 	 * @param projectName
 	 * @param principal
@@ -56,7 +54,7 @@ public interface IWidgetController {
 
 	/**
 	 * Get widget by id
-	 * 
+	 *
 	 * @param widgetId
 	 * @param principal
 	 * @param projectName
@@ -76,11 +74,10 @@ public interface IWidgetController {
 
 	/**
 	 * Update widget with specified id
-	 * 
+	 *
 	 * @param projectName
 	 * @param principal
-	 * @param widgetId
-	 *            , updateRQ
+	 * @param widgetId    , updateRQ
 	 * @param userRole
 	 * @return {@link OperationCompletionRS}
 	 * @throws ReportPortalException
@@ -89,16 +86,16 @@ public interface IWidgetController {
 
 	/**
 	 * Get shared widgets names
-	 * 
+	 *
 	 * @param principal
 	 * @param projectName
 	 * @return
 	 */
 	Map<String, SharedEntity> getSharedWidgets(Principal principal, String projectName);
-	
+
 	/**
 	 * Get list of shared widgets per project
-	 * 
+	 *
 	 * @param principal
 	 * @param projectName
 	 * @return
@@ -107,7 +104,7 @@ public interface IWidgetController {
 
 	/**
 	 * Get list of widget names
-	 * 
+	 *
 	 * @param project
 	 * @param principal
 	 * @return

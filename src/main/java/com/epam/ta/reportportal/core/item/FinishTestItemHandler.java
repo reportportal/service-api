@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.item;
 
@@ -27,22 +27,18 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 /**
  * Handler for finish test item operation
- * 
+ *
  * @author Andrei Varabyeu
  * @author Aliaksei Makayed
- * 
  */
 public interface FinishTestItemHandler {
 
 	/**
 	 * Updates {@link TestItem} instance
-	 * 
-	 * @param testItemId
-	 *            Test item ID
-	 * @param finishExecutionRQ
-	 *            Request with finish Test Item data
-	 * @param username
-	 *            RQ principal
+	 *
+	 * @param testItemId        Test item ID
+	 * @param finishExecutionRQ Request with finish Test Item data
+	 * @param username          RQ principal
 	 * @return OperationCompletionRS
 	 */
 	OperationCompletionRS finishTestItem(String testItemId, FinishTestItemRQ finishExecutionRQ, String username);

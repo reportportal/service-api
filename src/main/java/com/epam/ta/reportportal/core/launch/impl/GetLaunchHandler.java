@@ -133,11 +133,8 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 		validateModeConditions(filter);
 		addLaunchCommonCriteria(DEFAULT, filter, projectName);
 		Page<LaunchResource> resources = launchRepository.findLatestLaunches(filter, pageable).map(launchResourceAssembler::toResource);
-		return new com.epam.ta.reportportal.ws.model.Page<>(resources.getContent(),
-				resources.getSize(),
-				resources.getNumber() + 1,
-				resources.getTotalElements(),
-				resources.getTotalPages()
+		return new com.epam.ta.reportportal.ws.model.Page<>(resources.getContent(), resources.getSize(), resources.getNumber() + 1,
+				resources.getTotalElements(), resources.getTotalPages()
 		);
 	}
 

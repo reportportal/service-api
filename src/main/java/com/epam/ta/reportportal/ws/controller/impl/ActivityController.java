@@ -56,12 +56,12 @@ public class ActivityController implements IActivityController {
 	@Autowired
 	private IActivityHandler activityHandler;
 
-	@RequestMapping(value = {"", "/"}, method = RequestMethod.GET)
+	@RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
 	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiOperation("Get activities for project")
-	public Page<ActivityResource> getActivities(@PathVariable String projectName,
-			@FilterFor(Activity.class) Filter filter, @SortFor(Activity.class) Pageable pageable) {
+	public Page<ActivityResource> getActivities(@PathVariable String projectName, @FilterFor(Activity.class) Filter filter,
+			@SortFor(Activity.class) Pageable pageable) {
 		return activityHandler.getItemActivities(EntityUtils.normalizeId(projectName), filter, pageable);
 	}
 

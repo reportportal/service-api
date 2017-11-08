@@ -37,15 +37,15 @@ import org.springframework.context.annotation.Scope;
 @Configuration
 public class XunitImportConfiguration {
 
-    @Bean(name = "junitParseJob")
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public XunitParseJob junitParseJob() {
-        return new XunitParseJob();
-    }
+	@Bean(name = "junitParseJob")
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public XunitParseJob junitParseJob() {
+		return new XunitParseJob();
+	}
 
-    @Bean(name = "junitImportHandler")
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public XunitImportHandler junitImportHandler() {
-        return new XunitImportHandler();
-    }
+	@Bean(name = "junitImportHandler")
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public XunitImportHandler junitImportHandler() {
+		return new XunitImportHandler();
+	}
 }

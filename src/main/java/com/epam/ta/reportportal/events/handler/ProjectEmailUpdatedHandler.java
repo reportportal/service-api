@@ -39,7 +39,6 @@ import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.P
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.EMPTY_FIELD;
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.createHistoryField;
 
-
 /**
  * Handles {@link com.epam.ta.reportportal.events.ProjectUpdatedEvent}
  *
@@ -67,14 +66,13 @@ public class ProjectEmailUpdatedHandler {
 			processEmailConfiguration(history, event.getBefore(), configuration);
 		}
 		if (!history.isEmpty()) {
-			Activity activityLog = new ActivityBuilder()
-                    .addProjectRef(event.getBefore().getName())
-                    .addObjectType(PROJECT)
-                    .addObjectName(event.getBefore().getName())
-                    .addActionType(UPDATE_PROJECT)
-                    .addUserRef(event.getUpdatedBy())
-                    .addHistory(history)
-                    .get();
+			Activity activityLog = new ActivityBuilder().addProjectRef(event.getBefore().getName())
+					.addObjectType(PROJECT)
+					.addObjectName(event.getBefore().getName())
+					.addActionType(UPDATE_PROJECT)
+					.addUserRef(event.getUpdatedBy())
+					.addHistory(history)
+					.get();
 			activityRepository.save(activityLog);
 		}
 	}
@@ -92,20 +90,21 @@ public class ProjectEmailUpdatedHandler {
 		/*
 		 * Request contains EmailCases block and its not equal for stored project one
 		 */
-		ProjectEmailConfigDTO builtProjectEmailConfig = EmailConfigConverters
-				.TO_RESOURCE.apply(project.getConfiguration().getEmailConfig());
+		ProjectEmailConfigDTO builtProjectEmailConfig = EmailConfigConverters.TO_RESOURCE.apply(
+				project.getConfiguration().getEmailConfig());
 
-		boolean isEmailCasesChanged = null != configuration.getEmailCases() && !configuration.getEmailCases()
-				.equals(builtProjectEmailConfig.getEmailCases());
+		boolean isEmailCasesChanged =
+				null != configuration.getEmailCases() && !configuration.getEmailCases().equals(builtProjectEmailConfig.getEmailCases());
 
 		if (isEmailOptionChanged) {
 			Activity.FieldValues fieldValues = createHistoryField(EMAIL_STATUS,
 					String.valueOf(project.getConfiguration().getEmailConfig().getEmailEnabled()),
-					String.valueOf(configuration.getEmailEnabled()));
+					String.valueOf(configuration.getEmailEnabled())
+			);
 			history.add(fieldValues);
 		} else {
 			if (isEmailCasesChanged) {
-			    history.add(createHistoryField(EMAIL_CASES, EMPTY_FIELD, EMPTY_FIELD));
+				history.add(createHistoryField(EMAIL_CASES, EMPTY_FIELD, EMPTY_FIELD));
 			}
 			if (isEmailFromChanged) {
 				Activity.FieldValues fieldValues = createHistoryField(

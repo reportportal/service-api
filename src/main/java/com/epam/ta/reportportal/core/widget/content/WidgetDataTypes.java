@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.core.widget.content;
 
 import javax.annotation.Nullable;
@@ -48,11 +48,11 @@ public enum WidgetDataTypes {
 	LAUNCHES_COMPARISON_CHART("launches_comparison_chart"),
 	LAUNCHES_DURATION_CHART("launches_duration_chart"),
 	LAUNCHES_TABLE("launches_table"),
-    CLEAN_WIDGET("clean_widget");
+	CLEAN_WIDGET("clean_widget");
 
 	private String type;
 
-	WidgetDataTypes(String type){
+	WidgetDataTypes(String type) {
 		this.type = type;
 	}
 
@@ -65,7 +65,6 @@ public enum WidgetDataTypes {
 	}
 
 	public static Optional<WidgetDataTypes> findByName(@Nullable String input) {
-		return Arrays.stream(WidgetDataTypes.values()).filter(widgetDataType -> widgetDataType.getType()
-				.equalsIgnoreCase(input)).findAny();
+		return Arrays.stream(WidgetDataTypes.values()).filter(widgetDataType -> widgetDataType.getType().equalsIgnoreCase(input)).findAny();
 	}
 }

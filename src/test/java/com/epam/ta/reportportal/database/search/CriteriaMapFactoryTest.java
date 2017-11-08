@@ -17,28 +17,26 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.database.search;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import org.junit.Assert;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import org.junit.Assert;
-import org.junit.Test;
-
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 /**
  * Tests for CriteriaMap Factory
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class CriteriaMapFactoryTest {
 

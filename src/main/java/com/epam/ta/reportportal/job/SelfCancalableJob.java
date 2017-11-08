@@ -17,14 +17,14 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.job;
 
-import java.util.Date;
-
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
+
+import java.util.Date;
 
 /**
  * Job contains run method and trigger. The main idea to provide possibility to
@@ -32,9 +32,8 @@ import org.springframework.scheduling.TriggerContext;
  * {@link SelfCancalableJob#oneMoreTime(boolean)} method and this way cancel
  * next execution. In case if we need job to keep executed, we do not call
  * anything, next execution time calculation delegated to provided trigger
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public abstract class SelfCancalableJob implements Runnable, Trigger {
 

@@ -113,13 +113,17 @@ public class DeleteProjectSettingsHandler implements IDeleteProjectSettingsHandl
 
 		/* Any other BRs? */
 		if (Sets.newHashSet(AUTOMATION_BUG.getLocator(), PRODUCT_BUG.getLocator(), SYSTEM_ISSUE.getLocator(), NO_DEFECT.getLocator(),
-				TO_INVESTIGATE.getLocator(), IssueCounter.GROUP_TOTAL).contains(type.getLocator())) {
+				TO_INVESTIGATE.getLocator(), IssueCounter.GROUP_TOTAL
+		).contains(type.getLocator())) {
 
 			fail().withError(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
 		}
 
-		project.getConfiguration().getSubTypes().forEach((k, v) -> project.getConfiguration().getSubTypes().put(k,
-				v.stream().filter(one -> !one.getLocator().equals(id)).collect(toList())));
+		project.getConfiguration()
+				.getSubTypes()
+				.forEach((k, v) -> project.getConfiguration()
+						.getSubTypes()
+						.put(k, v.stream().filter(one -> !one.getLocator().equals(id)).collect(toList())));
 
 		List<String> ids = launchRepository.findLaunchesWithSpecificStat(projectName, type).stream().map(Launch::getId).collect(toList());
 
@@ -155,14 +159,17 @@ public class DeleteProjectSettingsHandler implements IDeleteProjectSettingsHandl
 
 		try {
 			projectRepository.save(project);
-			widgetRepository.findByProject(projectName).stream().filter(it -> {
-				String widgetType = it.getContentOptions().getType();
-				return widgetType.equals(LINE_CHART.getType()) || widgetType.equals(COLUMN_CHART.getType())
-						|| widgetType.equals(LAUNCHES_TABLE.getType()) || widgetType.equals(TABLE.getType())
-						|| widgetType.equals(PIE_CHART.getType()) || widgetType.equals(STATISTICS_PANEL.getType())
-						|| widgetType.equals(TRENDS_CHART.getType());
-			}).forEach(it -> widgetRepository.removeContentField(it.getId(),
-					"statistics$defects$" + type.getTypeRef().toLowerCase() + "$" + id));
+			widgetRepository.findByProject(projectName)
+					.stream()
+					.filter(it -> {
+						String widgetType = it.getContentOptions().getType();
+						return widgetType.equals(LINE_CHART.getType()) || widgetType.equals(COLUMN_CHART.getType()) || widgetType.equals(
+								LAUNCHES_TABLE.getType()) || widgetType.equals(TABLE.getType()) || widgetType.equals(PIE_CHART.getType())
+								|| widgetType.equals(STATISTICS_PANEL.getType()) || widgetType.equals(TRENDS_CHART.getType());
+					})
+					.forEach(it -> widgetRepository.removeContentField(it.getId(),
+							"statistics$defects$" + type.getTypeRef().toLowerCase() + "$" + id
+					));
 		} catch (Exception e) {
 			throw new ReportPortalException("Error during project settings issue sub-type update saving.", e);
 		}

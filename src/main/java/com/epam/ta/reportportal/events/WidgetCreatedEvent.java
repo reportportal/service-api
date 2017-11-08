@@ -28,31 +28,31 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
  */
 public class WidgetCreatedEvent {
 
-    private final WidgetRQ widgetRQ;
-    private final String createdBy;
-    private final String projectRef;
-    private final String widgetId;
+	private final WidgetRQ widgetRQ;
+	private final String createdBy;
+	private final String projectRef;
+	private final String widgetId;
 
-    public WidgetCreatedEvent(WidgetRQ widgetRQ, String createdBy, String projectRef, String widgetId) {
-        this.widgetRQ = widgetRQ;
-        this.createdBy = createdBy;
-        this.projectRef = projectRef;
-        this.widgetId = widgetId;
-    }
+	public WidgetCreatedEvent(WidgetRQ widgetRQ, String createdBy, String projectRef, String widgetId) {
+		this.widgetRQ = widgetRQ;
+		this.createdBy = createdBy;
+		this.projectRef = projectRef;
+		this.widgetId = widgetId;
+	}
 
-    public String getWidgetId() {
-        return widgetId;
-    }
+	public String getWidgetId() {
+		return widgetId;
+	}
 
-    public WidgetRQ getWidgetRQ() {
-        return widgetRQ;
-    }
+	public WidgetRQ getWidgetRQ() {
+		return widgetRQ;
+	}
 
-    public String getCreatedBy() {
-        return createdBy;
-    }
+	public String getCreatedBy() {
+		return createdBy;
+	}
 
-    public String getProjectRef() {
-        return projectRef;
-    }
+	public String getProjectRef() {
+		return projectRef;
+	}
 }

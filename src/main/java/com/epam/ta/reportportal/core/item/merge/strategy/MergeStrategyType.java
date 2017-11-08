@@ -21,18 +21,15 @@
 
 package com.epam.ta.reportportal.core.item.merge.strategy;
 
-
 import java.util.Arrays;
 
 public enum MergeStrategyType {
-    SUITE,
-    TEST,
-    DEEP,
-    BASIC;
+	SUITE,
+	TEST,
+	DEEP,
+	BASIC;
 
-    public static MergeStrategyType fromValue(String value) {
-        return Arrays.stream(MergeStrategyType.values())
-                .filter(type -> type.name().equalsIgnoreCase(value))
-                .findFirst().orElse(null);
-    }
+	public static MergeStrategyType fromValue(String value) {
+		return Arrays.stream(MergeStrategyType.values()).filter(type -> type.name().equalsIgnoreCase(value)).findFirst().orElse(null);
+	}
 }

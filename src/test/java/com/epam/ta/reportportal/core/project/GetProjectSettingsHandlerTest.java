@@ -20,19 +20,18 @@
  */
 package com.epam.ta.reportportal.core.project;
 
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
 import com.epam.ta.reportportal.core.project.settings.impl.GetProjectSettingsHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.ProjectSettingsResourceAssembler;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class GetProjectSettingsHandlerTest {
 
@@ -45,7 +44,8 @@ public class GetProjectSettingsHandlerTest {
 		ProjectRepository settingsRepository = mock(ProjectRepository.class);
 		when(settingsRepository.findOne(notExists)).thenReturn(null);
 		GetProjectSettingsHandler settingsHandler = new GetProjectSettingsHandler(settingsRepository,
-				mock(ProjectSettingsResourceAssembler.class));
+				mock(ProjectSettingsResourceAssembler.class)
+		);
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage(formattedSupplier(PROJECT_NOT_FOUND.getDescription(), notExists).get());
 		settingsHandler.getProjectSettings(notExists);

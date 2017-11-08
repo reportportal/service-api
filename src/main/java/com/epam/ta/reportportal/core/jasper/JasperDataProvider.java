@@ -56,7 +56,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Initial {@see JRDataSource} provider class for RP Jasper Reports
  *
  * @author Andrei_Ramanchuk
- *
+ * <p>
  * TODO Refactor recursive function
  */
 @Service("jasperDataProvider")
@@ -78,8 +78,7 @@ public class JasperDataProvider {
 		if (ownedItems.size() > 0) {
 
 			/* Grouping test items by path field */
-			Map<List<String>, List<TestItem>> grouped = ownedItems
-					.stream()
+			Map<List<String>, List<TestItem>> grouped = ownedItems.stream()
 					.map(JasperDataProvider::adjustName)
 					.collect(Collectors.groupingBy(TestItem::getPath));
 
@@ -120,13 +119,15 @@ public class JasperDataProvider {
 			TestItem first = value.get(0);
 			if (!first.hasChilds()) {
 				value.stream().forEach(v -> {
-					if (!processing.contains(v))
+					if (!processing.contains(v)) {
 						processing.add(v);
+					}
 				});
 				c.remove(currentKey);
 			} else {
-				if (!processing.contains(first))
+				if (!processing.contains(first)) {
 					processing.add(first);
+				}
 				currentKey.add(first.getId());
 			}
 		}
@@ -146,8 +147,7 @@ public class JasperDataProvider {
 	/**
 	 * Add right shifting for child items depends on depth level
 	 *
-	 * @param input
-	 *            - target {@see TestItem}
+	 * @param input - target {@see TestItem}
 	 * @return TestItem - updated test item with shifted name
 	 */
 	private static TestItem adjustName(TestItem input) {

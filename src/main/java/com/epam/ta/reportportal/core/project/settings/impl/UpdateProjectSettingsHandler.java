@@ -36,20 +36,6 @@
  */
 package com.epam.ta.reportportal.core.project.settings.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.*;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.project.settings.IUpdateProjectSettingsHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
@@ -62,6 +48,19 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
 import com.google.common.collect.Sets;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Initial realization of
@@ -126,11 +125,14 @@ public class UpdateProjectSettingsHandler implements IUpdateProjectSettingsHandl
 
 		StatisticSubType exist = settings.getByLocator(one.getId());
 		expect(exist, notNull()).verify(ISSUE_TYPE_NOT_FOUND, one.getId());
-		expect(exist.getTypeRef().equals(expectedType.getValue()) || exist.getTypeRef().equals(IssueCounter.GROUP_TOTAL), equalTo(true))
-				.verify(FORBIDDEN_OPERATION, "You cannot change sub-type references to global type.");
+		expect(
+				exist.getTypeRef().equals(expectedType.getValue()) || exist.getTypeRef().equals(IssueCounter.GROUP_TOTAL),
+				equalTo(true)
+		).verify(FORBIDDEN_OPERATION, "You cannot change sub-type references to global type.");
 
 		if (Sets.newHashSet(AUTOMATION_BUG.getLocator(), PRODUCT_BUG.getLocator(), SYSTEM_ISSUE.getLocator(), NO_DEFECT.getLocator(),
-				TO_INVESTIGATE.getLocator(), IssueCounter.GROUP_TOTAL).contains(exist.getLocator())) {
+				TO_INVESTIGATE.getLocator(), IssueCounter.GROUP_TOTAL
+		).contains(exist.getLocator())) {
 
 			fail().withError(FORBIDDEN_OPERATION, "You cannot edit predefined global issue types.");
 		}

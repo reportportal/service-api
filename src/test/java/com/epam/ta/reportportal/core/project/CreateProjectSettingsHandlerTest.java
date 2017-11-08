@@ -20,17 +20,6 @@
  */
 package com.epam.ta.reportportal.core.project;
 
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.springframework.context.ApplicationEventPublisher;
-
 import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.core.project.settings.impl.CreateProjectSettingsHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
@@ -38,6 +27,16 @@ import com.epam.ta.reportportal.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.springframework.context.ApplicationEventPublisher;
+
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class CreateProjectSettingsHandlerTest {
 
@@ -53,7 +52,8 @@ public class CreateProjectSettingsHandlerTest {
 		when(projectRepository.findOne(project)).thenReturn(new Project());
 
 		projectSettingsHandler = new CreateProjectSettingsHandler(projectRepository, mock(WidgetRepository.class),
-				mock(ApplicationEventPublisher.class));
+				mock(ApplicationEventPublisher.class)
+		);
 
 	}
 

@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.auth.permissions;
 
 import org.springframework.security.core.Authentication;
@@ -29,15 +29,14 @@ import org.springframework.security.core.Authentication;
  * {@link com.epam.ta.reportportal.auth.permissions.LookupPermission} annotation
  * to be assigned to some permission name. Without this permission will be
  * ignored by {@link org.springframework.security.access.PermissionEvaluator}
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public interface Permission {
 
 	/**
 	 * Is action allowed for user with {@link Authentication} for target object
-	 * 
+	 *
 	 * @param authentication
 	 * @param targetDomainObject
 	 * @return

@@ -94,9 +94,10 @@ public class UserControllerTest extends BaseMvcTest {
 		this.mvcMock.perform(
 				post("/user").principal(authentication()).contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
 				.andExpect(status().isCreated());
-		Assert.assertTrue(projectRepository.findOne("project1").getUsers().stream()
-				.anyMatch(config -> config.getLogin().equals("testlogin")));
-		Assert.assertTrue("Personal project isn't created", projectRepository.exists("testlogin" + PersonalProjectService.PERSONAL_PROJECT_POSTFIX));
+		Assert.assertTrue(
+				projectRepository.findOne("project1").getUsers().stream().anyMatch(config -> config.getLogin().equals("testlogin")));
+		Assert.assertTrue(
+				"Personal project isn't created", projectRepository.exists("testlogin" + PersonalProjectService.PERSONAL_PROJECT_POSTFIX));
 	}
 
 	@Test
@@ -108,7 +109,8 @@ public class UserControllerTest extends BaseMvcTest {
 		rq.setRole("MEMBER");
 		MvcResult mvcResult = mvcMock.perform(
 				post("/user/bid").principal(authentication()).contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
-				.andExpect(status().isCreated()).andReturn();
+				.andExpect(status().isCreated())
+				.andReturn();
 		CreateUserBidRS createUserBidRS = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), CreateUserBidRS.class);
 		Assert.assertNotNull(createUserBidRS.getBackLink());
 		Assert.assertNotNull(createUserBidRS.getBid());
@@ -124,8 +126,8 @@ public class UserControllerTest extends BaseMvcTest {
 		rq.setEmail("test1@test.com");
 		mvcMock.perform(post("/user/registration?uuid=5c4b357a-923e-4b5b-8f90-ae95361550ae").contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated());
-		final List<Activity> activityList = activityRepository
-				.findByFilter(new Filter(Activity.class, Condition.EQUALS, false, "testlogin1", "userRef"));
+		final List<Activity> activityList = activityRepository.findByFilter(
+				new Filter(Activity.class, Condition.EQUALS, false, "testlogin1", "userRef"));
 		Assert.assertFalse(activityList.isEmpty());
 		Assert.assertEquals(1, activityList.size());
 		Assert.assertEquals(ActivityEventType.CREATE_USER, activityList.get(0).getActionType());
@@ -159,7 +161,8 @@ public class UserControllerTest extends BaseMvcTest {
 		EditUserRQ editUserRQ = new EditUserRQ();
 		editUserRQ.setEmail("user2email@epam.com");
 		editUserRQ.setFullName("1");
-		this.mvcMock.perform(put("/user/user1").principal(authentication()).contentType(APPLICATION_JSON)
+		this.mvcMock.perform(put("/user/user1").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().is(400));
 	}
 
@@ -168,7 +171,8 @@ public class UserControllerTest extends BaseMvcTest {
 		EditUserRQ editUserRQ = new EditUserRQ();
 		editUserRQ.setEmail("user2email@epam.com");
 		editUserRQ.setFullName(RandomStringUtils.randomAlphabetic(257));
-		this.mvcMock.perform(put("/user/user1").principal(authentication()).contentType(APPLICATION_JSON)
+		this.mvcMock.perform(put("/user/user1").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().is(400));
 	}
 
@@ -177,7 +181,8 @@ public class UserControllerTest extends BaseMvcTest {
 		EditUserRQ editUserRQ = new EditUserRQ();
 		editUserRQ.setFullName("Vasya Pupkin");
 		editUserRQ.setEmail("user2email@epam.com");
-		this.mvcMock.perform(put("/user/user1").principal(authentication()).contentType(APPLICATION_JSON)
+		this.mvcMock.perform(put("/user/user1").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().is(409));
 	}
 
@@ -186,7 +191,8 @@ public class UserControllerTest extends BaseMvcTest {
 		EditUserRQ editUserRQ = new EditUserRQ();
 		editUserRQ.setFullName("Vasya Pupkin");
 		editUserRQ.setEmail("user1uniquemail@epam.com");
-		this.mvcMock.perform(put("/user/user1").principal(authentication()).contentType(APPLICATION_JSON)
+		this.mvcMock.perform(put("/user/user1").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().is(200));
 	}
 
@@ -217,7 +223,8 @@ public class UserControllerTest extends BaseMvcTest {
 		ChangePasswordRQ rq = new ChangePasswordRQ();
 		rq.setOldPassword("password");
 		rq.setNewPassword("12345");
-		this.mvcMock.perform(post("/user/password/change").principal(authentication()).content(objectMapper.writeValueAsBytes(rq))
+		this.mvcMock.perform(post("/user/password/change").principal(authentication())
+				.content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)).andExpect(status().is(400));
 	}
 
@@ -226,7 +233,8 @@ public class UserControllerTest extends BaseMvcTest {
 		ChangePasswordRQ rq = new ChangePasswordRQ();
 		rq.setOldPassword("1q2w3e");
 		rq.setNewPassword("12345");
-		this.mvcMock.perform(post("/user/password/change").principal(authentication()).content(objectMapper.writeValueAsBytes(rq))
+		this.mvcMock.perform(post("/user/password/change").principal(authentication())
+				.content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)).andExpect(status().is(200));
 	}
 
@@ -235,7 +243,8 @@ public class UserControllerTest extends BaseMvcTest {
 		ChangePasswordRQ rq = new ChangePasswordRQ();
 		rq.setOldPassword("1q2w3e");
 		rq.setNewPassword(RandomStringUtils.randomAlphabetic(ValidationConstraints.MAX_PASSWORD_LENGTH + 1));
-		this.mvcMock.perform(post("/user/password/change").principal(authentication()).content(objectMapper.writeValueAsBytes(rq))
+		this.mvcMock.perform(post("/user/password/change").principal(authentication())
+				.content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)).andExpect(status().is(400));
 	}
 
@@ -244,7 +253,8 @@ public class UserControllerTest extends BaseMvcTest {
 		ChangePasswordRQ rq = new ChangePasswordRQ();
 		rq.setOldPassword("1q2w3e");
 		rq.setNewPassword(RandomStringUtils.randomAlphabetic(ValidationConstraints.MIN_PASSWORD_LENGTH - 1));
-		this.mvcMock.perform(post("/user/password/change").principal(authentication()).content(objectMapper.writeValueAsBytes(rq))
+		this.mvcMock.perform(post("/user/password/change").principal(authentication())
+				.content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)).andExpect(status().is(400));
 	}
 
@@ -252,7 +262,8 @@ public class UserControllerTest extends BaseMvcTest {
 	public void changeFullNameUpsaUser() throws Exception {
 		EditUserRQ editUserRQ = new EditUserRQ();
 		editUserRQ.setFullName("Vasya Pupkin");
-		this.mvcMock.perform(put("/user/upsa_user").principal(authentication()).contentType(APPLICATION_JSON)
+		this.mvcMock.perform(put("/user/upsa_user").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isForbidden());
 	}
 
@@ -260,7 +271,8 @@ public class UserControllerTest extends BaseMvcTest {
 	public void changeEmailUpsaUser() throws Exception {
 		EditUserRQ editUserRQ = new EditUserRQ();
 		editUserRQ.setEmail("vasya.pupkin@gmail.com");
-		this.mvcMock.perform(put("/user/upsa_user").principal(authentication()).contentType(APPLICATION_JSON)
+		this.mvcMock.perform(put("/user/upsa_user").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isForbidden());
 	}
 
@@ -269,7 +281,8 @@ public class UserControllerTest extends BaseMvcTest {
 	public void restorePassword() throws Exception {
 		final RestorePasswordRQ restorePasswordRQ = new RestorePasswordRQ();
 		restorePasswordRQ.setEmail("user1email@epam.com");
-		this.mvcMock.perform(post("/user/password/restore").principal(authentication()).contentType(APPLICATION_JSON)
+		this.mvcMock.perform(post("/user/password/restore").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(restorePasswordRQ))).andExpect(status().is(200));
 	}
 
@@ -278,7 +291,8 @@ public class UserControllerTest extends BaseMvcTest {
 		final ResetPasswordRQ resetPasswordRQ = new ResetPasswordRQ();
 		resetPasswordRQ.setPassword("password");
 		resetPasswordRQ.setUuid("2ae88031-d4aa-40a8-9055-cd9d2551cd72");
-		this.mvcMock.perform(post("/user/password/reset").principal(authentication()).contentType(APPLICATION_JSON)
+		this.mvcMock.perform(post("/user/password/reset").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(resetPasswordRQ))).andExpect(status().is(200));
 	}
 
@@ -291,7 +305,8 @@ public class UserControllerTest extends BaseMvcTest {
 
 	@Test
 	public void searchUsersPathVariableWithDot() throws Exception {
-		mvcMock.perform(get("/user/search/.com").principal(authentication()).contentType(APPLICATION_JSON)).andExpect(status().is(200))
+		mvcMock.perform(get("/user/search/.com").principal(authentication()).contentType(APPLICATION_JSON))
+				.andExpect(status().is(200))
 				.andExpect(jsonPath("$.page.totalElements").value(5));
 	}
 

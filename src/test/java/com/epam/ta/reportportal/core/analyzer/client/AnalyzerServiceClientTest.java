@@ -101,8 +101,7 @@ public class AnalyzerServiceClientTest {
 		IndexRs index = new IndexRs();
 		index.setErrors(false);
 
-		when(restTemplate.postForEntity(SERVICE_URL + INDEX_PATH, rq , IndexRs.class)).thenReturn(
-				new ResponseEntity(index, HttpStatus.OK));
+		when(restTemplate.postForEntity(SERVICE_URL + INDEX_PATH, rq, IndexRs.class)).thenReturn(new ResponseEntity(index, HttpStatus.OK));
 
 		List<IndexRs> actualRs = client.index(rq);
 		Assert.assertSame(index.isErrors(), actualRs.get(0).isErrors());

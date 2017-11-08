@@ -36,19 +36,20 @@ import java.util.stream.Collectors;
 @Component
 public class InfoContributorComposite implements InfoContributor {
 
-    private static final String EXTENSIONS_KEY = "extensions";
+	private static final String EXTENSIONS_KEY = "extensions";
 
-    private final List<ExtensionContributor> infoContributors;
+	private final List<ExtensionContributor> infoContributors;
 
-    @Autowired
-    public InfoContributorComposite(List<ExtensionContributor> infoContributors) {
-        this.infoContributors = infoContributors;
-    }
+	@Autowired
+	public InfoContributorComposite(List<ExtensionContributor> infoContributors) {
+		this.infoContributors = infoContributors;
+	}
 
-    @Override
-    public void contribute(Info.Builder builder) {
-        builder.withDetail(EXTENSIONS_KEY, infoContributors.stream()
-                .map(ExtensionContributor::contribute).flatMap(map -> map.entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-    }
+	@Override
+	public void contribute(Info.Builder builder) {
+		builder.withDetail(EXTENSIONS_KEY, infoContributors.stream()
+				.map(ExtensionContributor::contribute)
+				.flatMap(map -> map.entrySet().stream())
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+	}
 }

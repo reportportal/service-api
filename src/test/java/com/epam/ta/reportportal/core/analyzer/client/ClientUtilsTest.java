@@ -54,6 +54,7 @@ public class ClientUtilsTest {
 		Assert.assertEquals(Integer.MAX_VALUE, ClientUtils.SERVICE_PRIORITY.applyAsInt(mock));
 		Assert.assertEquals(false, ClientUtils.DOES_NEED_INDEX.test(mock));
 	}
+
 	@Test
 	public void testBadValues() {
 		ServiceInstance mock = mock(ServiceInstance.class);

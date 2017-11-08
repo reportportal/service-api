@@ -36,20 +36,21 @@ import java.util.function.Function;
  */
 public final class ProjectInfoConverter {
 
-    private ProjectInfoConverter() {
-        //static only
-    }
+	private ProjectInfoConverter() {
+		//static only
+	}
 
-    public static final Function<Project, ProjectInfoResource> TO_RESOURCE = project -> {
-        Preconditions.checkNotNull(project);
-        ProjectInfoResource resource = new ProjectInfoResource();
-        resource.setUsersQuantity(null != project.getUsers() ? project.getUsers().size() : 0);
-        resource.setProjectId(project.getId());
-        resource.setCreationDate(project.getCreationDate());
-        String entryType = Optional.ofNullable(project.getConfiguration())
-                .map(Project.Configuration::getEntryType)
-                .map(Enum::name).orElse(EntryType.INTERNAL.name());
-        resource.setEntryType(entryType);
-        return resource;
-    };
+	public static final Function<Project, ProjectInfoResource> TO_RESOURCE = project -> {
+		Preconditions.checkNotNull(project);
+		ProjectInfoResource resource = new ProjectInfoResource();
+		resource.setUsersQuantity(null != project.getUsers() ? project.getUsers().size() : 0);
+		resource.setProjectId(project.getId());
+		resource.setCreationDate(project.getCreationDate());
+		String entryType = Optional.ofNullable(project.getConfiguration())
+				.map(Project.Configuration::getEntryType)
+				.map(Enum::name)
+				.orElse(EntryType.INTERNAL.name());
+		resource.setEntryType(entryType);
+		return resource;
+	};
 }

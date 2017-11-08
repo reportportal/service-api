@@ -18,48 +18,38 @@ import org.springframework.test.annotation.DirtiesContext;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class StatisticsFacadeImplTest extends BaseTest {
 
-    @Rule
-    @Autowired
-    public SpringFixtureRule dfRule;
+	@Rule
+	@Autowired
+	public SpringFixtureRule dfRule;
 
-    @Autowired
-    @Qualifier(value = "statisticsFacadeImpl")
-    private StatisticsFacade statisticsFacade;
+	@Autowired
+	@Qualifier(value = "statisticsFacadeImpl")
+	private StatisticsFacade statisticsFacade;
 
-    @Autowired
-    private TestItemRepository testItemRepository;
+	@Autowired
+	private TestItemRepository testItemRepository;
 
-    @Autowired
-    private LaunchRepository launchRepository;
+	@Autowired
+	private LaunchRepository launchRepository;
 
-    @Test
-    public void deleteIssueStatistics() throws Exception {
-        final String item = "44524cc1553de743b3e5aa28";
-        TestItem testItem = testItemRepository.findOne(item);
-        statisticsFacade.deleteIssueStatistics(testItem);
-        Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-        testItem = testItemRepository.findOne(item);
-        launch.getStatistics().getIssueCounter().getProductBug().values()
-                .forEach(val -> Assert.assertEquals(0, val.intValue()));
-        launch.getStatistics().getIssueCounter().getAutomationBug().values()
-                .forEach(val -> Assert.assertEquals(0, val.intValue()));
-        launch.getStatistics().getIssueCounter().getToInvestigate().values()
-                .forEach(val -> Assert.assertEquals(0, val.intValue()));
-        launch.getStatistics().getIssueCounter().getSystemIssue().values()
-                .forEach(val -> Assert.assertEquals(0, val.intValue()));
-        launch.getStatistics().getIssueCounter().getNoDefect().values()
-                .forEach(val -> Assert.assertEquals(0, val.intValue()));
+	@Test
+	public void deleteIssueStatistics() throws Exception {
+		final String item = "44524cc1553de743b3e5aa28";
+		TestItem testItem = testItemRepository.findOne(item);
+		statisticsFacade.deleteIssueStatistics(testItem);
+		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
+		testItem = testItemRepository.findOne(item);
+		launch.getStatistics().getIssueCounter().getProductBug().values().forEach(val -> Assert.assertEquals(0, val.intValue()));
+		launch.getStatistics().getIssueCounter().getAutomationBug().values().forEach(val -> Assert.assertEquals(0, val.intValue()));
+		launch.getStatistics().getIssueCounter().getToInvestigate().values().forEach(val -> Assert.assertEquals(0, val.intValue()));
+		launch.getStatistics().getIssueCounter().getSystemIssue().values().forEach(val -> Assert.assertEquals(0, val.intValue()));
+		launch.getStatistics().getIssueCounter().getNoDefect().values().forEach(val -> Assert.assertEquals(0, val.intValue()));
 
-        testItem.getStatistics().getIssueCounter().getProductBug().values()
-                .forEach(val -> Assert.assertEquals(0, val.intValue()));
-        testItem.getStatistics().getIssueCounter().getAutomationBug().values()
-                .forEach(val -> Assert.assertEquals(0, val.intValue()));
-        testItem.getStatistics().getIssueCounter().getToInvestigate().values()
-                .forEach(val -> Assert.assertEquals(0, val.intValue()));
-        testItem.getStatistics().getIssueCounter().getSystemIssue().values()
-                .forEach(val -> Assert.assertEquals(0, val.intValue()));
-        testItem.getStatistics().getIssueCounter().getNoDefect().values()
-                .forEach(val -> Assert.assertEquals(0, val.intValue()));
-    }
+		testItem.getStatistics().getIssueCounter().getProductBug().values().forEach(val -> Assert.assertEquals(0, val.intValue()));
+		testItem.getStatistics().getIssueCounter().getAutomationBug().values().forEach(val -> Assert.assertEquals(0, val.intValue()));
+		testItem.getStatistics().getIssueCounter().getToInvestigate().values().forEach(val -> Assert.assertEquals(0, val.intValue()));
+		testItem.getStatistics().getIssueCounter().getSystemIssue().values().forEach(val -> Assert.assertEquals(0, val.intValue()));
+		testItem.getStatistics().getIssueCounter().getNoDefect().values().forEach(val -> Assert.assertEquals(0, val.intValue()));
+	}
 
 }

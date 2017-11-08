@@ -42,33 +42,31 @@ import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.*;
 @Component
 public class ImportActivityHandler {
 
-    @Autowired
-    private ActivityRepository activityRepository;
+	@Autowired
+	private ActivityRepository activityRepository;
 
-    @EventListener
-    public void onImportStart(ImportStartedEvent event) {
-        Activity activity = new ActivityBuilder()
-                .addObjectName(event.getFileName())
-                .addObjectType(ActivityObjectType.LAUNCH)
-                .addActionType(ActivityEventType.START_IMPORT)
-                .addUserRef(event.getUserName())
-                .addProjectRef(event.getProjectId())
-                .addHistory(Collections.singletonList(createHistoryField(NAME, EMPTY_FIELD, event.getFileName())))
-                .get();
-        activityRepository.save(activity);
-    }
+	@EventListener
+	public void onImportStart(ImportStartedEvent event) {
+		Activity activity = new ActivityBuilder().addObjectName(event.getFileName())
+				.addObjectType(ActivityObjectType.LAUNCH)
+				.addActionType(ActivityEventType.START_IMPORT)
+				.addUserRef(event.getUserName())
+				.addProjectRef(event.getProjectId())
+				.addHistory(Collections.singletonList(createHistoryField(NAME, EMPTY_FIELD, event.getFileName())))
+				.get();
+		activityRepository.save(activity);
+	}
 
-    @EventListener
-    public void onImportFinish(ImportFinishedEvent event) {
-        Activity activity = new ActivityBuilder()
-                .addObjectName(event.getFileName())
-                .addObjectType(ActivityObjectType.LAUNCH)
-                .addActionType(ActivityEventType.FINISH_IMPORT)
-                .addUserRef(event.getUserName())
-                .addProjectRef(event.getProjectId())
-                .addHistory(Collections.singletonList(createHistoryField(NAME, EMPTY_FIELD, event.getFileName())))
-                .get();
-        activityRepository.save(activity);
-    }
+	@EventListener
+	public void onImportFinish(ImportFinishedEvent event) {
+		Activity activity = new ActivityBuilder().addObjectName(event.getFileName())
+				.addObjectType(ActivityObjectType.LAUNCH)
+				.addActionType(ActivityEventType.FINISH_IMPORT)
+				.addUserRef(event.getUserName())
+				.addProjectRef(event.getProjectId())
+				.addHistory(Collections.singletonList(createHistoryField(NAME, EMPTY_FIELD, event.getFileName())))
+				.get();
+		activityRepository.save(activity);
+	}
 
 }

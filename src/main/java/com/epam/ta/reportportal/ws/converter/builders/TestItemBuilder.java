@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
@@ -49,8 +49,9 @@ public class TestItemBuilder extends Builder<TestItem> {
 		getObject().setStartTime(rq.getStartTime());
 		getObject().setName(rq.getName().trim());
 		getObject().setUniqueId(rq.getUniqueId());
-		if (null != rq.getDescription())
+		if (null != rq.getDescription()) {
 			getObject().setItemDescription(rq.getDescription().trim());
+		}
 		Set<String> tags = rq.getTags();
 		if (null != tags) {
 			tags = Sets.newHashSet(EntityUtils.trimStrings(EntityUtils.update(tags)));

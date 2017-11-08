@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.events.handler;
 
@@ -28,9 +28,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
 /**
- * 
  * @author Andrei Varabyeu
- * 
  */
 @Component
 public class DumpInitialInformationEventHandler implements ApplicationListener<ContextRefreshedEvent> {

@@ -32,9 +32,8 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 /**
  * Added to avoid issue with page size == 0 (in this case repository layer tries
  * to retrieve all results from database) and page size greater than 300.
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class PagingHandlerMethodArgumentResolver extends org.springframework.data.web.PageableHandlerMethodArgumentResolver {
 
@@ -55,7 +54,7 @@ public class PagingHandlerMethodArgumentResolver extends org.springframework.dat
 		Pageable pageable = super.resolveArgument(methodParameter, mavContainer, webRequest, binderFactory);
 		if (0 == pageable.getPageSize()) {
 			return new PageRequest(pageable.getPageNumber(), DEFAULT_PAGE_SIZE, pageable.getSort());
-		} else if(MAX_PAGE_SIZE < pageable.getPageSize()) {
+		} else if (MAX_PAGE_SIZE < pageable.getPageSize()) {
 			return new PageRequest(pageable.getPageNumber(), MAX_PAGE_SIZE, pageable.getSort());
 		}
 		return pageable;

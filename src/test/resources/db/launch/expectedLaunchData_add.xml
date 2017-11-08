@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataset>
-	<Launch name = "launch0" description = "launch 0"  startTime = "2013-02-19 16:02:33.0" endTime = "2013-02-19 16:10:33.0" status = "IN_PROGRESS" idUserProject="0" /> 
-	<Launch name = "launch1" description = "launch 1"  startTime = "2013-02-19 16:03:33.0" endTime = "2013-02-19 16:20:33.0" status = "FAILED" idUserProject="1" /> 
-	<Launch name = "launch2" description = "launch 2"  startTime = "2013-02-19 16:04:33.0" endTime = "2013-02-19 16:30:33.0" status = "FAILED" idUserProject="1" /> 	
+    <Launch name="launch0" description="launch 0" startTime="2013-02-19 16:02:33.0" endTime="2013-02-19 16:10:33.0" status="IN_PROGRESS"
+            idUserProject="0"/>
+    <Launch name="launch1" description="launch 1" startTime="2013-02-19 16:03:33.0" endTime="2013-02-19 16:20:33.0" status="FAILED"
+            idUserProject="1"/>
+    <Launch name="launch2" description="launch 2" startTime="2013-02-19 16:04:33.0" endTime="2013-02-19 16:30:33.0" status="FAILED"
+            idUserProject="1"/>
 </dataset>

@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.project.impl;
 
@@ -48,7 +48,7 @@ import static java.time.temporal.ChronoUnit.WEEKS;
 
 /**
  * Data converter for Report Portal common UI graphics
- * 
+ *
  * @author Andrei_Ramanchuk
  */
 @Service("projectInfoDataConverter")
@@ -59,11 +59,13 @@ public class ProjectInfoWidgetDataConverter {
 	private Map<InfoInterval, ProjectInfoGroup> grouping;
 
 	private static DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendValue(IsoFields.WEEK_BASED_YEAR, 4)
-			.appendLiteral("-W").appendValue(IsoFields.WEEK_OF_WEEK_BASED_YEAR, 2).toFormatter();
+			.appendLiteral("-W")
+			.appendValue(IsoFields.WEEK_OF_WEEK_BASED_YEAR, 2)
+			.toFormatter();
 
 	/**
 	 * <b>Percentage Of Investigation</b> project info widget content
-	 * 
+	 *
 	 * @param initial
 	 * @param interval
 	 * @return
@@ -87,8 +89,9 @@ public class ProjectInfoWidgetDataConverter {
 			currentGroup.setName(pair.getKey());
 			Map<String, String> values = new HashMap<>();
 			for (Launch one : group) {
-				investigated = investigated + one.getStatistics().getIssueCounter().getProductBugTotal()
-						+ one.getStatistics().getIssueCounter().getSystemIssueTotal() + one.getStatistics().getIssueCounter().getAutomationBugTotal();
+				investigated = investigated + one.getStatistics().getIssueCounter().getProductBugTotal() + one.getStatistics()
+						.getIssueCounter()
+						.getSystemIssueTotal() + one.getStatistics().getIssueCounter().getAutomationBugTotal();
 				toInvestigate = toInvestigate + one.getStatistics().getIssueCounter().getToInvestigateTotal();
 			}
 			if ((investigated + toInvestigate) > 0) {
@@ -110,7 +113,7 @@ public class ProjectInfoWidgetDataConverter {
 	/**
 	 * <b>Test-cases statistics in unique launches</b> project info widget
 	 * content data-source
-	 * 
+	 *
 	 * @param initial
 	 * @return
 	 */
@@ -133,7 +136,8 @@ public class ProjectInfoWidgetDataConverter {
 			Map<String, String> values = new HashMap<>();
 			List<Launch> group = pair.getValue();
 
-			DoubleSummaryStatistics statistics = group.stream().mapToDouble(it -> it.getStatistics().getExecutionCounter().getTotal())
+			DoubleSummaryStatistics statistics = group.stream()
+					.mapToDouble(it -> it.getStatistics().getExecutionCounter().getTotal())
 					.summaryStatistics();
 			values.put(MIN, String.valueOf(statistics.getMin()));
 			values.put(MAX, String.valueOf(statistics.getMax()));
@@ -153,7 +157,7 @@ public class ProjectInfoWidgetDataConverter {
 
 	/**
 	 * <b>Quantity of Launches</b> project info widget content
-	 * 
+	 *
 	 * @param initial
 	 * @param interval
 	 * @return
@@ -193,7 +197,7 @@ public class ProjectInfoWidgetDataConverter {
 
 	/**
 	 * <b>Launch statistics line chart</b> project info widget content
-	 * 
+	 *
 	 * @param initial
 	 * @param interval
 	 * @return
@@ -237,7 +241,7 @@ public class ProjectInfoWidgetDataConverter {
 	/**
 	 * Utility method for grouping input list of {@link Launch} by
 	 * {@link ProjectInfoGroup} criteria
-	 * 
+	 *
 	 * @param initial
 	 * @param criteria
 	 * @return
@@ -250,22 +254,23 @@ public class ProjectInfoWidgetDataConverter {
 
 			String key;
 			switch (criteria) {
-			case BY_NAME:
-				key = launch.getName();
-				break;
-			default:
-				key = formattedDate(criteria, localDate);
-				if (prevDate != null) {
-					while (!formattedDate(criteria, prevDate).equals(formattedDate(criteria, localDate))) {
-						if (!result.containsKey(formattedDate(criteria, prevDate)))
-							result.put(formattedDate(criteria, prevDate), new ArrayList<>());
-						prevDate = prevDate.plus(1, criteria == BY_DAY ? DAYS : WEEKS);
+				case BY_NAME:
+					key = launch.getName();
+					break;
+				default:
+					key = formattedDate(criteria, localDate);
+					if (prevDate != null) {
+						while (!formattedDate(criteria, prevDate).equals(formattedDate(criteria, localDate))) {
+							if (!result.containsKey(formattedDate(criteria, prevDate))) {
+								result.put(formattedDate(criteria, prevDate), new ArrayList<>());
+							}
+							prevDate = prevDate.plus(1, criteria == BY_DAY ? DAYS : WEEKS);
+						}
 					}
-				}
 			}
-			if (!result.keySet().contains(key))
+			if (!result.keySet().contains(key)) {
 				result.put(key, Lists.newArrayList(launch));
-			else {
+			} else {
 				List<Launch> prev = result.get(key);
 				prev.add(launch);
 				result.put(key, prev);

@@ -32,21 +32,20 @@ import java.util.Map;
 @Service
 public class DemoDataFacadeFactoryImpl implements DemoDataFacadeFactory, ApplicationContextAware {
 
-    private ApplicationContext applicationContext;
+	private ApplicationContext applicationContext;
 
-    private static final Map<StatisticsCalculationStrategy, Class<? extends DemoDataFacade>> MAPPING =
-            ImmutableMap.<StatisticsCalculationStrategy, Class<? extends DemoDataFacade>>builder()
-                    .put(StatisticsCalculationStrategy.STEP_BASED, StepBasedDemoDataFacade.class)
-                    .put(StatisticsCalculationStrategy.TEST_BASED, TestBasedDemoDataFacade.class)
-                    .build();
+	private static final Map<StatisticsCalculationStrategy, Class<? extends DemoDataFacade>> MAPPING = ImmutableMap.<StatisticsCalculationStrategy, Class<? extends DemoDataFacade>>builder()
+			.put(StatisticsCalculationStrategy.STEP_BASED, StepBasedDemoDataFacade.class)
+			.put(StatisticsCalculationStrategy.TEST_BASED, TestBasedDemoDataFacade.class)
+			.build();
 
-    @Override
-    public DemoDataFacade getDemoDataFacade(StatisticsCalculationStrategy strategy) {
-        return applicationContext.getBean(MAPPING.getOrDefault(strategy, StepBasedDemoDataFacade.class));
-    }
+	@Override
+	public DemoDataFacade getDemoDataFacade(StatisticsCalculationStrategy strategy) {
+		return applicationContext.getBean(MAPPING.getOrDefault(strategy, StepBasedDemoDataFacade.class));
+	}
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
 }

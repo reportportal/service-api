@@ -17,15 +17,11 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import com.epam.ta.reportportal.auth.AuthConstants;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.domain.Sort;
@@ -35,13 +31,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
-import com.epam.ta.reportportal.auth.AuthConstants;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Unit tests for sorting parameters
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class SortingMvcTest extends BaseMvcTest {
 
@@ -53,10 +49,10 @@ public class SortingMvcTest extends BaseMvcTest {
 
 	@Test
 	public void testDesc() throws Exception {
-		this.mvcMock
-				.perform(
-						get(PROJECT_BASE_URL + getPageUrl(Sort.Direction.DESC)).principal(AuthConstants.ADMINISTRATOR).secure(true)
-								.accept(MediaType.parseMediaType("application/json;charset=UTF-8"))).andExpect(status().isOk())
+		this.mvcMock.perform(get(PROJECT_BASE_URL + getPageUrl(Sort.Direction.DESC)).principal(AuthConstants.ADMINISTRATOR)
+				.secure(true)
+				.accept(MediaType.parseMediaType("application/json;charset=UTF-8")))
+				.andExpect(status().isOk())
 				.andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andExpect(jsonPath("$.content[0].name").value("Demo launch_launch1Last"));
 
@@ -65,37 +61,38 @@ public class SortingMvcTest extends BaseMvcTest {
 	@Test
 	public void testAsc() throws Exception {
 		ResultActions resultActions = this.mvcMock.perform(
-				get(PROJECT_BASE_URL + getPageUrl(Sort.Direction.ASC)).principal(AuthConstants.ADMINISTRATOR).secure(true)
+				get(PROJECT_BASE_URL + getPageUrl(Sort.Direction.ASC)).principal(AuthConstants.ADMINISTRATOR)
+						.secure(true)
 						.accept(MediaType.parseMediaType("application/json;charset=UTF-8"))).andExpect(status().isOk());
 
 		ResultActions resultActions1 = resultActions.andExpect(content().contentType("application/json;charset=UTF-8"));
 		MvcResult mvcResult = resultActions1.andReturn();
 		System.out.println(mvcResult.getResponse().getHeader("Content-Type"));
 		System.out.println(mvcResult.getResponse().getContentAsString());
-		resultActions1.andExpect(
-				jsonPath("$.content[0].name").value("Demo launch"));
+		resultActions1.andExpect(jsonPath("$.content[0].name").value("Demo launch"));
 	}
 
 	@Test
 	public void testSeveralParameters() throws Exception {
 		ResultActions resultActions = this.mvcMock.perform(
 				get(PROJECT_BASE_URL + String.format(URL_PATTERN_NAME_DESC_SORTING, Direction.DESC)).principal(AuthConstants.ADMINISTRATOR)
-						.secure(true).accept(MediaType.parseMediaType("application/json;charset=UTF-8"))).andExpect(status().isOk());
+						.secure(true)
+						.accept(MediaType.parseMediaType("application/json;charset=UTF-8"))).andExpect(status().isOk());
 
-		resultActions.andExpect(content().contentType("application/json;charset=UTF-8")).andExpect(
-				jsonPath("$.content[1].description").value("AAA-FIRST - Another Description"));
+		resultActions.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.content[1].description").value("AAA-FIRST - Another Description"));
 	}
 
 	@Ignore
 	@Test
 	public void testEndTime() throws Exception {
 		ResultActions resultActions = this.mvcMock.perform(
-				get(PROJECT_BASE_URL + String.format(URL_PATTERN_END_TIME_SORTING, Sort.Direction.DESC))
-						.principal(AuthConstants.ADMINISTRATOR).secure(true)
-						.accept(MediaType.parseMediaType("application/json;charset=UTF-8"))).andExpect(status().isOk());
+				get(PROJECT_BASE_URL + String.format(URL_PATTERN_END_TIME_SORTING, Sort.Direction.DESC)).principal(
+						AuthConstants.ADMINISTRATOR).secure(true).accept(MediaType.parseMediaType("application/json;charset=UTF-8")))
+				.andExpect(status().isOk());
 
-		resultActions.andExpect(content().contentType("application/json;charset=UTF-8")).andExpect(
-				jsonPath("$.content[0].end_time").value(1367493780000L));
+		resultActions.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.content[0].end_time").value(1367493780000L));
 	}
 
 	private String getPageUrl(Sort.Direction direction) {

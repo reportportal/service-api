@@ -64,7 +64,7 @@ public class TicketActivitySubscriber {
 
 	@Autowired
 	public TicketActivitySubscriber(ActivityRepository activityRepository, TestItemRepository testItemRepository,
-             ProjectRepository projectSettingsRepository) {
+			ProjectRepository projectSettingsRepository) {
 		this.activityRepository = activityRepository;
 		this.testItemRepository = testItemRepository;
 		this.projectSettingsRepository = projectSettingsRepository;
@@ -86,17 +86,16 @@ public class TicketActivitySubscriber {
 			newValue = oldValue + separator + event.getTicket().getId() + ":" + event.getTicket().getTicketUrl();
 		}
 		List<Activity.FieldValues> history = Lists.newArrayList();
-		Activity.FieldValues fieldValues = Activity.FieldValues.newOne()
-                .withField(TICKET_ID).withOldValue(oldValue).withNewValue(newValue);
+		Activity.FieldValues fieldValues = Activity.FieldValues.newOne().withField(TICKET_ID).withOldValue(oldValue).withNewValue(newValue);
 		history.add(fieldValues);
-		Activity activity = new ActivityBuilder()
-                .addProjectRef(event.getProject())
-                .addActionType(POST_ISSUE)
+		Activity activity = new ActivityBuilder().addProjectRef(event.getProject())
+				.addActionType(POST_ISSUE)
 				.addLoggedObjectRef(event.getTestItemId())
-                .addObjectType(TEST_ITEM)
+				.addObjectType(TEST_ITEM)
 				.addObjectName(event.getItemName())
-                .addUserRef(event.getPostedBy())
-				.addHistory(history).get();
+				.addUserRef(event.getPostedBy())
+				.addHistory(history)
+				.get();
 		activityRepository.save(activity);
 	}
 
@@ -106,26 +105,27 @@ public class TicketActivitySubscriber {
 		String separator = ",";
 		Iterable<TestItem> testItems = event.getBefore();
 		Map<String, Activity.FieldValues> results = StreamSupport.stream(testItems.spliterator(), false)
-				.filter(item -> null != item.getIssue()).collect(Collectors.toMap(TestItem::getId, item -> Activity.FieldValues.newOne()
-						.withOldValue(issuesIdsToString(item.getIssue().getExternalSystemIssues(), separator))));
+				.filter(item -> null != item.getIssue())
+				.collect(Collectors.toMap(
+						TestItem::getId, item -> Activity.FieldValues.newOne()
+								.withOldValue(issuesIdsToString(item.getIssue().getExternalSystemIssues(), separator))));
 
 		Iterable<TestItem> updated = event.getAfter();
 
 		for (TestItem testItem : updated) {
-			if (null == testItem.getIssue())
+			if (null == testItem.getIssue()) {
 				continue;
+			}
 			Activity.FieldValues fieldValues = results.get(testItem.getId());
-			fieldValues.withField(TICKET_ID)
-                    .withNewValue(issuesIdsToString(testItem.getIssue().getExternalSystemIssues(), separator));
-			Activity activity = new ActivityBuilder()
-                    .addProjectRef(event.getProject())
-                    .addActionType(ATTACH_ISSUE)
+			fieldValues.withField(TICKET_ID).withNewValue(issuesIdsToString(testItem.getIssue().getExternalSystemIssues(), separator));
+			Activity activity = new ActivityBuilder().addProjectRef(event.getProject())
+					.addActionType(ATTACH_ISSUE)
 					.addLoggedObjectRef(testItem.getId())
-                    .addObjectType(TEST_ITEM)
+					.addObjectType(TEST_ITEM)
 					.addObjectName(testItem.getName())
-                    .addUserRef(event.getPostedBy())
+					.addUserRef(event.getPostedBy())
 					.addHistory(Collections.singletonList(fieldValues))
-                    .get();
+					.get();
 			activities.add(activity);
 		}
 		activityRepository.save(activities);
@@ -166,14 +166,13 @@ public class TicketActivitySubscriber {
 			if (null == oldIssueDescription) {
 				oldIssueDescription = emptyString;
 			}
-			Activity activity = new ActivityBuilder()
-                    .addProjectRef(projectName)
-                    .addLoggedObjectRef(issueDefinition.getId())
+			Activity activity = new ActivityBuilder().addProjectRef(projectName)
+					.addLoggedObjectRef(issueDefinition.getId())
 					.addObjectType(TEST_ITEM)
 					.addObjectName(testItem.getName())
-                    .addActionType(UPDATE_ITEM)
-                    .addUserRef(principal)
-                    .get();
+					.addActionType(UPDATE_ITEM)
+					.addUserRef(principal)
+					.get();
 			List<Activity.FieldValues> history = Lists.newArrayList();
 			if (!oldIssueDescription.equals(comment)) {
 				Activity.FieldValues fieldValues = createHistoryField(COMMENT, oldIssueDescription, comment);

@@ -17,18 +17,17 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.database.entity.widget.Widget;
+import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-
-import com.epam.ta.reportportal.database.entity.widget.Widget;
-import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 
 import javax.inject.Provider;
 
@@ -60,14 +59,18 @@ public class WidgetBuilderTest extends BaseTest {
 		Widget expectedValue = Utils.getWidget();
 		expectedValue.setApplyingFilterId("1234");
 		expectedValue.setProjectName(BuilderTestsConstants.PROJECT);
-		validateWidgets(expectedValue,
-				widgetBuilderProvider.get().addWidgetRQ(widgetRQ).addFilter("1234").addProject(BuilderTestsConstants.PROJECT).build());
+		validateWidgets(
+				expectedValue,
+				widgetBuilderProvider.get().addWidgetRQ(widgetRQ).addFilter("1234").addProject(BuilderTestsConstants.PROJECT).build()
+		);
 	}
 
 	@Test
 	public void testBeanScope() {
-		Assert.assertTrue("Widget builder should be prototype bean because it's not stateless",
-				applicationContext.isPrototype(applicationContext.getBeanNamesForType(WidgetBuilder.class)[0]));
+		Assert.assertTrue(
+				"Widget builder should be prototype bean because it's not stateless",
+				applicationContext.isPrototype(applicationContext.getBeanNamesForType(WidgetBuilder.class)[0])
+		);
 	}
 
 	private void validateWidgets(Widget expectedValue, Widget actualValue) {

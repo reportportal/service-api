@@ -38,24 +38,23 @@ import java.util.Map;
 @Service
 public class StatisticsFacadeFactoryImpl implements StatisticsFacadeFactory, ApplicationContextAware {
 
-    private ApplicationContext applicationContext;
+	private ApplicationContext applicationContext;
 
-    private static final Map<StatisticsCalculationStrategy, Class<? extends StatisticsFacade>> MAPPING =
-            ImmutableMap.<StatisticsCalculationStrategy, Class<? extends StatisticsFacade>>builder()
-                    .put(StatisticsCalculationStrategy.STEP_BASED, StepBasedStatisticsFacade.class)
-                    .put(StatisticsCalculationStrategy.TEST_BASED, TestBasedStatisticsFacade.class)
-                    .put(StatisticsCalculationStrategy.ALL_ITEMS_BASED, StatisticsFacadeImpl.class)
-                    .build();
+	private static final Map<StatisticsCalculationStrategy, Class<? extends StatisticsFacade>> MAPPING = ImmutableMap.<StatisticsCalculationStrategy, Class<? extends StatisticsFacade>>builder()
+			.put(StatisticsCalculationStrategy.STEP_BASED, StepBasedStatisticsFacade.class)
+			.put(StatisticsCalculationStrategy.TEST_BASED, TestBasedStatisticsFacade.class)
+			.put(StatisticsCalculationStrategy.ALL_ITEMS_BASED, StatisticsFacadeImpl.class)
+			.build();
 
-    @Override
-    public StatisticsFacade getStatisticsFacade(StatisticsCalculationStrategy strategy) {
-        return applicationContext.getBean(MAPPING.getOrDefault(strategy, StepBasedStatisticsFacade.class));
-    }
+	@Override
+	public StatisticsFacade getStatisticsFacade(StatisticsCalculationStrategy strategy) {
+		return applicationContext.getBean(MAPPING.getOrDefault(strategy, StepBasedStatisticsFacade.class));
+	}
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
 
-    }
+	}
 
 }

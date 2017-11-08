@@ -38,30 +38,30 @@ import java.util.Map;
 @ChangeLog(order = "3.2")
 public class ChangeSets_3_2 {
 
-    private static final String USERS = "users";
-    private static final String ID = "_id";
-    private static final String PROJECT_COLLECTION = "project";
+	private static final String USERS = "users";
+	private static final String ID = "_id";
+	private static final String PROJECT_COLLECTION = "project";
 
-    @ChangeSet(order = "3.2-1", id = "v3.2-Replace embedded users collection with array", author = "pbortnik")
-    public void replaceProjectUsers(MongoTemplate mongoTemplate) {
-        final Query q = new Query(Criteria.where(USERS).exists(true));
-        q.fields().include(ID).include(USERS);
-        mongoTemplate.stream(q, DBObject.class, PROJECT_COLLECTION).forEachRemaining(dbo -> {
-            DBObject history = (DBObject) dbo.get(USERS);
-            Update u = new Update();
-            Map[] dbArray = new LinkedHashMap[history.keySet().size()];
-            int i = 0;
-            for (String key : history.keySet()) {
-                DBObject o = (DBObject) history.get(key);
-                Map res = new LinkedHashMap(o.keySet().size() + 1);
-                res.put("login", key);
-                res.putAll(o.toMap());
-                dbArray[i] = res;
-                i++;
-            }
-            u.set(USERS, dbArray);
-            mongoTemplate.updateFirst(Query.query(Criteria.where(ID).is(dbo.get(ID))), u, PROJECT_COLLECTION);
-        });
-    }
+	@ChangeSet(order = "3.2-1", id = "v3.2-Replace embedded users collection with array", author = "pbortnik")
+	public void replaceProjectUsers(MongoTemplate mongoTemplate) {
+		final Query q = new Query(Criteria.where(USERS).exists(true));
+		q.fields().include(ID).include(USERS);
+		mongoTemplate.stream(q, DBObject.class, PROJECT_COLLECTION).forEachRemaining(dbo -> {
+			DBObject history = (DBObject) dbo.get(USERS);
+			Update u = new Update();
+			Map[] dbArray = new LinkedHashMap[history.keySet().size()];
+			int i = 0;
+			for (String key : history.keySet()) {
+				DBObject o = (DBObject) history.get(key);
+				Map res = new LinkedHashMap(o.keySet().size() + 1);
+				res.put("login", key);
+				res.putAll(o.toMap());
+				dbArray[i] = res;
+				i++;
+			}
+			u.set(USERS, dbArray);
+			mongoTemplate.updateFirst(Query.query(Criteria.where(ID).is(dbo.get(ID))), u, PROJECT_COLLECTION);
+		});
+	}
 
 }

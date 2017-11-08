@@ -55,7 +55,7 @@ import java.util.Map;
  *
  * @author Andrei_Ramanchuk
  * @author Andrei Varabyeu
- *         Performance improvements. Load JasperReport only once since it is immutable
+ * Performance improvements. Load JasperReport only once since it is immutable
  */
 @Service("jasperRender")
 class JasperReportRender {

@@ -56,9 +56,7 @@ public class WidgetUtils {
 	public static final String USER = "user";
 
 	public static final Map<GadgetTypes, Class<?>> withoutFilter = ImmutableMap.<GadgetTypes, Class<?>>builder().put(
-			GadgetTypes.PRODUCT_STATUS,
-			Launch.class
-	)
+			GadgetTypes.PRODUCT_STATUS, Launch.class)
 			.put(GadgetTypes.ACTIVITY, Activity.class)
 			.put(GadgetTypes.PASSING_RATE_PER_LAUNCH, Launch.class)
 			.put(GadgetTypes.MOST_FAILED_TEST_CASES, TestItem.class)
@@ -110,9 +108,10 @@ public class WidgetUtils {
 
 	public static void checkUniqueName(String newWidgetName, List<Widget> existingWidgets) {
 		if (null != existingWidgets) {
-			existingWidgets.forEach(existingWidget -> expect(existingWidget.getName().equals(newWidgetName), equalTo(false)).verify(RESOURCE_ALREADY_EXISTS,
-					newWidgetName
-			));
+			existingWidgets.forEach(
+					existingWidget -> expect(existingWidget.getName().equals(newWidgetName), equalTo(false)).verify(RESOURCE_ALREADY_EXISTS,
+							newWidgetName
+					));
 		}
 	}
 

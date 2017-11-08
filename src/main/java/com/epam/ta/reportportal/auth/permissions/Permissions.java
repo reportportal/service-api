@@ -17,15 +17,14 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.auth.permissions;
 
 /**
  * Set of constants related to permissions
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public final class Permissions {
 
@@ -43,7 +42,8 @@ public final class Permissions {
 
 	public static final String NOT_CUSTOMER = "hasPermission(#projectName.toLowerCase(), 'notCustomerPermission')";
 
-	public static final String PROJECT_MANAGER_OR_ADMIN = "hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')" + "||" + ADMIN_ONLY;
+	public static final String PROJECT_MANAGER_OR_ADMIN =
+			"hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')" + "||" + ADMIN_ONLY;
 
 	public static final String ASSIGNED_TO_PROJECT = "hasPermission(#projectName.toLowerCase(), 'isAssignedToProject')";
 }

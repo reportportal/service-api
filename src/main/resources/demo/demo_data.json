@@ -190,7 +190,7 @@
       "checkSharedWidgetsContentNames",
       "checkSelectedWidgetTypeActiveOnSharedWidgetsTab"
     ],
-    "Add Widget from Filters page" : [
+    "Add Widget from Filters page": [
       "checkIsVisibleElementsOnFiltersPage",
       "checkAddWidgetButton",
       "checkIsVisibleElementsOnFiltersPage",

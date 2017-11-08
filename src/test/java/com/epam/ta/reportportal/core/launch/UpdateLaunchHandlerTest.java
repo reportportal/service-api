@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.launch;
 
@@ -80,8 +80,8 @@ public class UpdateLaunchHandlerTest {
 	private Project buildProject(String projectId, String user) {
 		final Project project = new Project();
 		project.setName(projectId);
-		project.setUsers(ImmutableList.<Project.UserConfig>builder().add(Project.UserConfig.newOne()
-				.withLogin(user).withProjectRole(ProjectRole.CUSTOMER)).build());
+		project.setUsers(ImmutableList.<Project.UserConfig>builder().add(
+				Project.UserConfig.newOne().withLogin(user).withProjectRole(ProjectRole.CUSTOMER)).build());
 		return project;
 	}
 }

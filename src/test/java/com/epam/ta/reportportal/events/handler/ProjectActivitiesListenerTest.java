@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 package com.epam.ta.reportportal.events.handler;
 
 import com.epam.ta.reportportal.auth.AuthConstants;
@@ -72,16 +72,18 @@ public class ProjectActivitiesListenerTest extends BaseMvcTest {
 		updateProjectRQ.setConfiguration(projectConfiguration);
 
 		this.mvcMock.perform(put("/project/project1").content(objectMapper.writeValueAsBytes(updateProjectRQ))
-				.contentType(MediaType.APPLICATION_JSON).principal(authentication())).andExpect(status().is(200));
+				.contentType(MediaType.APPLICATION_JSON)
+				.principal(authentication())).andExpect(status().is(200));
 
-		Filter filter = new Filter(Activity.class,
-				new HashSet<>(Arrays.asList(new FilterCondition(Condition.EQUALS, false, "project1", "projectRef"),
-						new FilterCondition(Condition.EQUALS, false, "update_project", "actionType"))));
+		Filter filter = new Filter(Activity.class, new HashSet<>(
+				Arrays.asList(new FilterCondition(Condition.EQUALS, false, "project1", "projectRef"),
+						new FilterCondition(Condition.EQUALS, false, "update_project", "actionType")
+				)));
 		List<Activity> activities = activityRepository.findByFilter(filter);
 		List<Activity.FieldValues> history = activities.get(0).getHistory();
 
-        List<String> fields = history.stream().map(Activity.FieldValues::getField).collect(Collectors.toList());
-        Assert.assertTrue(fields.contains(LAUNCH_INACTIVITY));
+		List<String> fields = history.stream().map(Activity.FieldValues::getField).collect(Collectors.toList());
+		Assert.assertTrue(fields.contains(LAUNCH_INACTIVITY));
 		Assert.assertTrue(fields.contains(KEEP_LOGS));
 		Assert.assertTrue(fields.contains(KEEP_SCREENSHOTS));
 		Assert.assertTrue(fields.contains(AUTO_ANALYZE));

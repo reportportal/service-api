@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.externalsystem.handler.impl;
 
@@ -48,7 +48,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Handler realization of {@link ICreateExternalSystemHandler} interface
- * 
+ *
  * @author Andrei_Ramanchuk
  */
 @Service
@@ -102,8 +102,7 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 			details.setDomain(createRQ.getDomain());
 
 		}
-		expect(externalSystemStrategy.connectionTest(details), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
-				projectName);
+		expect(externalSystemStrategy.connectionTest(details), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, projectName);
 
 		ExternalSystem newOne = builder.get().addExternalSystem(createRQ, projectName).build();
 		ExternalSystem createOne;

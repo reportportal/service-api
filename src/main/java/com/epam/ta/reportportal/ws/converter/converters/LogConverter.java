@@ -35,28 +35,28 @@ import java.util.function.Function;
  */
 public final class LogConverter {
 
-    private LogConverter() {
-        //static only
-    }
+	private LogConverter() {
+		//static only
+	}
 
-    public static final Function<Log, LogResource> TO_RESOURCE = model -> {
-        Preconditions.checkNotNull(model);
-        LogResource resource = new LogResource();
-        resource.setIdLog(model.getId());
-        resource.setMessage(Optional.ofNullable(model.getLogMsg()).orElse("NULL"));
-        resource.setLogTime(model.getLogTime());
-        Optional.ofNullable(model.getBinaryContent()).ifPresent(content -> {
-            LogResource.BinaryContent binaryContent = new LogResource.BinaryContent();
-            binaryContent.setBinaryDataId(content.getBinaryDataId());
-            binaryContent.setContentType(content.getContentType());
-            binaryContent.setThumbnailId(content.getThumbnailId());
-            resource.setBinaryContent(binaryContent);
-        });
-        resource.setTestItem(model.getTestItemRef());
-        Optional.ofNullable(model.getLevel()).ifPresent(level -> {
-            resource.setLevel(level.toString());
-        });
-        return resource;
-    };
+	public static final Function<Log, LogResource> TO_RESOURCE = model -> {
+		Preconditions.checkNotNull(model);
+		LogResource resource = new LogResource();
+		resource.setIdLog(model.getId());
+		resource.setMessage(Optional.ofNullable(model.getLogMsg()).orElse("NULL"));
+		resource.setLogTime(model.getLogTime());
+		Optional.ofNullable(model.getBinaryContent()).ifPresent(content -> {
+			LogResource.BinaryContent binaryContent = new LogResource.BinaryContent();
+			binaryContent.setBinaryDataId(content.getBinaryDataId());
+			binaryContent.setContentType(content.getContentType());
+			binaryContent.setThumbnailId(content.getThumbnailId());
+			resource.setBinaryContent(binaryContent);
+		});
+		resource.setTestItem(model.getTestItemRef());
+		Optional.ofNullable(model.getLevel()).ifPresent(level -> {
+			resource.setLevel(level.toString());
+		});
+		return resource;
+	};
 
 }

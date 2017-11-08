@@ -45,51 +45,46 @@ import static org.mockito.Mockito.*;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class CleanLogsJobTest {
 
-    @InjectMocks
-    private CleanLogsJob cleanLogsJob = new CleanLogsJob();
-    @Mock
-    private LogRepository logRepo;
-    @Mock
-    private LaunchRepository launchRepo;
-    @Mock
-    private TestItemRepository testItemRepo;
-    @Mock
-    private ProjectRepository projectRepository;
-    @Mock
-    private ActivityRepository activityRepository;
+	@InjectMocks
+	private CleanLogsJob cleanLogsJob = new CleanLogsJob();
+	@Mock
+	private LogRepository logRepo;
+	@Mock
+	private LaunchRepository launchRepo;
+	@Mock
+	private TestItemRepository testItemRepo;
+	@Mock
+	private ProjectRepository projectRepository;
+	@Mock
+	private ActivityRepository activityRepository;
 
-    @Test
-    public void runTest() {
-        String name = "name";
-        Project project = new Project();
-        Project.Configuration configuration = new Project.Configuration();
+	@Test
+	public void runTest() {
+		String name = "name";
+		Project project = new Project();
+		Project.Configuration configuration = new Project.Configuration();
 
-        configuration.setKeepLogs("1 month");
-        project.setName(name);
-        project.setConfiguration(configuration);
+		configuration.setKeepLogs("1 month");
+		project.setName(name);
+		project.setConfiguration(configuration);
 
-        Stream<Project> sp = Stream.of(project);
+		Stream<Project> sp = Stream.of(project);
 
-        Launch launch = new Launch();
-        launch.setId(name);
-        Stream<Launch> sl = Stream.of(launch);
+		Launch launch = new Launch();
+		launch.setId(name);
+		Stream<Launch> sl = Stream.of(launch);
 
-        TestItem testItem = new TestItem();
-        Stream<TestItem> st = Stream.of(testItem);
+		TestItem testItem = new TestItem();
+		Stream<TestItem> st = Stream.of(testItem);
 
-        when(projectRepository.streamAllIdsAndConfiguration())
-                .thenReturn(sp);
-        when(launchRepo.streamIdsByProject(anyString()))
-                .thenReturn(sl);
-        when(testItemRepo.streamIdsByLaunch(anyString()))
-                .thenReturn(st);
+		when(projectRepository.streamAllIdsAndConfiguration()).thenReturn(sp);
+		when(launchRepo.streamIdsByProject(anyString())).thenReturn(sl);
+		when(testItemRepo.streamIdsByLaunch(anyString())).thenReturn(st);
 
-        cleanLogsJob.run();
+		cleanLogsJob.run();
 
-        verify(activityRepository, times(1))
-                .deleteModifiedLaterAgo(anyString(), any(Duration.class));
-        verify(logRepo, times(1))
-                .deleteByPeriodAndItemsRef(any(Duration.class), anyListOf(String.class));
-    }
+		verify(activityRepository, times(1)).deleteModifiedLaterAgo(anyString(), any(Duration.class));
+		verify(logRepo, times(1)).deleteByPeriodAndItemsRef(any(Duration.class), anyListOf(String.class));
+	}
 
 }

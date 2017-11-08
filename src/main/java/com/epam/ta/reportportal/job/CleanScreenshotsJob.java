@@ -42,28 +42,26 @@ import static java.time.Duration.ofDays;
 @Service
 public class CleanScreenshotsJob implements Runnable {
 
-    @Autowired
-    private DataStorage gridFS;
+	@Autowired
+	private DataStorage gridFS;
 
-    @Autowired
-    private ProjectRepository projectRepository;
+	@Autowired
+	private ProjectRepository projectRepository;
 
-    @Autowired
-    private LogRepository logRepository;
+	@Autowired
+	private LogRepository logRepository;
 
-    @Override
-    @Scheduled(cron = "${com.ta.reportportal.job.clean.screenshots.cron}")
-    public void run() {
-        try (Stream<Project> projects = projectRepository.streamAllIdsAndConfiguration()) {
-            projects.forEach(project -> gridFS.findModifiedLaterAgo(
-                    ofDays(KeepScreenshotsDelay.findByName(project.getConfiguration().getKeepScreenshots()).getDays()),
-                    project.getId())
-                    .forEach(file -> {
-                        gridFS.deleteData(file.getId().toString());
-                        /* Clear binary_content fields from log repository */
-                        logRepository.removeBinaryContent(file.getId().toString());
-                    })
-            );
-        }
-    }
+	@Override
+	@Scheduled(cron = "${com.ta.reportportal.job.clean.screenshots.cron}")
+	public void run() {
+		try (Stream<Project> projects = projectRepository.streamAllIdsAndConfiguration()) {
+			projects.forEach(project -> gridFS.findModifiedLaterAgo(
+					ofDays(KeepScreenshotsDelay.findByName(project.getConfiguration().getKeepScreenshots()).getDays()), project.getId())
+					.forEach(file -> {
+						gridFS.deleteData(file.getId().toString());
+						/* Clear binary_content fields from log repository */
+						logRepository.removeBinaryContent(file.getId().toString());
+					}));
+		}
+	}
 }

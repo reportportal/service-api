@@ -199,6 +199,7 @@ public interface ILaunchController {
 	/**
 	 * Merge specified launches in common one
 	 * Could be merged in different ways
+	 *
 	 * @param projectName
 	 * @param mergeLaunchesRQ request data
 	 * @param principal
@@ -230,20 +231,19 @@ public interface ILaunchController {
 	 */
 	Map<String, String> getStatuses(String projectName, String[] ids, Principal principal);
 
-    /**
-     * Imports test results of zip archive with xml reports inside
-     *
-     * @param projectId
-     * @param file
-     * @param principal
-     * @return
-     */
-    OperationCompletionRS importLaunch(String projectId, MultipartFile file, Principal principal);
+	/**
+	 * Imports test results of zip archive with xml reports inside
+	 *
+	 * @param projectId
+	 * @param file
+	 * @param principal
+	 * @return
+	 */
+	OperationCompletionRS importLaunch(String projectId, MultipartFile file, Principal principal);
 
 	void getLaunchReport(String projectName, String launchId, String view, Principal principal, HttpServletResponse response)
 			throws IOException;
 
 	OperationCompletionRS deleteLaunches(String projectName, String[] ids, Principal principal);
-
 
 }

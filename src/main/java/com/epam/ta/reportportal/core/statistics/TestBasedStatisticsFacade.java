@@ -36,49 +36,49 @@ import org.springframework.stereotype.Service;
 @Service
 public class TestBasedStatisticsFacade extends StatisticsFacadeImpl implements StatisticsFacade {
 
-    @Override
-    public TestItem updateExecutionStatistics(final TestItem testItem) {
-        TestItemType type = testItem.getType();
-        if (type.awareStatistics() && type.sameLevel(TestItemType.TEST)) {
-            return super.updateExecutionStatistics(testItem);
-        } else {
-            return testItem;
-        }
-    }
+	@Override
+	public TestItem updateExecutionStatistics(final TestItem testItem) {
+		TestItemType type = testItem.getType();
+		if (type.awareStatistics() && type.sameLevel(TestItemType.TEST)) {
+			return super.updateExecutionStatistics(testItem);
+		} else {
+			return testItem;
+		}
+	}
 
-    @Override
-    public TestItem resetExecutionStatistics(TestItem testItem) {
-        TestItemType type = testItem.getType();
-        if (type.awareStatistics()) {
-            return super.resetExecutionStatistics(testItem);
-        } else {
-            return testItem;
-        }
-    }
+	@Override
+	public TestItem resetExecutionStatistics(TestItem testItem) {
+		TestItemType type = testItem.getType();
+		if (type.awareStatistics()) {
+			return super.resetExecutionStatistics(testItem);
+		} else {
+			return testItem;
+		}
+	}
 
-    @Override
-    public TestItem deleteExecutionStatistics(TestItem testItem) {
-        TestItemType type = testItem.getType();
-        if (type.awareStatistics()) {
-            return super.deleteExecutionStatistics(testItem);
-        } else {
-            return testItem;
-        }
-    }
+	@Override
+	public TestItem deleteExecutionStatistics(TestItem testItem) {
+		TestItemType type = testItem.getType();
+		if (type.awareStatistics()) {
+			return super.deleteExecutionStatistics(testItem);
+		} else {
+			return testItem;
+		}
+	}
 
-    @Override
-    public TestItem identifyStatus(TestItem testItem) {
-        if (testItem.getType().sameLevel(TestItemType.TEST)) {
-            if (testItemRepository.hasChildrenWithStatuses(testItem.getId(), Status.FAILED, Status.SKIPPED)) {
-                testItem.setStatus(Status.FAILED);
-                return testItem;
-            }
-        }
-        return super.identifyStatus(testItem);
-    }
+	@Override
+	public TestItem identifyStatus(TestItem testItem) {
+		if (testItem.getType().sameLevel(TestItemType.TEST)) {
+			if (testItemRepository.hasChildrenWithStatuses(testItem.getId(), Status.FAILED, Status.SKIPPED)) {
+				testItem.setStatus(Status.FAILED);
+				return testItem;
+			}
+		}
+		return super.identifyStatus(testItem);
+	}
 
-    @Override
-    public boolean awareIssue(TestItem testItem) {
-        return testItem.getType().sameLevel(TestItemType.TEST);
-    }
+	@Override
+	public boolean awareIssue(TestItem testItem) {
+		return testItem.getType().sameLevel(TestItemType.TEST);
+	}
 }

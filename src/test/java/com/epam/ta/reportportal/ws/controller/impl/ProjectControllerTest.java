@@ -83,7 +83,8 @@ public class ProjectControllerTest extends BaseMvcTest {
 	public void updateProjectPositive() throws Exception {
 		final UpdateProjectRQ rq = new UpdateProjectRQ();
 		rq.setCustomer("customer");
-		mvcMock.perform(put("/project/project1").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+		mvcMock.perform(put("/project/project1").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
 				.principal(authentication())).andExpect(status().is(200));
 	}
 
@@ -106,7 +107,8 @@ public class ProjectControllerTest extends BaseMvcTest {
 	public void unassignProjectUsersPositive() throws Exception {
 		UnassignUsersRQ rq = new UnassignUsersRQ();
 		rq.setUsernames(singletonList("user2"));
-		mvcMock.perform(put("/project/project1/unassign").principal(authentication()).contentType(APPLICATION_JSON)
+		mvcMock.perform(put("/project/project1/unassign").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
 	}
 
@@ -114,7 +116,8 @@ public class ProjectControllerTest extends BaseMvcTest {
 	public void unassignUsersEmptyUserNames() throws Exception {
 		UnassignUsersRQ rq = new UnassignUsersRQ();
 		rq.setUsernames(new ArrayList<>());
-		mvcMock.perform(put("/project/project1/unassign").principal(authentication()).contentType(APPLICATION_JSON)
+		mvcMock.perform(put("/project/project1/unassign").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
 	}
 
@@ -124,7 +127,8 @@ public class ProjectControllerTest extends BaseMvcTest {
 		Map<String, String> user = new HashMap<>();
 		user.put("user3", "MEMBER");
 		rq.setUserNames(user);
-		mvcMock.perform(put("/project/project1/assign").principal(authentication()).contentType(APPLICATION_JSON)
+		mvcMock.perform(put("/project/project1/assign").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
 	}
 
@@ -141,7 +145,8 @@ public class ProjectControllerTest extends BaseMvcTest {
 	@Test
 	public void updateUserPreferencePositive() throws Exception {
 		UpdateProjectRQ rq = new UpdateProjectRQ();
-		mvcMock.perform(put("/project/project1/preference/user1").principal(authentication()).contentType(APPLICATION_JSON)
+		mvcMock.perform(put("/project/project1/preference/user1").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
 	}
 
@@ -152,17 +157,18 @@ public class ProjectControllerTest extends BaseMvcTest {
 
 	@Test
 	public void getAllProjectsInfo() throws Exception {
-		final MvcResult mvcResult = mvcMock
-				.perform(get("/project/list?page.page=1&page.size=51&page.sort=name,DESC&filter.eq.configuration$entryType=INTERNAL")
-						.principal(authentication()))
-				.andExpect(status().is(200)).andReturn();
+		final MvcResult mvcResult = mvcMock.perform(
+				get("/project/list?page.page=1&page.size=51&page.sort=name,DESC&filter.eq.configuration$entryType=INTERNAL").principal(
+						authentication())).andExpect(status().is(200)).andReturn();
 		Page<ProjectInfoResource> entries = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
 				new TypeReference<Page<ProjectInfoResource>>() {
-				});
+				}
+		);
 		final Collection<ProjectInfoResource> content = entries.getContent();
 		assertThat(content).hasSize(2);
 		assertThat(content.stream().map(ProjectInfoResource::getProjectId).collect(Collectors.toList())).containsSequence("project2",
-				"project1");
+				"project1"
+		);
 		content.stream().forEach(it -> assertThat(it.getEntryType()).isEqualTo("INTERNAL"));
 	}
 
@@ -184,9 +190,11 @@ public class ProjectControllerTest extends BaseMvcTest {
 	@Test
 	public void updateProjectEmailConfig() throws Exception {
 		final EmailSenderCaseDTO emailSenderCase = new EmailSenderCaseDTO(Arrays.asList("OWNER", "user1", "user1email@epam.com"),
-				SendCase.ALWAYS.name(), singletonList("launchName"), singletonList("tags"));
+				SendCase.ALWAYS.name(), singletonList("launchName"), singletonList("tags")
+		);
 		final ProjectEmailConfigDTO config = new ProjectEmailConfigDTO(true, "from@fake.org", Lists.newArrayList(emailSenderCase));
-		this.mvcMock.perform(put("/project/project1/emailconfig").principal(authentication()).contentType(APPLICATION_JSON)
+		this.mvcMock.perform(put("/project/project1/emailconfig").principal(authentication())
+				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(config))).andExpect(status().is(200));
 		final Project project = projectRepository.findOne("project1");
 		final ProjectEmailConfig emailConfig = project.getConfiguration().getEmailConfig();
@@ -201,11 +209,14 @@ public class ProjectControllerTest extends BaseMvcTest {
 	@Test
 	public void getUsersFilterByEmailTest() throws Exception {
 		MvcResult mvcResult = mvcMock.perform(get("/project/project1/users?filter.cnt.email=user").principal(authentication()))
-				.andExpect(status().is(200)).andReturn();
+				.andExpect(status().is(200))
+				.andReturn();
 		Page<UserResource> userResources = new Gson().fromJson(mvcResult.getResponse().getContentAsString(),
 				new TypeToken<Page<UserResource>>() {
-				}.getType());
-		Map<String, UserResource> userResourceMap = userResources.getContent().stream()
+				}.getType()
+		);
+		Map<String, UserResource> userResourceMap = userResources.getContent()
+				.stream()
 				.collect(Collectors.toMap(UserResource::getUserId, it -> it));
 		Assert.assertEquals(3, userResourceMap.size());
 		Assert.assertTrue(userResourceMap.containsKey("user1"));

@@ -25,14 +25,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Created by Andrey_Ivanov1 on 31-May-17.
@@ -41,18 +38,17 @@ import static org.mockito.Mockito.*;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class JobExecutorDelegateTest {
 
-    @InjectMocks
-    private JobExecutorDelegate jobExecutorDelegate = new JobExecutorDelegate();
-    @Mock
-    private SelfCancalableJob selfCancalableJob;
-    @Mock
-    private TaskScheduler taskScheduler;
+	@InjectMocks
+	private JobExecutorDelegate jobExecutorDelegate = new JobExecutorDelegate();
+	@Mock
+	private SelfCancalableJob selfCancalableJob;
+	@Mock
+	private TaskScheduler taskScheduler;
 
-    @Test
-    public void submitJobTest() {
-        jobExecutorDelegate.submitJob(selfCancalableJob);
-        verify(taskScheduler, times(1))
-                .schedule(selfCancalableJob, selfCancalableJob);
-    }
+	@Test
+	public void submitJobTest() {
+		jobExecutorDelegate.submitJob(selfCancalableJob);
+		verify(taskScheduler, times(1)).schedule(selfCancalableJob, selfCancalableJob);
+	}
 
 }

@@ -35,9 +35,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class DashboardResourceAssembler extends ResourceAssembler<Dashboard, DashboardResource> {
 
-    @Override
-    public DashboardResource toResource(Dashboard entity) {
-        return DashboardConverter.TO_RESOURCE.apply(entity);
-    }
+	@Override
+	public DashboardResource toResource(Dashboard entity) {
+		return DashboardConverter.TO_RESOURCE.apply(entity);
+	}
 
 }

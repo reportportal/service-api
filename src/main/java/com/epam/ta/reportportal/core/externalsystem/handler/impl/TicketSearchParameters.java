@@ -17,15 +17,14 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.core.externalsystem.handler.impl;
 
 /**
  * Define possible parameters which can be used for searching for tickets.
- * 
- * @author Aliaksei_Makayed
  *
+ * @author Aliaksei_Makayed
  */
 public enum TicketSearchParameters {
 

@@ -37,7 +37,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.*;
@@ -47,14 +50,13 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AnalyzerServiceClient.class);
-
 	static final String INDEX_PATH = "/_index";
 	static final String ANALYZE_PATH = "/_analyze";
-
-	static final String ITEM_IDS_KEY = "ids";
-	static final String INDEX_NAME_KEY = "project";
+	private static final String ITEM_IDS_KEY = "ids";
+	private static final String INDEX_NAME_KEY = "project";
 
 	private final RestTemplate restTemplate;
+
 	private final DiscoveryClient discoveryClient;
 
 	private AtomicReference<List<ServiceInstance>> analyzerInstances;
@@ -82,12 +84,9 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 				.collect(toList());
 	}
 
-	//Make services return only updated items and refactor this
 	@Override
 	public List<AnalyzedItemRs> analyze(IndexLaunch rq) {
-		List<AnalyzedItemRs> rs = new ArrayList<>();
-		analyzerInstances.get().forEach(instance -> rs.addAll(analyze(instance, rq)));
-		return rs;
+		return analyzerInstances.get().stream().flatMap(instance -> analyze(instance, rq).stream()).collect(toList());
 	}
 
 	@Override
@@ -110,10 +109,9 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 
 	private void deleteLogs(ServiceInstance instance, String project, List<String> ids) {
 		try {
-			Map<String, Object> cleanLogs = ImmutableMap.<String, Object>builder().put(ITEM_IDS_KEY, ids)
-					.put(INDEX_NAME_KEY, project)
-					.build();
-			restTemplate.put(instance.getUri().toString() + INDEX_PATH + "/delete", cleanLogs);
+			restTemplate.put(instance.getUri().toString() + INDEX_PATH + "/delete",
+					ImmutableMap.<String, Object>builder().put(ITEM_IDS_KEY, ids).put(INDEX_NAME_KEY, project).build()
+			);
 		} catch (Exception e) {
 			LOGGER.error("Logs deleting failed. Cannot interact with {} analyzer. Error: {}", instance.getMetadata().get(ANALYZER_KEY), e);
 		}
@@ -157,9 +155,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	}
 
 	/**
-	 * Get list of available analyzers instances
-	 *
-	 * @return {@link List} of instances
+	 * Update list of available analyzers instances
 	 */
 	@EventListener
 	private void getAnalyzerServiceInstances(ConsulUpdateEvent event) {

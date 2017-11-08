@@ -106,7 +106,10 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 
 	private void deleteLogs(ServiceInstance instance, String project, List<String> items) {
 		try {
-			//restTemplate.put(instance.getUri().toString() + DELETE_PATH, project, items);
+			Map<String, Object> cleanLogs = new HashMap<>();
+			cleanLogs.put("ids", items);
+			cleanLogs.put("project", project);
+			restTemplate.put(instance.getUri().toString() + INDEX_PATH + "/delete", cleanLogs);
 		} catch (Exception e) {
 			LOGGER.error("Logs deleting failed. Cannot interact with {} analyzer. Error: {}", instance.getMetadata().get(ANALYZER_KEY), e);
 		}

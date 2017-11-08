@@ -23,10 +23,12 @@ package com.epam.ta.reportportal.core.analyzer.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Objects;
+
 /**
  * @author Pavel Bortnik
  */
-public class AnalyzedItemRs implements Comparable<AnalyzedItemRs> {
+public class AnalyzedItemRs{
 
 	@JsonProperty("test_item")
 	private String itemId;
@@ -36,11 +38,6 @@ public class AnalyzedItemRs implements Comparable<AnalyzedItemRs> {
 
 	@JsonProperty("issue_type")
 	private String issueType;
-
-	@Override
-	public int compareTo(AnalyzedItemRs o) {
-		return itemId.compareTo(o.getItemId());
-	}
 
 	public String getItemId() {
 		return itemId;
@@ -64,5 +61,22 @@ public class AnalyzedItemRs implements Comparable<AnalyzedItemRs> {
 
 	public void setIssueType(String issueType) {
 		this.issueType = issueType;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		AnalyzedItemRs that = (AnalyzedItemRs) o;
+		return Objects.equals(itemId, that.itemId);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(itemId);
 	}
 }

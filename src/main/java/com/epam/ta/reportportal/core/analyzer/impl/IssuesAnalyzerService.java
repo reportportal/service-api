@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
@@ -129,11 +130,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 			Optional<TestItem> toUpdate = testItems.stream().filter(item -> item.getId().equals(analyzed.getItemId())).findFirst();
 			toUpdate.ifPresent(testItem -> {
 				TestItemIssue issue = new TestItemIssue(analyzed.getIssueType(), null, true);
-				TestItem relevantItem = testItemRepository.findOne(analyzed.getRelevantItemId());
-				if (relevantItem != null && relevantItem.getIssue() != null) {
-					issue.setIssueDescription(relevantItem.getIssue().getIssueDescription());
-					issue.setExternalSystemIssues(relevantItem.getIssue().getExternalSystemIssues());
-				}
+				ofNullable(analyzed.getRelevantItemId()).ifPresent(relevantItemId -> fromRelevantItem(issue, relevantItemId));
 				testItem.setIssue(issue);
 			});
 			return toUpdate;
@@ -141,8 +138,22 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	}
 
 	/**
+	 * Updates issue with values are taken from most relevant item
+	 *
+	 * @param issue          Issue to update
+	 * @param relevantItemId Relevant item id
+	 */
+	private void fromRelevantItem(TestItemIssue issue, String relevantItemId) {
+		TestItem relevantItem = testItemRepository.findOne(relevantItemId);
+		if (relevantItem != null && relevantItem.getIssue() != null) {
+			issue.setIssueDescription(relevantItem.getIssue().getIssueDescription());
+			issue.setExternalSystemIssues(relevantItem.getIssue().getExternalSystemIssues());
+		}
+	}
+
+	/**
 	 * Updates issues of investigated item and recalculates
-	 * the whole launch's statistics
+	 * the launch's statistics
 	 *
 	 * @param items  Items for update
 	 * @param launch Launch of investigated items

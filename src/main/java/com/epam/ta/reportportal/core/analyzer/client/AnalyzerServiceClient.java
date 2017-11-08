@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 import com.epam.ta.reportportal.events.ConsulUpdateEvent;
+import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,9 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 
 	static final String INDEX_PATH = "/_index";
 	static final String ANALYZE_PATH = "/_analyze";
+
+	static final String ITEM_IDS_KEY = "ids";
+	static final String INDEX_NAME_KEY = "project";
 
 	private final RestTemplate restTemplate;
 	private final DiscoveryClient discoveryClient;
@@ -104,11 +108,11 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 		}
 	}
 
-	private void deleteLogs(ServiceInstance instance, String project, List<String> items) {
+	private void deleteLogs(ServiceInstance instance, String project, List<String> ids) {
 		try {
-			Map<String, Object> cleanLogs = new HashMap<>();
-			cleanLogs.put("ids", items);
-			cleanLogs.put("project", project);
+			Map<String, Object> cleanLogs = ImmutableMap.<String, Object>builder().put(ITEM_IDS_KEY, ids)
+					.put(INDEX_NAME_KEY, project)
+					.build();
 			restTemplate.put(instance.getUri().toString() + INDEX_PATH + "/delete", cleanLogs);
 		} catch (Exception e) {
 			LOGGER.error("Logs deleting failed. Cannot interact with {} analyzer. Error: {}", instance.getMetadata().get(ANALYZER_KEY), e);

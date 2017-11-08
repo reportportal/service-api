@@ -162,7 +162,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		List<TestItem> investigatedItems = testItemRepository.findItemsNotInIssueType(TO_INVESTIGATE.getLocator(), launch.getId());
 		if (!CollectionUtils.isEmpty(investigatedItems)) {
 			if (Mode.DEBUG.equals(launch.getMode())) {
-				logIndexer.deleteLogs(launch.getProjectRef(), investigatedItems.stream().map(TestItem::getId).collect(toList()));
+				logIndexer.cleanIndex(launch.getProjectRef(), investigatedItems.stream().map(TestItem::getId).collect(toList()));
 			} else {
 				logIndexer.indexLogs(launch.getId(), investigatedItems);
 			}

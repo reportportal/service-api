@@ -100,7 +100,7 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 			testItemRepository.delete(itemId);
 			if (!isBatch) {
-				logIndexer.deleteLogs(projectName, singletonList(itemId));
+				logIndexer.cleanIndex(projectName, singletonList(itemId));
 			}
 
 			if (null != item.getParent()) {
@@ -130,7 +130,7 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 	@Override
 	public List<OperationCompletionRS> deleteTestItem(String[] ids, String project, String user) {
-		logIndexer.deleteLogs(project, Arrays.asList(ids));
+		logIndexer.cleanIndex(project, Arrays.asList(ids));
 		return Stream.of(ids).map(it -> deleteTestItem(it, project, user, true)).collect(toList());
 	}
 

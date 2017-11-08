@@ -72,17 +72,17 @@ public interface IAnalyzerServiceClient {
 	Set<AnalyzedItemRs> analyze(IndexLaunch rq);
 
 	/**
-	 * Delete specified items from specified index/project
+	 * Remove documents with specified ids from index
 	 *
 	 * @param index Index to to be cleaned
-	 * @param ids Document ids to be deleted from index
+	 * @param ids   Document ids to be deleted from index
 	 */
 	void cleanIndex(String index, List<String> ids);
 
 	/**
-	 * Delete project index
+	 * Delete index
 	 *
-	 * @param project Project/index
+	 * @param index Index to be deleted
 	 */
-	void deleteIndex(String project);
+	void deleteIndex(String index);
 }

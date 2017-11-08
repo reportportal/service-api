@@ -94,7 +94,7 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 		validate(launch, user, project);
 		try {
 			launchRepository.delete(singletonList(launchId));
-			logIndexer.deleteLogs(projectName, itemRepository.findIdsNotInIssueType(TO_INVESTIGATE.getLocator(), launchId));
+			logIndexer.cleanIndex(projectName, itemRepository.findIdsNotInIssueType(TO_INVESTIGATE.getLocator(), launchId));
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while Launch deleting.", exp);
 		}

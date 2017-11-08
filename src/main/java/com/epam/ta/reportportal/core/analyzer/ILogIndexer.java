@@ -59,12 +59,12 @@ public interface ILogIndexer {
 	void deleteIndex(String project);
 
 	/**
-	 * Delete specified items from specified index/project
+	 * Remove documents with specified ids from index
 	 *
-	 * @param project Project/index to deleteLogs from
-	 * @param ids     items to deleteLogs
+	 * @param index Index to to be cleaned
+	 * @param ids   Document ids to be deleted from index
 	 */
-	void deleteLogs(String project, List<String> ids);
+	void cleanIndex(String index, List<String> ids);
 
 	/**
 	 * Index all logs with its' level greater than

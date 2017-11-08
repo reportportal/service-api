@@ -95,13 +95,13 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	}
 
 	@Override
-	public void deleteIndex(String project) {
-		analyzerInstances.get().stream().filter(DOES_NEED_INDEX).forEach(instance -> deleteIndex(instance, project));
+	public void deleteIndex(String index) {
+		analyzerInstances.get().stream().filter(DOES_NEED_INDEX).forEach(instance -> deleteIndex(instance, index));
 	}
 
-	private void deleteIndex(ServiceInstance instance, String project) {
+	private void deleteIndex(ServiceInstance instance, String index) {
 		try {
-			restTemplate.delete(instance.getUri().toString() + INDEX_PATH + "/" + project);
+			restTemplate.delete(instance.getUri().toString() + INDEX_PATH + "/" + index);
 		} catch (Exception e) {
 			LOGGER.error("Index deleting failed. Cannot interact with {} analyzer. Error: {}", instance.getMetadata().get(ANALYZER_KEY), e);
 		}
@@ -113,7 +113,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 					ImmutableMap.<String, Object>builder().put(ITEM_IDS_KEY, ids).put(INDEX_NAME_KEY, project).build()
 			);
 		} catch (Exception e) {
-			LOGGER.error("Logs deleting failed. Cannot interact with {} analyzer. Error: {}", instance.getMetadata().get(ANALYZER_KEY), e);
+			LOGGER.error("Documents deleting failed. Cannot interact with {} analyzer. Error: {}", instance.getMetadata().get(ANALYZER_KEY), e);
 		}
 	}
 

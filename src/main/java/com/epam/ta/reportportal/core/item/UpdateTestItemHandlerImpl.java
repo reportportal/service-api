@@ -21,7 +21,6 @@
 
 package com.epam.ta.reportportal.core.item;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.impl.LogIndexerService;
@@ -54,6 +53,8 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.StreamSupport;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.trimStrings;
+import static com.epam.ta.reportportal.commons.EntityUtils.update;
 import static com.epam.ta.reportportal.commons.Preconditions.NOT_EMPTY_COLLECTION;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -61,8 +62,11 @@ import static com.epam.ta.reportportal.database.entity.Status.PASSED;
 import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.doesHaveUser;
 import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static com.google.common.collect.Sets.newHashSet;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
+import static java.util.Collections.singletonList;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -139,7 +143,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 							.stream()
 							.map(TestItemUtils.externalIssueDtoConverter(userName))
 							.collect(toSet());
-					Set<TestItemIssue.ExternalSystemIssue> difference = Sets.newHashSet(Sets.difference(issuesFromRequest, issuesFromDB));
+					Set<TestItemIssue.ExternalSystemIssue> difference = newHashSet(Sets.difference(issuesFromRequest, issuesFromDB));
 					if (!difference.isEmpty()) {
 						for (TestItemIssue.ExternalSystemIssue externalSystemIssue : difference) {
 							externalSystemIssue.setSubmitter(userName);
@@ -157,7 +161,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						}
 						testItemIssue.setExternalSystemIssues(externalSystemIssues);
 					} else {
-						issuesFromDB.removeAll(Sets.newHashSet(Sets.difference(issuesFromDB, issuesFromRequest)));
+						issuesFromDB.removeAll(newHashSet(Sets.difference(issuesFromDB, issuesFromRequest)));
 						testItemIssue.setExternalSystemIssues(issuesFromDB);
 					}
 				}
@@ -168,7 +172,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 				testItemRepository.save(testItem);
 
-				logIndexer.indexLogs(launch.getId(), Collections.singletonList(testItem));
+				if (!testItem.isIgnoreAnalyzer()) {
+					logIndexer.indexLogs(launch.getId(), singletonList(testItem));
+				}
 
 				testItem = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.updateIssueStatistics(testItem);
@@ -188,15 +194,11 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	@Override
 	public OperationCompletionRS updateTestItem(String projectName, String item, UpdateTestItemRQ rq, String userName) {
 		TestItem testItem = validate(projectName, userName, item);
-		if (null != rq.getTags() || null != rq.getDescription()) {
-			if (null != rq.getTags()) {
-				testItem.setTags(Sets.newHashSet(EntityUtils.trimStrings(EntityUtils.update(rq.getTags()))));
-			}
-			if (null != rq.getDescription()) {
-				testItem.setItemDescription(rq.getDescription().trim());
-			}
-			testItemRepository.save(testItem);
-		}
+		ofNullable(rq.getTags()).ifPresent(tags -> testItem.setTags(newHashSet(trimStrings(update(tags)))));
+		ofNullable(rq.getDescription()).ifPresent(testItem::setItemDescription);
+		testItem.setIgnoreAnalyzer(rq.isIgnoreAnalyzer());
+		reindexLogs(projectName, testItem);
+		testItemRepository.save(testItem);
 		return new OperationCompletionRS("TestItem with ID = '" + item + "' successfully updated.");
 	}
 
@@ -254,6 +256,21 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	}
 
 	/**
+	 * Index logs if item is not ignored for analyzer
+	 * Clean index logs if item is ignored for analyzer
+	 *
+	 * @param projectName Project name
+	 * @param testItem    Test item to reindex
+	 */
+	private void reindexLogs(String projectName, TestItem testItem) {
+		if (!testItem.isIgnoreAnalyzer()) {
+			logIndexer.indexLogs(testItem.getLaunchRef(), singletonList(testItem));
+		} else {
+			logIndexer.cleanIndex(projectName, singletonList(testItem.getId()));
+		}
+	}
+
+	/**
 	 * Verifies that provided test item issue type is valid, and test item
 	 * domain object could be processed correctly
 	 *
@@ -279,18 +296,19 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				testItem, notNull(), Suppliers.formattedSupplier("Cannot update issue type for test item '{}', cause it is not found.", id))
 				.verify();
 
-		expect(
-				testItem.getStatus(), not(equalTo(PASSED)),
+		expect(testItem.getStatus(), not(equalTo(PASSED)),
 				Suppliers.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
 						PASSED.name()
 				)
 		).verify();
 
-		expect(testItem.hasChilds(), not(equalTo(TRUE)), Suppliers.formattedSupplier(
-				"It is not allowed to udpate issue type for items with descendants. Test item '{}' has descendants.", id)).verify();
+		expect(
+				testItem.hasChilds(), not(equalTo(TRUE)), Suppliers.formattedSupplier(
+						"It is not allowed to udpate issue type for items with descendants. Test item '{}' has descendants.", id)).verify();
 
-		expect(testItem.getIssue(), notNull(), Suppliers.formattedSupplier(
-				"Cannot update issue type for test item '{}', cause there is no info about actual issue type value.", id)).verify();
+		expect(
+				testItem.getIssue(), notNull(), Suppliers.formattedSupplier(
+						"Cannot update issue type for test item '{}', cause there is no info about actual issue type value.", id)).verify();
 
 		expect(
 				testItem.getIssue().getIssueType(), notNull(), Suppliers.formattedSupplier(

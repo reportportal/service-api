@@ -15,7 +15,11 @@
         "statistics$defects$system_issue$SI001",
         "statistics$defects$to_investigate$TI001"
       ],
-      "widgetOptions":{"viewMode":["areaChartMode"]},
+      "widgetOptions": {
+        "viewMode": [
+          "areaChartMode"
+        ]
+      },
       "itemsCount": 50
     },
     "applyingFilterId": "",
@@ -37,7 +41,11 @@
         "statistics$executions$failed",
         "statistics$executions$skipped"
       ],
-      "widgetOptions":{"viewMode":["barMode"]},
+      "widgetOptions": {
+        "viewMode": [
+          "barMode"
+        ]
+      },
       "itemsCount": 50
     },
     "applyingFilterId": "",

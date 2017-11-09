@@ -44,6 +44,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
 import java.util.List;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
@@ -129,8 +130,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			item.setUniqueId(identifierGenerator.generate(item));
 		}
 
-		if (rq.isRetry()) {
-			TestItem retryRoot = getRetryRoot(item.getUniqueId(), parent);
+		List<TestItem> retries = getRetries(item.getUniqueId(), parent);
+		if (!retries.isEmpty()) {
+			TestItem retryRoot = getRetryRoot(retries);
 
 			RetryId retryId = RetryId.newID(retryRoot.getId());
 
@@ -152,45 +154,28 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	}
 
 	@VisibleForTesting
-	TestItem getRetryRoot(String uniqueID, String parent) {
+	List<TestItem> getRetries(String uniqueID, String parent) {
 		LOGGER.debug("Looking for retry root. Parent: {}. Unique ID: {}", parent, uniqueID);
 
-		/*
-		 * Due to async nature of RP clients and some TestNG
-		 * implementation details both 'start item' of root of retry and 'start item' events
-		 * may come at the same time (almost). To simplify client side we don't introduce requirement
-		 * that 1st retry item have to wait for the item that causes of retry (retry root). Instead, we
-		 * just introduce some wait on server side. This case if extremely specific, in 99% real-world cases
-		 * results will be returned from first attempt
-		 */
-		TestItem retryRoot = retrier.execute(context -> {
+		return testItemRepository.findByUniqueId(uniqueID, parent);
+	}
 
-			/* search for the item with the same unique ID and parent. Since retries do not contain
-			 * parentID, there should be only one result
-			 */
-			List<TestItem> retryItems = testItemRepository.findByUniqueId(uniqueID, parent);
-
-			/* make sure at least one item is present already.
-			 *  If not, this exception will be handled by retry handler
-			 */
-			BusinessRule.expect(retryItems, Preconditions.NOT_EMPTY_COLLECTION)
-					.verify(ErrorType.INCORRECT_REQUEST, "Unable to find retry root");
-
-			LOGGER.info("Found {} retry root candidates", retryItems.size());
-			TestItem item;
-
-			//first retry of some test item
-			if (1 == retryItems.size()) {
-				item = retryItems.get(0);
-			} else {
-				//second retry. Make sure we take the one that already has retries
-				item = retryItems.stream().filter(it -> Preconditions.NOT_EMPTY_COLLECTION.test(it.getRetries())).findFirst().get();
-			}
-			return item;
-		});
-
-		LOGGER.debug("Found retry root:" + retryRoot.getId());
-		return retryRoot;
+	@VisibleForTesting
+	TestItem getRetryRoot(List<TestItem> retryItems) {
+		BusinessRule.expect(retryItems, Preconditions.NOT_EMPTY_COLLECTION).verify(ErrorType.BAD_REQUEST_ERROR, "Retries not found");
+		//first retry of some test item
+		TestItem root;
+		if (1 == retryItems.size()) {
+			root = retryItems.get(0);
+		} else {
+			//second retry. Make sure we take the one that already has retries
+			Optional<TestItem> rootOptional = retryItems.stream()
+					.filter(it -> Preconditions.NOT_EMPTY_COLLECTION.test(it.getRetries()))
+					.findFirst();
+			BusinessRule.expect(rootOptional, Preconditions.IS_PRESENT).verify(ErrorType.BAD_REQUEST_ERROR, "Retries not found");
+			root = rootOptional.get();
+		}
+		return root;
 	}
 
 	private void validate(String projectName, StartTestItemRQ rq, Launch launch) {
@@ -201,7 +186,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		);
 
 		expect(rq, Preconditions.startSameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(), launch.getStartTime(), launch.getId()
+				rq.getStartTime(),
+				launch.getStartTime(),
+				launch.getId()
 		);
 
 	}
@@ -218,7 +205,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	private void validate(StartTestItemRQ rq, TestItem parent) {
 		expect(rq, Preconditions.startSameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(), parent.getStartTime(), parent.getId()
+				rq.getStartTime(),
+				parent.getStartTime(),
+				parent.getId()
 		);
 	}
 }

@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.Preconditions;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -31,20 +30,15 @@ import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.util.RetryId;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
-import java.util.List;
-import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
@@ -66,13 +60,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	private LaunchRepository launchRepository;
 	private Provider<TestItemBuilder> testItemBuilder;
 	private UniqueIdGenerator identifierGenerator;
-	private RetryTemplate retrier;
-
-	public StartTestItemHandlerImpl() {
-		retrier = new RetryTemplate();
-		retrier.setRetryPolicy(new SimpleRetryPolicy(10));
-		retrier.setThrowLastExceptionOnExhausted(true);
-	}
 
 	@Autowired
 	public void setIdentifierGenerator(UniqueIdGenerator identifierGenerator) {
@@ -130,10 +117,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			item.setUniqueId(identifierGenerator.generate(item));
 		}
 
-		List<TestItem> retries = getRetries(item.getUniqueId(), parent);
-		if (!retries.isEmpty()) {
-			TestItem retryRoot = getRetryRoot(retries);
-
+		TestItem retryRoot = getRetryRoot(item.getUniqueId(), parent);
+		if (null != retryRoot) {
 			RetryId retryId = RetryId.newID(retryRoot.getId());
 
 			item.setId(retryId.toString());
@@ -154,29 +139,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	}
 
 	@VisibleForTesting
-	List<TestItem> getRetries(String uniqueID, String parent) {
+	TestItem getRetryRoot(String uniqueID, String parent) {
 		LOGGER.debug("Looking for retry root. Parent: {}. Unique ID: {}", parent, uniqueID);
-
-		return testItemRepository.findByUniqueId(uniqueID, parent);
-	}
-
-	@VisibleForTesting
-	TestItem getRetryRoot(List<TestItem> retryItems) {
-		BusinessRule.expect(retryItems, Preconditions.NOT_EMPTY_COLLECTION).verify(ErrorType.BAD_REQUEST_ERROR, "Retries not found");
-		//first retry of some test item
-		TestItem root;
-		if (1 == retryItems.size()) {
-			root = retryItems.get(0);
-		} else {
-			//second retry. Make sure we take the one that already has retries
-			Optional<TestItem> rootOptional = retryItems.stream()
-					.filter(it -> Preconditions.NOT_EMPTY_COLLECTION.test(it.getRetries()))
-					.findFirst();
-			BusinessRule.expect(rootOptional, Preconditions.IS_PRESENT)
-					.verify(ErrorType.BAD_REQUEST_ERROR, "Several items with the same uniqueID are found, but no one has retries");
-			root = rootOptional.get();
-		}
-		return root;
+		return testItemRepository.findRetryRoot(uniqueID, parent);
 	}
 
 	private void validate(String projectName, StartTestItemRQ rq, Launch launch) {

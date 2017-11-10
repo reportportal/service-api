@@ -172,7 +172,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			Optional<TestItem> rootOptional = retryItems.stream()
 					.filter(it -> Preconditions.NOT_EMPTY_COLLECTION.test(it.getRetries()))
 					.findFirst();
-			BusinessRule.expect(rootOptional, Preconditions.IS_PRESENT).verify(ErrorType.BAD_REQUEST_ERROR, "Retries not found");
+			BusinessRule.expect(rootOptional, Preconditions.IS_PRESENT)
+					.verify(ErrorType.BAD_REQUEST_ERROR, "Several items with the same uniqueID are found, but no one has retries");
 			root = rootOptional.get();
 		}
 		return root;

@@ -52,6 +52,21 @@ public interface ILogIndexer {
 	void indexLogs(String launchId, List<TestItem> testItems);
 
 	/**
+	 * Delete index of specified project
+	 *
+	 * @param project Project/index
+	 */
+	void deleteIndex(String project);
+
+	/**
+	 * Remove documents with specified ids from index
+	 *
+	 * @param index Index to to be cleaned
+	 * @param ids   Document ids to be deleted from index
+	 */
+	void cleanIndex(String index, List<String> ids);
+
+	/**
 	 * Index all logs with its' level greater than
 	 * {@link com.epam.ta.reportportal.database.entity.LogLevel#ERROR} in repository
 	 */

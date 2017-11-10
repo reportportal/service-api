@@ -22,24 +22,28 @@
 package com.epam.ta.reportportal.core.analyzer.client;
 
 import com.epam.ta.reportportal.core.analyzer.IAnalyzerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
+import com.epam.ta.reportportal.events.ConsulUpdateEvent;
+import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.*;
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 @Service
 public class AnalyzerServiceClient implements IAnalyzerServiceClient {
@@ -48,24 +52,31 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	static final String INDEX_PATH = "/_index";
 	static final String ANALYZE_PATH = "/_analyze";
 
+	private static final String ITEM_IDS_KEY = "ids";
+	private static final String INDEX_NAME_KEY = "project";
+
 	private final RestTemplate restTemplate;
+
 	private final DiscoveryClient discoveryClient;
+
+	private AtomicReference<List<ServiceInstance>> analyzerInstances;
 
 	@Autowired
 	public AnalyzerServiceClient(RestTemplate restTemplate, DiscoveryClient discoveryClient) {
+		this.analyzerInstances = new AtomicReference<>(Collections.emptyList());
 		this.restTemplate = restTemplate;
 		this.discoveryClient = discoveryClient;
 	}
 
 	@Override
 	public boolean hasClients() {
-		return !getAnalyzerServiceInstances().isEmpty();
+		return !analyzerInstances.get().isEmpty();
 	}
 
 	@Override
 	public List<IndexRs> index(List<IndexLaunch> rq) {
-		List<ServiceInstance> analyzerInstances = getAnalyzerServiceInstances();
-		return analyzerInstances.stream()
+		return analyzerInstances.get()
+				.stream()
 				.filter(DOES_NEED_INDEX)
 				.map(instance -> index(instance, rq))
 				.filter(Optional::isPresent)
@@ -73,18 +84,37 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 				.collect(toList());
 	}
 
-	//Make services return only updated items and refactor this
 	@Override
-	public IndexLaunch analyze(IndexLaunch rq) {
-		List<ServiceInstance> analyzerInstances = getAnalyzerServiceInstances();
-		analyzerInstances.sort(comparingInt(SERVICE_PRIORITY).reversed());
-		for (ServiceInstance instance : analyzerInstances) {
-			Optional<IndexLaunch> analyzed = analyze(instance, rq);
-			if (analyzed.isPresent()) {
-				rq = analyzed.get();
-			}
+	public Set<AnalyzedItemRs> analyze(IndexLaunch rq) {
+		return analyzerInstances.get().stream().flatMap(instance -> analyze(instance, rq).stream()).collect(toSet());
+	}
+
+	@Override
+	public void cleanIndex(String index, List<String> ids) {
+		analyzerInstances.get().stream().filter(DOES_NEED_INDEX).forEach(instance -> cleanIndex(instance, index, ids));
+	}
+
+	@Override
+	public void deleteIndex(String index) {
+		analyzerInstances.get().stream().filter(DOES_NEED_INDEX).forEach(instance -> deleteIndex(instance, index));
+	}
+
+	private void deleteIndex(ServiceInstance instance, String index) {
+		try {
+			restTemplate.delete(instance.getUri().toString() + INDEX_PATH + "/" + index);
+		} catch (Exception e) {
+			LOGGER.error("Index deleting failed. Cannot interact with {} analyzer. Error: {}", instance.getMetadata().get(ANALYZER_KEY), e);
 		}
-		return rq;
+	}
+
+	private void cleanIndex(ServiceInstance instance, String project, List<String> ids) {
+		try {
+			restTemplate.put(instance.getUri().toString() + INDEX_PATH + "/delete",
+					ImmutableMap.<String, Object>builder().put(ITEM_IDS_KEY, ids).put(INDEX_NAME_KEY, project).build()
+			);
+		} catch (Exception e) {
+			LOGGER.error("Documents deleting failed. Cannot interact with {} analyzer. Error: {}", instance.getMetadata().get(ANALYZER_KEY), e);
+		}
 	}
 
 	/**
@@ -100,7 +130,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 					analyzer.getUri().toString() + INDEX_PATH, rq, IndexRs.class);
 			return Optional.ofNullable(responseEntity.getBody());
 		} catch (Exception e) {
-			LOGGER.warn("Indexing failed. Cannot interact with {} analyzer. Error: {}", analyzer.getMetadata().get(ANALYZER_KEY), e);
+			LOGGER.error("Indexing failed. Cannot interact with {} analyzer. Error: {}", analyzer.getMetadata().get(ANALYZER_KEY), e);
 		}
 		return Optional.empty();
 	}
@@ -112,30 +142,29 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	 * @param rq       Request {@link IndexLaunch} to analyze
 	 * @return {@link Optional} of {@link IndexLaunch} with analyzed items
 	 */
-	private Optional<IndexLaunch> analyze(ServiceInstance analyzer, IndexLaunch rq) {
+	private List<AnalyzedItemRs> analyze(ServiceInstance analyzer, IndexLaunch rq) {
 		try {
-			ResponseEntity<IndexLaunch[]> responseEntity = restTemplate.postForEntity(
-					analyzer.getUri().toString() + ANALYZE_PATH, Collections.singletonList(rq), IndexLaunch[].class);
-			IndexLaunch[] rs = responseEntity.getBody();
-			if (rs.length > 0) {
-				return Optional.ofNullable(rs[0]);
-			}
+			ResponseEntity<AnalyzedItemRs[]> responseEntity = restTemplate.postForEntity(
+					analyzer.getUri().toString() + ANALYZE_PATH, Collections.singletonList(rq), AnalyzedItemRs[].class);
+			AnalyzedItemRs[] rs = responseEntity.getBody();
+			return Arrays.asList(rs);
 		} catch (Exception e) {
-			LOGGER.warn("Analyzing failed. Cannot interact with {} analyzer.", analyzer.getMetadata().get(ANALYZER_KEY), e);
+			LOGGER.error("Analyzing failed. Cannot interact with {} analyzer.", analyzer.getMetadata().get(ANALYZER_KEY), e);
 		}
-		return Optional.empty();
+		return Collections.emptyList();
 	}
 
 	/**
-	 * Get list of available analyzers instances
-	 *
-	 * @return {@link List} of instances
+	 * Update list of available analyzers instances
 	 */
-	private List<ServiceInstance> getAnalyzerServiceInstances() {
-		return discoveryClient.getServices()
+	@EventListener
+	private void getAnalyzerServiceInstances(ConsulUpdateEvent event) {
+		List<ServiceInstance> collect = discoveryClient.getServices()
 				.stream()
 				.flatMap(service -> discoveryClient.getInstances(service).stream())
 				.filter(instance -> instance.getMetadata().containsKey(ANALYZER_KEY))
+				.sorted(comparingInt(SERVICE_PRIORITY))
 				.collect(toList());
+		analyzerInstances.set(collect);
 	}
 }

@@ -22,20 +22,20 @@
 package com.epam.ta;
 
 import com.epam.ta.reportportal.auth.UatClient;
-import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.database.fixture.MongoFixtureImporter;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
+import com.epam.ta.reportportal.events.ConsulUpdateEvent;
 import com.github.fakemongo.Fongo;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.mongodb.MockMongoClient;
 import com.mongodb.WriteConcern;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.guava.GuavaCache;
 import org.springframework.cache.support.SimpleCacheManager;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.data.mongodb.MongoDbFactory;
@@ -47,7 +47,8 @@ import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResour
 import java.util.concurrent.TimeUnit;
 
 import static com.epam.ta.reportportal.config.CacheConfiguration.*;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 @SuppressWarnings("unchecked")
 @Configuration
@@ -98,12 +99,12 @@ public class TestConfig {
 
 	@Bean
 	public UatClient uatClient() {
-		return Mockito.mock(UatClient.class);
+		return mock(UatClient.class);
 	}
 
 	@Bean
 	public OAuth2ProtectedResourceDetails oauthResource() {
-		return Mockito.mock(OAuth2ProtectedResourceDetails.class);
+		return mock(OAuth2ProtectedResourceDetails.class);
 	}
 
 	@Bean
@@ -118,8 +119,10 @@ public class TestConfig {
 	}
 
 	@Bean
-	public AnalyzerServiceClient analyzerServiceClient() {
-		return mock(AnalyzerServiceClient.class);
+	public ApplicationEventPublisher applicationEventPublisher() {
+		ApplicationEventPublisher mock = spy(ApplicationEventPublisher.class);
+		doNothing().when(mock).publishEvent(any(ConsulUpdateEvent.class));
+		return mock;
 	}
 
 	@Bean

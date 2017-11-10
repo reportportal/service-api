@@ -68,6 +68,7 @@ public class AnalyzerUtils {
 		indexTestItem.setUniqueId(testItem.getUniqueId());
 		if (testItem.getIssue() != null) {
 			indexTestItem.setIssueType(testItem.getIssue().getIssueType());
+			indexTestItem.setAutoAnalyzed(testItem.getIssue().isAutoAnalyzed());
 		}
 		if (!logs.isEmpty()) {
 			indexTestItem.setLogs(logs.stream().map(TO_INDEX_LOG).collect(Collectors.toSet()));

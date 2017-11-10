@@ -51,12 +51,9 @@ public interface IUpdateLaunchHandler {
 	 *
 	 * @param projectName related project name value
 	 * @param launchId    ID of launch object
-	 * @param scope       Scope (strategy name): possible values are SINGLE or HISTORY,
-	 *                    please see for more info
-	 *                    {@link com.epam.ta.reportportal.database.entity.launch.AutoAnalyzeStrategy}
 	 * @return OperationCompletionRS - Response Data
 	 */
-	OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId, String scope);
+	OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId);
 
 	List<OperationCompletionRS> updateLaunch(BulkRQ<UpdateLaunchRQ> rq, String projectName, String userName);
 }

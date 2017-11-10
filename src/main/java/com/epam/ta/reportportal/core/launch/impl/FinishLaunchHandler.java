@@ -169,7 +169,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 			if (launchRepository.hasItems(launch, IN_PROGRESS)) {
 				// Find all IN_PROGRESS children and interrupt them
 				List<TestItem> itemsInProgress = testItemRepository.findInStatusItems(IN_PROGRESS.name(), launch.getId());
-				interruptItems(itemsInProgress, launch);
+				interruptItems(itemsInProgress);
 			}
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while Launch updating.", exp);
@@ -242,7 +242,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		return items.stream().filter(descendant -> IN_PROGRESS.equals(descendant.getStatus())).collect(Collectors.toList());
 	}
 
-	private void interruptItems(List<TestItem> testItems, Launch launch) {
+	private void interruptItems(List<TestItem> testItems) {
 		testItems.forEach(this::interruptItem);
 	}
 

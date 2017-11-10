@@ -21,14 +21,10 @@
 
 package com.epam.ta.reportportal.core.analyzer.client;
 
-import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
-import com.epam.ta.reportportal.core.analyzer.model.IndexLog;
-import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
-import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
+import com.epam.ta.reportportal.core.analyzer.model.*;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -45,7 +41,6 @@ import java.net.URI;
 import java.util.*;
 
 import static com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient.ANALYZE_PATH;
-import static com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient.INDEX_PATH;
 import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.*;
 import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.*;
 import static org.mockito.Mockito.mock;
@@ -58,9 +53,7 @@ import static org.mockito.Mockito.when;
  */
 @SuppressWarnings("unchecked")
 public class AnalyzerServiceClientTest {
-
 	private static final URI SERVICE_URL = URI.create("http://analyzer");
-
 	private RestTemplate restTemplate;
 	private DiscoveryClient discoveryClient;
 	private AnalyzerServiceClient client;
@@ -78,33 +71,12 @@ public class AnalyzerServiceClientTest {
 	@Test
 	public void noClientsAvailable() {
 		IndexLaunch rq = new IndexLaunch();
-		when(discoveryClient.getServices()).thenReturn(Collections.emptyList());
-		List<IndexRs> actualRs = client.index(Collections.singletonList(rq));
+		Set<AnalyzedItemRs> analyzed = client.analyze(rq);
+		List<IndexRs> indexed = client.index(Collections.singletonList(rq));
 		boolean b = client.hasClients();
-		IndexLaunch rs = client.analyze(rq);
 		Assert.assertFalse("Should be false if no services", b);
-		Assert.assertTrue("Response should be empty is there are no services.", actualRs.isEmpty());
-		Assert.assertEquals("Request and response should be equals", rq, rs);
-	}
-
-	@Test
-	public void testIndex() {
-		List<IndexLaunch> rq = Collections.singletonList(indexLaunch());
-
-		ServiceInstance mock = mock(ServiceInstance.class);
-		when(discoveryClient.getServices()).thenReturn(ImmutableList.<String>builder().add("service").build());
-		when(discoveryClient.getInstances("service")).thenReturn(Collections.singletonList(mock));
-		when(mock.getMetadata()).thenReturn(
-				ImmutableMap.<String, String>builder().put(ANALYZER_INDEX, "true").put(ANALYZER_KEY, "ml").build());
-		when(mock.getUri()).thenReturn(SERVICE_URL);
-
-		IndexRs index = new IndexRs();
-		index.setErrors(false);
-
-		when(restTemplate.postForEntity(SERVICE_URL + INDEX_PATH, rq, IndexRs.class)).thenReturn(new ResponseEntity(index, HttpStatus.OK));
-
-		List<IndexRs> actualRs = client.index(rq);
-		Assert.assertSame(index.isErrors(), actualRs.get(0).isErrors());
+		Assert.assertTrue("Response should be empty is there are no services.", indexed.isEmpty());
+		Assert.assertTrue("Request and response should be equals", analyzed.isEmpty());
 	}
 
 	@Test
@@ -117,6 +89,7 @@ public class AnalyzerServiceClientTest {
 		when(mock.getUri()).thenReturn(SERVICE_URL);
 		IndexLaunch rq = new IndexLaunch();
 
+		client = new AnalyzerServiceClient(restTemplate, discoveryClient);
 		List<IndexRs> index = client.index(Collections.singletonList(rq));
 		Assert.assertTrue("Should be empty", index.isEmpty());
 	}
@@ -131,6 +104,7 @@ public class AnalyzerServiceClientTest {
 				ImmutableMap.<String, String>builder().put(ANALYZER_INDEX, "false").put(ANALYZER_KEY, "ml").build());
 		when(mock.getUri()).thenReturn(SERVICE_URL);
 
+		client = new AnalyzerServiceClient(restTemplate, discoveryClient);
 		List<IndexRs> index = client.index(Collections.singletonList(rq));
 		Assert.assertTrue(index.isEmpty());
 	}
@@ -144,6 +118,7 @@ public class AnalyzerServiceClientTest {
 				.put(ANALYZER_PRIORITY, "1")
 				.build());
 		when(mock.getUri()).thenReturn(SERVICE_URL);
+		client = new AnalyzerServiceClient(restTemplate, discoveryClient);
 	}
 
 	@Test
@@ -154,8 +129,8 @@ public class AnalyzerServiceClientTest {
 		when(restTemplate.postForEntity(SERVICE_URL + ANALYZE_PATH, Collections.singletonList(rq), IndexLaunch[].class)).thenReturn(
 				new ResponseEntity<>(basicInvestigation(), HttpStatus.OK));
 
-		IndexLaunch rs = client.analyze(rq);
-		rs.getTestItems().forEach(it -> Assert.assertEquals(it.getIssueType(), PRODUCT_BUG.getLocator()));
+		Set<AnalyzedItemRs> rs = client.analyze(rq);
+		rs.forEach(it -> Assert.assertEquals(it.getIssueType(), PRODUCT_BUG.getLocator()));
 	}
 
 	@Test
@@ -163,62 +138,13 @@ public class AnalyzerServiceClientTest {
 		IndexLaunch rq = indexLaunch();
 		analyzerPreconditions();
 		responseAnalyzeException(rq);
-		IndexLaunch rs = client.analyze(rq);
-		Assert.assertSame(rq, rs);
-		Assert.assertEquals(rs, indexLaunch());
+		Set<AnalyzedItemRs> rs = client.analyze(rq);
+		Assert.assertTrue(rs.isEmpty());
 	}
 
 	private void responseAnalyzeException(IndexLaunch rq) {
 		when(restTemplate.postForEntity(SERVICE_URL + ANALYZE_PATH, Collections.singletonList(rq), IndexLaunch[].class)).thenThrow(
 				new NumberFormatException());
-	}
-
-	@Test
-	public void testAnalyzerPriority() {
-		ServiceInstance topPriority = mock(ServiceInstance.class);
-		ServiceInstance second = mock(ServiceInstance.class);
-		when(discoveryClient.getServices()).thenReturn(ImmutableList.<String>builder().add("service").build());
-		when(discoveryClient.getInstances("service")).thenReturn(Lists.newArrayList(topPriority, second));
-
-		when(topPriority.getMetadata()).thenReturn(ImmutableMap.<String, String>builder().put(ANALYZER_INDEX, "true")
-				.put(ANALYZER_KEY, "highest priority")
-				.put(ANALYZER_PRIORITY, "0")
-				.build());
-
-		when(second.getMetadata()).thenReturn(ImmutableMap.<String, String>builder().put(ANALYZER_INDEX, "true")
-				.put(ANALYZER_KEY, "ml")
-				.put(ANALYZER_PRIORITY, "1")
-				.build());
-
-		when(second.getUri()).thenReturn(SERVICE_URL);
-		when(topPriority.getUri()).thenReturn(URI.create("PRIORITY"));
-
-		IndexLaunch rq = indexLaunch();
-
-		responseLowPriorityService(rq);
-		responseTopPriorityService(basicInvestigation()[0]);
-
-		IndexLaunch analyze = client.analyze(rq);
-
-		Assert.assertEquals(SYSTEM_ISSUE.getLocator(), analyze.getTestItems().get(0).getIssueType());
-		Assert.assertEquals(PRODUCT_BUG.getLocator(), analyze.getTestItems().get(1).getIssueType());
-
-	}
-
-	private void responseTopPriorityService(IndexLaunch rq) {
-		IndexLaunch[] launches = new IndexLaunch[1];
-		IndexLaunch analyzed = indexLaunch();
-		analyzed.getTestItems().get(0).setIssueType(SYSTEM_ISSUE.getLocator());
-		analyzed.getTestItems().get(1).setIssueType(PRODUCT_BUG.getLocator());
-		launches[0] = analyzed;
-		when(restTemplate.postForEntity("PRIORITY" + ANALYZE_PATH, Collections.singletonList(rq), IndexLaunch[].class)).thenReturn(
-				new ResponseEntity<>(launches, HttpStatus.OK));
-	}
-
-	private void responseLowPriorityService(IndexLaunch rq) {
-
-		when(restTemplate.postForEntity(SERVICE_URL + ANALYZE_PATH, Collections.singletonList(rq), IndexLaunch[].class)).thenReturn(
-				new ResponseEntity<>(basicInvestigation(), HttpStatus.OK));
 	}
 
 	private IndexLaunch[] basicInvestigation() {

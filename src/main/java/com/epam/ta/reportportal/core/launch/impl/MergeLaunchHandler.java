@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.item.TestItemUniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.merge.strategy.MergeStrategy;
 import com.epam.ta.reportportal.core.item.merge.strategy.MergeStrategyFactory;
@@ -55,6 +56,7 @@ import java.util.function.Supplier;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.database.entity.Status.IN_PROGRESS;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -92,10 +94,13 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 	@Autowired
 	private TestItemUniqueIdGenerator identifierGenerator;
 
-	@Autowired
-	public void setProjectRepository(ProjectRepository projectRepository) {
-		this.projectRepository = projectRepository;
-	}
+    @Autowired
+    private ILogIndexer logIndexer;
+
+    @Autowired
+    public void setProjectRepository(ProjectRepository projectRepository) {
+        this.projectRepository = projectRepository;
+    }
 
 	@Autowired
 	public void setLaunchRepository(LaunchRepository launchRepository) {
@@ -160,8 +165,10 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 		launchRepository.save(launch);
 		launchRepository.delete(launchesIds);
 
-		return launchResourceAssembler.toResource(launch);
-	}
+        logIndexer.indexLogs(launch.getId(), testItemRepository.findItemsNotInIssueType(TO_INVESTIGATE.getLocator(), launch.getId()));
+
+        return launchResourceAssembler.toResource(launch);
+    }
 
 	/**
 	 * Validations for merge launches request parameters and data

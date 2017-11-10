@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.project.IDeleteProjectHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
@@ -50,6 +51,9 @@ public class DeleteProjectHandler implements IDeleteProjectHandler {
 	private final ProjectRepository projectRepository;
 
 	@Autowired
+	private ILogIndexer logIndexer;
+
+	@Autowired
 	public DeleteProjectHandler(ProjectRepository projectRepository) {
 		this.projectRepository = projectRepository;
 	}
@@ -65,6 +69,7 @@ public class DeleteProjectHandler implements IDeleteProjectHandler {
 		).verify(ErrorType.PROJECT_UPDATE_NOT_ALLOWED, project.getConfiguration().getEntryType());
 		try {
 			projectRepository.delete(singletonList(projectName));
+			logIndexer.deleteIndex(projectName);
 		} catch (Exception e) {
 			throw new ReportPortalException("Error during deleting Project and attributes", e);
 		}

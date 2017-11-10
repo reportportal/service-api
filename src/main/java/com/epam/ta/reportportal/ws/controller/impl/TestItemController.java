@@ -145,7 +145,7 @@ public class TestItemController implements ITestItemController {
 	@Override
 	@ApiOperation("Delete test item")
 	public OperationCompletionRS deleteTestItem(@PathVariable String projectName, @PathVariable String item, Principal principal) {
-		return deleteTestItemHandler.deleteTestItem(item, normalizeId(projectName), principal.getName());
+		return deleteTestItemHandler.deleteTestItem(item, normalizeId(projectName), principal.getName(), false);
 	}
 
 	@Override

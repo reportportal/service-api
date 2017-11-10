@@ -41,15 +41,35 @@ public class AnalyzerUtilsTest {
 
 	@Test
 	public void testConverting() {
-		TestItem testItem = new TestItem();
-		testItem.setId("item");
-		testItem.setUniqueId("uniqueId");
-		testItem.setIssue(new TestItemIssue());
+		TestItem testItem = createTest();
+		testItem.setIssue(createIssue(false));
 		IndexTestItem indexTestItem = fromTestItem(testItem, createSameLogs(5));
 		Assert.assertEquals(testItem.getId(), indexTestItem.getTestItemId());
 		Assert.assertEquals(testItem.getUniqueId(), indexTestItem.getUniqueId());
 		Assert.assertEquals(testItem.getIssue().getIssueType(), indexTestItem.getIssueType());
-		Assert.assertEquals(indexTestItem.getLogs().size(), 1);
+		Assert.assertEquals(1, indexTestItem.getLogs().size());
+		Assert.assertEquals(false, indexTestItem.isAutoAnalyzed());
+	}
+
+	@Test
+	public void testConvertingAnalyzed() {
+		TestItem test = createTest();
+		test.setIssue(createIssue(true));
+		IndexTestItem indexTestItem = fromTestItem(test, createSameLogs(1));
+		Assert.assertEquals(true, indexTestItem.isAutoAnalyzed());
+	}
+
+	private TestItem createTest(){
+		TestItem testItem = new TestItem();
+		testItem.setId("item");
+		testItem.setUniqueId("uniqueId");
+		return testItem;
+	}
+
+	private TestItemIssue createIssue(boolean isAutoAnalyzed) {
+		TestItemIssue issue = new TestItemIssue();
+		issue.setAutoAnalyzed(isAutoAnalyzed);
+		return issue;
 	}
 
 	private List<Log> createSameLogs(int count) {

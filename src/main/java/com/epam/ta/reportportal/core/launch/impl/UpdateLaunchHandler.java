@@ -62,6 +62,7 @@ import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRAT
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
 import static java.util.Collections.singletonList;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -112,10 +113,11 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		Launch launch = launchRepository.findOne(launchId);
 		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);
 		validate(launch, userName, projectName, rq.getMode());
-		boolean launchUpdated = checkLaunchUpdated(launch, rq);
-		if (launchUpdated) {
-			launchRepository.save(launch);
-		}
+		ofNullable(rq.getMode()).ifPresent(launch::setMode);
+		ofNullable(rq.getDescription()).ifPresent(launch::setDescription);
+		ofNullable(rq.getTags()).ifPresent(tags -> launch.setTags(Sets.newHashSet(EntityUtils.trimStrings(rq.getTags()))));
+		reindexLogs(launch);
+		launchRepository.save(launch);
 		return new OperationCompletionRS("Launch with ID = '" + launch.getId() + "' successfully updated.");
 	}
 
@@ -158,7 +160,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	 *
 	 * @param launch Update launch
 	 */
-	private void indexLogs(Launch launch) {
+	private void reindexLogs(Launch launch) {
 		List<TestItem> investigatedItems = testItemRepository.findItemsNotInIssueType(TO_INVESTIGATE.getLocator(), launch.getId());
 		if (!CollectionUtils.isEmpty(investigatedItems)) {
 			if (Mode.DEBUG.equals(launch.getMode())) {
@@ -167,31 +169,6 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 				logIndexer.indexLogs(launch.getId(), investigatedItems);
 			}
 		}
-	}
-
-	/**
-	 * Update launch if it was changed
-	 *
-	 * @param launch Launch
-	 * @param rq     Update launch request
-	 * @return <code>true</code> if updated
-	 */
-	private boolean checkLaunchUpdated(Launch launch, UpdateLaunchRQ rq) {
-		boolean isUpdated = false;
-		if (null != rq.getMode()) {
-			launch.setMode(rq.getMode());
-			indexLogs(launch);
-			isUpdated = true;
-		}
-		if (null != rq.getDescription()) {
-			launch.setDescription(rq.getDescription().trim());
-			isUpdated = true;
-		}
-		if (null != rq.getTags()) {
-			launch.setTags(Sets.newHashSet(EntityUtils.trimStrings(EntityUtils.update(rq.getTags()))));
-			isUpdated = true;
-		}
-		return isUpdated;
 	}
 
 	private void validate(Launch launch, String userName, String projectName, Mode mode) {

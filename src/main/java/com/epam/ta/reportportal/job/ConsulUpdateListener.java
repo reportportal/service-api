@@ -25,7 +25,6 @@ import com.ecwid.consul.v1.catalog.CatalogClient;
 import com.epam.ta.reportportal.events.ConsulUpdateEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
-import com.google.common.util.concurrent.ServiceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +33,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -51,20 +49,18 @@ public class ConsulUpdateListener extends AbstractExecutionThreadService {
 
 	private ApplicationEventPublisher eventPublisher;
 	private CatalogClient catalogClient;
-	private ServiceManager serviceManager;
 	private long xConsulIndex;
 
 	@Autowired
 	public ConsulUpdateListener(CatalogClient catalogClient, ApplicationEventPublisher eventPublisher) {
 		this.catalogClient = catalogClient;
 		this.eventPublisher = eventPublisher;
-		this.serviceManager = new ServiceManager(Collections.singletonList(this));
 	}
 
 	@EventListener
 	public void onApplicationReady(ApplicationReadyEvent event) {
 		try {
-			serviceManager.startAsync().awaitHealthy(5, TimeUnit.MINUTES);
+			this.startAsync().awaitRunning(5, TimeUnit.MINUTES);
 		} catch (TimeoutException e) {
 			throw new ReportPortalException("Cannot start consul listener.", e);
 		}
@@ -82,9 +78,5 @@ public class ConsulUpdateListener extends AbstractExecutionThreadService {
 				LOGGER.error("Problem interacting with consul. Trying again.", e);
 			}
 		}
-	}
-
-	public ServiceManager getServiceManager() {
-		return serviceManager;
 	}
 }

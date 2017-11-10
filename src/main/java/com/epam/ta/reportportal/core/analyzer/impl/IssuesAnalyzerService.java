@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.core.analyzer.impl;
 import com.epam.ta.reportportal.core.analyzer.IAnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
+import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
@@ -35,18 +36,16 @@ import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Predicate;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 /**
  * Default implementation of {@link IIssuesAnalyzer}.
@@ -75,8 +74,6 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	@Autowired
 	private ILogIndexer logIndexer;
 
-	private static final Predicate<IndexTestItem> IS_ANALYZED = it -> it.getIssueType() != null;
-
 	@Override
 	public boolean hasAnalyzers() {
 		return analyzerServiceClient.hasClients();
@@ -86,8 +83,8 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	public void analyze(Launch launch, List<TestItem> testItems) {
 		if (launch != null) {
 			List<IndexTestItem> rqTestItems = prepareItems(testItems);
-			IndexLaunch rs = analyze(rqTestItems, launch);
-			if (rs != null) {
+			Set<AnalyzedItemRs> rs = analyze(rqTestItems, launch);
+			if (!isEmpty(rs)) {
 				List<TestItem> updatedItems = updateTestItems(rs, testItems);
 				saveUpdatedItems(updatedItems, launch);
 				logIndexer.indexLogs(launch.getId(), updatedItems);
@@ -95,17 +92,16 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 		}
 	}
 
-	private IndexLaunch analyze(List<IndexTestItem> rqTestItems, Launch launch) {
-		IndexLaunch rs = null;
+	private Set<AnalyzedItemRs> analyze(List<IndexTestItem> rqTestItems, Launch launch) {
 		if (!rqTestItems.isEmpty()) {
 			IndexLaunch rqLaunch = new IndexLaunch();
 			rqLaunch.setLaunchId(launch.getId());
 			rqLaunch.setLaunchName(launch.getName());
 			rqLaunch.setProject(launch.getProjectRef());
 			rqLaunch.setTestItems(rqTestItems);
-			rs = analyzerServiceClient.analyze(rqLaunch);
+			return analyzerServiceClient.analyze(rqLaunch);
 		}
-		return rs;
+		return Collections.emptySet();
 	}
 
 	/**
@@ -118,7 +114,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	private List<IndexTestItem> prepareItems(List<TestItem> testItems) {
 		return testItems.stream()
 				.map(it -> AnalyzerUtils.fromTestItem(it, logRepository.findGreaterOrEqualLevel(it.getId(), LogLevel.ERROR)))
-				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
+				.filter(it -> !isEmpty(it.getLogs()))
 				.collect(Collectors.toList());
 	}
 
@@ -129,22 +125,35 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	 * @param testItems items to be updated
 	 * @return List of updated items
 	 */
-	private List<TestItem> updateTestItems(IndexLaunch rs, List<TestItem> testItems) {
-		return rs.getTestItems().stream().filter(IS_ANALYZED).map(indexTestItem -> {
-			TestItem toUpdate = testItems.stream()
-					.filter(item -> item.getId().equals(indexTestItem.getTestItemId()))
-					.findFirst()
-					.orElse(null);
-			if (toUpdate != null) {
-				toUpdate.setIssue(new TestItemIssue(indexTestItem.getIssueType(), null, true));
-			}
+	private List<TestItem> updateTestItems(Set<AnalyzedItemRs> rs, List<TestItem> testItems) {
+		return rs.stream().map(analyzed -> {
+			Optional<TestItem> toUpdate = testItems.stream().filter(item -> item.getId().equals(analyzed.getItemId())).findFirst();
+			toUpdate.ifPresent(testItem -> {
+				TestItemIssue issue = new TestItemIssue(analyzed.getIssueType(), null, true);
+				ofNullable(analyzed.getRelevantItemId()).ifPresent(relevantItemId -> fromRelevantItem(issue, relevantItemId));
+				testItem.setIssue(issue);
+			});
 			return toUpdate;
-		}).filter(Objects::nonNull).collect(toList());
+		}).filter(Optional::isPresent).map(Optional::get).collect(toList());
+	}
+
+	/**
+	 * Updates issue with values are taken from most relevant item
+	 *
+	 * @param issue          Issue to update
+	 * @param relevantItemId Relevant item id
+	 */
+	private void fromRelevantItem(TestItemIssue issue, String relevantItemId) {
+		TestItem relevantItem = testItemRepository.findOne(relevantItemId);
+		if (relevantItem != null && relevantItem.getIssue() != null) {
+			issue.setIssueDescription(relevantItem.getIssue().getIssueDescription());
+			issue.setExternalSystemIssues(relevantItem.getIssue().getExternalSystemIssues());
+		}
 	}
 
 	/**
 	 * Updates issues of investigated item and recalculates
-	 * the whole launch's statistics
+	 * the launch's statistics
 	 *
 	 * @param items  Items for update
 	 * @param launch Launch of investigated items

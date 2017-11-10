@@ -210,11 +210,10 @@ public interface ILaunchController {
 	/**
 	 * Start auto-analyzer for specified launch
 	 *
-	 * @param projectName
-	 * @param launchId
-	 * @param scope
-	 * @param principal
-	 * @return
+	 * @param projectName Project name
+	 * @param launchId    Launch id
+	 * @param principal   Principal
+	 * @return Result message
 	 * @throws ExecutionException
 	 * @throws InterruptedException
 	 */

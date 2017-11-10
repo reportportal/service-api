@@ -297,9 +297,8 @@ public class LaunchController implements ILaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation("Start launch auto-analyzer on demand")
 	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName, @PathVariable String launchId,
-			@ApiParam(allowableValues = "single, history") @PathVariable String strategy, Principal principal)
-			throws InterruptedException, ExecutionException {
-		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), launchId, strategy);
+			@ApiParam(allowableValues = "single, history") @PathVariable String strategy, Principal principal) throws InterruptedException, ExecutionException {
+		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), launchId);
 	}
 
 	@Override

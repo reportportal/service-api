@@ -45,6 +45,7 @@ public class IndexTestItem {
 	@JsonProperty("uniqueId")
 	private String uniqueId;
 
+	// used for boost item if it was not analyzed by analyzer
 	@JsonProperty("isAutoAnalyzed")
 	private boolean isAutoAnalyzed;
 

@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.database.entity.item.ActivityEventType;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
@@ -166,11 +167,13 @@ public class TicketActivitySubscriber {
 			if (null == oldIssueDescription) {
 				oldIssueDescription = emptyString;
 			}
+
+			ActivityEventType type = Boolean.valueOf(issueDefinition.getIssue().getAutoAnalyzed()) ? ANALYZE_ITEM : UPDATE_ITEM;
 			Activity activity = new ActivityBuilder().addProjectRef(projectName)
 					.addLoggedObjectRef(issueDefinition.getId())
 					.addObjectType(TEST_ITEM)
 					.addObjectName(testItem.getName())
-					.addActionType(UPDATE_ITEM)
+					.addActionType(type)
 					.addUserRef(principal)
 					.get();
 			List<Activity.FieldValues> history = Lists.newArrayList();

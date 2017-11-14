@@ -193,3 +193,4 @@
 * EPMRPP-31156 - Different launches comparison chart should include only last 2 launches despite sorting of the filter
 * EPMRPP-31039 - WS: Results of items on history table do not have sorting in Asc order
 * EPMRPP-31188 - [DASHBOARD] Owner can't see owned widgets in "SELECT SHARED WIDGET" list #213
+* EPMRPP-31308 - [WS]: Add a constrain for a notification [GITHUB] Notifications rule for rp.mode #249

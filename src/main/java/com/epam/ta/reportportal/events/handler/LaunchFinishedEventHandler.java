@@ -22,7 +22,6 @@ package com.epam.ta.reportportal.events.handler;
 
 import com.epam.ta.reportportal.commons.SendCase;
 import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
-import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
@@ -73,21 +72,17 @@ public class LaunchFinishedEventHandler {
 
 	private final UserRepository userRepository;
 
-	private final StatisticsFacadeFactory statisticsFacadeFactory;
-
 	private final Provider<HttpServletRequest> currentRequest;
 
 	@Autowired
 	public LaunchFinishedEventHandler(IIssuesAnalyzer analyzerService, UserRepository userRepository, TestItemRepository testItemRepository,
-			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory,
-			StatisticsFacadeFactory statisticsFacadeFactory) {
+			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory) {
 		this.analyzerService = analyzerService;
 		this.userRepository = userRepository;
 		this.testItemRepository = testItemRepository;
 		this.currentRequest = currentRequest;
 		this.launchRepository = launchRepository;
 		this.emailServiceFactory = emailServiceFactory;
-		this.statisticsFacadeFactory = statisticsFacadeFactory;
 	}
 
 	@EventListener
@@ -110,14 +105,14 @@ public class LaunchFinishedEventHandler {
 		/* If AA enabled then waiting results processing */
 		waitForAutoAnalysis = BooleanUtils.toBoolean(project.getConfiguration().getIsAutoAnalyzerEnabled());
 
-		/* If email enabled and AA disabled then send results immediately */
-		if (!waitForAutoAnalysis) {
-			emailService.ifPresent(service -> sendEmailRightNow(launch, project, service));
-		}
-
 		// Do not process debug launches.
 		if (Mode.DEBUG.equals(launch.getMode())) {
 			return;
+		}
+
+		/* If email enabled and AA disabled then send results immediately */
+		if (!waitForAutoAnalysis) {
+			emailService.ifPresent(service -> sendEmailRightNow(launch, project, service));
 		}
 
 		if (!project.getConfiguration().getIsAutoAnalyzerEnabled()) {

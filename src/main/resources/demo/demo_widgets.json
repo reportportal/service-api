@@ -29,7 +29,7 @@
   {
     "name": "LAUNCH STATISTICS BAR CHART",
     "contentOptions": {
-      "type": "line_chart",
+      "type": "trends_chart",
       "gadgetType": "statistic_trend",
       "metadataFields": [
         "name",

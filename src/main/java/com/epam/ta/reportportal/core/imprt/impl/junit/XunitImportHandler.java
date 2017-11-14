@@ -206,7 +206,6 @@ public class XunitImportHandler extends DefaultHandler {
 	private void finishRootItem() {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
 		rq.setEndTime(toDate(startItemTime));
-		rq.setStatus(Optional.ofNullable(status).orElse(Status.PASSED).name());
 		finishTestItemHandler.finishTestItem(itemsIds.poll(), rq, userName);
 		status = null;
 	}

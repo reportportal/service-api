@@ -168,13 +168,11 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 				testItemIssue.setIssueDescription(comment);
 				testItemIssue.setAutoAnalyzed(false);
+				testItemIssue.setIgnoreAnalyzer(issueDefinition.getIssue().isIgnoreAnalyzer());
 				testItem.setIssue(testItemIssue);
 
 				testItemRepository.save(testItem);
-
-				if (!testItem.isIgnoreAnalyzer()) {
-					logIndexer.indexLogs(launch.getId(), singletonList(testItem));
-				}
+				indexLogs(projectName, testItem);
 
 				testItem = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.updateIssueStatistics(testItem);
@@ -196,8 +194,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		TestItem testItem = validate(projectName, userName, item);
 		ofNullable(rq.getTags()).ifPresent(tags -> testItem.setTags(newHashSet(trimStrings(update(tags)))));
 		ofNullable(rq.getDescription()).ifPresent(testItem::setItemDescription);
-		testItem.setIgnoreAnalyzer(rq.isIgnoreAnalyzer());
-		reindexLogs(projectName, testItem);
 		testItemRepository.save(testItem);
 		return new OperationCompletionRS("TestItem with ID = '" + item + "' successfully updated.");
 	}
@@ -262,8 +258,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @param projectName Project name
 	 * @param testItem    Test item to reindex
 	 */
-	private void reindexLogs(String projectName, TestItem testItem) {
-		if (!testItem.isIgnoreAnalyzer()) {
+	private void indexLogs(String projectName, TestItem testItem) {
+		if (!testItem.getIssue().isIgnoreAnalyzer()) {
 			logIndexer.indexLogs(testItem.getLaunchRef(), singletonList(testItem));
 		} else {
 			logIndexer.cleanIndex(projectName, singletonList(testItem.getId()));

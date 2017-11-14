@@ -41,7 +41,7 @@ public final class IssueConverter {
 		Issue issue = new Issue();
 		if (null != resource) {
 			issue.setIssueType(resource.getIssueType());
-			issue.setAutoAnalyzed(String.valueOf(resource.isAutoAnalyzed()));
+			issue.setAutoAnalyzed(resource.isAutoAnalyzed());
 			issue.setComment(resource.getIssueDescription());
 			Set<TestItemIssue.ExternalSystemIssue> externalSystemIssues = resource.getExternalSystemIssues();
 			if (null != externalSystemIssues) {

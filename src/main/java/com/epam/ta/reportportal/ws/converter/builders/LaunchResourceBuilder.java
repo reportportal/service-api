@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.entity.statistics.Statistics;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -53,6 +54,7 @@ public class LaunchResourceBuilder extends Builder<LaunchResource> {
 		resource.setApproximateDuration(launch.getApproximateDuration());
 		resource.setIsProcessing(false);
 		resource.setOwner(launch.getUserRef());
+		resource.setHasRetries(BooleanUtils.isTrue(launch.getHasRetries()));
 		Statistics statistics = launch.getStatistics();
 		if (statistics != null) {
 			com.epam.ta.reportportal.ws.model.statistics.Statistics statisticsCounters = new com.epam.ta.reportportal.ws.model.statistics.Statistics();

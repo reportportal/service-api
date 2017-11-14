@@ -110,6 +110,9 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 		final Project project = projectRepository.findOne(projectName);
 		launches.forEach(launch -> validate(launch, user, project));
 		launchRepository.delete(toDelete);
+		launches.forEach(launch -> logIndexer.cleanIndex(projectName,
+				itemRepository.findIdsNotInIssueType(TO_INVESTIGATE.getLocator(), launch.getId())
+		));
 		launches.forEach(launch -> eventPublisher.publishEvent(new LaunchDeletedEvent(launch, userName)));
 		return new OperationCompletionRS("All selected launches have been successfully deleted");
 	}

@@ -44,7 +44,6 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Provider;
-import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -142,13 +141,13 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			item.setId(retryId.toString());
 			item.setParent(null);
 
-			LOGGER.warn("Adding retry with ID '{}' to item '{}'", item.getId(), retryRoot.getId());
+			LOGGER.debug("Adding retry with ID '{}' to item '{}'", item.getId(), retryRoot.getId());
 			testItemRepository.addRetry(retryRoot.getId(), item);
 
 			launchRepository.updateHasRetries(item.getLaunchRef(), true);
 
 		} else {
-			LOGGER.warn("Item with ID '{}' and name '{}'", item.getId(), item.getName());
+			LOGGER.debug("Starting Item with name '{}'", item.getName());
 
 			testItemRepository.save(item);
 
@@ -176,7 +175,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			 * parentID, there should be only one result
 			 */
 			TestItem item = testItemRepository.findRetryRoot(uniqueID, parent);
-			System.out.println("FOUND retry root:" + item + " " + Calendar.getInstance().getTime());
 			BusinessRule.expect(item, com.epam.ta.reportportal.commons.Predicates.notNull())
 					.verify(ErrorType.BAD_REQUEST_ERROR, "No retry root found");
 			return item;

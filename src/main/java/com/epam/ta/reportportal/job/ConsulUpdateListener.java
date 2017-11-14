@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -42,6 +43,7 @@ import java.util.concurrent.TimeoutException;
  * @author Pavel Bortnik
  */
 @Component
+@Profile("!unittest")
 public class ConsulUpdateListener extends AbstractExecutionThreadService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConsulUpdateListener.class);

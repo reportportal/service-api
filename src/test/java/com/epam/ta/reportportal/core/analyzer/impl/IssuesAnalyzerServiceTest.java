@@ -33,12 +33,14 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.*;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.*;
 
@@ -61,6 +63,8 @@ public class IssuesAnalyzerServiceTest {
 	private LogRepository logRepository;
 	@Mock
 	private ILogIndexer logIndexer;
+	@Mock
+	private ApplicationEventPublisher eventPublisher;
 
 	@InjectMocks
 	private IIssuesAnalyzer issuesAnalyzer;
@@ -110,6 +114,7 @@ public class IssuesAnalyzerServiceTest {
 		verify(statisticsFacadeFactory, times(1)).getStatisticsFacade(StatisticsCalculationStrategy.STEP_BASED);
 		verify(mock, times(1)).recalculateStatistics(launch);
 		verify(logIndexer, times(1)).indexLogs(eq(launch.getId()), anyListOf(TestItem.class));
+		verify(eventPublisher, times(1)).publishEvent(any(ItemIssueTypeDefined.class));
 	}
 
 	private Project project() {

@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.events.TicketPostedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -168,7 +169,7 @@ public class TicketActivitySubscriber {
 				oldIssueDescription = emptyString;
 			}
 
-			ActivityEventType type = Boolean.valueOf(issueDefinition.getIssue().getAutoAnalyzed()) ? ANALYZE_ITEM : UPDATE_ITEM;
+			ActivityEventType type = BooleanUtils.toBoolean(issueDefinition.getIssue().getAutoAnalyzed()) ? ANALYZE_ITEM : UPDATE_ITEM;
 			Activity activity = new ActivityBuilder().addProjectRef(projectName)
 					.addLoggedObjectRef(issueDefinition.getId())
 					.addObjectType(TEST_ITEM)

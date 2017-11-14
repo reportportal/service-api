@@ -167,25 +167,33 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			//retry mode
 			if (null != retryRoot) {
 				testItemRepository.updateRetry(testItem.getId(), testItem);
-				if (retryRoot.getStatus() != testItem.getStatus()) {
+				if (!IN_PROGRESS.equals(retryRoot.getStatus()) && retryRoot.getStatus() != testItem.getStatus()) {
+					System.out.println("UPDATING STASTISTICS...");
+
 					/* reset current statistics */
 					statisticsFacade.resetExecutionStatistics(retryRoot);
+					if (null != retryRoot.getIssue()) {
+						statisticsFacade.resetIssueStatistics(retryRoot);
+					}
 
 					/* copy statistics from last retry attempt */
 					retryRoot.setStatus(testItem.getStatus());
 					retryRoot.setIssue(testItem.getIssue());
 					retryRoot.setStatistics(testItem.getStatistics());
 
+
 					/* update statistics */
 					statisticsFacade.updateExecutionStatistics(retryRoot);
 					if (null != testItem.getIssue()) {
-						statisticsFacade.updateIssueStatistics(testItem);
+						statisticsFacade.resetIssueStatistics(retryRoot);
+						statisticsFacade.updateIssueStatistics(retryRoot);
 					}
 
 				}
 			} else {
 				/* do not touch retries */
 				testItem.setRetries(null);
+				testItem.setStatistics(null);
 				testItemRepository.partialUpdate(testItem);
 				testItem = statisticsFacade.updateExecutionStatistics(testItem);
 				if (null != testItem.getIssue()) {

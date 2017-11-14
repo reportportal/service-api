@@ -36,7 +36,12 @@ import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
+import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
+import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
+import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -74,6 +79,9 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	@Autowired
 	private ILogIndexer logIndexer;
 
+	@Autowired
+	private ApplicationEventPublisher eventPublisher;
+
 	@Override
 	public boolean hasAnalyzers() {
 		return analyzerServiceClient.hasClients();
@@ -85,7 +93,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 			List<IndexTestItem> rqTestItems = prepareItems(testItems);
 			Set<AnalyzedItemRs> rs = analyze(rqTestItems, launch);
 			if (!isEmpty(rs)) {
-				List<TestItem> updatedItems = updateTestItems(rs, testItems);
+				List<TestItem> updatedItems = updateTestItems(rs, testItems, launch.getProjectRef());
 				saveUpdatedItems(updatedItems, launch);
 				logIndexer.indexLogs(launch.getId(), updatedItems);
 			}
@@ -119,22 +127,34 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	}
 
 	/**
-	 * Update issue types for analyzed items
+	 * Update issue types for analyzed items and posted events for updated
 	 *
 	 * @param rs        Results of analyzing
 	 * @param testItems items to be updated
 	 * @return List of updated items
 	 */
-	private List<TestItem> updateTestItems(Set<AnalyzedItemRs> rs, List<TestItem> testItems) {
-		return rs.stream().map(analyzed -> {
+	private List<TestItem> updateTestItems(Set<AnalyzedItemRs> rs, List<TestItem> testItems, String project) {
+		final Map<IssueDefinition, TestItem> forEvents = new HashMap<>();
+		List<TestItem> updatedItems = rs.stream().map(analyzed -> {
 			Optional<TestItem> toUpdate = testItems.stream().filter(item -> item.getId().equals(analyzed.getItemId())).findFirst();
 			toUpdate.ifPresent(testItem -> {
 				TestItemIssue issue = new TestItemIssue(analyzed.getIssueType(), null, true);
 				ofNullable(analyzed.getRelevantItemId()).ifPresent(relevantItemId -> fromRelevantItem(issue, relevantItemId));
+				IssueDefinition issueDefinition = createIssueDefinition(testItem.getId(), issue);
+				forEvents.put(issueDefinition, SerializationUtils.clone(testItem));
 				testItem.setIssue(issue);
 			});
 			return toUpdate;
 		}).filter(Optional::isPresent).map(Optional::get).collect(toList());
+		eventPublisher.publishEvent(new ItemIssueTypeDefined(forEvents, "analyzer", project));
+		return updatedItems;
+	}
+
+	private IssueDefinition createIssueDefinition(String id, TestItemIssue issue) {
+		IssueDefinition issueDefinition = new IssueDefinition();
+		issueDefinition.setId(id);
+		issueDefinition.setIssue(IssueConverter.FROM_RESOURCE.apply(issue));
+		return issueDefinition;
 	}
 
 	/**

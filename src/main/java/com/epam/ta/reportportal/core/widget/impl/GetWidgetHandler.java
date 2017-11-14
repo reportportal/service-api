@@ -52,6 +52,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.widget.impl.WidgetUtils.validateGadgetType;
 import static com.epam.ta.reportportal.core.widget.impl.WidgetUtils.validateWidgetDataType;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.Arrays.asList;
 
 /**
  * Default implementation of {@link IGetWidgetHandler}
@@ -123,8 +124,8 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 
 	@Override
 	public Map<String, SharedEntity> getSharedWidgetNames(String userName, String projectName) {
-		List<Widget> widgets = widgetRepository.findSharedEntities(userName, projectName,
-				Arrays.asList(Widget.ID, Widget.NAME, Widget.OWNER), Shareable.NAME_OWNER_SORT
+		List<Widget> widgets = widgetRepository.findSharedEntities(userName, projectName, asList(Widget.ID, Widget.NAME, Widget.OWNER),
+				Shareable.NAME_OWNER_SORT
 		);
 		return toMap(widgets);
 	}
@@ -132,9 +133,8 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 	@Override
 	public List<WidgetResource> getSharedWidgetsList(String userName, String projectName) {
 		List<Widget> widgets = widgetRepository.findSharedEntities(userName, projectName,
-				Arrays.asList(Widget.ID, Widget.NAME, "description", Widget.OWNER, Widget.GADGET_TYPE, Widget.CONTENT_FIELDS,
-						Widget.ENTRIES
-				), Shareable.NAME_OWNER_SORT
+				asList(Widget.ID, Widget.NAME, "description", Widget.OWNER, Widget.GADGET_TYPE, Widget.CONTENT_FIELDS, Widget.ENTRIES),
+				Shareable.NAME_OWNER_SORT
 		);
 		return resourceAssembler.toResources(widgets);
 	}

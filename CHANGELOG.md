@@ -179,9 +179,10 @@
 
 * EPMRPP-25494 - Add widget to represent flaky tests in launches
 * EPMRPP-29797 - Prepare API for new version of analyzer
-* EPMRPP-29803 - Auto Analyze on the fly
 * EPMRPP-30991 - Add a tag to e-mail body
 * EPMRPP-31001 - Most failed test cases: refactored in case of new design
+* EPMRPP-31220 - WS: removing Match issue
+* EPMRPP-31189 - Update script for widgets.
 
 ### Bugfixes
 
@@ -191,3 +192,5 @@
 * EPMRPP-29701 - Tag prefix should be fully matched with the searched value
 * EPMRPP-31156 - Different launches comparison chart should include only last 2 launches despite sorting of the filter
 * EPMRPP-31039 - WS: Results of items on history table do not have sorting in Asc order
+* EPMRPP-31188 - [DASHBOARD] Owner can't see owned widgets in "SELECT SHARED WIDGET" list #213
+* EPMRPP-31308 - [WS]: Add a constrain for a notification [GITHUB] Notifications rule for rp.mode #249

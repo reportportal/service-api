@@ -34,7 +34,6 @@ import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.LaunchResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
@@ -97,7 +96,7 @@ public class GetLaunchHandlerTest extends BaseTest {
 		Project project = buildProject(user);
 		when(projectRepository.findOne(projectName)).thenReturn(project);
 
-		GetLaunchHandler getLaunchHandler = new GetLaunchHandler(mock(LaunchResourceAssembler.class), launchRepository);
+		GetLaunchHandler getLaunchHandler = new GetLaunchHandler(launchRepository);
 		getLaunchHandler.setProjectRepository(projectRepository);
 
 		thrown.expect(ReportPortalException.class);

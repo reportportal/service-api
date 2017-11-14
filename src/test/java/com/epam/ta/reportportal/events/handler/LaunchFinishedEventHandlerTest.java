@@ -21,7 +21,6 @@
 package com.epam.ta.reportportal.events.handler;
 
 import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
-import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
@@ -82,8 +81,7 @@ public class LaunchFinishedEventHandlerTest {
 			public Optional<EmailService> getDefaultEmailService() {
 				return Optional.of(emailService);
 			}
-		}, mock(StatisticsFacadeFactory.class)
-		);
+		});
 	}
 
 	@Test

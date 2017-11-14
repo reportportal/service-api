@@ -39,8 +39,8 @@ import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.ws.converter.LaunchResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
@@ -87,9 +87,6 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
 	@Autowired
 	private LaunchMetaInfoRepository launchCounter;
-
-	@Autowired
-	private LaunchResourceAssembler launchResourceAssembler;
 
 	@Autowired
 	private TestItemUniqueIdGenerator identifierGenerator;
@@ -167,7 +164,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
         logIndexer.indexLogs(launch.getId(), testItemRepository.findItemsNotInIssueType(TO_INVESTIGATE.getLocator(), launch.getId()));
 
-        return launchResourceAssembler.toResource(launch);
+        return LaunchConverter.TO_RESOURCE.apply(launch);
     }
 
 	/**

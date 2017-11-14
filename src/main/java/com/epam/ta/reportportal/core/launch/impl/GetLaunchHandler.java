@@ -32,7 +32,8 @@ import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
-import com.epam.ta.reportportal.ws.converter.LaunchResourceAssembler;
+import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
+import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
@@ -69,11 +70,9 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 
 	private ProjectRepository projectRepository;
 	private final LaunchRepository launchRepository;
-	private final LaunchResourceAssembler launchResourceAssembler;
 
 	@Autowired
-	public GetLaunchHandler(LaunchResourceAssembler launchResourceAssembler, LaunchRepository launchRepository) {
-		this.launchResourceAssembler = Preconditions.checkNotNull(launchResourceAssembler);
+	public GetLaunchHandler(LaunchRepository launchRepository) {
 		this.launchRepository = Preconditions.checkNotNull(launchRepository);
 	}
 
@@ -90,7 +89,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 			final Project.UserConfig userConfig = findUserConfigByLogin(project, userName);
 			expect(userConfig.getProjectRole(), not(equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
 		}
-		return launchResourceAssembler.toResource(launch);
+		return LaunchConverter.TO_RESOURCE.apply(launch);
 	}
 
 	@Override
@@ -98,7 +97,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 		filter.addCondition(new FilterCondition(EQUALS, false, project, Launch.PROJECT));
 		Page<Launch> launches = launchRepository.findByFilter(filter, pageable);
 		expect(launches, notNull()).verify(LAUNCH_NOT_FOUND);
-		return launchResourceAssembler.toResource(launches.iterator().next());
+		return LaunchConverter.TO_RESOURCE.apply(launches.iterator().next());
 	}
 
 	@Override
@@ -114,7 +113,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 		validateModeConditions(filter);
 		filter = addLaunchCommonCriteria(DEFAULT, filter, projectName);
 		Page<Launch> launches = launchRepository.findByFilter(filter, pageable);
-		return launchResourceAssembler.toPagedResources(launches);
+		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
 	}
 
 	/*
@@ -125,14 +124,14 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 	public Iterable<LaunchResource> getDebugLaunches(String projectName, String userName, Filter filter, Pageable pageable) {
 		filter = addLaunchCommonCriteria(DEBUG, filter, projectName);
 		Page<Launch> launches = launchRepository.findByFilter(filter, pageable);
-		return launchResourceAssembler.toPagedResources(launches);
+		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
 	}
 
 	@Override
 	public com.epam.ta.reportportal.ws.model.Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable) {
 		validateModeConditions(filter);
 		addLaunchCommonCriteria(DEFAULT, filter, projectName);
-		Page<LaunchResource> resources = launchRepository.findLatestLaunches(filter, pageable).map(launchResourceAssembler::toResource);
+		Page<LaunchResource> resources = launchRepository.findLatestLaunches(filter, pageable).map(LaunchConverter.TO_RESOURCE::apply);
 		return new com.epam.ta.reportportal.ws.model.Page<>(resources.getContent(), resources.getSize(), resources.getNumber() + 1,
 				resources.getTotalElements(), resources.getTotalPages()
 		);

@@ -1,6 +1,6 @@
 [
   {
-    "name": "LAUNCH STATISTICS TREND CHART",
+    "name": "LAUNCH STATISTICS AREA CHART",
     "contentOptions": {
       "type": "trends_chart",
       "gadgetType": "statistic_trend",
@@ -15,7 +15,11 @@
         "statistics$defects$system_issue$SI001",
         "statistics$defects$to_investigate$TI001"
       ],
-      "widgetOptions": {},
+      "widgetOptions": {
+        "viewMode": [
+          "areaChartMode"
+        ]
+      },
       "itemsCount": 50
     },
     "applyingFilterId": "",
@@ -23,7 +27,7 @@
     "acl": {}
   },
   {
-    "name": "LAUNCH STATISTICS LINE CHART",
+    "name": "LAUNCH STATISTICS BAR CHART",
     "contentOptions": {
       "type": "line_chart",
       "gadgetType": "old_line_chart",
@@ -37,7 +41,11 @@
         "statistics$executions$failed",
         "statistics$executions$skipped"
       ],
-      "widgetOptions": {},
+      "widgetOptions": {
+        "viewMode": [
+          "barMode"
+        ]
+      },
       "itemsCount": 50
     },
     "applyingFilterId": "",

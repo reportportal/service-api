@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.database.entity.item.ActivityEventType;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
@@ -34,6 +35,7 @@ import com.epam.ta.reportportal.events.TicketPostedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -166,11 +168,13 @@ public class TicketActivitySubscriber {
 			if (null == oldIssueDescription) {
 				oldIssueDescription = emptyString;
 			}
+
+			ActivityEventType type = BooleanUtils.toBoolean(issueDefinition.getIssue().getAutoAnalyzed()) ? ANALYZE_ITEM : UPDATE_ITEM;
 			Activity activity = new ActivityBuilder().addProjectRef(projectName)
 					.addLoggedObjectRef(issueDefinition.getId())
 					.addObjectType(TEST_ITEM)
 					.addObjectName(testItem.getName())
-					.addActionType(UPDATE_ITEM)
+					.addActionType(type)
 					.addUserRef(principal)
 					.get();
 			List<Activity.FieldValues> history = Lists.newArrayList();

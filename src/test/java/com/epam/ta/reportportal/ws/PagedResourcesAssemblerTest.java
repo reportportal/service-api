@@ -27,7 +27,8 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.fixture.SpringFixture;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
-import com.epam.ta.reportportal.ws.converter.LaunchResourceAssembler;
+import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
+import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -62,9 +63,6 @@ public class PagedResourcesAssemblerTest extends BaseTest {
 	protected LaunchRepository launchRepository;
 
 	@Autowired
-	protected LaunchResourceAssembler launchResourceAssembler;
-
-	@Autowired
 	protected ProjectRepository projectRepository;
 
 	@Rule
@@ -96,7 +94,8 @@ public class PagedResourcesAssemblerTest extends BaseTest {
 			projectRepository.findOne(l.getProjectRef());
 		}
 
-		com.epam.ta.reportportal.ws.model.Page<LaunchResource> pagedResources = launchResourceAssembler.toPagedResources(savedLaunch);
+		com.epam.ta.reportportal.ws.model.Page<LaunchResource> pagedResources = PagedResourcesAssembler.pageConverter(
+				LaunchConverter.TO_RESOURCE).apply(savedLaunch);
 
 		/*
 		 * Test Current

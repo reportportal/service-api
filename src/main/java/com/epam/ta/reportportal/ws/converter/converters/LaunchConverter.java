@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.BooleanUtils;
 
 import java.util.function.Function;
 
@@ -51,6 +52,7 @@ public final class LaunchConverter {
 		resource.setApproximateDuration(db.getApproximateDuration());
 		resource.setIsProcessing(false);
 		resource.setOwner(db.getUserRef());
+		resource.setHasRetries(BooleanUtils.isTrue(db.getHasRetries()));
 		resource.setStatistics(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
 		return resource;
 	};

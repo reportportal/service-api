@@ -41,10 +41,12 @@ public final class IssueConverter {
 	 * Converts issue from db to model
 	 */
 	public static final Function<TestItemIssue, Issue> TO_MODEL = testItemIssue -> {
-		Issue issue = new Issue();
+		Issue issue = null;
 		if (null != testItemIssue) {
+			issue = new Issue();
 			issue.setIssueType(testItemIssue.getIssueType());
 			issue.setAutoAnalyzed(testItemIssue.isAutoAnalyzed());
+			issue.setIgnoreAnalyzer(testItemIssue.isIgnoreAnalyzer());
 			issue.setComment(testItemIssue.getIssueDescription());
 			Set<TestItemIssue.ExternalSystemIssue> externalSystemIssues = testItemIssue.getExternalSystemIssues();
 			if (null != externalSystemIssues) {

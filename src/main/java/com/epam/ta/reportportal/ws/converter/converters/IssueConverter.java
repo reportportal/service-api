@@ -37,26 +37,33 @@ public final class IssueConverter {
 		//static only
 	}
 
-	public static final Function<TestItemIssue, Issue> FROM_RESOURCE = resource -> {
+	/**
+	 * Converts issue from db to model
+	 */
+	public static final Function<TestItemIssue, Issue> TO_MODEL = testItemIssue -> {
 		Issue issue = new Issue();
-		if (null != resource) {
-			issue.setIssueType(resource.getIssueType());
-			issue.setAutoAnalyzed(resource.isAutoAnalyzed());
-			issue.setComment(resource.getIssueDescription());
-			Set<TestItemIssue.ExternalSystemIssue> externalSystemIssues = resource.getExternalSystemIssues();
+		if (null != testItemIssue) {
+			issue.setIssueType(testItemIssue.getIssueType());
+			issue.setAutoAnalyzed(testItemIssue.isAutoAnalyzed());
+			issue.setComment(testItemIssue.getIssueDescription());
+			Set<TestItemIssue.ExternalSystemIssue> externalSystemIssues = testItemIssue.getExternalSystemIssues();
 			if (null != externalSystemIssues) {
-				Set<Issue.ExternalSystemIssue> issuesResource = externalSystemIssues.stream().map(externalSystemIssue -> {
-					Issue.ExternalSystemIssue issueResource = new Issue.ExternalSystemIssue();
-					issueResource.setSubmitDate(externalSystemIssue.getSubmitDate());
-					issueResource.setTicketId(externalSystemIssue.getTicketId());
-					issueResource.setSubmitter(externalSystemIssue.getSubmitter());
-					issueResource.setExternalSystemId(externalSystemIssue.getExternalSystemId());
-					issueResource.setUrl(externalSystemIssue.getUrl());
-					return issueResource;
-				}).collect(Collectors.toSet());
-				issue.setExternalSystemIssues(issuesResource);
+				issue.setExternalSystemIssues(
+						externalSystemIssues.stream().map(IssueConverter.TO_MODEL_EXTERNAL).collect(Collectors.toSet()));
 			}
-		}
-		return issue;
+		} return issue;
+	};
+
+	/**
+	 * Converts external system from db to model
+	 */
+	public static final Function<TestItemIssue.ExternalSystemIssue, Issue.ExternalSystemIssue> TO_MODEL_EXTERNAL = externalSystemIssue -> {
+		Issue.ExternalSystemIssue issueResource = new Issue.ExternalSystemIssue();
+		issueResource.setSubmitDate(externalSystemIssue.getSubmitDate());
+		issueResource.setTicketId(externalSystemIssue.getTicketId());
+		issueResource.setSubmitter(externalSystemIssue.getSubmitter());
+		issueResource.setExternalSystemId(externalSystemIssue.getExternalSystemId());
+		issueResource.setUrl(externalSystemIssue.getUrl());
+		return issueResource;
 	};
 }

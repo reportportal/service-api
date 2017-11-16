@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
 import com.epam.ta.reportportal.events.TicketAttachedEvent;
+import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -176,8 +177,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 				testItem = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.updateIssueStatistics(testItem);
-				updated.add(TestItemUtils.ISSUE_CONVERTER.apply(testItem.getIssue()));
-
+				updated.add(IssueConverter.TO_MODEL.apply(testItem.getIssue()));
 			} catch (BusinessRuleViolationException e) {
 				errors.add(e.getMessage());
 			}

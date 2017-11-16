@@ -168,7 +168,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			if (null != retryRoot) {
 				testItemRepository.updateRetry(testItem.getId(), testItem);
 				if (!IN_PROGRESS.equals(retryRoot.getStatus()) && retryRoot.getStatus() != testItem.getStatus()) {
-					System.out.println("UPDATING STASTISTICS...");
 
 					/* reset current statistics */
 					statisticsFacade.resetExecutionStatistics(retryRoot);

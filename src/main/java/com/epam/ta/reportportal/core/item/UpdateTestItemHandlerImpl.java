@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
+import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
@@ -259,10 +260,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @param testItem    Test item to reindex
 	 */
 	private void indexLogs(String projectName, TestItem testItem) {
-		if (!testItem.getIssue().isIgnoreAnalyzer()) {
-			logIndexer.indexLogs(testItem.getLaunchRef(), singletonList(testItem));
-		} else {
+		if (testItem.getIssue().isIgnoreAnalyzer() || testItem.getIssue()
+				.getIssueType()
+				.equals(TestItemIssueType.TO_INVESTIGATE.getLocator())) {
 			logIndexer.cleanIndex(projectName, singletonList(testItem.getId()));
+		} else {
+			logIndexer.indexLogs(testItem.getLaunchRef(), singletonList(testItem));
 		}
 	}
 

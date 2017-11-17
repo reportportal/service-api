@@ -217,7 +217,7 @@ public interface ILaunchController {
 	 * @throws ExecutionException
 	 * @throws InterruptedException
 	 */
-	OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId, String scope, Principal principal)
+	OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId, Principal principal)
 			throws InterruptedException, ExecutionException;
 
 	/**

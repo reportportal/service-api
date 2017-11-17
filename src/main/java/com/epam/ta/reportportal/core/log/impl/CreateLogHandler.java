@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.RetryId;
 import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -45,6 +46,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Nonnull;
 import javax.inject.Provider;
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * Create log handler. Save log and binary data related to it
@@ -92,8 +94,19 @@ public class CreateLogHandler implements ICreateLogHandler {
 	@Override
 	@Nonnull
 	public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, String project) {
-		TestItem testItem = testItemRepository.findOne(createLogRQ.getTestItemId());
-		validate(testItem, createLogRQ);
+		Optional<TestItem> testItem;
+		if (RetryId.isRetry(createLogRQ.getTestItemId())){
+			RetryId retryId = RetryId.parse(createLogRQ.getTestItemId());
+			testItem = Optional
+					.ofNullable(testItemRepository.findOne(retryId.getRootID()))
+					.flatMap(it -> Optional.ofNullable(it.getRetries()))
+					.flatMap(it -> it.stream().filter(item -> retryId.getItemHash().equals(item.getId())).findAny());
+
+		} else {
+			testItem = Optional.ofNullable(testItemRepository.findOne(createLogRQ.getTestItemId()));
+		}
+
+		validate(testItem.orElse(null), createLogRQ);
 
 		BinaryContent binaryContent = null;
 		if (null != file) {
@@ -107,7 +120,7 @@ public class CreateLogHandler implements ICreateLogHandler {
 			}
 
 		}
-		Log log = logBuilder.get().addSaveLogRQ(createLogRQ).addBinaryContent(binaryContent).addTestItem(testItem).build();
+		Log log = logBuilder.get().addSaveLogRQ(createLogRQ).addBinaryContent(binaryContent).addTestItem(testItem.get()).build();
 		try {
 			logRepository.save(log);
 		} catch (Exception exc) {

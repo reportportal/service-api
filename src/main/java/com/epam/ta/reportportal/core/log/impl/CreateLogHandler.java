@@ -144,11 +144,7 @@ public class CreateLogHandler implements ICreateLogHandler {
 	protected Optional<TestItem> findTestItem(String id) {
 		Optional<TestItem> testItem;
 		if (RetryId.isRetry(id)) {
-			RetryId retryId = RetryId.parse(id);
-			testItem = Optional.ofNullable(testItemRepository.findOne(retryId.getRootID()))
-					.flatMap(it -> Optional.ofNullable(it.getRetries()))
-					.flatMap(it -> it.stream().filter(item -> retryId.getItemHash().equals(item.getId())).findAny());
-
+			testItem = testItemRepository.findRetry(id);
 		} else {
 			testItem = Optional.ofNullable(testItemRepository.findOne(id));
 		}

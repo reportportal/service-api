@@ -40,6 +40,7 @@ import javax.inject.Provider;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.*;
 import java.util.function.Predicate;
@@ -111,8 +112,10 @@ public class XunitImportStrategy implements ImportStrategy {
 			return launchId;
 		} catch (InterruptedException | ExecutionException | TimeoutException | IllegalArgumentException e) {
 			if (savedLaunchId != null) {
-				Launch launch = launchRepository.findOne(savedLaunchId);
-				launch.setStartTime(new Date());
+				Launch launch = new Launch();
+				launch.setId(savedLaunchId);
+				launch.setStatistics(null);
+				launch.setStartTime(Calendar.getInstance().getTime());
 				launchRepository.partialUpdate(launch);
 			}
 			LOGGER.error(e.getMessage());

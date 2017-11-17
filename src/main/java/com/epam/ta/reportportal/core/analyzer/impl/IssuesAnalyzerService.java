@@ -153,7 +153,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	private IssueDefinition createIssueDefinition(String id, TestItemIssue issue) {
 		IssueDefinition issueDefinition = new IssueDefinition();
 		issueDefinition.setId(id);
-		issueDefinition.setIssue(IssueConverter.FROM_RESOURCE.apply(issue));
+		issueDefinition.setIssue(IssueConverter.TO_MODEL.apply(issue));
 		return issueDefinition;
 	}
 

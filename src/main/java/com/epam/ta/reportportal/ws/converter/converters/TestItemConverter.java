@@ -51,7 +51,7 @@ public final class TestItemConverter {
 		if (null != item.getParameters()) {
 			resource.setParameters(item.getParameters().stream().map(ParametersConverter.TO_RESOURCE).collect(Collectors.toList()));
 		}
-		resource.setIssue(IssueConverter.FROM_RESOURCE.apply(item.getIssue()));
+		resource.setIssue(IssueConverter.TO_MODEL.apply(item.getIssue()));
 		resource.setName(item.getName());
 		resource.setStartTime(item.getStartTime());
 		resource.setStatus(item.getStatus() != null ? item.getStatus().toString() : null);

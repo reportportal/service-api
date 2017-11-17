@@ -40,6 +40,7 @@ import javax.inject.Provider;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.*;
 import java.util.function.Predicate;
@@ -91,8 +92,12 @@ public class XunitImportStrategy implements ImportStrategy {
 	}
 
 	private String processZipFile(File zip, String projectId, String userName) throws IOException {
+		//copy of the launch's id to use it in catch block if something goes wrong
+		String savedLaunchId = null;
+
 		try (ZipFile zipFile = new ZipFile(zip)) {
 			String launchId = startLaunch(projectId, userName, zip.getName().substring(0, zip.getName().indexOf(".zip")));
+			savedLaunchId = launchId;
 			CompletableFuture[] futures = zipFile.stream().filter(isFile.and(isXml)).map(zipEntry -> {
 				try {
 					XunitParseJob job = xmlParseJobProvider.get()
@@ -106,6 +111,13 @@ public class XunitImportStrategy implements ImportStrategy {
 			finishLaunch(launchId, projectId, userName, processResults(futures));
 			return launchId;
 		} catch (InterruptedException | ExecutionException | TimeoutException | IllegalArgumentException e) {
+			if (savedLaunchId != null) {
+				Launch launch = new Launch();
+				launch.setId(savedLaunchId);
+				launch.setStatistics(null);
+				launch.setStartTime(Calendar.getInstance().getTime());
+				launchRepository.partialUpdate(launch);
+			}
 			LOGGER.error(e.getMessage());
 			throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, "There are invalid xml files inside.", e);
 		}

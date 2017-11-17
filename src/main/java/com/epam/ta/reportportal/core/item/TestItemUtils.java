@@ -6,8 +6,6 @@ import com.epam.ta.reportportal.ws.model.issue.Issue;
 import java.util.Date;
 import java.util.function.Function;
 
-import static java.util.stream.Collectors.toSet;
-
 /**
  * DB<->DTO conversion utils for TestItem
  *
@@ -15,36 +13,6 @@ import static java.util.stream.Collectors.toSet;
  * @author Andrei_Ramanchuk
  */
 class TestItemUtils {
-
-	/**
-	 * Converts DB model to DTO
-	 */
-	static Function<TestItemIssue, Issue> ISSUE_CONVERTER = new Function<TestItemIssue, Issue>() {
-		@Override
-		public Issue apply(TestItemIssue itemIssue) {
-			Issue issue = new Issue();
-			issue.setComment(itemIssue.getIssueDescription());
-			issue.setIssueType(itemIssue.getIssueType());
-			if (null != itemIssue.getExternalSystemIssues()) {
-				issue.setExternalSystemIssues(itemIssue.getExternalSystemIssues().stream().map(EXTERNAL_ISSUE_CONVERTER).collect(toSet()));
-			}
-			return issue;
-		}
-	};
-
-	/**
-	 * Converts DB model to DTO
-	 */
-	private static Function<TestItemIssue.ExternalSystemIssue, Issue.ExternalSystemIssue> EXTERNAL_ISSUE_CONVERTER = externalSystemIssue -> {
-		Issue.ExternalSystemIssue dbExternalSystemIssue = new Issue.ExternalSystemIssue();
-		dbExternalSystemIssue.setSubmitDate(externalSystemIssue.getSubmitDate());
-		dbExternalSystemIssue.setSubmitter(externalSystemIssue.getSubmitter());
-		dbExternalSystemIssue.setTicketId(externalSystemIssue.getTicketId());
-		dbExternalSystemIssue.setExternalSystemId(externalSystemIssue.getExternalSystemId());
-		dbExternalSystemIssue.setUrl(externalSystemIssue.getUrl());
-		return dbExternalSystemIssue;
-	};
-
 	/**
 	 * Converts DTO to DB model
 	 *

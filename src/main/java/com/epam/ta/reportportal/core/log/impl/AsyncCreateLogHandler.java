@@ -37,6 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Nonnull;
 import javax.inject.Provider;
+import java.util.Optional;
 
 /**
  * Asynchronous implementation of {@link ICreateLogHandler}. Saves log and
@@ -67,10 +68,10 @@ public class AsyncCreateLogHandler extends CreateLogHandler implements ICreateLo
 	@Override
 	@Nonnull
 	public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, String projectName) {
-		TestItem testItem = testItemRepository.findOne(createLogRQ.getTestItemId());
-		validate(testItem, createLogRQ);
+		Optional<TestItem> testItem = findTestItem(createLogRQ.getTestItemId());
+		validate(testItem.orElse(null), createLogRQ);
 
-		Log log = logBuilder.get().addSaveLogRQ(createLogRQ).addTestItem(testItem).build();
+		Log log = logBuilder.get().addSaveLogRQ(createLogRQ).addTestItem(testItem.get()).build();
 		try {
 			logRepository.save(log);
 		} catch (Exception exc) {

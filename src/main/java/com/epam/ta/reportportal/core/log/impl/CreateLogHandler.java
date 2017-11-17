@@ -24,7 +24,6 @@ package com.epam.ta.reportportal.core.log.impl;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.log.ICreateLogHandler;
 import com.epam.ta.reportportal.database.BinaryData;
 import com.epam.ta.reportportal.database.DataStorage;
@@ -64,7 +63,6 @@ public class CreateLogHandler implements ICreateLogHandler {
 
 	protected Provider<LogBuilder> logBuilder;
 
-	protected ILogIndexer logIndexer;
 
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
@@ -86,26 +84,10 @@ public class CreateLogHandler implements ICreateLogHandler {
 		this.logBuilder = logBuilder;
 	}
 
-	@Autowired
-	public void setLogIndexer(ILogIndexer logIndexer) {
-		this.logIndexer = logIndexer;
-	}
-
 	@Override
 	@Nonnull
 	public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, String project) {
-		Optional<TestItem> testItem;
-		if (RetryId.isRetry(createLogRQ.getTestItemId())){
-			RetryId retryId = RetryId.parse(createLogRQ.getTestItemId());
-			testItem = Optional
-					.ofNullable(testItemRepository.findOne(retryId.getRootID()))
-					.flatMap(it -> Optional.ofNullable(it.getRetries()))
-					.flatMap(it -> it.stream().filter(item -> retryId.getItemHash().equals(item.getId())).findAny());
-
-		} else {
-			testItem = Optional.ofNullable(testItemRepository.findOne(createLogRQ.getTestItemId()));
-		}
-
+		Optional<TestItem> testItem = findTestItem(createLogRQ.getTestItemId());
 		validate(testItem.orElse(null), createLogRQ);
 
 		BinaryContent binaryContent = null;
@@ -136,8 +118,7 @@ public class CreateLogHandler implements ICreateLogHandler {
 	 */
 	protected void validate(TestItem testItem, SaveLogRQ saveLogRQ) {
 		BusinessRule.expect(testItem, Predicates.notNull())
-				.verify(
-						ErrorType.LOGGING_IS_NOT_ALLOWED,
+				.verify(ErrorType.LOGGING_IS_NOT_ALLOWED,
 						Suppliers.formattedSupplier("Logging to test item '{}' is not allowed. Probably you try to log for Launch type.",
 								saveLogRQ.getTestItemId()
 						)
@@ -151,14 +132,26 @@ public class CreateLogHandler implements ICreateLogHandler {
 		BusinessRule.expect(
 				testItem.getStartTime().before(saveLogRQ.getLogTime()) || testItem.getStartTime().equals(saveLogRQ.getLogTime()),
 				Predicates.equalTo(Boolean.TRUE)
-		)
-				.verify(ErrorType.LOGGING_IS_NOT_ALLOWED,
-						Suppliers.formattedSupplier("Log has incorrect log time. Log time should be after parent item's start time.")
-				);
+		).verify(ErrorType.LOGGING_IS_NOT_ALLOWED,
+				Suppliers.formattedSupplier("Log has incorrect log time. Log time should be after parent item's start time.")
+		);
 
-		BusinessRule.expect(LogLevel.toLevelOrUnknown(saveLogRQ.getLevel()), Predicates.notNull())
-				.verify(ErrorType.BAD_SAVE_LOG_REQUEST,
-						Suppliers.formattedSupplier("Cannot convert '{}' to valid 'LogLevel'", saveLogRQ.getLevel())
-				);
+		BusinessRule.expect(LogLevel.toLevelOrUnknown(saveLogRQ.getLevel()), Predicates.notNull()).verify(ErrorType.BAD_SAVE_LOG_REQUEST,
+				Suppliers.formattedSupplier("Cannot convert '{}' to valid 'LogLevel'", saveLogRQ.getLevel())
+		);
+	}
+
+	protected Optional<TestItem> findTestItem(String id) {
+		Optional<TestItem> testItem;
+		if (RetryId.isRetry(id)) {
+			RetryId retryId = RetryId.parse(id);
+			testItem = Optional.ofNullable(testItemRepository.findOne(retryId.getRootID()))
+					.flatMap(it -> Optional.ofNullable(it.getRetries()))
+					.flatMap(it -> it.stream().filter(item -> retryId.getItemHash().equals(item.getId())).findAny());
+
+		} else {
+			testItem = Optional.ofNullable(testItemRepository.findOne(id));
+		}
+		return testItem;
 	}
 }

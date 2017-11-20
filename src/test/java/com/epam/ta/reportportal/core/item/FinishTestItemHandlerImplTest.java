@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -46,7 +47,9 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.database.entity.Status.FAILED;
 import static com.epam.ta.reportportal.database.entity.Status.SKIPPED;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.AUTOMATION_BUG;
 import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.PRODUCT_BUG;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.Mockito.mock;
@@ -63,7 +66,11 @@ public class FinishTestItemHandlerImplTest {
 	public void verifyIssueTestEmptyIssueType() {
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage(
-				"Test item status is ambiguous. Invalid test item issue type definition 'null' is requested for item 'itemId'. Valid issue types locators are: [ND001, AB001, PB001, SI001, TI001]");
+				"Test item status is ambiguous. Invalid test item issue type definition 'null' is requested for item 'itemId'. Valid issue types locators are:");
+		thrown.expectMessage("AB001");
+		thrown.expectMessage("PB001");
+		thrown.expectMessage("ND001");
+		thrown.expectMessage("TI001");
 		finishTestItemHandler.verifyIssue("itemId", new Issue(), new Project.Configuration());
 	}
 
@@ -95,9 +102,13 @@ public class FinishTestItemHandlerImplTest {
 		Issue issue = new Issue();
 		issue.setIssueType("PB004");
 		thrown.expectMessage(
-				"Test item status is ambiguous. Invalid test item issue type definition 'PB004' is requested for item 'itemId'. Valid issue types locators are: [ND001, AB001, PB001, SI001, TI001]");
+				"Test item status is ambiguous. Invalid test item issue type definition 'PB004' is requested for item 'itemId'. Valid issue types locators are: [custom_locator]");
 		thrown.expect(ReportPortalException.class);
-		finishTestItemHandler.verifyIssue("itemId", issue, new Project.Configuration());
+		Project.Configuration configuration = new Project.Configuration();
+		configuration.setSubTypes(ImmutableMap.<TestItemIssueType, List<StatisticSubType>>builder().put(AUTOMATION_BUG,
+				singletonList(new StatisticSubType("custom_locator", AUTOMATION_BUG.getValue(), "Custom issue", "CS", "#f7d63e"))
+		).build());
+		finishTestItemHandler.verifyIssue("itemId", issue, configuration);
 	}
 
 	@Test

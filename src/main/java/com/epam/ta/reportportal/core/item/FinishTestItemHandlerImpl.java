@@ -40,6 +40,7 @@ import com.epam.ta.reportportal.util.RetryId;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +52,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.trimStrings;
+import static com.epam.ta.reportportal.commons.EntityUtils.update;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
@@ -134,7 +137,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			testItem.setItemDescription(finishExecutionRQ.getDescription());
 		}
 		if (!isEmpty(finishExecutionRQ.getTags())) {
-			testItem.setTags(finishExecutionRQ.getTags());
+			testItem.setTags(Sets.newHashSet(trimStrings(update(finishExecutionRQ.getTags()))));
 		}
 		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
 		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, testItem.getLaunchRef());

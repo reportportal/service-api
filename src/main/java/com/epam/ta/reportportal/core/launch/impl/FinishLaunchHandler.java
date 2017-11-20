@@ -44,6 +44,7 @@ import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +55,8 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.trimStrings;
+import static com.epam.ta.reportportal.commons.EntityUtils.update;
 import static com.epam.ta.reportportal.commons.Preconditions.hasProjectRoles;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -104,7 +107,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 			launch.setDescription(finishLaunchRQ.getDescription());
 		}
 		if (!CollectionUtils.isEmpty(finishLaunchRQ.getTags())) {
-			launch.setTags(finishLaunchRQ.getTags());
+			launch.setTags(Sets.newHashSet(trimStrings(update(finishLaunchRQ.getTags()))));
 		}
 
 		Optional<Status> status = fromValue(finishLaunchRQ.getStatus());

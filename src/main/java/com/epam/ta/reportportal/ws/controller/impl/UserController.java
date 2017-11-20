@@ -245,12 +245,12 @@ public class UserController implements IUserController {
 	}
 
 	@Override
-	@RequestMapping(value = "/search/{term:.+}", method = GET)
+	@RequestMapping(value = "/search", method = GET)
 	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiIgnore
 	@PreAuthorize(ADMIN_ONLY)
-	public Iterable<UserResource> findUsers(@PathVariable String term, Pageable pageable, Principal principal) {
+	public Iterable<UserResource> findUsers(@RequestParam(value = "term") String term, Pageable pageable, Principal principal) {
 		return getUserHandler.searchUsers(term, pageable);
 	}
 }

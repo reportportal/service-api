@@ -195,3 +195,4 @@
 * EPMRPP-31188 - [DASHBOARD] Owner can't see owned widgets in "SELECT SHARED WIDGET" list #213
 * EPMRPP-31308 - [WS]: Add a constrain for a notification [GITHUB] Notifications rule for rp.mode #249
 * EPMRPP-31233 - [IMPORT] Status is always PASSED if parent item has children with different statuses
+* EPMRPP-29375 - WS: Search for user with dot symbol in login name returns the error

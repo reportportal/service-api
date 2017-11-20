@@ -208,12 +208,12 @@ public class ProjectController implements IProjectController {
 		return getProjectHandler.getUserNames(normalizeId(projectName), normalizeId(value));
 	}
 
-	@RequestMapping(value = "/{projectName}/usernames/search/{term:.+}", method = GET)
+	@RequestMapping(value = "/{projectName}/usernames/search", method = POST)
 	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiIgnore
 	@PreAuthorize(PROJECT_MANAGER)
-	public Page<UserResource> searchForUser(@SuppressWarnings("unused") @PathVariable String projectName, @PathVariable String term,
+	public Page<UserResource> searchForUser(@SuppressWarnings("unused") @PathVariable String projectName, @RequestBody UserSearchRQ term,
 			Pageable pageable) {
 		return getProjectHandler.getUserNames(term, pageable);
 	}

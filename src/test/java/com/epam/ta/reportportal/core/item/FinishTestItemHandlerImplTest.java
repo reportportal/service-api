@@ -63,7 +63,7 @@ public class FinishTestItemHandlerImplTest {
 	public void verifyIssueTestEmptyIssueType() {
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage(
-				"Invalid test item issue type definition 'null' is requested for item 'itemId'. Valid issue types are: [NOT_ISSUE, PRODUCT_BUG, AUTOMATION_BUG, SYSTEM_ISSUE, TO_INVESTIGATE, NO_DEFECT]");
+				"Test item status is ambiguous. Invalid test item issue type definition 'null' is requested for item 'itemId'. Valid issue types locators are: [ND001, AB001, PB001, SI001, TI001]");
 		finishTestItemHandler.verifyIssue("itemId", new Issue(), new Project.Configuration());
 	}
 
@@ -95,7 +95,7 @@ public class FinishTestItemHandlerImplTest {
 		Issue issue = new Issue();
 		issue.setIssueType("PB004");
 		thrown.expectMessage(
-				"Invalid test item issue type definition 'PB004' is requested for item 'itemId'. Valid issue types are: [NOT_ISSUE, PRODUCT_BUG, AUTOMATION_BUG, SYSTEM_ISSUE, TO_INVESTIGATE, NO_DEFECT]");
+				"Test item status is ambiguous. Invalid test item issue type definition 'PB004' is requested for item 'itemId'. Valid issue types locators are: [ND001, AB001, PB001, SI001, TI001]");
 		thrown.expect(ReportPortalException.class);
 		finishTestItemHandler.verifyIssue("itemId", issue, new Project.Configuration());
 	}

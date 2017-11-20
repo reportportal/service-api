@@ -24,7 +24,6 @@ package com.epam.ta.reportportal.core.project;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
-import com.epam.ta.reportportal.ws.model.project.UserSearchRQ;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import org.springframework.data.domain.Pageable;
 
@@ -66,7 +65,7 @@ public interface IGetProjectHandler {
 	 * @param value login OR full name of user
 	 * @return List of found user logins
 	 */
-	com.epam.ta.reportportal.ws.model.Page<UserResource> getUserNames(UserSearchRQ value, Pageable pageable);
+	com.epam.ta.reportportal.ws.model.Page<UserResource> getUserNames(String value, Pageable pageable);
 
 	/**
 	 * Verify if any project exists in MongoDB 'project' collection

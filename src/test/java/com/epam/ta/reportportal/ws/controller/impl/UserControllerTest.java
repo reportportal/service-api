@@ -305,7 +305,7 @@ public class UserControllerTest extends BaseMvcTest {
 
 	@Test
 	public void searchUsersPathVariableWithDot() throws Exception {
-		mvcMock.perform(get("/user/search/.com").principal(authentication()).contentType(APPLICATION_JSON))
+		mvcMock.perform(get("/user/search?term=.com").principal(authentication()).contentType(APPLICATION_JSON))
 				.andExpect(status().is(200))
 				.andExpect(jsonPath("$.page.totalElements").value(5));
 	}

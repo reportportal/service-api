@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static com.google.common.net.UrlEscapers.urlPathSegmentEscaper;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
 
@@ -131,7 +132,9 @@ public class EmailService extends JavaMailSenderImpl {
 
 			/* Tags with links */
 		if (!CollectionUtils.isEmpty(launch.getTags())) {
-			email.put("tags", launch.getTags().stream().collect(toMap(tag -> tag, tag -> format(FILTER_TAG_FORMAT, basicUrl, tag))));
+			email.put("tags", launch.getTags()
+					.stream()
+					.collect(toMap(tag -> tag, tag -> format(FILTER_TAG_FORMAT, basicUrl, urlPathSegmentEscaper().escape(tag)))));
 		}
 
 			/* Launch execution statistics */

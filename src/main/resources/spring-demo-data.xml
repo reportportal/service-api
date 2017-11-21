@@ -3126,6 +3126,7 @@
         <property name="type"
                   value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).SUITE}"
         />
+        <property name="uniqueId" value="auto:1ab62518fd68a5ce8ca8b955e1779df8"/>
     </bean>
     <bean id="mergeTest1" class="com.epam.ta.reportportal.database.entity.item.TestItem">
         <property name="id" value="44524cc15123de743b3e5bb3"/>
@@ -3133,6 +3134,8 @@
         <property name="itemDescription" value="test for history validation 1"/>
         <property name="status" value="FAILED"/>
         <property name="launchRef" value="51824cc1553de743b3e5bb2c"/>
+        <property name="startTime" value="05/02/2013 14:38 +0300"/>
+        <property name="endTime" value="05/02/2013 14:48 +0300"/>
         <property name="type"
                   value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).TEST}"
         />
@@ -3143,6 +3146,7 @@
                 <value>44524cc1553de743b3e5bb30</value>
             </util:list>
         </property>
+        <property name="uniqueId" value="auto:fabb527319ea85bc054f8cf628ea1920"/>
     </bean>
     <bean id="mergeStep1" class="com.epam.ta.reportportal.database.entity.item.TestItem">
         <property name="id" value="44524cc11123de743b3e5bb30"/>
@@ -3164,6 +3168,7 @@
         <property name="issue">
             <bean class="com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue"/>
         </property>
+        <property name="uniqueId" value="auto:be63982fe504558e328b8f565636634d"/>
     </bean>
 
     <bean id="mergeLaunch2" class="com.epam.ta.reportportal.database.entity.Launch">
@@ -3192,6 +3197,7 @@
         <property name="type"
                   value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).SUITE}"
         />
+        <property name="uniqueId" value="auto:1b3dc44c7c43653a045e092925cb1afb"/>
     </bean>
     <bean id="mergeTest2" class="com.epam.ta.reportportal.database.entity.item.TestItem">
         <property name="id" value="44524cc15123cc743b3e5bb3"/>
@@ -3209,6 +3215,7 @@
                 <value>595e4e7bb909d331fc392fc7</value>
             </util:list>
         </property>
+        <property name="uniqueId" value="auto:5356fec779a3f27f1ea8131bf3350162"/>
     </bean>
     <bean id="mergeStep2" class="com.epam.ta.reportportal.database.entity.item.TestItem">
         <property name="id" value="44524cc11123we743b3e5bb30"/>
@@ -3226,6 +3233,7 @@
                 <value>44524cc15123cc743b3e5bb3</value>
             </util:list>
         </property>
+        <property name="uniqueId" value="auto:da9fb35b8f1e32c6d6d734259ac99ad4"/>
     </bean>
 
     <bean id="sameSuite" class="com.epam.ta.reportportal.database.entity.item.TestItem">
@@ -3245,6 +3253,7 @@
         <property name="type"
                   value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).SUITE}"
         />
+        <property name="uniqueId" value="auto:1ab62518fd68a5ce8ca8b955e1779df8"/>
     </bean>
 
     <bean id="sameTest" class="com.epam.ta.reportportal.database.entity.item.TestItem">
@@ -3252,6 +3261,8 @@
         <property name="name" value="sameTest"/>
         <property name="itemDescription" value="test for history validation 1"/>
         <property name="launchRef" value="51824cc1553de743b3e5cc2c"/>
+        <property name="startTime" value="05/02/2013 14:38 +0300"/>
+        <property name="endTime" value="05/02/2013 14:48 +0300"/>
         <property name="status" value="PASSED"/>
         <property name="type"
                   value="#{T(com.epam.ta.reportportal.database.entity.item.TestItemType).TEST}"
@@ -3263,6 +3274,7 @@
                 <value>14524cc1553de743abc5bb30</value>
             </util:list>
         </property>
+        <property name="uniqueId" value="auto:fabb527319ea85bc054f8cf628ea1920"/>
     </bean>
     <bean id="sameStep" class="com.epam.ta.reportportal.database.entity.item.TestItem">
         <property name="id" value="34524cc11123we743b3e5bb30"/>
@@ -3280,6 +3292,7 @@
                 <value>24524cc15123ec743b3e5bb3</value>
             </util:list>
         </property>
+        <property name="uniqueId" value="auto:be63982fe504558e328b8f565636634d"/>
     </bean>
 
 </beans>

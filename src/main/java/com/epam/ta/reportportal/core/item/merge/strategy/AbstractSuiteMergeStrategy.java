@@ -57,7 +57,7 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
 			path.add(itemTarget.getId());
 			childItem.setPath(path);
 
-			setLaunchRefForChilds(childItem, itemTarget.getLaunchRef());
+			setLaunchRefForChildren(childItem, itemTarget.getLaunchRef());
 			testItemRepository.save(childItem);
 		}
 		updateTargetItemInfo(itemTarget, itemSource);
@@ -71,7 +71,7 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
 		return result;
 	}
 
-	private void setLaunchRefForChilds(TestItem testItemParent, String launchRef) {
+	private void setLaunchRefForChildren(TestItem testItemParent, String launchRef) {
 		List<TestItem> childItems = testItemRepository.findAllDescendants(testItemParent.getId());
 		for (TestItem child : childItems) {
 			child.setLaunchRef(launchRef);
@@ -80,7 +80,7 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
 			child.setPath(path);
 			testItemRepository.save(child);
 			if (child.hasChilds()) {
-				setLaunchRefForChilds(child, launchRef);
+				setLaunchRefForChildren(child, launchRef);
 			}
 		}
 	}

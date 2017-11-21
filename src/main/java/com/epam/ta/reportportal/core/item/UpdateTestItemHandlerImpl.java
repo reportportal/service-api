@@ -53,6 +53,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.trimStrings;
@@ -60,6 +61,7 @@ import static com.epam.ta.reportportal.commons.EntityUtils.update;
 import static com.epam.ta.reportportal.commons.Preconditions.NOT_EMPTY_COLLECTION;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.database.entity.Status.PASSED;
 import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.doesHaveUser;
 import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
@@ -279,7 +281,16 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 */
 	private String verifyTestItemDefinedIssueType(final String type, final Project.Configuration settings) {
 		StatisticSubType defined = settings.getByLocator(type);
-		expect(settings.getByLocator(type), notNull()).verify(ISSUE_TYPE_NOT_FOUND, type);
+		expect(defined, notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS,
+				formattedSupplier("Invalid test item issue type definition '{}'. Valid issue types locators are: {}", type,
+						settings.getSubTypes()
+								.values()
+								.stream()
+								.flatMap(Collection::stream)
+								.map(StatisticSubType::getLocator)
+								.collect(Collectors.toList())
+				)
+		);
 		return defined.getLocator();
 	}
 

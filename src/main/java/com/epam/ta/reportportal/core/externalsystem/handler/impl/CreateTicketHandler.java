@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.events.TicketPostedEvent;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
+import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -70,7 +71,8 @@ public class CreateTicketHandler implements ICreateTicketHandler {
 	@Override
 	public Ticket createIssue(PostTicketRQ postTicketRQ, String projectName, String systemId, String username) {
 		validatePostTicketRQ(postTicketRQ);
-		TestItem testItem = testItemRepository.findOne(postTicketRQ.getTestItemId());
+		List<TestItem> testItems = testItemRepository.findByIds(
+				postTicketRQ.getBackLinks().keySet(), ImmutableList.<String>builder().add("_id").add("name").build());
 		Project project = projectRepository.findByName(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 		List<String> ids = project.getConfiguration().getExternalSystem();
@@ -80,7 +82,8 @@ public class CreateTicketHandler implements ICreateTicketHandler {
 		expect(system.getFields(), notNull()).verify(BAD_REQUEST_ERROR, "There aren't any submitted BTS fields!");
 		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name());
 		Ticket ticket = externalSystemStrategy.submitTicket(postTicketRQ, system);
-		eventPublisher.publishEvent(new TicketPostedEvent(ticket, postTicketRQ.getTestItemId(), username, projectName, testItem.getName()));
+		testItems.forEach(
+				item -> eventPublisher.publishEvent(new TicketPostedEvent(ticket, item.getId(), username, projectName, item.getName())));
 		return ticket;
 	}
 

@@ -4,12 +4,10 @@ import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
 
 public class DeepMergeStrategy extends AbstractSuiteMergeStrategy {
 
@@ -25,19 +23,14 @@ public class DeepMergeStrategy extends AbstractSuiteMergeStrategy {
 
 	@Override
 	protected void mergeAllChildItems(TestItem testItemParent) {
-		List<TestItem> childItems = testItemRepository.findAllDescendants(testItemParent.getId());
-		List<TestItem> testItems = childItems.stream().filter(this::isTestItemAcceptableToMerge).collect(toList());
-
-		testItems.stream()
-				.collect(groupingBy(TestItem::getType, groupingBy(TestItem::getName)))
+		testItemRepository.findAllDescendants(testItemParent.getId())
+				.stream()
+				.filter(this::isTestItemAcceptableToMerge)
+				.collect(groupingBy(TestItem::getUniqueId))
 				.entrySet()
 				.stream()
 				.map(Map.Entry::getValue)
-				.collect(HashMap<String, List<TestItem>>::new, HashMap::putAll, HashMap::putAll)
-				.entrySet()
-				.stream()
-				.map(Map.Entry::getValue)
-				.collect(toList())
+				.filter(items -> items.size() > 1)
 				.forEach(items -> moveAllChildTestItems(items.get(0), items.subList(1, items.size())));
 	}
 

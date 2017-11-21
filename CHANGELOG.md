@@ -195,3 +195,7 @@
 * EPMRPP-31188 - [DASHBOARD] Owner can't see owned widgets in "SELECT SHARED WIDGET" list #213
 * EPMRPP-31308 - [WS]: Add a constrain for a notification [GITHUB] Notifications rule for rp.mode #249
 * EPMRPP-31233 - [IMPORT] Status is always PASSED if parent item has children with different statuses
+* EPMRPP-29375 - WS: Search for user with dot symbol in login name returns the error
+* EPMRPP-31211 - In case the tag contains (") symbols, the filter does not have got any value
+* EPMRPP-31208 - Email template: Tags with special symbols do not work correctly
+* EPMRPP-25622 - Posted bug is not added to item activity in case it was submitted via bulk operation

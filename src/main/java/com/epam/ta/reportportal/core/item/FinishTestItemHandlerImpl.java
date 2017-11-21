@@ -34,28 +34,32 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
+import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.RetryId;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.trimStrings;
+import static com.epam.ta.reportportal.commons.EntityUtils.update;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.database.entity.Status.*;
 import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.NOT_ISSUE_FLAG;
-import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.validValues;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
@@ -133,7 +137,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			testItem.setItemDescription(finishExecutionRQ.getDescription());
 		}
 		if (!isEmpty(finishExecutionRQ.getTags())) {
-			testItem.setTags(finishExecutionRQ.getTags());
+			testItem.setTags(Sets.newHashSet(trimStrings(update(finishExecutionRQ.getTags()))));
 		}
 		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
 		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, testItem.getLaunchRef());
@@ -230,17 +234,13 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			if (testItem.hasChilds()) {
 				descendants = testItemRepository.findDescendants(testItem.getId());
 			}
-			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED, formattedSupplier(
-					"Test item '{}' has descendants with '{}' status. All descendants '{}'",
-					testItemId,
-					IN_PROGRESS.name(),
-					descendants
-			));
-			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
-					finishExecutionRQ.getEndTime(),
-					testItem.getStartTime(),
-					testItemId
+			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED,
+					formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'", testItemId,
+							IN_PROGRESS.name(), descendants
+					)
 			);
+			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime())).verify(
+					FINISH_TIME_EARLIER_THAN_START_TIME, finishExecutionRQ.getEndTime(), testItem.getStartTime(), testItemId);
 
 			/*
 			 * If there is issue provided we have to be sure issue type is
@@ -253,11 +253,15 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	void verifyIssue(String testItemId, Issue issue, Project.Configuration projectSettings) {
 		if (issue != null && !NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(issue.getIssueType())) {
-			expect(projectSettings.getByLocator(issue.getIssueType()), notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS,
-					formattedSupplier("Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types are: {}",
-							issue.getIssueType(), testItemId, validValues()
-					)
-			);
+			expect(projectSettings.getByLocator(issue.getIssueType()), notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
+					"Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types locators are: {}",
+					issue.getIssueType(), testItemId, projectSettings.getSubTypes()
+							.values()
+							.stream()
+							.flatMap(Collection::stream)
+							.map(StatisticSubType::getLocator)
+							.collect(Collectors.toList())
+			));
 		}
 	}
 

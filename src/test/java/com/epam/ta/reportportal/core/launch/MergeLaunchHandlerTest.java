@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.database.entity.statistics.IssueCounter.GROUP_TOTAL;
 
@@ -152,20 +153,20 @@ public class MergeLaunchHandlerTest extends BaseTest {
 		Assert.assertTrue(launchRepository.find(ids).isEmpty());
 		Launch launch = launchRepository.findOne(launchResource.getLaunchId());
 
-		Assert.assertEquals(launch, expectedDeepMergedLaunch(launch.getId(), launch.getLastModified()));
+		Assert.assertEquals(expectedDeepMergedLaunch(launch.getId(), launch.getLastModified()), launch);
 		List<TestItem> items = testItemRepository.findByLaunch(launch);
-		Assert.assertEquals(items.size(), 8);
+		Assert.assertEquals(7, items.size());
 		items.forEach(it -> Assert.assertEquals(it.getLaunchRef(), launch.getId()));
-		TestItem testItem = testItemRepository.findOne(items.get(items.size() - 1).getId());
-		Assert.assertTrue(testItem.getTags().containsAll(ImmutableList.<String>builder().add("ios").add("andr").build()));
-		Assert.assertTrue(testItem.getItemDescription().startsWith("suite for history validation2"));
+		TestItem itemWithTags = items.stream().filter(it -> it.getTags() != null).collect(Collectors.toList()).get(0);
+		Assert.assertTrue(itemWithTags.getTags().containsAll(ImmutableList.<String>builder().add("ios").add("andr").build()));
+		Assert.assertTrue(itemWithTags.getItemDescription().startsWith("suite for history validation2"));
 		String startDate = "Thu May 02 14:13:00 MSK 2013";
 		String endDate = "Thu May 02 14:43:00 MSK 2013";
 		DateFormat df = new SimpleDateFormat("EEE MMM dd kk:mm:ss zzz yyyy");
 		Date start = df.parse(startDate);
 		Date end = df.parse(endDate);
-		Assert.assertEquals(testItem.getStartTime(), start);
-		Assert.assertEquals(testItem.getEndTime(), end);
+		Assert.assertEquals(itemWithTags.getStartTime(), start);
+		Assert.assertEquals(itemWithTags.getEndTime(), end);
 	}
 
 	@Test

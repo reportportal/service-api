@@ -47,7 +47,6 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -91,13 +90,13 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 	@Autowired
 	private TestItemUniqueIdGenerator identifierGenerator;
 
-    @Autowired
-    private ILogIndexer logIndexer;
+	@Autowired
+	private ILogIndexer logIndexer;
 
-    @Autowired
-    public void setProjectRepository(ProjectRepository projectRepository) {
-        this.projectRepository = projectRepository;
-    }
+	@Autowired
+	public void setProjectRepository(ProjectRepository projectRepository) {
+		this.projectRepository = projectRepository;
+	}
 
 	@Autowired
 	public void setLaunchRepository(LaunchRepository launchRepository) {
@@ -135,19 +134,14 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 		// deep merge strategies
 		if (!type.equals(MergeStrategyType.BASIC)) {
 			MergeStrategy strategy = mergeStrategyFactory.getStrategy(type);
-			//  group items by level types and merge them by same name
-			//  items with same name but different type cannot be merged
+			//  group items by unique id
 			testItemRepository.findWithoutParentByLaunchRef(launch.getId())
 					.stream()
-					.collect(groupingBy(TestItem::getType, groupingBy(TestItem::getName)))
+					.collect(groupingBy(TestItem::getUniqueId))
 					.entrySet()
 					.stream()
 					.map(Map.Entry::getValue)
-					.collect(HashMap<String, List<TestItem>>::new, HashMap::putAll, HashMap::putAll)
-					.entrySet()
-					.stream()
-					.map(Map.Entry::getValue)
-					.collect(toList())
+					.filter(items -> items.size() > 1)
 					.forEach(items -> strategy.mergeTestItems(items.get(0), items.subList(1, items.size())));
 		}
 
@@ -162,10 +156,10 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 		launchRepository.save(launch);
 		launchRepository.delete(launchesIds);
 
-        logIndexer.indexLogs(launch.getId(), testItemRepository.findItemsNotInIssueType(TO_INVESTIGATE.getLocator(), launch.getId()));
+		logIndexer.indexLogs(launch.getId(), testItemRepository.findItemsNotInIssueType(TO_INVESTIGATE.getLocator(), launch.getId()));
 
-        return LaunchConverter.TO_RESOURCE.apply(launch);
-    }
+		return LaunchConverter.TO_RESOURCE.apply(launch);
+	}
 
 	/**
 	 * Validations for merge launches request parameters and data

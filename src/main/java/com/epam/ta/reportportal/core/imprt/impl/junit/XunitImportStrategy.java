@@ -50,37 +50,37 @@ import java.util.zip.ZipFile;
 @Service
 public class XunitImportStrategy implements ImportStrategy {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(XunitImportStrategy.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(XunitImportStrategy.class);
 
-	@Autowired
-	private Provider<XunitParseJob> xmlParseJobProvider;
+    @Autowired
+    private Provider<XunitParseJob> xmlParseJobProvider;
 
-	@Autowired
-	private IStartLaunchHandler startLaunchHandler;
+    @Autowired
+    private IStartLaunchHandler startLaunchHandler;
 
-	@Autowired
-	private IFinishLaunchHandler finishLaunchHandler;
+    @Autowired
+    private IFinishLaunchHandler finishLaunchHandler;
 
-	@Autowired
-	private LaunchRepository launchRepository;
+    @Autowired
+    private LaunchRepository launchRepository;
 
-	private static final Date initialStartTime = new Date(0);
+    private static final Date initialStartTime = new Date(0);
 
-	private static final ExecutorService service = Executors.newFixedThreadPool(5);
+    private static final ExecutorService service = Executors.newFixedThreadPool(5);
 
-	private static final String XML_REGEX = ".*xml";
+    private static final String XML_REGEX = ".*xml";
 
-	private static final Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
+    private static final Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
 
-	private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName().matches(XML_REGEX);
+    private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName().matches(XML_REGEX);
 
-	@Override
-	public String importLaunch(String projectId, String userName, File file) {
-		try {
-			return processZipFile(file, projectId, userName);
-		} catch (IOException e) {
-			throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, file.getName(), e);
-		} finally {
+    @Override
+    public String importLaunch(String projectId, String userName, File file) {
+        try {
+            return processZipFile(file, projectId, userName);
+        } catch (IOException e) {
+            throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, file.getName(), e);
+        } finally {
 			try {
 				if (null != file) {
 					file.delete();
@@ -88,8 +88,8 @@ public class XunitImportStrategy implements ImportStrategy {
 			} catch (Exception e) {
 				LOGGER.error("File '{}' was not successfully deleted.", file.getName(), e);
 			}
-		}
-	}
+        }
+    }
 
 	private String processZipFile(File zip, String projectId, String userName) throws IOException {
 		//copy of the launch's id to use it in catch block if something goes wrong
@@ -123,29 +123,29 @@ public class XunitImportStrategy implements ImportStrategy {
 		}
 	}
 
-	private ParseResults processResults(CompletableFuture[] futures) {
-		ParseResults results = new ParseResults();
-		Arrays.stream(futures).map(it -> (ParseResults) it.join()).forEach(res -> {
-			results.checkAndSetStartLaunchTime(res.getStartTime());
-			results.increaseDuration(res.getDuration());
-		});
-		return results;
-	}
+    private ParseResults processResults(CompletableFuture[] futures) {
+        ParseResults results = new ParseResults();
+        Arrays.stream(futures).map(it -> (ParseResults) it.join()).forEach(res -> {
+            results.checkAndSetStartLaunchTime(res.getStartTime());
+            results.increaseDuration(res.getDuration());
+        });
+        return results;
+    }
 
-	private String startLaunch(String projectId, String userName, String launchName) {
-		StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
-		startLaunchRQ.setStartTime(initialStartTime);
-		startLaunchRQ.setName(launchName);
-		startLaunchRQ.setMode(Mode.DEFAULT);
-		return startLaunchHandler.startLaunch(userName, projectId, startLaunchRQ).getId();
-	}
+    private String startLaunch(String projectId, String userName, String launchName) {
+        StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
+        startLaunchRQ.setStartTime(initialStartTime);
+        startLaunchRQ.setName(launchName);
+        startLaunchRQ.setMode(Mode.DEFAULT);
+        return startLaunchHandler.startLaunch(userName, projectId, startLaunchRQ).getId();
+    }
 
-	private void finishLaunch(String launchId, String projectId, String userName, ParseResults results) {
-		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-		finishExecutionRQ.setEndTime(results.getEndTime());
-		finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectId, userName);
-		Launch launch = launchRepository.findOne(launchId);
-		launch.setStartTime(DateUtils.toDate(results.getStartTime()));
-		launchRepository.partialUpdate(launch);
-	}
+    private void finishLaunch(String launchId, String projectId, String userName, ParseResults results) {
+        FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
+        finishExecutionRQ.setEndTime(results.getEndTime());
+        finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectId, userName);
+        Launch launch = launchRepository.findOne(launchId);
+        launch.setStartTime(DateUtils.toDate(results.getStartTime()));
+        launchRepository.partialUpdate(launch);
+    }
 }

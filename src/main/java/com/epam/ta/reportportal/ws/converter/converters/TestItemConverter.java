@@ -25,9 +25,12 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.google.common.base.Preconditions;
 
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.Comparator.comparing;
 
 /**
  * Converts internal DB model to DTO
@@ -62,7 +65,9 @@ public final class TestItemConverter {
 		resource.setStatistics(StatisticsConverter.TO_RESOURCE.apply(item.getStatistics()));
 
 		Optional.ofNullable(item.getRetries())
-				.map(items -> items.stream().map(TestItemConverter.TO_RESOURCE).collect(Collectors.toList()))
+				.map(items -> items.stream().map(TestItemConverter.TO_RESOURCE)
+						.sorted(comparing(TestItemResource::getStartTime))
+						.collect(Collectors.toList()))
 				.ifPresent(resource::setRetries);
 		return resource;
 	};

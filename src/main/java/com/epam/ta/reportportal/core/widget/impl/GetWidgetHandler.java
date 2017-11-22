@@ -163,7 +163,7 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 
 	@Override
 	public List<WidgetResource> searchSharedWidgets(String term, String projectName) {
-		return widgetRepository.searchSharedEntities(projectName, term).stream().map(WidgetConverter.TO_RESOURCE).collect(toList());
+		return widgetRepository.findSharedEntitiesByName(projectName, term).stream().map(WidgetConverter.TO_RESOURCE).collect(toList());
 	}
 
 	/**

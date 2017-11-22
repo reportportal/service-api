@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,6 +119,14 @@ public class WidgetControllerTest extends BaseMvcTest {
 	@Test
 	public void getSharedWidgetsListPositive() throws Exception {
 		this.mvcMock.perform(get(PROJECT_BASE_URL + "/widget/shared").principal(authentication())).andExpect(status().is(200));
+	}
+
+	@Test
+	public void searchSharedWidgetsListPositive() throws Exception {
+		this.mvcMock.perform(get(PROJECT_BASE_URL + "/widget/shared/search?term=chart").principal(authentication()))
+				.andExpect(status().is(200))
+				.andExpect(jsonPath("$", Matchers.hasSize(3)))
+				.andExpect(jsonPath("$[0].name", Matchers.containsString("chart")));
 	}
 
 	@Test

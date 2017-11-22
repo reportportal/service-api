@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.converter.WidgetResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
@@ -44,7 +45,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
@@ -53,6 +53,7 @@ import static com.epam.ta.reportportal.core.widget.impl.WidgetUtils.validateGadg
 import static com.epam.ta.reportportal.core.widget.impl.WidgetUtils.validateWidgetDataType;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Default implementation of {@link IGetWidgetHandler}
@@ -124,7 +125,7 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 
 	@Override
 	public Map<String, SharedEntity> getSharedWidgetNames(String userName, String projectName) {
-		List<Widget> widgets = widgetRepository.findSharedEntities(userName, projectName, asList(Widget.ID, Widget.NAME, Widget.OWNER),
+		List<Widget> widgets = widgetRepository.findSharedEntities(projectName, asList(Widget.ID, Widget.NAME, Widget.OWNER),
 				Shareable.NAME_OWNER_SORT
 		);
 		return toMap(widgets);
@@ -132,7 +133,7 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 
 	@Override
 	public List<WidgetResource> getSharedWidgetsList(String userName, String projectName) {
-		List<Widget> widgets = widgetRepository.findSharedEntities(userName, projectName,
+		List<Widget> widgets = widgetRepository.findSharedEntities(projectName,
 				asList(Widget.ID, Widget.NAME, "description", Widget.OWNER, Widget.GADGET_TYPE, Widget.CONTENT_FIELDS, Widget.ENTRIES),
 				Shareable.NAME_OWNER_SORT
 		);
@@ -141,7 +142,7 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 
 	@Override
 	public List<String> getWidgetNames(String projectName, String userName) {
-		return widgetRepository.findByProjectAndUser(projectName, userName).stream().map(Widget::getName).collect(Collectors.toList());
+		return widgetRepository.findByProjectAndUser(projectName, userName).stream().map(Widget::getName).collect(toList());
 	}
 
 	@Override
@@ -158,6 +159,11 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 					.getContentOptions();
 			return loadContentByFilterType(userFilter, projectName, contentOptions);
 		}
+	}
+
+	@Override
+	public List<WidgetResource> searchSharedWidgets(String term, String projectName) {
+		return widgetRepository.findSharedEntitiesByName(projectName, term).stream().map(WidgetConverter.TO_RESOURCE).collect(toList());
 	}
 
 	/**

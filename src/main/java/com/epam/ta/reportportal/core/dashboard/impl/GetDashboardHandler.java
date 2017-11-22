@@ -82,7 +82,7 @@ public class GetDashboardHandler implements IGetDashboardHandler {
 
 	@Override
 	public Map<String, SharedEntity> getSharedDashboardsNames(String ownerName, String projectName) {
-		List<Dashboard> dashboards = dashboardRepository.findSharedEntities(ownerName, projectName,
+		List<Dashboard> dashboards = dashboardRepository.findSharedEntities(projectName,
 				Lists.newArrayList(Shareable.ID, Dashboard.NAME, Dashboard.OWNER, "description"), Shareable.NAME_OWNER_SORT
 		);
 		return toMap(dashboards);

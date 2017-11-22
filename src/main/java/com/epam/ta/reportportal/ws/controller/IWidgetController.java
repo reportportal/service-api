@@ -110,4 +110,11 @@ public interface IWidgetController {
 	 * @return
 	 */
 	List<String> getWidgetNames(String project, Principal principal);
+
+	/**
+	 * Get list of shared widgets by term
+	 * @param term Part of widget name
+	 * @return List of widgets
+	 */
+	List<WidgetResource> searchSharedWidgets(String term, String projectName);
 }

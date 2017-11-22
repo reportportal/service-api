@@ -83,4 +83,13 @@ public interface IGetWidgetHandler {
 	 * @return Widget content
 	 */
 	Map<String, ?> getWidgetPreview(String projectName, String userName, WidgetPreviewRQ previewRQ);
+
+	/**
+	 * Get list of widgets that contains search criteria
+	 *
+	 * @param term        Search criteria
+	 * @param projectName Project name
+	 * @return List of widgets
+	 */
+	List<WidgetResource> searchSharedWidgets(String term, String projectName);
 }

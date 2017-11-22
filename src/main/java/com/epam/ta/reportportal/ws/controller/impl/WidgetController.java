@@ -50,6 +50,8 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 /**
  * Controller implementation for
@@ -81,7 +83,7 @@ public class WidgetController implements IWidgetController {
 	}
 
 	@Override
-	@RequestMapping(method = RequestMethod.POST)
+	@RequestMapping(method = POST)
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
 	@ApiOperation("Create new widget")
@@ -91,8 +93,8 @@ public class WidgetController implements IWidgetController {
 	}
 
 	@Override
-	@RequestMapping(value = "/{widgetId}", method = RequestMethod.GET)
-	@ResponseStatus(HttpStatus.OK)
+	@RequestMapping(value = "/{widgetId}", method = GET)
+	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiOperation("Get widget by ID")
 	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable String widgetId, Principal principal) {
@@ -100,8 +102,8 @@ public class WidgetController implements IWidgetController {
 	}
 
 	@Override
-	@RequestMapping(value = "/preview", method = RequestMethod.POST)
-	@ResponseStatus(HttpStatus.OK)
+	@RequestMapping(value = "/preview", method = POST)
+	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiOperation("Get widget preview")
 	public Map<String, ?> getWidgetPreview(@PathVariable String projectName, @RequestBody @Validated WidgetPreviewRQ previewRQ,
@@ -110,8 +112,8 @@ public class WidgetController implements IWidgetController {
 	}
 
 	@Override
-	@RequestMapping(value = "/{widgetId}", method = RequestMethod.PUT)
-	@ResponseStatus(HttpStatus.OK)
+	@RequestMapping(value = "/{widgetId}", method = PUT)
+	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiOperation("Update specified widget")
 	public OperationCompletionRS updateWidget(@PathVariable String projectName, @PathVariable String widgetId,
@@ -120,8 +122,8 @@ public class WidgetController implements IWidgetController {
 	}
 
 	@Override
-	@RequestMapping(value = "/names/shared", method = RequestMethod.GET)
-	@ResponseStatus(HttpStatus.OK)
+	@RequestMapping(value = "/names/shared", method = GET)
+	@ResponseStatus(OK)
 	@ResponseBody
 	@Deprecated
 	@ApiIgnore
@@ -130,8 +132,8 @@ public class WidgetController implements IWidgetController {
 	}
 
 	@Override
-	@RequestMapping(value = "/shared", method = RequestMethod.GET)
-	@ResponseStatus(HttpStatus.OK)
+	@RequestMapping(value = "/shared", method = GET)
+	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiOperation("Load shared widgets")
 	public List<WidgetResource> getSharedWidgetsList(Principal principal, @PathVariable String projectName) {
@@ -139,11 +141,20 @@ public class WidgetController implements IWidgetController {
 	}
 
 	@Override
-	@RequestMapping(value = "/names/all", method = RequestMethod.GET)
-	@ResponseStatus(HttpStatus.OK)
+	@RequestMapping(value = "/names/all", method = GET)
+	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiOperation("Load all widget names which belong to a user")
 	public List<String> getWidgetNames(@PathVariable String projectName, Principal principal) {
 		return getHandler.getWidgetNames(normalizeId(projectName), principal.getName());
+	}
+
+	@Override
+	@RequestMapping(value = "/shared/search", method = GET)
+	@ResponseStatus(OK)
+	@ResponseBody
+	@ApiOperation("Search shared widgets by name")
+	public List<WidgetResource> searchSharedWidgets(@RequestParam("term") String term, @PathVariable String projectName) {
+		return getHandler.searchSharedWidgets(term, normalizeId(projectName));
 	}
 }

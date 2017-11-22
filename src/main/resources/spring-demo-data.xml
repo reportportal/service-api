@@ -1886,7 +1886,16 @@
             <bean class="com.epam.ta.reportportal.database.entity.sharing.Acl">
                 <constructor-arg value="user1"/>
                 <property name="entries">
-                    <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclEntry"/>
+                    <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclEntry">
+                        <bean class="com.epam.ta.reportportal.database.entity.sharing.AclEntry">
+                            <property name="projectId" value="project1"/>
+                            <property name="permissions">
+                                <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclPermissions">
+                                    <util:constant static-field="com.epam.ta.reportportal.database.entity.sharing.AclPermissions.READ"/>
+                                </util:set>
+                            </property>
+                        </bean>
+                    </util:set>
                 </property>
             </bean>
         </property>
@@ -1922,7 +1931,16 @@
             <bean class="com.epam.ta.reportportal.database.entity.sharing.Acl">
                 <constructor-arg value="user1"/>
                 <property name="entries">
-                    <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclEntry"/>
+                    <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclEntry">
+                        <bean class="com.epam.ta.reportportal.database.entity.sharing.AclEntry">
+                            <property name="projectId" value="project1"/>
+                            <property name="permissions">
+                                <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclPermissions">
+                                    <util:constant static-field="com.epam.ta.reportportal.database.entity.sharing.AclPermissions.READ"/>
+                                </util:set>
+                            </property>
+                        </bean>
+                    </util:set>
                 </property>
             </bean>
         </property>
@@ -1960,7 +1978,16 @@
             <bean class="com.epam.ta.reportportal.database.entity.sharing.Acl">
                 <constructor-arg value="user1"/>
                 <property name="entries">
-                    <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclEntry"/>
+                    <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclEntry">
+                        <bean class="com.epam.ta.reportportal.database.entity.sharing.AclEntry">
+                            <property name="projectId" value="project1"/>
+                            <property name="permissions">
+                                <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclPermissions">
+                                    <util:constant static-field="com.epam.ta.reportportal.database.entity.sharing.AclPermissions.READ"/>
+                                </util:set>
+                            </property>
+                        </bean>
+                    </util:set>
                 </property>
             </bean>
         </property>
@@ -2005,7 +2032,16 @@
             <bean class="com.epam.ta.reportportal.database.entity.sharing.Acl">
                 <constructor-arg value="user1"/>
                 <property name="entries">
-                    <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclEntry"/>
+                    <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclEntry">
+                        <bean class="com.epam.ta.reportportal.database.entity.sharing.AclEntry">
+                            <property name="projectId" value="project1"/>
+                            <property name="permissions">
+                                <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclPermissions">
+                                    <util:constant static-field="com.epam.ta.reportportal.database.entity.sharing.AclPermissions.READ"/>
+                                </util:set>
+                            </property>
+                        </bean>
+                    </util:set>
                 </property>
             </bean>
         </property>

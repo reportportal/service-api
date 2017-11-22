@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.stream.Stream;
 
 import static java.time.Duration.ofDays;
@@ -55,13 +56,16 @@ public class CleanScreenshotsJob implements Runnable {
 	@Scheduled(cron = "${com.ta.reportportal.job.clean.screenshots.cron}")
 	public void run() {
 		try (Stream<Project> projects = projectRepository.streamAllIdsAndConfiguration()) {
-			projects.forEach(project -> gridFS.findModifiedLaterAgo(
-					ofDays(KeepScreenshotsDelay.findByName(project.getConfiguration().getKeepScreenshots()).getDays()), project.getId())
-					.forEach(file -> {
+			projects.forEach(project -> {
+				Duration period = ofDays(KeepScreenshotsDelay.findByName(project.getConfiguration().getKeepScreenshots()).getDays());
+				if (!period.isZero()) {
+					gridFS.findModifiedLaterAgo(period, project.getId()).forEach(file -> {
 						gridFS.deleteData(file.getId().toString());
 						/* Clear binary_content fields from log repository */
 						logRepository.removeBinaryContent(file.getId().toString());
-					}));
+					});
+				}
+			});
 		}
 	}
 }

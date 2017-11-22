@@ -65,8 +65,10 @@ public class CleanLogsJob implements Runnable {
 		try (Stream<Project> stream = projectRepository.streamAllIdsAndConfiguration()) {
 			stream.forEach(project -> {
 				Duration period = ofDays(findByName(project.getConfiguration().getKeepLogs()).getDays());
-				activityRepository.deleteModifiedLaterAgo(project.getId(), period);
-				removeOutdatedLogs(project.getId(), period);
+				if (!period.isZero()) {
+					activityRepository.deleteModifiedLaterAgo(project.getId(), period);
+					removeOutdatedLogs(project.getId(), period);
+				}
 			});
 		}
 	}

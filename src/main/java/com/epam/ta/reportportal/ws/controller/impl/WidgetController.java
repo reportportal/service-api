@@ -153,6 +153,7 @@ public class WidgetController implements IWidgetController {
 	@RequestMapping(value = "/shared/search", method = GET)
 	@ResponseStatus(OK)
 	@ResponseBody
+	@ApiOperation("Search shared widgets by name")
 	public List<WidgetResource> searchSharedWidgets(@RequestParam("term") String term, @PathVariable String projectName) {
 		return getHandler.searchSharedWidgets(term, normalizeId(projectName));
 	}

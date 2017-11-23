@@ -29,6 +29,10 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
 
@@ -47,8 +51,25 @@ public class ChangeSets_4_0 {
 			Update update = new Update();
 			update.set("contentOptions.type", "trends_chart");
 			update.set("contentOptions.gadgetType", "statistic_trend");
-			update.set("contentOptions.widgetOptions", new BasicDBObject("viewMode", new String[]{"barMode"}));
+			update.set("contentOptions.widgetOptions", new BasicDBObject("viewMode", new String[] { "barMode" }));
 			mongoTemplate.updateFirst(query(where("_id").is(widget.get("_id"))), update, collection);
+		});
+	}
+
+	@ChangeSet(order = "4.0-2", id = "v.4.0-Update filter model", author = "pbortnik")
+	public void updateFilters(MongoTemplate mongoTemplate) {
+		final String collection = "userFilter";
+		Query q = query(where("selectionOptions").exists(true));
+		q.fields().include("_id");
+		q.fields().include("selectionOptions");
+		mongoTemplate.stream(q, DBObject.class, collection).forEachRemaining(filter -> {
+			Update update = new Update();
+			Map<String, Object> map = (Map<String, Object>) filter.get("selectionOptions");
+			BasicDBObject newObj = new BasicDBObject("isAsc", map.get("isAsc")).append("sortingColumnName", map.get("sortingColumnName"));
+			List<BasicDBObject> selectionOrders = Collections.singletonList(newObj);
+
+			update.set("selectionOptions", new BasicDBObject("pageNumber", map.get("pageNumber")).append("orders", selectionOrders));
+			mongoTemplate.updateFirst(query(where("_id").is(filter.get("_id"))), update, collection);
 		});
 	}
 

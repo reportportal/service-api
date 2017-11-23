@@ -188,7 +188,7 @@ public class Utils {
 		rq.setEntities(entities);
 		SelectionParameters selectionParameters = new SelectionParameters();
 		Order order = new Order();
-		order.setAsc(true);
+		order.setIsAsc(true);
 		order.setSortingColumnName("name");
 		selectionParameters.setOrders(Collections.singletonList(order));
 		selectionParameters.setPageNumber(43);
@@ -242,7 +242,7 @@ public class Utils {
 		filterResource.setEntities(entities);
 		SelectionParameters selectionParameters = new SelectionParameters();
 		Order order = new Order();
-		order.setAsc(true);
+		order.setIsAsc(true);
 		order.setSortingColumnName("name");
 		selectionParameters.setOrders(Collections.singletonList(order));
 		selectionParameters.setPageNumber(43);

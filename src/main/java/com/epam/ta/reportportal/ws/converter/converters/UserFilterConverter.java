@@ -75,7 +75,7 @@ public final class UserFilterConverter {
 		selectionOptions.setPageNumber(parameters.getPageNumber());
 		selectionOptions.setOrders(parameters.getOrders().stream().map(order -> {
 			SelectionOrder selectionOrder = new SelectionOrder();
-			selectionOrder.setAsc(order.isAsc());
+			selectionOrder.setAsc(order.getIsAsc());
 			selectionOrder.setSortingColumnName(order.getSortingColumnName());
 			return selectionOrder;
 		}).collect(Collectors.toList()));
@@ -89,7 +89,7 @@ public final class UserFilterConverter {
 		selectionParameters.setPageNumber(options.getPageNumber());
 		selectionParameters.setOrders(options.getOrders().stream().map(selectionOrder -> {
 			Order order = new Order();
-			order.setAsc(selectionOrder.isAsc());
+			order.setIsAsc(selectionOrder.isAsc());
 			order.setSortingColumnName(selectionOrder.getSortingColumnName());
 			return order;
 		}).collect(Collectors.toList()));

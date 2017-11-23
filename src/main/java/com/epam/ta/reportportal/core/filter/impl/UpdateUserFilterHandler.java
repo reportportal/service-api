@@ -28,16 +28,17 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.filter.ObjectType;
-import com.epam.ta.reportportal.database.entity.filter.SelectionOptions;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.events.FilterUpdatedEvent;
+import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
+import com.epam.ta.reportportal.ws.model.filter.Order;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterEntity;
 import com.google.common.collect.Lists;
@@ -153,14 +154,12 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 		toUpdate.setDescription(updateRQ.getDescription());
 		toUpdate.setIsLink(updateRQ.getIsLink());
 		if (null != updateRQ.getSelectionParameters()) {
-			userFilterService.validateSortingColumnName(toUpdate.getFilter().getTarget(),
-					updateRQ.getSelectionParameters().getSortingColumnName()
-			);
-			SelectionOptions selectionOptions = new SelectionOptions();
-			selectionOptions.setSortingColumnName(updateRQ.getSelectionParameters().getSortingColumnName());
-			selectionOptions.setIsAsc(updateRQ.getSelectionParameters().getIsAsc());
-			selectionOptions.setPageNumber(updateRQ.getSelectionParameters().getPageNumber());
-			toUpdate.setSelectionOptions(selectionOptions);
+			updateRQ.getSelectionParameters()
+					.getOrders()
+					.stream()
+					.map(Order::getSortingColumnName)
+					.forEach(columnName -> userFilterService.validateSortingColumnName(toUpdate.getFilter().getTarget(), columnName));
+			toUpdate.setSelectionOptions(UserFilterConverter.TO_SELECTION_OPTIONS.apply(updateRQ.getSelectionParameters()));
 		}
 		if (null != updateRQ.getShare()) {
 			sharingService.modifySharing(Lists.newArrayList(toUpdate), userName, projectName, updateRQ.getShare());

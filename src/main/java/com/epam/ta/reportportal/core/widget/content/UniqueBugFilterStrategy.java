@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+
 /**
  * Implementation of
  * {@link com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy} for
@@ -69,11 +71,13 @@ public class UniqueBugFilterStrategy implements BuildFilterStrategy {
 			int limit = contentOptions.getItemsCount();
 
 			CriteriaMap<?> criteriaMap = criteriaMapFactory.getCriteriaMap(filter.getTarget());
-			List<Launch> launches = launchRepository.findIdsByFilter(filter,
-					new Sort(userFilter.getSelectionOptions().isAsc() ? Sort.Direction.ASC : Sort.Direction.DESC,
-							criteriaMap.getCriteriaHolder(userFilter.getSelectionOptions().getSortingColumnName()).getQueryCriteria()
-					), limit
-			);
+			List<Sort.Order> orders = userFilter.getSelectionOptions().getOrders().stream().map(order -> new Sort.Order(
+					order.isAsc() ? Sort.Direction.ASC : Sort.Direction.DESC,
+					criteriaMap.getCriteriaHolder(order.getSortingColumnName()).getQueryCriteria()
+			)).collect(toList());
+			Sort sort = new Sort(orders);
+
+			List<Launch> launches = launchRepository.findIdsByFilter(filter, sort, limit);
 			final String value = launches.stream().map(Launch::getId).collect(Collectors.joining(SEPARATOR));
 			filter = new Filter(TestItem.class, Sets.newHashSet(new FilterCondition(Condition.IN, false, value, TestItem.LAUNCH_CRITERIA)));
 		}

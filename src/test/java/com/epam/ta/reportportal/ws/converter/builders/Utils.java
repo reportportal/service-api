@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.ws.converter.builders;
 import com.epam.ta.reportportal.database.entity.*;
 import com.epam.ta.reportportal.database.entity.Dashboard.WidgetObject;
 import com.epam.ta.reportportal.database.entity.filter.SelectionOptions;
+import com.epam.ta.reportportal.database.entity.filter.SelectionOrder;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.TestItemType;
@@ -39,10 +40,7 @@ import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
-import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
-import com.epam.ta.reportportal.ws.model.filter.SelectionParameters;
-import com.epam.ta.reportportal.ws.model.filter.UserFilterEntity;
-import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
+import com.epam.ta.reportportal.ws.model.filter.*;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
@@ -162,9 +160,11 @@ public class Utils {
 	public static UserFilter getUserFilter() {
 		UserFilter userFilter = new UserFilter();
 		SelectionOptions selectionOptions = new SelectionOptions();
-		selectionOptions.setIsAsc(true);
+		SelectionOrder selectionOrder = new SelectionOrder();
+		selectionOrder.setAsc(true);
+		selectionOrder.setSortingColumnName("name");
+		selectionOptions.setOrders(Collections.singletonList(selectionOrder));
 		selectionOptions.setPageNumber(43);
-		selectionOptions.setSortingColumnName("name");
 		userFilter.setIsLink(true);
 		userFilter.setSelectionOptions(selectionOptions);
 		userFilter.setName(BuilderTestsConstants.NAME);
@@ -187,9 +187,11 @@ public class Utils {
 		entities.add(entity);
 		rq.setEntities(entities);
 		SelectionParameters selectionParameters = new SelectionParameters();
-		selectionParameters.setIsAsc(true);
+		Order order = new Order();
+		order.setAsc(true);
+		order.setSortingColumnName("name");
+		selectionParameters.setOrders(Collections.singletonList(order));
 		selectionParameters.setPageNumber(43);
-		selectionParameters.setSortingColumnName("name");
 		rq.setSelectionParameters(selectionParameters);
 		return rq;
 	}
@@ -239,9 +241,11 @@ public class Utils {
 		entities.add(userFilterEntity);
 		filterResource.setEntities(entities);
 		SelectionParameters selectionParameters = new SelectionParameters();
-		selectionParameters.setIsAsc(true);
+		Order order = new Order();
+		order.setAsc(true);
+		order.setSortingColumnName("name");
+		selectionParameters.setOrders(Collections.singletonList(order));
 		selectionParameters.setPageNumber(43);
-		selectionParameters.setSortingColumnName("name");
 		filterResource.setSelectionParameters(selectionParameters);
 		return filterResource;
 	}

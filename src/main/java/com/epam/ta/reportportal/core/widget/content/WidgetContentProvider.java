@@ -83,18 +83,13 @@ public class WidgetContentProvider {
 		List<String> contentFields = transformToDBStyle(criteriaMap, options.getContentFields());
 		List<String> metaDataFields = transformToDBStyle(criteriaMap, options.getMetadataFields());
 
-		boolean isAscSort = selectionOptions.isAsc();
-
-		/*
-		 * Dirty handler of not full output during ASC start_time sorting. In
-		 * 'a- lot-of-results' case users got last results truncated by page
-		 * limitation.
-		 */
-		Sort sort;
-		String sortingColumnName = selectionOptions.getSortingColumnName();
-		sort = new Sort(isAscSort ? Sort.Direction.ASC : Sort.Direction.DESC,
-				criteriaMap.getCriteriaHolder(sortingColumnName).getQueryCriteria()
-		);
+		List<Sort.Order> orders = selectionOptions.getOrders()
+				.stream()
+				.map(order -> new Sort.Order(order.isAsc() ? Sort.Direction.ASC : Sort.Direction.DESC,
+						criteriaMap.getCriteriaHolder(order.getSortingColumnName()).getQueryCriteria()
+				))
+				.collect(toList());
+		Sort sort = new Sort(orders);
 
 		Map<String, List<ChartObject>> result;
 		IContentLoadingStrategy loadingStrategy = contentLoader.get(GadgetTypes.findByName(options.getGadgetType()).get());

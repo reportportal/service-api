@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
+import org.springframework.data.domain.Pageable;
 
 import java.security.Principal;
 import java.util.List;
@@ -116,5 +117,5 @@ public interface IWidgetController {
 	 * @param term Part of widget name
 	 * @return List of widgets
 	 */
-	List<WidgetResource> searchSharedWidgets(String term, String projectName);
+	Iterable<WidgetResource> searchSharedWidgets(String term, String projectName, Pageable pageable);
 }

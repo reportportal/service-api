@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.ws.resolver.ActiveRole;
 import com.epam.ta.reportportal.ws.validation.WidgetRQCustomValidator;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -154,7 +155,7 @@ public class WidgetController implements IWidgetController {
 	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiOperation("Search shared widgets by name")
-	public List<WidgetResource> searchSharedWidgets(@RequestParam("term") String term, @PathVariable String projectName) {
-		return getHandler.searchSharedWidgets(term, normalizeId(projectName));
+	public Iterable<WidgetResource> searchSharedWidgets(@RequestParam("term") String term, @PathVariable String projectName, Pageable pageable) {
+		return getHandler.searchSharedWidgets(term, normalizeId(projectName), pageable);
 	}
 }

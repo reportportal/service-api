@@ -1591,6 +1591,7 @@
         <property name="name" value="Investigated percentage of launches"/>
         <property name="projectName" value="project1"/>
         <property name="applyingFilterId" value="566e1f3818177ca344439d38"/>
+        <property name="description" value="This is a chart for search"/>
         <property name="contentOptions">
             <bean class="com.epam.ta.reportportal.database.entity.widget.ContentOptions">
                 <property name="type" value="column_chart"/>

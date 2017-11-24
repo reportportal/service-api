@@ -199,15 +199,15 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 				}
 			} else {
-				testItem = statisticsFacade.updateExecutionStatistics(testItem);
-				if (null != testItem.getIssue()) {
-					statisticsFacade.updateIssueStatistics(testItem);
-				}
-
 				/* do not touch retries */
 				testItem.setRetries(null);
 				testItem.setStatistics(null);
 				testItemRepository.partialUpdate(testItem);
+
+				testItem = statisticsFacade.updateExecutionStatistics(testItem);
+				if (null != testItem.getIssue()) {
+					statisticsFacade.updateIssueStatistics(testItem);
+				}
 			}
 
 			logIndexer.indexLogs(launch.getId(), Collections.singletonList(testItem));

@@ -62,6 +62,7 @@ import static com.epam.ta.reportportal.database.entity.Status.*;
 import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.NOT_ISSUE_FLAG;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.Comparator.comparing;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 /**
@@ -200,9 +201,20 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				}
 			} else {
 				/* do not touch retries */
+				if (null != testItem.getRetries()) {
+					final Optional<TestItem> lastItem = testItem.getRetries()
+							.stream()
+							.sorted(comparing(TestItem::getStartTime).reversed())
+							.findFirst();
+					if (lastItem.isPresent()) {
+						testItem.setStatus(lastItem.get().getStatus());
+						testItem.setIssue(lastItem.get().getIssue());
+					}
+				}
 				testItem.setRetries(null);
 				testItem.setStatistics(null);
 				testItemRepository.partialUpdate(testItem);
+
 				testItem = statisticsFacade.updateExecutionStatistics(testItem);
 				if (null != testItem.getIssue()) {
 					statisticsFacade.updateIssueStatistics(testItem);
@@ -239,13 +251,12 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			if (testItem.hasChilds()) {
 				descendants = testItemRepository.findDescendants(testItem.getId());
 			}
-			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED,
-					formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'",
-							testItemId,
-							IN_PROGRESS.name(),
-							descendants
-					)
-			);
+			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED, formattedSupplier(
+					"Test item '{}' has descendants with '{}' status. All descendants '{}'",
+					testItemId,
+					IN_PROGRESS.name(),
+					descendants
+			));
 			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
 					finishExecutionRQ.getEndTime(),
 					testItem.getStartTime(),

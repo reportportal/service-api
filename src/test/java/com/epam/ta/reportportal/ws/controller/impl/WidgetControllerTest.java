@@ -123,10 +123,9 @@ public class WidgetControllerTest extends BaseMvcTest {
 
 	@Test
 	public void searchSharedWidgetsListPositive() throws Exception {
-		this.mvcMock.perform(get(PROJECT_BASE_URL + "/widget/shared/search?term=chart").principal(authentication()))
+		this.mvcMock.perform(get(PROJECT_BASE_URL + "/widget/shared/search?term=er").principal(authentication()))
 				.andExpect(status().is(200))
-				.andExpect(jsonPath("$", Matchers.hasSize(3)))
-				.andExpect(jsonPath("$[0].name", Matchers.containsString("chart")));
+				.andExpect(jsonPath("$.content", Matchers.hasSize(4)));
 	}
 
 	@Test

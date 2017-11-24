@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.sharing.Shareable;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
+import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.WidgetResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
@@ -42,6 +43,8 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -162,8 +165,9 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 	}
 
 	@Override
-	public List<WidgetResource> searchSharedWidgets(String term, String projectName) {
-		return widgetRepository.findSharedEntitiesByName(projectName, term).stream().map(WidgetConverter.TO_RESOURCE).collect(toList());
+	public Iterable<WidgetResource> searchSharedWidgets(String term, String projectName, Pageable pageable) {
+		Page<Widget> entities = widgetRepository.findSharedEntitiesByName(projectName, term, pageable);
+		return PagedResourcesAssembler.pageConverter(WidgetConverter.TO_RESOURCE).apply(entities);
 	}
 
 	/**

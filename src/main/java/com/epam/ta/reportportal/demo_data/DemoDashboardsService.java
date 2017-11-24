@@ -118,7 +118,7 @@ class DemoDashboardsService {
 		SelectionOptions selectionOptions = new SelectionOptions();
 		SelectionOrder selectionOrder = new SelectionOrder();
 		selectionOrder.setSortingColumnName("start_time");
-		selectionOrder.setAsc(false);
+		selectionOrder.setIsAsc(false);
 		selectionOptions.setPageNumber(1);
 		selectionOptions.setOrders(singletonList(selectionOrder));
 		userFilter.setSelectionOptions(selectionOptions);

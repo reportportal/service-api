@@ -161,7 +161,7 @@ public class Utils {
 		UserFilter userFilter = new UserFilter();
 		SelectionOptions selectionOptions = new SelectionOptions();
 		SelectionOrder selectionOrder = new SelectionOrder();
-		selectionOrder.setAsc(true);
+		selectionOrder.setIsAsc(true);
 		selectionOrder.setSortingColumnName("name");
 		selectionOptions.setOrders(Collections.singletonList(selectionOrder));
 		selectionOptions.setPageNumber(43);

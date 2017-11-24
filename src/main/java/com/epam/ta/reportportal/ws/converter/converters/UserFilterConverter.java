@@ -75,7 +75,7 @@ public final class UserFilterConverter {
 		selectionOptions.setPageNumber(parameters.getPageNumber());
 		selectionOptions.setOrders(parameters.getOrders().stream().map(order -> {
 			SelectionOrder selectionOrder = new SelectionOrder();
-			selectionOrder.setAsc(order.getIsAsc());
+			selectionOrder.setIsAsc(order.getIsAsc());
 			selectionOrder.setSortingColumnName(order.getSortingColumnName());
 			return selectionOrder;
 		}).collect(Collectors.toList()));

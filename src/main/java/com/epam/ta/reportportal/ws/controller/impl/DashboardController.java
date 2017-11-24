@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 import com.epam.ta.reportportal.ws.resolver.ActiveRole;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
@@ -126,7 +127,7 @@ public class DashboardController implements IDashboardController {
 	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiOperation("Get names of shared dashboards from specified project")
-	public Map<String, SharedEntity> getSharedDashboardsNames(@PathVariable String projectName, Principal principal) {
-		return getHandler.getSharedDashboardsNames(principal.getName(), normalizeId(projectName));
+	public Map<String, SharedEntity> getSharedDashboardsNames(@PathVariable String projectName, Principal principal, Pageable pageable) {
+		return getHandler.getSharedDashboardsNames(principal.getName(), normalizeId(projectName), pageable);
 	}
 }

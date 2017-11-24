@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.core.dashboard;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Map;
 
@@ -65,5 +66,5 @@ public interface IGetDashboardHandler {
 	 * @return {@link Iterable}
 	 * @throws ReportPortalException
 	 */
-	Map<String, SharedEntity> getSharedDashboardsNames(String ownerName, String projectName);
+	Map<String, SharedEntity> getSharedDashboardsNames(String ownerName, String projectName, Pageable pageable);
 }

@@ -35,6 +35,8 @@ import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
@@ -81,11 +83,11 @@ public class GetDashboardHandler implements IGetDashboardHandler {
 	}
 
 	@Override
-	public Map<String, SharedEntity> getSharedDashboardsNames(String ownerName, String projectName) {
-		List<Dashboard> dashboards = dashboardRepository.findSharedEntities(projectName,
-				Lists.newArrayList(Shareable.ID, Dashboard.NAME, Dashboard.OWNER, "description"), Shareable.NAME_OWNER_SORT
+	public Map<String, SharedEntity> getSharedDashboardsNames(String ownerName, String projectName, Pageable pageable) {
+		Page<Dashboard> page = dashboardRepository.findSharedEntities(projectName,
+				Lists.newArrayList(Shareable.ID, Dashboard.NAME, Dashboard.OWNER, "description"), Shareable.NAME_OWNER_SORT, pageable
 		);
-		return toMap(dashboards);
+		return toMap(page.getContent());
 	}
 
 	/**

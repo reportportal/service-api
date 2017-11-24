@@ -76,10 +76,11 @@ public interface IWidgetController {
 	/**
 	 * Update widget with specified id
 	 *
-	 * @param projectName
-	 * @param principal
-	 * @param widgetId    , updateRQ
-	 * @param userRole
+	 * @param projectName Project name
+	 * @param principal   Principal
+	 * @param widgetId    Widget id
+	 * @param updateRQ    Update request
+	 * @param userRole    User role
 	 * @return {@link OperationCompletionRS}
 	 * @throws ReportPortalException
 	 */
@@ -88,32 +89,34 @@ public interface IWidgetController {
 	/**
 	 * Get shared widgets names
 	 *
-	 * @param principal
-	 * @param projectName
-	 * @return
+	 * @param principal   Principal
+	 * @param projectName Project name
+	 * @return Map of Shared entities
 	 */
-	Map<String, SharedEntity> getSharedWidgets(Principal principal, String projectName);
-
-	/**
-	 * Get list of shared widgets per project
-	 *
-	 * @param principal
-	 * @param projectName
-	 * @return
-	 */
-	List<WidgetResource> getSharedWidgetsList(Principal principal, String projectName);
+	Map<String, SharedEntity> getSharedWidgets(Principal principal, String projectName, Pageable pageable);
 
 	/**
 	 * Get list of widget names
 	 *
-	 * @param project
-	 * @param principal
-	 * @return
+	 * @param project   Project name
+	 * @param principal Principal
+	 * @return Widget names
 	 */
 	List<String> getWidgetNames(String project, Principal principal);
 
 	/**
+	 * Get list of shared widgets per project
+	 *
+	 * @param principal   Principal
+	 * @param projectName Project name
+	 * @param pageable    Paging
+	 * @return
+	 */
+	Iterable<WidgetResource> getSharedWidgetsList(Principal principal, String projectName, Pageable pageable);
+
+	/**
 	 * Get list of shared widgets by term
+	 *
 	 * @param term Part of widget name
 	 * @return List of widgets
 	 */

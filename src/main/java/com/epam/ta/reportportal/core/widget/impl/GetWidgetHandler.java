@@ -127,20 +127,18 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 	}
 
 	@Override
-	public Map<String, SharedEntity> getSharedWidgetNames(String userName, String projectName) {
-		List<Widget> widgets = widgetRepository.findSharedEntities(projectName, asList(Widget.ID, Widget.NAME, Widget.OWNER),
-				Shareable.NAME_OWNER_SORT
-		);
-		return toMap(widgets);
+	public Map<String, SharedEntity> getSharedWidgetNames(String userName, String projectName, Pageable pageable) {
+		List<String> fields = asList(Widget.ID, Widget.NAME, Widget.OWNER);
+		Page<Widget> page = widgetRepository.findSharedEntities(projectName, fields, Shareable.NAME_OWNER_SORT, pageable);
+		return toMap(page.getContent());
 	}
 
 	@Override
-	public List<WidgetResource> getSharedWidgetsList(String userName, String projectName) {
-		List<Widget> widgets = widgetRepository.findSharedEntities(projectName,
-				asList(Widget.ID, Widget.NAME, "description", Widget.OWNER, Widget.GADGET_TYPE, Widget.CONTENT_FIELDS, Widget.ENTRIES),
-				Shareable.NAME_OWNER_SORT
-		);
-		return resourceAssembler.toResources(widgets);
+	public Iterable<WidgetResource> getSharedWidgetsList(String userName, String projectName, Pageable pageable) {
+		List<String> fields = asList(
+				Widget.ID, Widget.NAME, "description", Widget.OWNER, Widget.GADGET_TYPE, Widget.CONTENT_FIELDS, Widget.ENTRIES);
+		Page<Widget> widgets = widgetRepository.findSharedEntities(projectName, fields, Shareable.NAME_OWNER_SORT, pageable);
+		return PagedResourcesAssembler.pageConverter(WidgetConverter.TO_RESOURCE).apply(widgets);
 	}
 
 	@Override
@@ -175,8 +173,8 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 	 * <li>key - widget id
 	 * <li>value - {@link SharedEntity}
 	 *
-	 * @param widgets
-	 * @return
+	 * @param widgets Widgets
+	 * @return map of Shared entities
 	 */
 	private Map<String, SharedEntity> toMap(List<Widget> widgets) {
 		Map<String, SharedEntity> result = new LinkedHashMap<>();

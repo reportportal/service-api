@@ -128,7 +128,7 @@ public class WidgetController implements IWidgetController {
 	@ResponseBody
 	@Deprecated
 	@ApiIgnore
-	public Map<String, SharedEntity> getSharedWidgets(Principal principal, @PathVariable String projectName, Pageable pageable) {
+	public Iterable<SharedEntity> getSharedWidgets(Principal principal, @PathVariable String projectName, Pageable pageable) {
 		return getHandler.getSharedWidgetNames(principal.getName(), normalizeId(projectName), pageable);
 	}
 

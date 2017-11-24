@@ -91,9 +91,9 @@ public interface IWidgetController {
 	 *
 	 * @param principal   Principal
 	 * @param projectName Project name
-	 * @return Map of Shared entities
+	 * @return Page of Shared entities
 	 */
-	Map<String, SharedEntity> getSharedWidgets(Principal principal, String projectName, Pageable pageable);
+	Iterable<SharedEntity> getSharedWidgets(Principal principal, String projectName, Pageable pageable);
 
 	/**
 	 * Get list of widget names

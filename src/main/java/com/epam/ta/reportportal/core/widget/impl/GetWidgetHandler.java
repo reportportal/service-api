@@ -48,6 +48,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Function;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
@@ -56,6 +57,7 @@ import static com.epam.ta.reportportal.core.widget.impl.WidgetUtils.validateGadg
 import static com.epam.ta.reportportal.core.widget.impl.WidgetUtils.validateWidgetDataType;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Arrays.asList;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -127,10 +129,10 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 	}
 
 	@Override
-	public Map<String, SharedEntity> getSharedWidgetNames(String userName, String projectName, Pageable pageable) {
+	public Iterable<SharedEntity> getSharedWidgetNames(String userName, String projectName, Pageable pageable) {
 		List<String> fields = asList(Widget.ID, Widget.NAME, Widget.OWNER);
 		Page<Widget> page = widgetRepository.findSharedEntities(projectName, fields, Shareable.NAME_OWNER_SORT, pageable);
-		return toMap(page.getContent());
+		return PagedResourcesAssembler.pageConverter(TO_SHARED_ENTITY).apply(page);
 	}
 
 	@Override
@@ -169,25 +171,18 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 	}
 
 	/**
-	 * Transform list of widgets to map of Shared entities result map:<br>
-	 * <li>key - widget id
-	 * <li>value - {@link SharedEntity}
+	 * Convert {@code Widget to SharedEntity}.
 	 *
-	 * @param widgets Widgets
-	 * @return map of Shared entities
+	 * @return SharedEntity
 	 */
-	private Map<String, SharedEntity> toMap(List<Widget> widgets) {
-		Map<String, SharedEntity> result = new LinkedHashMap<>();
-		for (Widget widget : widgets) {
-			SharedEntity sharedEntity = new SharedEntity();
-			sharedEntity.setName(widget.getName());
-			if (null != widget.getAcl()) {
-				sharedEntity.setOwner(widget.getAcl().getOwnerUserId());
-			}
-			result.put(widget.getId(), sharedEntity);
-		}
-		return result;
-	}
+	private final Function<Widget, SharedEntity> TO_SHARED_ENTITY = widget -> {
+		SharedEntity sharedEntity = new SharedEntity();
+		sharedEntity.setId(widget.getId());
+		sharedEntity.setName(widget.getName());
+		ofNullable(widget.getAcl()).ifPresent(acl -> sharedEntity.setOwner(acl.getOwnerUserId()));
+		sharedEntity.setDescription(widget.getDescription());
+		return sharedEntity;
+	};
 
 	private boolean isRequireUserFilter(GadgetTypes gadgetType, Optional<UserFilter> userFilter) {
 		return !(!userFilter.isPresent() && (gadgetType != GadgetTypes.ACTIVITY) && (gadgetType != GadgetTypes.MOST_FAILED_TEST_CASES) && (

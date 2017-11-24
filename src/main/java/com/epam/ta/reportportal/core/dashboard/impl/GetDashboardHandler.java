@@ -21,7 +21,6 @@
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
-import com.epam.ta.reportportal.commons.MoreCollectors;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.acl.AclUtils;
@@ -30,18 +29,23 @@ import com.epam.ta.reportportal.database.dao.DashboardRepository;
 import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.sharing.Shareable;
 import com.epam.ta.reportportal.ws.converter.DashboardResourceAssembler;
+import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
+import java.util.function.Function;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * Default implementation of {@link IGetDashboardHandler}
@@ -81,31 +85,25 @@ public class GetDashboardHandler implements IGetDashboardHandler {
 	}
 
 	@Override
-	public Map<String, SharedEntity> getSharedDashboardsNames(String ownerName, String projectName) {
-		List<Dashboard> dashboards = dashboardRepository.findSharedEntities(projectName,
-				Lists.newArrayList(Shareable.ID, Dashboard.NAME, Dashboard.OWNER, "description"), Shareable.NAME_OWNER_SORT
+	public Iterable<SharedEntity> getSharedDashboardsNames(String ownerName, String projectName, Pageable pageable) {
+		Page<Dashboard> page = dashboardRepository.findSharedEntities(projectName,
+				Lists.newArrayList(Shareable.ID, Dashboard.NAME, Dashboard.OWNER, "description"), Shareable.NAME_OWNER_SORT, pageable
 		);
-		return toMap(dashboards);
+		return PagedResourcesAssembler.pageConverter(TO_SHARED_ENTITY).apply(page);
 	}
 
 	/**
-	 * Transform {@link List} of {@link Dashboard}s to {@link java.util.Map} where:<br>
-	 * <li>key - dashboard id,
-	 * <li>value - shared entity
+	 * Convert {@code Dashboard to SharedEntity}.
 	 *
-	 * @param dashboards Dashboards list
-	 * @return Transformed map
+	 * @return SharedEntity
 	 */
-	private Map<String, SharedEntity> toMap(List<Dashboard> dashboards) {
-		return dashboards.stream().collect(MoreCollectors.toLinkedMap(Dashboard::getId, dashboard -> {
-			SharedEntity sharedEntity = new SharedEntity();
-			sharedEntity.setName(dashboard.getName());
-			sharedEntity.setDescription(dashboard.getDescription());
-			if (null != dashboard.getAcl()) {
-				sharedEntity.setOwner(dashboard.getAcl().getOwnerUserId());
-			}
-			return sharedEntity;
-		}));
-	}
+	private final Function<Dashboard, SharedEntity> TO_SHARED_ENTITY = dashboard -> {
+		SharedEntity sharedEntity = new SharedEntity();
+		sharedEntity.setId(dashboard.getId());
+		sharedEntity.setName(dashboard.getName());
+		ofNullable(dashboard.getAcl()).ifPresent(acl -> sharedEntity.setOwner(acl.getOwnerUserId()));
+		sharedEntity.setDescription(dashboard.getDescription());
+		return sharedEntity;
+	};
 
 }

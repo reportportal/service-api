@@ -55,7 +55,7 @@ public interface IGetWidgetHandler {
 	 * @param projectName
 	 * @return
 	 */
-	Map<String, SharedEntity> getSharedWidgetNames(String userName, String projectName);
+	Iterable<SharedEntity> getSharedWidgetNames(String userName, String projectName, Pageable pageable);
 
 	/**
 	 * Get list of shared widget for specified project
@@ -64,7 +64,7 @@ public interface IGetWidgetHandler {
 	 * @param projectName
 	 * @return
 	 */
-	List<WidgetResource> getSharedWidgetsList(String userName, String projectName);
+	Iterable<WidgetResource> getSharedWidgetsList(String userName, String projectName, Pageable pageable);
 
 	/**
 	 * Get list of widget names for specified user

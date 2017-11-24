@@ -35,7 +35,6 @@ import org.springframework.data.domain.Pageable;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Report Portal WS Interface. Filter controller
@@ -113,7 +112,7 @@ public interface IUserFilterController {
 	 * @param isShared    whether filter is shared
 	 * @return Map String-String key - filter id, value - filter name
 	 */
-	Map<String, SharedEntity> getAllFiltersNames(String projectName, Principal principal, boolean isShared);
+	Iterable<SharedEntity> getAllFiltersNames(String projectName, Principal principal, boolean isShared);
 
 	/**
 	 * Update user filter with specified id

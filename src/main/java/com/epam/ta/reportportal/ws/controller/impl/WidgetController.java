@@ -128,17 +128,8 @@ public class WidgetController implements IWidgetController {
 	@ResponseBody
 	@Deprecated
 	@ApiIgnore
-	public Map<String, SharedEntity> getSharedWidgets(Principal principal, @PathVariable String projectName) {
-		return getHandler.getSharedWidgetNames(principal.getName(), normalizeId(projectName));
-	}
-
-	@Override
-	@RequestMapping(value = "/shared", method = GET)
-	@ResponseStatus(OK)
-	@ResponseBody
-	@ApiOperation("Load shared widgets")
-	public List<WidgetResource> getSharedWidgetsList(Principal principal, @PathVariable String projectName) {
-		return getHandler.getSharedWidgetsList(principal.getName(), normalizeId(projectName));
+	public Iterable<SharedEntity> getSharedWidgets(Principal principal, @PathVariable String projectName, Pageable pageable) {
+		return getHandler.getSharedWidgetNames(principal.getName(), normalizeId(projectName), pageable);
 	}
 
 	@Override
@@ -148,6 +139,15 @@ public class WidgetController implements IWidgetController {
 	@ApiOperation("Load all widget names which belong to a user")
 	public List<String> getWidgetNames(@PathVariable String projectName, Principal principal) {
 		return getHandler.getWidgetNames(normalizeId(projectName), principal.getName());
+	}
+
+	@Override
+	@RequestMapping(value = "/shared", method = GET)
+	@ResponseStatus(OK)
+	@ResponseBody
+	@ApiOperation("Load shared widgets")
+	public Iterable<WidgetResource> getSharedWidgetsList(Principal principal, @PathVariable String projectName, Pageable pageable) {
+		return getHandler.getSharedWidgetsList(principal.getName(), normalizeId(projectName), pageable);
 	}
 
 	@Override

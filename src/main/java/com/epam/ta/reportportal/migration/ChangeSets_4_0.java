@@ -23,13 +23,13 @@ package com.epam.ta.reportportal.migration;
 
 import com.github.mongobee.changeset.ChangeLog;
 import com.github.mongobee.changeset.ChangeSet;
+import com.google.common.collect.Lists;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -65,8 +65,16 @@ public class ChangeSets_4_0 {
 		mongoTemplate.stream(q, DBObject.class, collection).forEachRemaining(filter -> {
 			Update update = new Update();
 			Map<String, Object> map = (Map<String, Object>) filter.get("selectionOptions");
-			BasicDBObject newObj = new BasicDBObject("isAsc", map.get("isAsc")).append("sortingColumnName", map.get("sortingColumnName"));
-			List<BasicDBObject> selectionOrders = Collections.singletonList(newObj);
+
+			String sortingColumnName = (String) map.get("sortingColumnName");
+			Boolean isAsc = (Boolean) map.get("isAsc");
+
+			List<BasicDBObject> selectionOrders = Lists.newArrayList(
+					new BasicDBObject("isAsc", isAsc).append("sortingColumnName", sortingColumnName));
+
+			if (sortingColumnName.equals("start_time")) {
+				selectionOrders.add(new BasicDBObject("isAsc", isAsc).append("sortingColumnName", "number"));
+			}
 
 			update.set("selectionOptions", new BasicDBObject("pageNumber", map.get("pageNumber")).append("orders", selectionOrders));
 			mongoTemplate.updateFirst(query(where("_id").is(filter.get("_id"))), update, collection);

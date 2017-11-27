@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
@@ -54,7 +55,7 @@ public interface IGetWidgetHandler {
 	 * @param projectName
 	 * @return
 	 */
-	Map<String, SharedEntity> getSharedWidgetNames(String userName, String projectName);
+	Iterable<SharedEntity> getSharedWidgetNames(String userName, String projectName, Pageable pageable);
 
 	/**
 	 * Get list of shared widget for specified project
@@ -63,7 +64,7 @@ public interface IGetWidgetHandler {
 	 * @param projectName
 	 * @return
 	 */
-	List<WidgetResource> getSharedWidgetsList(String userName, String projectName);
+	Iterable<WidgetResource> getSharedWidgetsList(String userName, String projectName, Pageable pageable);
 
 	/**
 	 * Get list of widget names for specified user
@@ -83,4 +84,13 @@ public interface IGetWidgetHandler {
 	 * @return Widget content
 	 */
 	Map<String, ?> getWidgetPreview(String projectName, String userName, WidgetPreviewRQ previewRQ);
+
+	/**
+	 * Get list of widgets that contains search criteria
+	 *
+	 * @param term        Search criteria
+	 * @param projectName Project name
+	 * @return List of widgets
+	 */
+	Iterable<WidgetResource> searchSharedWidgets(String term, String projectName, Pageable pageable);
 }

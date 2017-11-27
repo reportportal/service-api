@@ -29,9 +29,9 @@ import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
+import org.springframework.data.domain.Pageable;
 
 import java.security.Principal;
-import java.util.Map;
 
 /**
  * Report Portal WS Interface. Dashboard controller.
@@ -100,8 +100,9 @@ public interface IDashboardController {
 	 *
 	 * @param projectName Project Name
 	 * @param principal   Login
-	 * @return Iterable<DashboardResource>
+	 * @param pageable    Page
+	 * @return Iterable<SharedEntity>
 	 * @throws ReportPortalException
 	 */
-	Map<String, SharedEntity> getSharedDashboardsNames(String projectName, Principal principal);
+	Iterable<SharedEntity> getSharedDashboardsNames(String projectName, Principal principal, Pageable pageable);
 }

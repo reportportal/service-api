@@ -166,6 +166,7 @@
 * reportportal/reportporatl#236 - Drop Redis
 * EPMRPP-29378 - Comulative ternd chart
 * Import - support <error> tag as failed test
+* EPMRPP-31184 - WS: Serch for "Add shared widget" window
 
 ### Bugfixes
 

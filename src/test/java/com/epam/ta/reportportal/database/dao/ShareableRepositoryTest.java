@@ -52,15 +52,15 @@ public class ShareableRepositoryTest extends BaseTest {
 
 	@Test
 	public void testNullFindSharedEntities() {
-		List<Dashboard> dashboards = dashboardRepository.findSharedEntities(null, null, null, null);
-		Assert.assertNotNull(dashboards);
-		Assert.assertTrue(dashboards.isEmpty());
+		Page<Dashboard> page = dashboardRepository.findSharedEntities(null, null, null, null);
+		Assert.assertNotNull(page);
+		Assert.assertTrue(page.getContent().isEmpty());
 	}
 
 	@Test
 	public void testFindSharedEntities() {
 		List<Dashboard> dashboards = dashboardRepository.findSharedEntities(
-				"default", "default_project", Lists.newArrayList("_id", "name"), Shareable.NAME_OWNER_SORT);
+				"default_project", Lists.newArrayList("_id", "name"), Shareable.NAME_OWNER_SORT, new PageRequest(0, 10)).getContent();
 		Assert.assertNotNull(dashboards);
 		Assert.assertEquals(2, dashboards.size());
 		Dashboard dashboard = dashboards.get(0);

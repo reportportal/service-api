@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
 import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.entity.filter.ObjectType;
+import com.epam.ta.reportportal.database.entity.filter.SelectionOrder;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.events.FiltersCreatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder;
@@ -83,9 +84,11 @@ public class CreateUserFilterHandler implements ICreateUserFilterHandler {
 					.addSharing(userName, projectName, rq.getDescription(), rq.getShare() == null ? false : rq.getShare())
 					.build();
 
-			userFilterService.validateSortingColumnName(userFilter.getFilter().getTarget(),
-					userFilter.getSelectionOptions().getSortingColumnName()
-			);
+			userFilter.getSelectionOptions()
+					.getOrders()
+					.stream()
+					.map(SelectionOrder::getSortingColumnName)
+					.forEach(columnName -> userFilterService.validateSortingColumnName(userFilter.getFilter().getTarget(), columnName));
 			return userFilter;
 		}).collect(Collectors.toList());
 

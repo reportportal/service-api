@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.database.entity.Dashboard;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.SelectionOptions;
+import com.epam.ta.reportportal.database.entity.filter.SelectionOrder;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.sharing.Acl;
 import com.epam.ta.reportportal.database.entity.sharing.AclEntry;
@@ -52,6 +53,7 @@ import static com.epam.ta.reportportal.database.search.Condition.HAS;
 import static com.epam.ta.reportportal.ws.model.ErrorType.RESOURCE_ALREADY_EXISTS;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 @Service
@@ -114,9 +116,11 @@ class DemoDashboardsService {
 		userFilter.setName(filterName);
 		userFilter.setFilter(new Filter(Launch.class, HAS, false, "demo", "tags"));
 		SelectionOptions selectionOptions = new SelectionOptions();
-		selectionOptions.setSortingColumnName("start_time");
-		selectionOptions.setIsAsc(false);
+		SelectionOrder selectionOrder = new SelectionOrder();
+		selectionOrder.setSortingColumnName("start_time");
+		selectionOrder.setIsAsc(false);
 		selectionOptions.setPageNumber(1);
+		selectionOptions.setOrders(singletonList(selectionOrder));
 		userFilter.setSelectionOptions(selectionOptions);
 		userFilter.setProjectName(project);
 		userFilter.setIsLink(false);

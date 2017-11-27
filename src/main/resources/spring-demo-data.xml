@@ -2478,8 +2478,14 @@
         </property>
         <property name="selectionOptions">
             <bean class="com.epam.ta.reportportal.database.entity.filter.SelectionOptions">
-                <property name="sortingColumnName" value="start_time"/>
-                <property name="isAsc" value="false"/>
+                <property name="orders">
+                    <util:list>
+                        <bean class="com.epam.ta.reportportal.database.entity.filter.SelectionOrder">
+                            <property name="sortingColumnName" value="start_time"/>
+                            <property name="isAsc" value="false"/>
+                        </bean>
+                    </util:list>
+                </property>
                 <property name="pageNumber" value="1"/>
             </bean>
         </property>
@@ -2526,8 +2532,14 @@
         </property>
         <property name="selectionOptions">
             <bean class="com.epam.ta.reportportal.database.entity.filter.SelectionOptions">
-                <property name="sortingColumnName" value="start_time"/>
-                <property name="isAsc" value="false"/>
+                <property name="orders">
+                    <util:list>
+                        <bean class="com.epam.ta.reportportal.database.entity.filter.SelectionOrder">
+                            <property name="sortingColumnName" value="start_time"/>
+                            <property name="isAsc" value="false"/>
+                        </bean>
+                    </util:list>
+                </property>
                 <property name="pageNumber" value="1"/>
             </bean>
         </property>
@@ -2557,8 +2569,14 @@
         </property>
         <property name="selectionOptions">
             <bean class="com.epam.ta.reportportal.database.entity.filter.SelectionOptions">
-                <property name="sortingColumnName" value="start_time"/>
-                <property name="isAsc" value="false"/>
+                <property name="orders">
+                    <util:list>
+                        <bean class="com.epam.ta.reportportal.database.entity.filter.SelectionOrder">
+                            <property name="sortingColumnName" value="start_time"/>
+                            <property name="isAsc" value="false"/>
+                        </bean>
+                    </util:list>
+                </property>
                 <property name="pageNumber" value="1"/>
             </bean>
         </property>

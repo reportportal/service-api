@@ -123,6 +123,12 @@ public class UserFilterControllerTest extends BaseMvcTest {
 		updateUserFilterRQ.setObjectType("Launch");
 		updateUserFilterRQ.setEntities(generateFilterEntities());
 		updateUserFilterRQ.setDescription("new description");
+		SelectionParameters selectionParameters = new SelectionParameters();
+		Order order = new Order();
+		order.setIsAsc(true);
+		order.setSortingColumnName("start_time");
+		selectionParameters.setOrders(Collections.singletonList(order));
+		updateUserFilterRQ.setSelectionParameters(selectionParameters);
 		this.mvcMock.perform(put(PROJECT_BASE_URL + "/filter/566e1f3818177ca344439d38").principal(authentication())
 				.content(objectMapper.writeValueAsBytes(updateUserFilterRQ))
 				.contentType(APPLICATION_JSON)).andExpect(status().is(200));
@@ -186,9 +192,11 @@ public class UserFilterControllerTest extends BaseMvcTest {
 
 	private SelectionParameters selectionParameters() {
 		SelectionParameters selectionParameters = new SelectionParameters();
-		selectionParameters.setIsAsc(false);
-		selectionParameters.setSortingColumnName("start_time");
+		Order order = new Order();
+		order.setIsAsc(false);
+		order.setSortingColumnName("start_time");
 		selectionParameters.setPageNumber(2);
+		selectionParameters.setOrders(Collections.singletonList(order));
 		return selectionParameters;
 	}
 

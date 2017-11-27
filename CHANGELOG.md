@@ -200,3 +200,4 @@
 * EPMRPP-31211 - In case the tag contains (") symbols, the filter does not have got any value
 * EPMRPP-31208 - Email template: Tags with special symbols do not work correctly
 * EPMRPP-25622 - Posted bug is not added to item activity in case it was submitted via bulk operation
+* EPMRPP-31435 - 'Ignore in AA' should not to be set for test item in launch on DEBUG level

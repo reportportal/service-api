@@ -71,7 +71,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	public StartTestItemHandlerImpl() {
 		retrier = new RetryTemplate();
 		TimeoutRetryPolicy timoutRetryPolicy = new TimeoutRetryPolicy();
-		timoutRetryPolicy.setTimeout(TimeUnit.MINUTES.toMillis(30L));
+		timoutRetryPolicy.setTimeout(TimeUnit.SECONDS.toMillis(3L));
 		retrier.setRetryPolicy(timoutRetryPolicy);
 		retrier.setBackOffPolicy(new FixedBackOffPolicy());
 		retrier.setThrowLastExceptionOnExhausted(true);

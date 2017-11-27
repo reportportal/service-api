@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.widget.content;
 
 import com.epam.ta.reportportal.database.entity.filter.SelectionOptions;
+import com.epam.ta.reportportal.database.entity.filter.SelectionOrder;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
@@ -33,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -72,9 +74,11 @@ public class ActivityFilterStrategy implements BuildFilterStrategy {
 		}
 
 		SelectionOptions selectionOptions = new SelectionOptions();
-		selectionOptions.setIsAsc(false);
-		selectionOptions.setSortingColumnName(LAST_MODIFIED);
+		SelectionOrder selectionOrder = new SelectionOrder();
+		selectionOrder.setIsAsc(false);
+		selectionOrder.setSortingColumnName(LAST_MODIFIED);
 		selectionOptions.setPageNumber(PAGE_NUMBER);
+		selectionOptions.setOrders(Collections.singletonList(selectionOrder));
 		return widgetContentProvider.getChartContent(projectName, searchFilter, selectionOptions, contentOptions);
 	}
 

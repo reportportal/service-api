@@ -51,7 +51,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -145,7 +144,7 @@ public class UserFilterController implements IUserFilterController {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get available filter names")
-	public Map<String, SharedEntity> getAllFiltersNames(@PathVariable String projectName, Principal principal,
+	public Iterable<SharedEntity> getAllFiltersNames(@PathVariable String projectName, Principal principal,
 			@RequestParam(value = "share", defaultValue = "false", required = false) boolean isShared) {
 		return getFilterHandler.getFiltersNames(principal.getName(), normalizeId(projectName), isShared);
 	}

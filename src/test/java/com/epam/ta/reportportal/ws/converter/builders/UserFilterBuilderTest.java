@@ -76,9 +76,12 @@ public class UserFilterBuilderTest extends BaseTest {
 		Assert.assertEquals(expectedValue.getId(), actualValue.getId());
 		Assert.assertEquals(expectedValue.getFilter(), actualValue.getFilter());
 		if (expectedValue.getSelectionOptions() != null) {
-			Assert.assertEquals(expectedValue.getSelectionOptions().isAsc(), actualValue.getSelectionOptions().isAsc());
-			Assert.assertEquals(expectedValue.getSelectionOptions().getSortingColumnName(),
-					actualValue.getSelectionOptions().getSortingColumnName()
+			Assert.assertEquals(
+					expectedValue.getSelectionOptions().getOrders().get(0).isAsc(),
+					actualValue.getSelectionOptions().getOrders().get(0).isAsc()
+			);
+			Assert.assertEquals(expectedValue.getSelectionOptions().getOrders().get(0).getSortingColumnName(),
+					actualValue.getSelectionOptions().getOrders().get(0).getSortingColumnName()
 			);
 		} else {
 			Assert.assertNull(actualValue.getSelectionOptions());

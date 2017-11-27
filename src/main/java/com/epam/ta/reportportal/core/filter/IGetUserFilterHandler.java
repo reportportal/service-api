@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Get filter handler
@@ -83,9 +82,9 @@ public interface IGetUserFilterHandler {
 	 *
 	 * @param userName    User name
 	 * @param projectName Project Name
-	 * @return {@link Map} where key - id, value - name
+	 * @return List of {@link SharedEntity}
 	 */
-	Map<String, SharedEntity> getFiltersNames(String userName, String projectName, boolean isShared);
+	Iterable<SharedEntity> getFiltersNames(String userName, String projectName, boolean isShared);
 
 	/**
 	 * Get all

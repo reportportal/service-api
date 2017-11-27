@@ -22,11 +22,11 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.database.entity.filter.ObjectType;
-import com.epam.ta.reportportal.database.entity.filter.SelectionOptions;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
+import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.SelectionParameters;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterEntity;
@@ -59,11 +59,7 @@ public class UserFilterBuilder extends ShareableEntityBuilder<UserFilter> {
 
 	public UserFilterBuilder addSelectionParamaters(SelectionParameters parameters) {
 		if (parameters != null) {
-			SelectionOptions selectionOptions = new SelectionOptions();
-			selectionOptions.setIsAsc(parameters.getIsAsc());
-			selectionOptions.setSortingColumnName(parameters.getSortingColumnName());
-			selectionOptions.setPageNumber(parameters.getPageNumber());
-			getObject().setSelectionOptions(selectionOptions);
+			getObject().setSelectionOptions(UserFilterConverter.TO_SELECTION_OPTIONS.apply(parameters));
 		}
 		return this;
 	}

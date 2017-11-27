@@ -1591,6 +1591,7 @@
         <property name="name" value="Investigated percentage of launches"/>
         <property name="projectName" value="project1"/>
         <property name="applyingFilterId" value="566e1f3818177ca344439d38"/>
+        <property name="description" value="This is a chart for search"/>
         <property name="contentOptions">
             <bean class="com.epam.ta.reportportal.database.entity.widget.ContentOptions">
                 <property name="type" value="column_chart"/>
@@ -1886,7 +1887,16 @@
             <bean class="com.epam.ta.reportportal.database.entity.sharing.Acl">
                 <constructor-arg value="user1"/>
                 <property name="entries">
-                    <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclEntry"/>
+                    <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclEntry">
+                        <bean class="com.epam.ta.reportportal.database.entity.sharing.AclEntry">
+                            <property name="projectId" value="project1"/>
+                            <property name="permissions">
+                                <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclPermissions">
+                                    <util:constant static-field="com.epam.ta.reportportal.database.entity.sharing.AclPermissions.READ"/>
+                                </util:set>
+                            </property>
+                        </bean>
+                    </util:set>
                 </property>
             </bean>
         </property>
@@ -1922,7 +1932,16 @@
             <bean class="com.epam.ta.reportportal.database.entity.sharing.Acl">
                 <constructor-arg value="user1"/>
                 <property name="entries">
-                    <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclEntry"/>
+                    <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclEntry">
+                        <bean class="com.epam.ta.reportportal.database.entity.sharing.AclEntry">
+                            <property name="projectId" value="project1"/>
+                            <property name="permissions">
+                                <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclPermissions">
+                                    <util:constant static-field="com.epam.ta.reportportal.database.entity.sharing.AclPermissions.READ"/>
+                                </util:set>
+                            </property>
+                        </bean>
+                    </util:set>
                 </property>
             </bean>
         </property>
@@ -1960,7 +1979,16 @@
             <bean class="com.epam.ta.reportportal.database.entity.sharing.Acl">
                 <constructor-arg value="user1"/>
                 <property name="entries">
-                    <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclEntry"/>
+                    <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclEntry">
+                        <bean class="com.epam.ta.reportportal.database.entity.sharing.AclEntry">
+                            <property name="projectId" value="project1"/>
+                            <property name="permissions">
+                                <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclPermissions">
+                                    <util:constant static-field="com.epam.ta.reportportal.database.entity.sharing.AclPermissions.READ"/>
+                                </util:set>
+                            </property>
+                        </bean>
+                    </util:set>
                 </property>
             </bean>
         </property>
@@ -2005,7 +2033,16 @@
             <bean class="com.epam.ta.reportportal.database.entity.sharing.Acl">
                 <constructor-arg value="user1"/>
                 <property name="entries">
-                    <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclEntry"/>
+                    <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclEntry">
+                        <bean class="com.epam.ta.reportportal.database.entity.sharing.AclEntry">
+                            <property name="projectId" value="project1"/>
+                            <property name="permissions">
+                                <util:set value-type="com.epam.ta.reportportal.database.entity.sharing.AclPermissions">
+                                    <util:constant static-field="com.epam.ta.reportportal.database.entity.sharing.AclPermissions.READ"/>
+                                </util:set>
+                            </property>
+                        </bean>
+                    </util:set>
                 </property>
             </bean>
         </property>
@@ -2441,8 +2478,14 @@
         </property>
         <property name="selectionOptions">
             <bean class="com.epam.ta.reportportal.database.entity.filter.SelectionOptions">
-                <property name="sortingColumnName" value="start_time"/>
-                <property name="isAsc" value="false"/>
+                <property name="orders">
+                    <util:list>
+                        <bean class="com.epam.ta.reportportal.database.entity.filter.SelectionOrder">
+                            <property name="sortingColumnName" value="start_time"/>
+                            <property name="isAsc" value="false"/>
+                        </bean>
+                    </util:list>
+                </property>
                 <property name="pageNumber" value="1"/>
             </bean>
         </property>
@@ -2489,8 +2532,14 @@
         </property>
         <property name="selectionOptions">
             <bean class="com.epam.ta.reportportal.database.entity.filter.SelectionOptions">
-                <property name="sortingColumnName" value="start_time"/>
-                <property name="isAsc" value="false"/>
+                <property name="orders">
+                    <util:list>
+                        <bean class="com.epam.ta.reportportal.database.entity.filter.SelectionOrder">
+                            <property name="sortingColumnName" value="start_time"/>
+                            <property name="isAsc" value="false"/>
+                        </bean>
+                    </util:list>
+                </property>
                 <property name="pageNumber" value="1"/>
             </bean>
         </property>
@@ -2520,8 +2569,14 @@
         </property>
         <property name="selectionOptions">
             <bean class="com.epam.ta.reportportal.database.entity.filter.SelectionOptions">
-                <property name="sortingColumnName" value="start_time"/>
-                <property name="isAsc" value="false"/>
+                <property name="orders">
+                    <util:list>
+                        <bean class="com.epam.ta.reportportal.database.entity.filter.SelectionOrder">
+                            <property name="sortingColumnName" value="start_time"/>
+                            <property name="isAsc" value="false"/>
+                        </bean>
+                    </util:list>
+                </property>
                 <property name="pageNumber" value="1"/>
             </bean>
         </property>

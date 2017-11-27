@@ -272,16 +272,16 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	/**
 	 * Test item could be indexed if it is not ignored for analyzer ,
-	 * issue is not TO_INVESTIAGE and launch mode is DEFAULT.
+	 * issue is not TO_INVESTIGATE and launch mode is DEFAULT.
 	 *
 	 * @param testItem Test item
 	 * @param mode     Launch mode
 	 * @return True if can be indexed
 	 */
 	private boolean canBeIndexed(TestItem testItem, Mode mode) {
-		return (!testItem.getIssue().isIgnoreAnalyzer() || !testItem.getIssue()
+		return !testItem.getIssue().isIgnoreAnalyzer() && !testItem.getIssue()
 				.getIssueType()
-				.equals(TestItemIssueType.TO_INVESTIGATE.getLocator())) && mode.equals(Mode.DEFAULT);
+				.equals(TestItemIssueType.TO_INVESTIGATE.getLocator()) && mode.equals(Mode.DEFAULT);
 	}
 
 	/**

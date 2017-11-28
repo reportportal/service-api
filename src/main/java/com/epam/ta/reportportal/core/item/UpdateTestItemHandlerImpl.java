@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.analyzer.impl.IssuesAnalyzerService;
 import com.epam.ta.reportportal.core.analyzer.impl.LogIndexerService;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.*;
@@ -92,11 +93,13 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	private final LaunchRepository launchRepository;
 	private final ExternalSystemRepository externalSystemRepository;
 	private final LogIndexerService logIndexer;
+	private final IssuesAnalyzerService issuesAnalyzerService;
 
 	@Autowired
 	public UpdateTestItemHandlerImpl(TestItemRepository testItemRepository, StatisticsFacadeFactory statisticsFacadeFactory,
 			UserRepository userRepository, ProjectRepository projectRepository, LaunchRepository launchRepository,
-			ExternalSystemRepository externalSystemRepository, ApplicationEventPublisher eventPublisher, LogIndexerService logIndexer) {
+			ExternalSystemRepository externalSystemRepository, ApplicationEventPublisher eventPublisher, LogIndexerService logIndexer,
+			IssuesAnalyzerService issuesAnalyzerService) {
 		this.eventPublisher = eventPublisher;
 		this.testItemRepository = testItemRepository;
 		this.statisticsFacadeFactory = statisticsFacadeFactory;
@@ -105,6 +108,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		this.launchRepository = launchRepository;
 		this.externalSystemRepository = externalSystemRepository;
 		this.logIndexer = logIndexer;
+		this.issuesAnalyzerService = issuesAnalyzerService;
 	}
 
 	@Override
@@ -174,7 +178,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 				testItemIssue.setIssueDescription(comment);
 				testItemIssue.setAutoAnalyzed(issueDefinition.getIssue().getAutoAnalyzed());
-				testItemIssue.setIgnoreAnalyzer(issueDefinition.getIssue().isIgnoreAnalyzer());
+				testItemIssue.setIgnoreAnalyzer(issuesAnalyzerService.hasAnalyzers() && issueDefinition.getIssue().isIgnoreAnalyzer());
 				testItem.setIssue(testItemIssue);
 
 				testItemRepository.save(testItem);

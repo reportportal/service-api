@@ -120,7 +120,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			try {
 				TestItem testItem = testItemRepository.findOne(issueDefinition.getId());
 				verifyTestItem(testItem, issueDefinition.getId());
-
+				//if item is updated then it is no longer auto analyzed
+				issueDefinition.getIssue().setAutoAnalyzed(false);
 				eventData.put(issueDefinition, testItem);
 
 				final Launch launch = launchRepository.findOne(testItem.getLaunchRef());
@@ -172,7 +173,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				}
 
 				testItemIssue.setIssueDescription(comment);
-				testItemIssue.setAutoAnalyzed(false);
+				testItemIssue.setAutoAnalyzed(issueDefinition.getIssue().getAutoAnalyzed());
 				testItemIssue.setIgnoreAnalyzer(issueDefinition.getIssue().isIgnoreAnalyzer());
 				testItem.setIssue(testItemIssue);
 

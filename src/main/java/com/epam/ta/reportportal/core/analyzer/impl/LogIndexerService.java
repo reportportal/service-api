@@ -137,7 +137,6 @@ public class LogIndexerService implements ILogIndexer {
 		if (!analyzerServiceClient.hasClients()) {
 			return;
 		}
-		;
 		try (CloseableIterator<Log> logIterator = getLogIterator(checkpoint)) {
 			List<IndexLaunch> rq = new ArrayList<>(BATCH_SIZE);
 			while (logIterator.hasNext()) {

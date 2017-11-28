@@ -201,3 +201,4 @@
 * EPMRPP-31208 - Email template: Tags with special symbols do not work correctly
 * EPMRPP-25622 - Posted bug is not added to item activity in case it was submitted via bulk operation
 * EPMRPP-31435 - 'Ignore in AA' should not to be set for test item in launch on DEBUG level
+* EPMRPP-31447 - WS: "ActionType"=analyze_item for action that was done by user

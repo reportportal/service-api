@@ -18,6 +18,8 @@ spring:
           - healthCheckUrlPath=${server.contextPath}${management.contextPath}/info
         healthCheckPath: ${server.contextPath}/admin/health
         register: true
+        instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        health-check-critical-timeout: 30s
       enabled: true
 eureka:
   instance:

@@ -180,7 +180,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				testItem.setIssue(testItemIssue);
 
 				testItemRepository.save(testItem);
-				indexLogs(projectName, testItem, launch.getMode());
+				indexLogs(projectName, testItem);
 
 				testItem = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.updateIssueStatistics(testItem);

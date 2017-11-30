@@ -23,11 +23,14 @@ package com.epam.ta.reportportal.core.widget.content;
 
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.filter.SelectionOptions;
+import com.epam.ta.reportportal.database.entity.filter.SelectionOrder;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.search.*;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -71,10 +74,13 @@ public class UniqueBugFilterStrategy implements BuildFilterStrategy {
 			int limit = contentOptions.getItemsCount();
 
 			CriteriaMap<?> criteriaMap = criteriaMapFactory.getCriteriaMap(filter.getTarget());
-			List<Sort.Order> orders = userFilter.getSelectionOptions().getOrders().stream().map(order -> new Sort.Order(
-					order.isAsc() ? Sort.Direction.ASC : Sort.Direction.DESC,
-					criteriaMap.getCriteriaHolder(order.getSortingColumnName()).getQueryCriteria()
-			)).collect(toList());
+			List<Sort.Order> orders = userFilter.getSelectionOptions()
+					.getOrders()
+					.stream()
+					.map(order -> new Sort.Order(order.isAsc() ? Sort.Direction.ASC : Sort.Direction.DESC,
+							criteriaMap.getCriteriaHolder(order.getSortingColumnName()).getQueryCriteria()
+					))
+					.collect(toList());
 			Sort sort = new Sort(orders);
 
 			List<Launch> launches = launchRepository.findIdsByFilter(filter, sort, limit);
@@ -82,8 +88,10 @@ public class UniqueBugFilterStrategy implements BuildFilterStrategy {
 			filter = new Filter(TestItem.class, Sets.newHashSet(new FilterCondition(Condition.IN, false, value, TestItem.LAUNCH_CRITERIA)));
 		}
 		filter.addCondition(new FilterCondition(Condition.EXISTS, false, "true", TestItem.EXTERNAL_SYSTEM_ISSUES));
+		SelectionOptions selectionOptions = new SelectionOptions();
+		selectionOptions.setOrders(Lists.newArrayList(new SelectionOrder("start_time", false)));
 
-		return widgetContentProvider.getChartContent(projectName, filter, userFilter.getSelectionOptions(), contentOptions);
+		return widgetContentProvider.getChartContent(projectName, filter, selectionOptions, contentOptions);
 	}
 
 }

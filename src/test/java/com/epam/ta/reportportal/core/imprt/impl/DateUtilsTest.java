@@ -18,8 +18,13 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.epam.ta.reportportal.core.imprt.impl;
 
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -27,31 +32,25 @@ import java.util.Date;
 /**
  * @author Pavel Bortnik
  */
-public final class DateUtils {
+public class DateUtilsTest {
 
-	private DateUtils() {
-		//static only
+	@Test
+	public void testNullValue() {
+		Assert.assertNull(DateUtils.toDate(null));
+		Assert.assertEquals(0, DateUtils.toMillis(null));
 	}
 
-	public static Date toDate(LocalDateTime startTime) {
-		if (null != startTime) {
-			return Date.from(startTime.atZone(ZoneId.systemDefault()).toInstant());
-		}
-		return null;
+	@Test
+	public void toDate() {
+		LocalDateTime t = LocalDateTime.ofInstant(Instant.ofEpochMilli(1512118850), ZoneId.systemDefault());
+		Date date = DateUtils.toDate(t);
+		Assert.assertEquals(1512118850L, date.getTime());
 	}
 
-	/**
-	 * Converts string representation of seconds to millis
-	 *
-	 * @param duration String seconds
-	 * @return long millis
-	 */
-	public static long toMillis(String duration) {
-		if (null != duration) {
-			Double value = Double.valueOf(duration) * 1000;
-			return value.longValue();
-		}
-		return 0;
+	@Test
+	public void toMillis() {
+		long l = DateUtils.toMillis("1");
+		Assert.assertEquals(1000L, l);
 	}
 
 }

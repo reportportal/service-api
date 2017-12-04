@@ -55,6 +55,7 @@ public class TicketActivitySubscriber {
 
 	public static final String TICKET_ID = "ticketId";
 	public static final String ISSUE_TYPE = "issueType";
+	public static final String IGNORE_ANALYZER = "ignoreAnalyzer";
 	public static final String COMMENT = "comment";
 
 	private final ActivityRepository activityRepository;
@@ -107,9 +108,8 @@ public class TicketActivitySubscriber {
 		Iterable<TestItem> testItems = event.getBefore();
 		Map<String, Activity.FieldValues> results = StreamSupport.stream(testItems.spliterator(), false)
 				.filter(item -> null != item.getIssue())
-				.collect(Collectors.toMap(
-						TestItem::getId, item -> Activity.FieldValues.newOne()
-								.withOldValue(issuesIdsToString(item.getIssue().getExternalSystemIssues(), separator))));
+				.collect(Collectors.toMap(TestItem::getId, item -> Activity.FieldValues.newOne()
+						.withOldValue(issuesIdsToString(item.getIssue().getExternalSystemIssues(), separator))));
 
 		Iterable<TestItem> updated = event.getAfter();
 
@@ -160,6 +160,7 @@ public class TicketActivitySubscriber {
 			TestItem testItem = entry.getValue();
 			TestItemIssue testItemIssue = testItem.getIssue();
 			String oldIssueDescription = testItemIssue.getIssueDescription();
+			boolean oldIgnoreAnalyzer = testItemIssue.isIgnoreAnalyzer();
 			StatisticSubType statisticSubType = projectSettings.getConfiguration().getByLocator(issueDefinition.getIssue().getIssueType());
 			String oldIssueType = projectSettings.getConfiguration().getByLocator(testItemIssue.getIssueType()).getLongName();
 			String initialComment = issueDefinition.getIssue().getComment();
@@ -184,6 +185,12 @@ public class TicketActivitySubscriber {
 			if (statisticSubType != null && ((null == oldIssueType) || !oldIssueType.equalsIgnoreCase(statisticSubType.getLongName()))) {
 				Activity.FieldValues fieldValues = createHistoryField(ISSUE_TYPE, oldIssueType, statisticSubType.getLongName());
 				history.add(fieldValues);
+			}
+			if (oldIgnoreAnalyzer != issueDefinition.getIssue().getIgnoreAnalyzer()) {
+				Activity.FieldValues field = createHistoryField(IGNORE_ANALYZER, String.valueOf(oldIgnoreAnalyzer),
+						String.valueOf(issueDefinition.getIssue().getIgnoreAnalyzer())
+				);
+				history.add(field);
 			}
 			if (!history.isEmpty()) {
 				activity.setHistory(history);

@@ -37,6 +37,7 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
+import com.epam.ta.reportportal.events.TicketAttachedEvent;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import org.apache.commons.lang3.SerializationUtils;
@@ -135,9 +136,12 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	 */
 	private List<TestItem> updateTestItems(Set<AnalyzedItemRs> rs, List<TestItem> testItems, String project) {
 		final Map<IssueDefinition, TestItem> forEvents = new HashMap<>();
+		List<TestItem> beforeUpdate = new ArrayList<>(rs.size());
 		List<TestItem> updatedItems = rs.stream().map(analyzed -> {
-			Optional<TestItem> toUpdate = testItems.stream().filter(item -> item.getId().equals(analyzed.getItemId())).findFirst();
+			Optional<TestItem> toUpdate = testItems.stream().filter(item -> item.getId().equals(analyzed.getItemId())).findAny();
 			toUpdate.ifPresent(testItem -> {
+				beforeUpdate.add(SerializationUtils.clone(testItem));
+
 				TestItemIssue issue = new TestItemIssue(analyzed.getIssueType(), null, true);
 				ofNullable(analyzed.getRelevantItemId()).ifPresent(relevantItemId -> fromRelevantItem(issue, relevantItemId));
 				IssueDefinition issueDefinition = createIssueDefinition(testItem.getId(), issue);
@@ -146,7 +150,8 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 			});
 			return toUpdate;
 		}).filter(Optional::isPresent).map(Optional::get).collect(toList());
-		eventPublisher.publishEvent(new ItemIssueTypeDefined(forEvents, "analyzer", project));
+		eventPublisher.publishEvent(new ItemIssueTypeDefined(forEvents, null, project));
+		eventPublisher.publishEvent(new TicketAttachedEvent(beforeUpdate, updatedItems, null, project));
 		return updatedItems;
 	}
 

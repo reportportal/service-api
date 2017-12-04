@@ -114,7 +114,7 @@ public class IssuesAnalyzerServiceTest {
 		verify(statisticsFacadeFactory, times(1)).getStatisticsFacade(StatisticsCalculationStrategy.STEP_BASED);
 		verify(mock, times(1)).recalculateStatistics(launch);
 		verify(logIndexer, times(1)).indexLogs(eq(launch.getId()), anyListOf(TestItem.class));
-		verify(eventPublisher, times(1)).publishEvent(any(ItemIssueTypeDefined.class));
+		verify(eventPublisher, times(2)).publishEvent(any(ItemIssueTypeDefined.class));
 	}
 
 	private Project project() {

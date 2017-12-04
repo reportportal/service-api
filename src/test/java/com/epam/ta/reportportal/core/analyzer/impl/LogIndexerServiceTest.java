@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
+import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import org.junit.Before;
@@ -153,6 +154,27 @@ public class LogIndexerServiceTest {
 		verify(logRepository, times(testItemCount)).findGreaterOrEqualLevel(anyString(), eq(LogLevel.ERROR));
 		verify(analyzerServiceClient).index(anyListOf(IndexLaunch.class));
 		verifyZeroInteractions(mongoOperations);
+	}
+
+	@Test
+	public void testIndexWithIgnoreFlag() {
+		String launchId = "5";
+		TestItem testItem = createTestItem("id");
+		TestItemIssue issue = testItem.getIssue();
+		issue.setIgnoreAnalyzer(true);
+		when(launchRepository.findOne(eq(launchId))).thenReturn(createLaunch(launchId));
+		logIndexerService.indexLogs(launchId, Collections.singletonList(testItem));
+		verifyZeroInteractions(mongoOperations, testItemRepository, logRepository, analyzerServiceClient);
+	}
+	@Test
+
+	public void testIndexInDebug() {
+		String launchId = "6";
+		Launch launch = createLaunch(launchId);
+		launch.setMode(Mode.DEBUG);
+		when(launchRepository.findOne(eq(launchId))).thenReturn(launch);
+		logIndexerService.indexLogs(launchId, Collections.emptyList());
+		verifyZeroInteractions(mongoOperations, testItemRepository, logRepository, analyzerServiceClient);
 	}
 
 	@Test

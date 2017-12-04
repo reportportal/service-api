@@ -33,7 +33,6 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
-import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
@@ -45,7 +44,6 @@ import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.model.item.AddExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -176,13 +174,15 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 					}
 				}
 
+				ofNullable(issue.getIgnoreAnalyzer()).ifPresent(
+						it -> testItemIssue.setIgnoreAnalyzer(issuesAnalyzerService.hasAnalyzers() && it));
+				ofNullable(issue.getAutoAnalyzed()).ifPresent(testItemIssue::setAutoAnalyzed);
+
 				testItemIssue.setIssueDescription(comment);
-				testItemIssue.setAutoAnalyzed(issueDefinition.getIssue().getAutoAnalyzed());
-				testItemIssue.setIgnoreAnalyzer(issuesAnalyzerService.hasAnalyzers() && issueDefinition.getIssue().isIgnoreAnalyzer());
 				testItem.setIssue(testItemIssue);
 
 				testItemRepository.save(testItem);
-				indexLogs(projectName, testItem, launch.getMode());
+				indexLogs(projectName, testItem);
 
 				testItem = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.updateIssueStatistics(testItem);
@@ -267,26 +267,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @param projectName Project name
 	 * @param testItem    Test item to reindex
 	 */
-	private void indexLogs(String projectName, TestItem testItem, Mode mode) {
-		if (canBeIndexed(testItem, mode)) {
+	private void indexLogs(String projectName, TestItem testItem) {
+		if (!testItem.getIssue().isIgnoreAnalyzer()) {
 			logIndexer.indexLogs(testItem.getLaunchRef(), singletonList(testItem));
 		} else {
 			logIndexer.cleanIndex(projectName, singletonList(testItem.getId()));
 		}
-	}
-
-	/**
-	 * Test item could be indexed if it is not ignored for analyzer ,
-	 * issue is not TO_INVESTIGATE and launch mode is DEFAULT.
-	 *
-	 * @param testItem Test item
-	 * @param mode     Launch mode
-	 * @return True if can be indexed
-	 */
-	private boolean canBeIndexed(TestItem testItem, Mode mode) {
-		return !testItem.getIssue().isIgnoreAnalyzer() && !testItem.getIssue()
-				.getIssueType()
-				.equals(TestItemIssueType.TO_INVESTIGATE.getLocator()) && mode.equals(Mode.DEFAULT);
 	}
 
 	/**

@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
+import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -107,7 +108,7 @@ public class LogIndexerService implements ILogIndexer {
 	@Override
 	public void indexLogs(String launchId, List<TestItem> testItems) {
 		Launch launch = launchRepository.findOne(launchId);
-		if (launch != null) {
+		if (launch != null && !Mode.DEBUG.equals(launch.getMode())) {
 			List<IndexTestItem> rqTestItems = prepareItemsForIndexing(testItems);
 			if (!CollectionUtils.isEmpty(rqTestItems)) {
 				IndexLaunch rqLaunch = new IndexLaunch();
@@ -228,7 +229,7 @@ public class LogIndexerService implements ILogIndexer {
 	 */
 	private boolean isItemSuitable(TestItem testItem) {
 		return testItem != null && testItem.getIssue() != null && !TestItemIssueType.TO_INVESTIGATE.getLocator()
-				.equals(testItem.getIssue().getIssueType());
+				.equals(testItem.getIssue().getIssueType()) && !testItem.getIssue().isIgnoreAnalyzer();
 	}
 
 	private void retryFailed(List<IndexRs> rs) {

@@ -147,6 +147,7 @@ public class TestItemControllerTest extends BaseMvcTest {
 		issueDefinition.setId(id);
 		Issue issue = new Issue();
 		issue.setIssueType("PRODUCT_BUG");
+		issue.setIgnoreAnalyzer(false);
 		issueDefinition.setIssue(issue);
 		rq.setIssues(Collections.singletonList(issueDefinition));
 		mvcMock.perform(put(PROJECT_BASE_URL + "/item").principal(authentication())

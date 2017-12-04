@@ -174,9 +174,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 					}
 				}
 
+				ofNullable(issue.getAutoAnalyzed()).ifPresent(
+						it -> testItemIssue.setIgnoreAnalyzer(issuesAnalyzerService.hasAnalyzers() && issue.getIgnoreAnalyzer()));
+				ofNullable(issue.getAutoAnalyzed()).ifPresent(
+						it -> testItemIssue.setAutoAnalyzed(issueDefinition.getIssue().getAutoAnalyzed()));
+
 				testItemIssue.setIssueDescription(comment);
-				testItemIssue.setAutoAnalyzed(issueDefinition.getIssue().getAutoAnalyzed());
-				testItemIssue.setIgnoreAnalyzer(issuesAnalyzerService.hasAnalyzers() && issueDefinition.getIssue().isIgnoreAnalyzer());
 				testItem.setIssue(testItemIssue);
 
 				testItemRepository.save(testItem);

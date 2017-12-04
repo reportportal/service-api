@@ -46,7 +46,7 @@ public class IssueConverterTest {
 		Issue converted = IssueConverter.TO_MODEL.apply(testItemIssue);
 		assertEquals(testItemIssue.getIssueType(), converted.getIssueType());
 		assertEquals(testItemIssue.getIssueDescription(), converted.getComment());
-		assertEquals(testItemIssue.isIgnoreAnalyzer(), converted.isIgnoreAnalyzer());
+		assertEquals(testItemIssue.isIgnoreAnalyzer(), converted.getIgnoreAnalyzer());
 		assertEquals(testItemIssue.getExternalSystemIssues().size(), converted.getExternalSystemIssues().size());
 		TestItemIssue.ExternalSystemIssue es = testItemIssue.getExternalSystemIssues().iterator().next();
 		Issue.ExternalSystemIssue convertedEs = converted.getExternalSystemIssues().iterator().next();

@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.history.status.RetryObject;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase;
@@ -159,6 +160,10 @@ public class LaunchFinishedEventHandler {
 			testItem.setRetries(rtr);
 			testItem.setParent(retryRoot.getParent());
 			testItemRepository.delete(rtr);
+
+			testItem.setIssue(new TestItemIssue());
+			statisticsFacade.updateExecutionStatistics(testItem);
+			statisticsFacade.updateIssueStatistics(testItem);
 			testItemRepository.save(testItem);
 		});
 	}

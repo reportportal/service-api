@@ -22,12 +22,15 @@ package com.epam.ta.reportportal.events.handler;
 
 import com.epam.ta.reportportal.commons.SendCase;
 import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
+import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
+import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Status;
+import com.epam.ta.reportportal.database.entity.history.status.RetryObject;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
@@ -75,6 +78,9 @@ public class LaunchFinishedEventHandler {
 	private final Provider<HttpServletRequest> currentRequest;
 
 	@Autowired
+	private StatisticsFacadeFactory statisticsFacadeFactory;
+
+	@Autowired
 	public LaunchFinishedEventHandler(IIssuesAnalyzer analyzerService, UserRepository userRepository, TestItemRepository testItemRepository,
 			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory) {
 		this.analyzerService = analyzerService;
@@ -98,6 +104,10 @@ public class LaunchFinishedEventHandler {
 		/* Avoid NULL object processing */
 		if (null == project || null == launch) {
 			return;
+		}
+
+		if (launch.getHasRetries()) {
+			collectRetries(project, launch);
 		}
 
 		Optional<EmailService> emailService = emailServiceFactory.getDefaultEmailService(project.getConfiguration().getEmailConfig());
@@ -131,6 +141,26 @@ public class LaunchFinishedEventHandler {
 			Launch freshLaunch = launchRepository.findOne(launch.getId());
 			emailService.ifPresent(it -> sendEmailRightNow(freshLaunch, project, it));
 		}
+	}
+
+	private void collectRetries(Project project, Launch launch) {
+		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration()
+				.getStatisticsCalculationStrategy());
+
+		List<RetryObject> retries = testItemRepository.findRetries(launch.getId());
+
+		retries.stream().forEach(retry -> {
+			List<TestItem> rtr = retry.getRetries();
+			TestItem testItem = rtr.get(rtr.size() - 1);
+
+			TestItem retryRoot = testItemRepository.findOne(testItem.getRetryRoot());
+
+			rtr.remove(rtr.size() - 1);
+			testItem.setRetries(rtr);
+			testItem.setParent(retryRoot.getParent());
+			testItemRepository.delete(rtr);
+			testItemRepository.save(testItem);
+		});
 	}
 
 	/**

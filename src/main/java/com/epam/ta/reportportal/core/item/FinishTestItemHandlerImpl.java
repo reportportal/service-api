@@ -36,11 +36,11 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.RetryId;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,19 +116,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	@Override
 	public OperationCompletionRS finishTestItem(String testItemId, FinishTestItemRQ finishExecutionRQ, String username) {
 
-		TestItem testItem;
-		TestItem retryRoot = null;
-		if (RetryId.isRetry(testItemId)) {
-
-			RetryId retryID = RetryId.parse(testItemId);
-			LOGGER.debug("Finishing retry with ID: {} for parent {}", testItemId, retryID);
-			retryRoot = testItemRepository.findOne(retryID.getRootID());
-
-			LOGGER.debug("Retry root with {} childs has found", retryRoot.getRetries());
-			testItem = retryRoot.getRetries().stream().filter(it -> it.getId().equals(testItemId)).findAny().get();
-		} else {
-			testItem = testItemRepository.findOne(testItemId);
-		}
+		TestItem testItem = testItemRepository.findOne(testItemId);
 
 		verifyTestItem(testItem, testItemId, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()));
 
@@ -163,44 +151,16 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			testItem.setStatus(actualStatus.get());
 		}
 
-		if (statisticsFacade.awareIssue(testItem)) {
+		if (BooleanUtils.isFalse(testItem.getRetry()) && statisticsFacade.awareIssue(testItem)) {
 			testItem = awareTestItemIssueTypeFromStatus(testItem, providedIssue, project, username);
 		}
 
 		try {
 			//retry mode
-			if (null != retryRoot) {
-				testItemRepository.updateRetry(testItem.getId(), testItem);
-				if (!IN_PROGRESS.equals(retryRoot.getStatus()) && retryRoot.getStatus() != testItem.getStatus()) {
-
-					/* reset current statistics */
-					statisticsFacade.resetExecutionStatistics(retryRoot);
-					if (null != retryRoot.getIssue()) {
-						statisticsFacade.resetIssueStatistics(retryRoot);
-					}
-
-					/* copy statistics from last retry attempt */
-					retryRoot.setStatus(testItem.getStatus());
-					retryRoot.setIssue(testItem.getIssue());
-					retryRoot.setStatistics(testItem.getStatistics());
-
-
-					/* update statistics */
-					statisticsFacade.updateExecutionStatistics(retryRoot);
-					if (null != testItem.getIssue()) {
-						statisticsFacade.resetIssueStatistics(retryRoot);
-						statisticsFacade.updateIssueStatistics(retryRoot);
-					}
-
-					//update root with just filled values. Do not update statistics and retries
-					retryRoot.setStatistics(null);
-					retryRoot.setRetries(null);
-					testItemRepository.partialUpdate(retryRoot);
-
-				}
+			if (BooleanUtils.isTrue(testItem.getRetry())) {
+				testItemRepository.save(testItem);
 			} else {
 				/* do not touch retries */
-				testItem.setRetries(null);
 				testItem.setStatistics(null);
 				testItemRepository.partialUpdate(testItem);
 

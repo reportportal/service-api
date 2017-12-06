@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.util.RetryId;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
@@ -135,15 +134,12 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 		if (rq.isRetry()) {
 			TestItem retryRoot = getRetryRoot(item.getUniqueId(), parent);
+			retryRoot.setRetry(Boolean.TRUE);
+			testItemRepository.partialUpdate(retryRoot);
 
-			RetryId retryId = RetryId.newID(retryRoot.getId());
-
-			item.setId(retryId.toString());
-			item.setParent(null);
-
-			LOGGER.debug("Adding retry with ID '{}' to item '{}'", item.getId(), retryRoot.getId());
-			testItemRepository.addRetry(retryRoot.getId(), item);
-
+			item.setRetry(Boolean.TRUE);
+			item.setRetryRoot(retryRoot.getId());
+			testItemRepository.save(item);
 			launchRepository.updateHasRetries(item.getLaunchRef(), true);
 
 		} else {
@@ -189,9 +185,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		);
 
 		expect(rq, Preconditions.startSameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(),
-				launch.getStartTime(),
-				launch.getId()
+				rq.getStartTime(), launch.getStartTime(), launch.getId()
 		);
 
 	}
@@ -208,9 +202,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	private void validate(StartTestItemRQ rq, TestItem parent) {
 		expect(rq, Preconditions.startSameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(),
-				parent.getStartTime(),
-				parent.getId()
+				rq.getStartTime(), parent.getStartTime(), parent.getId()
 		);
 	}
 }

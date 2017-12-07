@@ -36,11 +36,11 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.Predicates;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -150,14 +150,15 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		} else {
 			testItem.setStatus(actualStatus.get());
 		}
-
-		if (BooleanUtils.isFalse(testItem.getRetry()) && statisticsFacade.awareIssue(testItem)) {
+		boolean isRetry = Predicates.IS_RETRY.test(testItem);
+		if (!isRetry && statisticsFacade.awareIssue(testItem)) {
 			testItem = awareTestItemIssueTypeFromStatus(testItem, providedIssue, project, username);
 		}
 
 		try {
 			//retry mode
-			if (BooleanUtils.isTrue(testItem.getRetry())) {
+			if (isRetry) {
+				testItem.setIssue(null);
 				testItemRepository.save(testItem);
 			} else {
 				/* do not touch retries */

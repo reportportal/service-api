@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
+import com.epam.ta.reportportal.database.entity.item.RetryType;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -134,11 +135,10 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 		if (rq.isRetry()) {
 			TestItem retryRoot = getRetryRoot(item.getUniqueId(), parent);
-			retryRoot.setRetry(Boolean.TRUE);
+			retryRoot.setRetryType(RetryType.ROOT);
 			testItemRepository.partialUpdate(retryRoot);
 
-			item.setRetry(Boolean.TRUE);
-			item.setRetryRoot(retryRoot.getId());
+			item.setRetryType(RetryType.RETRY);
 			testItemRepository.save(item);
 			launchRepository.updateHasRetries(item.getLaunchRef(), true);
 

@@ -20,7 +20,6 @@
  */
 package com.epam.ta.reportportal.events.handler;
 
-import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.SendCase;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
@@ -60,6 +59,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
+
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 /**
  * @author Andrei Varabyeu
@@ -110,7 +112,7 @@ public class LaunchFinishedEventHandler {
 			return;
 		}
 
-		if (launch.getHasRetries()) {
+		if (isTrue(launch.getHasRetries())) {
 			collectRetries(project, launch);
 		}
 
@@ -151,24 +153,26 @@ public class LaunchFinishedEventHandler {
 		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(
 				project.getConfiguration().getStatisticsCalculationStrategy());
 
-		List<RetryObject> retries = testItemRepository.findRetries(launch.getId());
+		List<RetryObject> retriesAggregation = testItemRepository.findRetries(launch.getId());
 
-		retries.forEach(retry -> {
-			List<TestItem> rtr = retry.getRetries();
-			TestItem retryRoot = rtr.stream().filter(it -> it.getRetryType().equals(RetryType.ROOT)).findFirst().orElse(null);
-			BusinessRule.expect(retryRoot, Predicates.notNull()).verify(ErrorType.FORBIDDEN_OPERATION);
+		retriesAggregation.forEach(retryObject -> {
+			List<TestItem> retries = retryObject.getRetries();
+			TestItem retryRoot = retries.get(0);
+
+			BusinessRule.expect(retryRoot.getRetryType(), Predicate.isEqual(RetryType.ROOT))
+					.verify(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, "Incorrect retries structure");
 
 			statisticsFacade.resetExecutionStatistics(retryRoot);
 			if (retryRoot.getIssue() != null) {
 				statisticsFacade.resetIssueStatistics(retryRoot);
 			}
 
-			TestItem lastRetry = rtr.get(rtr.size() - 1);
-			rtr.remove(rtr.size() - 1);
+			TestItem lastRetry = retries.get(retries.size() - 1);
+			retries.remove(retries.size() - 1);
 			lastRetry.setRetryType(RetryType.LAST);
-			lastRetry.setRetries(rtr);
+			lastRetry.setRetries(retries);
 			lastRetry.setParent(retryRoot.getParent());
-			testItemRepository.delete(rtr);
+			testItemRepository.delete(retries);
 
 			if (!lastRetry.getStatus().equals(Status.PASSED)) {
 				lastRetry.setIssue(retryRoot.getIssue());

@@ -21,7 +21,6 @@
 package com.epam.ta.reportportal.events.handler;
 
 import com.epam.ta.reportportal.commons.SendCase;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
@@ -42,7 +41,6 @@ import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.events.LaunchFinishedEvent;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.BooleanUtils;
@@ -59,7 +57,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
@@ -158,9 +155,6 @@ public class LaunchFinishedEventHandler {
 		retriesAggregation.forEach(retryObject -> {
 			List<TestItem> retries = retryObject.getRetries();
 			TestItem retryRoot = retries.get(0);
-
-			BusinessRule.expect(retryRoot.getRetryType(), Predicate.isEqual(RetryType.ROOT))
-					.verify(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, "Incorrect retries structure");
 
 			statisticsFacade.resetExecutionStatistics(retryRoot);
 			if (retryRoot.getIssue() != null) {

@@ -146,6 +146,13 @@ public class LaunchFinishedEventHandler {
 		}
 	}
 
+	/**
+	 * Moves all retries under the last retry run. If last retry has failed then
+	 * the issue of the root item is copied to the last.
+	 *
+	 * @param project Project
+	 * @param launch  Launch
+	 */
 	private void collectRetries(Project project, Launch launch) {
 		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(
 				project.getConfiguration().getStatisticsCalculationStrategy());

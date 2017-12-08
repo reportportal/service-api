@@ -101,12 +101,13 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 			}
 			dashboard.setName(it.trim());
 		});
-
-		ofNullable(rq.getDescription()).ifPresent(dashboard::setDescription);
+		dashboard.setDescription(rq.getDescription());
 
 		expect(null != rq.getAddWidget() && null != rq.getDeleteWidgetId() && rq.getDeleteWidgetId()
 				.equalsIgnoreCase(rq.getAddWidget().getWidgetId()), equalTo(Boolean.FALSE)).verify(
-				DASHBOARD_UPDATE_ERROR, "Unable delete and add the same widget simultaneously.");
+				DASHBOARD_UPDATE_ERROR,
+				"Unable delete and add the same widget simultaneously."
+		);
 
 		// update widget (or list of widgets if one of them change position on
 		// dashboard)
@@ -161,8 +162,11 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 			//remove from dashboard
 			dashboard.getWidgets().removeIf(w -> w.getWidgetId().equals(it));
 			Widget widget = widgetRepository.findOneLoadACL(it);
-			if (null != widget && AclUtils.isAllowedToDeleteWidget(dashboard.getAcl(), widget.getAcl(), userName,
-					projectRoles.get(projectName), userRole
+			if (null != widget && AclUtils.isAllowedToDeleteWidget(dashboard.getAcl(),
+					widget.getAcl(),
+					userName,
+					projectRoles.get(projectName),
+					userRole
 			)) {
 				widgetRepository.delete(it);
 				eventPublisher.publishEvent(new WidgetDeletedEvent(widget, userName));
@@ -184,10 +188,14 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 		expect(widgetFromDB, notNull()).verify(WIDGET_NOT_FOUND, widgetId);
 
 		expect(widgetFromDB.getProjectName(), equalTo(projectName)).verify(
-				ErrorType.FORBIDDEN_OPERATION, "Impossible to add widget from another project");
+				ErrorType.FORBIDDEN_OPERATION,
+				"Impossible to add widget from another project"
+		);
 
 		expect(allWidgets, hasWidget(widgetId).negate()).verify(
-				DASHBOARD_UPDATE_ERROR, formattedSupplier("Widget with ID '{}' already added to the current dashboard.", widgetId));
+				DASHBOARD_UPDATE_ERROR,
+				formattedSupplier("Widget with ID '{}' already added to the current dashboard.", widgetId)
+		);
 
 		AclUtils.isPossibleToRead(widgetFromDB.getAcl(), userName, projectName);
 	}

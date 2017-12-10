@@ -20,20 +20,15 @@
  */
 package com.epam.ta.reportportal.events.handler;
 
-import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.SendCase;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
-import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
-import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
+import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Status;
-import com.epam.ta.reportportal.database.entity.history.status.RetryObject;
-import com.epam.ta.reportportal.database.entity.item.RetryType;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
@@ -43,7 +38,6 @@ import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.events.LaunchFinishedEvent;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.BooleanUtils;
@@ -75,6 +69,8 @@ public class LaunchFinishedEventHandler {
 
 	private final IIssuesAnalyzer analyzerService;
 
+	private final IRetriesLaunchHandler retriesLaunchHandler;
+
 	private final MailServiceFactory emailServiceFactory;
 
 	private final UserRepository userRepository;
@@ -82,17 +78,16 @@ public class LaunchFinishedEventHandler {
 	private final Provider<HttpServletRequest> currentRequest;
 
 	@Autowired
-	private StatisticsFacadeFactory statisticsFacadeFactory;
-
-	@Autowired
 	public LaunchFinishedEventHandler(IIssuesAnalyzer analyzerService, UserRepository userRepository, TestItemRepository testItemRepository,
-			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory) {
+			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory,
+			IRetriesLaunchHandler retriesLaunchHandler) {
 		this.analyzerService = analyzerService;
 		this.userRepository = userRepository;
 		this.testItemRepository = testItemRepository;
 		this.currentRequest = currentRequest;
 		this.launchRepository = launchRepository;
 		this.emailServiceFactory = emailServiceFactory;
+		this.retriesLaunchHandler = retriesLaunchHandler;
 	}
 
 	@EventListener
@@ -110,9 +105,7 @@ public class LaunchFinishedEventHandler {
 			return;
 		}
 
-		if (launch.getHasRetries()) {
-			collectRetries(project, launch);
-		}
+		retriesLaunchHandler.collectRetries(launch);
 
 		Optional<EmailService> emailService = emailServiceFactory.getDefaultEmailService(project.getConfiguration().getEmailConfig());
 
@@ -145,40 +138,6 @@ public class LaunchFinishedEventHandler {
 			Launch freshLaunch = launchRepository.findOne(launch.getId());
 			emailService.ifPresent(it -> sendEmailRightNow(freshLaunch, project, it));
 		}
-	}
-
-	private void collectRetries(Project project, Launch launch) {
-		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(
-				project.getConfiguration().getStatisticsCalculationStrategy());
-
-		List<RetryObject> retries = testItemRepository.findRetries(launch.getId());
-
-		retries.forEach(retry -> {
-			List<TestItem> rtr = retry.getRetries();
-			TestItem retryRoot = rtr.stream().filter(it -> it.getRetryType().equals(RetryType.ROOT)).findFirst().orElse(null);
-			BusinessRule.expect(retryRoot, Predicates.notNull()).verify(ErrorType.FORBIDDEN_OPERATION);
-
-			statisticsFacade.resetExecutionStatistics(retryRoot);
-			if (retryRoot.getIssue() != null) {
-				statisticsFacade.resetIssueStatistics(retryRoot);
-			}
-
-			TestItem lastRetry = rtr.get(rtr.size() - 1);
-			rtr.remove(rtr.size() - 1);
-			lastRetry.setRetryType(RetryType.LAST);
-			lastRetry.setRetries(rtr);
-			lastRetry.setParent(retryRoot.getParent());
-			testItemRepository.delete(rtr);
-
-			if (!lastRetry.getStatus().equals(Status.PASSED)) {
-				lastRetry.setIssue(retryRoot.getIssue());
-			}
-			statisticsFacade.updateExecutionStatistics(lastRetry);
-			if (lastRetry.getIssue() != null) {
-				statisticsFacade.updateIssueStatistics(lastRetry);
-			}
-			testItemRepository.save(lastRetry);
-		});
 	}
 
 	/**

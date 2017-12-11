@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
-import com.epam.ta.reportportal.database.entity.item.RetryType;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
@@ -137,12 +136,12 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 		if (rq.isRetry()) {
 			TestItem retryRoot = getRetryRoot(item.getUniqueId(), parent);
-			if (null == retryRoot.getRetryType()) {
-				retryRoot.setRetryType(RetryType.ROOT);
+			if (null == retryRoot.getRetryProcessed()) {
+				retryRoot.setRetryProcessed(false);
 				testItemRepository.partialUpdate(retryRoot);
 			}
 
-			item.setRetryType(RetryType.RETRY);
+			item.setRetryProcessed(false);
 			testItemRepository.save(item);
 			launchRepository.updateHasRetries(item.getLaunchRef(), true);
 
@@ -212,7 +211,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		TestItemType type = TestItemType.fromValue(rq.getType());
 		expect(type, Predicates.notNull()).verify(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE, rq.getType());
 		if (type.higherThan(TestItemType.STEP)) {
-			expect(rq.isRetry(), equalTo(false)).verify(BAD_REQUEST_ERROR, "Test item with the '" + rq.getType() +"' level can't be a retry.");
+			expect(rq.isRetry(), equalTo(false)).verify(
+					BAD_REQUEST_ERROR, "Test item with the '" + rq.getType() + "' level can't be a retry.");
 		}
 	}
 }

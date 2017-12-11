@@ -21,7 +21,6 @@
 
 package com.epam.ta.reportportal.util;
 
-import com.epam.ta.reportportal.database.entity.item.RetryType;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.google.common.base.CharMatcher;
 
@@ -45,5 +44,5 @@ public class Predicates {
 	 */
 	public static final Predicate<String> SPECIAL_CHARS_ONLY = str -> CharMatcher.anyOf(SPECIAL_CHARACTERS).matchesAllOf(str);
 
-	public static final Predicate<TestItem> IS_RETRY = item -> item.getRetryType() != null && item.getRetryType().equals(RetryType.RETRY);
+	public static final Predicate<TestItem> IS_RETRY = item -> item.getRetryProcessed() != null;
 }

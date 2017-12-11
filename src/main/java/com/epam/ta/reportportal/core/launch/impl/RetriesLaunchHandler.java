@@ -21,8 +21,6 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
@@ -33,15 +31,17 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.history.status.RetryObject;
-import com.epam.ta.reportportal.database.entity.item.RetryType;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
 
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static java.util.function.Predicate.isEqual;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 /**
@@ -49,6 +49,8 @@ import static org.apache.commons.lang3.BooleanUtils.isTrue;
  */
 @Service
 public class RetriesLaunchHandler implements IRetriesLaunchHandler {
+
+	private static final int MINIMUM_RETRIES_COUNT = 2;
 
 	@Autowired
 	private ProjectRepository projectRepository;
@@ -71,11 +73,16 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 
 			List<RetryObject> retries = testItemRepository.findRetries(launch.getId());
 
+			expect(CollectionUtils.isEmpty(retries), isEqual(false)).verify(
+					ErrorType.FORBIDDEN_OPERATION, "Retries should exist for launch with 'hasRetries' flag.");
+
 			retries.forEach(retry -> {
 				List<TestItem> rtr = retry.getRetries();
-				TestItem retryRoot = rtr.stream().filter(it -> it.getRetryType().equals(RetryType.ROOT)).findFirst().orElse(null);
-				BusinessRule.expect(retryRoot, Predicates.notNull())
-						.verify(ErrorType.FORBIDDEN_OPERATION, "Retry root should exist in retries");
+
+				expect((retries.size() >= MINIMUM_RETRIES_COUNT), isEqual(true)).verify(
+						ErrorType.FORBIDDEN_OPERATION, "Minimum retries' count is " + MINIMUM_RETRIES_COUNT);
+
+				TestItem retryRoot = rtr.get(0);
 
 				logIndexer.cleanIndex(project.getId(), Collections.singletonList(retryRoot.getId()));
 
@@ -86,7 +93,7 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 
 				TestItem lastRetry = rtr.get(rtr.size() - 1);
 				rtr.remove(rtr.size() - 1);
-				lastRetry.setRetryType(RetryType.LAST);
+				lastRetry.setRetryProcessed(Boolean.TRUE);
 				lastRetry.setRetries(rtr);
 				lastRetry.setParent(retryRoot.getParent());
 				testItemRepository.delete(rtr);

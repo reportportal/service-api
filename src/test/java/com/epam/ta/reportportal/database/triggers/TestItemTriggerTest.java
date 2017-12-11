@@ -31,8 +31,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Unit tests for TestItem triggers
@@ -43,6 +42,8 @@ import static org.junit.Assert.assertTrue;
 public class TestItemTriggerTest extends BaseTest {
 
 	private static final String CHILD_ID = "44524cc1553de753b3e5ab2f";
+
+	private static final String UNPROCESSED_RETRY = "44524cc2532de753b3e5ab2f";
 
 	private static final String RETRY_ID = "44524cc1443de753b3e5ab2f";
 
@@ -62,5 +63,13 @@ public class TestItemTriggerTest extends BaseTest {
 		assertNull(testItemRepository.findOne(CHILD_ID));
 		assertTrue(logRepository.findLogIdsByTestItemId(CHILD_ID).isEmpty());
 		assertTrue(logRepository.findLogIdsByTestItemId(RETRY_ID).isEmpty());
+	}
+
+	@Test
+	public void testNotDeleteUnprocessedRetries() {
+		testItemRepository.delete(singletonList(UNPROCESSED_RETRY));
+
+		assertNull(testItemRepository.findOne(UNPROCESSED_RETRY));
+		assertEquals(1 , logRepository.findLogIdsByTestItemId(UNPROCESSED_RETRY).size());
 	}
 }

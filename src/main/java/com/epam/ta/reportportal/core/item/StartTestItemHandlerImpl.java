@@ -136,7 +136,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 		if (rq.isRetry()) {
 			TestItem retryRoot = getRetryRoot(item.getUniqueId(), parent);
-			if (null == retryRoot.getRetryProcessed()) {
+			if (null == retryRoot.getRetryProcessed() && Status.IN_PROGRESS != retryRoot.getStatus()) {
 				retryRoot.setRetryProcessed(false);
 				testItemRepository.partialUpdate(retryRoot);
 			}

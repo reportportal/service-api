@@ -79,7 +79,7 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 			retries.forEach(retry -> {
 				List<TestItem> rtr = retry.getRetries();
 
-				expect((retries.size() >= MINIMUM_RETRIES_COUNT), isEqual(true)).verify(
+				expect((rtr.size() >= MINIMUM_RETRIES_COUNT), isEqual(true)).verify(
 						ErrorType.FORBIDDEN_OPERATION, "Minimum retries' count is " + MINIMUM_RETRIES_COUNT);
 
 				TestItem retryRoot = rtr.get(0);

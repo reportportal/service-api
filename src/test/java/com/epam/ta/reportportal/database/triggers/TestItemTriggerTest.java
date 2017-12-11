@@ -44,6 +44,8 @@ public class TestItemTriggerTest extends BaseTest {
 
 	private static final String CHILD_ID = "44524cc1553de753b3e5ab2f";
 
+	private static final String RETRY_ID = "44524cc1443de753b3e5ab2f";
+
 	@Autowired
 	private TestItemRepository testItemRepository;
 	@Autowired
@@ -59,5 +61,6 @@ public class TestItemTriggerTest extends BaseTest {
 
 		assertNull(testItemRepository.findOne(CHILD_ID));
 		assertTrue(logRepository.findLogIdsByTestItemId(CHILD_ID).isEmpty());
+		assertTrue(logRepository.findLogIdsByTestItemId(RETRY_ID).isEmpty());
 	}
 }

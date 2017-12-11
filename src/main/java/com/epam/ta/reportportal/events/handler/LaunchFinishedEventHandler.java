@@ -22,16 +22,13 @@ package com.epam.ta.reportportal.events.handler;
 
 import com.epam.ta.reportportal.commons.SendCase;
 import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
-import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
-import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
+import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Status;
-import com.epam.ta.reportportal.database.entity.history.status.RetryObject;
-import com.epam.ta.reportportal.database.entity.item.RetryType;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
@@ -58,8 +55,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static org.apache.commons.lang3.BooleanUtils.isTrue;
-
 /**
  * @author Andrei Varabyeu
  */
@@ -74,6 +69,8 @@ public class LaunchFinishedEventHandler {
 
 	private final IIssuesAnalyzer analyzerService;
 
+	private final IRetriesLaunchHandler retriesLaunchHandler;
+
 	private final MailServiceFactory emailServiceFactory;
 
 	private final UserRepository userRepository;
@@ -81,17 +78,16 @@ public class LaunchFinishedEventHandler {
 	private final Provider<HttpServletRequest> currentRequest;
 
 	@Autowired
-	private StatisticsFacadeFactory statisticsFacadeFactory;
-
-	@Autowired
 	public LaunchFinishedEventHandler(IIssuesAnalyzer analyzerService, UserRepository userRepository, TestItemRepository testItemRepository,
-			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory) {
+			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory,
+			IRetriesLaunchHandler retriesLaunchHandler) {
 		this.analyzerService = analyzerService;
 		this.userRepository = userRepository;
 		this.testItemRepository = testItemRepository;
 		this.currentRequest = currentRequest;
 		this.launchRepository = launchRepository;
 		this.emailServiceFactory = emailServiceFactory;
+		this.retriesLaunchHandler = retriesLaunchHandler;
 	}
 
 	@EventListener
@@ -109,9 +105,7 @@ public class LaunchFinishedEventHandler {
 			return;
 		}
 
-		if (isTrue(launch.getHasRetries())) {
-			collectRetries(project, launch);
-		}
+		retriesLaunchHandler.collectRetries(launch);
 
 		Optional<EmailService> emailService = emailServiceFactory.getDefaultEmailService(project.getConfiguration().getEmailConfig());
 
@@ -144,46 +138,6 @@ public class LaunchFinishedEventHandler {
 			Launch freshLaunch = launchRepository.findOne(launch.getId());
 			emailService.ifPresent(it -> sendEmailRightNow(freshLaunch, project, it));
 		}
-	}
-
-	/**
-	 * Moves all retries under the last retry run. If last retry has failed then
-	 * the issue of the root item is copied to the last.
-	 *
-	 * @param project Project
-	 * @param launch  Launch
-	 */
-	private void collectRetries(Project project, Launch launch) {
-		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(
-				project.getConfiguration().getStatisticsCalculationStrategy());
-
-		List<RetryObject> retriesAggregation = testItemRepository.findRetries(launch.getId());
-
-		retriesAggregation.forEach(retryObject -> {
-			List<TestItem> retries = retryObject.getRetries();
-			TestItem retryRoot = retries.get(0);
-
-			statisticsFacade.resetExecutionStatistics(retryRoot);
-			if (retryRoot.getIssue() != null) {
-				statisticsFacade.resetIssueStatistics(retryRoot);
-			}
-
-			TestItem lastRetry = retries.get(retries.size() - 1);
-			retries.remove(retries.size() - 1);
-			lastRetry.setRetryType(RetryType.LAST);
-			lastRetry.setRetries(retries);
-			lastRetry.setParent(retryRoot.getParent());
-			testItemRepository.delete(retries);
-
-			if (!lastRetry.getStatus().equals(Status.PASSED)) {
-				lastRetry.setIssue(retryRoot.getIssue());
-			}
-			statisticsFacade.updateExecutionStatistics(lastRetry);
-			if (lastRetry.getIssue() != null) {
-				statisticsFacade.updateIssueStatistics(lastRetry);
-			}
-			testItemRepository.save(lastRetry);
-		});
 	}
 
 	/**

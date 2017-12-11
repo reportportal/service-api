@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.job;
 
+import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.LogRepository;
@@ -65,6 +66,9 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 
 	@Autowired
 	private ProjectRepository projectRepository;
+
+	@Autowired
+	private IRetriesLaunchHandler retriesLaunchHandler;
 
 	@Override
 	@Scheduled(cron = "${com.ta.reportportal.job.interrupt.broken.launches.cron}")
@@ -136,6 +140,7 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 		Launch launchReloaded = launchRepository.findOne(launch.getId());
 		launchReloaded.setStatus(Status.INTERRUPTED);
 		launchReloaded.setEndTime(Calendar.getInstance().getTime());
+		retriesLaunchHandler.collectRetries(launchReloaded);
 		launchRepository.save(launchReloaded);
 	}
 

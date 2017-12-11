@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.commons.DbUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.launch.IFinishLaunchHandler;
+import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
@@ -94,6 +95,9 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
+
+	@Autowired
+	private IRetriesLaunchHandler retriesLaunchHandler;
 
 	@Override
 	public OperationCompletionRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String username) {
@@ -174,6 +178,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 				List<TestItem> itemsInProgress = testItemRepository.findInStatusItems(IN_PROGRESS.name(), launch.getId());
 				interruptItems(itemsInProgress);
 			}
+			retriesLaunchHandler.collectRetries(launch);
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while Launch updating.", exp);
 		}

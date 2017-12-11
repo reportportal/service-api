@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.Preconditions;
+import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
@@ -30,6 +31,7 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.RetryType;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
@@ -70,9 +72,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	public StartTestItemHandlerImpl() {
 		retrier = new RetryTemplate();
-		TimeoutRetryPolicy timoutRetryPolicy = new TimeoutRetryPolicy();
-		timoutRetryPolicy.setTimeout(TimeUnit.SECONDS.toMillis(3L));
-		retrier.setRetryPolicy(timoutRetryPolicy);
+		TimeoutRetryPolicy timeoutRetryPolicy = new TimeoutRetryPolicy();
+		timeoutRetryPolicy.setTimeout(TimeUnit.SECONDS.toMillis(3L));
+		retrier.setRetryPolicy(timeoutRetryPolicy);
 		retrier.setBackOffPolicy(new FixedBackOffPolicy());
 		retrier.setThrowLastExceptionOnExhausted(true);
 	}
@@ -113,7 +115,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	}
 
 	/**
-	 * Starts children item and building it's path from parent with parant's
+	 * Starts children item and building it's path from parent with parent's
 	 */
 	@Override
 	public ItemCreatedRS startChildItem(String projectName, StartTestItemRQ rq, String parent) {
@@ -189,6 +191,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		expect(rq, Preconditions.startSameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
 				rq.getStartTime(), launch.getStartTime(), launch.getId()
 		);
+		expect(rq.isRetry(), equalTo(false)).verify(BAD_REQUEST_ERROR, "Root test item can't be a retry.");
 
 	}
 
@@ -206,5 +209,10 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		expect(rq, Preconditions.startSameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
 				rq.getStartTime(), parent.getStartTime(), parent.getId()
 		);
+		TestItemType type = TestItemType.fromValue(rq.getType());
+		expect(type, Predicates.notNull()).verify(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE, rq.getType());
+		if (type.higherThan(TestItemType.STEP)) {
+			expect(rq.isRetry(), equalTo(false)).verify(BAD_REQUEST_ERROR, "Test item with the '" + rq.getType() +"' level can't be a retry.");
+		}
 	}
 }

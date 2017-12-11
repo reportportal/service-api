@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
@@ -38,6 +39,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
@@ -57,12 +59,15 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 	@Autowired
 	private StatisticsFacadeFactory statisticsFacadeFactory;
 
+	@Autowired
+	private ILogIndexer logIndexer;
+
 	@Override
 	public void collectRetries(Launch launch) {
 		if (isTrue(launch.getHasRetries())) {
 			Project project = projectRepository.findOne(launch.getProjectRef());
-			StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration()
-					.getStatisticsCalculationStrategy());
+			StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(
+					project.getConfiguration().getStatisticsCalculationStrategy());
 
 			List<RetryObject> retries = testItemRepository.findRetries(launch.getId());
 
@@ -71,6 +76,8 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 				TestItem retryRoot = rtr.stream().filter(it -> it.getRetryType().equals(RetryType.ROOT)).findFirst().orElse(null);
 				BusinessRule.expect(retryRoot, Predicates.notNull())
 						.verify(ErrorType.FORBIDDEN_OPERATION, "Retry root should exist in retries");
+
+				logIndexer.cleanIndex(project.getId(), Collections.singletonList(retryRoot.getId()));
 
 				statisticsFacade.resetExecutionStatistics(retryRoot);
 				if (retryRoot.getIssue() != null) {
@@ -92,6 +99,7 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 					statisticsFacade.updateIssueStatistics(lastRetry);
 				}
 				testItemRepository.save(lastRetry);
+				logIndexer.indexLogs(launch.getId(), Collections.singletonList(lastRetry));
 			});
 		}
 	}

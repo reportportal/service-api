@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
@@ -33,7 +34,6 @@ import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.history.status.RetryObject;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -72,7 +72,7 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 					project.getConfiguration().getStatisticsCalculationStrategy());
 
 			List<RetryObject> retries = testItemRepository.findRetries(launch.getId());
-			expect(CollectionUtils.isEmpty(retries), isEqual(false)).verify(
+			expect(retries, Preconditions.NOT_EMPTY_COLLECTION).verify(
 					ErrorType.RETRIES_HANDLER_ERROR, "There are no retries in the launch.");
 
 			retries.forEach(retry -> {

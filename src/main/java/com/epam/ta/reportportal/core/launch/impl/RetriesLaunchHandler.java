@@ -72,20 +72,16 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 					project.getConfiguration().getStatisticsCalculationStrategy());
 
 			List<RetryObject> retries = testItemRepository.findRetries(launch.getId());
-
 			expect(CollectionUtils.isEmpty(retries), isEqual(false)).verify(
 					ErrorType.RETRIES_HANDLER_ERROR, "There are no retries in the launch.");
 
 			retries.forEach(retry -> {
 				List<TestItem> rtr = retry.getRetries();
-
 				expect((rtr.size() >= MINIMUM_RETRIES_COUNT), isEqual(true)).verify(
 						ErrorType.RETRIES_HANDLER_ERROR, "Minimum retries count is " + MINIMUM_RETRIES_COUNT);
 
 				TestItem retryRoot = rtr.get(0);
-
 				logIndexer.cleanIndex(project.getId(), Collections.singletonList(retryRoot.getId()));
-
 				statisticsFacade.resetExecutionStatistics(retryRoot);
 				if (retryRoot.getIssue() != null) {
 					statisticsFacade.resetIssueStatistics(retryRoot);
@@ -93,11 +89,9 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 
 				TestItem lastRetry = rtr.get(rtr.size() - 1);
 				rtr.remove(rtr.size() - 1);
+				lastRetry.setStartTime(retryRoot.getStartTime());
 				lastRetry.setRetryProcessed(Boolean.TRUE);
 				lastRetry.setRetries(rtr);
-				lastRetry.setParent(retryRoot.getParent());
-				testItemRepository.delete(rtr);
-
 				if (!lastRetry.getStatus().equals(Status.PASSED)) {
 					lastRetry.setIssue(retryRoot.getIssue());
 				}
@@ -105,6 +99,7 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 				if (lastRetry.getIssue() != null) {
 					statisticsFacade.updateIssueStatistics(lastRetry);
 				}
+				testItemRepository.delete(rtr);
 				testItemRepository.save(lastRetry);
 				logIndexer.indexLogs(launch.getId(), Collections.singletonList(lastRetry));
 			});

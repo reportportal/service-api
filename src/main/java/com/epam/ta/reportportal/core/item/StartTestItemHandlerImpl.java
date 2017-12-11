@@ -147,9 +147,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 		} else {
 			LOGGER.debug("Starting Item with name '{}'", item.getName());
-
 			testItemRepository.save(item);
-
 			if (!parentItem.hasChilds()) {
 				testItemRepository.updateHasChilds(parentItem.getId(), true);
 			}

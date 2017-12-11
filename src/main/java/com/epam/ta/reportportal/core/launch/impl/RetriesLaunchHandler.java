@@ -74,13 +74,13 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 			List<RetryObject> retries = testItemRepository.findRetries(launch.getId());
 
 			expect(CollectionUtils.isEmpty(retries), isEqual(false)).verify(
-					ErrorType.FORBIDDEN_OPERATION, "Retries should exist for launch with 'hasRetries' flag.");
+					ErrorType.RETRIES_HANDLER_ERROR, "There are no retries in the launch.");
 
 			retries.forEach(retry -> {
 				List<TestItem> rtr = retry.getRetries();
 
 				expect((rtr.size() >= MINIMUM_RETRIES_COUNT), isEqual(true)).verify(
-						ErrorType.FORBIDDEN_OPERATION, "Minimum retries' count is " + MINIMUM_RETRIES_COUNT);
+						ErrorType.RETRIES_HANDLER_ERROR, "Minimum retries count is " + MINIMUM_RETRIES_COUNT);
 
 				TestItem retryRoot = rtr.get(0);
 

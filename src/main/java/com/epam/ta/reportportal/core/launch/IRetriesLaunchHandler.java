@@ -31,8 +31,8 @@ public interface IRetriesLaunchHandler {
 	/**
 	 * Collects all retried test items for provided launch if it has such.
 	 * Moves and stores them in embedded collection under test item document
-	 * with {@link com.epam.ta.reportportal.database.entity.item.RetryType#LAST}
-	 * retry type.
+	 * with {@link com.epam.ta.reportportal.database.entity.item.TestItem#retryProcessed}
+	 * true
 	 *
 	 * @param launch Launch to be collected
 	 */

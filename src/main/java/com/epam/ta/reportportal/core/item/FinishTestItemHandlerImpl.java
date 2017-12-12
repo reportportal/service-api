@@ -22,7 +22,6 @@ package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
-import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
@@ -81,7 +80,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private TestItemRepository testItemRepository;
 	private StatisticsFacadeFactory statisticsFacadeFactory;
 	private ExternalSystemRepository externalSystemRepository;
-	private ILogIndexer logIndexer;
 
 	@Autowired
 	public void setProjectRepository(ProjectRepository projectRepository) {
@@ -106,11 +104,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	@Autowired
 	public void setExternalSystemRepository(ExternalSystemRepository externalSystemRepository) {
 		this.externalSystemRepository = externalSystemRepository;
-	}
-
-	@Autowired
-	public void setLogIndexer(ILogIndexer logIndexer) {
-		this.logIndexer = logIndexer;
 	}
 
 	@Override
@@ -166,7 +159,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				if (null != testItem.getIssue()) {
 					statisticsFacade.updateIssueStatistics(testItem);
 				}
-				logIndexer.indexLogs(launch.getId(), Collections.singletonList(testItem));
 			}
 
 		} catch (Exception e) {

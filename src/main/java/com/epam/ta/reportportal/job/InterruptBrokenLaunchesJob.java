@@ -41,6 +41,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.epam.ta.reportportal.util.Predicates.IS_RETRY;
 import static java.time.Duration.ofHours;
 
 /**
@@ -153,7 +154,7 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 			item.setEndTime(Calendar.getInstance().getTime());
 			item = testItemRepository.save(item);
 
-			if (!item.hasChilds() && item.getRetryProcessed() == null) {
+			if (!item.hasChilds() && !IS_RETRY.test(item)) {
 				Project project = projectRepository.findOne(launch.getProjectRef());
 				item = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.updateExecutionStatistics(item);

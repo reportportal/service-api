@@ -65,6 +65,7 @@ import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSup
 import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.database.entity.Status.*;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
+import static com.epam.ta.reportportal.util.Predicates.IS_RETRY;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.toList;
 
@@ -259,7 +260,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 			item.setStatus(INTERRUPTED);
 			item.setEndTime(Calendar.getInstance().getTime());
 			item = testItemRepository.save(item);
-			if (!item.hasChilds() && item.getRetryProcessed() == null) {
+			if (!item.hasChilds() && !IS_RETRY.test(item)) {
 				Project project = projectRepository.findOne(launchRepository.findOne(item.getLaunchRef()).getProjectRef());
 				item = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.updateExecutionStatistics(item);

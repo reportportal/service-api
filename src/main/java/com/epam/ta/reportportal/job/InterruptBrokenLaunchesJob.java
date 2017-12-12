@@ -76,12 +76,12 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 	public void run() {
 		try (Stream<Project> projects = projectRepository.streamAllIdsAndConfiguration()) {
 			projects.forEach(project -> {
-				Duration maxDuration = ofHours(
-						InterruptionJobDelay.findByName(project.getConfiguration().getInterruptJobTime()).getPeriod());
+				Duration maxDuration = ofHours(InterruptionJobDelay.findByName(project.getConfiguration().getInterruptJobTime())
+						.getPeriod());
 				launchRepository.findModifiedLaterAgo(maxDuration, Status.IN_PROGRESS, project.getId()).forEach(launch -> {
 					if (!launchRepository.hasItems(launch, Status.IN_PROGRESS)) {
 					/*
-                     * There are no test items for this launch. Just INTERRUPT
+					 * There are no test items for this launch. Just INTERRUPT
                      * this launch
                      */
 						interruptLaunch(launch);

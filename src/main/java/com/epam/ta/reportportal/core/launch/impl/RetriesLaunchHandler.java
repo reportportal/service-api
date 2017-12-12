@@ -38,6 +38,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static java.util.function.Predicate.isEqual;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
@@ -83,7 +84,11 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 	private void handleRetry(RetryObject retry, StatisticsFacade statisticsFacade) {
 		List<TestItem> retries = retry.getRetries();
 		expect((retries.size() >= MINIMUM_RETRIES_COUNT), isEqual(true)).verify(
-				ErrorType.RETRIES_HANDLER_ERROR, "Minimum retries count is " + MINIMUM_RETRIES_COUNT);
+				ErrorType.RETRIES_HANDLER_ERROR, "Minimum retries count is " + MINIMUM_RETRIES_COUNT
+		);
+		retries.forEach(it -> expect(it.hasChilds(), equalTo(false)).verify(
+				ErrorType.RETRIES_HANDLER_ERROR, "Retries cannot have items with children"
+		));
 		TestItem lastRetry = moveRetries(retries, statisticsFacade);
 		testItemRepository.delete(retries);
 		testItemRepository.save(lastRetry);
@@ -132,7 +137,7 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 	 * @return Updated last retry
 	 */
 	private TestItem updateRetryStatistics(TestItem lastRetry, TestItem retryRoot, StatisticsFacade statisticsFacade) {
-		if (!lastRetry.getStatus().equals(Status.PASSED)) {
+		if (!Status.PASSED.equals(lastRetry.getStatus())) {
 			lastRetry.setIssue(retryRoot.getIssue());
 		}
 		statisticsFacade.updateExecutionStatistics(lastRetry);

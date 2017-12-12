@@ -30,7 +30,6 @@ import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
@@ -209,11 +208,5 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		expect(rq, Preconditions.startSameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
 				rq.getStartTime(), parent.getStartTime(), parent.getId()
 		);
-		TestItemType type = TestItemType.fromValue(rq.getType());
-		expect(type, Predicates.notNull()).verify(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE, rq.getType());
-		if (type.higherThan(TestItemType.STEP)) {
-			expect(rq.isRetry(), equalTo(false)).verify(
-					BAD_REQUEST_ERROR, "Test item with the '" + rq.getType() + "' level can't be a retry.");
-		}
 	}
 }

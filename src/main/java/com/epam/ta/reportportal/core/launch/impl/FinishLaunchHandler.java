@@ -259,7 +259,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 			item.setStatus(INTERRUPTED);
 			item.setEndTime(Calendar.getInstance().getTime());
 			item = testItemRepository.save(item);
-			if (!item.hasChilds()) {
+			if (!item.hasChilds() && item.getRetryProcessed() == null) {
 				Project project = projectRepository.findOne(launchRepository.findOne(item.getLaunchRef()).getProjectRef());
 				item = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.updateExecutionStatistics(item);

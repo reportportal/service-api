@@ -21,6 +21,7 @@
 package com.epam.ta.reportportal.events.handler;
 
 import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -76,18 +77,19 @@ public class LaunchFinishedEventHandlerTest {
 		final Provider provider = mock(Provider.class);
 		when(provider.get()).thenReturn(new MockHttpServletRequest(HttpMethod.PUT.name(), "https://localhost:8443"));
 		emailService = mock(EmailService.class);
-		launchFinishedEventHandler = new LaunchFinishedEventHandler(mock(IIssuesAnalyzer.class),
-				userRepository,
-				mock(TestItemRepository.class),
-				provider,
+		launchFinishedEventHandler = new LaunchFinishedEventHandler(mock(TestItemRepository.class),
 				mock(LaunchRepository.class),
+				mock(IIssuesAnalyzer.class),
+				mock(ILogIndexer.class),
+				mock(IRetriesLaunchHandler.class),
 				new MailServiceFactory(null, null, null) {
 					@Override
 					public Optional<EmailService> getDefaultEmailService() {
 						return Optional.of(emailService);
 					}
 				},
-				mock(IRetriesLaunchHandler.class)
+				userRepository,
+				provider
 		);
 	}
 

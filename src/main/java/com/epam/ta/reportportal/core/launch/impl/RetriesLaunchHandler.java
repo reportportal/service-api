@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.Preconditions;
-import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
@@ -37,7 +36,6 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -60,9 +58,6 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 
 	@Autowired
 	private StatisticsFacadeFactory statisticsFacadeFactory;
-
-	@Autowired
-	private ILogIndexer logIndexer;
 
 	@Override
 	public void handleRetries(Launch launch) {
@@ -103,7 +98,6 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 	 * @param statisticsFacade Statistics facade
 	 */
 	private void resetRetryStatistics(TestItem retry, Project project, StatisticsFacade statisticsFacade) {
-		logIndexer.cleanIndex(project.getId(), Collections.singletonList(retry.getId()));
 		statisticsFacade.resetExecutionStatistics(retry);
 		if (retry.getIssue() != null) {
 			statisticsFacade.resetIssueStatistics(retry);
@@ -147,7 +141,6 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 		statisticsFacade.updateExecutionStatistics(lastRetry);
 		if (lastRetry.getIssue() != null) {
 			statisticsFacade.updateIssueStatistics(lastRetry);
-			logIndexer.indexLogs(lastRetry.getLaunchRef(), Collections.singletonList(lastRetry));
 		}
 		return lastRetry;
 	}

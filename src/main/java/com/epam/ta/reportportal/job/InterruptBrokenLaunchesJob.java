@@ -140,7 +140,7 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 		Launch launchReloaded = launchRepository.findOne(launch.getId());
 		launchReloaded.setStatus(Status.INTERRUPTED);
 		launchReloaded.setEndTime(Calendar.getInstance().getTime());
-		retriesLaunchHandler.collectRetries(launchReloaded);
+		retriesLaunchHandler.handleRetries(launchReloaded);
 		launchRepository.save(launchReloaded);
 	}
 

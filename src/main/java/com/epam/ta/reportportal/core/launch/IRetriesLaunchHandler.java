@@ -36,6 +36,6 @@ public interface IRetriesLaunchHandler {
 	 *
 	 * @param launch Launch to be collected
 	 */
-	void collectRetries(Launch launch);
+	void handleRetries(Launch launch);
 
 }

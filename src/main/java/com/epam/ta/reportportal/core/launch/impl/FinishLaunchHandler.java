@@ -178,7 +178,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 				List<TestItem> itemsInProgress = testItemRepository.findInStatusItems(IN_PROGRESS.name(), launch.getId());
 				interruptItems(itemsInProgress);
 			}
-			retriesLaunchHandler.collectRetries(launch);
+			retriesLaunchHandler.handleRetries(launch);
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while Launch updating.", exp);
 		}

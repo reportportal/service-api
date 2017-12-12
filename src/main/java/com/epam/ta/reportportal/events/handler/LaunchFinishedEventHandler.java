@@ -105,7 +105,7 @@ public class LaunchFinishedEventHandler {
 			return;
 		}
 
-		retriesLaunchHandler.collectRetries(launch);
+		retriesLaunchHandler.handleRetries(launch);
 
 		Optional<EmailService> emailService = emailServiceFactory.getDefaultEmailService(project.getConfiguration().getEmailConfig());
 

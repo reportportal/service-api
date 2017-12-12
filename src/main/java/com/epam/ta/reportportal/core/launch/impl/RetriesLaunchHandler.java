@@ -70,7 +70,7 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 			expect(retries, Preconditions.NOT_EMPTY_COLLECTION).verify(
 					ErrorType.RETRIES_HANDLER_ERROR, "There are no retries in the launch.");
 
-			retries.forEach(retry -> handleRetry(retry, project, statisticsFacade));
+			retries.forEach(retry -> handleRetry(retry, statisticsFacade));
 		}
 	}
 
@@ -78,14 +78,13 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 	 * Process aggregated retry object
 	 *
 	 * @param retry            Retry object
-	 * @param project          Project
 	 * @param statisticsFacade Statistics facade
 	 */
-	private void handleRetry(RetryObject retry, Project project, StatisticsFacade statisticsFacade) {
+	private void handleRetry(RetryObject retry, StatisticsFacade statisticsFacade) {
 		List<TestItem> retries = retry.getRetries();
 		expect((retries.size() >= MINIMUM_RETRIES_COUNT), isEqual(true)).verify(
 				ErrorType.RETRIES_HANDLER_ERROR, "Minimum retries count is " + MINIMUM_RETRIES_COUNT);
-		TestItem lastRetry = moveRetries(retries, project, statisticsFacade);
+		TestItem lastRetry = moveRetries(retries, statisticsFacade);
 		testItemRepository.delete(retries);
 		testItemRepository.save(lastRetry);
 	}
@@ -94,10 +93,9 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 	 * Resets retry statistics
 	 *
 	 * @param retry            Retry to be reseted
-	 * @param project          Project
 	 * @param statisticsFacade Statistics facade
 	 */
-	private void resetRetryStatistics(TestItem retry, Project project, StatisticsFacade statisticsFacade) {
+	private void resetRetryStatistics(TestItem retry, StatisticsFacade statisticsFacade) {
 		statisticsFacade.resetExecutionStatistics(retry);
 		if (retry.getIssue() != null) {
 			statisticsFacade.resetIssueStatistics(retry);
@@ -109,14 +107,13 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 	 * inside the last retry
 	 *
 	 * @param retries          Retries to be processed
-	 * @param project          Project
 	 * @param statisticsFacade Statistics facade
 	 * @return Last retry
 	 */
-	private TestItem moveRetries(List<TestItem> retries, Project project, StatisticsFacade statisticsFacade) {
+	private TestItem moveRetries(List<TestItem> retries, StatisticsFacade statisticsFacade) {
 		retries.forEach(it -> it.setRetryProcessed(Boolean.TRUE));
 		TestItem retryRoot = retries.get(0);
-		resetRetryStatistics(retryRoot, project, statisticsFacade);
+		resetRetryStatistics(retryRoot, statisticsFacade);
 
 		TestItem lastRetry = retries.get(retries.size() - 1);
 		retries.remove(retries.size() - 1);

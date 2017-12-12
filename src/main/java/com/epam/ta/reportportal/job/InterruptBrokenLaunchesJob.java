@@ -153,7 +153,7 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 			item.setEndTime(Calendar.getInstance().getTime());
 			item = testItemRepository.save(item);
 
-			if (!item.hasChilds()) {
+			if (!item.hasChilds() && item.getRetryProcessed() == null) {
 				Project project = projectRepository.findOne(launch.getProjectRef());
 				item = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.updateExecutionStatistics(item);

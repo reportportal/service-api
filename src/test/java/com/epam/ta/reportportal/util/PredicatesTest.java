@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.util;
 
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
+import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -38,7 +39,7 @@ public class PredicatesTest {
 		TestItem testItem = new TestItem();
 		TestItemIssue issue = new TestItemIssue();
 		issue.setIgnoreAnalyzer(false);
-		issue.setIssueType("PB001");
+		issue.setIssueType(TestItemIssueType.PRODUCT_BUG.getLocator());
 		testItem.setIssue(issue);
 		Assert.assertTrue("Item should be available for indexing", CAN_BE_INDEXED.test(testItem));
 	}
@@ -54,7 +55,7 @@ public class PredicatesTest {
 	public void checkIgnoreIndexed() {
 		TestItem testItem = new TestItem();
 		TestItemIssue issue = new TestItemIssue();
-		issue.setIssueType("PB001");
+		issue.setIssueType(TestItemIssueType.PRODUCT_BUG.getLocator());
 		issue.setIgnoreAnalyzer(true);
 		testItem.setIssue(issue);
 		Assert.assertFalse("Item with ignore flag shouldn't be available for indexing", CAN_BE_INDEXED.test(testItem));

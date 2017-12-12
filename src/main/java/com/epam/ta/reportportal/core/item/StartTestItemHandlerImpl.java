@@ -136,7 +136,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 		if (rq.isRetry()) {
 			TestItem retryRoot = getRetryRoot(item.getUniqueId(), parent);
-			if (null == retryRoot.getRetryProcessed() && Status.IN_PROGRESS != retryRoot.getStatus()) {
+			if (null == retryRoot.getRetryProcessed()) {
 				retryRoot.setRetryProcessed(false);
 				testItemRepository.partialUpdate(retryRoot);
 			}
@@ -169,11 +169,14 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		 */
 		return retrier.execute(context -> {
 			/* search for the item with the same unique ID and parent. Since retries do not contain
-			 * parentID, there should be only one result
+			 * parentID, there should be only one result. For correct further processing - it needs
+			 * to be waited for the end of retries root item.
 			 */
 			TestItem item = testItemRepository.findRetryRoot(uniqueID, parent);
 			BusinessRule.expect(item, com.epam.ta.reportportal.commons.Predicates.notNull())
 					.verify(ErrorType.BAD_REQUEST_ERROR, "No retry root found");
+			BusinessRule.expect(item.getStatus(), Predicates.not(it -> it.equals(Status.IN_PROGRESS)))
+					.verify(BAD_REQUEST_ERROR, "Retries root is still IN_PROGRESS");
 			return item;
 		});
 	}

@@ -82,8 +82,8 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 					if (!launchRepository.hasItems(launch, Status.IN_PROGRESS)) {
 					/*
 					 * There are no test items for this launch. Just INTERRUPT
-                     * this launch
-                     */
+					 * this launch
+					 */
 						interruptLaunch(launch);
 					} else {
 					/*

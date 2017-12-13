@@ -6,6 +6,25 @@ rp:
     enableByDefault: true
 
 spring:
+  quartz:
+    # Use the MongoDB store
+    org.quartz.jobStore.class: com.novemberain.quartz.mongodb.MongoDBJobStore
+    # MongoDB URI (optional if 'org.quartz.jobStore.addresses' is set)
+    org.quartz.jobStore.mongoUri: mongodb://localhost:27017
+    # comma separated list of mongodb hosts/replica set seeds (optional if 'org.quartz.jobStore.mongoUri' is set)
+    #- org.quartz.jobStore.addresses: host1,host2
+    # database name
+    org.quartz.jobStore.dbName: reportportal
+    # Will be used to create collections like mycol_jobs, mycol_triggers, mycol_calendars, mycol_locks
+    org.quartz.jobStore.collectionPrefix: scheduler
+    # thread count setting is ignored by the MongoDB store but Quartz requries it
+    org.quartz.threadPool.threadCount: "1"
+
+    org.quartz.jobStore.isClustered: "true"
+    org.quartz.jobStore.clusterCheckinInterval: "1800000"
+    org.quartz.scheduler.instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+    org.quartz.scheduler.instanceName: reportportal
+
   cloud:
     consul:
       host: localhost
@@ -34,6 +53,7 @@ logging:
     org.springframework.data.mongodb.core.mapping: error
     org.springframework.context.support: warn
     org.springframework.data.mongodb.core.index: warn
+    com.novemberain.quartz : warn
 
 ## Consul as service registry
 ---

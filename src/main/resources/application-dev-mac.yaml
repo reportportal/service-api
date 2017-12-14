@@ -6,7 +6,7 @@ spring:
       host: localhost
 rp:
   mongo:
-    host: evbyminsd6293.minsk.epam.com
+    host: localhost
   uat:
     serviceUrl: http://localhost:8080/uat
   analyzer:

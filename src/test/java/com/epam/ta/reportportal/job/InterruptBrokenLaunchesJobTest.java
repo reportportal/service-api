@@ -161,7 +161,7 @@ public class InterruptBrokenLaunchesJobTest {
 		when(testItemRepository.hasLogs(eq(LIST_OF_TESTITEMS))).thenReturn(true);
 		when(logRepository.hasLogsAddedLately(any(Duration.class), eq(LIST_OF_TESTITEMS.get(1)))).thenReturn(true);
 		//run
-		interruptBrokenLaunchesJob.run();
+		interruptBrokenLaunchesJob.execute(null);
 		//verifies
 		verify(projectRepository, times(1)).streamAllIdsAndConfiguration();
 		verify(launchRepository, times(1)).findModifiedLaterAgo(any(Duration.class), eq(Status.IN_PROGRESS), any(String.class));
@@ -186,7 +186,7 @@ public class InterruptBrokenLaunchesJobTest {
 		when(statisticsFacade.updateExecutionStatistics(LIST_OF_TESTITEMS.get(0))).thenReturn(LIST_OF_TESTITEMS.get(0));
 		when(statisticsFacade.updateIssueStatistics(LIST_OF_TESTITEMS.get(0))).thenReturn(LIST_OF_TESTITEMS.get(0));
 		//run
-		interruptBrokenLaunchesJob.run();
+		interruptBrokenLaunchesJob.execute(null);
 		//verifies
 		verify(projectRepository, times(1)).streamAllIdsAndConfiguration();
 		verify(launchRepository, times(1)).findModifiedLaterAgo(any(Duration.class), eq(Status.IN_PROGRESS), any(String.class));
@@ -208,7 +208,7 @@ public class InterruptBrokenLaunchesJobTest {
 	@Test
 	public void runTestWithoutLogsInTestItemsRepo() {
 		//run
-		interruptBrokenLaunchesJob.run();
+		interruptBrokenLaunchesJob.execute(null);
 		//verifies
 		verify(projectRepository, times(1)).streamAllIdsAndConfiguration();
 		verify(launchRepository, times(1)).findModifiedLaterAgo(any(Duration.class), eq(Status.IN_PROGRESS), any(String.class));

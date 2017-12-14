@@ -75,7 +75,7 @@ public class CleanScreenshotsJobTest {
 		when(projectRepository.streamAllIdsAndConfiguration()).thenReturn(sp);
 		when(gridFS.findModifiedLaterAgo(any(Duration.class), anyString())).thenReturn(list);
 
-		cleanScreenshotsJob.run();
+		cleanScreenshotsJob.execute(null);
 
 		verify(gridFS, times(1)).deleteData(anyString());
 		verify(logRepository, times(1)).removeBinaryContent(anyString());

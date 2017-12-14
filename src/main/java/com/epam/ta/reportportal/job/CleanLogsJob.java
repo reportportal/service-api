@@ -63,7 +63,7 @@ public class CleanLogsJob implements Job {
 
 	@Override
 //	@Scheduled(cron = "${com.ta.reportportal.job.clean.logs.cron}")
-	public void execute(JobExecutionContext context) throws JobExecutionException {
+	public void execute(JobExecutionContext context) {
 		try (Stream<Project> stream = projectRepository.streamAllIdsAndConfiguration()) {
 			stream.forEach(project -> {
 				Duration period = ofDays(findByName(project.getConfiguration().getKeepLogs()).getDays());

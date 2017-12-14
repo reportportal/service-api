@@ -44,7 +44,7 @@ public class ExpireNotUsedAccountsJob implements Job {
 	private UserRepository userRepository;
 
 	@Override
-	public void execute(JobExecutionContext context) throws JobExecutionException {
+	public void execute(JobExecutionContext context) {
 		userRepository.expireUsersLoggedOlderThan(expirationPolicy.getExpirationDate());
 	}
 

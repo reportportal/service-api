@@ -50,7 +50,7 @@ public class ExpireNotUsedAccountsJobTest {
 
 	@Test
 	public void runTest() {
-		expireNotUsedAccountsJob.run();
+		expireNotUsedAccountsJob.execute(null);
 		verify(expirationPolicy, times(1)).getExpirationDate();
 		verify(userRepository, times(1)).expireUsersLoggedOlderThan(any(Date.class));
 

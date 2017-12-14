@@ -71,7 +71,7 @@ public class PredefinedFilterCriteriaResolver implements HandlerMethodArgumentRe
 
 	@Override
 	public Queryable resolveArgument(MethodParameter methodParameter, ModelAndViewContainer paramModelAndViewContainer,
-			NativeWebRequest webRequest, WebDataBinderFactory paramWebDataBinderFactory) throws Exception {
+			NativeWebRequest webRequest, WebDataBinderFactory paramWebDataBinderFactory) {
 		Class<?> domainModelType = methodParameter.getParameterAnnotation(FilterFor.class).value();
 
 		List<Queryable> filterConditions = webRequest.getParameterMap()

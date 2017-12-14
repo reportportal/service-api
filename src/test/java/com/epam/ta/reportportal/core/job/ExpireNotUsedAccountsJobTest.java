@@ -81,7 +81,7 @@ public class ExpireNotUsedAccountsJobTest extends BaseTest {
 	@Test
 	public void textExpirationJob() {
 
-		expireNotUsedAccountsJob.run();
+		expireNotUsedAccountsJob.execute(null);
 
 		Page<User> user = userRepository.findByTypeAndIsExpired(EntryType.UPSA, true, new PageRequest(0, 1));
 		Assert.assertThat(user, not(emptyIterable()));

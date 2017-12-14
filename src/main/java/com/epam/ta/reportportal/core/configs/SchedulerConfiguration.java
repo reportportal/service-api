@@ -23,15 +23,14 @@ package com.epam.ta.reportportal.core.configs;
 import com.epam.ta.reportportal.job.CleanLogsJob;
 import com.epam.ta.reportportal.job.CleanScreenshotsJob;
 import com.epam.ta.reportportal.job.InterruptBrokenLaunchesJob;
-import org.quartz.JobDetail;
-import org.quartz.SimpleTrigger;
-import org.quartz.Trigger;
+import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
@@ -53,6 +52,7 @@ public class SchedulerConfiguration {
 	private QuartzProperties quartzProperties;
 
 	@Bean
+	@Primary
 	public SchedulerFactoryBean schedulerFactoryBean() {
 		SchedulerFactoryBean scheduler = new SchedulerFactoryBean();
 		scheduler.setApplicationContextSchedulerContextKey("applicationContext");

@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.job;
 
+import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.LogRepository;
@@ -40,6 +41,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.epam.ta.reportportal.util.Predicates.IS_RETRY;
 import static java.time.Duration.ofHours;
 
 /**
@@ -66,19 +68,22 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 	@Autowired
 	private ProjectRepository projectRepository;
 
+	@Autowired
+	private IRetriesLaunchHandler retriesLaunchHandler;
+
 	@Override
 	@Scheduled(cron = "${com.ta.reportportal.job.interrupt.broken.launches.cron}")
 	public void run() {
 		try (Stream<Project> projects = projectRepository.streamAllIdsAndConfiguration()) {
 			projects.forEach(project -> {
-				Duration maxDuration = ofHours(
-						InterruptionJobDelay.findByName(project.getConfiguration().getInterruptJobTime()).getPeriod());
+				Duration maxDuration = ofHours(InterruptionJobDelay.findByName(project.getConfiguration().getInterruptJobTime())
+						.getPeriod());
 				launchRepository.findModifiedLaterAgo(maxDuration, Status.IN_PROGRESS, project.getId()).forEach(launch -> {
 					if (!launchRepository.hasItems(launch, Status.IN_PROGRESS)) {
 					/*
-                     * There are no test items for this launch. Just INTERRUPT
-                     * this launch
-                     */
+					 * There are no test items for this launch. Just INTERRUPT
+					 * this launch
+					 */
 						interruptLaunch(launch);
 					} else {
 					/*
@@ -136,6 +141,7 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 		Launch launchReloaded = launchRepository.findOne(launch.getId());
 		launchReloaded.setStatus(Status.INTERRUPTED);
 		launchReloaded.setEndTime(Calendar.getInstance().getTime());
+		retriesLaunchHandler.handleRetries(launchReloaded);
 		launchRepository.save(launchReloaded);
 	}
 
@@ -148,7 +154,7 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 			item.setEndTime(Calendar.getInstance().getTime());
 			item = testItemRepository.save(item);
 
-			if (!item.hasChilds()) {
+			if (!item.hasChilds() && !IS_RETRY.test(item)) {
 				Project project = projectRepository.findOne(launch.getProjectRef());
 				item = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.updateExecutionStatistics(item);

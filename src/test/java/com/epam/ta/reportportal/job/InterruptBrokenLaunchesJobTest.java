@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.job;
 
+import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
@@ -72,6 +73,8 @@ public class InterruptBrokenLaunchesJobTest {
 	private StatisticsFacade statisticsFacade;
 	@Mock
 	private ProjectRepository projectRepository;
+	@Mock
+	private IRetriesLaunchHandler retriesLaunchHandler;
 
 	private final String NAME = "name";
 	private final Project PROJECT = new Project();

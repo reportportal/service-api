@@ -22,6 +22,8 @@ package com.epam.ta.reportportal.events.handler;
 
 import com.epam.ta.reportportal.commons.SendCase;
 import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
+import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
@@ -68,6 +70,10 @@ public class LaunchFinishedEventHandler {
 
 	private final IIssuesAnalyzer analyzerService;
 
+	private final ILogIndexer logIndexer;
+
+	private final IRetriesLaunchHandler retriesLaunchHandler;
+
 	private final MailServiceFactory emailServiceFactory;
 
 	private final UserRepository userRepository;
@@ -75,14 +81,17 @@ public class LaunchFinishedEventHandler {
 	private final Provider<HttpServletRequest> currentRequest;
 
 	@Autowired
-	public LaunchFinishedEventHandler(IIssuesAnalyzer analyzerService, UserRepository userRepository, TestItemRepository testItemRepository,
-			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory) {
-		this.analyzerService = analyzerService;
-		this.userRepository = userRepository;
+	public LaunchFinishedEventHandler(TestItemRepository testItemRepository, LaunchRepository launchRepository,
+			IIssuesAnalyzer analyzerService, ILogIndexer logIndexer, IRetriesLaunchHandler retriesLaunchHandler,
+			MailServiceFactory emailServiceFactory, UserRepository userRepository, Provider<HttpServletRequest> currentRequest) {
 		this.testItemRepository = testItemRepository;
-		this.currentRequest = currentRequest;
 		this.launchRepository = launchRepository;
+		this.analyzerService = analyzerService;
+		this.logIndexer = logIndexer;
+		this.retriesLaunchHandler = retriesLaunchHandler;
 		this.emailServiceFactory = emailServiceFactory;
+		this.userRepository = userRepository;
+		this.currentRequest = currentRequest;
 	}
 
 	@EventListener
@@ -100,6 +109,7 @@ public class LaunchFinishedEventHandler {
 			return;
 		}
 
+		retriesLaunchHandler.handleRetries(launch);
 		Optional<EmailService> emailService = emailServiceFactory.getDefaultEmailService(project.getConfiguration().getEmailConfig());
 
 		/* If AA enabled then waiting results processing */
@@ -109,6 +119,8 @@ public class LaunchFinishedEventHandler {
 		if (Mode.DEBUG.equals(launch.getMode())) {
 			return;
 		}
+		/* Index items in issue for AA */
+		logIndexer.indexLogs(launch.getId(), testItemRepository.findTestItemWithIssues(launch.getId()));
 
 		/* If email enabled and AA disabled then send results immediately */
 		if (!waitForAutoAnalysis) {

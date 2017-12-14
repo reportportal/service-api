@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.core.statistics.StepBasedStatisticsFacade;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
@@ -148,13 +147,10 @@ public class FinishItemTest {
 		when(testItemRepository.findOne(testItemId)).thenReturn(testItem);
 		when(testItemRepository.hasDescendants(testItemId)).thenReturn(true);
 
-		final ILogIndexer logIndexer = mock(ILogIndexer.class);
-
 		final FinishTestItemHandlerImpl finishTestItemHandler = new FinishTestItemHandlerImpl();
 		finishTestItemHandler.setProjectRepository(projectRepository);
 		finishTestItemHandler.setLaunchRepository(launchRepository);
 		finishTestItemHandler.setTestItemRepository(testItemRepository);
-		finishTestItemHandler.setLogIndexer(logIndexer);
 
 		StatisticsFacadeFactory facadeFactoryMock = mock(StatisticsFacadeFactory.class);
 		StepBasedStatisticsFacade facadeMock = mock(StepBasedStatisticsFacade.class);

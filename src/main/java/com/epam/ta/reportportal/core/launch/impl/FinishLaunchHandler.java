@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.commons.DbUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.launch.IFinishLaunchHandler;
+import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
@@ -64,6 +65,7 @@ import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSup
 import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.database.entity.Status.*;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
+import static com.epam.ta.reportportal.util.Predicates.IS_RETRY;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.toList;
 
@@ -94,6 +96,9 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
+
+	@Autowired
+	private IRetriesLaunchHandler retriesLaunchHandler;
 
 	@Override
 	public OperationCompletionRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String username) {
@@ -174,6 +179,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 				List<TestItem> itemsInProgress = testItemRepository.findInStatusItems(IN_PROGRESS.name(), launch.getId());
 				interruptItems(itemsInProgress);
 			}
+			retriesLaunchHandler.handleRetries(launch);
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while Launch updating.", exp);
 		}
@@ -254,7 +260,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 			item.setStatus(INTERRUPTED);
 			item.setEndTime(Calendar.getInstance().getTime());
 			item = testItemRepository.save(item);
-			if (!item.hasChilds()) {
+			if (!item.hasChilds() && !IS_RETRY.test(item)) {
 				Project project = projectRepository.findOne(launchRepository.findOne(item.getLaunchRef()).getProjectRef());
 				item = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.updateExecutionStatistics(item);

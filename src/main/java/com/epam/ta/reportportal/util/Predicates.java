@@ -21,6 +21,8 @@
 
 package com.epam.ta.reportportal.util;
 
+import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.google.common.base.CharMatcher;
 
 import java.util.function.Predicate;
@@ -42,4 +44,16 @@ public class Predicates {
 	 * Checker whether string contains special characters only
 	 */
 	public static final Predicate<String> SPECIAL_CHARS_ONLY = str -> CharMatcher.anyOf(SPECIAL_CHARACTERS).matchesAllOf(str);
+
+	/**
+	 * Checkc if item is a retry
+	 */
+	public static final Predicate<TestItem> IS_RETRY = item -> item.getRetryProcessed() != null;
+
+	/**
+	 * Checks if item is avaliable for indexing in AA
+	 */
+	public static final Predicate<TestItem> CAN_BE_INDEXED = item -> !item.getIssue().isIgnoreAnalyzer() && !item.getIssue()
+			.getIssueType()
+			.equals(TestItemIssueType.TO_INVESTIGATE.getLocator());
 }

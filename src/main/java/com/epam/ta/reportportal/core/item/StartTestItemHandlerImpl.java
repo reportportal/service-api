@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.Preconditions;
+import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
@@ -29,7 +30,6 @@ import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.util.RetryId;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
@@ -70,9 +70,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	public StartTestItemHandlerImpl() {
 		retrier = new RetryTemplate();
-		TimeoutRetryPolicy timoutRetryPolicy = new TimeoutRetryPolicy();
-		timoutRetryPolicy.setTimeout(TimeUnit.SECONDS.toMillis(3L));
-		retrier.setRetryPolicy(timoutRetryPolicy);
+		TimeoutRetryPolicy timeoutRetryPolicy = new TimeoutRetryPolicy();
+		timeoutRetryPolicy.setTimeout(TimeUnit.SECONDS.toMillis(3L));
+		retrier.setRetryPolicy(timeoutRetryPolicy);
 		retrier.setBackOffPolicy(new FixedBackOffPolicy());
 		retrier.setThrowLastExceptionOnExhausted(true);
 	}
@@ -113,7 +113,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	}
 
 	/**
-	 * Starts children item and building it's path from parent with parant's
+	 * Starts children item and building it's path from parent with parent's
 	 */
 	@Override
 	public ItemCreatedRS startChildItem(String projectName, StartTestItemRQ rq, String parent) {
@@ -135,22 +135,18 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 		if (rq.isRetry()) {
 			TestItem retryRoot = getRetryRoot(item.getUniqueId(), parent);
+			if (null == retryRoot.getRetryProcessed()) {
+				retryRoot.setRetryProcessed(false);
+				testItemRepository.partialUpdate(retryRoot);
+			}
 
-			RetryId retryId = RetryId.newID(retryRoot.getId());
-
-			item.setId(retryId.toString());
-			item.setParent(null);
-
-			LOGGER.debug("Adding retry with ID '{}' to item '{}'", item.getId(), retryRoot.getId());
-			testItemRepository.addRetry(retryRoot.getId(), item);
-
+			item.setRetryProcessed(false);
+			testItemRepository.save(item);
 			launchRepository.updateHasRetries(item.getLaunchRef(), true);
 
 		} else {
 			LOGGER.debug("Starting Item with name '{}'", item.getName());
-
 			testItemRepository.save(item);
-
 			if (!parentItem.hasChilds()) {
 				testItemRepository.updateHasChilds(parentItem.getId(), true);
 			}
@@ -172,11 +168,14 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		 */
 		return retrier.execute(context -> {
 			/* search for the item with the same unique ID and parent. Since retries do not contain
-			 * parentID, there should be only one result
+			 * parentID, there should be only one result. For correct further processing - it needs
+			 * to be waited for the end of retries root item.
 			 */
 			TestItem item = testItemRepository.findRetryRoot(uniqueID, parent);
 			BusinessRule.expect(item, com.epam.ta.reportportal.commons.Predicates.notNull())
 					.verify(ErrorType.BAD_REQUEST_ERROR, "No retry root found");
+			BusinessRule.expect(item.getStatus(), Predicates.not(it -> it.equals(Status.IN_PROGRESS)))
+					.verify(BAD_REQUEST_ERROR, "Retries root is still IN_PROGRESS");
 			return item;
 		});
 	}
@@ -189,10 +188,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		);
 
 		expect(rq, Preconditions.startSameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(),
-				launch.getStartTime(),
-				launch.getId()
+				rq.getStartTime(), launch.getStartTime(), launch.getId()
 		);
+		expect(rq.isRetry(), equalTo(false)).verify(BAD_REQUEST_ERROR, "Root test item can't be a retry.");
 
 	}
 
@@ -208,9 +206,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	private void validate(StartTestItemRQ rq, TestItem parent) {
 		expect(rq, Preconditions.startSameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(),
-				parent.getStartTime(),
-				parent.getId()
+				rq.getStartTime(), parent.getStartTime(), parent.getId()
 		);
 	}
 }

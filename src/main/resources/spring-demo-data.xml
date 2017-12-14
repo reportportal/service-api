@@ -1064,7 +1064,10 @@
         <ref bean="launch1"/>
         <ref bean="itemParent"/>
         <ref bean="itemChild"/>
+        <ref bean="itemChildRetry"/>
         <ref bean="logOfChild"/>
+        <ref bean="logOfRetry"/>
+        <ref bean="logOfUnprocessedRetry"/>
     </util:list>
 
     <bean id="itemWithIssue" class="com.epam.ta.reportportal.database.entity.item.TestItem">
@@ -1161,6 +1164,30 @@
         <property name="endTime" value="05/02/2013 14:23 +0300"/>
         <property name="status" value="IN_PROGRESS"/>
         <property name="launchRef" value="51824cc1553de743b3e5aa2c"/>
+        <property name="retryProcessed" value="true"/>
+        <property name="retries">
+            <util:list>
+                <bean class="com.epam.ta.reportportal.database.entity.item.TestItem">
+                    <property name="id" value="44524cc1443de753b3e5ab2f"/>
+                </bean>
+            </util:list>
+        </property>
+        <property name="path">
+            <util:list>
+                <value>44524cc1553de753b3e5aa2f</value>
+            </util:list>
+        </property>
+    </bean>
+
+    <bean id="itemChildRetry" class="com.epam.ta.reportportal.database.entity.item.TestItem">
+        <property name="id" value="44524cc2532de753b3e5ab2f"/>
+        <property name="name" value="Demo Child Retry TestItem"/>
+        <property name="itemDescription" value="teststep for triggers validation"/>
+        <property name="startTime" value="05/02/2013 14:23 +0300"/>
+        <property name="endTime" value="05/02/2013 14:23 +0300"/>
+        <property name="status" value="IN_PROGRESS"/>
+        <property name="launchRef" value="51824cc1553de743b3e5aa2c"/>
+        <property name="retryProcessed" value="false"/>
         <property name="path">
             <util:list>
                 <value>44524cc1553de753b3e5aa2f</value>
@@ -1237,6 +1264,20 @@
         </property>
         <property name="testItemRef" value="44524cc1553de753b3e5ab2f"/>
         <!-- itemChild -->
+    </bean>
+
+    <bean id="logOfRetry" class="com.epam.ta.reportportal.database.entity.Log">
+        <property name="id" value="5187cba5555d2fdd91869773"/>
+        <property name="logTime" value="05/06/2013 18:26 +0300"/>
+        <property name="logMsg" value="Log of Demo Child TestItem"/>
+        <property name="testItemRef" value="44524cc1443de753b3e5ab2f"/>
+    </bean>
+
+    <bean id="logOfUnprocessedRetry" class="com.epam.ta.reportportal.database.entity.Log">
+        <property name="id" value="5187cba5555d2fdd21869773"/>
+        <property name="logTime" value="05/06/2013 18:26 +0300"/>
+        <property name="logMsg" value="Log of Demo Child Retry TestItem"/>
+        <property name="testItemRef" value="44524cc2532de753b3e5ab2f"/>
     </bean>
 
     <bean id="logOfChild1" class="com.epam.ta.reportportal.database.entity.Log">

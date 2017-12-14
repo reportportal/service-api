@@ -22,7 +22,6 @@ package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
-import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
@@ -36,7 +35,7 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.RetryId;
+import com.epam.ta.reportportal.util.Predicates;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -81,7 +80,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private TestItemRepository testItemRepository;
 	private StatisticsFacadeFactory statisticsFacadeFactory;
 	private ExternalSystemRepository externalSystemRepository;
-	private ILogIndexer logIndexer;
 
 	@Autowired
 	public void setProjectRepository(ProjectRepository projectRepository) {
@@ -108,27 +106,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		this.externalSystemRepository = externalSystemRepository;
 	}
 
-	@Autowired
-	public void setLogIndexer(ILogIndexer logIndexer) {
-		this.logIndexer = logIndexer;
-	}
-
 	@Override
 	public OperationCompletionRS finishTestItem(String testItemId, FinishTestItemRQ finishExecutionRQ, String username) {
 
-		TestItem testItem;
-		TestItem retryRoot = null;
-		if (RetryId.isRetry(testItemId)) {
-
-			RetryId retryID = RetryId.parse(testItemId);
-			LOGGER.debug("Finishing retry with ID: {} for parent {}", testItemId, retryID);
-			retryRoot = testItemRepository.findOne(retryID.getRootID());
-
-			LOGGER.debug("Retry root with {} childs has found", retryRoot.getRetries());
-			testItem = retryRoot.getRetries().stream().filter(it -> it.getId().equals(testItemId)).findAny().get();
-		} else {
-			testItem = testItemRepository.findOne(testItemId);
-		}
+		TestItem testItem = testItemRepository.findOne(testItemId);
 
 		verifyTestItem(testItem, testItemId, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()));
 
@@ -149,8 +130,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		Optional<Status> actualStatus = fromValue(finishExecutionRQ.getStatus());
 		Issue providedIssue = finishExecutionRQ.getIssue();
 
-		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration()
-				.getStatisticsCalculationStrategy());
+		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(
+				project.getConfiguration().getStatisticsCalculationStrategy());
 
 		/*
 		 * If test item has descendants, it's status is resolved from statistics
@@ -162,45 +143,15 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		} else {
 			testItem.setStatus(actualStatus.get());
 		}
-
-		if (statisticsFacade.awareIssue(testItem)) {
-			testItem = awareTestItemIssueTypeFromStatus(testItem, providedIssue, project, username);
-		}
-
 		try {
 			//retry mode
-			if (null != retryRoot) {
-				testItemRepository.updateRetry(testItem.getId(), testItem);
-				if (!IN_PROGRESS.equals(retryRoot.getStatus()) && retryRoot.getStatus() != testItem.getStatus()) {
-
-					/* reset current statistics */
-					statisticsFacade.resetExecutionStatistics(retryRoot);
-					if (null != retryRoot.getIssue()) {
-						statisticsFacade.resetIssueStatistics(retryRoot);
-					}
-
-					/* copy statistics from last retry attempt */
-					retryRoot.setStatus(testItem.getStatus());
-					retryRoot.setIssue(testItem.getIssue());
-					retryRoot.setStatistics(testItem.getStatistics());
-
-
-					/* update statistics */
-					statisticsFacade.updateExecutionStatistics(retryRoot);
-					if (null != testItem.getIssue()) {
-						statisticsFacade.resetIssueStatistics(retryRoot);
-						statisticsFacade.updateIssueStatistics(retryRoot);
-					}
-
-					//update root with just filled values. Do not update statistics and retries
-					retryRoot.setStatistics(null);
-					retryRoot.setRetries(null);
-					testItemRepository.partialUpdate(retryRoot);
-
-				}
+			if (Predicates.IS_RETRY.test(testItem)) {
+				testItem.setIssue(null);
+				testItemRepository.save(testItem);
 			} else {
-				/* do not touch retries */
-				testItem.setRetries(null);
+				if (statisticsFacade.awareIssue(testItem)) {
+					testItem = awareTestItemIssueTypeFromStatus(testItem, providedIssue, project, username);
+				}
 				testItem.setStatistics(null);
 				testItemRepository.partialUpdate(testItem);
 
@@ -210,7 +161,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				}
 			}
 
-			logIndexer.indexLogs(launch.getId(), Collections.singletonList(testItem));
 		} catch (Exception e) {
 			throw new ReportPortalException("Error during updating TestItem " + e.getMessage(), e);
 		}
@@ -241,17 +191,12 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				descendants = testItemRepository.findDescendants(testItem.getId());
 			}
 			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED,
-					formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'",
-							testItemId,
-							IN_PROGRESS.name(),
-							descendants
+					formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'", testItemId,
+							IN_PROGRESS.name(), descendants
 					)
 			);
-			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
-					finishExecutionRQ.getEndTime(),
-					testItem.getStartTime(),
-					testItemId
-			);
+			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime())).verify(
+					FINISH_TIME_EARLIER_THAN_START_TIME, finishExecutionRQ.getEndTime(), testItem.getStartTime(), testItemId);
 
 			/*
 			 * If there is issue provided we have to be sure issue type is
@@ -266,9 +211,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		if (issue != null && !NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(issue.getIssueType())) {
 			expect(projectSettings.getByLocator(issue.getIssueType()), notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
 					"Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types locators are: {}",
-					issue.getIssueType(),
-					testItemId,
-					projectSettings.getSubTypes()
+					issue.getIssueType(), testItemId, projectSettings.getSubTypes()
 							.values()
 							.stream()
 							.flatMap(Collection::stream)
@@ -297,14 +240,12 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 					);
 
 					//set provided external issues if any present
-					issue.setExternalSystemIssues(Optional.ofNullable(providedIssue.getExternalSystemIssues())
-							.map(issues -> issues.stream().peek(it -> {
+					issue.setExternalSystemIssues(
+							Optional.ofNullable(providedIssue.getExternalSystemIssues()).map(issues -> issues.stream().peek(it -> {
 								//not sure if it propogates exception correctly
-								expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true)).verify(EXTERNAL_SYSTEM_NOT_FOUND,
-										it.getExternalSystemId()
-								);
-							}).map(TestItemUtils.externalIssueDtoConverter(submitter)).collect(Collectors.toSet()))
-							.orElse(null));
+								expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true)).verify(
+										EXTERNAL_SYSTEM_NOT_FOUND, it.getExternalSystemId());
+							}).map(TestItemUtils.externalIssueDtoConverter(submitter)).collect(Collectors.toSet())).orElse(null));
 
 					testItem.setIssue(issue);
 				}

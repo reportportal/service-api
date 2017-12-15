@@ -132,9 +132,7 @@ public class AclUtils {
 	public static boolean isPossibleToReadResource(Acl acl, String userModifier, String projectName) {
 		// Not resource owner
 		if (!acl.getOwnerUserId().equalsIgnoreCase(userModifier)) {
-			if (acl.getEntries().stream().noneMatch(Preconditions.hasACLPermission(projectName, AclPermissions.READ))) {
-				return false;
-			}
+			return !acl.getEntries().stream().noneMatch(Preconditions.hasACLPermission(projectName, AclPermissions.READ));
 		}
 		return true;
 	}

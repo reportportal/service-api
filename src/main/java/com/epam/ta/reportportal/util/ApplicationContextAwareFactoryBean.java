@@ -71,7 +71,7 @@ public abstract class ApplicationContextAwareFactoryBean<T> implements FactoryBe
 	 * @see org.springframework.beans.factory.FactoryBean#getObject()
 	 */
 	@Override
-	public T getObject() throws Exception {
+	public T getObject() {
 		return beanSupplier.get();
 	}
 
@@ -94,7 +94,7 @@ public abstract class ApplicationContextAwareFactoryBean<T> implements FactoryBe
 	 * lazy-initialization
 	 */
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		Supplier<T> supplier = this::createInstance;
 
 		this.beanSupplier = isSingleton() ? Suppliers.memoize(supplier) : supplier;

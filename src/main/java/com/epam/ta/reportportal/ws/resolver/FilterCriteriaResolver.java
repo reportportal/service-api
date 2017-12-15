@@ -77,7 +77,7 @@ public class FilterCriteriaResolver implements HandlerMethodArgumentResolver {
 
 	@Override
 	public Filter resolveArgument(MethodParameter methodParameter, ModelAndViewContainer paramModelAndViewContainer,
-			NativeWebRequest webRequest, WebDataBinderFactory paramWebDataBinderFactory) throws Exception {
+			NativeWebRequest webRequest, WebDataBinderFactory paramWebDataBinderFactory) {
 		return resolveAsList(methodParameter, webRequest);
 	}
 

@@ -26,6 +26,9 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.quartz.JobExecutionContext;
+
+import static org.mockito.Mockito.mock;
 
 /**
  * Validates statistics updates after execution of interrupt launches job
@@ -42,12 +45,12 @@ public class InterruptJobStatisticsTest extends BaseInterruptTest {
 	 * @throws InterruptedException
 	 */
 	@Test
-	public void interruptInProgressItem() throws InterruptedException {
+	public void interruptInProgressItem() {
 		Launch launch = insertLaunchInProgres();
 		TestItem item = prepareTestItem(launch);
 		testItemRepository.save(item);
 
-		brokenLaunchesJob.run();
+		brokenLaunchesJob.execute(mock(JobExecutionContext.class));
 
 		Assert.assertEquals(
 				"Total count of launch is expected to be == 1", Integer.valueOf(1),

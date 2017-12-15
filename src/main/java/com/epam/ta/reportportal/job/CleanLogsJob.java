@@ -25,8 +25,10 @@ import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -42,7 +44,7 @@ import static java.time.Duration.ofDays;
  * @author Andrei_Ramanchuk
  */
 @Service
-public class CleanLogsJob implements Runnable {
+public class CleanLogsJob implements Job {
 
 	@Autowired
 	private LogRepository logRepo;
@@ -60,8 +62,8 @@ public class CleanLogsJob implements Runnable {
 	private ActivityRepository activityRepository;
 
 	@Override
-	@Scheduled(cron = "${com.ta.reportportal.job.clean.logs.cron}")
-	public void run() {
+//	@Scheduled(cron = "${com.ta.reportportal.job.clean.logs.cron}")
+	public void execute(JobExecutionContext context) {
 		try (Stream<Project> stream = projectRepository.streamAllIdsAndConfiguration()) {
 			stream.forEach(project -> {
 				Duration period = ofDays(findByName(project.getConfiguration().getKeepLogs()).getDays());

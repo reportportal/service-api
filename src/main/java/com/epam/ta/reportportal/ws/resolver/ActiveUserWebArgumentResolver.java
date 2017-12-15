@@ -63,7 +63,7 @@ public class ActiveUserWebArgumentResolver implements HandlerMethodArgumentResol
 	 */
 	@Override
 	public Object resolveArgument(MethodParameter methodParameter, ModelAndViewContainer paramModelAndViewContainer,
-			NativeWebRequest webRequest, WebDataBinderFactory paramWebDataBinderFactory) throws Exception {
+			NativeWebRequest webRequest, WebDataBinderFactory paramWebDataBinderFactory) {
 		Authentication authentication = (Authentication) webRequest.getUserPrincipal();
 		if (!authentication.getAuthorities().isEmpty()) {
 			Optional<UserRole> userRole = UserRole.findByAuthority(authentication.getAuthorities().iterator().next().getAuthority());

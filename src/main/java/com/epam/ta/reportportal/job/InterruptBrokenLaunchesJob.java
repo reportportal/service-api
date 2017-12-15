@@ -1,20 +1,20 @@
 /*
  * Copyright 2016 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -33,8 +33,10 @@ import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.project.InterruptionJobDelay;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+
 
 import java.time.Duration;
 import java.util.Calendar;
@@ -51,7 +53,7 @@ import static java.time.Duration.ofHours;
  * @author Andrei Varabyeu
  */
 @Service
-public class InterruptBrokenLaunchesJob implements Runnable {
+public class InterruptBrokenLaunchesJob implements Job {
 
 	@Autowired
 	private LaunchRepository launchRepository;
@@ -72,40 +74,40 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 	private IRetriesLaunchHandler retriesLaunchHandler;
 
 	@Override
-	@Scheduled(cron = "${com.ta.reportportal.job.interrupt.broken.launches.cron}")
-	public void run() {
+	//	@Scheduled(cron = "${com.ta.reportportal.job.interrupt.broken.launches.cron}")
+	public void execute(JobExecutionContext context) {
 		try (Stream<Project> projects = projectRepository.streamAllIdsAndConfiguration()) {
 			projects.forEach(project -> {
 				Duration maxDuration = ofHours(InterruptionJobDelay.findByName(project.getConfiguration().getInterruptJobTime())
 						.getPeriod());
 				launchRepository.findModifiedLaterAgo(maxDuration, Status.IN_PROGRESS, project.getId()).forEach(launch -> {
 					if (!launchRepository.hasItems(launch, Status.IN_PROGRESS)) {
-					/*
-					 * There are no test items for this launch. Just INTERRUPT
-					 * this launch
-					 */
+						/*
+						 * There are no test items for this launch. Just INTERRUPT
+						 * this launch
+						 */
 						interruptLaunch(launch);
 					} else {
-					/*
-					 * Well, there are some test items started for specified
-					 * launch
-					 */
+						/*
+						 * Well, there are some test items started for specified
+						 * launch
+						 */
 
 						if (!testItemRepository.hasTestItemsAddedLately(maxDuration, launch, Status.IN_PROGRESS)) {
 							List<TestItem> items = testItemRepository.findModifiedLaterAgo(maxDuration, Status.IN_PROGRESS, launch);
 
-						/*
-						 * If there are logs, we have to check whether them
-						 * expired
-						 */
+							/*
+							 * If there are logs, we have to check whether them
+							 * expired
+							 */
 							if (testItemRepository.hasLogs(items)) {
 								boolean isLaunchBroken = true;
 								for (TestItem item : items) {
-								/*
-								 * If there are logs which are still valid
-								 * (probably automation project keep writing
-								 * something)
-								 */
+									/*
+									 * If there are logs which are still valid
+									 * (probably automation project keep writing
+									 * something)
+									 */
 									if (logRepository.hasLogsAddedLately(maxDuration, item)) {
 										isLaunchBroken = false;
 										break;
@@ -115,9 +117,9 @@ public class InterruptBrokenLaunchesJob implements Runnable {
 									interruptItems(testItemRepository.findInStatusItems(Status.IN_PROGRESS.name(), launch.getId()), launch);
 								}
 							} else {
-							/*
-							 * If not just INTERRUPT all found items and launch
-							 */
+								/*
+								 * If not just INTERRUPT all found items and launch
+								 */
 								interruptItems(testItemRepository.findInStatusItems(Status.IN_PROGRESS.name(), launch.getId()), launch);
 							}
 						}

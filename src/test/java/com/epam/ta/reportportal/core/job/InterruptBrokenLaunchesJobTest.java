@@ -27,8 +27,11 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.quartz.JobExecutionContext;
 
 import java.util.Calendar;
+
+import static org.mockito.Mockito.mock;
 
 /**
  * Validates status of launch and test item after interrupt job execution
@@ -46,12 +49,12 @@ public class InterruptBrokenLaunchesJobTest extends BaseInterruptTest {
 	 * @throws InterruptedException
 	 */
 	@Test
-	public void interruptInProgressItem() throws InterruptedException {
+	public void interruptInProgressItem() {
 		Launch launch = insertLaunchInProgres();
 		TestItem item = prepareTestItem(launch);
 		testItemRepository.save(item);
 
-		brokenLaunchesJob.run();
+		brokenLaunchesJob.execute(mock(JobExecutionContext.class));
 
 		Assert.assertEquals("INTERRUPTED Status is expected", Status.INTERRUPTED, launchRepository.findOne(launch.getId()).getStatus());
 		Assert.assertEquals("INTERRUPTED Status is expected", Status.INTERRUPTED, testItemRepository.findOne(item.getId()).getStatus());
@@ -65,7 +68,7 @@ public class InterruptBrokenLaunchesJobTest extends BaseInterruptTest {
 	 * @throws InterruptedException
 	 */
 	@Test
-	public void interruptPassedItem() throws InterruptedException {
+	public void interruptPassedItem() {
 		Launch launch = insertLaunchInProgres();
 		TestItem itemToBeInterrupted = prepareTestItem(launch);
 		testItemRepository.save(itemToBeInterrupted);
@@ -76,7 +79,7 @@ public class InterruptBrokenLaunchesJobTest extends BaseInterruptTest {
 		itemNotInProgress.setLastModified(Calendar.getInstance().getTime());
 		testItemRepository.save(itemNotInProgress);
 
-		brokenLaunchesJob.run();
+		brokenLaunchesJob.execute(mock(JobExecutionContext.class));
 
 		Assert.assertEquals("INTERRUPTED Status is expected", Status.INTERRUPTED, launchRepository.findOne(launch.getId()).getStatus());
 		Assert.assertEquals("INTERRUPTED Status is expected", Status.INTERRUPTED,
@@ -94,7 +97,7 @@ public class InterruptBrokenLaunchesJobTest extends BaseInterruptTest {
 	 * @throws InterruptedException
 	 */
 	@Test
-	public void interruptItemWithOnlyPassedChilds() throws InterruptedException {
+	public void interruptItemWithOnlyPassedChilds() {
 		Launch launch = insertLaunchInProgres();
 		TestItem itemToBeInterrupted = prepareTestItem(launch);
 		itemToBeInterrupted.setHasChilds(true);
@@ -107,7 +110,7 @@ public class InterruptBrokenLaunchesJobTest extends BaseInterruptTest {
 		itemNotInProgress.setLastModified(Calendar.getInstance().getTime());
 		testItemRepository.save(itemNotInProgress);
 
-		brokenLaunchesJob.run();
+		brokenLaunchesJob.execute(mock(JobExecutionContext.class));
 
 		Assert.assertEquals("INTERRUPTED Status is expected", Status.INTERRUPTED, launchRepository.findOne(launch.getId()).getStatus());
 		Assert.assertEquals("INTERRUPTED Status is expected", Status.INTERRUPTED,
@@ -124,9 +127,9 @@ public class InterruptBrokenLaunchesJobTest extends BaseInterruptTest {
 	 * @throws InterruptedException
 	 */
 	@Test
-	public void interruptLaunchWithNoItems() throws InterruptedException {
+	public void interruptLaunchWithNoItems() {
 		Launch launch = insertLaunchInProgres();
-		brokenLaunchesJob.run();
+		brokenLaunchesJob.execute(null);
 		Assert.assertEquals("INTERRUPTED Status is expected", Status.INTERRUPTED, launchRepository.findOne(launch.getId()).getStatus());
 	}
 
@@ -136,7 +139,7 @@ public class InterruptBrokenLaunchesJobTest extends BaseInterruptTest {
 	 * @throws InterruptedException
 	 */
 	@Test
-	public void interruptLaunchWithPassedItems() throws InterruptedException {
+	public void interruptLaunchWithPassedItems() {
 		Launch launch = insertLaunchInProgres();
 
 		TestItem passedTestItem = prepareTestItem(launch);
@@ -145,7 +148,7 @@ public class InterruptBrokenLaunchesJobTest extends BaseInterruptTest {
 		passedTestItem.setLastModified(Calendar.getInstance().getTime());
 		testItemRepository.save(passedTestItem);
 
-		brokenLaunchesJob.run();
+		brokenLaunchesJob.execute(mock(JobExecutionContext.class));
 		Assert.assertEquals("INTERRUPTED Status is expected", Status.INTERRUPTED, launchRepository.findOne(launch.getId()).getStatus());
 	}
 }

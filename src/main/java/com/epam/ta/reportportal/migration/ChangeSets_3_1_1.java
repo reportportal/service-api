@@ -42,7 +42,7 @@ public class ChangeSets_3_1_1 {
 	private static final String ID_FIELD = "_id";
 
 	@ChangeSet(order = "3.1.1-1", id = "v3.1.1-Remove LEAD project role", author = "avarabyeu")
-	public void removeLeadRole(MongoTemplate mongoTemplate) throws IOException {
+	public void removeLeadRole(MongoTemplate mongoTemplate) {
 		final Query q = new Query();
 		q.fields().include("_id").include("users");
 		mongoTemplate.stream(q, DBObject.class, "project").forEachRemaining(dbo -> {

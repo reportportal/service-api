@@ -26,8 +26,9 @@ import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.project.KeepScreenshotsDelay;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -41,7 +42,7 @@ import static java.time.Duration.ofDays;
  * @author Andrei_Ramanchuk
  */
 @Service
-public class CleanScreenshotsJob implements Runnable {
+public class CleanScreenshotsJob implements Job {
 
 	@Autowired
 	private DataStorage gridFS;
@@ -53,8 +54,8 @@ public class CleanScreenshotsJob implements Runnable {
 	private LogRepository logRepository;
 
 	@Override
-	@Scheduled(cron = "${com.ta.reportportal.job.clean.screenshots.cron}")
-	public void run() {
+//	@Scheduled(cron = "${com.ta.reportportal.job.clean.screenshots.cron}")
+	public void execute(JobExecutionContext context) {
 		try (Stream<Project> projects = projectRepository.streamAllIdsAndConfiguration()) {
 			projects.forEach(project -> {
 				Duration period = ofDays(KeepScreenshotsDelay.findByName(project.getConfiguration().getKeepScreenshots()).getDays());

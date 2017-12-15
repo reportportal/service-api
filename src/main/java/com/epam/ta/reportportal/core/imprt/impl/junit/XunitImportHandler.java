@@ -79,18 +79,18 @@ public class XunitImportHandler extends DefaultHandler {
 	private LocalDateTime startItemTime;
 
 	@Override
-	public void startDocument() throws SAXException {
+	public void startDocument() {
 		itemsIds = new ArrayDeque<>();
 		message = new StringBuilder();
 		startSuiteTime = LocalDateTime.now();
 	}
 
 	@Override
-	public void endDocument() throws SAXException {
+	public void endDocument() {
 	}
 
 	@Override
-	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+	public void startElement(String uri, String localName, String qName, Attributes attributes) {
 		switch (XunitReportTag.fromString(qName)) {
 			case TESTSUITE:
 				if (itemsIds.isEmpty()) {
@@ -122,7 +122,7 @@ public class XunitImportHandler extends DefaultHandler {
 	}
 
 	@Override
-	public void endElement(String uri, String localName, String qName) throws SAXException {
+	public void endElement(String uri, String localName, String qName) {
 		switch (XunitReportTag.fromString(qName)) {
 			case TESTSUITE:
 				finishRootItem();
@@ -145,7 +145,7 @@ public class XunitImportHandler extends DefaultHandler {
 	}
 
 	@Override
-	public void characters(char[] ch, int start, int length) throws SAXException {
+	public void characters(char[] ch, int start, int length) {
 		String msg = new String(ch, start, length);
 		if (!msg.isEmpty()) {
 			message.append(new String(ch, start, length));

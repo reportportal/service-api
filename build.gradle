@@ -51,6 +51,8 @@ repositories {
     maven { url "http://dl.bintray.com/epam/reportportal" }
     maven { url "http://jasperreports.sourceforge.net/maven2" }
     maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
+    maven { url "https://dl.bintray.com/michaelklishin/maven/" }
+
     if (!releaseMode) {
         maven { url 'https://jitpack.io' }
     }
@@ -109,6 +111,8 @@ dependencies {
 
     compile 'com.github.mongobee:mongobee:0.12'
 
+    compile 'org.quartz-scheduler:quartz:2.3.0'
+    compile "com.novemberain:quartz-mongodb:2.0.0"
 
     compile 'net.sf.jasperreports:jasperreports:6.3.1'
     //JasperReport's export to XLS uses Apache POI. Reports 6.3.1 needs version NOT

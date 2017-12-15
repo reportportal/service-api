@@ -43,7 +43,7 @@ public class JsonViewSupportFactoryBean implements InitializingBean {
 	private RequestMappingHandlerAdapter adapter;
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		List<HandlerMethodReturnValueHandler> handlers = adapter.getReturnValueHandlers();
 		adapter.setReturnValueHandlers(decorateHandlers(handlers));
 	}

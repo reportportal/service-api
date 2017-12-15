@@ -81,7 +81,7 @@ public class CleanLogsJobTest {
 		when(launchRepo.streamIdsByProject(anyString())).thenReturn(sl);
 		when(testItemRepo.streamIdsByLaunch(anyString())).thenReturn(st);
 
-		cleanLogsJob.run();
+		cleanLogsJob.execute(null);
 
 		verify(activityRepository, times(1)).deleteModifiedLaterAgo(anyString(), any(Duration.class));
 		verify(logRepo, times(1)).deleteByPeriodAndItemsRef(any(Duration.class), anyListOf(String.class));

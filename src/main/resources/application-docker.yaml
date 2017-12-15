@@ -19,8 +19,7 @@ rp:
   analyzer:
     url: http://analyzer:8080
   mongo:
-    host: mongodb
-    port: 27017
+    uri: mongodb://localhost:27017
     dbName: reportportal
 
 spring:

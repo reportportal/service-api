@@ -80,10 +80,10 @@ public class TestItemsHistoryService implements ITestItemsHistoryService {
 		if (startingLaunch.getMode() == DEBUG) {
 			return Collections.singletonList(startingLaunch);
 		}
-		Filter filter = HistoryUtils.getLaunchSelectionFilter(startingLaunch.getName(), projectName, startingLaunch.getStartTime(),
+		Filter filter = HistoryUtils.getLaunchSelectionFilter(startingLaunch.getName(), projectName, startingLaunch.getNumber().toString(),
 				showBrokenLaunches
 		);
-		return launchRepository.findIdsByFilter(filter, new Sort(DESC, "start_time"), quantity);
+		return launchRepository.findIdsByFilter(filter, new Sort(DESC, "number"), quantity);
 	}
 
 	@Override

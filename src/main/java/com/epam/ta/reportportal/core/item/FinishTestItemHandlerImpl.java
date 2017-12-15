@@ -40,6 +40,7 @@ import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -143,15 +144,14 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		} else {
 			testItem.setStatus(actualStatus.get());
 		}
+		if (statisticsFacade.awareIssue(testItem)) {
+			testItem = awareTestItemIssueTypeFromStatus(testItem, providedIssue, project, username);
+		}
 		try {
 			//retry mode
 			if (Predicates.IS_RETRY.test(testItem)) {
-				testItem.setIssue(null);
 				testItemRepository.save(testItem);
 			} else {
-				if (statisticsFacade.awareIssue(testItem)) {
-					testItem = awareTestItemIssueTypeFromStatus(testItem, providedIssue, project, username);
-				}
 				testItem.setStatistics(null);
 				testItemRepository.partialUpdate(testItem);
 
@@ -246,7 +246,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 								expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true)).verify(
 										EXTERNAL_SYSTEM_NOT_FOUND, it.getExternalSystemId());
 							}).map(TestItemUtils.externalIssueDtoConverter(submitter)).collect(Collectors.toSet())).orElse(null));
-
+					issue.setIgnoreAnalyzer(BooleanUtils.toBoolean(providedIssue.getIgnoreAnalyzer()));
 					testItem.setIssue(issue);
 				}
 			} else {

@@ -28,8 +28,6 @@ import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.database.search.FilterConditionUtils;
 
-import java.util.Date;
-
 /**
  * Provide utilities for loading test items history
  *
@@ -56,7 +54,7 @@ class HistoryUtils {
 	 *
 	 * @param launchName         - name of searching launch
 	 * @param projectName        - name of project
-	 * @param startTime
+	 * @param number		 	 - the starting launch number
 	 * @param showBrokenLaunches - <b>boolean</b> should in_progress and interrupted launches
 	 *                           been included in history:<br>
 	 *                           <code>true</code> - if history should contain all launch
@@ -65,13 +63,11 @@ class HistoryUtils {
 	 *                           failed launches
 	 * @return Filter
 	 */
-	public static Filter getLaunchSelectionFilter(String launchName, String projectName, Date startTime, boolean showBrokenLaunches) {
+	public static Filter getLaunchSelectionFilter(String launchName, String projectName, String number, boolean showBrokenLaunches) {
 
 		Filter filter = new Filter(Launch.class, Condition.EQUALS, false, launchName, "name");
 		FilterCondition projectCondition = new FilterCondition(Condition.EQUALS, false, projectName, "project");
-		FilterCondition startTimeCondition = new FilterCondition(Condition.LOWER_THAN_OR_EQUALS, false, String.valueOf(startTime.getTime()),
-				"start_time"
-		);
+		FilterCondition startTimeCondition = new FilterCondition(Condition.LOWER_THAN_OR_EQUALS, false, number, "number");
 
 		filter.addCondition(projectCondition);
 		filter.addCondition(startTimeCondition);

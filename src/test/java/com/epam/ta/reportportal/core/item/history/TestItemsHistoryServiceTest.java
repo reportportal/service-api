@@ -105,8 +105,8 @@ public class TestItemsHistoryServiceTest {
 	public void loadLaunches() {
 		Launch launch = launch();
 		int count = 1;
-		Sort start_time = new Sort(Sort.Direction.DESC, "start_time");
-		Filter filter = HistoryUtils.getLaunchSelectionFilter(launch.getName(), PROJECT, now, true);
+		Sort start_time = new Sort(Sort.Direction.DESC, "number");
+		Filter filter = HistoryUtils.getLaunchSelectionFilter(launch.getName(), PROJECT, "1", true);
 		when(launchRepository.findNameNumberAndModeById(launch.getId())).thenReturn(launch);
 		when(launchRepository.findIdsByFilter(eq(filter), eq(start_time), eq(count))).thenReturn(Collections.singletonList(launch));
 		List<Launch> launches = historyService.loadLaunches(count, launch.getId(), PROJECT, true);

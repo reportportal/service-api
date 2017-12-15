@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.history.status.RetryObject;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -124,7 +123,7 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 		retries.remove(retries.size() - 1);
 		lastRetry.setStartTime(retryRoot.getStartTime());
 		lastRetry.setRetries(retries);
-		lastRetry = updateRetryStatistics(lastRetry, retryRoot, statisticsFacade);
+		lastRetry = updateRetryStatistics(lastRetry, statisticsFacade);
 		return lastRetry;
 	}
 
@@ -132,14 +131,10 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 	 * Updates statistics of last retry using info from the retry root
 	 *
 	 * @param lastRetry        Last retry
-	 * @param retryRoot        Retry root
 	 * @param statisticsFacade Statistics facade
 	 * @return Updated last retry
 	 */
-	private TestItem updateRetryStatistics(TestItem lastRetry, TestItem retryRoot, StatisticsFacade statisticsFacade) {
-		if (!Status.PASSED.equals(lastRetry.getStatus())) {
-			lastRetry.setIssue(retryRoot.getIssue());
-		}
+	private TestItem updateRetryStatistics(TestItem lastRetry, StatisticsFacade statisticsFacade) {
 		statisticsFacade.updateExecutionStatistics(lastRetry);
 		if (lastRetry.getIssue() != null) {
 			statisticsFacade.updateIssueStatistics(lastRetry);

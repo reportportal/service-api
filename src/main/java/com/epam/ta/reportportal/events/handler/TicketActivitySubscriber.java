@@ -118,17 +118,21 @@ public class TicketActivitySubscriber {
 				continue;
 			}
 			Activity.FieldValues fieldValues = results.get(testItem.getId());
-			fieldValues.withField(TICKET_ID).withNewValue(issuesIdsToString(testItem.getIssue().getExternalSystemIssues(), separator));
-			ActivityEventType type = testItem.getIssue().isAutoAnalyzed() ? ATTACH_ISSUE_AA : ATTACH_ISSUE;
-			Activity activity = new ActivityBuilder().addProjectRef(event.getProject())
-					.addActionType(type)
-					.addLoggedObjectRef(testItem.getId())
-					.addObjectType(TEST_ITEM)
-					.addObjectName(testItem.getName())
-					.addUserRef(event.getPostedBy())
-					.addHistory(Collections.singletonList(fieldValues))
-					.get();
-			activities.add(activity);
+
+			String newValue = issuesIdsToString(testItem.getIssue().getExternalSystemIssues(), separator);
+			if (newValue != null) {
+				fieldValues.withField(TICKET_ID).withNewValue(newValue);
+				ActivityEventType type = testItem.getIssue().isAutoAnalyzed() ? ATTACH_ISSUE_AA : ATTACH_ISSUE;
+				Activity activity = new ActivityBuilder().addProjectRef(event.getProject())
+						.addActionType(type)
+						.addLoggedObjectRef(testItem.getId())
+						.addObjectType(TEST_ITEM)
+						.addObjectName(testItem.getName())
+						.addUserRef(event.getPostedBy())
+						.addHistory(Collections.singletonList(fieldValues))
+						.get();
+				activities.add(activity);
+			}
 		}
 		activityRepository.save(activities);
 	}

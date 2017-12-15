@@ -122,9 +122,10 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 		Set<String> launchesIds = rq.getLaunches();
 		expect(launchesIds.size() > 1, equalTo(true)).verify(BAD_REQUEST_ERROR, rq.getLaunches());
 		List<Launch> launchesList = launchRepository.find(launchesIds);
+		boolean hasRetries = launchesList.stream().anyMatch(it -> it.getHasRetries() != null);
 		validateMergingLaunches(launchesList, user, project);
 
-		Launch launch = createResultedLaunch(projectName, userName, rq);
+		Launch launch = createResultedLaunch(projectName, userName, rq, hasRetries);
 		boolean isNameChanged = !launch.getName().equals(launchesList.get(0).getName());
 		updateChildrenOfLaunches(launch.getId(), rq.getLaunches(), rq.isExtendSuitesDescription(), isNameChanged);
 
@@ -227,7 +228,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 	 * @param mergeLaunchesRQ
 	 * @return launch
 	 */
-	private Launch createResultedLaunch(String projectName, String userName, MergeLaunchesRQ mergeLaunchesRQ) {
+	private Launch createResultedLaunch(String projectName, String userName, MergeLaunchesRQ mergeLaunchesRQ, boolean hasRetries) {
 		StartLaunchRQ startRQ = new StartLaunchRQ();
 		startRQ.setMode(mergeLaunchesRQ.getMode());
 		startRQ.setDescription(mergeLaunchesRQ.getDescription());
@@ -236,6 +237,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 		startRQ.setStartTime(mergeLaunchesRQ.getStartTime());
 		Launch launch = new LaunchBuilder().addStartRQ(startRQ).addProject(projectName).addStatus(IN_PROGRESS).addUser(userName).get();
 		launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
+		launch.setHasRetries(hasRetries ? true : null);
 		return launchRepository.save(launch);
 	}
 }

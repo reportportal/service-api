@@ -23,18 +23,19 @@ package com.epam.ta.reportportal.core.configs;
 import com.epam.ta.reportportal.job.CleanLogsJob;
 import com.epam.ta.reportportal.job.CleanScreenshotsJob;
 import com.epam.ta.reportportal.job.InterruptBrokenLaunchesJob;
-import org.quartz.*;
+import org.quartz.JobDetail;
+import org.quartz.SimpleTrigger;
+import org.quartz.Trigger;
+import org.quartz.spi.TriggerFiredBundle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
-import org.springframework.scheduling.quartz.JobDetailFactoryBean;
-import org.springframework.scheduling.quartz.SchedulerFactoryBean;
-import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
+import org.springframework.scheduling.quartz.*;
 
 import javax.inject.Named;
 import java.time.Duration;
@@ -51,6 +52,9 @@ public class SchedulerConfiguration {
 	@Autowired
 	private QuartzProperties quartzProperties;
 
+	@Autowired
+	private AutowireCapableBeanFactory context;
+
 	@Bean
 	@Primary
 	public SchedulerFactoryBean schedulerFactoryBean() {
@@ -60,6 +64,7 @@ public class SchedulerConfiguration {
 		scheduler.setQuartzProperties(quartzProperties.getQuartz());
 		scheduler.setAutoStartup(true);  // to not automatically start after startup
 		scheduler.setWaitForJobsToCompleteOnShutdown(true);
+		scheduler.setJobFactory(beanJobFactory());
 
 		// Here we will set all the trigger beans we have defined.
 		if (null != listOfTrigger && !listOfTrigger.isEmpty()) {
@@ -67,6 +72,18 @@ public class SchedulerConfiguration {
 		}
 
 		return scheduler;
+	}
+
+	@Bean
+	public SpringBeanJobFactory beanJobFactory() {
+		return new SpringBeanJobFactory() {
+			@Override
+			protected Object createJobInstance(TriggerFiredBundle bundle) throws Exception {
+				final Object jobInstance = super.createJobInstance(bundle);
+				context.autowireBean(jobInstance);
+				return jobInstance;
+			}
+		};
 	}
 
 	@Bean

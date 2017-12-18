@@ -99,11 +99,12 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 	 * @param retry            Retry to be reseted
 	 * @param statisticsFacade Statistics facade
 	 */
-	private void resetRetryStatistics(TestItem retry, StatisticsFacade statisticsFacade) {
-		statisticsFacade.resetExecutionStatistics(retry);
+	private TestItem resetRetryStatistics(TestItem retry, StatisticsFacade statisticsFacade) {
+		retry = statisticsFacade.resetExecutionStatistics(retry);
 		if (retry.getIssue() != null) {
-			statisticsFacade.resetIssueStatistics(retry);
+			retry = statisticsFacade.resetIssueStatistics(retry);
 		}
+		return retry;
 	}
 
 	/**
@@ -117,13 +118,14 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 	private TestItem moveRetries(List<TestItem> retries, StatisticsFacade statisticsFacade) {
 		retries.forEach(it -> it.setRetryProcessed(Boolean.TRUE));
 		TestItem retryRoot = retries.get(0);
-		resetRetryStatistics(retryRoot, statisticsFacade);
+		retryRoot = resetRetryStatistics(retryRoot, statisticsFacade);
+		retries.set(0, retryRoot);
 
 		TestItem lastRetry = retries.get(retries.size() - 1);
 		retries.remove(retries.size() - 1);
+		lastRetry = updateRetryStatistics(lastRetry, statisticsFacade);
 		lastRetry.setStartTime(retryRoot.getStartTime());
 		lastRetry.setRetries(retries);
-		lastRetry = updateRetryStatistics(lastRetry, statisticsFacade);
 		return lastRetry;
 	}
 
@@ -135,9 +137,9 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 	 * @return Updated last retry
 	 */
 	private TestItem updateRetryStatistics(TestItem lastRetry, StatisticsFacade statisticsFacade) {
-		statisticsFacade.updateExecutionStatistics(lastRetry);
+		lastRetry = statisticsFacade.updateExecutionStatistics(lastRetry);
 		if (lastRetry.getIssue() != null) {
-			statisticsFacade.updateIssueStatistics(lastRetry);
+			lastRetry = statisticsFacade.updateIssueStatistics(lastRetry);
 		}
 		return lastRetry;
 	}

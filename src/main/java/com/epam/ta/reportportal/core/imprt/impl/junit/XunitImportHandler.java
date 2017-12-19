@@ -32,7 +32,6 @@ import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.time.Instant;

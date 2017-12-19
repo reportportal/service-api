@@ -143,6 +143,8 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 				beforeUpdate.add(SerializationUtils.clone(testItem));
 
 				TestItemIssue issue = new TestItemIssue(analyzed.getIssueType(), null, true);
+				issue.setIgnoreAnalyzer(testItem.getIssue().isIgnoreAnalyzer());
+
 				ofNullable(analyzed.getRelevantItemId()).ifPresent(relevantItemId -> fromRelevantItem(issue, relevantItemId));
 				IssueDefinition issueDefinition = createIssueDefinition(testItem.getId(), issue);
 				forEvents.put(issueDefinition, SerializationUtils.clone(testItem));

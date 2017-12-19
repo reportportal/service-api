@@ -130,14 +130,13 @@ public class XunitImportHandler extends DefaultHandler {
 				finishTestItem();
 				break;
 			case SKIPPED:
-				attachLog(LogLevel.ERROR);
-				break;
 			case ERROR:
 			case FAILURE:
 				attachLog(LogLevel.ERROR);
 				break;
 			case SYSTEM_OUT:
 				attachLog(LogLevel.INFO);
+				break;
 			case SYSTEM_ERR:
 				attachLog(LogLevel.ERROR);
 				break;

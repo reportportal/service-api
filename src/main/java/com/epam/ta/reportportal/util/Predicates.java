@@ -51,9 +51,9 @@ public class Predicates {
 	public static final Predicate<TestItem> IS_RETRY = item -> item.getRetryProcessed() != null;
 
 	/**
-	 * Checks if item is avaliable for indexing in AA
+	 * Checks if the test item is suitable for indexing in analyzer.
 	 */
-	public static final Predicate<TestItem> CAN_BE_INDEXED = item -> !item.getIssue().isIgnoreAnalyzer() && !item.getIssue()
-			.getIssueType()
-			.equals(TestItemIssueType.TO_INVESTIGATE.getLocator());
+	public static final Predicate<TestItem> CAN_BE_INDEXED = testItem -> testItem != null && testItem.getIssue() != null
+			&& !TestItemIssueType.TO_INVESTIGATE.getLocator().equals(testItem.getIssue().getIssueType()) && !testItem.getIssue()
+			.isIgnoreAnalyzer();
 }

@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.*;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
 import org.junit.Assert;
 import org.junit.Before;
@@ -140,6 +141,7 @@ public class IssuesAnalyzerServiceTest {
 			test.setId(String.valueOf(i));
 			test.setName("test" + i);
 			test.setUniqueId("unique" + i);
+			test.setIssue(new TestItemIssue());
 			list.add(test);
 		}
 		return list;

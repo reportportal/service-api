@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
+import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
@@ -55,6 +56,9 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 
 	@Autowired
 	private TestItemRepository testItemRepository;
+
+	@Autowired
+	private LaunchRepository launchRepository;
 
 	@Autowired
 	private StatisticsFacadeFactory statisticsFacadeFactory;
@@ -91,6 +95,10 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 		TestItem lastRetry = moveRetries(retries, statisticsFacade);
 		testItemRepository.delete(retries);
 		testItemRepository.save(lastRetry);
+
+		statisticsFacade.updateParentStatusFromStatistics(lastRetry);
+		statisticsFacade.updateLaunchFromStatistics(launchRepository.findOne(lastRetry.getLaunchRef()));
+
 	}
 
 	/**
@@ -99,11 +107,12 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 	 * @param retry            Retry to be reseted
 	 * @param statisticsFacade Statistics facade
 	 */
-	private void resetRetryStatistics(TestItem retry, StatisticsFacade statisticsFacade) {
-		statisticsFacade.resetExecutionStatistics(retry);
+	private TestItem resetRetryStatistics(TestItem retry, StatisticsFacade statisticsFacade) {
+		retry = statisticsFacade.resetExecutionStatistics(retry);
 		if (retry.getIssue() != null) {
-			statisticsFacade.resetIssueStatistics(retry);
+			retry = statisticsFacade.resetIssueStatistics(retry);
 		}
+		return retry;
 	}
 
 	/**
@@ -117,13 +126,14 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 	private TestItem moveRetries(List<TestItem> retries, StatisticsFacade statisticsFacade) {
 		retries.forEach(it -> it.setRetryProcessed(Boolean.TRUE));
 		TestItem retryRoot = retries.get(0);
-		resetRetryStatistics(retryRoot, statisticsFacade);
+		retryRoot = resetRetryStatistics(retryRoot, statisticsFacade);
+		retries.set(0, retryRoot);
 
 		TestItem lastRetry = retries.get(retries.size() - 1);
 		retries.remove(retries.size() - 1);
+		lastRetry = updateRetryStatistics(lastRetry, statisticsFacade);
 		lastRetry.setStartTime(retryRoot.getStartTime());
 		lastRetry.setRetries(retries);
-		lastRetry = updateRetryStatistics(lastRetry, statisticsFacade);
 		return lastRetry;
 	}
 
@@ -135,9 +145,9 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 	 * @return Updated last retry
 	 */
 	private TestItem updateRetryStatistics(TestItem lastRetry, StatisticsFacade statisticsFacade) {
-		statisticsFacade.updateExecutionStatistics(lastRetry);
+		lastRetry = statisticsFacade.updateExecutionStatistics(lastRetry);
 		if (lastRetry.getIssue() != null) {
-			statisticsFacade.updateIssueStatistics(lastRetry);
+			lastRetry = statisticsFacade.updateIssueStatistics(lastRetry);
 		}
 		return lastRetry;
 	}

@@ -32,7 +32,6 @@ import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.time.Instant;
@@ -131,15 +130,15 @@ public class XunitImportHandler extends DefaultHandler {
 				finishTestItem();
 				break;
 			case SKIPPED:
-				attachLog(LogLevel.ERROR);
-				break;
 			case ERROR:
 			case FAILURE:
 				attachLog(LogLevel.ERROR);
 				break;
 			case SYSTEM_OUT:
+				attachLog(LogLevel.INFO);
+				break;
 			case SYSTEM_ERR:
-				attachDebugLog(LogLevel.DEBUG);
+				attachLog(LogLevel.ERROR);
 				break;
 		}
 	}
@@ -148,7 +147,7 @@ public class XunitImportHandler extends DefaultHandler {
 	public void characters(char[] ch, int start, int length) {
 		String msg = new String(ch, start, length);
 		if (!msg.isEmpty()) {
-			message.append(new String(ch, start, length));
+			message.append(msg);
 		}
 	}
 
@@ -221,24 +220,13 @@ public class XunitImportHandler extends DefaultHandler {
 		status = null;
 	}
 
-	private void attachDebugLog(LogLevel logLevel) {
-		if (null != message && message.length() != 0) {
-			SaveLogRQ saveLogRQ = new SaveLogRQ();
-			saveLogRQ.setLevel(logLevel.name());
-			saveLogRQ.setLogTime(toDate(startItemTime));
-			saveLogRQ.setMessage(message.toString().trim());
-			saveLogRQ.setTestItemId(currentId);
-			createLogHandler.createLog(saveLogRQ, null, projectId);
-		}
-	}
-
 	private void attachLog(LogLevel logLevel) {
 		if (null != message && message.length() != 0) {
 			SaveLogRQ saveLogRQ = new SaveLogRQ();
 			saveLogRQ.setLevel(logLevel.name());
 			saveLogRQ.setLogTime(toDate(startItemTime));
 			saveLogRQ.setMessage(message.toString().trim());
-			saveLogRQ.setTestItemId(itemsIds.getFirst());
+			saveLogRQ.setTestItemId(currentId);
 			createLogHandler.createLog(saveLogRQ, null, projectId);
 		}
 	}
@@ -255,7 +243,7 @@ public class XunitImportHandler extends DefaultHandler {
 		rq.setLaunchId(launchId);
 		rq.setStartTime(toDate(startItemTime));
 		rq.setType(TestItemType.TEST.name());
-		rq.setName(Strings.isNullOrEmpty(name) ? "NoName" : name);
+		rq.setName(Strings.isNullOrEmpty(name) ? "no_name" : name);
 		return rq;
 	}
 

@@ -5,8 +5,6 @@ spring:
         hostname: docker.for.mac.localhost
       host: localhost
 rp:
-  mongo:
-    host: localhost
   uat:
     serviceUrl: http://localhost:8080/uat
   analyzer:

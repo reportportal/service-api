@@ -33,7 +33,6 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
@@ -56,6 +55,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.util.Predicates.CAN_BE_INDEXED;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 /**
@@ -181,7 +181,7 @@ public class LogIndexerService implements ILogIndexer {
 		}
 		IndexLaunch rqLaunch = null;
 		TestItem testItem = testItemRepository.findOne(log.getTestItemRef());
-		if (isItemSuitable(testItem)) {
+		if (CAN_BE_INDEXED.test(testItem)) {
 			Launch launch = launchRepository.findOne(testItem.getLaunchRef());
 			if (launch != null) {
 				rqLaunch = new IndexLaunch();
@@ -203,7 +203,7 @@ public class LogIndexerService implements ILogIndexer {
 	 */
 	private List<IndexTestItem> prepareItemsForIndexing(List<TestItem> testItems) {
 		return testItems.stream()
-				.filter(this::isItemSuitable)
+				.filter(CAN_BE_INDEXED)
 				.map(it -> AnalyzerUtils.fromTestItem(it, logRepository.findGreaterOrEqualLevel(it.getId(), LogLevel.ERROR)))
 				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
 				.collect(Collectors.toList());
@@ -218,18 +218,6 @@ public class LogIndexerService implements ILogIndexer {
 	 */
 	private boolean isLevelSuitable(Log log) {
 		return null != log && null != log.getLevel() && log.getLevel().isGreaterOrEqual(LogLevel.ERROR);
-	}
-
-	/**
-	 * Checks if the test item is suitable for indexing in analyzer.
-	 * Test item issue type should not be {@link TestItemIssueType#TO_INVESTIGATE}
-	 *
-	 * @param testItem Test item for check
-	 * @return true if suitable
-	 */
-	private boolean isItemSuitable(TestItem testItem) {
-		return testItem != null && testItem.getIssue() != null && !TestItemIssueType.TO_INVESTIGATE.getLocator()
-				.equals(testItem.getIssue().getIssueType()) && !testItem.getIssue().isIgnoreAnalyzer();
 	}
 
 	private void retryFailed(List<IndexRs> rs) {

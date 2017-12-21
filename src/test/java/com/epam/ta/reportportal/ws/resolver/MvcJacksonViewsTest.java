@@ -17,57 +17,54 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.resolver;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import com.epam.ta.reportportal.auth.AuthConstants;
+import com.epam.ta.reportportal.ws.BaseMvcTest;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 
-import com.epam.ta.reportportal.auth.AuthConstants;
-import com.epam.ta.reportportal.ws.BaseMvcTest;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * MVC test for validation Jackson2 view serialization
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class MvcJacksonViewsTest extends BaseMvcTest {
 
 	/**
 	 * Validate that there is no view-related fields included in response marked
 	 * with default view
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
 	public void testDefaultView() throws Exception {
-		this.mvcMock
-				.perform(get("/project/" + PROJECT_BASE_URL + "/users").secure(true)
-						.accept(MediaType.parseMediaType("application/json;charset=UTF-8")))
-				.andExpect(status().isOk()).andExpect(content().contentType("application/json;charset=UTF-8"));
+		this.mvcMock.perform(get("/project/" + PROJECT_BASE_URL + "/users").secure(true)
+				.accept(MediaType.parseMediaType("application/json;charset=UTF-8")))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"));
 
 	}
 
 	/**
 	 * Validate that view-specific fields are included into response marked with
 	 * specific view
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
 	public void testSpecificView() throws Exception {
-		this.mvcMock
-				.perform(get("/user/" + AuthConstants.TEST_USER).principal(AuthConstants.ADMINISTRATOR).secure(true)
-						.accept(MediaType.parseMediaType("application/json;charset=UTF-8")))
-				.andExpect(status().isOk()).andExpect(content().contentType("application/json;charset=UTF-8"))
+		this.mvcMock.perform(get("/user/" + AuthConstants.TEST_USER).principal(AuthConstants.ADMINISTRATOR)
+				.secure(true)
+				.accept(MediaType.parseMediaType("application/json;charset=UTF-8")))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andExpect(jsonPath("$.userId").exists());
 
 	}

@@ -37,7 +37,8 @@ public enum GadgetTypes {
 	LAUNCH_STATISTICS("launch_statistics"),
 	STATISTIC_TREND("statistic_trend"),
 	CASES_TREND("cases_trend"),
-	NOT_PASSED("not_passed"), //almost the same as cases_trend, so could be removed if UI handle this
+	NOT_PASSED("not_passed"),
+	//almost the same as cases_trend, so could be removed if UI handle this
 	OVERALL_STATISTICS("overall_statistics"),
 	UNIQUE_BUG_TABLE("unique_bug_table"),
 	BUG_TREND("bug_trend"),
@@ -46,6 +47,7 @@ public enum GadgetTypes {
 	LAUNCHES_DURATION_CHART("launches_duration_chart"),
 	LAUNCHES_TABLE("launches_table"),
 	MOST_FAILED_TEST_CASES("most_failed_test_cases"),
+	FLAKY_TEST_CASES("flaky_test_cases"),
 	PASSING_RATE_SUMMARY("passing_rate_summary"),
 	PASSING_RATE_PER_LAUNCH("passing_rate_per_launch"),
 	PRODUCT_STATUS("product_status"),

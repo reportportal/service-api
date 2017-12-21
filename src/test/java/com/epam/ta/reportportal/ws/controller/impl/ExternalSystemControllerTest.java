@@ -17,36 +17,27 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
-
-import static com.epam.ta.reportportal.database.entity.AuthType.APIKEY;
-import static com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType.RALLY;
-import static java.util.Collections.singletonList;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.*;
-
+import com.epam.ta.reportportal.auth.AuthConstants;
+import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.epam.ta.reportportal.ws.model.externalsystem.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 
-import com.epam.ta.reportportal.auth.AuthConstants;
-import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.externalsystem.AllowedValue;
-import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
-import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
-import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
-import com.epam.ta.reportportal.ws.model.externalsystem.UpdateExternalSystemRQ;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.*;
+
+import static com.epam.ta.reportportal.database.entity.AuthType.APIKEY;
+import static com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType.RALLY;
+import static java.util.Collections.singletonList;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Ignore
 public class ExternalSystemControllerTest extends BaseMvcTest {
@@ -61,7 +52,8 @@ public class ExternalSystemControllerTest extends BaseMvcTest {
 		rq.setExternalSystemType(RALLY.name());
 		rq.setExternalSystemAuth(APIKEY.name());
 		this.mvcMock.perform(post(PROJECT_BASE_URL + "/external-system").content(objectMapper.writeValueAsBytes(rq))
-				.contentType(APPLICATION_JSON).principal(authentication())).andExpect(status().isCreated());
+				.contentType(APPLICATION_JSON)
+				.principal(authentication())).andExpect(status().isCreated());
 	}
 
 	@Test
@@ -101,7 +93,8 @@ public class ExternalSystemControllerTest extends BaseMvcTest {
 		final PostFormField postFormField = getPostFormField();
 		rq.setFields(Collections.singletonList(postFormField));
 		this.mvcMock.perform(post(PROJECT_BASE_URL + "/external-system/54958aec4e84859227150766/ticket").contentType(APPLICATION_JSON)
-				.principal(authentication()).content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated());
+				.principal(authentication())
+				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated());
 	}
 
 	@Test
@@ -120,7 +113,8 @@ public class ExternalSystemControllerTest extends BaseMvcTest {
 		rq.setFields(Collections.singletonList(getPostFormField()));
 		rq.setExternalSystemAuth("APIKEY");
 		this.mvcMock.perform(put(PROJECT_BASE_URL + "/external-system/54958aec4e84859227150766").contentType(APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(rq)).principal(authentication())).andExpect(status().is(200));
+				.content(objectMapper.writeValueAsBytes(rq))
+				.principal(authentication())).andExpect(status().is(200));
 	}
 
 	@Test
@@ -130,7 +124,8 @@ public class ExternalSystemControllerTest extends BaseMvcTest {
 		rq.setExternalSystemAuth("APIKEY");
 		rq.setUrl("https://rp.epam.com/");
 		this.mvcMock.perform(put(PROJECT_BASE_URL + "/external-system/54958aec4e84859227150766/connect").contentType(APPLICATION_JSON)
-				.principal(authentication()).content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
+				.principal(authentication())
+				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));
 	}
 
 	@Test
@@ -146,7 +141,8 @@ public class ExternalSystemControllerTest extends BaseMvcTest {
 		rq.setTestItemId("44534cc1553de743b3e5aa33");
 		rq.setNumberOfLogs(1);
 		this.mvcMock.perform(post(PROJECT_BASE_URL + "/external-system/54958aec4e84859227150767/ticket").contentType(APPLICATION_JSON)
-				.principal(authentication()).content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated());
+				.principal(authentication())
+				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated());
 	}
 
 	@Override
@@ -180,18 +176,20 @@ public class ExternalSystemControllerTest extends BaseMvcTest {
 		postFormFields.add(new PostFormField("description", "description", "string", false, singletonList("description"), null));
 		postFormFields.add(new PostFormField("summary", "Summary", "string", true, singletonList("summary"), null));
 		postFormFields.add(new PostFormField("priority", "Priority", "priority", false, singletonList("Blocker"), null));
-		postFormFields
-				.add(new PostFormField("components", "Component/s", "array", false, singletonList("Debug Component"), new ArrayList<>()));
+		postFormFields.add(
+				new PostFormField("components", "Component/s", "array", false, singletonList("Debug Component"), new ArrayList<>()));
 		postFormFields.add(new PostFormField("assignee", "Assignee", "user", false, singletonList("assignee"), null));
 		postFormFields.add(new PostFormField("customAssignee1", "CustomAssignee1", "user", false, singletonList("customAssignee1"), null));
 		postFormFields.add(new PostFormField("fixVersions", "Fix Version/s", "array", false, singletonList("VERSION1"), new ArrayList<>()));
-		postFormFields
-				.add(new PostFormField("customArrayField1", "CustomArrayField1", "array", false, singletonList("CustomArrayField1"), null));
-		postFormFields
-				.add(new PostFormField("customArrayField2", "CustomArrayField2", "array", false, singletonList("CustomArrayField2"), null));
+		postFormFields.add(
+				new PostFormField("customArrayField1", "CustomArrayField1", "array", false, singletonList("CustomArrayField1"), null));
+		postFormFields.add(
+				new PostFormField("customArrayField2", "CustomArrayField2", "array", false, singletonList("CustomArrayField2"), null));
 		postFormFields.add(new PostFormField("labels", "Labels", "array", false, singletonList("label"), null));
-		postFormFields.add(new PostFormField("customComponentField1", "customComponentField1", "string", false,
-				singletonList("Debug Component"), new ArrayList<>()));
+		postFormFields.add(
+				new PostFormField("customComponentField1", "customComponentField1", "string", false, singletonList("Debug Component"),
+						new ArrayList<>()
+				));
 		postFormFields.add(new PostFormField("duedate", "Due Date", "date", false, singletonList("2015-02-02"), null));
 		postFormFields.add(new PostFormField("timetracking", "Time Tracking", "timetracking", false, singletonList("timetracking"), null));
 		postFormFields.add(new PostFormField("attachment", "Attachment", "array", false, singletonList("attachment"), null));

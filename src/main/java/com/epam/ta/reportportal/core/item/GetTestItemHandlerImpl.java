@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.item;
 
@@ -39,10 +39,9 @@ import java.util.List;
 /**
  * GET operations for {@link TestItem}<br>
  * Default implementation
- * 
+ *
  * @author Andrei Varabyeu
  * @author Aliaksei Makayed
- * 
  */
 @Service
 class GetTestItemHandlerImpl implements GetTestItemHandler {

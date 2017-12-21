@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.ws.converter.converters.ServerSettingsConverter;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import org.springframework.stereotype.Service;
 
-
 /**
  * REST Maturity Lvl3 rel object creation for response
  *
@@ -36,8 +35,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class ServerSettingsResourceAssembler extends ResourceAssembler<ServerSettings, ServerSettingsResource> {
 
-    @Override
-    public ServerSettingsResource toResource(ServerSettings serverSettings) {
-        return ServerSettingsConverter.TO_RESOURCE.apply(serverSettings);
-    }
+	@Override
+	public ServerSettingsResource toResource(ServerSettings serverSettings) {
+		return ServerSettingsConverter.TO_RESOURCE.apply(serverSettings);
+	}
 }

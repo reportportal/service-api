@@ -17,34 +17,34 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.auth.permissions;
-
-import java.io.Serializable;
-import java.util.Map;
-
-import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.core.Authentication;
 
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.PermissionNotDefinedException;
 import com.google.common.base.Preconditions;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import java.io.Serializable;
+import java.util.Map;
+
 /**
  * ReportPortal permission evaluator
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 // TODO add custom exception handling
 class ReportPortalPermissionEvaluator implements PermissionEvaluator {
 
 	private static final GrantedAuthority ADMIN_AUTHORITY = new SimpleGrantedAuthority(UserRole.ADMINISTRATOR.getAuthority());
 
-	/** Mapping between permission names and permissions */
+	/**
+	 * Mapping between permission names and permissions
+	 */
 	private Map<String, Permission> permissionNameToPermissionMap;
 
 	private boolean allowAllToAdmin;
@@ -83,8 +83,8 @@ class ReportPortalPermissionEvaluator implements PermissionEvaluator {
 
 	private void verifyPermissionIsDefined(String permissionKey) {
 		if (!permissionNameToPermissionMap.containsKey(permissionKey)) {
-			throw new PermissionNotDefinedException("No permission with key " + permissionKey + " is defined in "
-					+ this.getClass().toString());
+			throw new PermissionNotDefinedException(
+					"No permission with key " + permissionKey + " is defined in " + this.getClass().toString());
 		}
 	}
 

@@ -21,9 +21,11 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.launch.IDeleteLaunchHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
@@ -45,6 +47,7 @@ import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Arrays.asList;
@@ -63,6 +66,12 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 	private final ProjectRepository projectRepository;
 	private final UserRepository userRepository;
 	private final ApplicationEventPublisher eventPublisher;
+
+	@Autowired
+	private TestItemRepository itemRepository;
+
+	@Autowired
+	private ILogIndexer logIndexer;
 
 	@Autowired
 	public DeleteLaunchHandler(ApplicationEventPublisher eventPublisher, LaunchRepository launchRepository,
@@ -85,6 +94,7 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 		validate(launch, user, project);
 		try {
 			launchRepository.delete(singletonList(launchId));
+			logIndexer.cleanIndex(projectName, itemRepository.findIdsNotInIssueType(TO_INVESTIGATE.getLocator(), launchId));
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while Launch deleting.", exp);
 		}
@@ -99,6 +109,9 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 		final User user = userRepository.findOne(userName);
 		final Project project = projectRepository.findOne(projectName);
 		launches.forEach(launch -> validate(launch, user, project));
+		launches.forEach(launch -> logIndexer.cleanIndex(projectName,
+				itemRepository.findIdsNotInIssueType(TO_INVESTIGATE.getLocator(), launch.getId())
+		));
 		launchRepository.delete(toDelete);
 		launches.forEach(launch -> eventPublisher.publishEvent(new LaunchDeletedEvent(launch, userName)));
 		return new OperationCompletionRS("All selected launches have been successfully deleted");
@@ -106,10 +119,12 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 
 	private void validate(Launch launch, User user, Project project) {
 		expect(launch.getProjectRef(), equalTo(project.getName())).verify(FORBIDDEN_OPERATION,
-				formattedSupplier("Target launch '{}' not under specified project '{}'", launch.getId(), project.getName()));
+				formattedSupplier("Target launch '{}' not under specified project '{}'", launch.getId(), project.getName())
+		);
 
 		expect(launch, not(IN_PROGRESS)).verify(LAUNCH_IS_NOT_FINISHED,
-				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId()));
+				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId())
+		);
 
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
 			/* Only PROJECT_MANAGER roles could delete launches */

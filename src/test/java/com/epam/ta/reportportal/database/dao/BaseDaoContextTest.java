@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.database.dao;
 
 import com.epam.ta.BaseTest;
@@ -26,10 +26,9 @@ import com.epam.ta.BaseTest;
 /**
  * Base class for all DAO-related tests. Contains spring DAO context definition
  * and needed spring active profile
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
-public abstract class BaseDaoContextTest  extends BaseTest {
+public abstract class BaseDaoContextTest extends BaseTest {
 
 }

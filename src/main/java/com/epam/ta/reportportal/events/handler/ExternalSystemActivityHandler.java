@@ -58,12 +58,11 @@ public class ExternalSystemActivityHandler {
 	public void onExternalSystemCreated(ExternalSystemCreatedEvent event) {
 		ExternalSystem externalSystem = event.getExternalSystem();
 		String name = externalSystem.getExternalSystemType().name() + ":" + externalSystem.getProject();
-		Activity activity = new ActivityBuilder()
-                .addObjectName(name)
-                .addObjectType(EXTERNAL_SYSTEM)
+		Activity activity = new ActivityBuilder().addObjectName(name)
+				.addObjectType(EXTERNAL_SYSTEM)
 				.addLoggedObjectRef(externalSystem.getId())
-                .addUserRef(event.getCreatedBy())
-                .addActionType(CREATE_BTS)
+				.addUserRef(event.getCreatedBy())
+				.addActionType(CREATE_BTS)
 				.addProjectRef(externalSystem.getProjectRef())
 				.addHistory(Collections.singletonList(createHistoryField(NAME, EMPTY_FIELD, name)))
 				.get();
@@ -75,14 +74,13 @@ public class ExternalSystemActivityHandler {
 		ExternalSystem externalSystem = event.getExternalSystem();
 		if (externalSystem != null) {
 			String name = externalSystem.getExternalSystemType().name() + ":" + externalSystem.getProject();
-			Activity activity = new ActivityBuilder()
-                    .addObjectName(name)
-                    .addObjectType(EXTERNAL_SYSTEM)
+			Activity activity = new ActivityBuilder().addObjectName(name)
+					.addObjectType(EXTERNAL_SYSTEM)
 					.addLoggedObjectRef(externalSystem.getId())
-                    .addUserRef(event.getUpdatedBy())
-                    .addActionType(UPDATE_BTS)
+					.addUserRef(event.getUpdatedBy())
+					.addActionType(UPDATE_BTS)
 					.addProjectRef(externalSystem.getProjectRef())
-                    .get();
+					.get();
 			activityRepository.save(activity);
 		}
 	}
@@ -92,15 +90,14 @@ public class ExternalSystemActivityHandler {
 		ExternalSystem externalSystem = event.getExternalSystem();
 		if (externalSystem != null) {
 			String name = externalSystem.getExternalSystemType().name() + ":" + externalSystem.getProject();
-			Activity activity = new ActivityBuilder()
-                    .addObjectName(name)
-                    .addObjectType(EXTERNAL_SYSTEM)
+			Activity activity = new ActivityBuilder().addObjectName(name)
+					.addObjectType(EXTERNAL_SYSTEM)
 					.addLoggedObjectRef(externalSystem.getId())
-                    .addUserRef(event.getDeletedBy())
-                    .addActionType(DELETE_BTS)
+					.addUserRef(event.getDeletedBy())
+					.addActionType(DELETE_BTS)
 					.addProjectRef(externalSystem.getProjectRef())
 					.addHistory(Collections.singletonList(createHistoryField(NAME, name, EMPTY_FIELD)))
-                    .get();
+					.get();
 			activityRepository.save(activity);
 		}
 	}
@@ -111,18 +108,18 @@ public class ExternalSystemActivityHandler {
 		if (null != externalSystems) {
 			List<Activity> activities = StreamSupport.stream(externalSystems.spliterator(), false).map(externalSystem -> {
 				String name = externalSystem.getExternalSystemType().name() + ":" + externalSystem.getProject();
-				return new ActivityBuilder()
-                        .addObjectName(name)
-                        .addObjectType(EXTERNAL_SYSTEM)
-                        .addLoggedObjectRef(externalSystem.getId())
+				return new ActivityBuilder().addObjectName(name)
+						.addObjectType(EXTERNAL_SYSTEM)
+						.addLoggedObjectRef(externalSystem.getId())
 						.addUserRef(event.getDeletedBy())
-                        .addActionType(DELETE_BTS)
-                        .addProjectRef(event.getProject())
+						.addActionType(DELETE_BTS)
+						.addProjectRef(event.getProject())
 						.addHistory(Collections.singletonList(createHistoryField(NAME, name, EMPTY_FIELD)))
-                        .get();
+						.get();
 			}).collect(Collectors.toList());
-			if (!activities.isEmpty())
+			if (!activities.isEmpty()) {
 				activityRepository.save(activities);
+			}
 		}
 	}
 

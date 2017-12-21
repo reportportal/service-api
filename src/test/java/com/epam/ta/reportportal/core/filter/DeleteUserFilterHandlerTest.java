@@ -46,87 +46,86 @@ import static org.mockito.Mockito.*;
  */
 public class DeleteUserFilterHandlerTest {
 
-    private static final String SIMPLE_USER = "simple";
-    private static final String FILTER = "filter";
-    private static final String PROJECT = "project";
+	private static final String SIMPLE_USER = "simple";
+	private static final String FILTER = "filter";
+	private static final String PROJECT = "project";
 
-    private final UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
-    private final ProjectRepository projectRepository = mock(ProjectRepository.class);
-    private final static ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
+	private final UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
+	private final ProjectRepository projectRepository = mock(ProjectRepository.class);
+	private final static ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
-    private DeleteUserFilterHandler handler =
-            new DeleteUserFilterHandler(userFilterRepository, projectRepository, eventPublisher);
+	private DeleteUserFilterHandler handler = new DeleteUserFilterHandler(userFilterRepository, projectRepository, eventPublisher);
 
-    @BeforeClass
-    public static void beforeClass() {
-        doNothing().when(eventPublisher).publishEvent(anyObject());
-    }
+	@BeforeClass
+	public static void beforeClass() {
+		doNothing().when(eventPublisher).publishEvent(anyObject());
+	}
 
-    @Test
-    public void deleteFilterByOwner() {
-        when(userFilterRepository.findOne(FILTER)).thenReturn(getOwnerFilter());
-        when(projectRepository.findProjectRoles(SIMPLE_USER)).thenReturn(getProjectRolesForSimpleUser());
-        OperationCompletionRS operationCompletionRS = handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT, UserRole.USER);
-        assertTrue(operationCompletionRS.getResultMessage().contains(FILTER));
-    }
+	@Test
+	public void deleteFilterByOwner() {
+		when(userFilterRepository.findOne(FILTER)).thenReturn(getOwnerFilter());
+		when(projectRepository.findProjectRoles(SIMPLE_USER)).thenReturn(getProjectRolesForSimpleUser());
+		OperationCompletionRS operationCompletionRS = handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT, UserRole.USER);
+		assertTrue(operationCompletionRS.getResultMessage().contains(FILTER));
+	}
 
-    @Test(expected = ReportPortalException.class)
-    public void negativeDeleteFilter() {
-        when(userFilterRepository.findOne(FILTER)).thenReturn(getNotOwnerFilter());
-        when(projectRepository.findProjectRoles(SIMPLE_USER)).thenReturn(getProjectRolesForSimpleUser());
-        handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT, UserRole.USER);
-    }
+	@Test(expected = ReportPortalException.class)
+	public void negativeDeleteFilter() {
+		when(userFilterRepository.findOne(FILTER)).thenReturn(getNotOwnerFilter());
+		when(projectRepository.findProjectRoles(SIMPLE_USER)).thenReturn(getProjectRolesForSimpleUser());
+		handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT, UserRole.USER);
+	}
 
-    @Test(expected = ReportPortalException.class)
-    public void negativeDeleteFilterNull() {
-        when(userFilterRepository.findOne(FILTER)).thenReturn(null);
-        handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT, UserRole.USER);
-    }
+	@Test(expected = ReportPortalException.class)
+	public void negativeDeleteFilterNull() {
+		when(userFilterRepository.findOne(FILTER)).thenReturn(null);
+		handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT, UserRole.USER);
+	}
 
-    @Test
-    public void deleteFilterByPm() {
-        when(userFilterRepository.findOne(FILTER)).thenReturn(getNotOwnerFilter());
-        when(projectRepository.findProjectRoles(SIMPLE_USER)).thenReturn(getProjectRolesForSimpleUserWithPmRole());
-        OperationCompletionRS operationCompletionRS = handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT, UserRole.USER);
-        assertTrue(operationCompletionRS.getResultMessage().contains(FILTER));
-    }
+	@Test
+	public void deleteFilterByPm() {
+		when(userFilterRepository.findOne(FILTER)).thenReturn(getNotOwnerFilter());
+		when(projectRepository.findProjectRoles(SIMPLE_USER)).thenReturn(getProjectRolesForSimpleUserWithPmRole());
+		OperationCompletionRS operationCompletionRS = handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT, UserRole.USER);
+		assertTrue(operationCompletionRS.getResultMessage().contains(FILTER));
+	}
 
-    @Test
-    public void deleteFilterByAdmin() {
-        when(userFilterRepository.findOne(FILTER)).thenReturn(getNotOwnerFilter());
-        when(projectRepository.findProjectRoles(SIMPLE_USER)).thenReturn(getProjectRolesForSimpleUser());
-        OperationCompletionRS rs = handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT, UserRole.ADMINISTRATOR);
-        assertTrue(rs.getResultMessage().contains(FILTER));
-    }
+	@Test
+	public void deleteFilterByAdmin() {
+		when(userFilterRepository.findOne(FILTER)).thenReturn(getNotOwnerFilter());
+		when(projectRepository.findProjectRoles(SIMPLE_USER)).thenReturn(getProjectRolesForSimpleUser());
+		OperationCompletionRS rs = handler.deleteFilter(FILTER, SIMPLE_USER, PROJECT, UserRole.ADMINISTRATOR);
+		assertTrue(rs.getResultMessage().contains(FILTER));
+	}
 
-    private UserFilter getNotOwnerFilter() {
-        Acl acl = new Acl();
-        acl.setOwnerUserId("not_owner");
-        AclEntry entry = new AclEntry();
-        entry.setProjectId(PROJECT);
-        acl.addEntry(entry);
-        UserFilter filter = new UserFilter();
-        filter.setName(FILTER);
-        filter.setAcl(acl);
-        filter.setProjectName(PROJECT);
-        return filter;
-    }
+	private UserFilter getNotOwnerFilter() {
+		Acl acl = new Acl();
+		acl.setOwnerUserId("not_owner");
+		AclEntry entry = new AclEntry();
+		entry.setProjectId(PROJECT);
+		acl.addEntry(entry);
+		UserFilter filter = new UserFilter();
+		filter.setName(FILTER);
+		filter.setAcl(acl);
+		filter.setProjectName(PROJECT);
+		return filter;
+	}
 
-    private UserFilter getOwnerFilter() {
-        Acl acl = new Acl();
-        acl.setOwnerUserId(SIMPLE_USER);
-        UserFilter filter = new UserFilter();
-        filter.setName(FILTER);
-        filter.setAcl(acl);
-        filter.setProjectName(PROJECT);
-        return filter;
-    }
+	private UserFilter getOwnerFilter() {
+		Acl acl = new Acl();
+		acl.setOwnerUserId(SIMPLE_USER);
+		UserFilter filter = new UserFilter();
+		filter.setName(FILTER);
+		filter.setAcl(acl);
+		filter.setProjectName(PROJECT);
+		return filter;
+	}
 
-    public Map<String, ProjectRole> getProjectRolesForSimpleUser() {
-        return ImmutableMap.<String, ProjectRole>builder().put(PROJECT, ProjectRole.MEMBER).build();
-    }
+	public Map<String, ProjectRole> getProjectRolesForSimpleUser() {
+		return ImmutableMap.<String, ProjectRole>builder().put(PROJECT, ProjectRole.MEMBER).build();
+	}
 
-    public Map<String, ProjectRole> getProjectRolesForSimpleUserWithPmRole() {
-        return ImmutableMap.<String, ProjectRole>builder().put(PROJECT, ProjectRole.PROJECT_MANAGER).build();
-    }
+	public Map<String, ProjectRole> getProjectRolesForSimpleUserWithPmRole() {
+		return ImmutableMap.<String, ProjectRole>builder().put(PROJECT, ProjectRole.PROJECT_MANAGER).build();
+	}
 }

@@ -45,7 +45,6 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 /**
  * @author Hanna_Sukhadolava
- * 
  */
 @Service
 public class CreateProjectHandler implements ICreateProjectHandler {
@@ -61,12 +60,13 @@ public class CreateProjectHandler implements ICreateProjectHandler {
 		BusinessRule.expect(existProject, Predicates.isNull()).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectName);
 
 		expect(projectName, com.epam.ta.reportportal.util.Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
-				Suppliers.formattedSupplier("Project name '{}' consists only of special characters", projectName));
+				Suppliers.formattedSupplier("Project name '{}' consists only of special characters", projectName)
+		);
 
 		Optional<EntryType> projectType = EntryType.findByName(createProjectRQ.getEntryType());
 		BusinessRule.expect(projectType, isPresent()).verify(ErrorType.BAD_REQUEST_ERROR, createProjectRQ.getEntryType());
-		BusinessRule.expect(projectType.get(), equalTo(EntryType.INTERNAL)).verify(ErrorType.BAD_REQUEST_ERROR,
-				"Only internal projects can be created via API");
+		BusinessRule.expect(projectType.get(), equalTo(EntryType.INTERNAL))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Only internal projects can be created via API");
 
 		Project project = ProjectConverter.TO_MODEL.apply(createProjectRQ);
 		Project.UserConfig userConfig = new Project.UserConfig();

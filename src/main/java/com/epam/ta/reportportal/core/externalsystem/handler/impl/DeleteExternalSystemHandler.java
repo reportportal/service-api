@@ -17,37 +17,34 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.externalsystem.handler.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.ws.model.ErrorType.EXTERNAL_SYSTEM_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
-
-import java.util.List;
-
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.events.ExternalSystemDeletedEvent;
-import com.epam.ta.reportportal.events.ProjectExternalSystemsDeletedEvent;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import com.epam.ta.reportportal.core.externalsystem.handler.IDeleteExternalSystemHandler;
 import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.events.ExternalSystemDeletedEvent;
+import com.epam.ta.reportportal.events.ProjectExternalSystemsDeletedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Basic implementation for {@link IDeleteExternalSystemHandler} interface
- * 
+ *
  * @author Andrei_Ramanchuk
  */
 @Service
@@ -70,9 +67,11 @@ public class DeleteExternalSystemHandler implements IDeleteExternalSystemHandler
 		ExternalSystem exist = externalSystemRepository.findOne(id);
 		expect(exist, notNull()).verify(EXTERNAL_SYSTEM_NOT_FOUND, exist);
 
-		if (!project.getConfiguration().getExternalSystem().contains(id))
+		if (!project.getConfiguration().getExternalSystem().contains(id)) {
 			fail().withError(FORBIDDEN_OPERATION,
-					Suppliers.formattedSupplier("BTS with ID='{}' doesn't project '{}' related", id, projectName));
+					Suppliers.formattedSupplier("BTS with ID='{}' doesn't project '{}' related", id, projectName)
+			);
+		}
 
 		try {
 			externalSystemRepository.delete(id);
@@ -94,8 +93,9 @@ public class DeleteExternalSystemHandler implements IDeleteExternalSystemHandler
 
 		Iterable<ExternalSystem> exist = externalSystemRepository.findByProjectRef(projectName);
 		try {
-			if (null != exist)
+			if (null != exist) {
 				externalSystemRepository.delete(exist);
+			}
 			/*
 			 * Cannot use set of empty array here cause parallel operations with
 			 * getProject() for DELETE ExtSys and PostExtSys save cleared data

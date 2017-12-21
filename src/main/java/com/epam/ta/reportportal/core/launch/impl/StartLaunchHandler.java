@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.launch.impl;
 
@@ -33,8 +33,8 @@ import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.events.LaunchStartedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -82,7 +82,7 @@ class StartLaunchHandler implements IStartLaunchHandler {
 	 * .String, com.epam.ta.reportportal.ws.model.StartLaunchRQ)
 	 */
 	@Override
-	public EntryCreatedRS startLaunch(String username, String projectName, StartLaunchRQ startLaunchRQ) {
+	public StartLaunchRS startLaunch(String username, String projectName, StartLaunchRQ startLaunchRQ) {
 
 		if (startLaunchRQ.getMode() == DEBUG) {
 
@@ -95,9 +95,10 @@ class StartLaunchHandler implements IStartLaunchHandler {
 
 		// userName and projectName validations here is redundant, user name and
 		// projectName have already validated by spring security in controller
-		Launch launch = new LaunchBuilder()
-				.addStartRQ(startLaunchRQ).addProject(projectName)
-				.addStatus(IN_PROGRESS).addUser(username)
+		Launch launch = new LaunchBuilder().addStartRQ(startLaunchRQ)
+				.addProject(projectName)
+				.addStatus(IN_PROGRESS)
+				.addUser(username)
 				.get();
 		/*
 		 * Retrieve and set number of launch with provided name
@@ -108,16 +109,16 @@ class StartLaunchHandler implements IStartLaunchHandler {
 		launchRepository.save(launch);
 
 		eventPublisher.publishEvent(new LaunchStartedEvent(launch));
-		return new EntryCreatedRS(launch.getId());
+		return new StartLaunchRS(launch.getId(), launch.getNumber());
 
 	}
 
 	private double calculateApproximateDuration(String projectName, String launchName, int limit) {
-		Set<FilterCondition> conditions = ImmutableSet.<FilterCondition>builder()
-				.add(new FilterCondition(EQUALS, false, launchName, NAME))
+		Set<FilterCondition> conditions = ImmutableSet.<FilterCondition>builder().add(new FilterCondition(EQUALS, false, launchName, NAME))
 				.add(new FilterCondition(EQUALS, false, projectName, PROJECT))
 				.add(new FilterCondition(IN, true, STOPPED.name() + "," + INTERRUPTED.name() + "," + IN_PROGRESS.name(), STATUS))
-				.add(new FilterCondition(EQUALS, false, DEFAULT.name(), MODE_CRITERIA)).build();
+				.add(new FilterCondition(EQUALS, false, DEFAULT.name(), MODE_CRITERIA))
+				.build();
 		Filter filter = new Filter(Launch.class, conditions);
 		Sort sort = new Sort(new Sort.Order(DESC, "start_time"));
 		List<Launch> launches = launchRepository.findByFilterWithSortingAndLimit(filter, sort, limit);

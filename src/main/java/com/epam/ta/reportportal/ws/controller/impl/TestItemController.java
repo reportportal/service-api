@@ -63,178 +63,177 @@ import static org.springframework.http.HttpStatus.OK;
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class TestItemController implements ITestItemController {
 
-    public static final String DEFAULT_HISTORY_DEPTH = "5";
-    public static final String DEFAULT_HISTORY_FULL = "true";
+	public static final String DEFAULT_HISTORY_DEPTH = "5";
+	public static final String DEFAULT_HISTORY_FULL = "true";
 
-    @Autowired
-    private StartTestItemHandler startTestItemHandler;
+	@Autowired
+	private StartTestItemHandler startTestItemHandler;
 
-    @Autowired
-    private DeleteTestItemHandler deleteTestItemHandler;
+	@Autowired
+	private DeleteTestItemHandler deleteTestItemHandler;
 
-    @Autowired
-    private FinishTestItemHandler finishTestItemHandler;
+	@Autowired
+	private FinishTestItemHandler finishTestItemHandler;
 
-    @Autowired
-    private GetTestItemHandler getTestItemHandler;
+	@Autowired
+	private GetTestItemHandler getTestItemHandler;
 
-    @Autowired
-    private TestItemsHistoryHandler testItemsHistoryHandler;
+	@Autowired
+	private TestItemsHistoryHandler testItemsHistoryHandler;
 
-    @Autowired
-    private UpdateTestItemHandler updateTestItemHandler;
+	@Autowired
+	private UpdateTestItemHandler updateTestItemHandler;
 
-    @Autowired
-    private MergeTestItemHandler mergeTestItemHandler;
+	@Autowired
+	private MergeTestItemHandler mergeTestItemHandler;
 
-    @Override
-    @PostMapping
-    @ResponseBody
-    @ResponseStatus(CREATED)
-    @ApiOperation("Start a root test item")
-    @PreAuthorize(ALLOWED_TO_REPORT)
-    public EntryCreatedRS startRootItem(@PathVariable String projectName, @RequestBody @Validated StartTestItemRQ startTestItemRQ,
-                                        Principal principal) {
-        return startTestItemHandler.startRootItem(projectName, startTestItemRQ);
-    }
+	@Override
+	@PostMapping
+	@ResponseBody
+	@ResponseStatus(CREATED)
+	@ApiOperation("Start a root test item")
+	@PreAuthorize(ALLOWED_TO_REPORT)
+	public EntryCreatedRS startRootItem(@PathVariable String projectName, @RequestBody @Validated StartTestItemRQ startTestItemRQ,
+			Principal principal) {
+		return startTestItemHandler.startRootItem(projectName, startTestItemRQ);
+	}
 
-    @Override
-    @PostMapping("/{parentItem}")
-    @ResponseBody
-    @ResponseStatus(CREATED)
-    @ApiOperation("Start a child test item")
-    @PreAuthorize(ALLOWED_TO_REPORT)
-    public EntryCreatedRS startChildItem(@PathVariable String projectName, @PathVariable String parentItem,
-                                         @RequestBody @Validated StartTestItemRQ startTestItemRQ, Principal principal) {
-        return startTestItemHandler.startChildItem(projectName, startTestItemRQ, parentItem);
-    }
+	@Override
+	@PostMapping("/{parentItem}")
+	@ResponseBody
+	@ResponseStatus(CREATED)
+	@ApiOperation("Start a child test item")
+	@PreAuthorize(ALLOWED_TO_REPORT)
+	public EntryCreatedRS startChildItem(@PathVariable String projectName, @PathVariable String parentItem,
+			@RequestBody @Validated StartTestItemRQ startTestItemRQ, Principal principal) {
+		return startTestItemHandler.startChildItem(projectName, startTestItemRQ, parentItem);
+	}
 
-    @Override
-    @PutMapping("/{testItemId}")
-    @ResponseBody
-    @ResponseStatus(OK)
-    @ApiOperation("Finish test item")
-    @PreAuthorize(ALLOWED_TO_REPORT)
-    public OperationCompletionRS finishTestItem(@PathVariable String projectName, @PathVariable String testItemId,
-                                                @RequestBody @Validated FinishTestItemRQ finishExecutionRQ, Principal principal) {
-        return finishTestItemHandler.finishTestItem(testItemId, finishExecutionRQ, principal.getName());
-    }
+	@Override
+	@PutMapping("/{testItemId}")
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Finish test item")
+	@PreAuthorize(ALLOWED_TO_REPORT)
+	public OperationCompletionRS finishTestItem(@PathVariable String projectName, @PathVariable String testItemId,
+			@RequestBody @Validated FinishTestItemRQ finishExecutionRQ, Principal principal) {
+		return finishTestItemHandler.finishTestItem(testItemId, finishExecutionRQ, principal.getName());
+	}
 
-    @Override
-    @GetMapping("/{testItemId}")
-    @ResponseBody
-    @ResponseStatus(OK)
-    @ApiOperation("Find test item by ID")
-    public TestItemResource getTestItem(@PathVariable String projectName, @PathVariable String testItemId, Principal principal) {
-        return getTestItemHandler.getTestItem(testItemId);
-    }
+	@Override
+	@GetMapping("/{testItemId}")
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Find test item by ID")
+	public TestItemResource getTestItem(@PathVariable String projectName, @PathVariable String testItemId, Principal principal) {
+		return getTestItemHandler.getTestItem(testItemId);
+	}
 
-    @Override
-    @GetMapping
-    @ResponseBody
-    @ResponseStatus(OK)
-    @ApiOperation("Find test items by specified filter")
-    public Iterable<TestItemResource> getTestItems(@PathVariable String projectName, @FilterFor(TestItem.class) Filter filter,
-            @FilterFor(TestItem.class) Queryable predefinedFilter,
-                                                   @SortFor(TestItem.class) Pageable pageable, Principal principal) {
-        return getTestItemHandler.getTestItems(new CompositeFilter(filter, predefinedFilter), pageable);
-    }
+	@Override
+	@GetMapping
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Find test items by specified filter")
+	public Iterable<TestItemResource> getTestItems(@PathVariable String projectName, @FilterFor(TestItem.class) Filter filter,
+			@FilterFor(TestItem.class) Queryable predefinedFilter, @SortFor(TestItem.class) Pageable pageable, Principal principal) {
+		return getTestItemHandler.getTestItems(new CompositeFilter(filter, predefinedFilter), pageable);
+	}
 
-    @DeleteMapping("/{item}")
-    @ResponseBody
-    @ResponseStatus(OK)
-    @Override
-    @ApiOperation("Delete test item")
-    public OperationCompletionRS deleteTestItem(@PathVariable String projectName, @PathVariable String item, Principal principal) {
-        return deleteTestItemHandler.deleteTestItem(item, normalizeId(projectName), principal.getName());
-    }
+	@DeleteMapping("/{item}")
+	@ResponseBody
+	@ResponseStatus(OK)
+	@Override
+	@ApiOperation("Delete test item")
+	public OperationCompletionRS deleteTestItem(@PathVariable String projectName, @PathVariable String item, Principal principal) {
+		return deleteTestItemHandler.deleteTestItem(item, normalizeId(projectName), principal.getName(), false);
+	}
 
-    @Override
-    @ResponseBody
-    @ResponseStatus(OK)
-    @DeleteMapping
-    @ApiOperation("Delete test items by specified ids")
-    public List<OperationCompletionRS> deleteTestItems(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
-                                                       Principal principal) {
-        return deleteTestItemHandler.deleteTestItem(ids, normalizeId(projectName), principal.getName());
-    }
+	@Override
+	@ResponseBody
+	@ResponseStatus(OK)
+	@DeleteMapping
+	@ApiOperation("Delete test items by specified ids")
+	public List<OperationCompletionRS> deleteTestItems(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
+			Principal principal) {
+		return deleteTestItemHandler.deleteTestItem(ids, normalizeId(projectName), principal.getName());
+	}
 
-    @Override
-    @PutMapping
-    @ResponseStatus(OK)
-    @ResponseBody
-    @ApiOperation("Update issues of specified test items")
-    public List<Issue> defineTestItemIssueType(@PathVariable String projectName, @RequestBody @Validated DefineIssueRQ request,
-                                               Principal principal) {
-        return updateTestItemHandler.defineTestItemsIssues(normalizeId(projectName), request, principal.getName());
-    }
+	@Override
+	@PutMapping
+	@ResponseStatus(OK)
+	@ResponseBody
+	@ApiOperation("Update issues of specified test items")
+	public List<Issue> defineTestItemIssueType(@PathVariable String projectName, @RequestBody @Validated DefineIssueRQ request,
+			Principal principal) {
+		return updateTestItemHandler.defineTestItemsIssues(normalizeId(projectName), request, principal.getName());
+	}
 
-    @Override
-    @GetMapping("/history")
-    @ResponseStatus(OK)
-    @ResponseBody
-    @ApiOperation("Load history of test items")
-    public List<TestItemHistoryElement> getItemsHistory(@PathVariable String projectName,
-            @RequestParam(value = "history_depth", required = false, defaultValue = DEFAULT_HISTORY_DEPTH) int historyDepth,
-            @RequestParam(value = "ids") String[] ids,
-            @RequestParam(value = "is_full", required = false, defaultValue = DEFAULT_HISTORY_FULL) boolean showBrokenLaunches,
-            Principal principal) {
-        return testItemsHistoryHandler.getItemsHistory(normalizeId(projectName), ids, historyDepth, showBrokenLaunches);
-    }
+	@Override
+	@GetMapping("/history")
+	@ResponseStatus(OK)
+	@ResponseBody
+	@ApiOperation("Load history of test items")
+	public List<TestItemHistoryElement> getItemsHistory(@PathVariable String projectName,
+			@RequestParam(value = "history_depth", required = false, defaultValue = DEFAULT_HISTORY_DEPTH) int historyDepth,
+			@RequestParam(value = "ids") String[] ids,
+			@RequestParam(value = "is_full", required = false, defaultValue = DEFAULT_HISTORY_FULL) boolean showBrokenLaunches,
+			Principal principal) {
+		return testItemsHistoryHandler.getItemsHistory(normalizeId(projectName), ids, historyDepth, showBrokenLaunches);
+	}
 
-    @Override
-    @GetMapping("/tags")
-    @ResponseBody
-    @ResponseStatus(OK)
-    @ApiOperation("Get all unique tags of specified launch")
-    public List<String> getAllTags(@PathVariable String projectName, @RequestParam(value = "launch") String id,
-                                   @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + Launch.TAGS) String value,
-                                   Principal principal) {
-        return getTestItemHandler.getTags(id, value);
-    }
+	@Override
+	@GetMapping("/tags")
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Get all unique tags of specified launch")
+	public List<String> getAllTags(@PathVariable String projectName, @RequestParam(value = "launch") String id,
+			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + Launch.TAGS) String value,
+			Principal principal) {
+		return getTestItemHandler.getTags(id, value);
+	}
 
-    @Override
-    @PutMapping("/{item}/update")
-    @ResponseBody
-    @ResponseStatus(OK)
-    @PreAuthorize(ASSIGNED_TO_PROJECT)
-    @ApiOperation("Update test item")
-    public OperationCompletionRS updateTestItem(@PathVariable String projectName, @PathVariable String item,
-                                                @RequestBody @Validated UpdateTestItemRQ rq, Principal principal) {
-        return updateTestItemHandler.updateTestItem(normalizeId(projectName), item, rq, principal.getName());
-    }
+	@Override
+	@PutMapping("/{item}/update")
+	@ResponseBody
+	@ResponseStatus(OK)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
+	@ApiOperation("Update test item")
+	public OperationCompletionRS updateTestItem(@PathVariable String projectName, @PathVariable String item,
+			@RequestBody @Validated UpdateTestItemRQ rq, Principal principal) {
+		return updateTestItemHandler.updateTestItem(normalizeId(projectName), item, rq, principal.getName());
+	}
 
-    @Override
-    @PutMapping("/issue/add")
-    @ResponseBody
-    @ResponseStatus(OK)
-    @PreAuthorize(ASSIGNED_TO_PROJECT)
-    @ApiOperation("Attach external issue for specified test items")
-    public List<OperationCompletionRS> addExternalIssues(@PathVariable String projectName, @RequestBody @Validated AddExternalIssueRQ rq,
-                                                         Principal principal) {
-        return updateTestItemHandler.addExternalIssues(normalizeId(projectName), rq, principal.getName());
-    }
+	@Override
+	@PutMapping("/issue/add")
+	@ResponseBody
+	@ResponseStatus(OK)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
+	@ApiOperation("Attach external issue for specified test items")
+	public List<OperationCompletionRS> addExternalIssues(@PathVariable String projectName, @RequestBody @Validated AddExternalIssueRQ rq,
+			Principal principal) {
+		return updateTestItemHandler.addExternalIssues(normalizeId(projectName), rq, principal.getName());
+	}
 
-    @Override
-    @GetMapping("/items")
-    @ResponseBody
-    @ResponseStatus(OK)
-    @PreAuthorize(ASSIGNED_TO_PROJECT)
-    @ApiOperation("Get test items by specified ids")
-    public List<TestItemResource> getTestItems(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
-                                               Principal principal) {
-        return getTestItemHandler.getTestItems(ids);
-    }
+	@Override
+	@GetMapping("/items")
+	@ResponseBody
+	@ResponseStatus(OK)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
+	@ApiOperation("Get test items by specified ids")
+	public List<TestItemResource> getTestItems(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
+			Principal principal) {
+		return getTestItemHandler.getTestItems(ids);
+	}
 
-    @Override
-    @PutMapping("/{item}/merge")
-    @ResponseBody
-    @ResponseStatus(OK)
-    @PreAuthorize(ASSIGNED_TO_PROJECT)
-//    @ApiOperation("Merge test item")
-    @ApiIgnore
-    public OperationCompletionRS mergeTestItem(@PathVariable String projectName, @PathVariable String item,
-                                               @RequestBody @Validated MergeTestItemRQ rq, Principal principal) {
-        return mergeTestItemHandler.mergeTestItem(normalizeId(projectName), item, rq, principal.getName());
-    }
+	@Override
+	@PutMapping("/{item}/merge")
+	@ResponseBody
+	@ResponseStatus(OK)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
+	//    @ApiOperation("Merge test item")
+	@ApiIgnore
+	public OperationCompletionRS mergeTestItem(@PathVariable String projectName, @PathVariable String item,
+			@RequestBody @Validated MergeTestItemRQ rq, Principal principal) {
+		return mergeTestItemHandler.mergeTestItem(normalizeId(projectName), item, rq, principal.getName());
+	}
 }

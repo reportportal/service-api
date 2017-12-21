@@ -32,9 +32,11 @@ import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
-import com.epam.ta.reportportal.ws.converter.LaunchResourceAssembler;
+import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
+import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
@@ -68,11 +70,9 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 
 	private ProjectRepository projectRepository;
 	private final LaunchRepository launchRepository;
-	private final LaunchResourceAssembler launchResourceAssembler;
 
 	@Autowired
-	public GetLaunchHandler(LaunchResourceAssembler launchResourceAssembler, LaunchRepository launchRepository) {
-		this.launchResourceAssembler = Preconditions.checkNotNull(launchResourceAssembler);
+	public GetLaunchHandler(LaunchRepository launchRepository) {
 		this.launchRepository = Preconditions.checkNotNull(launchRepository);
 	}
 
@@ -89,7 +89,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 			final Project.UserConfig userConfig = findUserConfigByLogin(project, userName);
 			expect(userConfig.getProjectRole(), not(equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
 		}
-		return launchResourceAssembler.toResource(launch);
+		return LaunchConverter.TO_RESOURCE.apply(launch);
 	}
 
 	@Override
@@ -97,7 +97,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 		filter.addCondition(new FilterCondition(EQUALS, false, project, Launch.PROJECT));
 		Page<Launch> launches = launchRepository.findByFilter(filter, pageable);
 		expect(launches, notNull()).verify(LAUNCH_NOT_FOUND);
-		return launchResourceAssembler.toResource(launches.iterator().next());
+		return LaunchConverter.TO_RESOURCE.apply(launches.iterator().next());
 	}
 
 	@Override
@@ -111,11 +111,9 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 		 * com.mongodb.BasicDBObject, user can't add a second 'mode' criteria
 		 */
 		validateModeConditions(filter);
-		filter.addCondition(new FilterCondition(EQUALS, false, projectName, Launch.PROJECT));
-		// add condition for loading only launches with default mode
-		filter.addCondition(new FilterCondition(EQUALS, false, DEFAULT.toString(), Launch.MODE_CRITERIA));
+		filter = addLaunchCommonCriteria(DEFAULT, filter, projectName);
 		Page<Launch> launches = launchRepository.findByFilter(filter, pageable);
-		return launchResourceAssembler.toPagedResources(launches);
+		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
 	}
 
 	/*
@@ -124,23 +122,20 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 	 */
 	@Override
 	public Iterable<LaunchResource> getDebugLaunches(String projectName, String userName, Filter filter, Pageable pageable) {
-		filter.addCondition(new FilterCondition(EQUALS, false, projectName, Launch.PROJECT));
-		filter.addCondition(new FilterCondition(EQUALS, false, DEBUG.toString(), Launch.MODE_CRITERIA));
+		filter = addLaunchCommonCriteria(DEBUG, filter, projectName);
 		Page<Launch> launches = launchRepository.findByFilter(filter, pageable);
-		return launchResourceAssembler.toPagedResources(launches);
+		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
 	}
 
-    @Override
-    public com.epam.ta.reportportal.ws.model.Page<LaunchResource> getLatestLaunches(String projectName, Filter filter,
-                                              Pageable pageable) {
-        validateModeConditions(filter);
-        filter.addCondition(new FilterCondition(EQUALS, false, DEFAULT.toString(), Launch.MODE_CRITERIA));
-        filter.addCondition(new FilterCondition(EQUALS, false, projectName, Project.PROJECT));
-        Page<LaunchResource> resources = launchRepository.findLatestLaunches(filter, pageable)
-                .map(launchResourceAssembler::toResource);
-        return new com.epam.ta.reportportal.ws.model.Page<>(resources.getContent(), resources.getSize(),
-                resources.getNumber() + 1, resources.getTotalElements(), resources.getTotalPages());
-    }
+	@Override
+	public com.epam.ta.reportportal.ws.model.Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable) {
+		validateModeConditions(filter);
+		addLaunchCommonCriteria(DEFAULT, filter, projectName);
+		Page<LaunchResource> resources = launchRepository.findLatestLaunches(filter, pageable).map(LaunchConverter.TO_RESOURCE::apply);
+		return new com.epam.ta.reportportal.ws.model.Page<>(resources.getContent(), resources.getSize(), resources.getNumber() + 1,
+				resources.getTotalElements(), resources.getTotalPages()
+		);
+	}
 
 	@Override
 	public List<String> getTags(String project, String value) {
@@ -150,19 +145,22 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 	@Override
 	public List<String> getLaunchNames(String project, String value) {
 		expect(value.length() > 2, equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
-				formattedSupplier("Length of the launch name string '{}' is less than 3 symbols", value));
+				formattedSupplier("Length of the launch name string '{}' is less than 3 symbols", value)
+		);
 		return launchRepository.findValuesWithMode(project, value, "name", DEFAULT.name());
 	}
 
 	@Override
 	public List<String> getOwners(String project, String value, String field, String mode) {
 		expect(value.length() > 2, equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
-				formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value));
+				formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
+		);
 		return launchRepository.findValuesWithMode(project, value, field, mode);
 	}
 
 	@Override
 	public Map<String, List<ChartObject>> getLaunchesComparisonInfo(String projectName, String[] ids) {
+		//@formatter:off
 		List<Launch> launches = launchRepository.find(Arrays.asList(ids));
 		List<ChartObject> objects = new ArrayList<>(launches.size());
 		launches.forEach(launch -> {
@@ -174,17 +172,18 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 
 			IssueCounter issueCounter = launch.getStatistics().getIssueCounter();
 			Map<String, Integer> issuesData = ImmutableMap.<String, Integer>builder()
-					.put(getProductBugFieldName().replaceAll("\\.", "\\$"), issueCounter.getProductBugTotal())
-					.put(getSystemIssueFieldName().replaceAll("\\.", "\\$"), issueCounter.getSystemIssueTotal())
-					.put(getAutomationBugFieldName().replaceAll("\\.", "\\$"), issueCounter.getAutomationBugTotal())
-					.put(getToInvestigateFieldName().replaceAll("\\.", "\\$"), issueCounter.getToInvestigateTotal())
+					.put("statistics$defects$product_bug$total", issueCounter.getProductBugTotal())
+					.put("statistics$defects$system_issue$total", issueCounter.getSystemIssueTotal())
+					.put("statistics$defects$automation_bug$total", issueCounter.getAutomationBugTotal())
+					.put("statistics$defects$to_investigate$total", issueCounter.getToInvestigateTotal())
+					.put("statistics$defects$no_defect$total", issueCounter.getNoDefectTotal())
 					.build();
 
 			ExecutionCounter executionCounter = launch.getStatistics().getExecutionCounter();
 			Map<String, Integer> executionData = ImmutableMap.<String, Integer>builder()
-					.put(getFailedFieldName().replaceAll("\\.", "\\$"), executionCounter.getFailed())
-					.put(getPassedFieldName().replaceAll("\\.", "\\$"), executionCounter.getPassed())
-					.put(getSkippedFieldName().replaceAll("\\.", "\\$"), executionCounter.getSkipped())
+					.put("statistics$executions$failed", executionCounter.getFailed())
+					.put("statistics$executions$passed", executionCounter.getPassed())
+					.put("statistics$executions$skipped", executionCounter.getSkipped())
 					.build();
 
 			Map<String, String> computedStatistics = computeFraction(issuesData);
@@ -193,12 +192,27 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 			objects.add(object);
 		});
 		return Collections.singletonMap(RESULT, objects);
+		//@formatter:off
 	}
 
 	@Override
 	public Map<String, String> getStatuses(String projectName, String[] ids) {
 		return launchRepository.find(Arrays.asList(ids)).stream().filter(launch -> launch.getProjectRef().equals(projectName))
 				.collect(Collectors.toMap(Launch::getId, launch -> launch.getStatus().toString()));
+	}
+
+	/**
+	 * Add to filter project and mode criteria
+	 *
+	 * @param filter Filter to update
+	 * @return Updated filter
+	 */
+	private Filter addLaunchCommonCriteria(Mode mode, Filter filter, String projectName) {
+		if (null != filter) {
+			filter.addCondition(new FilterCondition(EQUALS, false, mode.toString(), Launch.MODE_CRITERIA));
+			filter.addCondition(new FilterCondition(EQUALS, false, projectName, Project.PROJECT));
+		}
+		return filter;
 	}
 
     private Map<String, String> computeFraction(Map<String, Integer> data) {

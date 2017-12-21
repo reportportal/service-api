@@ -116,17 +116,20 @@ public class GetJasperReportHandler implements IGetJasperReportHandler {
 	public JasperPrint getLaunchDetails(String launchId, String username) {
 		Launch launch = launchRepository.findOne(launchId);
 		BusinessRule.expect(launch, Predicates.notNull()).verify(ErrorType.LAUNCH_NOT_FOUND, launchId);
-		BusinessRule.expect(launch, Predicates.not(Preconditions.IN_PROGRESS)).verify(ErrorType.FORBIDDEN_OPERATION,
-				Suppliers.formattedSupplier("Launch '{}' has IN_PROGRESS status. Impossible to export such elements.", launchId));
+		BusinessRule.expect(launch, Predicates.not(Preconditions.IN_PROGRESS))
+				.verify(ErrorType.FORBIDDEN_OPERATION,
+						Suppliers.formattedSupplier("Launch '{}' has IN_PROGRESS status. Impossible to export such elements.", launchId)
+				);
 		User user = userRepository.findOne(username);
 		BusinessRule.expect(user, Predicates.notNull()).verify(ErrorType.USER_NOT_FOUND, username);
 		Map<String, Object> params = processLaunchParams(launch);
 		User owner = userRepository.findOne(launch.getUserRef());
 		/* Check if launch owner still in system if not - setup principal */
-		if (null != owner)
+		if (null != owner) {
 			params.put(OWNER, owner.getFullName());
-		else
+		} else {
 			params.put(OWNER, user.getFullName());
+		}
 		params.put(TEST_ITEMS, dataProvider.getReportSource(launch));
 		return reportRender.generateReportPrint(params, new JREmptyDataSource());
 	}
@@ -135,8 +138,8 @@ public class GetJasperReportHandler implements IGetJasperReportHandler {
 	@Override
 	public ReportFormat getReportFormat(String view) {
 		Optional<ReportFormat> format = ReportFormat.findByName(view);
-		BusinessRule.expect(format, Preconditions.IS_PRESENT).verify(ErrorType.BAD_REQUEST_ERROR,
-				Suppliers.formattedSupplier("Unexpected report format: {}", view));
+		BusinessRule.expect(format, Preconditions.IS_PRESENT)
+				.verify(ErrorType.BAD_REQUEST_ERROR, Suppliers.formattedSupplier("Unexpected report format: {}", view));
 		return format.get();
 	}
 
@@ -145,50 +148,53 @@ public class GetJasperReportHandler implements IGetJasperReportHandler {
 
 		try {
 			switch (format) {
-			case PDF:
-				JasperExportManager.exportReportToPdfStream(jasperPrint, outputStream);
-				break;
-			case HTML:
-				HtmlExporter exporter = new HtmlExporter();
-				exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
-				HtmlExporterOutput exporterOutput = new SimpleHtmlExporterOutput(outputStream);
-				exporter.setExporterOutput(exporterOutput);
+				case PDF:
+					JasperExportManager.exportReportToPdfStream(jasperPrint, outputStream);
+					break;
+				case HTML:
+					HtmlExporter exporter = new HtmlExporter();
+					exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+					HtmlExporterOutput exporterOutput = new SimpleHtmlExporterOutput(outputStream);
+					exporter.setExporterOutput(exporterOutput);
 
-				SimpleHtmlReportConfiguration htmlConfig = new SimpleHtmlReportConfiguration();
-				htmlConfig.setWhitePageBackground(false);
-				htmlConfig.setRemoveEmptySpaceBetweenRows(true);
-				exporter.setConfiguration(htmlConfig);
-				exporter.exportReport();
-				break;
-			case XLS:
-				SimpleXlsReportConfiguration configuration = new SimpleXlsReportConfiguration();
-				configuration.setOnePagePerSheet(false);
-				configuration.setDetectCellType(true);
-				configuration.setCollapseRowSpan(false);
-				configuration.setIgnoreGraphics(true);
+					SimpleHtmlReportConfiguration htmlConfig = new SimpleHtmlReportConfiguration();
+					htmlConfig.setWhitePageBackground(false);
+					htmlConfig.setRemoveEmptySpaceBetweenRows(true);
+					exporter.setConfiguration(htmlConfig);
+					exporter.exportReport();
+					break;
+				case XLS:
+					SimpleXlsReportConfiguration configuration = new SimpleXlsReportConfiguration();
+					configuration.setOnePagePerSheet(false);
+					configuration.setDetectCellType(true);
+					configuration.setCollapseRowSpan(false);
+					configuration.setIgnoreGraphics(true);
 
-				JRXlsExporter exporterXLS = new JRXlsExporter();
-				exporterXLS.setExporterInput(new SimpleExporterInput(jasperPrint));
-				exporterXLS.setExporterOutput(new SimpleOutputStreamExporterOutput(outputStream));
-				exporterXLS.setConfiguration(configuration);
-				exporterXLS.exportReport();
-				break;
+					JRXlsExporter exporterXLS = new JRXlsExporter();
+					exporterXLS.setExporterInput(new SimpleExporterInput(jasperPrint));
+					exporterXLS.setExporterOutput(new SimpleOutputStreamExporterOutput(outputStream));
+					exporterXLS.setConfiguration(configuration);
+					exporterXLS.exportReport();
+					break;
 			}
 
 			outputStream.flush();
 			outputStream.close();
 		} catch (JRException ex) {
 			LOGGER.error("Unable to generate report!", ex);
-			BusinessRule.fail().withError(ErrorType.FORBIDDEN_OPERATION,
-					Suppliers.formattedSupplier(" Unexpected issue during report output stream creation: {}", ex.getLocalizedMessage()));
+			BusinessRule.fail()
+					.withError(ErrorType.FORBIDDEN_OPERATION,
+							Suppliers.formattedSupplier(" Unexpected issue during report output stream creation: {}",
+									ex.getLocalizedMessage()
+							)
+					);
 		}
 	}
 
 	/**
 	 * Format launch duration from long to human readable format.
 	 *
-	 * @param duration
-	 *            - input duration as long value
+	 * @param duration - input duration as long value
 	 * @return String - formatted output
 	 */
 	private static String millisToShortDHMS(long duration) {
@@ -205,29 +211,29 @@ public class GetJasperReportHandler implements IGetJasperReportHandler {
 		return res;
 	}
 
-    private Map<String, Object> processLaunchParams(Launch launch) {
-        Map<String, Object> params = new HashMap<>();
+	private Map<String, Object> processLaunchParams(Launch launch) {
+		Map<String, Object> params = new HashMap<>();
 
-        params.put(LAUNCH_NAME, launch.getName() + " #" + launch.getNumber());
-        params.put(LAUNCH_DESC, launch.getDescription() == null ? "" : launch.getDescription());
-        params.put(LAUNCH_TAGS, launch.getTags());
+		params.put(LAUNCH_NAME, launch.getName() + " #" + launch.getNumber());
+		params.put(LAUNCH_DESC, launch.getDescription() == null ? "" : launch.getDescription());
+		params.put(LAUNCH_TAGS, launch.getTags());
 
 						/* Possible NPE for IN_PROGRESS launches */
-        params.put(DURATION, millisToShortDHMS(launch.getEndTime().getTime() - launch.getStartTime().getTime()));
+		params.put(DURATION, millisToShortDHMS(launch.getEndTime().getTime() - launch.getStartTime().getTime()));
 
-        ExecutionCounter exec = launch.getStatistics().getExecutionCounter();
-        params.put(TOTAL, exec.getTotal());
-        params.put(PASSED, exec.getPassed());
-        params.put(FAILED, exec.getFailed());
-        params.put(SKIPPED, exec.getSkipped());
+		ExecutionCounter exec = launch.getStatistics().getExecutionCounter();
+		params.put(TOTAL, exec.getTotal());
+		params.put(PASSED, exec.getPassed());
+		params.put(FAILED, exec.getFailed());
+		params.put(SKIPPED, exec.getSkipped());
 
-        IssueCounter issue = launch.getStatistics().getIssueCounter();
-        params.put(AB, issue.getAutomationBugTotal());
-        params.put(PB, issue.getProductBugTotal());
-        params.put(SI, issue.getSystemIssueTotal());
-        params.put(ND, issue.getNoDefectTotal());
-        params.put(TI, issue.getToInvestigateTotal());
+		IssueCounter issue = launch.getStatistics().getIssueCounter();
+		params.put(AB, issue.getAutomationBugTotal());
+		params.put(PB, issue.getProductBugTotal());
+		params.put(SI, issue.getSystemIssueTotal());
+		params.put(ND, issue.getNoDefectTotal());
+		params.put(TI, issue.getToInvestigateTotal());
 
-        return params;
-    }
+		return params;
+	}
 }

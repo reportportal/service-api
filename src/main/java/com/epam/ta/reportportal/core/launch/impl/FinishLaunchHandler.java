@@ -24,14 +24,17 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.commons.DbUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.launch.IFinishLaunchHandler;
+import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
-import com.epam.ta.reportportal.database.dao.*;
+import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.Status;
-import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.database.entity.user.User;
@@ -42,6 +45,7 @@ import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +56,8 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.trimStrings;
+import static com.epam.ta.reportportal.commons.EntityUtils.update;
 import static com.epam.ta.reportportal.commons.Preconditions.hasProjectRoles;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -59,12 +65,13 @@ import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSup
 import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.database.entity.Status.*;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
+import static com.epam.ta.reportportal.util.Predicates.IS_RETRY;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.toList;
 
 /**
  * Default implementation of {@link IFinishLaunchHandler}
- * 
+ *
  * @author Andrei_Ramanchuk
  */
 @Service
@@ -82,9 +89,6 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 	private StatisticsFacadeFactory statisticsFacadeFactory;
 
 	@Autowired
-	private FailReferenceResourceRepository issuesRepository;
-
-	@Autowired
 	private ProjectRepository projectRepository;
 
 	@Autowired
@@ -92,6 +96,9 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
+
+	@Autowired
+	private IRetriesLaunchHandler retriesLaunchHandler;
 
 	@Override
 	public OperationCompletionRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String username) {
@@ -105,25 +112,30 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 			launch.setDescription(finishLaunchRQ.getDescription());
 		}
 		if (!CollectionUtils.isEmpty(finishLaunchRQ.getTags())) {
-			launch.setTags(finishLaunchRQ.getTags());
+			launch.setTags(Sets.newHashSet(trimStrings(update(finishLaunchRQ.getTags()))));
 		}
 
 		Optional<Status> status = fromValue(finishLaunchRQ.getStatus());
 		status.ifPresent(providedStatus -> {
 			/* Validate provided status */
 			expect(providedStatus, not(Preconditions.statusIn(IN_PROGRESS, SKIPPED))).verify(INCORRECT_FINISH_STATUS,
-					formattedSupplier("Cannot finish launch '{}' with status '{}'", launchId, providedStatus));
+					formattedSupplier("Cannot finish launch '{}' with status '{}'", launchId, providedStatus)
+			);
 			/* Validate actual launch status */
 			if (PASSED.equals(providedStatus)) {
 				/* Validate actual launch status */
 				expect(launch.getStatus(), Preconditions.statusIn(IN_PROGRESS, PASSED)).verify(INCORRECT_FINISH_STATUS,
-						formattedSupplier("Cannot finish launch '{}' with current status '{}' as 'PASSED'", launchId, launch.getStatus()));
+						formattedSupplier("Cannot finish launch '{}' with current status '{}' as 'PASSED'", launchId, launch.getStatus())
+				);
 				/*
 				 * Calculate status from launch statistics and validate it
 				 */
 				Status fromStatistics = StatisticsHelper.getStatusFromStatistics(launch.getStatistics());
-				expect(fromStatistics, Preconditions.statusIn(IN_PROGRESS, PASSED)).verify(INCORRECT_FINISH_STATUS, formattedSupplier(
-						"Cannot finish launch '{}' with calculated automatically status '{}' as 'PASSED'", launchId, fromStatistics));
+				expect(fromStatistics, Preconditions.statusIn(IN_PROGRESS, PASSED)).verify(INCORRECT_FINISH_STATUS,
+						formattedSupplier("Cannot finish launch '{}' with calculated automatically status '{}' as 'PASSED'", launchId,
+								fromStatistics
+						)
+				);
 			}
 		});
 		launch.setStatus(status.orElse(StatisticsHelper.getStatusFromStatistics(launch.getStatistics())));
@@ -144,16 +156,19 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		validateRoles(launch, userName, projectName);
 
 		expect(launch, not(Preconditions.LAUNCH_FINISHED)).verify(FINISH_LAUNCH_NOT_ALLOWED,
-				formattedSupplier("Launch '{}' already finished with status '{}'", launch.getId(), launch.getStatus()));
+				formattedSupplier("Launch '{}' already finished with status '{}'", launch.getId(), launch.getStatus())
+		);
 
 		launch.setEndTime(finishLaunchRQ.getEndTime());
-		if (null != launch.getDescription())
+		if (null != launch.getDescription()) {
 			launch.setDescription(launch.getDescription().concat(LAUNCH_STOP_DESCRIPTION));
-		else
+		} else {
 			launch.setDescription(LAUNCH_STOP_DESCRIPTION);
+		}
 		Set<String> newTags = launch.getTags();
-		if (null == newTags)
+		if (null == newTags) {
 			newTags = new HashSet<>();
+		}
 		newTags.add(LAUNCH_STOP_TAG);
 		launch.setTags(newTags);
 		launch.setStatus(fromValue(finishLaunchRQ.getStatus()).orElse(STOPPED));
@@ -162,8 +177,9 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 			if (launchRepository.hasItems(launch, IN_PROGRESS)) {
 				// Find all IN_PROGRESS children and interrupt them
 				List<TestItem> itemsInProgress = testItemRepository.findInStatusItems(IN_PROGRESS.name(), launch.getId());
-				interruptItems(itemsInProgress, launch);
+				interruptItems(itemsInProgress);
 			}
+			retriesLaunchHandler.handleRetries(launch);
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while Launch updating.", exp);
 		}
@@ -173,7 +189,10 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 
 	@Override
 	public List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, String projectName, String userName) {
-		return bulkRQ.getEntities().entrySet().stream().map(entry -> stopLaunch(entry.getKey(), entry.getValue(), projectName, userName))
+		return bulkRQ.getEntities()
+				.entrySet()
+				.stream()
+				.map(entry -> stopLaunch(entry.getKey(), entry.getValue(), projectName, userName))
 				.collect(toList());
 	}
 
@@ -181,10 +200,12 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);
 
 		expect(launch, not(Preconditions.LAUNCH_FINISHED)).verify(FINISH_LAUNCH_NOT_ALLOWED,
-				formattedSupplier("Launch '{}' already finished with status '{}'", launch.getId(), launch.getStatus()));
+				formattedSupplier("Launch '{}' already finished with status '{}'", launch.getId(), launch.getStatus())
+		);
 
 		expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(launch.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
-				finishExecutionRQ.getEndTime(), launch.getStartTime(), launchId);
+				finishExecutionRQ.getEndTime(), launch.getStartTime(), launchId
+		);
 
 		final List<TestItem> items = testItemRepository.findByLaunch(launch);
 		expect(items, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_LAUNCH_NOT_ALLOWED, new Supplier<String>() {
@@ -222,7 +243,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 
 	/**
 	 * Convert list of test items in list of items with IN_PROGRESS status only
-	 * 
+	 *
 	 * @param items
 	 * @return
 	 */
@@ -230,9 +251,8 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		return items.stream().filter(descendant -> IN_PROGRESS.equals(descendant.getStatus())).collect(Collectors.toList());
 	}
 
-	private void interruptItems(List<TestItem> testItems, Launch launch) {
+	private void interruptItems(List<TestItem> testItems) {
 		testItems.forEach(this::interruptItem);
-		clearIssueReferences(launch.getId());
 	}
 
 	private void interruptItem(TestItem item) {
@@ -240,7 +260,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 			item.setStatus(INTERRUPTED);
 			item.setEndTime(Calendar.getInstance().getTime());
 			item = testItemRepository.save(item);
-			if (!item.hasChilds()) {
+			if (!item.hasChilds() && !IS_RETRY.test(item)) {
 				Project project = projectRepository.findOne(launchRepository.findOne(item.getLaunchRef()).getProjectRef());
 				item = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.updateExecutionStatistics(item);
@@ -249,13 +269,9 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 							.updateIssueStatistics(item);
 				}
 			}
-			if (null != item.getParent())
+			if (null != item.getParent()) {
 				interruptItem(testItemRepository.findOne(item.getParent()));
+			}
 		}
-	}
-
-	private void clearIssueReferences(String launchId) {
-		List<FailReferenceResource> issues = issuesRepository.findAllLaunchIssues(launchId);
-		issuesRepository.delete(issues);
 	}
 }

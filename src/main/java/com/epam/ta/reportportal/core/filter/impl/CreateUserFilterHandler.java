@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.filter.impl;
 
@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
 import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.entity.filter.ObjectType;
+import com.epam.ta.reportportal.database.entity.filter.SelectionOrder;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.events.FiltersCreatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder;
@@ -45,9 +46,8 @@ import java.util.stream.Collectors;
 
 /**
  * Default implementation of {@link ICreateUserFilterHandler}
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 @Service
 public class CreateUserFilterHandler implements ICreateUserFilterHandler {
@@ -62,15 +62,15 @@ public class CreateUserFilterHandler implements ICreateUserFilterHandler {
 	private UserFilterValidationService userFilterService;
 
 	@Autowired
-    private ApplicationEventPublisher eventPublisher;
+	private ApplicationEventPublisher eventPublisher;
 
 	@Override
 	public List<EntryCreatedRS> createFilter(String userName, String projectName, CollectionsRQ<CreateUserFilterRQ> createFilterRQ) {
 
 		// validate request
 		List<UserFilter> filters = createFilterRQ.getElements().stream().map(rq -> {
-			Set<UserFilterEntity> updatedEntries = userFilterService
-					.validateUserFilterEntities(ObjectType.getTypeByName(rq.getObjectType()), rq.getEntities());
+			Set<UserFilterEntity> updatedEntries = userFilterService.validateUserFilterEntities(
+					ObjectType.getTypeByName(rq.getObjectType()), rq.getEntities());
 			/*
 			 * If Entries contains new statistic model, update it avoid
 			 * validation conflicts
@@ -78,11 +78,17 @@ public class CreateUserFilterHandler implements ICreateUserFilterHandler {
 			rq.setEntities(updatedEntries);
 
 			/* Build user filter entity */
-			UserFilter userFilter = userFilterBuilder.get().addCreateRQ(rq).addProject(projectName)
-					.addSharing(userName, projectName, rq.getDescription(), rq.getShare() == null ? false : rq.getShare()).build();
+			UserFilter userFilter = userFilterBuilder.get()
+					.addCreateRQ(rq)
+					.addProject(projectName)
+					.addSharing(userName, projectName, rq.getDescription(), rq.getShare() == null ? false : rq.getShare())
+					.build();
 
-			userFilterService.validateSortingColumnName(userFilter.getFilter().getTarget(),
-					userFilter.getSelectionOptions().getSortingColumnName());
+			userFilter.getSelectionOptions()
+					.getOrders()
+					.stream()
+					.map(SelectionOrder::getSortingColumnName)
+					.forEach(columnName -> userFilterService.validateSortingColumnName(userFilter.getFilter().getTarget(), columnName));
 			return userFilter;
 		}).collect(Collectors.toList());
 
@@ -101,9 +107,9 @@ public class CreateUserFilterHandler implements ICreateUserFilterHandler {
 				return userFilter.getName();
 			}).collect(Collectors.toSet());
 			BusinessRule.expect(filterNames.size(), Predicates.equalTo(filters.size())).verify(ErrorType.BAD_SAVE_USER_FILTER_REQUEST);
-            List<UserFilter> saved = filterRepository.save(filters);
-            eventPublisher.publishEvent(new FiltersCreatedEvent(saved, userName, projectName));
-        }
+			List<UserFilter> saved = filterRepository.save(filters);
+			eventPublisher.publishEvent(new FiltersCreatedEvent(saved, userName, projectName));
+		}
 		return filters.stream().map(filter -> new EntryCreatedRS(filter.getId())).collect(Collectors.toList());
 	}
 }

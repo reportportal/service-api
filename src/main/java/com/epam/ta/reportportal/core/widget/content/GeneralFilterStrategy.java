@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
 
@@ -48,11 +48,11 @@ import java.util.stream.Collectors;
  * Implementation of
  * {@link com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy} for
  * statistic based widget
- * 
+ *
  * @author Dzmitry_Kavalets
  */
-@Service("OldBuildFilterStrategy")
-public class GeneralFilterStrategy implements BuildFilterStrategy {
+@Service
+public class GeneralFilterStrategy implements BuildFilterStrategyLatest {
 
 	@Autowired
 	private LaunchRepository launchRepository;
@@ -67,8 +67,7 @@ public class GeneralFilterStrategy implements BuildFilterStrategy {
 	}
 
 	@Override
-	public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions,
-			String projectName) {
+	public Map<String, ?> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
 		Filter searchFilter = userFilter.getFilter();
 		if (searchFilter.getTarget().getSimpleName().equalsIgnoreCase(TestItem.class.getSimpleName())) {
 			if (null != contentOptions.getMetadataFields() && contentOptions.getMetadataFields().contains(WidgetUtils.NUMBER)) {
@@ -81,18 +80,18 @@ public class GeneralFilterStrategy implements BuildFilterStrategy {
 		return widgetContentProvider.getChartContent(projectName, searchFilter, userFilter.getSelectionOptions(), contentOptions);
 	}
 
-    @Override
-    public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
-        Filter filter = userFilter.getFilter();
-        if (filter.getTarget().equals(Launch.class)) {
-            filter.addCondition(new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.name(), Launch.MODE_CRITERIA));
-            filter.addCondition(new FilterCondition(Condition.NOT_EQUALS, false, Status.IN_PROGRESS.name(), Launch.STATUS));
-            filter.addCondition(new FilterCondition(Condition.EQUALS, false, projectName, Launch.PROJECT));
-        }
-        return widgetContentProvider.getChartContent(projectName, userFilter.getFilter(), userFilter.getSelectionOptions(), contentOptions);
-    }
+	@Override
+	public Map<String, List<ChartObject>> loadContentOfLatest(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+		Filter filter = userFilter.getFilter();
+		if (filter.getTarget().equals(Launch.class)) {
+			filter.addCondition(new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.name(), Launch.MODE_CRITERIA));
+			filter.addCondition(new FilterCondition(Condition.NOT_EQUALS, false, Status.IN_PROGRESS.name(), Launch.STATUS));
+			filter.addCondition(new FilterCondition(Condition.EQUALS, false, projectName, Launch.PROJECT));
+		}
+		return widgetContentProvider.getChartContent(projectName, userFilter.getFilter(), userFilter.getSelectionOptions(), contentOptions);
+	}
 
-    /**
+	/**
 	 * Get {@link com.epam.ta.reportportal.database.search.FilterCondition}s for
 	 * selecting data foe widget Additional conditions:
 	 * <li>data only from current project;

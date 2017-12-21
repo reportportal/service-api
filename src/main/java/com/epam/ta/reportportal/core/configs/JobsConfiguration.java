@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  * 
  * 
  * This file is part of EPAM Report Portal.
@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.configs;
 
@@ -35,9 +35,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * Configs for beans related to job execution
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @Configuration
 @ComponentScan("com.epam.ta.reportportal.job")

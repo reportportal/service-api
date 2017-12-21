@@ -20,7 +20,6 @@
  */
 package com.epam.ta.reportportal.events;
 
-
 import com.epam.ta.reportportal.database.entity.Project;
 
 /**

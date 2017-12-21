@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.statistics;
 
@@ -27,9 +27,8 @@ import com.epam.ta.reportportal.database.entity.statistics.Statistics;
 
 /**
  * Utility class to process statistics data and produce output, based on it
- * 
+ *
  * @author Dzianis_Shlychkou
- * 
  */
 public class StatisticsHelper {
 

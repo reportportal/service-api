@@ -67,7 +67,7 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 
 /**
  * Get project information for administrator page
- * 
+ *
  * @author Dzmitry_Kavalets
  * @author Andrei_Ramanchuk
  */
@@ -99,8 +99,8 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 
 	@Override
 	public Iterable<ProjectInfoResource> getAllProjectsInfo(Filter filter, Pageable pageable) {
-		final Page<ProjectInfoResource> preAssembled = projectInfoResourceAssembler
-				.toPagedResources(projectRepository.findByFilter(filter, pageable));
+		final Page<ProjectInfoResource> preAssembled = projectInfoResourceAssembler.toPagedResources(
+				projectRepository.findByFilter(filter, pageable));
 		for (ProjectInfoResource project : preAssembled) {
 			final Optional<Launch> lastLaunch = launchRepository.findLastLaunch(project.getProjectId(), DEFAULT.name());
 			lastLaunch.ifPresent(launch -> project.setLastRun(launch.getStartTime()));
@@ -155,27 +155,27 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 		Map<String, List<ChartObject>> result;
 		List<Launch> allLaunches = getLaunchesForProjectInformation(projectId, interval);
 		switch (widgetType) {
-		case INVESTIGATED:
-			result = dataConverter.getInvestigatedProjectInfo(allLaunches, interval);
-			break;
-		case CASES_STATISTIC:
-			result = dataConverter.getTestCasesStatisticsProjectInfo(allLaunches);
-			break;
-		case LAUNCHES_QUANTITY:
-			result = dataConverter.getLaunchesQuantity(allLaunches, interval);
-			break;
-		case ISSUES_CHART:
-			result = dataConverter.getLaunchesIssues(allLaunches, interval);
-			break;
-		case ACTIVITIES:
-			result = getActivities(projectId, interval);
-			break;
-		case LAST_LAUNCH:
-			result = getLastLaunchStatistics(projectId);
-			break;
-		default:
-			// empty result
-			result = Collections.emptyMap();
+			case INVESTIGATED:
+				result = dataConverter.getInvestigatedProjectInfo(allLaunches, interval);
+				break;
+			case CASES_STATISTIC:
+				result = dataConverter.getTestCasesStatisticsProjectInfo(allLaunches);
+				break;
+			case LAUNCHES_QUANTITY:
+				result = dataConverter.getLaunchesQuantity(allLaunches, interval);
+				break;
+			case ISSUES_CHART:
+				result = dataConverter.getLaunchesIssues(allLaunches, interval);
+				break;
+			case ACTIVITIES:
+				result = getActivities(projectId, interval);
+				break;
+			case LAST_LAUNCH:
+				result = getLastLaunchStatistics(projectId);
+				break;
+			default:
+				// empty result
+				result = Collections.emptyMap();
 		}
 		return result;
 	}
@@ -184,18 +184,21 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 	private Map<String, List<ChartObject>> getActivities(String projectId, InfoInterval interval) {
 		String value = Arrays.stream(ActivityEventType.values())
 				.filter(it -> it == UPDATE_DEFECT || it == DELETE_DEFECT || it == ATTACH_ISSUE || it == UPDATE_ITEM)
-				.map(ActivityEventType::getValue).collect(joining(","));
+				.map(ActivityEventType::getValue)
+				.collect(joining(","));
 		int limit = 150;
 		Filter filter = new Filter(Activity.class, new HashSet<FilterCondition>() {
 			{
 				add(new FilterCondition(IN, false, value, ACTION_TYPE));
 				add(new FilterCondition(EQUALS, false, projectId, PROJECT_REF));
-				add(new FilterCondition(GREATER_THAN_OR_EQUALS, false,
-						String.valueOf(getStartIntervalDate(interval).getTime()), "last_modified"));
+				add(new FilterCondition(GREATER_THAN_OR_EQUALS, false, String.valueOf(getStartIntervalDate(interval).getTime()),
+						"last_modified"
+				));
 			}
 		});
 		List<Activity> activities = activityRepository.findByFilterWithSortingAndLimit(filter,
-				new Sort(new Sort.Order(DESC, "last_modified")), limit);
+				new Sort(new Sort.Order(DESC, "last_modified")), limit
+		);
 		List<ChartObject> chartObjects = activities.stream().map(it -> {
 			ChartObject chartObject = new ChartObject();
 			chartObject.setId(it.getId());
@@ -205,8 +208,9 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 			values.put("objectType", it.getObjectType().getValue());
 			values.put("projectRef", it.getProjectRef());
 			values.put("userRef", it.getUserRef());
-			if (it.getLoggedObjectRef() != null)
+			if (it.getLoggedObjectRef() != null) {
 				values.put("loggedObjectRef", it.getLoggedObjectRef());
+			}
 			if (it.getName() != null) {
 				values.put("name", it.getName());
 			}
@@ -224,14 +228,14 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 
 	@SuppressWarnings("serial")
 	private Map<String, List<ChartObject>> getLastLaunchStatistics(String projectId) {
-		String total = "statistics$executionCounter$total";
-		String productBug = "statistics$issueCounter$productBug";
-		String toInvestigate = "statistics$issueCounter$toInvestigate";
-		String systemIssue = "statistics$issueCounter$systemIssue";
-		String automationBug = "statistics$issueCounter$automationBug";
-		String failed = "statistics$executionCounter$failed";
-		String passed = "statistics$executionCounter$passed";
-		String skipped = "statistics$executionCounter$skipped";
+		String total = "statistics$executions$total";
+		String productBug = "statistics$defects$product_bug";
+		String toInvestigate = "statistics$defects$to_investigate";
+		String systemIssue = "statistics$defects$system_issue";
+		String automationBug = "statistics$defects$automation_bug";
+		String failed = "statistics$executions$failed";
+		String passed = "statistics$executions$passed";
+		String skipped = "statistics$executions$skipped";
 		Optional<Launch> launchOptional = launchRepository.findLastLaunch(projectId, DEFAULT.name());
 
 		if (!launchOptional.isPresent()) {
@@ -263,7 +267,7 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 
 	/**
 	 * Utility method for extending launches information with user full name
-	 * 
+	 *
 	 * @param input
 	 * @return
 	 */
@@ -289,7 +293,7 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 
 	/**
 	 * Utility method for calculation of start interval date
-	 * 
+	 *
 	 * @param input
 	 * @return
 	 */

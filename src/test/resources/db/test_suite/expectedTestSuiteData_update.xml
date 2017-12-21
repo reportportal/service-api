@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataset>
-	<Test_suite idTestSuite = "0" idLaunch = "1" name = "updated_name" description = "updated_description" startTime = "2012-12-12 0:0:0.0" endTime = "2012-12-12 0:0:0.0" status = "IN_PROGRESS" />
-	<Test_suite idTestSuite = "1" idLaunch = "1" name = "testSuite1" description = "test suite 1" startTime = "2013-02-19 16:03:33.0" endTime = "2013-02-19 16:20:33.0" status = "FAILED" />
+    <Test_suite idTestSuite="0" idLaunch="1" name="updated_name" description="updated_description" startTime="2012-12-12 0:0:0.0"
+                endTime="2012-12-12 0:0:0.0" status="IN_PROGRESS"/>
+    <Test_suite idTestSuite="1" idLaunch="1" name="testSuite1" description="test suite 1" startTime="2013-02-19 16:03:33.0"
+                endTime="2013-02-19 16:20:33.0" status="FAILED"/>
 </dataset>

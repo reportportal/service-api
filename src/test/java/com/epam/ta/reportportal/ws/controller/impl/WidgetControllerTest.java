@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +67,8 @@ public class WidgetControllerTest extends BaseMvcTest {
 		rq.setContentParameters(contentParameters);
 		rq.setShare(true);
 		final MvcResult mvcResult = mvcMock.perform(post(PROJECT_BASE_URL + "/widget").principal(authentication())
-				.content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)).andExpect(status().isCreated()).andReturn();
+				.content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)).andExpect(status().isCreated()).andReturn();
 		final EntryCreatedRS entryCreatedRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), EntryCreatedRS.class);
 		final Widget widget = widgetRepository.findOne(entryCreatedRS.getId());
 		Assert.assertNotNull(widget);
@@ -94,7 +96,8 @@ public class WidgetControllerTest extends BaseMvcTest {
 		contentParameters.setItemsCount(50);
 		rq.setContentParameters(contentParameters);
 		this.mvcMock.perform(put(PROJECT_BASE_URL + "/widget/613e1f3818127ca356339f38").principal(authentication())
-				.content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)).andExpect(status().is(200));
+				.content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)).andExpect(status().is(200));
 		final Widget widget = widgetRepository.findOne("613e1f3818127ca356339f38");
 		Assert.assertEquals("description", widget.getDescription());
 	}
@@ -104,7 +107,8 @@ public class WidgetControllerTest extends BaseMvcTest {
 		WidgetRQ rq = new WidgetRQ();
 		rq.setShare(false);
 		this.mvcMock.perform(put(PROJECT_BASE_URL + "/widget/non-existing").principal(authentication())
-				.content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)).andExpect(status().is(404));
+				.content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)).andExpect(status().is(404));
 	}
 
 	@Test
@@ -115,6 +119,13 @@ public class WidgetControllerTest extends BaseMvcTest {
 	@Test
 	public void getSharedWidgetsListPositive() throws Exception {
 		this.mvcMock.perform(get(PROJECT_BASE_URL + "/widget/shared").principal(authentication())).andExpect(status().is(200));
+	}
+
+	@Test
+	public void searchSharedWidgetsListPositive() throws Exception {
+		this.mvcMock.perform(get(PROJECT_BASE_URL + "/widget/shared/search?term=er").principal(authentication()))
+				.andExpect(status().is(200))
+				.andExpect(jsonPath("$.content", Matchers.hasSize(4)));
 	}
 
 	@Test
@@ -166,8 +177,9 @@ public class WidgetControllerTest extends BaseMvcTest {
 
 	@Test
 	public void getLaunchesTableWidget() throws Exception {
-		mvcMock.perform(get(PROJECT_BASE_URL + "/widget/613e1f3818127ca356339f45").principal(authentication())).andExpect(status().is(200))
-				.andExpect(jsonPath("$.content.result[0].values.statistics$issueCounter$productBug").value("3"));
+		mvcMock.perform(get(PROJECT_BASE_URL + "/widget/613e1f3818127ca356339f45").principal(authentication()))
+				.andExpect(status().is(200))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$defects$product_bug").value("3"));
 	}
 
 	@Test

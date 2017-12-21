@@ -34,8 +34,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import springfox.documentation.PathProvider;
@@ -99,7 +97,8 @@ public class Swagger2Configuration {
 		/* For more information see default params at {@link ApiInfo} */
 		ApiInfo rpInfo = new ApiInfo("Report Portal", "Report Portal API documentation", buildVersion, "urn:tos",
 				new Contact("EPAM Systems", "http://epam.com", "Support EPMC-TST Report Portal <SupportEPMC-TSTReportPortal@epam.com>"),
-				"GPLv3", "https://www.gnu.org/licenses/licenses.html#GPL", Collections.emptyList());
+				"GPLv3", "https://www.gnu.org/licenses/licenses.html#GPL", Collections.emptyList()
+		);
 
 		// @formatter:off
         Docket rpDocket = new Docket(DocumentationType.SWAGGER_2)
@@ -157,9 +156,9 @@ public class Swagger2Configuration {
 			for (ResolvedMethodParameter methodParameter : methodParameters) {
 				ResolvedType resolvedType = methodParameter.getParameterType();
 				ParameterContext parameterContext = new ParameterContext(methodParameter, new ParameterBuilder(),
-						context.getDocumentationContext(), context.getGenericsNamingStrategy(), context);
+						context.getDocumentationContext(), context.getGenericsNamingStrategy(), context
+				);
 				Function<ResolvedType, ? extends ModelReference> factory = createModelRefFactory(parameterContext);
-
 
 				if (pageableType.equals(resolvedType)) {
 
@@ -220,7 +219,8 @@ public class Swagger2Configuration {
 		private Function<ResolvedType, ? extends ModelReference> createModelRefFactory(ParameterContext context) {
 			ModelContext modelContext = inputParam(Docket.DEFAULT_GROUP_NAME,
 					context.resolvedMethodParameter().getParameterType().getErasedType(), context.getDocumentationType(),
-					context.getAlternateTypeProvider(), context.getGenericNamingStrategy(), context.getIgnorableParameterTypes());
+					context.getAlternateTypeProvider(), context.getGenericNamingStrategy(), context.getIgnorableParameterTypes()
+			);
 			return ResolvedTypes.modelRefFactory(modelContext, nameExtractor);
 		}
 	}

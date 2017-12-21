@@ -34,24 +34,24 @@ import static java.util.stream.Collectors.toSet;
 
 public class SuiteMergeStrategy extends AbstractSuiteMergeStrategy {
 
-    @Autowired
-    public SuiteMergeStrategy(TestItemRepository testItemRepository) {
-        super(testItemRepository);
-    }
+	@Autowired
+	public SuiteMergeStrategy(TestItemRepository testItemRepository) {
+		super(testItemRepository);
+	}
 
-    @Override
-    public TestItem mergeTestItems(TestItem itemTarget, List<TestItem> items) {
-        return moveAllChildTestItems(itemTarget, items);
-    }
+	@Override
+	public TestItem mergeTestItems(TestItem itemTarget, List<TestItem> items) {
+		return moveAllChildTestItems(itemTarget, items);
+	}
 
-    @Override
-    public boolean isTestItemAcceptableToMerge(TestItem item) {
-        if (!item.getType().sameLevel(TestItemType.SUITE)) {
-            return false;
-        }
-        List<TestItem> childItems = testItemRepository.findAllDescendants(item.getId());
-        List<TestItem> tests = childItems.stream().filter(child-> !child.getType().sameLevel(TestItemType.SUITE)).collect(toList());
-        Set<String> names = tests.stream().map(TestItem::getName).collect(toSet());
-        return names.size() == tests.size();
-    }
+	@Override
+	public boolean isTestItemAcceptableToMerge(TestItem item) {
+		if (!item.getType().sameLevel(TestItemType.SUITE)) {
+			return false;
+		}
+		List<TestItem> childItems = testItemRepository.findAllDescendants(item.getId());
+		List<TestItem> tests = childItems.stream().filter(child -> !child.getType().sameLevel(TestItemType.SUITE)).collect(toList());
+		Set<String> names = tests.stream().map(TestItem::getName).collect(toSet());
+		return names.size() == tests.size();
+	}
 }

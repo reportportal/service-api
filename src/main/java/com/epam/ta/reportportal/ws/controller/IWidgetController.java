@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.database.entity.user.UserRole;
@@ -26,27 +26,25 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
-import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
+import org.springframework.data.domain.Pageable;
 
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
 /**
- * 
  * Report Portal WS Interface. Widget controller
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 public interface IWidgetController {
 
 	/**
 	 * Create new widget
-	 * 
+	 *
 	 * @param createWidgetRQ
 	 * @param projectName
 	 * @param principal
@@ -57,7 +55,7 @@ public interface IWidgetController {
 
 	/**
 	 * Get widget by id
-	 * 
+	 *
 	 * @param widgetId
 	 * @param principal
 	 * @param projectName
@@ -73,16 +71,16 @@ public interface IWidgetController {
 	 * @param projectName Project name
 	 * @return Content
 	 */
-	Map<String, List<ChartObject>> getWidgetPreview(String projectName, WidgetPreviewRQ previewRQ, Principal principal);
+	Map<String, ?> getWidgetPreview(String projectName, WidgetPreviewRQ previewRQ, Principal principal);
 
 	/**
 	 * Update widget with specified id
-	 * 
-	 * @param projectName
-	 * @param principal
-	 * @param widgetId
-	 *            , updateRQ
-	 * @param userRole
+	 *
+	 * @param projectName Project name
+	 * @param principal   Principal
+	 * @param widgetId    Widget id
+	 * @param updateRQ    Update request
+	 * @param userRole    User role
 	 * @return {@link OperationCompletionRS}
 	 * @throws ReportPortalException
 	 */
@@ -90,28 +88,37 @@ public interface IWidgetController {
 
 	/**
 	 * Get shared widgets names
-	 * 
-	 * @param principal
-	 * @param projectName
-	 * @return
+	 *
+	 * @param principal   Principal
+	 * @param projectName Project name
+	 * @return Page of Shared entities
 	 */
-	Map<String, SharedEntity> getSharedWidgets(Principal principal, String projectName);
-	
-	/**
-	 * Get list of shared widgets per project
-	 * 
-	 * @param principal
-	 * @param projectName
-	 * @return
-	 */
-	List<WidgetResource> getSharedWidgetsList(Principal principal, String projectName);
+	Iterable<SharedEntity> getSharedWidgets(Principal principal, String projectName, Pageable pageable);
 
 	/**
 	 * Get list of widget names
-	 * 
-	 * @param project
-	 * @param principal
-	 * @return
+	 *
+	 * @param project   Project name
+	 * @param principal Principal
+	 * @return Widget names
 	 */
 	List<String> getWidgetNames(String project, Principal principal);
+
+	/**
+	 * Get list of shared widgets per project
+	 *
+	 * @param principal   Principal
+	 * @param projectName Project name
+	 * @param pageable    Paging
+	 * @return
+	 */
+	Iterable<WidgetResource> getSharedWidgetsList(Principal principal, String projectName, Pageable pageable);
+
+	/**
+	 * Get list of shared widgets by term
+	 *
+	 * @param term Part of widget name
+	 * @return List of widgets
+	 */
+	Iterable<WidgetResource> searchSharedWidgets(String term, String projectName, Pageable pageable);
 }

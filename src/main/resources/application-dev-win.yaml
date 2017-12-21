@@ -4,10 +4,10 @@ spring:
       discovery:
         hostname: docker.for.win.localhost
       host: localhost
-  redis:
-    host: localhost
 rp:
   mongo:
     host: localhost
   uat:
     serviceUrl: http://localhost:8080/uat
+  analyzer:
+    url: http://localhost:8080/analyzer

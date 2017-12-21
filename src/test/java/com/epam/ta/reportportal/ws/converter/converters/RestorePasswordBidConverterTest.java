@@ -31,17 +31,17 @@ import org.junit.Test;
  */
 public class RestorePasswordBidConverterTest {
 
-    @Test(expected = NullPointerException.class)
-    public void testNull() {
-        RestorePasswordBidConverter.TO_BID.apply(null);
-    }
+	@Test(expected = NullPointerException.class)
+	public void testNull() {
+		RestorePasswordBidConverter.TO_BID.apply(null);
+	}
 
-    @Test
-    public void testConvert() {
-        RestorePasswordRQ rq = new RestorePasswordRQ();
-        rq.setEmail("email@email.com");
-        RestorePasswordBid bid = RestorePasswordBidConverter.TO_BID.apply(rq);
-        Assert.assertEquals(bid.getEmail(), rq.getEmail());
-        Assert.assertNotNull(bid.getId());
-    }
+	@Test
+	public void testConvert() {
+		RestorePasswordRQ rq = new RestorePasswordRQ();
+		rq.setEmail("email@email.com");
+		RestorePasswordBid bid = RestorePasswordBidConverter.TO_BID.apply(rq);
+		Assert.assertEquals(bid.getEmail(), rq.getEmail());
+		Assert.assertNotNull(bid.getId());
+	}
 }

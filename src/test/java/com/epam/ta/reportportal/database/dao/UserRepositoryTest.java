@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 package com.epam.ta.reportportal.database.dao;
 
 import com.epam.ta.reportportal.database.entity.user.User;
@@ -44,11 +44,11 @@ public class UserRepositoryTest extends BaseDaoContextTest {
 		Assert.assertNotNull(byEmail);
 	}
 
-    public void findOne() {
-        User user = new User();
-        user.setLogin("test");
-        userRepository.save(user);
-        userRepository.findOne("Test");
-    }
+	public void findOne() {
+		User user = new User();
+		user.setLogin("test");
+		userRepository.save(user);
+		userRepository.findOne("Test");
+	}
 
 }

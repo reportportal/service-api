@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.core.widget;
 
 import com.epam.ta.reportportal.database.entity.user.UserRole;
@@ -28,23 +28,21 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 
 /**
  * Update Widget handler
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 public interface IUpdateWidgetHandler {
 
 	/**
 	 * Update widget with specified id
-	 * 
+	 *
 	 * @param updateRQ
 	 * @param userName
 	 * @param projectName
 	 * @param userRole
-     * @return OperationCompletionRS
+	 * @return OperationCompletionRS
 	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS updateWidget(String widgetId, WidgetRQ updateRQ, String userName,
-									   String projectName, UserRole userRole);
+	OperationCompletionRS updateWidget(String widgetId, WidgetRQ updateRQ, String userName, String projectName, UserRole userRole);
 
 }

@@ -40,6 +40,7 @@ import javax.inject.Provider;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.*;
 import java.util.function.Predicate;
@@ -49,37 +50,37 @@ import java.util.zip.ZipFile;
 @Service
 public class XunitImportStrategy implements ImportStrategy {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(XunitImportStrategy.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(XunitImportStrategy.class);
 
-    @Autowired
-    private Provider<XunitParseJob> xmlParseJobProvider;
+	@Autowired
+	private Provider<XunitParseJob> xmlParseJobProvider;
 
-    @Autowired
-    private IStartLaunchHandler startLaunchHandler;
+	@Autowired
+	private IStartLaunchHandler startLaunchHandler;
 
-    @Autowired
-    private IFinishLaunchHandler finishLaunchHandler;
+	@Autowired
+	private IFinishLaunchHandler finishLaunchHandler;
 
-    @Autowired
-    private LaunchRepository launchRepository;
+	@Autowired
+	private LaunchRepository launchRepository;
 
-    private static final Date initialStartTime = new Date(0);
+	private static final Date initialStartTime = new Date(0);
 
-    private static final ExecutorService service = Executors.newFixedThreadPool(5);
+	private static final ExecutorService service = Executors.newFixedThreadPool(5);
 
-    private static final String XML_REGEX = ".*xml";
+	private static final String XML_REGEX = ".*xml";
 
-    private static final Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
+	private static final Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
 
-    private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName().matches(XML_REGEX);
+	private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName().matches(XML_REGEX);
 
-    @Override
-    public String importLaunch(String projectId, String userName, File file) {
-        try {
-            return processZipFile(file, projectId, userName);
-        } catch (IOException e) {
-            throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, file.getName(), e);
-        } finally {
+	@Override
+	public String importLaunch(String projectId, String userName, File file) {
+		try {
+			return processZipFile(file, projectId, userName);
+		} catch (IOException e) {
+			throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, file.getName(), e);
+		} finally {
 			try {
 				if (null != file) {
 					file.delete();
@@ -87,54 +88,64 @@ public class XunitImportStrategy implements ImportStrategy {
 			} catch (Exception e) {
 				LOGGER.error("File '{}' was not successfully deleted.", file.getName(), e);
 			}
-        }
-    }
+		}
+	}
 
-    private String processZipFile(File zip, String projectId, String userName) throws IOException {
-        try (ZipFile zipFile = new ZipFile(zip)) {
-            String launchId = startLaunch(projectId, userName, zip.getName().substring(0, zip.getName().indexOf(".zip")));
-            CompletableFuture[] futures = zipFile.stream()
-                    .filter(isFile.and(isXml))
-                    .map(zipEntry -> {
-                        try {
-                            XunitParseJob job = xmlParseJobProvider.get()
-                                    .withParameters(projectId, launchId, userName, zipFile.getInputStream(zipEntry));
-                            return CompletableFuture.supplyAsync(job::call, service);
-                        } catch (IOException e) {
-                            throw new ReportPortalException("There was a problem while parsing file : " + zipEntry.getName(), e);
-                        }
-                    }).toArray(CompletableFuture[]::new);
-            CompletableFuture.allOf(futures).get(30, TimeUnit.MINUTES);
-            finishLaunch(launchId, projectId, userName, processResults(futures));
-            return launchId;
-        } catch (InterruptedException | ExecutionException | TimeoutException | IllegalArgumentException e) {
-            throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, "There are invalid xml files inside.", e);
-        }
-    }
+	private String processZipFile(File zip, String projectId, String userName) throws IOException {
+		//copy of the launch's id to use it in catch block if something goes wrong
+		String savedLaunchId = null;
 
-    private ParseResults processResults(CompletableFuture[] futures) {
-        ParseResults results = new ParseResults();
-        Arrays.stream(futures).map(it -> (ParseResults) it.join()).forEach(res -> {
-            results.checkAndSetStartLaunchTime(res.getStartTime());
-            results.increaseDuration(res.getDuration());
-        });
-        return results;
-    }
+		try (ZipFile zipFile = new ZipFile(zip)) {
+			String launchId = startLaunch(projectId, userName, zip.getName().substring(0, zip.getName().indexOf(".zip")));
+			savedLaunchId = launchId;
+			CompletableFuture[] futures = zipFile.stream().filter(isFile.and(isXml)).map(zipEntry -> {
+				try {
+					XunitParseJob job = xmlParseJobProvider.get()
+							.withParameters(projectId, launchId, userName, zipFile.getInputStream(zipEntry));
+					return CompletableFuture.supplyAsync(job::call, service);
+				} catch (IOException e) {
+					throw new ReportPortalException("There was a problem while parsing file : " + zipEntry.getName(), e);
+				}
+			}).toArray(CompletableFuture[]::new);
+			CompletableFuture.allOf(futures).get(30, TimeUnit.MINUTES);
+			finishLaunch(launchId, projectId, userName, processResults(futures));
+			return launchId;
+		} catch (InterruptedException | ExecutionException | TimeoutException | IllegalArgumentException e) {
+			if (savedLaunchId != null) {
+				Launch launch = new Launch();
+				launch.setId(savedLaunchId);
+				launch.setStatistics(null);
+				launch.setStartTime(Calendar.getInstance().getTime());
+				launchRepository.partialUpdate(launch);
+			}
+			LOGGER.error(e.getMessage());
+			throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, "There are invalid xml files inside.", e);
+		}
+	}
 
-    private String startLaunch(String projectId, String userName, String launchName) {
-        StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
-        startLaunchRQ.setStartTime(initialStartTime);
-        startLaunchRQ.setName(launchName);
-        startLaunchRQ.setMode(Mode.DEFAULT);
-        return startLaunchHandler.startLaunch(userName, projectId, startLaunchRQ).getId();
-    }
+	private ParseResults processResults(CompletableFuture[] futures) {
+		ParseResults results = new ParseResults();
+		Arrays.stream(futures).map(it -> (ParseResults) it.join()).forEach(res -> {
+			results.checkAndSetStartLaunchTime(res.getStartTime());
+			results.increaseDuration(res.getDuration());
+		});
+		return results;
+	}
 
-    private void finishLaunch(String launchId, String projectId, String userName, ParseResults results) {
-        FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-        finishExecutionRQ.setEndTime(results.getEndTime());
-        finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectId, userName);
-        Launch launch = launchRepository.findOne(launchId);
-        launch.setStartTime(DateUtils.toDate(results.getStartTime()));
-        launchRepository.partialUpdate(launch);
-    }
+	private String startLaunch(String projectId, String userName, String launchName) {
+		StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
+		startLaunchRQ.setStartTime(initialStartTime);
+		startLaunchRQ.setName(launchName);
+		startLaunchRQ.setMode(Mode.DEFAULT);
+		return startLaunchHandler.startLaunch(userName, projectId, startLaunchRQ).getId();
+	}
+
+	private void finishLaunch(String launchId, String projectId, String userName, ParseResults results) {
+		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
+		finishExecutionRQ.setEndTime(results.getEndTime());
+		finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectId, userName);
+		Launch launch = launchRepository.findOne(launchId);
+		launch.setStartTime(DateUtils.toDate(results.getStartTime()));
+		launchRepository.partialUpdate(launch);
+	}
 }

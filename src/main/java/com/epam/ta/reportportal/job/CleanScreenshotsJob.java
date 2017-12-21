@@ -26,10 +26,12 @@ import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.project.KeepScreenshotsDelay;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.stream.Stream;
 
 import static java.time.Duration.ofDays;
@@ -40,30 +42,31 @@ import static java.time.Duration.ofDays;
  * @author Andrei_Ramanchuk
  */
 @Service
-public class CleanScreenshotsJob implements Runnable {
+public class CleanScreenshotsJob implements Job {
 
-    @Autowired
-    private DataStorage gridFS;
+	@Autowired
+	private DataStorage gridFS;
 
-    @Autowired
-    private ProjectRepository projectRepository;
+	@Autowired
+	private ProjectRepository projectRepository;
 
-    @Autowired
-    private LogRepository logRepository;
+	@Autowired
+	private LogRepository logRepository;
 
-    @Override
-    @Scheduled(cron = "${com.ta.reportportal.job.clean.screenshots.cron}")
-    public void run() {
-        try (Stream<Project> projects = projectRepository.streamAllIdsAndConfiguration()) {
-            projects.forEach(project -> gridFS.findModifiedLaterAgo(
-                    ofDays(KeepScreenshotsDelay.findByName(project.getConfiguration().getKeepScreenshots()).getDays()),
-                    project.getId())
-                    .forEach(file -> {
-                        gridFS.deleteData(file.getId().toString());
-                        /* Clear binary_content fields from log repository */
-                        logRepository.removeBinaryContent(file.getId().toString());
-                    })
-            );
-        }
-    }
+	@Override
+//	@Scheduled(cron = "${com.ta.reportportal.job.clean.screenshots.cron}")
+	public void execute(JobExecutionContext context) {
+		try (Stream<Project> projects = projectRepository.streamAllIdsAndConfiguration()) {
+			projects.forEach(project -> {
+				Duration period = ofDays(KeepScreenshotsDelay.findByName(project.getConfiguration().getKeepScreenshots()).getDays());
+				if (!period.isZero()) {
+					gridFS.findModifiedLaterAgo(period, project.getId()).forEach(file -> {
+						gridFS.deleteData(file.getId().toString());
+						/* Clear binary_content fields from log repository */
+						logRepository.removeBinaryContent(file.getId().toString());
+					});
+				}
+			});
+		}
+	}
 }

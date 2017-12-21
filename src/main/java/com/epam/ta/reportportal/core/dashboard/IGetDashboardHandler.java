@@ -17,27 +17,25 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
-package com.epam.ta.reportportal.core.dashboard;
+ */
 
-import java.util.Map;
+package com.epam.ta.reportportal.core.dashboard;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Get dashboard handler.
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 public interface IGetDashboardHandler {
 
 	/**
 	 * Get dashboard by id
-	 * 
+	 *
 	 * @param id
 	 * @param projectName
 	 * @param userName
@@ -48,23 +46,23 @@ public interface IGetDashboardHandler {
 
 	/**
 	 * Get all dashboards.
-	 * 
+	 *
 	 * @param userName
 	 * @param projectName
 	 * @return {@link Iterable}
 	 * @throws ReportPortalException
 	 */
 	Iterable<DashboardResource> getAllDashboards(String userName, String projectName);
-	
+
 	/**
 	 * Get dashboards names shared for current project.
 	 * Result map:<br>
 	 * <li>key - dashboard id,
 	 * <li>value - dashboard name
-	 * 
+	 *
 	 * @param projectName
 	 * @return {@link Iterable}
 	 * @throws ReportPortalException
 	 */
-	Map<String, SharedEntity> getSharedDashboardsNames(String ownerName, String projectName);
+	Iterable<SharedEntity> getSharedDashboardsNames(String ownerName, String projectName, Pageable pageable);
 }

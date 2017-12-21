@@ -1,193 +1,193 @@
 {
-    "launch":[
-        {
-            "_id":{
-                "$oid":"51824cc1553de743b3e5aa2c"
-            },
-            "_class":"com.epam.ta.reportportal.database.entity.Launch",
-            "name":"Demo launch name_GJYJr",
-            "description":"Demo launch description_GJYJr",
-            "startTime":"05/02/2013 14:23 +03:00",
-            "endTime":"05/02/2013 14:23 +03:00",
-            "status":"IN_PROGRESS"
-        },
-        {
-            "_id":{
-                "$oid":"5187cba4553d2fdd93969fcd"
-            },
-            "_class":"com.epam.ta.reportportal.database.entity.Launch",
-            "name":"Demo launch name_sxbOa",
-            "description":"Demo launch description_sxbOa",
-            "startTime":"05/06/2013 18:26 +03:00",
-            "endTime":"05/06/2013 18:26 +03:00",
-            "status":"IN_PROGRESS"
+  "launch": [
+    {
+      "_id": {
+        "$oid": "51824cc1553de743b3e5aa2c"
+      },
+      "_class": "com.epam.ta.reportportal.database.entity.Launch",
+      "name": "Demo launch name_GJYJr",
+      "description": "Demo launch description_GJYJr",
+      "startTime": "05/02/2013 14:23 +03:00",
+      "endTime": "05/02/2013 14:23 +03:00",
+      "status": "IN_PROGRESS"
+    },
+    {
+      "_id": {
+        "$oid": "5187cba4553d2fdd93969fcd"
+      },
+      "_class": "com.epam.ta.reportportal.database.entity.Launch",
+      "name": "Demo launch name_sxbOa",
+      "description": "Demo launch description_sxbOa",
+      "startTime": "05/06/2013 18:26 +03:00",
+      "endTime": "05/06/2013 18:26 +03:00",
+      "status": "IN_PROGRESS"
+    }
+  ],
+  "testSuite": [
+    {
+      "_id": {
+        "$oid": "51824cc1553de743b3e5aa2d"
+      },
+      "_class": "com.epam.ta.reportportal.database.entity.TestSuite",
+      "name": "Demo Test Suite Name_RfkEE",
+      "description": "Demo Test Suite Description_RfkEE",
+      "startTime": "05/02/2013 14:23 +03:00",
+      "endTime": "05/02/2013 14:23 +03:00",
+      "status": "IN_PROGRESS",
+      "launch": {
+        "$id": {
+          "$oid": "51824cc1553de743b3e5aa2c"
         }
-    ],
-    "testSuite":[
-        {
-            "_id":{
-                "$oid":"51824cc1553de743b3e5aa2d"
-            },
-            "_class":"com.epam.ta.reportportal.database.entity.TestSuite",
-            "name":"Demo Test Suite Name_RfkEE",
-            "description":"Demo Test Suite Description_RfkEE",
-            "startTime":"05/02/2013 14:23 +03:00",
-            "endTime":"05/02/2013 14:23 +03:00",
-            "status":"IN_PROGRESS",
-            "launch":{
-                "$id":{
-                    "$oid":"51824cc1553de743b3e5aa2c"
-                }
-            }
-        },
-        {
-            "_id":{
-                "$oid":"5187cba4553d2fdd93969fce"
-            },
-            "_class":"com.epam.ta.reportportal.database.entity.TestSuite",
-            "name":"Demo Test Suite Name_nnQTL",
-            "description":"Demo Test Suite Description_nnQTL",
-            "startTime":"05/06/2013 18:26 +03:00",
-            "endTime":"05/06/2013 18:26 +03:00",
-            "status":"IN_PROGRESS",
-            "launch":{
-                "$id":{
-                    "$oid":"5187cba4553d2fdd93969fcd"
-                }
-            }
+      }
+    },
+    {
+      "_id": {
+        "$oid": "5187cba4553d2fdd93969fce"
+      },
+      "_class": "com.epam.ta.reportportal.database.entity.TestSuite",
+      "name": "Demo Test Suite Name_nnQTL",
+      "description": "Demo Test Suite Description_nnQTL",
+      "startTime": "05/06/2013 18:26 +03:00",
+      "endTime": "05/06/2013 18:26 +03:00",
+      "status": "IN_PROGRESS",
+      "launch": {
+        "$id": {
+          "$oid": "5187cba4553d2fdd93969fcd"
         }
-    ],
-    "test":[
-        {
-            "_id":{
-                "$oid":"51824cc1553de743b3e5aa2e"
-            },
-            "_class":"com.epam.ta.reportportal.database.entity.Test",
-            "name":"Demo Test Name_TBZhp",
-            "description":"Demo Test Description_TBZhp",
-            "startTime":"05/02/2013 14:23 +03:00",
-            "endTime":"05/02/2013 14:23 +03:00",
-            "status":"IN_PROGRESS",
-            "testSuite":{
-                "$id":{
-                    "$oid":"51824cc1553de743b3e5aa2d"
-                }
-            }
-        },
-        {
-            "_id":{
-                "$oid":"5187cba4553d2fdd93969fcf"
-            },
-            "_class":"com.epam.ta.reportportal.database.entity.Test",
-            "name":"Demo Test Name_sDzme",
-            "description":"Demo Test Description_sDzme",
-            "startTime":"05/06/2013 18:26 +03:00",
-            "endTime":"05/06/2013 18:26 +03:00",
-            "status":"IN_PROGRESS",
-            "testSuite":{
-                "$id":{
-                    "$oid":"5187cba4553d2fdd93969fce"
-                }
-            }
+      }
+    }
+  ],
+  "test": [
+    {
+      "_id": {
+        "$oid": "51824cc1553de743b3e5aa2e"
+      },
+      "_class": "com.epam.ta.reportportal.database.entity.Test",
+      "name": "Demo Test Name_TBZhp",
+      "description": "Demo Test Description_TBZhp",
+      "startTime": "05/02/2013 14:23 +03:00",
+      "endTime": "05/02/2013 14:23 +03:00",
+      "status": "IN_PROGRESS",
+      "testSuite": {
+        "$id": {
+          "$oid": "51824cc1553de743b3e5aa2d"
         }
-    ],
-    "testStep":[
-        {
-            "_id":{
-                "$oid":"51824cc1553de743b3e5aa2f"
-            },
-            "_class":"com.epam.ta.reportportal.database.entity.TestStep",
-            "name":"Demo Test Step Name_XVKtA",
-            "description":"Demo Test Step Description_XVKtA",
-            "type":"TEST",
-            "startTime":"05/02/2013 14:23 +03:00",
-            "endTime":"05/02/2013 14:23 +03:00",
-            "status":"IN_PROGRESS",
-            "test":{
-                "$id":{
-                    "$oid":"51824cc1553de743b3e5aa2e"
-                }
-            }
-        },
-        {
-            "_id":{
-                "$oid":"5167fcf4b3a367538481e153"
-            },
-            "_class":"com.epam.ta.reportportal.database.entity.TestStep",
-            "name":"Demo Test Step Name_QWERTY",
-            "description":"Demo Test Step Description_QWERTY",
-            "type":"TEST",
-            "startTime":"05/02/2013 14:23 +03:00",
-            "endTime":"05/02/2013 14:23 +03:00",
-            "status":"IN_PROGRESS",
-            "test":{
-                "$id":{
-                    "$oid":"51824cc1553de743b3e5aa2e"
-                }
-            }
-        },
-        {
-            "_id":{
-                "$oid":"5187cba4553d2fdd93969fd0"
-            },
-            "_class":"com.epam.ta.reportportal.database.entity.TestStep",
-            "name":"Demo Test Step Name_VUjSl",
-            "description":"Demo Test Step Description_VUjSl",
-            "type":"TEST",
-            "startTime":"05/06/2013 18:26 +03:00",
-            "endTime":"05/06/2013 18:26 +03:00",
-            "status":"PASSED",
-            "test":{
-                "$id":{
-                    "$oid":"5187cba4553d2fdd93969fcf"
-                }
-            }
+      }
+    },
+    {
+      "_id": {
+        "$oid": "5187cba4553d2fdd93969fcf"
+      },
+      "_class": "com.epam.ta.reportportal.database.entity.Test",
+      "name": "Demo Test Name_sDzme",
+      "description": "Demo Test Description_sDzme",
+      "startTime": "05/06/2013 18:26 +03:00",
+      "endTime": "05/06/2013 18:26 +03:00",
+      "status": "IN_PROGRESS",
+      "testSuite": {
+        "$id": {
+          "$oid": "5187cba4553d2fdd93969fce"
         }
-    ],
-    "log":[
-        {
-            "_id":{
-                "$oid":"51824cc2553de743b3e5aa32"
-            },
-            "_class":"com.epam.ta.reportportal.database.entity.Log",
-            "logTime":"05/02/2013 14:23 +03:00",
-            "dataType":"application/json",
-            "logMsg":"Demo Test Log Message_SvfZt",
-            "binaryDataId":"51824cc2553de743b3e5aa30",
-            "testStep":{
-                "$id":{
-                    "$oid":"51824cc1553de743b3e5aa2f"
-                }
-            }
-        },
-        {
-            "_id":{
-                "$oid":"51825e38553de743b3e5aa34"
-            },
-            "_class":"com.epam.ta.reportportal.database.entity.Log",
-            "logTime":"03/13/2013 12:52 +03:00",
-            "dataType":"application:json",
-            "logMsg":"New test log message 12345",
-            "testStep":{
-                "$id":{
-                    "$oid":"51824cc1553de743b3e5aa2f"
-                }
-            }
-        },
-        {
-            "_id":{
-                "$oid":"5187cba5553d2fdd93969fd3"
-            },
-            "_class":"com.epam.ta.reportportal.database.entity.Log",
-            "logTime":"05/06/2013 18:26 +03:00",
-            "dataType":"application/json",
-            "logMsg":"Demo Test Log Message_spdOP",
-            "binaryDataId":"5187cba4553d2fdd93969fd1",
-            "testStep":{
-                "$id":{
-                    "$oid":"5187cba4553d2fdd93969fd0"
-                }
-            }
+      }
+    }
+  ],
+  "testStep": [
+    {
+      "_id": {
+        "$oid": "51824cc1553de743b3e5aa2f"
+      },
+      "_class": "com.epam.ta.reportportal.database.entity.TestStep",
+      "name": "Demo Test Step Name_XVKtA",
+      "description": "Demo Test Step Description_XVKtA",
+      "type": "TEST",
+      "startTime": "05/02/2013 14:23 +03:00",
+      "endTime": "05/02/2013 14:23 +03:00",
+      "status": "IN_PROGRESS",
+      "test": {
+        "$id": {
+          "$oid": "51824cc1553de743b3e5aa2e"
         }
-    ]
+      }
+    },
+    {
+      "_id": {
+        "$oid": "5167fcf4b3a367538481e153"
+      },
+      "_class": "com.epam.ta.reportportal.database.entity.TestStep",
+      "name": "Demo Test Step Name_QWERTY",
+      "description": "Demo Test Step Description_QWERTY",
+      "type": "TEST",
+      "startTime": "05/02/2013 14:23 +03:00",
+      "endTime": "05/02/2013 14:23 +03:00",
+      "status": "IN_PROGRESS",
+      "test": {
+        "$id": {
+          "$oid": "51824cc1553de743b3e5aa2e"
+        }
+      }
+    },
+    {
+      "_id": {
+        "$oid": "5187cba4553d2fdd93969fd0"
+      },
+      "_class": "com.epam.ta.reportportal.database.entity.TestStep",
+      "name": "Demo Test Step Name_VUjSl",
+      "description": "Demo Test Step Description_VUjSl",
+      "type": "TEST",
+      "startTime": "05/06/2013 18:26 +03:00",
+      "endTime": "05/06/2013 18:26 +03:00",
+      "status": "PASSED",
+      "test": {
+        "$id": {
+          "$oid": "5187cba4553d2fdd93969fcf"
+        }
+      }
+    }
+  ],
+  "log": [
+    {
+      "_id": {
+        "$oid": "51824cc2553de743b3e5aa32"
+      },
+      "_class": "com.epam.ta.reportportal.database.entity.Log",
+      "logTime": "05/02/2013 14:23 +03:00",
+      "dataType": "application/json",
+      "logMsg": "Demo Test Log Message_SvfZt",
+      "binaryDataId": "51824cc2553de743b3e5aa30",
+      "testStep": {
+        "$id": {
+          "$oid": "51824cc1553de743b3e5aa2f"
+        }
+      }
+    },
+    {
+      "_id": {
+        "$oid": "51825e38553de743b3e5aa34"
+      },
+      "_class": "com.epam.ta.reportportal.database.entity.Log",
+      "logTime": "03/13/2013 12:52 +03:00",
+      "dataType": "application:json",
+      "logMsg": "New test log message 12345",
+      "testStep": {
+        "$id": {
+          "$oid": "51824cc1553de743b3e5aa2f"
+        }
+      }
+    },
+    {
+      "_id": {
+        "$oid": "5187cba5553d2fdd93969fd3"
+      },
+      "_class": "com.epam.ta.reportportal.database.entity.Log",
+      "logTime": "05/06/2013 18:26 +03:00",
+      "dataType": "application/json",
+      "logMsg": "Demo Test Log Message_spdOP",
+      "binaryDataId": "5187cba4553d2fdd93969fd1",
+      "testStep": {
+        "$id": {
+          "$oid": "5187cba4553d2fdd93969fd0"
+        }
+      }
+    }
+  ]
 }

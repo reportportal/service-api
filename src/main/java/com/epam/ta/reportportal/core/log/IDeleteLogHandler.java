@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.log;
 
@@ -27,15 +27,14 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 /**
  * * Delete {@link Log} request handler
- * 
+ *
  * @author Henadzi_Vrubleuski
- * 
  */
 public interface IDeleteLogHandler {
 
 	/**
 	 * Delete Specified {@link Log} instance
-	 * 
+	 *
 	 * @param logId
 	 * @return
 	 * @throws ReportPortalException

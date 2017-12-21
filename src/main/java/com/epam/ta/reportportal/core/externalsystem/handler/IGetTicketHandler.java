@@ -54,11 +54,12 @@ public interface IGetTicketHandler {
 	 */
 	List<PostFormField> getSubmitTicketFields(String ticketType, String projectName, String id);
 
-    /**
-     * Get allowable issue types
-     * @param projectName Project Name
-     * @param systemId    External System ID
-     * @return Fields
-     */
-    List<String> getAllowableIssueTypes(String projectName, String systemId);
+	/**
+	 * Get allowable issue types
+	 *
+	 * @param projectName Project Name
+	 * @param systemId    External System ID
+	 * @return Fields
+	 */
+	List<String> getAllowableIssueTypes(String projectName, String systemId);
 }

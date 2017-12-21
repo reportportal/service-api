@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
 
@@ -50,13 +50,14 @@ public class UniqueBugContentLoader implements IContentLoadingStrategy {
 	private TestItemRepository testItemRepository;
 
 	@Override
-	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,
-			List<String> metaDataFields, Map<String, List<String>> options) {
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity,
+			List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> options) {
 
 		UniqueBugDocumentHandler uniqueBugDocumentHandler = new UniqueBugDocumentHandler();
 
 		testItemRepository.loadWithCallback(filter, sorting, Integer.MAX_VALUE, Arrays.asList(META_DATA_FIELDS), uniqueBugDocumentHandler,
-				COLLECTION_NAME);
+				COLLECTION_NAME
+		);
 		return uniqueBugDocumentHandler.getResult();
 	}
 

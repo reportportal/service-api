@@ -4,11 +4,7 @@ spring:
       discovery:
         hostname: docker.for.mac.localhost
       host: localhost
-  redis:
-    host: localhost
 rp:
-  mongo:
-    host: localhost
   uat:
     serviceUrl: http://localhost:8080/uat
   analyzer:

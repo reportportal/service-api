@@ -28,22 +28,21 @@ import java.util.List;
 
 /**
  * Handler for delete test item operation
- * 
+ *
  * @author Andrei Varabyeu
  * @author Aliaksei Makayed
- * 
  */
 public interface DeleteTestItemHandler {
 
 	/**
 	 * Deletes {@link TestItem} instance
-	 * 
+	 *
 	 * @param itemId
 	 * @param project
 	 * @param username
 	 * @return
 	 */
-	OperationCompletionRS deleteTestItem(String itemId, String project, String username);
+	OperationCompletionRS deleteTestItem(String itemId, String project, String username, boolean isBatch);
 
 	List<OperationCompletionRS> deleteTestItem(String[] ids, String project, String user);
 }

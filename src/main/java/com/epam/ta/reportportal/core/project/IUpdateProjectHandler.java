@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.project;
 
@@ -39,12 +39,9 @@ public interface IUpdateProjectHandler {
 	/**
 	 * Update specified project(projectName, customer and addInfo)
 	 *
-	 * @param projectName
-	 *            Project Name
-	 * @param updateProjectRQ
-	 *            Project data
-	 * @param principalName
-	 *            Login
+	 * @param projectName     Project Name
+	 * @param updateProjectRQ Project data
+	 * @param principalName   Login
 	 * @return Operation result
 	 * @throws ReportPortalException
 	 */
@@ -53,11 +50,9 @@ public interface IUpdateProjectHandler {
 	/**
 	 * Update specified project email configuration
 	 *
-	 * @param projectName
-	 *            Project Name
-	 * @param updateProjectRQ
-	 *            Request Data
-	 * @param user User performing that update
+	 * @param projectName     Project Name
+	 * @param updateProjectRQ Request Data
+	 * @param user            User performing that update
 	 * @return Operation Result
 	 */
 	OperationCompletionRS updateProjectEmailConfig(String projectName, String user, ProjectEmailConfigDTO updateProjectRQ);
@@ -65,12 +60,9 @@ public interface IUpdateProjectHandler {
 	/**
 	 * Un-assign specified user from project
 	 *
-	 * @param projectName
-	 *            Project Name
-	 * @param modifier
-	 *            Modifier
-	 * @param unassignUsersRQ
-	 *            Request Data
+	 * @param projectName     Project Name
+	 * @param modifier        Modifier
+	 * @param unassignUsersRQ Request Data
 	 * @return Operation Result
 	 * @throws ReportPortalException
 	 */
@@ -79,12 +71,9 @@ public interface IUpdateProjectHandler {
 	/**
 	 * Assign specified user from project
 	 *
-	 * @param projectName
-	 *            Project Name
-	 * @param modifier
-	 *            Modifier
-	 * @param assignUsersRQ
-	 *            Request Data
+	 * @param projectName   Project Name
+	 * @param modifier      Modifier
+	 * @param assignUsersRQ Request Data
 	 * @return Operation Result
 	 * @throws ReportPortalException
 	 */

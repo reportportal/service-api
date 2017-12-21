@@ -46,7 +46,7 @@ public interface IContentLoadingStrategy {
 	 * @param quantity       Count of items to be loaded
 	 * @param contentFields  Fields to be loaded
 	 * @param metaDataFields MetaData fields list
-	 * @param widgetOptions        Options
+	 * @param widgetOptions  Options
 	 * @return Chart Data
 	 */
 	Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields,

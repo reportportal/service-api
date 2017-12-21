@@ -17,21 +17,9 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.resolver;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.core.MethodParameter;
-import org.springframework.web.bind.support.WebDataBinderFactory;
-import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.method.support.ModelAndViewContainer;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -39,6 +27,17 @@ import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.MethodParameter;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Resolves filter parameters in GET requests. All Parameters should start with
@@ -49,9 +48,8 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
  * By FilterFor value resolves criterias/parameters to the given domain class
  * and resolves them if possible. If there are no criteria/parameter defined for
  * specified class than will throw exception
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class FilterCriteriaResolver implements HandlerMethodArgumentResolver {
 
@@ -79,7 +77,7 @@ public class FilterCriteriaResolver implements HandlerMethodArgumentResolver {
 
 	@Override
 	public Filter resolveArgument(MethodParameter methodParameter, ModelAndViewContainer paramModelAndViewContainer,
-			NativeWebRequest webRequest, WebDataBinderFactory paramWebDataBinderFactory) throws Exception {
+			NativeWebRequest webRequest, WebDataBinderFactory paramWebDataBinderFactory) {
 		return resolveAsList(methodParameter, webRequest);
 	}
 
@@ -87,7 +85,9 @@ public class FilterCriteriaResolver implements HandlerMethodArgumentResolver {
 	private <T> Filter resolveAsList(MethodParameter methodParameter, NativeWebRequest webRequest) {
 		Class<T> domainModelType = (Class<T>) methodParameter.getParameterAnnotation(FilterFor.class).value();
 
-		Set<FilterCondition> filterConditions = webRequest.getParameterMap().entrySet().stream()
+		Set<FilterCondition> filterConditions = webRequest.getParameterMap()
+				.entrySet()
+				.stream()
 				.filter(parameter -> parameter.getKey().startsWith(DEFAULT_FILTER_PREFIX) && parameter.getValue().length > 0)
 				.map(parameter -> {
 					final String[] tokens = parameter.getKey().split("\\.");
@@ -100,19 +100,20 @@ public class FilterCriteriaResolver implements HandlerMethodArgumentResolver {
 					String criteria = tokens[2];
 					return new FilterCondition(condition, isNegative, parameter.getValue()[0], criteria);
 
-				}).collect(Collectors.toSet());
+				})
+				.collect(Collectors.toSet());
 		return new Filter(domainModelType, filterConditions);
 	}
 
 	private void checkTokens(String[] tokens) {
-		BusinessRule.expect(tokens.length, Predicates.equalTo(3)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-				"Incorrect format of filtering parameters");
+		BusinessRule.expect(tokens.length, Predicates.equalTo(3))
+				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS, "Incorrect format of filtering parameters");
 	}
 
 	private Condition getCondition(String marker) {
 		Optional<Condition> condition = Condition.findByMarker(marker);
-		BusinessRule.expect(condition, Predicates.isPresent()).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-				"Unable to find condition with marker '" + marker + "'");
+		BusinessRule.expect(condition, Predicates.isPresent())
+				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS, "Unable to find condition with marker '" + marker + "'");
 		return condition.get();
 	}
 }

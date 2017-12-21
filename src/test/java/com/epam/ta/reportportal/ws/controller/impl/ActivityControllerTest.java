@@ -17,22 +17,21 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller.impl;
+
+import com.epam.ta.reportportal.auth.AuthConstants;
+import com.epam.ta.reportportal.ws.BaseMvcTest;
+import org.junit.Test;
+import org.springframework.security.core.Authentication;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.junit.Test;
-import org.springframework.security.core.Authentication;
-
-import com.epam.ta.reportportal.auth.AuthConstants;
-import com.epam.ta.reportportal.ws.BaseMvcTest;
-
 /**
  * Base MVC test for ITestItemController
- * 
+ *
  * @author Dzmitry_Kavalets
  */
 public class ActivityControllerTest extends BaseMvcTest {

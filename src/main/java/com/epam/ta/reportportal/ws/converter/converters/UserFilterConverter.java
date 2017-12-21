@@ -21,9 +21,12 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.database.entity.filter.SelectionOptions;
+import com.epam.ta.reportportal.database.entity.filter.SelectionOrder;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.ws.model.filter.Order;
 import com.epam.ta.reportportal.ws.model.filter.SelectionParameters;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterEntity;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
@@ -33,6 +36,7 @@ import com.google.common.collect.Sets;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Converts internal DB model to DTO
@@ -41,55 +45,77 @@ import java.util.function.Function;
  */
 public final class UserFilterConverter {
 
-    private UserFilterConverter() {
-        //static only
-    }
+	private UserFilterConverter() {
+		//static only
+	}
 
-    public static final Function<UserFilter, UserFilterResource> TO_RESOURCE = filter -> {
-        Preconditions.checkNotNull(filter);
-        UserFilterResource resource = new UserFilterResource();
-        resource.setFilterId(filter.getId());
-        resource.setName(filter.getName());
-        resource.setDescription(filter.getDescription());
-        Optional.ofNullable(filter.getFilter()).ifPresent(f -> {
-            resource.setObjectType(f.getTarget().getSimpleName().toLowerCase());
-            resource.setEntities(UserFilterConverter.TO_ENTITIES.apply(f));
-        });
-        Optional.ofNullable(filter.getSelectionOptions()).ifPresent(options -> {
-            SelectionParameters selectionParameters = new SelectionParameters();
-            selectionParameters.setSortingColumnName(options.getSortingColumnName());
-            selectionParameters.setIsAsc(options.isAsc());
-            selectionParameters.setPageNumber(options.getPageNumber());
-            resource.setSelectionParameters(selectionParameters);
+	public static final Function<UserFilter, UserFilterResource> TO_RESOURCE = filter -> {
+		Preconditions.checkNotNull(filter);
+		UserFilterResource resource = new UserFilterResource();
+		resource.setFilterId(filter.getId());
+		resource.setName(filter.getName());
+		resource.setDescription(filter.getDescription());
+		Optional.ofNullable(filter.getFilter()).ifPresent(f -> {
+			resource.setObjectType(f.getTarget().getSimpleName().toLowerCase());
+			resource.setEntities(UserFilterConverter.TO_ENTITIES.apply(f));
+		});
+		Optional.ofNullable(filter.getSelectionOptions())
+				.ifPresent(it -> resource.setSelectionParameters(UserFilterConverter.TO_SELECTION_PARAMETERS.apply(it)));
+		Optional.ofNullable(filter.getAcl()).ifPresent(acl -> {
+			resource.setOwner(acl.getOwnerUserId());
+			resource.setShare(!acl.getEntries().isEmpty());
+		});
+		return resource;
+	};
 
-        });
-        Optional.ofNullable(filter.getAcl()).ifPresent(acl -> {
-            resource.setOwner(acl.getOwnerUserId());
-            resource.setShare(!acl.getEntries().isEmpty());
-        });
-        return resource;
-    };
+	public static final Function<SelectionParameters, SelectionOptions> TO_SELECTION_OPTIONS = parameters -> {
+		Preconditions.checkNotNull(parameters);
+		Preconditions.checkNotNull(parameters.getOrders());
+		SelectionOptions selectionOptions = new SelectionOptions();
+		selectionOptions.setPageNumber(parameters.getPageNumber());
+		selectionOptions.setOrders(parameters.getOrders().stream().map(order -> {
+			SelectionOrder selectionOrder = new SelectionOrder();
+			selectionOrder.setIsAsc(order.getIsAsc());
+			selectionOrder.setSortingColumnName(order.getSortingColumnName());
+			return selectionOrder;
+		}).collect(Collectors.toList()));
+		return selectionOptions;
+	};
 
-    /**
-     * Transform Set<{@link Filter}> to Set<{@link UserFilterEntity}>
-     *
-     * @param filterEntities
-     * @return Set<ComplexFilterEntity>
-     */
-    private static final Function<Filter, Set<UserFilterEntity>> TO_ENTITIES = filter -> {
-        Set<UserFilterEntity> result = Sets.newLinkedHashSet();
-        filter.getFilterConditions().forEach(condition -> {
-            UserFilterEntity userFilterEntity = new UserFilterEntity();
+	public static final Function<SelectionOptions, SelectionParameters> TO_SELECTION_PARAMETERS = options -> {
+		Preconditions.checkNotNull(options);
+		Preconditions.checkNotNull(options.getOrders());
+		SelectionParameters selectionParameters = new SelectionParameters();
+		selectionParameters.setPageNumber(options.getPageNumber());
+		selectionParameters.setOrders(options.getOrders().stream().map(selectionOrder -> {
+			Order order = new Order();
+			order.setIsAsc(selectionOrder.isAsc());
+			order.setSortingColumnName(selectionOrder.getSortingColumnName());
+			return order;
+		}).collect(Collectors.toList()));
+		return selectionParameters;
+	};
 
-            Optional.ofNullable(condition.getCondition().getMarker())
-                    .map(it -> Condition.makeNegative(condition.isNegative(), it))
-                    .ifPresent(userFilterEntity::setCondition);
+	/**
+	 * Transform Set<{@link Filter}> to Set<{@link UserFilterEntity}>
+	 *
+	 * @param filterEntities
+	 * @return Set<ComplexFilterEntity>
+	 */
+	private static final Function<Filter, Set<UserFilterEntity>> TO_ENTITIES = filter -> {
+		Set<UserFilterEntity> result = Sets.newLinkedHashSet();
+		filter.getFilterConditions().forEach(condition -> {
+			UserFilterEntity userFilterEntity = new UserFilterEntity();
 
-            userFilterEntity.setValue(condition.getValue());
-            userFilterEntity.setFilteringField(condition.getSearchCriteria());
-            result.add(userFilterEntity);
-        });
-        return result;
-    };
+			Optional.ofNullable(condition.getCondition().getMarker())
+					.map(it -> Condition.makeNegative(condition.isNegative(), it))
+					.ifPresent(userFilterEntity::setCondition);
+
+			userFilterEntity.setValue(condition.getValue());
+			userFilterEntity.setFilteringField(condition.getSearchCriteria());
+			result.add(userFilterEntity);
+		});
+		return result;
+	};
 
 }

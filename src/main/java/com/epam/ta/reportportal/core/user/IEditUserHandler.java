@@ -17,29 +17,27 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
-package com.epam.ta.reportportal.core.user;
+ */
 
-import org.springframework.web.multipart.MultipartFile;
+package com.epam.ta.reportportal.core.user;
 
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.user.ChangePasswordRQ;
 import com.epam.ta.reportportal.ws.model.user.EditUserRQ;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Edit request handler
- * 
+ *
  * @author Aliaksandr_Kazantsau
- * 
  */
 public interface IEditUserHandler {
 
 	/**
 	 * Edit User
-	 * 
+	 *
 	 * @param username
 	 * @param editUserRQ
 	 * @param role
@@ -50,7 +48,7 @@ public interface IEditUserHandler {
 
 	/**
 	 * Upload photo
-	 * 
+	 *
 	 * @param username
 	 * @param file
 	 * @return
@@ -59,7 +57,7 @@ public interface IEditUserHandler {
 
 	/**
 	 * Delete user's photo
-	 * 
+	 *
 	 * @param username
 	 * @return
 	 */
@@ -67,7 +65,7 @@ public interface IEditUserHandler {
 
 	/**
 	 * Change password
-	 * 
+	 *
 	 * @param username
 	 * @param changePasswordRQ
 	 * @return

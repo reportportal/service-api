@@ -38,14 +38,20 @@ import java.util.UUID;
 public class ChangeSets_3_1 {
 
 	@ChangeSet(order = "3.1.0-1", id = "v3.1.0-Remove debug from email settings", author = "avarabyeu")
-	public void removeDebugField(MongoTemplate mongoTemplate) throws IOException {
+	public void removeDebugField(MongoTemplate mongoTemplate) {
 		mongoTemplate.updateFirst(Query.query(new Criteria()), new Update().unset("serverEmailDetails.debug"), "serverSettings");
 	}
 
 	@ChangeSet(order = "3.1.0-2", id = "v3.1.2-Add instance ID", author = "avarabyeu")
-	public void addInstanceID(MongoTemplate mongoTemplate) throws IOException {
+	public void addInstanceID(MongoTemplate mongoTemplate) {
 		mongoTemplate.updateFirst(Query.query(Criteria.where("instanceId").exists(false)),
-				new Update().set("instanceId", UUID.randomUUID().toString()), "serverSettings");
+				new Update().set("instanceId", UUID.randomUUID().toString()), "serverSettings"
+		);
+	}
+
+	@ChangeSet(order = "3.1.0-3", id = "v3.1.3-Add log indexing checkpoint ID", author = "isharamet")
+	public void addLogIndexingCheckpoint(MongoTemplate mongoTemplate) {
+		mongoTemplate.createCollection("logIndexingCheckpoint");
 	}
 
 }

@@ -22,19 +22,17 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.database.dao.ExternalSystemRepository;
-import com.epam.ta.reportportal.database.dao.FailReferenceResourceRepository;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.builders.FailReferenceResourceBuilder;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -43,17 +41,19 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
-import javax.inject.Provider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.database.entity.Status.FAILED;
 import static com.epam.ta.reportportal.database.entity.Status.SKIPPED;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.AUTOMATION_BUG;
 import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.PRODUCT_BUG;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.not;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class FinishTestItemHandlerImplTest {
 
@@ -66,7 +66,11 @@ public class FinishTestItemHandlerImplTest {
 	public void verifyIssueTestEmptyIssueType() {
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage(
-				"Invalid test item issue type definition 'null' is requested for item 'itemId'. Valid issue types are: [NOT_ISSUE, PRODUCT_BUG, AUTOMATION_BUG, SYSTEM_ISSUE, TO_INVESTIGATE, NO_DEFECT]");
+				"Test item status is ambiguous. Invalid test item issue type definition 'null' is requested for item 'itemId'. Valid issue types locators are:");
+		thrown.expectMessage("AB001");
+		thrown.expectMessage("PB001");
+		thrown.expectMessage("ND001");
+		thrown.expectMessage("TI001");
 		finishTestItemHandler.verifyIssue("itemId", new Issue(), new Project.Configuration());
 	}
 
@@ -98,9 +102,13 @@ public class FinishTestItemHandlerImplTest {
 		Issue issue = new Issue();
 		issue.setIssueType("PB004");
 		thrown.expectMessage(
-				"Invalid test item issue type definition 'PB004' is requested for item 'itemId'. Valid issue types are: [NOT_ISSUE, PRODUCT_BUG, AUTOMATION_BUG, SYSTEM_ISSUE, TO_INVESTIGATE, NO_DEFECT]");
+				"Test item status is ambiguous. Invalid test item issue type definition 'PB004' is requested for item 'itemId'. Valid issue types locators are: [custom_locator]");
 		thrown.expect(ReportPortalException.class);
-		finishTestItemHandler.verifyIssue("itemId", issue, new Project.Configuration());
+		Project.Configuration configuration = new Project.Configuration();
+		configuration.setSubTypes(ImmutableMap.<TestItemIssueType, List<StatisticSubType>>builder().put(AUTOMATION_BUG,
+				singletonList(new StatisticSubType("custom_locator", AUTOMATION_BUG.getValue(), "Custom issue", "CS", "#f7d63e"))
+		).build());
+		finishTestItemHandler.verifyIssue("itemId", issue, configuration);
 	}
 
 	@Test
@@ -120,11 +128,6 @@ public class FinishTestItemHandlerImplTest {
 	@Test
 	public void failedWithoutIssue() {
 		String launchRef = "launchRef";
-		Provider<FailReferenceResourceBuilder> lazyReference = Mockito.mock(Provider.class);
-		when(lazyReference.get()).thenReturn(new FailReferenceResourceBuilder());
-		finishTestItemHandler.setFailReferenceResourceBuilder(lazyReference);
-		FailReferenceResourceRepository referenceResourceRepository = mock(FailReferenceResourceRepository.class);
-		finishTestItemHandler.setFailReferenceResourceRepository(referenceResourceRepository);
 		LaunchRepository launchRepository = mock(LaunchRepository.class);
 		when(launchRepository.findOne(launchRef)).thenReturn(new Launch());
 		finishTestItemHandler.setLaunchRepository(launchRepository);
@@ -144,8 +147,6 @@ public class FinishTestItemHandlerImplTest {
 		Assert.assertNull(updatedTestItem.getIssue().getIssueDescription());
 		Assert.assertNull(updatedTestItem.getIssue().getExternalSystemIssues());
 		Assert.assertEquals("TI001", updatedTestItem.getIssue().getIssueType());
-		verify(referenceResourceRepository, times(1)).save(any(FailReferenceResource.class));
-		verify(launchRepository, times(1)).findOne(launchRef);
 	}
 
 	@Test

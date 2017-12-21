@@ -59,17 +59,20 @@ public class DemoDataControllerTest extends BaseMvcTest {
 		rq.setPostfix("postfix");
 		rq.setCreateDashboard(true);
 		rq.setLaunchesQuantity(1);
-		mvcMock.perform(post("/demo/project1").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+		mvcMock.perform(post("/demo/project1").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
 				.principal(authentication())).andExpect(status().is(200));
 		List<Launch> byName = launchRepository.findByName(DemoDataCommonService.NAME + "_" + rq.getPostfix());
 		assertFalse(byName.isEmpty());
 		assertEquals(rq.getLaunchesQuantity(), byName.size());
 		Dashboard dashboard = dashboardRepository.findOneByUserProject(AuthConstants.TEST_USER, "project1",
-				DemoDashboardsService.D_NAME + "#" + rq.getPostfix());
+				DemoDashboardsService.D_NAME + "#" + rq.getPostfix()
+		);
 		assertNotNull(dashboard);
 		assertEquals(9, dashboardRepository.findOne(dashboard.getId()).getWidgets().size());
 		final UserFilter filter = userFilterRepository.findOneByName(AuthConstants.TEST_USER,
-				DemoDashboardsService.F_NAME + "#" + rq.getPostfix(), "project1");
+				DemoDashboardsService.F_NAME + "#" + rq.getPostfix(), "project1"
+		);
 		assertNotNull(filter);
 	}
 
@@ -80,10 +83,12 @@ public class DemoDataControllerTest extends BaseMvcTest {
 		rq.setCreateDashboard(true);
 		rq.setLaunchesQuantity(1);
 		rq.setPostfix("qwe");
-		mvcMock.perform(post("/demo/project1").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+		mvcMock.perform(post("/demo/project1").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
 				.principal(authentication())).andExpect(status().is(200));
 
-		mvcMock.perform(post("/demo/project1").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+		mvcMock.perform(post("/demo/project1").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
 				.principal(authentication())).andExpect(status().is(406));
 
 	}
@@ -94,17 +99,20 @@ public class DemoDataControllerTest extends BaseMvcTest {
 		rq.setPostfix("test");
 		rq.setCreateDashboard(true);
 		rq.setLaunchesQuantity(1);
-		mvcMock.perform(post("/demo/project2").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON)
+		mvcMock.perform(post("/demo/project2").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
 				.principal(authentication())).andExpect(status().is(200));
 		List<Launch> byName = launchRepository.findByName(DemoDataCommonService.NAME + "_" + rq.getPostfix());
 		assertFalse(byName.isEmpty());
 		assertEquals(rq.getLaunchesQuantity(), byName.size());
 		Dashboard dashboard = dashboardRepository.findOneByUserProject(AuthConstants.TEST_USER, "project2",
-				DemoDashboardsService.D_NAME + "#" + rq.getPostfix());
+				DemoDashboardsService.D_NAME + "#" + rq.getPostfix()
+		);
 		assertNotNull(dashboard);
 		assertEquals(9, dashboardRepository.findOne(dashboard.getId()).getWidgets().size());
 		final UserFilter filter = userFilterRepository.findOneByName(AuthConstants.TEST_USER,
-				DemoDashboardsService.F_NAME + "#" + rq.getPostfix(), "project2");
+				DemoDashboardsService.F_NAME + "#" + rq.getPostfix(), "project2"
+		);
 		assertNotNull(filter);
 	}
 
@@ -113,13 +121,15 @@ public class DemoDataControllerTest extends BaseMvcTest {
 		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
 		createDashboardRQ.setName("DEMO DASHBOARD#postfix");
 		mvcMock.perform(post(PROJECT_BASE_URL + "/dashboard").principal(authentication())
-				.content(objectMapper.writeValueAsBytes(createDashboardRQ)).contentType(APPLICATION_JSON)).andExpect(status().isCreated());
+				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
+				.contentType(APPLICATION_JSON)).andExpect(status().isCreated());
 
 		DemoDataRq demoDataRq = new DemoDataRq();
 		demoDataRq.setPostfix("postfix");
 		demoDataRq.setCreateDashboard(true);
 		demoDataRq.setLaunchesQuantity(1);
-		mvcMock.perform(post("/demo/project1").content(objectMapper.writeValueAsBytes(demoDataRq)).contentType(APPLICATION_JSON)
+		mvcMock.perform(post("/demo/project1").content(objectMapper.writeValueAsBytes(demoDataRq))
+				.contentType(APPLICATION_JSON)
 				.principal(authentication())).andExpect(status().is4xxClientError());
 	}
 

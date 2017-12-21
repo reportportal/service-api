@@ -36,8 +36,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserPreferenceResourceAssembler extends PagedResourcesAssembler<UserPreference, PreferenceResource> {
 
-    @Override
-    public PreferenceResource toResource(UserPreference entity) {
-        return PreferenceConverter.TO_RESOURCE.apply(entity);
-    }
+	@Override
+	public PreferenceResource toResource(UserPreference entity) {
+		return PreferenceConverter.TO_RESOURCE.apply(entity);
+	}
 }

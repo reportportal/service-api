@@ -1,55 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:util="http://www.springframework.org/schema/util" xmlns:p="http://www.springframework.org/schema/p"
-	xmlns:c="http://www.springframework.org/schema/c"
-   xmlns:mockito="http://www.mockito.org/spring/mockito"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
 
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.mockito.org/spring/mockito http://www.mockito.org/spring/mockito.xsd"	default-lazy-init="true">
-	
-	<context:annotation-config/>
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 
-	<!--bean class="com.epam.ta.reportportal.util.email.EmailService">
-		<property name="templateEngine" ref="templateVelocityEngine" />
-		<property name="host" value="${com.ta.reportportal.email.server}" />
-		<property name="port" value="${com.ta.reportportal.email.port}" />
-		<property name="protocol" value="${com.ta.reportportal.email.protocol}" />
-		<property name="username" value="${com.ta.reportportal.email.account}" />
-		<property name="password" value="${com.ta.reportportal.email.password}" />
-		<property name="addressFrom" value="${com.ta.reportportal.email.from}" />
-		<property name="javaMailProperties">
-			<props>
-				<prop key="mail.transport.protocol">smtp</prop>
-				<prop key="mail.smtp.connectiontimeout">5000</prop>
-				<prop key="mail.smtp.auth">false</prop>
-				<prop key="mail.smtp.starttls.enable">false</prop>
-				<prop key="mail.debug">false</prop>
-			</props>
-		</property>
-	</bean-->
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd"
+       default-lazy-init="true">
 
-	<bean id="emailService1" name="emailService" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="com.epam.ta.reportportal.util.email.EmailService"/>
-		<property name="templateEngine" ref="templateVelocityEngine" />
-		<property name="host" value="${rp.email.server}" />
-		<property name="port" value="${rp.email.port}" />
-		<property name="protocol" value="${rp.email.protocol}" />
-		<property name="username" value="${rp.email.account}" />
-		<property name="password" value="${rp.email.password}" />
-		<property name="from" value="${rp.email.from}" />
-		<property name="javaMailProperties">
-			<props>
-				<prop key="mail.transport.protocol">smtp</prop>
-				<prop key="mail.smtp.connectiontimeout">5000</prop>
-				<prop key="mail.smtp.auth">false</prop>
-				<prop key="mail.smtp.starttls.enable">false</prop>
-				<prop key="mail.debug">false</prop>
-			</props>
-		</property>
+    <context:annotation-config/>
 
-	</bean>
+    <!--bean class="com.epam.ta.reportportal.util.email.EmailService">
+        <property name="templateEngine" ref="templateVelocityEngine" />
+        <property name="host" value="${com.ta.reportportal.email.server}" />
+        <property name="port" value="${com.ta.reportportal.email.port}" />
+        <property name="protocol" value="${com.ta.reportportal.email.protocol}" />
+        <property name="username" value="${com.ta.reportportal.email.account}" />
+        <property name="password" value="${com.ta.reportportal.email.password}" />
+        <property name="addressFrom" value="${com.ta.reportportal.email.from}" />
+        <property name="javaMailProperties">
+            <props>
+                <prop key="mail.transport.protocol">smtp</prop>
+                <prop key="mail.smtp.connectiontimeout">5000</prop>
+                <prop key="mail.smtp.auth">false</prop>
+                <prop key="mail.smtp.starttls.enable">false</prop>
+                <prop key="mail.debug">false</prop>
+            </props>
+        </property>
+    </bean-->
+
+    <bean id="emailService1" name="emailService" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg value="com.epam.ta.reportportal.util.email.EmailService"/>
+        <property name="templateEngine" ref="templateVelocityEngine"/>
+        <property name="host" value="${rp.email.server}"/>
+        <property name="port" value="${rp.email.port}"/>
+        <property name="protocol" value="${rp.email.protocol}"/>
+        <property name="username" value="${rp.email.account}"/>
+        <property name="password" value="${rp.email.password}"/>
+        <property name="from" value="${rp.email.from}"/>
+        <property name="javaMailProperties">
+            <props>
+                <prop key="mail.transport.protocol">smtp</prop>
+                <prop key="mail.smtp.connectiontimeout">5000</prop>
+                <prop key="mail.smtp.auth">false</prop>
+                <prop key="mail.smtp.starttls.enable">false</prop>
+                <prop key="mail.debug">false</prop>
+            </props>
+        </property>
+
+    </bean>
 
 
 </beans>

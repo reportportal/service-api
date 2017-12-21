@@ -21,14 +21,13 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
+import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.database.entity.filter.UserFilter;
+import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-
-import com.epam.ta.BaseTest;
-import com.epam.ta.reportportal.database.entity.filter.UserFilter;
-import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 
 import javax.inject.Provider;
 
@@ -67,7 +66,8 @@ public class UserFilterBuilderTest extends BaseTest {
 	@Test
 	public void testBeanScope() {
 		Assert.assertTrue("Complex filter builder should be prototype bean because it's not stateless",
-				applicationContext.isPrototype(applicationContext.getBeanNamesForType(UserFilterBuilder.class)[0]));
+				applicationContext.isPrototype(applicationContext.getBeanNamesForType(UserFilterBuilder.class)[0])
+		);
 	}
 
 	private void validateFilters(UserFilter expectedValue, UserFilter actualValue) {
@@ -76,9 +76,13 @@ public class UserFilterBuilderTest extends BaseTest {
 		Assert.assertEquals(expectedValue.getId(), actualValue.getId());
 		Assert.assertEquals(expectedValue.getFilter(), actualValue.getFilter());
 		if (expectedValue.getSelectionOptions() != null) {
-			Assert.assertEquals(expectedValue.getSelectionOptions().isAsc(), actualValue.getSelectionOptions().isAsc());
-			Assert.assertEquals(expectedValue.getSelectionOptions().getSortingColumnName(),
-					actualValue.getSelectionOptions().getSortingColumnName());
+			Assert.assertEquals(
+					expectedValue.getSelectionOptions().getOrders().get(0).isAsc(),
+					actualValue.getSelectionOptions().getOrders().get(0).isAsc()
+			);
+			Assert.assertEquals(expectedValue.getSelectionOptions().getOrders().get(0).getSortingColumnName(),
+					actualValue.getSelectionOptions().getOrders().get(0).getSortingColumnName()
+			);
 		} else {
 			Assert.assertNull(actualValue.getSelectionOptions());
 		}

@@ -31,6 +31,6 @@ import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
  */
 public interface IMergeLaunchHandler {
 
-    LaunchResource mergeLaunches(String projectName, String userName, MergeLaunchesRQ mergeLaunchesRQ);
+	LaunchResource mergeLaunches(String projectName, String userName, MergeLaunchesRQ mergeLaunchesRQ);
 
 }

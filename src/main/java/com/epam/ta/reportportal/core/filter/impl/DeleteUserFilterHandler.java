@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.filter.impl;
 
@@ -39,9 +39,8 @@ import org.springframework.stereotype.Service;
 
 /**
  * Default implementation of {@link IDeleteUserFilterHandler}
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 
 @Service
@@ -51,11 +50,11 @@ public class DeleteUserFilterHandler implements IDeleteUserFilterHandler {
 
 	private final ProjectRepository projectRepository;
 
-    private ApplicationEventPublisher eventPublisher;
+	private ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	public DeleteUserFilterHandler(UserFilterRepository filterRepository, ProjectRepository projectRepository,
-                                   ApplicationEventPublisher eventPublisher) {
+			ApplicationEventPublisher eventPublisher) {
 		this.filterRepository = filterRepository;
 		this.projectRepository = projectRepository;
 		this.eventPublisher = eventPublisher;
@@ -66,8 +65,9 @@ public class DeleteUserFilterHandler implements IDeleteUserFilterHandler {
 
 		UserFilter userFilter = filterRepository.findOne(filterId);
 		BusinessRule.expect(userFilter, Predicates.notNull()).verify(ErrorType.USER_FILTER_NOT_FOUND, filterId, userName);
-		AclUtils.isAllowedToEdit(userFilter.getAcl(), userName, projectRepository.findProjectRoles(userName),
-				userFilter.getName(), userRole);
+		AclUtils.isAllowedToEdit(userFilter.getAcl(), userName, projectRepository.findProjectRoles(userName), userFilter.getName(),
+				userRole
+		);
 		BusinessRule.expect(userFilter.getProjectName(), Predicates.equalTo(projectName)).verify(ErrorType.ACCESS_DENIED);
 
 		try {

@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.resolver;
 
@@ -28,12 +28,10 @@ import java.lang.annotation.Target;
 
 /**
  * Specifies Jackson's JSON view class for response serialization
- * 
- * @see <a href="http://wiki.fasterxml.com/JacksonJsonViews">Jackson Json
- *      Views</a>
- * 
+ *
  * @author Andrei Varabyeu
- * 
+ * @see <a href="http://wiki.fasterxml.com/JacksonJsonViews">Jackson Json
+ * Views</a>
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

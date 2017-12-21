@@ -31,23 +31,22 @@ import java.security.Principal;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 
-
 @RestController
 @RequestMapping("/demo/{projectName}")
 class DemoDataController {
 
-    private final DemoDataService demoDataService;
+	private final DemoDataService demoDataService;
 
-    @Autowired
-    DemoDataController(DemoDataService demoDataService) {
-        this.demoDataService = demoDataService;
-    }
+	@Autowired
+	DemoDataController(DemoDataService demoDataService) {
+		this.demoDataService = demoDataService;
+	}
 
-    @PostMapping
-    @PreAuthorize(PROJECT_MANAGER)
-    @ApiOperation(value = "generate")
-    @ApiIgnore
-    DemoDataRs generate(@PathVariable String projectName, @Validated @RequestBody DemoDataRq demoDataRq, Principal principal) {
-        return demoDataService.generate(demoDataRq, projectName, principal.getName());
-    }
+	@PostMapping
+	@PreAuthorize(PROJECT_MANAGER)
+	@ApiOperation(value = "generate")
+	@ApiIgnore
+	DemoDataRs generate(@PathVariable String projectName, @Validated @RequestBody DemoDataRq demoDataRq, Principal principal) {
+		return demoDataService.generate(demoDataRq, projectName, principal.getName());
+	}
 }

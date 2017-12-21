@@ -9,19 +9,19 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
  */
 public abstract class PredefinedFilterBuilder {
 
-    public Queryable buildFilter(String[] params) {
-        checkParams(params);
-        return build(params);
-    }
+	public Queryable buildFilter(String[] params) {
+		checkParams(params);
+		return build(params);
+	}
 
-    abstract protected Queryable build(String[] params);
+	abstract protected Queryable build(String[] params);
 
-    protected void checkParams(String[] params) {
-        //empty by default
-    }
+	protected void checkParams(String[] params) {
+		//empty by default
+	}
 
-    protected Exception incorrectParamsException(String message) {
-        throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, message);
-    }
+	protected Exception incorrectParamsException(String message) {
+		throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, message);
+	}
 
 }

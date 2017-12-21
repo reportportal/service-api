@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.externalsystem.handler.impl;
 
@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.events.TicketPostedEvent;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
+import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -45,7 +46,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * Default implementation of {@link ICreateTicketHandler}
- * 
+ *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
  */
@@ -70,31 +71,32 @@ public class CreateTicketHandler implements ICreateTicketHandler {
 	@Override
 	public Ticket createIssue(PostTicketRQ postTicketRQ, String projectName, String systemId, String username) {
 		validatePostTicketRQ(postTicketRQ);
-		TestItem testItem = testItemRepository.findOne(postTicketRQ.getTestItemId());
+		List<TestItem> testItems = testItemRepository.findByIds(
+				postTicketRQ.getBackLinks().keySet(), ImmutableList.<String>builder().add("_id").add("name").build());
 		Project project = projectRepository.findByName(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 		List<String> ids = project.getConfiguration().getExternalSystem();
 		expect(ids, notNull()).verify(PROJECT_NOT_CONFIGURED, projectName);
 		ExternalSystem system = externalSystemRepository.findOne(systemId);
 		expect(system, notNull()).verify(EXTERNAL_SYSTEM_NOT_FOUND, systemId);
-		expect(system.getFields(), notNull()).verify(BAD_REQUEST_ERROR,
-				"There aren't any submitted BTS fields!");
+		expect(system.getFields(), notNull()).verify(BAD_REQUEST_ERROR, "There aren't any submitted BTS fields!");
 		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name());
 		Ticket ticket = externalSystemStrategy.submitTicket(postTicketRQ, system);
-		eventPublisher.publishEvent(new TicketPostedEvent(ticket, postTicketRQ.getTestItemId(), username,
-				projectName, testItem.getName()));
+		testItems.forEach(
+				item -> eventPublisher.publishEvent(new TicketPostedEvent(ticket, item.getId(), username, projectName, item.getName())));
 		return ticket;
 	}
 
 	/**
 	 * Additional validations to {@link PostTicketRQ}.
-	 * 
+	 *
 	 * @param postTicketRQ
 	 */
 	private void validatePostTicketRQ(PostTicketRQ postTicketRQ) {
 		if (postTicketRQ.getIsIncludeLogs() || postTicketRQ.getIsIncludeScreenshots()) {
 			expect(postTicketRQ.getBackLinks(), notNull()).verify(UNABLE_POST_TICKET,
-					"Test item id should be specified, when logs required in ticket description.");
+					"Test item id should be specified, when logs required in ticket description."
+			);
 		}
 	}
 }

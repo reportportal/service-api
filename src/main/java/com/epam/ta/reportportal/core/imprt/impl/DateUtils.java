@@ -24,19 +24,34 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
+/**
+ * @author Pavel Bortnik
+ */
 public final class DateUtils {
 
-    private DateUtils(){
-        //static only
-    }
+	private DateUtils() {
+		//static only
+	}
 
-    public static Date toDate(LocalDateTime startTime) {
-        return Date.from(startTime.atZone(ZoneId.systemDefault()).toInstant());
-    }
+	public static Date toDate(LocalDateTime startTime) {
+		if (null != startTime) {
+			return Date.from(startTime.atZone(ZoneId.systemDefault()).toInstant());
+		}
+		return null;
+	}
 
-    public static long toMillis(String duration) {
-        Double value = Double.valueOf(duration) * 1000;
-        return value.longValue();
-    }
+	/**
+	 * Converts string representation of seconds to millis
+	 *
+	 * @param duration String seconds
+	 * @return long millis
+	 */
+	public static long toMillis(String duration) {
+		if (null != duration) {
+			Double value = Double.valueOf(duration) * 1000;
+			return value.longValue();
+		}
+		return 0;
+	}
 
 }

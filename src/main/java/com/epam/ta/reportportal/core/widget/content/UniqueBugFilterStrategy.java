@@ -17,18 +17,20 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
 
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.filter.SelectionOptions;
+import com.epam.ta.reportportal.database.entity.filter.SelectionOrder;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.search.*;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -38,14 +40,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+
 /**
  * Implementation of
  * {@link com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy} for
  * unique bug widget
- * 
+ *
  * @author Dzmitry_Kavalets
  */
-@Service("UniqueBugFilterStrategy")
+@Service
 public class UniqueBugFilterStrategy implements BuildFilterStrategy {
 
 	private static final String SEPARATOR = ",";
@@ -70,20 +74,24 @@ public class UniqueBugFilterStrategy implements BuildFilterStrategy {
 			int limit = contentOptions.getItemsCount();
 
 			CriteriaMap<?> criteriaMap = criteriaMapFactory.getCriteriaMap(filter.getTarget());
-			List<Launch> launches = launchRepository.findIdsByFilter(filter,
-					new Sort(userFilter.getSelectionOptions().isAsc() ? Sort.Direction.ASC : Sort.Direction.DESC,
-							criteriaMap.getCriteriaHolder(userFilter.getSelectionOptions().getSortingColumnName()).getQueryCriteria()),
-					limit);
+			List<Sort.Order> orders = userFilter.getSelectionOptions()
+					.getOrders()
+					.stream()
+					.map(order -> new Sort.Order(order.isAsc() ? Sort.Direction.ASC : Sort.Direction.DESC,
+							criteriaMap.getCriteriaHolder(order.getSortingColumnName()).getQueryCriteria()
+					))
+					.collect(toList());
+			Sort sort = new Sort(orders);
+
+			List<Launch> launches = launchRepository.findIdsByFilter(filter, sort, limit);
 			final String value = launches.stream().map(Launch::getId).collect(Collectors.joining(SEPARATOR));
 			filter = new Filter(TestItem.class, Sets.newHashSet(new FilterCondition(Condition.IN, false, value, TestItem.LAUNCH_CRITERIA)));
 		}
 		filter.addCondition(new FilterCondition(Condition.EXISTS, false, "true", TestItem.EXTERNAL_SYSTEM_ISSUES));
+		SelectionOptions selectionOptions = new SelectionOptions();
+		selectionOptions.setOrders(Lists.newArrayList(new SelectionOrder("start_time", false)));
 
-		return widgetContentProvider.getChartContent(projectName, filter, userFilter.getSelectionOptions(), contentOptions);
+		return widgetContentProvider.getChartContent(projectName, filter, selectionOptions, contentOptions);
 	}
 
-    @Override
-    public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
-        throw new ReportPortalException("Operation is not supported for this strategy");
-    }
 }

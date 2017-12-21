@@ -17,19 +17,18 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.auth;
 
 import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.database.fixture.SpringFixture;
+import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.PermissionEvaluator;
-
-import com.epam.ta.reportportal.database.fixture.SpringFixture;
-import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
 
 @SpringFixture("authTests")
 public class ReportPortalPermissionEvaluatorTest extends BaseTest {
@@ -44,7 +43,8 @@ public class ReportPortalPermissionEvaluatorTest extends BaseTest {
 	@Test
 	public void evaluatePermission() {
 		boolean evaluationResult = permissionEvaluator.hasPermission(AuthConstants.ADMINISTRATOR, AuthConstants.USER_PROJECT,
-				"isAssignedToProject");
+				"isAssignedToProject"
+		);
 		Assert.assertTrue("Incorrect evaluation result", evaluationResult);
 	}
 

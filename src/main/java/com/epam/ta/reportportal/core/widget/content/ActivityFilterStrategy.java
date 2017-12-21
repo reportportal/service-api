@@ -17,23 +17,24 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
 
 import com.epam.ta.reportportal.database.entity.filter.SelectionOptions;
+import com.epam.ta.reportportal.database.entity.filter.SelectionOrder;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +42,7 @@ import java.util.Map;
  * Implementation of
  * {@link com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy} for
  * activity stream widget
- * 
+ *
  * @author Dzmitry_Kavalets
  */
 @Service("ActivityFilterStrategy")
@@ -57,7 +58,8 @@ public class ActivityFilterStrategy implements BuildFilterStrategy {
 	private WidgetContentProvider widgetContentProvider;
 
 	@Override
-	public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+	public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions,
+			String projectName) {
 
 		Filter searchFilter = new Filter(Activity.class, Condition.EQUALS, false, projectName, Activity.PROJECT_REF);
 
@@ -72,18 +74,15 @@ public class ActivityFilterStrategy implements BuildFilterStrategy {
 		}
 
 		SelectionOptions selectionOptions = new SelectionOptions();
-		selectionOptions.setIsAsc(false);
-		selectionOptions.setSortingColumnName(LAST_MODIFIED);
+		SelectionOrder selectionOrder = new SelectionOrder();
+		selectionOrder.setIsAsc(false);
+		selectionOrder.setSortingColumnName(LAST_MODIFIED);
 		selectionOptions.setPageNumber(PAGE_NUMBER);
+		selectionOptions.setOrders(Collections.singletonList(selectionOrder));
 		return widgetContentProvider.getChartContent(projectName, searchFilter, selectionOptions, contentOptions);
 	}
 
-    @Override
-    public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
-        throw new ReportPortalException("Operation is not supported for this strategy");
-    }
-
-    private FilterCondition buildFilterCondition(String searchCriteria, List<String> values) {
+	private FilterCondition buildFilterCondition(String searchCriteria, List<String> values) {
 		Condition condition;
 		if (null != values && values.size() > 1) {
 			condition = Condition.IN;

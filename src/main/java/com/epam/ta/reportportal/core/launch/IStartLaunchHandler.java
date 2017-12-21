@@ -17,12 +17,12 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.launch;
 
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 
 /**
  * Start Launch operation handler
@@ -31,13 +31,13 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
  */
 public interface IStartLaunchHandler {
 
-    /**
-     * Creates new launch for specified project
-     *
-     * @param user          User name
-     * @param project       Project name
-     * @param startLaunchRQ Request Data
-     * @return StartLaunchRS
-     */
-    EntryCreatedRS startLaunch(String user, String project, StartLaunchRQ startLaunchRQ);
+	/**
+	 * Creates new launch for specified project
+	 *
+	 * @param user          User name
+	 * @param project       Project name
+	 * @param startLaunchRQ Request Data
+	 * @return StartLaunchRS
+	 */
+	StartLaunchRS startLaunch(String user, String project, StartLaunchRQ startLaunchRQ);
 }

@@ -55,7 +55,8 @@ public class DeleteLaunchHandlerTest {
 		final String projectId = "project";
 		final String member = "member";
 		DeleteLaunchHandler deleteLaunchHandler = new DeleteLaunchHandler(Mockito.mock(ApplicationEventPublisher.class),
-				launchRepositoryMock(launchId, projectId), projectRepositoryMock(projectId, member), userRepositoryMock(member));
+				launchRepositoryMock(launchId, projectId), projectRepositoryMock(projectId, member), userRepositoryMock(member)
+		);
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage(Suppliers.clearPlaceholders(ACCESS_DENIED.getDescription()));
 		deleteLaunchHandler.deleteLaunch(launchId, projectId, member);
@@ -75,8 +76,8 @@ public class DeleteLaunchHandlerTest {
 		ProjectRepository projectRepository = mock(ProjectRepository.class);
 		Project project = new Project();
 		project.setName(projectId);
-		project.setUsers(ImmutableList.<Project.UserConfig>builder().add(Project.UserConfig.newOne().withLogin(member)
-				.withProjectRole(ProjectRole.MEMBER)).build());
+		project.setUsers(ImmutableList.<Project.UserConfig>builder().add(
+				Project.UserConfig.newOne().withLogin(member).withProjectRole(ProjectRole.MEMBER)).build());
 		when(projectRepository.findOne(projectId)).thenReturn(project);
 		return projectRepository;
 	}

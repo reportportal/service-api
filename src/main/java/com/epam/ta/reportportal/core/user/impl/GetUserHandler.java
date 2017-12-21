@@ -62,86 +62,86 @@ import static java.util.stream.Collectors.toMap;
 @Service
 public class GetUserHandler implements IGetUserHandler {
 
-    private UserRepository userRepository;
-    private UserResourceAssembler userResourceAssembler;
-    private UserCreationBidRepository userCreationBidRepository;
+	private UserRepository userRepository;
+	private UserResourceAssembler userResourceAssembler;
+	private UserCreationBidRepository userCreationBidRepository;
 
-    @Autowired
-    private ProjectRepository projectRepository;
+	@Autowired
+	private ProjectRepository projectRepository;
 
-    @Autowired
-    public GetUserHandler(UserRepository userRepo, UserCreationBidRepository userBidRepo, UserResourceAssembler userResourceAsm) {
-        this.userRepository = Preconditions.checkNotNull(userRepo);
-        this.userCreationBidRepository = Preconditions.checkNotNull(userBidRepo);
-        this.userResourceAssembler = Preconditions.checkNotNull(userResourceAsm);
-    }
+	@Autowired
+	public GetUserHandler(UserRepository userRepo, UserCreationBidRepository userBidRepo, UserResourceAssembler userResourceAsm) {
+		this.userRepository = Preconditions.checkNotNull(userRepo);
+		this.userCreationBidRepository = Preconditions.checkNotNull(userBidRepo);
+		this.userResourceAssembler = Preconditions.checkNotNull(userResourceAsm);
+	}
 
-    @Override
-    public UserResource getUser(String username, Principal principal) {
-        User user = userRepository.findOne(username.toLowerCase());
-        expect(user, notNull()).verify(USER_NOT_FOUND, username);
-        return userResourceAssembler.toResource(user);
-    }
+	@Override
+	public UserResource getUser(String username, Principal principal) {
+		User user = userRepository.findOne(username.toLowerCase());
+		expect(user, notNull()).verify(USER_NOT_FOUND, username);
+		return userResourceAssembler.toResource(user);
+	}
 
-    @Override
-    public Iterable<UserResource> getUsers(Filter filter, Pageable pageable, String projectName) {
-        // Active users only
-        filter.addCondition(new FilterCondition(Condition.EQUALS, false, "false", User.EXPIRED));
-        Project project = projectRepository.findOne(projectName);
-        String criteria = project.getUsers().stream().map(Project.UserConfig::getLogin).collect(joining(","));
-        filter.addCondition(new FilterCondition(Condition.IN, true, criteria, User.LOGIN));
-        expect(project, notNull()).verify(PROJECT_NOT_FOUND, project);
-        return userResourceAssembler.toPagedResources(userRepository.findByFilterExcluding(filter, pageable, "email"));
-    }
+	@Override
+	public Iterable<UserResource> getUsers(Filter filter, Pageable pageable, String projectName) {
+		// Active users only
+		filter.addCondition(new FilterCondition(Condition.EQUALS, false, "false", User.EXPIRED));
+		Project project = projectRepository.findOne(projectName);
+		String criteria = project.getUsers().stream().map(Project.UserConfig::getLogin).collect(joining(","));
+		filter.addCondition(new FilterCondition(Condition.IN, true, criteria, User.LOGIN));
+		expect(project, notNull()).verify(PROJECT_NOT_FOUND, project);
+		return userResourceAssembler.toPagedResources(userRepository.findByFilterExcluding(filter, pageable, "email"));
+	}
 
-    @Override
-    public UserBidRS getBidInformation(String uuid) {
-        UserCreationBid bid = userCreationBidRepository.findOne(uuid);
-        UserBidRS response = new UserBidRS();
-        if (null != bid) {
-            response.setIsActive(true);
-            response.setEmail(bid.getEmail());
-            response.setId(bid.getId());
-        } else {
-            response.setIsActive(false);
-        }
-        return response;
-    }
+	@Override
+	public UserBidRS getBidInformation(String uuid) {
+		UserCreationBid bid = userCreationBidRepository.findOne(uuid);
+		UserBidRS response = new UserBidRS();
+		if (null != bid) {
+			response.setIsActive(true);
+			response.setEmail(bid.getEmail());
+			response.setId(bid.getId());
+		} else {
+			response.setIsActive(false);
+		}
+		return response;
+	}
 
-    @Override
-    public YesNoRS validateInfo(String username, String email) {
-        if (null != username) {
-            User user = userRepository.findOne(EntityUtils.normalizeId(username));
-            return null != user ? new YesNoRS(true) : new YesNoRS(false);
-        } else if (null != email) {
-            User user = userRepository.findByEmail(EntityUtils.normalizeId(email));
-            return null != user ? new YesNoRS(true) : new YesNoRS(false);
-        }
-        return new YesNoRS(false);
-    }
+	@Override
+	public YesNoRS validateInfo(String username, String email) {
+		if (null != username) {
+			User user = userRepository.findOne(EntityUtils.normalizeId(username));
+			return null != user ? new YesNoRS(true) : new YesNoRS(false);
+		} else if (null != email) {
+			User user = userRepository.findByEmail(EntityUtils.normalizeId(email));
+			return null != user ? new YesNoRS(true) : new YesNoRS(false);
+		}
+		return new YesNoRS(false);
+	}
 
-    @Override
-    public Map<String, UserResource.AssignedProject> getUserProjects(String userName) {
-        return projectRepository.findUserProjects(userName).stream().collect(toMap(Project::getName, it -> {
-            UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-            assignedProject.setEntryType(it.getConfiguration().getEntryType().name());
-            Project.UserConfig userConfig = ProjectUtils.findUserConfigByLogin(it, userName);
+	@Override
+	public Map<String, UserResource.AssignedProject> getUserProjects(String userName) {
+		return projectRepository.findUserProjects(userName).stream().collect(toMap(Project::getName, it -> {
+			UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
+			assignedProject.setEntryType(it.getConfiguration().getEntryType().name());
+			Project.UserConfig userConfig = ProjectUtils.findUserConfigByLogin(it, userName);
 
-            ofNullable(userConfig.getProjectRole()).ifPresent(role -> assignedProject.setProjectRole(role.name()));
-            ofNullable(userConfig.getProposedRole()).ifPresent(role -> assignedProject.setProposedRole(role.name()));
+			ofNullable(userConfig.getProjectRole()).ifPresent(role -> assignedProject.setProjectRole(role.name()));
+			ofNullable(userConfig.getProposedRole()).ifPresent(role -> assignedProject.setProposedRole(role.name()));
 
-            return assignedProject;
-        }));
-    }
+			return assignedProject;
+		}));
+	}
 
-    @Override
-    public Iterable<UserResource> getAllUsers(Filter filter, Pageable pageable) {
-        final Page<User> users = userRepository.findByFilter(filter, pageable);
-        return userResourceAssembler.toPagedResources(users);
-    }
+	@Override
+	public Iterable<UserResource> getAllUsers(Filter filter, Pageable pageable) {
+		final Page<User> users = userRepository.findByFilter(filter, pageable);
+		return userResourceAssembler.toPagedResources(users);
+	}
 
-    @Override
-    public Iterable<UserResource> searchUsers(String term, Pageable pageable) {
-        return userResourceAssembler.toPagedResources(userRepository.searchForUser(term, pageable));
-    }
+	@Override
+	public Iterable<UserResource> searchUsers(String term, Pageable pageable) {
+		return userResourceAssembler.toPagedResources(userRepository.searchForUser(term, pageable));
+	}
 }

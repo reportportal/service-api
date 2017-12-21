@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.configs;
 
@@ -27,11 +27,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * 
  * Encrypt beans configuration for password values
- * 
- * @author Andrei_Ramanchuk
  *
+ * @author Andrei_Ramanchuk
  */
 @Configuration
 public class EncryptConfiguration {

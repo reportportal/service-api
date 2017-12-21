@@ -35,18 +35,18 @@ import static org.mockito.Mockito.*;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class UatClientTest {
 
-    @Mock
-    private RestTemplate restTemplate;
+	@Mock
+	private RestTemplate restTemplate;
 
-    @Test
-    public void revokeUserTokens() {
-        String user = "test_user";
-        String uatServiceUrl = "http://some/dummy/url.com";
+	@Test
+	public void revokeUserTokens() {
+		String user = "test_user";
+		String uatServiceUrl = "http://some/dummy/url.com";
 
-        UatClient uatClient = new UatClient(uatServiceUrl, restTemplate);
-        uatClient.revokeUserTokens(user);
+		UatClient uatClient = new UatClient(uatServiceUrl, restTemplate);
+		uatClient.revokeUserTokens(user);
 
-        verify(restTemplate, times(1)).delete(anyString(), eq(user));
-    }
+		verify(restTemplate, times(1)).delete(anyString(), eq(user));
+	}
 
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataset>
-	<Project idProject = "0" projectName = "project0" customer = "customer0" addInfo = "some additional info" />
-	<Project idProject = "1" projectName = "updated_project" customer = "updated_customer" addInfo = "updated additional information"/>
+    <Project idProject="0" projectName="project0" customer="customer0" addInfo="some additional info"/>
+    <Project idProject="1" projectName="updated_project" customer="updated_customer" addInfo="updated additional information"/>
 </dataset>

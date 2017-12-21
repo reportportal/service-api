@@ -25,17 +25,18 @@ import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.time.Duration.ofDays;
-
 import static com.epam.ta.reportportal.database.entity.project.KeepLogsDelay.findByName;
+import static java.time.Duration.ofDays;
 
 /**
  * Clean logs job in accordance with project settings
@@ -43,7 +44,7 @@ import static com.epam.ta.reportportal.database.entity.project.KeepLogsDelay.fin
  * @author Andrei_Ramanchuk
  */
 @Service
-public class CleanLogsJob implements Runnable {
+public class CleanLogsJob implements Job {
 
 	@Autowired
 	private LogRepository logRepo;
@@ -61,13 +62,15 @@ public class CleanLogsJob implements Runnable {
 	private ActivityRepository activityRepository;
 
 	@Override
-	@Scheduled(cron = "${com.ta.reportportal.job.clean.logs.cron}")
-	public void run() {
+//	@Scheduled(cron = "${com.ta.reportportal.job.clean.logs.cron}")
+	public void execute(JobExecutionContext context) {
 		try (Stream<Project> stream = projectRepository.streamAllIdsAndConfiguration()) {
 			stream.forEach(project -> {
 				Duration period = ofDays(findByName(project.getConfiguration().getKeepLogs()).getDays());
-				activityRepository.deleteModifiedLaterAgo(project.getId(), period);
-				removeOutdatedLogs(project.getId(), period);
+				if (!period.isZero()) {
+					activityRepository.deleteModifiedLaterAgo(project.getId(), period);
+					removeOutdatedLogs(project.getId(), period);
+				}
 			});
 		}
 	}
@@ -76,8 +79,7 @@ public class CleanLogsJob implements Runnable {
 		try (Stream<Launch> launchStream = launchRepo.streamIdsByProject(projectId)) {
 			launchStream.forEach(launch -> {
 				try (Stream<TestItem> testItemStream = testItemRepo.streamIdsByLaunch(launch.getId())) {
-					logRepo.deleteByPeriodAndItemsRef(period, testItemStream.map(TestItem::getId)
-							.collect(Collectors.toList()));
+					logRepo.deleteByPeriodAndItemsRef(period, testItemStream.map(TestItem::getId).collect(Collectors.toList()));
 				}
 			});
 		}

@@ -33,8 +33,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProjectInfoResourceAssembler extends PagedResourcesAssembler<Project, ProjectInfoResource> {
 
-    @Override
-    public ProjectInfoResource toResource(Project entity) {
-        return ProjectInfoConverter.TO_RESOURCE.apply(entity);
-    }
+	@Override
+	public ProjectInfoResource toResource(Project entity) {
+		return ProjectInfoConverter.TO_RESOURCE.apply(entity);
+	}
 }

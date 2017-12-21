@@ -28,16 +28,17 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.filter.ObjectType;
-import com.epam.ta.reportportal.database.entity.filter.SelectionOptions;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.events.FilterUpdatedEvent;
+import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
+import com.epam.ta.reportportal.ws.model.filter.Order;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterEntity;
 import com.google.common.collect.Lists;
@@ -59,9 +60,8 @@ import static java.util.stream.Collectors.toSet;
 
 /**
  * Default implementation of {@link IUpdateUserFilterHandler}
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 @Service
 public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
@@ -78,19 +78,20 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 	@Autowired
 	private SharingService sharingService;
 
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+	@Autowired
+	private ApplicationEventPublisher eventPublisher;
 
 	@Override
-	public OperationCompletionRS updateUserFilter(String userFilterId, UpdateUserFilterRQ updateRQ, String userName,
-												  String projectName, UserRole userRole) {
+	public OperationCompletionRS updateUserFilter(String userFilterId, UpdateUserFilterRQ updateRQ, String userName, String projectName,
+			UserRole userRole) {
 
 		UserFilter existingFilter = userFilterRepository.findOne(userFilterId);
-        expect(existingFilter, notNull()).verify(USER_FILTER_NOT_FOUND, userFilterId, userName);
-		AclUtils.isAllowedToEdit(existingFilter.getAcl(), userName, projectRepository.findProjectRoles(userName),
-				existingFilter.getName(), userRole);
+		expect(existingFilter, notNull()).verify(USER_FILTER_NOT_FOUND, userFilterId, userName);
+		AclUtils.isAllowedToEdit(existingFilter.getAcl(), userName, projectRepository.findProjectRoles(userName), existingFilter.getName(),
+				userRole
+		);
 		expect(existingFilter.getProjectName(), equalTo(projectName)).verify(ACCESS_DENIED);
-        UserFilter before = SerializationUtils.clone(existingFilter);
+		UserFilter before = SerializationUtils.clone(existingFilter);
 
 		// added synchronization because if user1 in one session checked that
 		// filter name is unique
@@ -119,7 +120,8 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 
 		expect(idsToLoad.size(), equalTo(userFilters.length)).verify(USER_FILTER_NOT_FOUND);
 		final List<UserFilter> filterFromOtherProjects = Stream.of(userFilters)
-				.filter(userFilter -> !userFilter.getProjectName().equalsIgnoreCase(projectName)).collect(toList());
+				.filter(userFilter -> !userFilter.getProjectName().equalsIgnoreCase(projectName))
+				.collect(toList());
 		expect(filterFromOtherProjects.size(), equalTo(0)).verify(ACCESS_DENIED);
 
 		final Map<String, ProjectRole> projectRoles = projectRepository.findProjectRoles(userName);
@@ -128,8 +130,7 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 		synchronized (this) {
 			List<UserFilter> updatedFilters = new ArrayList<>(idsToLoad.size());
 			for (int i = 0; i < updateFilterRQs.getElements().size(); i++) {
-				AclUtils.isAllowedToEdit(userFilters[i].getAcl(), userName,
-						projectRoles, userFilters[i].getName(), userRole);
+				AclUtils.isAllowedToEdit(userFilters[i].getAcl(), userName, projectRoles, userFilters[i].getName(), userRole);
 				String name = updateFilterRQs.getElements().get(i).getName();
 				if (null != name && !name.equals(userFilters[i].getName())) {
 					userFilterService.isFilterNameUnique(userName, updateFilterRQs.getElements().get(i).getName(), projectName);
@@ -153,13 +154,12 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 		toUpdate.setDescription(updateRQ.getDescription());
 		toUpdate.setIsLink(updateRQ.getIsLink());
 		if (null != updateRQ.getSelectionParameters()) {
-			userFilterService.validateSortingColumnName(toUpdate.getFilter().getTarget(),
-					updateRQ.getSelectionParameters().getSortingColumnName());
-			SelectionOptions selectionOptions = new SelectionOptions();
-			selectionOptions.setSortingColumnName(updateRQ.getSelectionParameters().getSortingColumnName());
-			selectionOptions.setIsAsc(updateRQ.getSelectionParameters().getIsAsc());
-			selectionOptions.setPageNumber(updateRQ.getSelectionParameters().getPageNumber());
-			toUpdate.setSelectionOptions(selectionOptions);
+			updateRQ.getSelectionParameters()
+					.getOrders()
+					.stream()
+					.map(Order::getSortingColumnName)
+					.forEach(columnName -> userFilterService.validateSortingColumnName(toUpdate.getFilter().getTarget(), columnName));
+			toUpdate.setSelectionOptions(UserFilterConverter.TO_SELECTION_OPTIONS.apply(updateRQ.getSelectionParameters()));
 		}
 		if (null != updateRQ.getShare()) {
 			sharingService.modifySharing(Lists.newArrayList(toUpdate), userName, projectName, updateRQ.getShare());
@@ -172,7 +172,8 @@ public class UpdateUserFilterHandler implements IUpdateUserFilterHandler {
 		for (UserFilterEntity filterEntity : entities) {
 			Condition conditionObject = Condition.findByMarker(filterEntity.getCondition()).orElse(null);
 			FilterCondition filterCondition = new FilterCondition(conditionObject, Condition.isNegative(filterEntity.getCondition()),
-					filterEntity.getValue().trim(), filterEntity.getFilteringField().trim());
+					filterEntity.getValue().trim(), filterEntity.getFilteringField().trim()
+			);
 			filterConditions.add(filterCondition);
 		}
 		return new Filter(ObjectType.getTypeByName(objectType), filterConditions);

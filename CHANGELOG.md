@@ -166,9 +166,40 @@
 * reportportal/reportporatl#236 - Drop Redis
 * EPMRPP-29378 - Comulative ternd chart
 * Import - support <error> tag as failed test
+* EPMRPP-31184 - WS: Serch for "Add shared widget" window
 
 ### Bugfixes
 
 * EPMRPP-29635 - Cumulative trend chart: Sorting bug
-* EPMRPP-29701 - Tag prefix should be fully matched with the searched value
+* EPMRPP-29701: Tag prefix should be fully matched with the searched value
+
+## 4.0
+##### Released: XXX XX, 2017
+
+### New Features
+
+* EPMRPP-25494 - Add widget to represent flaky tests in launches
+* EPMRPP-29797 - Prepare API for new version of analyzer
+* EPMRPP-30991 - Add a tag to e-mail body
+* EPMRPP-31001 - Most failed test cases: refactored in case of new design
+* EPMRPP-31220 - WS: removing Match issue
+* EPMRPP-31189 - Update script for widgets.
+
+### Bugfixes
+
+* EPMRPP-30984 - No data about previous new and old values of update of project
+* EPMRPP-31020 - Launches reported to DEFAULT mode are present in DEBUG as well
 * reportportal/reportportal#245 - Default TestNG xml report isn't compatible with RP report
+* EPMRPP-29701 - Tag prefix should be fully matched with the searched value
+* EPMRPP-31156 - Different launches comparison chart should include only last 2 launches despite sorting of the filter
+* EPMRPP-31039 - WS: Results of items on history table do not have sorting in Asc order
+* EPMRPP-31188 - [DASHBOARD] Owner can't see owned widgets in "SELECT SHARED WIDGET" list #213
+* EPMRPP-31308 - [WS]: Add a constrain for a notification [GITHUB] Notifications rule for rp.mode #249
+* EPMRPP-31233 - [IMPORT] Status is always PASSED if parent item has children with different statuses
+* EPMRPP-29375 - WS: Search for user with dot symbol in login name returns the error
+* EPMRPP-31211 - In case the tag contains (") symbols, the filter does not have got any value
+* EPMRPP-31208 - Email template: Tags with special symbols do not work correctly
+* EPMRPP-25622 - Posted bug is not added to item activity in case it was submitted via bulk operation
+* EPMRPP-31435 - 'Ignore in AA' should not to be set for test item in launch on DEBUG level
+* EPMRPP-31447 - WS: "ActionType"=analyze_item for action that was done by user
+* Fix issue with incorrect importing of some junit files

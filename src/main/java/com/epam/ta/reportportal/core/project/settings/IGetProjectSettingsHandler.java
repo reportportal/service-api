@@ -17,22 +17,20 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.project.settings;
 
 import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
 
 /**
- * 
  * @author Andrei_Ramanchuk
- *
  */
 public interface IGetProjectSettingsHandler {
 
 	/**
 	 * Provide additional settings for specified project
-	 * 
+	 *
 	 * @param projectName
 	 * @return ProjectSettingsResource
 	 */

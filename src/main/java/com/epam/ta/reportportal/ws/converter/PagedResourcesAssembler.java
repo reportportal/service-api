@@ -23,7 +23,6 @@ package com.epam.ta.reportportal.ws.converter;
 
 import com.google.common.base.Preconditions;
 import org.springframework.data.domain.Page;
-import org.springframework.util.Assert;
 
 import java.util.function.Function;
 
@@ -41,7 +40,9 @@ public abstract class PagedResourcesAssembler<T, R> extends ResourceAssembler<T,
 	public static <T> Function<Page<T>, com.epam.ta.reportportal.ws.model.Page<T>> pageConverter() {
 		return page -> new com.epam.ta.reportportal.ws.model.Page<>(page.getContent(),
 				new com.epam.ta.reportportal.ws.model.Page.PageMetadata(page.getSize(), page.getNumber() + 1, page.getTotalElements(),
-						page.getTotalPages()));
+						page.getTotalPages()
+				)
+		);
 	}
 
 	public static <T, R> Function<Page<T>, com.epam.ta.reportportal.ws.model.Page<R>> pageConverter(Function<T, R> modelConverter) {
@@ -61,7 +62,9 @@ public abstract class PagedResourcesAssembler<T, R> extends ResourceAssembler<T,
 
 		return new com.epam.ta.reportportal.ws.model.Page<>(toResources(content),
 				new com.epam.ta.reportportal.ws.model.Page.PageMetadata(content.getSize(), content.getNumber() + 1,
-						content.getTotalElements(), content.getTotalPages()));
+						content.getTotalElements(), content.getTotalPages()
+				)
+		);
 	}
 
 }

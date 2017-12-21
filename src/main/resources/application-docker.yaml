@@ -16,12 +16,11 @@ security:
 rp:
   uat:
     serviceUrl: http://uat:8080
+  analyzer:
+    url: http://analyzer:8080
   mongo:
-    host: mongodb
-    port: 27017
+    uri: mongodb://mongodb:27017
     dbName: reportportal
-    user:
-    password:
 
 spring:
   redis:

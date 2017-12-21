@@ -21,6 +21,8 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.widget.content.*;
+import com.epam.ta.reportportal.core.widget.content.history.FlakyTestCasesStrategy;
+import com.epam.ta.reportportal.core.widget.content.history.MostFailedTestCasesFilterStrategy;
 import com.epam.ta.reportportal.database.entity.project.info.InfoInterval;
 import com.epam.ta.reportportal.database.entity.project.info.ProjectInfoGroup;
 import org.springframework.beans.BeansException;
@@ -90,6 +92,7 @@ public class WidgetConfig implements ApplicationContextAware {
 		mapping.put(GadgetTypes.MOST_FAILED_TEST_CASES, applicationContext.getBean(MostFailedTestCasesFilterStrategy.class));
 		mapping.put(GadgetTypes.PASSING_RATE_PER_LAUNCH, applicationContext.getBean(PassingRateFilterStrategy.class));
 		mapping.put(GadgetTypes.CUMULATIVE, applicationContext.getBean(GeneralFilterStrategy.class));
+		mapping.put(GadgetTypes.FLAKY_TEST_CASES, applicationContext.getBean(FlakyTestCasesStrategy.class));
 		return mapping;
 	}
 

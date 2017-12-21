@@ -20,19 +20,6 @@
  */
 package com.epam.ta.reportportal.ws.controller.impl;
 
-import static java.util.stream.Collectors.toList;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.List;
-
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-
 import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
@@ -41,7 +28,19 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MvcResult;
+
+import java.util.List;
+
+import static java.util.stream.Collectors.toList;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class ProjectSettingsControllerTest extends BaseMvcTest {
 
@@ -58,7 +57,8 @@ public class ProjectSettingsControllerTest extends BaseMvcTest {
 		rq.setColor("color");
 		rq.setLongName("LongName");
 		rq.setShortName("name");
-		MvcResult mvcResult = mvcMock.perform(post("/project1/settings/sub-type").contentType(APPLICATION_JSON).principal(authentication())
+		MvcResult mvcResult = mvcMock.perform(post("/project1/settings/sub-type").contentType(APPLICATION_JSON)
+				.principal(authentication())
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated()).andReturn();
 		EntryCreatedRS entryCreatedRS = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), EntryCreatedRS.class);
 		checkCustomDefectAdded(widgetRepository.findOne("613e1f3818127ca356339f47"), entryCreatedRS.getId());
@@ -93,8 +93,11 @@ public class ProjectSettingsControllerTest extends BaseMvcTest {
 
 	private static void checkCustomDefectAdded(Widget widget, String subTypeId) {
 		Assert.assertNotNull(widget);
-		List<String> productBugs = widget.getContentOptions().getContentFields().stream()
-				.filter(it -> it.contains("statistics$defects$product_bug$" + subTypeId)).collect(toList());
+		List<String> productBugs = widget.getContentOptions()
+				.getContentFields()
+				.stream()
+				.filter(it -> it.contains("statistics$defects$product_bug$" + subTypeId))
+				.collect(toList());
 		Assert.assertEquals(1, productBugs.size());
 	}
 

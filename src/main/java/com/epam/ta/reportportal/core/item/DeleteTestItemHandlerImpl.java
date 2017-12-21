@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.item;
 
+import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
@@ -37,6 +38,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -55,10 +57,9 @@ import static java.util.stream.Collectors.toList;
 
 /**
  * Default implementation of {@link DeleteTestItemHandler}
- * 
+ *
  * @author Andrei Varabyeu
  * @author Andrei_Ramanchuk
- * 
  */
 @Service
 class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
@@ -73,9 +74,11 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	private ProjectRepository projectRepository;
 	@Autowired
 	private UserRepository userRepository;
+	@Autowired
+	private ILogIndexer logIndexer;
 
 	@Override
-	public OperationCompletionRS deleteTestItem(String itemId, String projectName, String username) {
+	public OperationCompletionRS deleteTestItem(String itemId, String projectName, String username, boolean isBatch) {
 		Project project = projectRepository.findOne(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, project);
 
@@ -87,8 +90,8 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		validateRoles(item, user, project);
 		try {
 
-			StatisticsFacade statisticsFacade = statisticsFacadeFactory
-					.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy());
+			StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(
+					project.getConfiguration().getStatisticsCalculationStrategy());
 			statisticsFacade.deleteExecutionStatistics(item);
 
 			if (!item.getStatistics().getIssueCounter().isEmpty()) {
@@ -96,6 +99,9 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 			}
 
 			testItemRepository.delete(itemId);
+			if (!isBatch) {
+				logIndexer.cleanIndex(projectName, singletonList(itemId));
+			}
 
 			if (null != item.getParent()) {
 				TestItem parent = testItemRepository.findOne(item.getParent());
@@ -124,19 +130,24 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 	@Override
 	public List<OperationCompletionRS> deleteTestItem(String[] ids, String project, String user) {
-		return Stream.of(ids).map(it -> deleteTestItem(it, project, user)).collect(toList());
+		logIndexer.cleanIndex(project, Arrays.asList(ids));
+		return Stream.of(ids).map(it -> deleteTestItem(it, project, user, true)).collect(toList());
 	}
 
 	private void validate(String testItemId, TestItem testItem, String projectName) {
 		expect(testItem, notNull()).verify(TEST_ITEM_NOT_FOUND, testItemId);
 		expect(testItem, not(IN_PROGRESS)).verify(TEST_ITEM_IS_NOT_FINISHED,
-				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getId()));
+				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getId())
+		);
 		Launch parentLaunch = launchRepository.findOne(testItem.getLaunchRef());
 		expect(parentLaunch, not(IN_PROGRESS)).verify(LAUNCH_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state", testItem.getId(),
-						testItem.getLaunchRef()));
+						testItem.getLaunchRef()
+				)
+		);
 		expect(projectName, equalTo(parentLaunch.getProjectRef())).verify(FORBIDDEN_OPERATION,
-				formattedSupplier("Deleting testItem '{}' is not under specified project '{}'", testItem.getId(), projectName));
+				formattedSupplier("Deleting testItem '{}' is not under specified project '{}'", testItem.getId(), projectName)
+		);
 	}
 
 	private void validateRoles(TestItem testItem, User user, Project project) {

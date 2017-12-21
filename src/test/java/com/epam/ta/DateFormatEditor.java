@@ -17,20 +17,19 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta;
 
-import java.text.SimpleDateFormat;
-
 import org.springframework.beans.propertyeditors.CustomDateEditor;
+
+import java.text.SimpleDateFormat;
 
 /**
  * Added to avoid issues with ref local beans in spring configuration. Since 4
  * version we cannot use the following construction <ref local="bean id">
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class DateFormatEditor extends CustomDateEditor {
 

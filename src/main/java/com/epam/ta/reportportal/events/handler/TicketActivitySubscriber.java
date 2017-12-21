@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.database.entity.item.ActivityEventType;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
@@ -54,6 +55,7 @@ public class TicketActivitySubscriber {
 
 	public static final String TICKET_ID = "ticketId";
 	public static final String ISSUE_TYPE = "issueType";
+	public static final String IGNORE_ANALYZER = "ignoreAnalyzer";
 	public static final String COMMENT = "comment";
 
 	private final ActivityRepository activityRepository;
@@ -64,7 +66,7 @@ public class TicketActivitySubscriber {
 
 	@Autowired
 	public TicketActivitySubscriber(ActivityRepository activityRepository, TestItemRepository testItemRepository,
-             ProjectRepository projectSettingsRepository) {
+			ProjectRepository projectSettingsRepository) {
 		this.activityRepository = activityRepository;
 		this.testItemRepository = testItemRepository;
 		this.projectSettingsRepository = projectSettingsRepository;
@@ -86,17 +88,16 @@ public class TicketActivitySubscriber {
 			newValue = oldValue + separator + event.getTicket().getId() + ":" + event.getTicket().getTicketUrl();
 		}
 		List<Activity.FieldValues> history = Lists.newArrayList();
-		Activity.FieldValues fieldValues = Activity.FieldValues.newOne()
-                .withField(TICKET_ID).withOldValue(oldValue).withNewValue(newValue);
+		Activity.FieldValues fieldValues = Activity.FieldValues.newOne().withField(TICKET_ID).withOldValue(oldValue).withNewValue(newValue);
 		history.add(fieldValues);
-		Activity activity = new ActivityBuilder()
-                .addProjectRef(event.getProject())
-                .addActionType(POST_ISSUE)
+		Activity activity = new ActivityBuilder().addProjectRef(event.getProject())
+				.addActionType(POST_ISSUE)
 				.addLoggedObjectRef(event.getTestItemId())
-                .addObjectType(TEST_ITEM)
+				.addObjectType(TEST_ITEM)
 				.addObjectName(event.getItemName())
-                .addUserRef(event.getPostedBy())
-				.addHistory(history).get();
+				.addUserRef(event.getPostedBy())
+				.addHistory(history)
+				.get();
 		activityRepository.save(activity);
 	}
 
@@ -106,27 +107,32 @@ public class TicketActivitySubscriber {
 		String separator = ",";
 		Iterable<TestItem> testItems = event.getBefore();
 		Map<String, Activity.FieldValues> results = StreamSupport.stream(testItems.spliterator(), false)
-				.filter(item -> null != item.getIssue()).collect(Collectors.toMap(TestItem::getId, item -> Activity.FieldValues.newOne()
+				.filter(item -> null != item.getIssue())
+				.collect(Collectors.toMap(TestItem::getId, item -> Activity.FieldValues.newOne()
 						.withOldValue(issuesIdsToString(item.getIssue().getExternalSystemIssues(), separator))));
 
 		Iterable<TestItem> updated = event.getAfter();
 
 		for (TestItem testItem : updated) {
-			if (null == testItem.getIssue())
+			if (null == testItem.getIssue()) {
 				continue;
+			}
 			Activity.FieldValues fieldValues = results.get(testItem.getId());
-			fieldValues.withField(TICKET_ID)
-                    .withNewValue(issuesIdsToString(testItem.getIssue().getExternalSystemIssues(), separator));
-			Activity activity = new ActivityBuilder()
-                    .addProjectRef(event.getProject())
-                    .addActionType(ATTACH_ISSUE)
-					.addLoggedObjectRef(testItem.getId())
-                    .addObjectType(TEST_ITEM)
-					.addObjectName(testItem.getName())
-                    .addUserRef(event.getPostedBy())
-					.addHistory(Collections.singletonList(fieldValues))
-                    .get();
-			activities.add(activity);
+
+			String newValue = issuesIdsToString(testItem.getIssue().getExternalSystemIssues(), separator);
+			if (newValue != null) {
+				fieldValues.withField(TICKET_ID).withNewValue(newValue);
+				ActivityEventType type = testItem.getIssue().isAutoAnalyzed() ? ATTACH_ISSUE_AA : ATTACH_ISSUE;
+				Activity activity = new ActivityBuilder().addProjectRef(event.getProject())
+						.addActionType(type)
+						.addLoggedObjectRef(testItem.getId())
+						.addObjectType(TEST_ITEM)
+						.addObjectName(testItem.getName())
+						.addUserRef(event.getPostedBy())
+						.addHistory(Collections.singletonList(fieldValues))
+						.get();
+				activities.add(activity);
+			}
 		}
 		activityRepository.save(activities);
 	}
@@ -159,6 +165,7 @@ public class TicketActivitySubscriber {
 			TestItem testItem = entry.getValue();
 			TestItemIssue testItemIssue = testItem.getIssue();
 			String oldIssueDescription = testItemIssue.getIssueDescription();
+			boolean oldIgnoreAnalyzer = testItemIssue.isIgnoreAnalyzer();
 			StatisticSubType statisticSubType = projectSettings.getConfiguration().getByLocator(issueDefinition.getIssue().getIssueType());
 			String oldIssueType = projectSettings.getConfiguration().getByLocator(testItemIssue.getIssueType()).getLongName();
 			String initialComment = issueDefinition.getIssue().getComment();
@@ -166,14 +173,15 @@ public class TicketActivitySubscriber {
 			if (null == oldIssueDescription) {
 				oldIssueDescription = emptyString;
 			}
-			Activity activity = new ActivityBuilder()
-                    .addProjectRef(projectName)
-                    .addLoggedObjectRef(issueDefinition.getId())
+
+			ActivityEventType type = issueDefinition.getIssue().getAutoAnalyzed() ? ANALYZE_ITEM : UPDATE_ITEM;
+			Activity activity = new ActivityBuilder().addProjectRef(projectName)
+					.addLoggedObjectRef(issueDefinition.getId())
 					.addObjectType(TEST_ITEM)
 					.addObjectName(testItem.getName())
-                    .addActionType(UPDATE_ITEM)
-                    .addUserRef(principal)
-                    .get();
+					.addActionType(type)
+					.addUserRef(principal)
+					.get();
 			List<Activity.FieldValues> history = Lists.newArrayList();
 			if (!oldIssueDescription.equals(comment)) {
 				Activity.FieldValues fieldValues = createHistoryField(COMMENT, oldIssueDescription, comment);
@@ -182,6 +190,12 @@ public class TicketActivitySubscriber {
 			if (statisticSubType != null && ((null == oldIssueType) || !oldIssueType.equalsIgnoreCase(statisticSubType.getLongName()))) {
 				Activity.FieldValues fieldValues = createHistoryField(ISSUE_TYPE, oldIssueType, statisticSubType.getLongName());
 				history.add(fieldValues);
+			}
+			if (oldIgnoreAnalyzer != issueDefinition.getIssue().getIgnoreAnalyzer()) {
+				Activity.FieldValues field = createHistoryField(IGNORE_ANALYZER, String.valueOf(oldIgnoreAnalyzer),
+						String.valueOf(issueDefinition.getIssue().getIgnoreAnalyzer())
+				);
+				history.add(field);
 			}
 			if (!history.isEmpty()) {
 				activity.setHistory(history);

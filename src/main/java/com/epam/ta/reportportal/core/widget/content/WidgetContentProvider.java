@@ -40,6 +40,7 @@ import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_LOAD_WIDGET_CONTENT;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Widget content strategy context.<br>
@@ -63,6 +64,7 @@ public class WidgetContentProvider {
 	private Map<GadgetTypes, IContentLoadingStrategy> contentLoader;
 
 	public static final Function<String, String> TO_UI_STYLE = db -> db.replace('.', '$');
+	public static final Function<String, String> TO_DB_STYLE = model -> model.replace('$', '.');
 
 	/**
 	 * Load content according input parameters
@@ -81,18 +83,13 @@ public class WidgetContentProvider {
 		List<String> contentFields = transformToDBStyle(criteriaMap, options.getContentFields());
 		List<String> metaDataFields = transformToDBStyle(criteriaMap, options.getMetadataFields());
 
-		boolean isAscSort = selectionOptions.isAsc();
-
-		/*
-		 * Dirty handler of not full output during ASC start_time sorting. In
-		 * 'a- lot-of-results' case users got last results truncated by page
-		 * limitation.
-		 */
-		Sort sort;
-		String sortingColumnName = selectionOptions.getSortingColumnName();
-		sort = new Sort(isAscSort ? Sort.Direction.ASC : Sort.Direction.DESC,
-				criteriaMap.getCriteriaHolder(sortingColumnName).getQueryCriteria()
-		);
+		List<Sort.Order> orders = selectionOptions.getOrders()
+				.stream()
+				.map(order -> new Sort.Order(order.isAsc() ? Sort.Direction.ASC : Sort.Direction.DESC,
+						criteriaMap.getCriteriaHolder(order.getSortingColumnName()).getQueryCriteria()
+				))
+				.collect(toList());
+		Sort sort = new Sort(orders);
 
 		Map<String, List<ChartObject>> result;
 		IContentLoadingStrategy loadingStrategy = contentLoader.get(GadgetTypes.findByName(options.getGadgetType()).get());
@@ -103,35 +100,7 @@ public class WidgetContentProvider {
 		int itemsCount = options.getItemsCount();
 		result = loadingStrategy.loadContent(projectName, filter, sort, itemsCount, contentFields, metaDataFields, widgetOptions);
 		if (null != options.getContentFields()) {
-			result = transformToFilterStyle(criteriaMap, result, options.getContentFields());
-			result = transformNamesForUI(result);
-		}
-		return result;
-	}
-
-	/**
-	 * Transform chart data fields names to ui known names using criteria
-	 * holder.
-	 */
-	private Map<String, List<ChartObject>> transformToFilterStyle(CriteriaMap<?> criteriaMap, Map<String, List<ChartObject>> input,
-			List<String> chartFields) {
-		Map<String, List<ChartObject>> result = new LinkedHashMap<>();
-
-		for (Map.Entry<String, List<ChartObject>> entry : input.entrySet()) {
-			boolean isConverted = false;
-			List<ChartObject> data = entry.getValue();
-			for (String field : chartFields) {
-
-				String queryCriteria = criteriaMap.getCriteriaHolder(field).getQueryCriteria();
-				if (queryCriteria.equals(entry.getKey())) {
-					result.put(criteriaMap.getCriteriaHolder(queryCriteria).getFilterCriteria(), data);
-					isConverted = true;
-					break;
-				}
-			}
-			if (!isConverted) {
-				result.put(entry.getKey(), data);
-			}
+			result = transformNamesForUI(criteriaMap, options.getContentFields(), result);
 		}
 		return result;
 	}
@@ -142,18 +111,28 @@ public class WidgetContentProvider {
 	 * @param input
 	 * @return
 	 */
-	private Map<String, List<ChartObject>> transformNamesForUI(Map<String, List<ChartObject>> input) {
-		// TODO RECREATE with Java 8 streaming!
-		for (Map.Entry<String, List<ChartObject>> entry : input.entrySet()) {
-			for (ChartObject exist : entry.getValue()) {
-				Map<String, String> values = new HashMap<>();
-				for (String key : exist.getValues().keySet()) {
-					String keyValue = exist.getValues().get(key);
-					values.put(key.replaceAll("\\.", "\\$"), keyValue);
+	private Map<String, List<ChartObject>> transformNamesForUI(CriteriaMap<?> criteriaMap, List<String> chartFields,
+			Map<String, List<ChartObject>> input) {
+
+		Map<String, String> reversedCriteriaMap = chartFields.stream()
+				.collect(toMap(field -> criteriaMap.getCriteriaHolder(field).getQueryCriteria(), field -> field));
+
+		input.entrySet().stream().flatMap(it -> it.getValue().stream()).forEach(chartObject -> {
+			Map<String, String> values = new LinkedHashMap<>();
+			chartObject.getValues().keySet().forEach(key -> {
+				String value = chartObject.getValues().get(key);
+
+				// keys could not be in db style, so should be reverted
+				String queryCriteria = reversedCriteriaMap.get(TO_DB_STYLE.apply(key));
+				if (queryCriteria != null) {
+					values.put(queryCriteria, value);
+				} else {
+					values.put(key, value);
 				}
-				exist.setValues(values);
-			}
-		}
+			});
+			chartObject.setValues(values);
+		});
+
 		return input;
 	}
 
@@ -165,10 +144,7 @@ public class WidgetContentProvider {
 		if (chartFields == null) {
 			return new ArrayList<>();
 		}
-		return chartFields.stream().map(it -> {
-			return criteriaMap.getCriteriaHolder(it).getQueryCriteria();
-			//+ ((filterCriteria.getExtension() != null) ? "." + filterCriteria.getExtension() : "");
-		}).collect(toList());
+		return chartFields.stream().map(it -> criteriaMap.getCriteriaHolder(it).getQueryCriteria()).collect(toList());
 	}
 
 }

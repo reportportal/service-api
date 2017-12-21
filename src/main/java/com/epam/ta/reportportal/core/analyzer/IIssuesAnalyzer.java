@@ -18,31 +18,35 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.epam.ta.reportportal.util;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
+package com.epam.ta.reportportal.core.analyzer;
+
+import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
+
+import java.util.List;
 
 /**
- * Custom collectors for collections streaming.
+ * Service for issue type analysis based on historical data.
  *
+ * @author Ivan Sharamet
  * @author Pavel Bortnik
  */
-public final class MoreCollectors {
+public interface IIssuesAnalyzer {
 
-    private MoreCollectors() {
-        //static only
-    }
+	/**
+	 * Analyze history to find similar issues and updates items if some were found
+	 * Indexes investigated issues as well.
+	 *
+	 * @param launch    Initial launch for history
+	 * @param testItems - current test items with failed status and issue
+	 */
+	void analyze(Launch launch, List<TestItem> testItems);
 
-    public static <T, K, U> Collector<T, ?, Map<K, U>> toLinkedMap(Function<? super T, ? extends K> keyMapper,
-                                                                   Function<? super T, ? extends U> valueMapper) {
-        return Collectors.toMap(keyMapper, valueMapper,
-                (u, v) -> {
-                    throw new IllegalStateException(String.format("Duplicate key %s", u));
-                },
-                LinkedHashMap::new);
-    }
+	/**
+	 * Checks if any analyzer is available
+	 *
+	 * @return <code>true</code> if some exists
+	 */
+	boolean hasAnalyzers();
 }

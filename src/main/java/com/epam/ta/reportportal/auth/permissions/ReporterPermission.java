@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.auth.permissions;
 
@@ -31,9 +31,8 @@ import javax.validation.constraints.NotNull;
 
 /**
  * Validates that user is allowed to report (start/finish, launch, start/finish item, log)
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 @Component
 @LookupPermission({ "reporterPermission" })
@@ -44,7 +43,8 @@ public class ReporterPermission extends BaseProjectPermission {
 	 */
 	@Override
 	protected boolean checkAllowed(@NotNull Authentication authentication, @NotNull Project project) {
-		return ProjectUtils.findUserConfigByLogin(project, authentication.getName()).getProjectRole()
+		return ProjectUtils.findUserConfigByLogin(project, authentication.getName())
+				.getProjectRole()
 				.sameOrHigherThan(ProjectRole.CUSTOMER);
 	}
 }

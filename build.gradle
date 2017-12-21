@@ -8,7 +8,7 @@ buildscript {
     }
     dependencies {
         classpath "io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE"
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.6.RELEASE")
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.9.RELEASE")
         classpath 'com.bmuschko:gradle-docker-plugin:3.0.12'
     }
 }
@@ -51,6 +51,8 @@ repositories {
     maven { url "http://dl.bintray.com/epam/reportportal" }
     maven { url "http://jasperreports.sourceforge.net/maven2" }
     maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
+    maven { url "https://dl.bintray.com/michaelklishin/maven/" }
+
     if (!releaseMode) {
         maven { url 'https://jitpack.io' }
     }
@@ -58,8 +60,8 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Dalston.SR3"
-        mavenBom "org.springframework.boot:spring-boot-dependencies:1.5.6.RELEASE"
+        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Edgware.RELEASE"
+        mavenBom "org.springframework.boot:spring-boot-dependencies:1.5.9.RELEASE"
     }
 }
 
@@ -69,15 +71,15 @@ configurations {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:3.3.2'
-        compile 'com.epam.reportportal:commons-rules:3.3.0'
-        compile 'com.epam.reportportal:commons-model:3.3.0'
+        compile 'com.epam.reportportal:commons-dao:4.0.0'
+        compile 'com.epam.reportportal:commons-rules:4.0.0'
+        compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile('com.github.reportportal:commons-dao:3.3.2')
-        compile('com.github.reportportal:commons-rules:3.3.0')
-        compile 'com.github.reportportal:commons-model:3.3.0'
-        compile ('com.github.reportportal:commons:3.1.0')
+        compile('com.github.reportportal:commons-dao:4.0.0')
+        compile('com.github.reportportal:commons-rules:4.0.0')
+        compile 'com.github.reportportal:commons-model:4.0.0'
+        compile('com.github.reportportal:commons:3.1.0')
     }
 
     compile 'org.jasypt:jasypt:1.9.2'
@@ -109,6 +111,8 @@ dependencies {
 
     compile 'com.github.mongobee:mongobee:0.12'
 
+    compile 'org.quartz-scheduler:quartz:2.3.0'
+    compile "com.novemberain:quartz-mongodb:2.0.0"
 
     compile 'net.sf.jasperreports:jasperreports:6.3.1'
     //JasperReport's export to XLS uses Apache POI. Reports 6.3.1 needs version NOT
@@ -141,17 +145,8 @@ dependencies {
 }
 
 
-task staticResources(type: Copy) {
-
-    from("${project.projectDir}/../../public/common", {
-        include '*.jks'
-        into 'certificate'
-//        rename {'reportportal-client-v2.jks'}
-    })
-}
-
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.0.2'
+    gradleVersion = '4.2.1'
 }
 
 //Start section for external jacoco test report
@@ -175,7 +170,6 @@ task copyJacocoAgentToLibs(type: Copy) {
 jar.dependsOn copyJacocoAgentToLibs
 //End section for external jacoco test report
 
-processResources.dependsOn staticResources
 build.dependsOn jacocoTestReport
 test {
 //    testLogging.showStandardStreams = true
@@ -238,8 +232,8 @@ test {
     }
 
     if (System.env.TRAVIS == 'true') {
-            maxParallelForks = 2
-            minHeapSize = "128m"
-            maxHeapSize = "1g"
+        maxParallelForks = 2
+        minHeapSize = "128m"
+        maxHeapSize = "1g"
     }
 }

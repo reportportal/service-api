@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.filter.impl;
 
@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.sharing.Shareable;
 import com.epam.ta.reportportal.database.search.Filter;
-import com.epam.ta.reportportal.util.MoreCollectors;
 import com.epam.ta.reportportal.ws.converter.UserFilterResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
@@ -39,15 +38,18 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Function;
+
+import static com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler.pageConverter;
+import static com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter.TO_RESOURCE;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Default implementation of {@link IGetUserFilterHandler}
- * 
+ *
  * @author Aliaksei_Makayed
- * 
  */
 
 @Service
@@ -65,34 +67,34 @@ public class GetUserFilterHandler implements IGetUserFilterHandler {
 		BusinessRule.expect(userFilter, Predicates.notNull()).verify(ErrorType.USER_FILTER_NOT_FOUND, filterId, userName);
 		AclUtils.isPossibleToRead(userFilter.getAcl(), userName, projectName);
 		BusinessRule.expect(userFilter.getProjectName(), Predicates.equalTo(projectName)).verify(ErrorType.ACCESS_DENIED);
-		return resourceAssembler.toResource(userFilter);
+		return TO_RESOURCE.apply(userFilter);
 	}
 
 	@Override
 	public List<UserFilterResource> getOwnFilters(String userName, Filter filter, String projectName) {
 		List<UserFilter> filters = filterRepository.findFilters(userName, projectName, Shareable.NAME_OWNER_SORT, false);
-		return resourceAssembler.toResources(filters);
+		return filters.stream().map(TO_RESOURCE).collect(toList());
 	}
 
 	@Override
 	public List<UserFilterResource> getSharedFilters(String userName, Filter filter, String projectName) {
 		List<UserFilter> filters = filterRepository.findFilters(userName, projectName, Shareable.NAME_OWNER_SORT, true);
-		return resourceAssembler.toResources(filters);
+		return filters.stream().map(TO_RESOURCE).collect(toList());
 	}
 
 	@Override
 	public Iterable<UserFilterResource> getFilters(String userName, Pageable pageable, Filter filter, String projectName) {
 		Page<UserFilter> filters = filterRepository.findAllByFilter(filter, pageable, projectName, userName);
-		return resourceAssembler.toPagedResources(filters);
+		return pageConverter(TO_RESOURCE).apply(filters);
 	}
 
 	@Override
-	public Map<String, SharedEntity> getFiltersNames(String userName, String projectName, boolean isShared) {
+	public Iterable<SharedEntity> getFiltersNames(String userName, String projectName, boolean isShared) {
 		// filter names should be selected per user, projectName and only for
 		// userFilter
 		// with field isLink = false
 		List<UserFilter> filters = filterRepository.findFilters(userName, projectName, Shareable.NAME_OWNER_SORT, isShared);
-		return getMapOfNames(filters);
+		return filters.stream().map(TO_SHARED_ENTITY).collect(toList());
 	}
 
 	@Override
@@ -102,26 +104,17 @@ public class GetUserFilterHandler implements IGetUserFilterHandler {
 	}
 
 	/**
-	 * Convert {@code List<UserFilter> to Map<String, SharedEntity>}. Resulted
-	 * map:<br>
-	 * key - userFilter's id value - shared entity
-	 * 
-	 * @param filters
-	 * @return Map<String, SharedEntity>
+	 * Convert {@code UserFilter to SharedEntity}.
+	 *
+	 * @return SharedEntity
 	 */
-	private Map<String, SharedEntity> getMapOfNames(List<UserFilter> filters) {
-		Map<String, SharedEntity> result = Collections.emptyMap();
-		if (filters != null) {
-			result = filters.stream().collect(MoreCollectors.toLinkedMap(UserFilter::getId, filter -> {
-				SharedEntity entity = new SharedEntity();
-				entity.setName(filter.getName());
-				if (null != filter.getAcl()) {
-					entity.setOwner(filter.getAcl().getOwnerUserId());
-				}
-				return entity;
-			}));
-		}
+	private final Function<UserFilter, SharedEntity> TO_SHARED_ENTITY = filter -> {
+		SharedEntity sharedEntity = new SharedEntity();
+		sharedEntity.setId(filter.getId());
+		sharedEntity.setName(filter.getName());
+		ofNullable(filter.getAcl()).ifPresent(acl -> sharedEntity.setOwner(acl.getOwnerUserId()));
+		sharedEntity.setDescription(filter.getDescription());
+		return sharedEntity;
+	};
 
-		return result;
-	}
 }

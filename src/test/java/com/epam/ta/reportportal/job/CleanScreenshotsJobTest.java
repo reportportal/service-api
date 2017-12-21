@@ -37,7 +37,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
 /**
@@ -47,41 +48,37 @@ import static org.mockito.Mockito.*;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class CleanScreenshotsJobTest {
 
-    @InjectMocks
-    private CleanScreenshotsJob cleanScreenshotsJob = new CleanScreenshotsJob();
-    @Mock
-    private DataStorage gridFS;
-    @Mock
-    private ProjectRepository projectRepository;
-    @Mock
-    private LogRepository logRepository;
+	@InjectMocks
+	private CleanScreenshotsJob cleanScreenshotsJob = new CleanScreenshotsJob();
+	@Mock
+	private DataStorage gridFS;
+	@Mock
+	private ProjectRepository projectRepository;
+	@Mock
+	private LogRepository logRepository;
 
-    @Test
-    public void runTest() {
-        String name = "name";
-        Project project = new Project();
-        Project.Configuration configuration = new Project.Configuration();
-        configuration.setKeepScreenshots("1 week");
-        project.setName(name);
-        project.setConfiguration(configuration);
-        Stream<Project> sp = Stream.of(project);
+	@Test
+	public void runTest() {
+		String name = "name";
+		Project project = new Project();
+		Project.Configuration configuration = new Project.Configuration();
+		configuration.setKeepScreenshots("1 week");
+		project.setName(name);
+		project.setConfiguration(configuration);
+		Stream<Project> sp = Stream.of(project);
 
-        GridFSDBFile grid = new GridFSDBFile();
-        grid.put("_id", name);
-        List<GridFSDBFile> list = new ArrayList<>();
-        list.add(grid);
+		GridFSDBFile grid = new GridFSDBFile();
+		grid.put("_id", name);
+		List<GridFSDBFile> list = new ArrayList<>();
+		list.add(grid);
 
-        when(projectRepository.streamAllIdsAndConfiguration())
-                .thenReturn(sp);
-        when(gridFS.findModifiedLaterAgo(any(Duration.class), anyString()))
-                .thenReturn(list);
+		when(projectRepository.streamAllIdsAndConfiguration()).thenReturn(sp);
+		when(gridFS.findModifiedLaterAgo(any(Duration.class), anyString())).thenReturn(list);
 
-        cleanScreenshotsJob.run();
+		cleanScreenshotsJob.execute(null);
 
-        verify(gridFS, times(1))
-                .deleteData(anyString());
-        verify(logRepository, times(1))
-                .removeBinaryContent(anyString());
-    }
+		verify(gridFS, times(1)).deleteData(anyString());
+		verify(logRepository, times(1)).removeBinaryContent(anyString());
+	}
 
 }

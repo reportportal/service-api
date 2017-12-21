@@ -43,90 +43,95 @@ import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
 @ChangeLog(order = "3.3")
 public class ChangeSets_3_3 {
 
-    private static final String HISTORY = "history";
-    private static final String ID = "_id";
-    private static final String COLLECTION = "activity";
-    private static final String ACTION_TYPE = "actionType";
+	private static final String HISTORY = "history";
+	private static final String ID = "_id";
+	private static final String COLLECTION = "activity";
+	private static final String ACTION_TYPE = "actionType";
 
-    @ChangeSet(order = "3.3-1", id = "v3.3-Replace activities embedded collection 'history' with array", author = "pbortnik")
-    public void replaceActivitesHistory(MongoTemplate mongoTemplate) {
-        final Query q = new Query(Criteria.where(HISTORY).exists(true));
-        q.fields().include(ID).include(HISTORY);
-        mongoTemplate.stream(q, DBObject.class, COLLECTION).forEachRemaining(dbo -> {
-            DBObject history = (DBObject) dbo.get(HISTORY);
-            Update u = new Update();
-            Map[] dbArray = new LinkedHashMap[history.keySet().size()];
-            int i = 0;
-            for (String key : history.keySet()) {
-                DBObject o = (DBObject) history.get(key);
-                if (null != o && null != o.keySet()) {
-                    Map res = new LinkedHashMap(o.keySet().size() + 1);
-                    res.put("field", key);
-                    res.putAll(o.toMap());
-                    dbArray[i] = res;
-                    i++;
-                } else {
-                    Map res = new LinkedHashMap<>(3);
-                    res.put("field", key);
-                    res.put(OLD_VALUE, "");
-                    res.put(NEW_VALUE, "");
-                    dbArray[i] = res;
-                    i++;
-                }
-            }
-            u.set(HISTORY, dbArray);
-            mongoTemplate.updateFirst(Query.query(Criteria.where(ID).is(dbo.get(ID))), u, COLLECTION);
-        });
-    }
+	@ChangeSet(order = "3.3-1", id = "v3.3-Replace activities embedded collection 'history' with array", author = "pbortnik")
+	public void replaceActivitesHistory(MongoTemplate mongoTemplate) {
+		final Query q = new Query(Criteria.where(HISTORY).exists(true));
+		q.fields().include(ID).include(HISTORY);
+		mongoTemplate.stream(q, DBObject.class, COLLECTION).forEachRemaining(dbo -> {
+			DBObject history = (DBObject) dbo.get(HISTORY);
+			Update u = new Update();
+			Map[] dbArray = new LinkedHashMap[history.keySet().size()];
+			int i = 0;
+			for (String key : history.keySet()) {
+				DBObject o = (DBObject) history.get(key);
+				if (null != o && null != o.keySet()) {
+					Map res = new LinkedHashMap(o.keySet().size() + 1);
+					res.put("field", key);
+					res.putAll(o.toMap());
+					dbArray[i] = res;
+					i++;
+				} else {
+					Map res = new LinkedHashMap<>(3);
+					res.put("field", key);
+					res.put(OLD_VALUE, "");
+					res.put(NEW_VALUE, "");
+					dbArray[i] = res;
+					i++;
+				}
+			}
+			u.set(HISTORY, dbArray);
+			mongoTemplate.updateFirst(Query.query(Criteria.where(ID).is(dbo.get(ID))), u, COLLECTION);
+		});
+	}
 
-    @ChangeSet(order = "3.3-2", id = "v3.3-Update activity types with new values", author = "pbortnik")
-    public void updateActivityTypes(MongoTemplate mongoTemplate) {
-        final Query q = new Query(Criteria.where(ACTION_TYPE).in("start", "finish", "delete", "share", "unshare"));
-        mongoTemplate.stream(q, DBObject.class, COLLECTION).forEachRemaining(dbo -> {
-            String type = (String) dbo.get(ACTION_TYPE);
-            Update u = new Update();
-            switch (type) {
-                case "start":
-                    u.set(ACTION_TYPE, START_LAUNCH.getValue());
-                    break;
-                case "finish":
-                    u.set(ACTION_TYPE, FINISH_LAUNCH.getValue());
-                    break;
-                case "delete":
-                    u.set(ACTION_TYPE, DELETE_LAUNCH.getValue());
-                    break;
-                case "share":
-                    u = createShareHistory(u, (String) dbo.get("objectType"),"true", "false");
-                    break;
-                case "unshare":
-                    u = createShareHistory(u, (String) dbo.get("objectType"),"false", "true");
-                    break;
-            }
-            mongoTemplate.updateFirst(Query.query(Criteria.where(ID).is(dbo.get(ID))), u, COLLECTION);
-        });
-    }
+	@ChangeSet(order = "3.3-2", id = "v3.3-Update activity types with new values", author = "pbortnik")
+	public void updateActivityTypes(MongoTemplate mongoTemplate) {
+		final Query q = new Query(Criteria.where(ACTION_TYPE).in("start", "finish", "delete", "share", "unshare"));
+		mongoTemplate.stream(q, DBObject.class, COLLECTION).forEachRemaining(dbo -> {
+			String type = (String) dbo.get(ACTION_TYPE);
+			Update u = new Update();
+			switch (type) {
+				case "start":
+					u.set(ACTION_TYPE, START_LAUNCH.getValue());
+					break;
+				case "finish":
+					u.set(ACTION_TYPE, FINISH_LAUNCH.getValue());
+					break;
+				case "delete":
+					u.set(ACTION_TYPE, DELETE_LAUNCH.getValue());
+					break;
+				case "share":
+					u = createShareHistory(u, (String) dbo.get("objectType"), "true", "false");
+					break;
+				case "unshare":
+					u = createShareHistory(u, (String) dbo.get("objectType"), "false", "true");
+					break;
+			}
+			mongoTemplate.updateFirst(Query.query(Criteria.where(ID).is(dbo.get(ID))), u, COLLECTION);
+		});
+	}
 
 	@ChangeSet(order = "3.3-3", id = "v3.3-Generate uniqueId for all test items based on md5 algorithm", author = "pbortnik")
 	public void generate(MongoTemplate mongoTemplate) {
-        mongoTemplate.createCollection("generationCheckpoint");
-    }
+		mongoTemplate.createCollection("generationCheckpoint");
+	}
 
-    private Update createShareHistory(Update u, String objectType, String oldValue, String newValue) {
-        Map[] dbArray = new LinkedHashMap[1];
-        Map res = new LinkedHashMap(3);
-        res.put(FIELD, "share");
-        res.put(OLD_VALUE, oldValue);
-        res.put(NEW_VALUE, newValue);
-        dbArray[0] = res;
-        u.set("history", dbArray);
-        switch (objectType) {
-            case "dashboard":
-                u.set(ACTION_TYPE, UPDATE_DASHBOARD.getValue());
-                break;
-            case "widget":
-                u.set(ACTION_TYPE, UPDATE_WIDGET.getValue());
-                break;
-        }
-        return u;
-    }
+	@ChangeSet(order = "3.3-4", id = "V3.3-Drop unused failReferences collection in reason of new analyzer", author = "pbortnik")
+	public void dropfailReferences(MongoTemplate mongoTemplate) {
+		mongoTemplate.dropCollection("failReferences");
+	}
+
+	private Update createShareHistory(Update u, String objectType, String oldValue, String newValue) {
+		Map[] dbArray = new LinkedHashMap[1];
+		Map res = new LinkedHashMap(3);
+		res.put(FIELD, "share");
+		res.put(OLD_VALUE, oldValue);
+		res.put(NEW_VALUE, newValue);
+		dbArray[0] = res;
+		u.set("history", dbArray);
+		switch (objectType) {
+			case "dashboard":
+				u.set(ACTION_TYPE, UPDATE_DASHBOARD.getValue());
+				break;
+			case "widget":
+				u.set(ACTION_TYPE, UPDATE_WIDGET.getValue());
+				break;
+		}
+		return u;
+	}
 }

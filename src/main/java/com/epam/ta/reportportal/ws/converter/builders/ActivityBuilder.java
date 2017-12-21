@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.database.entity.item.Activity;
@@ -31,18 +31,18 @@ import java.util.function.Supplier;
 /**
  * Builder for {@link com.epam.ta.reportportal.database.entity.item.Activity}
  * persistence layer object
- * 
+ *
  * @author Dzmitry_Kavalets
  */
-public class ActivityBuilder implements Supplier<Activity>{
-    
-    private Activity activity;
+public class ActivityBuilder implements Supplier<Activity> {
 
-    public ActivityBuilder() {
-        activity = new Activity();
-    }
+	private Activity activity;
 
-    public ActivityBuilder addUserRef(String userRef) {
+	public ActivityBuilder() {
+		activity = new Activity();
+	}
+
+	public ActivityBuilder addUserRef(String userRef) {
 		activity.setUserRef(userRef);
 		return this;
 	}
@@ -79,6 +79,6 @@ public class ActivityBuilder implements Supplier<Activity>{
 
 	@Override
 	public Activity get() {
-        return activity;
-    }
+		return activity;
+	}
 }

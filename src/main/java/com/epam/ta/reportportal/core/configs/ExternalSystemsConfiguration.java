@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.configs;
 
@@ -43,11 +43,10 @@ public class ExternalSystemsConfiguration {
 		return new ExternalSystemEurekaDelegate(restTemplate());
 	}
 
-    @Bean
-    public RestTemplate restTemplate() {
-        RestTemplate restTemplate = new RestTemplate(
-                Collections.singletonList(new MappingJackson2HttpMessageConverter()));
-        restTemplate.setErrorHandler(new ForwardingClientExceptionHandler());
-        return restTemplate;
-    }
+	@Bean
+	public RestTemplate restTemplate() {
+		RestTemplate restTemplate = new RestTemplate(Collections.singletonList(new MappingJackson2HttpMessageConverter()));
+		restTemplate.setErrorHandler(new ForwardingClientExceptionHandler());
+		return restTemplate;
+	}
 }

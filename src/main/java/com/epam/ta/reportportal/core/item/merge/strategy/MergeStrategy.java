@@ -26,5 +26,5 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import java.util.List;
 
 public interface MergeStrategy {
-    TestItem mergeTestItems(TestItem itemTarget, List<TestItem> items);
+	TestItem mergeTestItems(TestItem itemTarget, List<TestItem> items);
 }

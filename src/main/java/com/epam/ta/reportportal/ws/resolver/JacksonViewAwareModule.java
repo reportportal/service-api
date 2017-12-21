@@ -17,11 +17,9 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.resolver;
-
-import java.io.IOException;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,26 +27,26 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 
+import java.io.IOException;
+
 /**
  * Module for custom serializer configuration for {@link JacksonViewAware}
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class JacksonViewAwareModule extends SimpleModule {
 
 	private static final long serialVersionUID = 1L;
 
 	/**
+	 * @param objectMapper - We need to provide ObjectMapper here since it's impossible
+	 *                     to serialize using JSON Views without mapper. It's little bit
+	 *                     unusual from Jackson point of view, but this is only one way
+	 *                     to avoid 'instaceOf' and classcast on http message converters
+	 *                     level
 	 * @see <a
-	 *      href="http://wiki.fasterxml.com/JacksonHowToCustomSerializers">Jackson
-	 *      - HowTo - CustomSerializers</a>
-	 * @param objectMapper
-	 *            - We need to provide ObjectMapper here since it's impossible
-	 *            to serialize using JSON Views without mapper. It's little bit
-	 *            unusual from Jackson point of view, but this is only one way
-	 *            to avoid 'instaceOf' and classcast on http message converters
-	 *            level
+	 * href="http://wiki.fasterxml.com/JacksonHowToCustomSerializers">Jackson
+	 * - HowTo - CustomSerializers</a>
 	 */
 	public JacksonViewAwareModule(ObjectMapper objectMapper) {
 		addSerializer(JacksonViewAware.class, new JacksonViewAwareSerializer(objectMapper));

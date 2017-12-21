@@ -17,17 +17,12 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.database.dao;
 
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.not;
-
-import java.util.List;
-
+import com.epam.ta.reportportal.database.entity.Log;
+import com.epam.ta.reportportal.database.entity.LogLevel;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,14 +30,14 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
-import com.epam.ta.reportportal.database.entity.Log;
-import com.epam.ta.reportportal.database.entity.LogLevel;
+import java.util.List;
+
+import static org.hamcrest.Matchers.*;
 
 /**
  * Several tests to be sure converter for {@link LogLevel} works correctly
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class LogLevelConverterTest extends BaseDaoContextTest {
 

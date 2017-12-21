@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  * 
  * 
  * This file is part of EPAM Report Portal.
@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.RetryId;
 import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -44,6 +45,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Nonnull;
 import javax.inject.Provider;
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * Create log handler. Save log and binary data related to it
@@ -53,88 +55,99 @@ import java.io.IOException;
  */
 public class CreateLogHandler implements ICreateLogHandler {
 
-    protected TestItemRepository testItemRepository;
+	protected TestItemRepository testItemRepository;
 
-    protected LogRepository logRepository;
+	protected LogRepository logRepository;
 
-    private DataStorage dataStorage;
+	private DataStorage dataStorage;
 
-    protected Provider<LogBuilder> logBuilder;
+	protected Provider<LogBuilder> logBuilder;
 
-    @Autowired
-    public void setTestItemRepository(TestItemRepository testItemRepository) {
-        this.testItemRepository = testItemRepository;
-    }
 
-    @Autowired
-    public void setLogRepository(LogRepository logRepository) {
-        this.logRepository = logRepository;
-    }
+	@Autowired
+	public void setTestItemRepository(TestItemRepository testItemRepository) {
+		this.testItemRepository = testItemRepository;
+	}
 
-    @Autowired
-    public void setDataStorage(DataStorage dataStorage) {
-        this.dataStorage = dataStorage;
-    }
+	@Autowired
+	public void setLogRepository(LogRepository logRepository) {
+		this.logRepository = logRepository;
+	}
 
-    @Autowired
-    public void setLogBuilder(Provider<LogBuilder> logBuilder) {
-        this.logBuilder = logBuilder;
-    }
+	@Autowired
+	public void setDataStorage(DataStorage dataStorage) {
+		this.dataStorage = dataStorage;
+	}
 
-    @Override
-    @Nonnull
-    public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, String project) {
-        TestItem testItem = testItemRepository.findOne(createLogRQ.getTestItemId());
-        validate(testItem, createLogRQ);
+	@Autowired
+	public void setLogBuilder(Provider<LogBuilder> logBuilder) {
+		this.logBuilder = logBuilder;
+	}
 
-        BinaryContent binaryContent = null;
-        if (null != file) {
-            try {
-                String binaryDataId = dataStorage
-                        .saveData(new BinaryData(file.getContentType(), file.getSize(), file.getInputStream()),
-                                file.getOriginalFilename());
-                binaryContent = new BinaryContent(binaryDataId, null, file.getContentType());
-            } catch (IOException e) {
-                throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to save log");
-            }
+	@Override
+	@Nonnull
+	public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, String project) {
+		Optional<TestItem> testItem = findTestItem(createLogRQ.getTestItemId());
+		validate(testItem.orElse(null), createLogRQ);
 
-        }
+		BinaryContent binaryContent = null;
+		if (null != file) {
+			try {
+				String binaryDataId = dataStorage.saveData(new BinaryData(file.getContentType(), file.getSize(), file.getInputStream()),
+						file.getOriginalFilename()
+				);
+				binaryContent = new BinaryContent(binaryDataId, null, file.getContentType());
+			} catch (IOException e) {
+				throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to save log");
+			}
 
-        Log log = logBuilder.get().addSaveLogRQ(createLogRQ).addBinaryContent(binaryContent).addTestItem(testItem)
-                .build();
+		}
+		Log log = logBuilder.get().addSaveLogRQ(createLogRQ).addBinaryContent(binaryContent).addTestItem(testItem.get()).build();
+		try {
+			logRepository.save(log);
+		} catch (Exception exc) {
+			throw new ReportPortalException("Error while Log instance creating.", exc);
+		}
+		return new EntryCreatedRS(log.getId());
+	}
 
-        try {
-            logRepository.save(log);
-        } catch (Exception exc) {
-            throw new ReportPortalException("Error while Log instance creating.", exc);
-        }
-        return new EntryCreatedRS(log.getId());
-    }
+	/**
+	 * Validates business rules related to test item of this log
+	 *
+	 * @param testItem
+	 */
+	protected void validate(TestItem testItem, SaveLogRQ saveLogRQ) {
+		BusinessRule.expect(testItem, Predicates.notNull())
+				.verify(ErrorType.LOGGING_IS_NOT_ALLOWED,
+						Suppliers.formattedSupplier("Logging to test item '{}' is not allowed. Probably you try to log for Launch type.",
+								saveLogRQ.getTestItemId()
+						)
+				);
 
-    /**
-     * Validates business rules related to test item of this log
-     *
-     * @param testItem
-     */
-    protected void validate(TestItem testItem, SaveLogRQ saveLogRQ) {
-        BusinessRule.expect(testItem, Predicates.notNull()).verify(ErrorType.LOGGING_IS_NOT_ALLOWED, Suppliers
-                .formattedSupplier("Logging to test item '{}' is not allowed. Probably you try to log for Launch type.",
-                        saveLogRQ.getTestItemId()));
+		//removed as part of EPMRPP-23459
+		//		BusinessRule.expect(testItem, Preconditions.IN_PROGRESS).verify(ErrorType.REPORTING_ITEM_ALREADY_FINISHED, testItem.getId());
+		//		BusinessRule.expect(testItem.hasChilds(), Predicates.equalTo(Boolean.FALSE)).verify(ErrorType.LOGGING_IS_NOT_ALLOWED,
+		//				Suppliers.formattedSupplier("Logging to item '{}' with descendants is not permitted", testItem.getId()));
 
-        //removed as part of EPMRPP-23459
-        //		BusinessRule.expect(testItem, Preconditions.IN_PROGRESS).verify(ErrorType.REPORTING_ITEM_ALREADY_FINISHED, testItem.getId());
-        //		BusinessRule.expect(testItem.hasChilds(), Predicates.equalTo(Boolean.FALSE)).verify(ErrorType.LOGGING_IS_NOT_ALLOWED,
-        //				Suppliers.formattedSupplier("Logging to item '{}' with descendants is not permitted", testItem.getId()));
+		BusinessRule.expect(
+				testItem.getStartTime().before(saveLogRQ.getLogTime()) || testItem.getStartTime().equals(saveLogRQ.getLogTime()),
+				Predicates.equalTo(Boolean.TRUE)
+		).verify(ErrorType.LOGGING_IS_NOT_ALLOWED,
+				Suppliers.formattedSupplier("Log has incorrect log time. Log time should be after parent item's start time.")
+		);
 
-        BusinessRule
-                .expect(testItem.getStartTime().before(saveLogRQ.getLogTime()) || testItem.getStartTime()
-                                .equals(saveLogRQ.getLogTime()),
-                        Predicates.equalTo(Boolean.TRUE)).verify(ErrorType.LOGGING_IS_NOT_ALLOWED,
-                Suppliers.formattedSupplier(
-                        "Log has incorrect log time. Log time should be after parent item's start time."));
+		BusinessRule.expect(LogLevel.toLevelOrUnknown(saveLogRQ.getLevel()), Predicates.notNull()).verify(ErrorType.BAD_SAVE_LOG_REQUEST,
+				Suppliers.formattedSupplier("Cannot convert '{}' to valid 'LogLevel'", saveLogRQ.getLevel())
+		);
+	}
 
-        BusinessRule.expect(LogLevel.toLevelOrUnknown(saveLogRQ.getLevel()), Predicates.notNull())
-                .verify(ErrorType.BAD_SAVE_LOG_REQUEST,
-                        Suppliers.formattedSupplier("Cannot convert '{}' to valid 'LogLevel'", saveLogRQ.getLevel()));
-    }
+	protected Optional<TestItem> findTestItem(String id) {
+		Optional<TestItem> testItem;
+		if (RetryId.isRetry(id)) {
+			testItem = testItemRepository.findRetry(id);
+		} else {
+			testItem = Optional.ofNullable(testItemRepository.findOne(id));
+		}
+		return testItem;
+	}
 }

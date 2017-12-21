@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget;
 
@@ -66,7 +66,8 @@ public class CreateWidgetHandlerTest {
 	private static final String DEFAULT_PROJECT = "default_project";
 	private static final String FILTER_ID = "filterId";
 	private static final List<String> ACTIVITY_FIELDS = Arrays.asList("userRef", "loggedObjectRef", "last_modified", "objectType",
-			"actionType", "projectRef", "history");
+			"actionType", "projectRef", "history"
+	);
 
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
@@ -127,8 +128,9 @@ public class CreateWidgetHandlerTest {
 		createWidgetHandler.setUserFilterRepository(userFilterRepository);
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage(Suppliers.formattedSupplier(
-				"Unknown widget data type: '{}'. " + "Possible data types: line_chart, bar_chart, column_chart, combine_pie_chart, table", type)
-				.get());
+				"Unknown widget data type: '{}'. " + "Possible data types: line_chart, bar_chart, column_chart, combine_pie_chart, table",
+				type
+		).get());
 		createWidgetHandler.createWidget(widgetRQ, DEFAULT_PROJECT, DEFAULT_USER);
 	}
 
@@ -165,9 +167,10 @@ public class CreateWidgetHandlerTest {
 		createWidgetHandler.setUserFilterRepository(mock(UserFilterRepository.class));
 
 		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage(Suppliers
-				.formattedSupplier("User filter '{}' not found for user '{}'. Did you use correct User Filter ID?", null, DEFAULT_USER)
-				.get());
+		thrown.expectMessage(
+				Suppliers.formattedSupplier("User filter '{}' not found for user '{}'. Did you use correct User Filter ID?", null,
+						DEFAULT_USER
+				).get());
 		createWidgetHandler.createWidget(widgetRQ, DEFAULT_PROJECT, DEFAULT_USER);
 	}
 

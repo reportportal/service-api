@@ -35,9 +35,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserFilterResourceAssembler extends PagedResourcesAssembler<UserFilter, UserFilterResource> {
 
-    @Override
-    public UserFilterResource toResource(UserFilter userFilter) {
-        return UserFilterConverter.TO_RESOURCE.apply(userFilter);
-    }
+	@Override
+	public UserFilterResource toResource(UserFilter userFilter) {
+		return UserFilterConverter.TO_RESOURCE.apply(userFilter);
+	}
 
 }

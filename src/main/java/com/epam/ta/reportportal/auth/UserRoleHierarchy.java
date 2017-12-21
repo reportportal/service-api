@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.auth;
 
@@ -38,13 +38,14 @@ import java.util.stream.Collectors;
  * {@link com.epam.ta.reportportal.database.entity.user.UserRole} has more
  * rights than the following one. So, Administrator is more privileged than
  * User.
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class UserRoleHierarchy implements RoleHierarchy {
 
-	/** Special additional role for other microservices */
+	/**
+	 * Special additional role for other microservices
+	 */
 	public static final String ROLE_COMPONENT = "ROLE_COMPONENT";
 
 	private static final Logger logger = LoggerFactory.getLogger(UserRoleHierarchy.class);
@@ -52,8 +53,7 @@ public class UserRoleHierarchy implements RoleHierarchy {
 	private Map<GrantedAuthority, Set<GrantedAuthority>> authoritiesMap;
 
 	public UserRoleHierarchy() {
-		authoritiesMap = Arrays.stream(UserRole.values())
-				.collect(Collectors.toMap(this::asAuthority, this::findReachableRoles));
+		authoritiesMap = Arrays.stream(UserRole.values()).collect(Collectors.toMap(this::asAuthority, this::findReachableRoles));
 		/*
 		 * Specify authorities explicitly. It additionally has USER role to allow other services to pass login check
 		 */
@@ -68,8 +68,10 @@ public class UserRoleHierarchy implements RoleHierarchy {
 			return AuthorityUtils.NO_AUTHORITIES;
 		}
 
-		List<GrantedAuthority> reachableRoles = authorities.stream().filter(authority -> authoritiesMap.containsKey(authority))
-				.flatMap(authority -> authoritiesMap.get(authority).stream()).collect(Collectors.toList());
+		List<GrantedAuthority> reachableRoles = authorities.stream()
+				.filter(authority -> authoritiesMap.containsKey(authority))
+				.flatMap(authority -> authoritiesMap.get(authority).stream())
+				.collect(Collectors.toList());
 
 		if (logger.isDebugEnabled()) {
 			logger.debug("getReachableGrantedAuthorities() - From the roles " + authorities + " one can reach " + reachableRoles
@@ -89,7 +91,7 @@ public class UserRoleHierarchy implements RoleHierarchy {
 		return reachableRoles;
 	}
 
-	private GrantedAuthority asAuthority(UserRole userRole){
+	private GrantedAuthority asAuthority(UserRole userRole) {
 		return new SimpleGrantedAuthority(userRole.getAuthority());
 	}
 

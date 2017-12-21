@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 package com.epam.ta.reportportal.util;
 
 import com.epam.ta.reportportal.ws.model.SystemInfoRS;
@@ -28,7 +28,7 @@ import java.lang.management.ManagementFactory;
 
 /**
  * System load information
- * 
+ *
  * @author Andrei_Ramanchuk
  */
 @Service("systemInfo")

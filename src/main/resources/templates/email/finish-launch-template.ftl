@@ -19,10 +19,12 @@
         a:hover {
             text-decoration: none;
         }
+
         .rplogo, .rplogo:hover, .rplogo:active, .rplogo:visited {
             display: inline-block;
             text-decoration: none;
         }
+
         @media only screen and (max-width: 540px) {
             body {
                 margin: 0;
@@ -50,7 +52,8 @@
                 <tbody>
                 <tr>
                     <td height="48">
-                        <a class="rplogo" href="http://reportportal.io" target="_blank" style="font-size: 15px; color: #595c5c; font-weight: bold; font-family: 'Roboto', sans-serif;">
+                        <a class="rplogo" href="http://reportportal.io" target="_blank"
+                           style="font-size: 15px; color: #595c5c; font-weight: bold; font-family: 'Roboto', sans-serif;">
                             ReportPortal.io
                         </a>
                     </td>
@@ -66,9 +69,9 @@
                         <#macro subtypes sbt>
                             <#list sbt as key,value>
                                 <#if rowCounter % 2 == 0>
-                                    <tr bgcolor="#ffffff" style="background-color:#ffffff;">
+                                <tr bgcolor="#ffffff" style="background-color:#ffffff;">
                                 <#else>
-                                    <tr bgcolor="#f9f9f9" style="background-color:#f9f9f9;">
+                                <tr bgcolor="#f9f9f9" style="background-color:#f9f9f9;">
                                 </#if>
                                 <td height="25"
                                     style="font-size: 14px; color: #464547; padding-left: 38px; border-width: 0px;">${key.getLongName()}</td>
@@ -99,85 +102,105 @@
                             finished</h2>
                         <p style="font-size: 14px; color: #777777;">To view it on Report Portal just visit this <a
                                 href="${url}" target="_blank">link</a>.</p>
+                    <#if tags??>
+                        <p style="font-size: 14px; color: #777777;">Tags to launch:
+                            <#list tags as name, link>
+                                <a href="${link}" target="_blank" style="padding-left:5px;">${name}</a>
+                            </#list>
+                        </p>
+                    </#if>
                         <!-- Launch name, link and description (if exists) -->
                     <#if description??>
                         <p style="font-size: 14px; color: #777777;">Description of launch:<br>${description}</p>
                     </#if>
-                    <div style="width: 300px; border-width: 1px; border-style: solid; border-color: #e9e9e9;">
-                        <table width="300" border="0" cellspacing="0" cellpadding="6" style="border: none; border-collapse: collapse;">
-                            <tbody>
-                            <tr bgcolor="#f5f5f5" style="background: #f5f5f5;">
-                                <td height="40"
-                                    style="font-size: 12px; color: #777777; border-bottom: 1px solid #e9e9e9; padding-left: 20px;">
-                                    <b>LAUNCH STATISTICS</b></td>
-                                <td width="40"
-                                    style="font-size: 12px; color: #777777; border-bottom: 1px solid #e9e9e9;"></td>
-                            </tr>
-                            <tr bgcolor="#ffffff" style="background: #ffffff;">
-                                <td height="40" style="font-size: 14px; color: #464547; padding-left: 20px; border-width: 0px;"><b>TOTAL</b>
+                        <table width="300" cellspacing="0" cellpadding="0"  style="border: 1px solid #e9e9e9;">
+                            <tr>
+                                <td>
+                                    <table width="300" border="0" cellspacing="0" cellpadding="6" style="border: none; border-collapse: collapse;">
+                                        <tbody>
+                                        <tr bgcolor="#f5f5f5" style="background: #f5f5f5;">
+                                            <td height="40"
+                                                style="font-size: 12px; color: #777777; border-bottom: 1px solid #e9e9e9; padding-left: 20px;">
+                                                <b>LAUNCH STATISTICS</b></td>
+                                            <td width="40"
+                                                style="font-size: 12px; color: #777777; border-bottom: 1px solid #e9e9e9;"></td>
+                                        </tr>
+                                        <tr bgcolor="#ffffff" style="background: #ffffff;">
+                                            <td height="40" style="font-size: 14px; color: #464547; padding-left: 20px; border-width: 0px;">
+                                                <b>TOTAL</b>
+                                            </td>
+                                            <td width="40" style="font-size: 14px; color: #464547; border-width: 0px;"><b>${total}</b></td>
+                                        </tr>
+                                        <tr bgcolor="#f9f9f9" style="background: #f9f9f9;">
+                                            <td height="25" style="font-size: 14px; color: #464547; padding-left: 38px; border-width: 0px;">Passed
+                                            </td>
+                                            <td width="40" style="font-size: 14px; color: #464547; border-width: 0px;">${passed}</td>
+                                        </tr>
+                                        <tr bgcolor="#ffffff" style="background: #ffffff;">
+                                            <td height="25" style="font-size: 14px; color: #464547; padding-left: 38px; border-width: 0px;">Failed
+                                            </td>
+                                            <td width="40" style="font-size: 14px; color: #464547; border-width: 0px;">${failed}</td>
+                                        </tr>
+                                        <tr bgcolor="#f9f9f9" style="background: #f9f9f9;">
+                                            <td height="25" style="font-size: 14px; color: #464547; padding-left: 38px; border-width: 0px;">
+                                                Skipped
+                                            </td>
+                                            <td width="40" style="font-size: 14px; color: #464547; border-width: 0px;">${skipped}</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
                                 </td>
-                                <td width="40" style="font-size: 14px; color: #464547; border-width: 0px;"><b>${total}</b></td>
                             </tr>
-                            <tr bgcolor="#f9f9f9" style="background: #f9f9f9;">
-                                <td height="25" style="font-size: 14px; color: #464547; padding-left: 38px; border-width: 0px;">Passed</td>
-                                <td width="40" style="font-size: 14px; color: #464547; border-width: 0px;">${passed}</td>
-                            </tr>
-                            <tr bgcolor="#ffffff" style="background: #ffffff;">
-                                <td height="25" style="font-size: 14px; color: #464547; padding-left: 38px; border-width: 0px;">Failed</td>
-                                <td width="40" style="font-size: 14px; color: #464547; border-width: 0px;">${failed}</td>
-                            </tr>
-                            <tr bgcolor="#f9f9f9" style="background: #f9f9f9;">
-                                <td height="25" style="font-size: 14px; color: #464547; padding-left: 38px; border-width: 0px;">Skipped</td>
-                                <td width="40" style="font-size: 14px; color: #464547; border-width: 0px;">${skipped}</td>
-                            </tr>
-                            </tbody>
                         </table>
-                        </div>
                         <br>
-                        <div style="width: 100%; border-width: 1px; border-style: solid; border-color: #e9e9e9;">
-                            <table width="100%" border="0" cellspacing="0" cellpadding="6" style="border: none; border-collapse: collapse;">
-                            <tbody>
-                            <tr bgcolor="#f5f5f5" style="background: #f5f5f5;">
-                                <td height="40"
-                                    style="font-size: 12px; color: #777777; border-bottom: 1px solid #e9e9e9; padding-left: 20px;">
-                                    <b>LAUNCH DEFECTS</b></td>
-                                <td width="40"
-                                    style="font-size: 12px; color: #777777;  border-bottom: 1px solid #e9e9e9;"></td>
+                        <table width="100%" cellspacing="0" cellpadding="0"  style="border: 1px solid #e9e9e9;">
+                            <tr>
+                                <td>
+                                    <table width="100%" border="0" cellspacing="0" cellpadding="6" style="border: none; border-collapse: collapse;">
+                                        <tbody>
+                                        <tr bgcolor="#f5f5f5" style="background: #f5f5f5;">
+                                            <td height="40"
+                                                style="font-size: 12px; color: #777777; border-bottom: 1px solid #e9e9e9; padding-left: 20px;">
+                                                <b>LAUNCH DEFECTS</b></td>
+                                            <td width="40"
+                                                style="font-size: 12px; color: #777777;  border-bottom: 1px solid #e9e9e9;"></td>
+                                        </tr>
+                                        <!-- PRODUCT BUG bugs section -->
+                                        <#assign name="Product Bugs">
+                                        <@maintype name="${name}" counter="${productBugTotal}" />
+                                        <#if pbInfo??>
+                                            <@subtypes sbt=pbInfo/>
+                                        </#if>
+
+                                        <!-- AUTOMATION BUG bugs section -->
+                                        <#assign name="Automation Bugs">
+                                        <@maintype name="${name}" counter="${automationBugTotal}" />
+                                        <#if abInfo??>
+                                            <@subtypes sbt=abInfo/>
+                                        </#if>
+
+                                        <!-- SYSTEM ISSUE bugs section -->
+                                        <#assign name="System Issues">
+                                        <@maintype name="${name}" counter="${systemIssueTotal}" />
+                                        <#if siInfo??>
+                                            <@subtypes sbt=siInfo/>
+                                        </#if>
+
+                                        <!-- NO DEFECT bugs section -->
+                                        <#assign name="No Defects">
+                                        <@maintype name="${name}" counter="${noDefectTotal}" />
+                                        <#if ndInfo??>
+                                            <@subtypes sbt=ndInfo/>
+                                        </#if>
+
+                                        <!-- TO INVESTIGATE bugs section -->
+                                        <#assign name="To Investigate">
+                                        <@maintype name="${name}" counter="${toInvestigateTotal}" />
+                                        </tbody>
+                                    </table>
+                                </td>
                             </tr>
-                            <!-- PRODUCT BUG bugs section -->
-                            <#assign name="Product Bugs">
-                            <@maintype name="${name}" counter="${productBugTotal}" />
-                            <#if pbInfo??>
-                                <@subtypes sbt=pbInfo/>
-                            </#if>
-
-                            <!-- AUTOMATION BUG bugs section -->
-                            <#assign name="Automation Bugs">
-                            <@maintype name="${name}" counter="${automationBugTotal}" />
-                            <#if abInfo??>
-                                <@subtypes sbt=abInfo/>
-                            </#if>
-
-                            <!-- SYSTEM ISSUE bugs section -->
-                            <#assign name="System Issues">
-                            <@maintype name="${name}" counter="${systemIssueTotal}" />
-                            <#if siInfo??>
-                                <@subtypes sbt=siInfo/>
-                            </#if>
-
-                            <!-- NO DEFECT bugs section -->
-                            <#assign name="No Defects">
-                            <@maintype name="${name}" counter="${noDefectTotal}" />
-                            <#if ndInfo??>
-                                <@subtypes sbt=ndInfo/>
-                            </#if>
-
-                            <!-- TO INVESTIGATE bugs section -->
-                            <#assign name="To Investigate">
-                            <@maintype name="${name}" counter="${toInvestigateTotal}" />
-                            </tbody>
-                            </table>
-                        </div>
+                        </table>
                     </td>
                 </tr>
                 </tbody>
@@ -207,9 +230,9 @@
                                                                                                   height="12" alt="vk"></a>
                                 </td>
                                 <td><a href="https://reportportal-slack-auto.herokuapp.com/" target="_blank"><img src="cid:ic-slack.png"
-                                                                                                  border="0" width="18"
-                                                                                                  height="18"
-                                                                                                  alt="slack"></a>
+                                                                                                                  border="0" width="18"
+                                                                                                                  height="18"
+                                                                                                                  alt="slack"></a>
                                 </td>
                             </tr>
                             </tbody>

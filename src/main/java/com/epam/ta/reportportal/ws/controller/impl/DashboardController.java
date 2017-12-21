@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
@@ -36,13 +36,13 @@ import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 import com.epam.ta.reportportal.ws.resolver.ActiveRole;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -52,7 +52,7 @@ import static org.springframework.http.HttpStatus.OK;
 /**
  * Controller implementation for
  * {@link com.epam.ta.reportportal.database.entity.Dashboard} entity
- * 
+ *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
  */
@@ -117,7 +117,7 @@ public class DashboardController implements IDashboardController {
 	@ResponseBody
 	@ApiOperation("Delete specified dashboard by ID for specified project")
 	public OperationCompletionRS deleteDashboard(@PathVariable String projectName, @PathVariable String dashboardId,
-												 @ActiveRole UserRole userRole, Principal principal) {
+			@ActiveRole UserRole userRole, Principal principal) {
 		return deleteHandler.deleteDashboard(dashboardId, principal.getName(), normalizeId(projectName), userRole);
 	}
 
@@ -126,7 +126,7 @@ public class DashboardController implements IDashboardController {
 	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiOperation("Get names of shared dashboards from specified project")
-	public Map<String, SharedEntity> getSharedDashboardsNames(@PathVariable String projectName, Principal principal) {
-		return getHandler.getSharedDashboardsNames(principal.getName(), normalizeId(projectName));
+	public Iterable<SharedEntity> getSharedDashboardsNames(@PathVariable String projectName, Principal principal, Pageable pageable) {
+		return getHandler.getSharedDashboardsNames(principal.getName(), normalizeId(projectName), pageable);
 	}
 }

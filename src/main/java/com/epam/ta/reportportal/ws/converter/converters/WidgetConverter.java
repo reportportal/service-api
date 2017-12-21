@@ -36,32 +36,32 @@ import java.util.function.Function;
  */
 public final class WidgetConverter {
 
-    private WidgetConverter() {
-        //static only
-    }
+	private WidgetConverter() {
+		//static only
+	}
 
-    public static final Function<Widget, WidgetResource> TO_RESOURCE = widget -> {
-        Preconditions.checkNotNull(widget);
-        WidgetResource widgetResource = new WidgetResource();
-        widgetResource.setWidgetId(widget.getId());
-        widgetResource.setName(widget.getName());
-        widgetResource.setDescription(widget.getDescription());
+	public static final Function<Widget, WidgetResource> TO_RESOURCE = widget -> {
+		Preconditions.checkNotNull(widget);
+		WidgetResource widgetResource = new WidgetResource();
+		widgetResource.setWidgetId(widget.getId());
+		widgetResource.setName(widget.getName());
+		widgetResource.setDescription(widget.getDescription());
 		widgetResource.setFilterId(widget.getApplyingFilterId());
 		Optional.ofNullable(widget.getContentOptions()).ifPresent(options -> {
 			ContentParameters contentParameters = new ContentParameters();
-            contentParameters.setType(options.getType());
-            contentParameters.setGadget(options.getGadgetType());
-            contentParameters.setMetadataFields(options.getMetadataFields());
-            contentParameters.setContentFields(options.getContentFields());
-            contentParameters.setItemsCount(options.getItemsCount());
-            contentParameters.setWidgetOptions(options.getWidgetOptions());
-            widgetResource.setContentParameters(contentParameters);
-        });
-        Optional.ofNullable(widget.getAcl()).ifPresent(acl -> {
-            widgetResource.setOwner(acl.getOwnerUserId());
-            widgetResource.setShare(!acl.getEntries().isEmpty());
-        });
-        return widgetResource;
-    };
+			contentParameters.setType(options.getType());
+			contentParameters.setGadget(options.getGadgetType());
+			contentParameters.setMetadataFields(options.getMetadataFields());
+			contentParameters.setContentFields(options.getContentFields());
+			contentParameters.setItemsCount(options.getItemsCount());
+			contentParameters.setWidgetOptions(options.getWidgetOptions());
+			widgetResource.setContentParameters(contentParameters);
+		});
+		Optional.ofNullable(widget.getAcl()).ifPresent(acl -> {
+			widgetResource.setOwner(acl.getOwnerUserId());
+			widgetResource.setShare(!acl.getEntries().isEmpty());
+		});
+		return widgetResource;
+	};
 
 }

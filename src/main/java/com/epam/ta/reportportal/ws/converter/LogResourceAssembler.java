@@ -34,8 +34,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class LogResourceAssembler extends PagedResourcesAssembler<Log, LogResource> {
 
-    @Override
-    public LogResource toResource(Log log) {
-        return LogConverter.TO_RESOURCE.apply(log);
-    }
+	@Override
+	public LogResource toResource(Log log) {
+		return LogConverter.TO_RESOURCE.apply(log);
+	}
 }

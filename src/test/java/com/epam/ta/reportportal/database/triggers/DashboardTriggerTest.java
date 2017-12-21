@@ -17,8 +17,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.database.triggers;
 
 import com.epam.ta.BaseTest;
@@ -55,7 +55,6 @@ public class DashboardTriggerTest extends BaseTest {
 	@Autowired
 	private DashboardRepository dashboardRepository;
 
-	
 	@Test
 	public void testDeleteAsObject() {
 		Dashboard dashboard = dashboardRepository.findOne(DASHBOARD_1_ID);

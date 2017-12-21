@@ -17,15 +17,14 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.ws.resolver;
 
 /**
  * Wrapper for java bean to be aware about mapped json view mapped to it
- * 
+ *
  * @author Andrei Varabyeu
- * 
  */
 public class JacksonViewAware {
 

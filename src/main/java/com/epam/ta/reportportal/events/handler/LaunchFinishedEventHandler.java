@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  *
  *
  * This file is part of EPAM Report Portal.
@@ -21,22 +21,22 @@
 package com.epam.ta.reportportal.events.handler;
 
 import com.epam.ta.reportportal.commons.SendCase;
-import com.epam.ta.reportportal.database.dao.FailReferenceResourceRepository;
+import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
+import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Status;
-import com.epam.ta.reportportal.database.entity.item.FailReferenceResource;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.events.LaunchFinishedEvent;
-import com.epam.ta.reportportal.util.analyzer.AnalyzerConfig;
-import com.epam.ta.reportportal.util.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
@@ -55,7 +55,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Andrei Varabyeu
@@ -65,13 +64,15 @@ public class LaunchFinishedEventHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LaunchFinishedEventHandler.class);
 
-	private final FailReferenceResourceRepository issuesRepository;
-
 	private final TestItemRepository testItemRepository;
 
 	private final LaunchRepository launchRepository;
 
 	private final IIssuesAnalyzer analyzerService;
+
+	private final ILogIndexer logIndexer;
+
+	private final IRetriesLaunchHandler retriesLaunchHandler;
 
 	private final MailServiceFactory emailServiceFactory;
 
@@ -79,20 +80,18 @@ public class LaunchFinishedEventHandler {
 
 	private final Provider<HttpServletRequest> currentRequest;
 
-	private final Integer autoAnalysisDepth;
-
 	@Autowired
-	public LaunchFinishedEventHandler(IIssuesAnalyzer analyzerService, UserRepository userRepository, TestItemRepository testItemRepository,
-			Provider<HttpServletRequest> currentRequest, LaunchRepository launchRepository, MailServiceFactory emailServiceFactory,
-			FailReferenceResourceRepository issuesRepository, AnalyzerConfig analyzerConfig) {
-		this.analyzerService = analyzerService;
-		this.userRepository = userRepository;
+	public LaunchFinishedEventHandler(TestItemRepository testItemRepository, LaunchRepository launchRepository,
+			IIssuesAnalyzer analyzerService, ILogIndexer logIndexer, IRetriesLaunchHandler retriesLaunchHandler,
+			MailServiceFactory emailServiceFactory, UserRepository userRepository, Provider<HttpServletRequest> currentRequest) {
 		this.testItemRepository = testItemRepository;
-		this.currentRequest = currentRequest;
 		this.launchRepository = launchRepository;
+		this.analyzerService = analyzerService;
+		this.logIndexer = logIndexer;
+		this.retriesLaunchHandler = retriesLaunchHandler;
 		this.emailServiceFactory = emailServiceFactory;
-		this.issuesRepository = issuesRepository;
-		this.autoAnalysisDepth = analyzerConfig.getDepth();
+		this.userRepository = userRepository;
+		this.currentRequest = currentRequest;
 	}
 
 	@EventListener
@@ -106,34 +105,37 @@ public class LaunchFinishedEventHandler {
 		boolean waitForAutoAnalysis;
 
 		/* Avoid NULL object processing */
-		if (null == project || null == launch)
+		if (null == project || null == launch) {
 			return;
+		}
 
+		retriesLaunchHandler.handleRetries(launch);
 		Optional<EmailService> emailService = emailServiceFactory.getDefaultEmailService(project.getConfiguration().getEmailConfig());
 
 		/* If AA enabled then waiting results processing */
 		waitForAutoAnalysis = BooleanUtils.toBoolean(project.getConfiguration().getIsAutoAnalyzerEnabled());
+
+		// Do not process debug launches.
+		if (Mode.DEBUG.equals(launch.getMode())) {
+			return;
+		}
+		/* Index items in issue for AA */
+		logIndexer.indexLogs(launch.getId(), testItemRepository.findTestItemWithIssues(launch.getId()));
 
 		/* If email enabled and AA disabled then send results immediately */
 		if (!waitForAutoAnalysis) {
 			emailService.ifPresent(service -> sendEmailRightNow(launch, project, service));
 		}
 
-		// Do not process debug launches.
-		if (launch.getMode().equals(Mode.DEBUG))
-			return;
-		List<FailReferenceResource> resources = issuesRepository.findAllLaunchIssues(launch.getId());
 		if (!project.getConfiguration().getIsAutoAnalyzerEnabled()) {
-			this.clearInvestigatedIssues(resources);
 			return;
 		}
-		List<TestItem> previous = analyzerService.collectPreviousIssues(autoAnalysisDepth, launch.getId(), project.getName());
-		List<TestItem> converted = resources.stream().map(resource -> testItemRepository.findOne(resource.getTestItemRef()))
-				.collect(Collectors.toList());
-		analyzerService.analyze(launch.getId(), converted, previous);
 
-		// Remove already processed items from repository
-		this.clearInvestigatedIssues(resources);
+		List<TestItem> toInvestigateItems = testItemRepository.findInIssueTypeItems(TestItemIssueType.TO_INVESTIGATE.getLocator(),
+				launch.getId()
+		);
+
+		analyzerService.analyze(launch, toInvestigateItems);
 
 		/* Previous email sending cycle was skipped due waiting AA results */
 		if (waitForAutoAnalysis) {
@@ -141,15 +143,6 @@ public class LaunchFinishedEventHandler {
 			Launch freshLaunch = launchRepository.findOne(launch.getId());
 			emailService.ifPresent(it -> sendEmailRightNow(freshLaunch, project, it));
 		}
-	}
-
-	/**
-	 * Clear failReferences repository
-	 *
-	 * @param issues List of references to be deleted
-	 */
-	private void clearInvestigatedIssues(List<FailReferenceResource> issues) {
-		issuesRepository.delete(issues);
 	}
 
 	/**
@@ -172,26 +165,25 @@ public class LaunchFinishedEventHandler {
 	 */
 	static boolean isSuccessRateEnough(Launch launch, SendCase option) {
 		switch (option) {
-		case ALWAYS:
-			return true;
-		case FAILED:
-			return launch.getStatus().equals(Status.FAILED);
-		case TO_INVESTIGATE:
-			return launch.getStatistics().getIssueCounter().getToInvestigateTotal() > 0;
-		case MORE_10:
-			return getSuccessRate(launch) > 0.1;
-		case MORE_20:
-			return getSuccessRate(launch) > 0.2;
-		case MORE_50:
-			return getSuccessRate(launch) > 0.5;
-		default:
-			return false;
+			case ALWAYS:
+				return true;
+			case FAILED:
+				return launch.getStatus().equals(Status.FAILED);
+			case TO_INVESTIGATE:
+				return launch.getStatistics().getIssueCounter().getToInvestigateTotal() > 0;
+			case MORE_10:
+				return getSuccessRate(launch) > 0.1;
+			case MORE_20:
+				return getSuccessRate(launch) > 0.2;
+			case MORE_50:
+				return getSuccessRate(launch) > 0.5;
+			default:
+				return false;
 		}
 	}
 
 	/**
-	 * Validate matching of finished launch name and project settings for
-	 * emailing
+	 * Validate matching of finished launch name and project settings for emailing
 	 *
 	 * @param launch  Launch to be evaluated
 	 * @param oneCase Mail case
@@ -203,8 +195,7 @@ public class LaunchFinishedEventHandler {
 	}
 
 	/**
-	 * Validate matching of finished launch tags and project settings for
-	 * emailing
+	 * Validate matching of finished launch tags and project settings for emailing
 	 *
 	 * @param launch  Launch to be evaluated
 	 * @param oneCase Mail case
@@ -236,10 +227,11 @@ public class LaunchFinishedEventHandler {
 				try {
 					/* Update with static Util resources provider */
 					String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(currentRequest.get()))
-							.replacePath(String.format("/#%s/launches/all/", project.getName())).build().toUriString();
+							.replacePath(String.format("/#%s", project.getName()))
+							.build()
+							.toUriString();
 
-					emailService
-							.sendLaunchFinishNotification(recipientsArray, basicURL + launch.getId(), launch, project.getConfiguration());
+					emailService.sendLaunchFinishNotification(recipientsArray, basicURL, launch, project.getConfiguration());
 				} catch (Exception e) {
 					LOGGER.error("Unable to send email. Error: \n{}", e);
 				}

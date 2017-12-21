@@ -17,25 +17,25 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 package com.epam.ta.reportportal.database.dao;
 
-import java.util.List;
-
 import com.epam.ta.BaseTest;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.fixture.SpringFixture;
+import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.fixture.SpringFixture;
-import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @SpringFixture("testItemsHistroyTest")
-public class TestItemHistoryTest  extends BaseTest {
+public class TestItemHistoryTest extends BaseTest {
 
 	@Rule
 	@Autowired
@@ -55,16 +55,17 @@ public class TestItemHistoryTest  extends BaseTest {
 	public void testloadHistory() {
 
 		List<TestItem> children = testItemRepository.findAllDescendants(PARENT_ITEM_ID);
+		List<String> uniqueIds = children.stream().map(TestItem::getUniqueId).collect(Collectors.toList());
 		Assert.assertEquals(2, children.size());
-		
-		List<TestItem> history = testItemRepository.loadItemsHistory(children, launchesIds, Lists.newArrayList(PARENT_ITEM_ID, PARENT_ITEM_ID_2));
+
+		List<TestItem> history = testItemRepository.loadItemsHistory(uniqueIds, launchesIds);
 		Assert.assertNotNull(history);
-		Assert.assertEquals(3, history.size());
+		Assert.assertEquals(5, history.size());
 	}
 
 	@Test
 	public void testNullValues() {
-		List<TestItem> history = testItemRepository.loadItemsHistory(null, null, null);
+		List<TestItem> history = testItemRepository.loadItemsHistory(null, null);
 		Assert.assertNotNull(history);
 		Assert.assertEquals(history.size(), 0);
 	}

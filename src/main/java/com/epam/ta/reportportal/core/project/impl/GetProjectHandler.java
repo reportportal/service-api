@@ -94,15 +94,19 @@ public class GetProjectHandler implements IGetProjectHandler {
 
 	@Override
 	public List<String> getUserNames(String project, String value) {
-		BusinessRule.expect(value.length() > 2, Predicates.equalTo(true)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value));
+		BusinessRule.expect(value.length() > 2, Predicates.equalTo(true)).verify(
+				ErrorType.INCORRECT_FILTER_PARAMETERS,
+				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
+		);
 		return projectRepository.findProjectUsers(project, value);
 	}
 
 	@Override
 	public com.epam.ta.reportportal.ws.model.Page<UserResource> getUserNames(String value, Pageable pageable) {
-		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value));
+		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true)).verify(
+				ErrorType.INCORRECT_FILTER_PARAMETERS,
+				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
+		);
 		return userResourceAssembler.toPagedResources(userRepository.searchForUserLogin(value, pageable));
 	}
 

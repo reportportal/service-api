@@ -38,21 +38,25 @@ import java.util.stream.Collectors;
  */
 public final class ProjectSettingsConverter {
 
-    private ProjectSettingsConverter() {
-        //static only
-    }
+	private ProjectSettingsConverter() {
+		//static only
+	}
 
-    public static final Function<Project, ProjectSettingsResource> TO_RESOURCE = project -> {
-        Preconditions.checkNotNull(project);
-        ProjectSettingsResource resource = new ProjectSettingsResource();
-        resource.setProjectId(project.getId());
-        Map<String, List<IssueSubTypeResource>> result = project.getConfiguration().getSubTypes()
-                .entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey().getValue(),
-                        entry -> entry.getValue().stream().map(ProjectConverter.TO_SUBTYPE_RESOURCE)
-                                .collect(Collectors.toList())));
-        resource.setSubTypes(result);
-        resource.setStatisticsStrategy(project.getConfiguration().getStatisticsCalculationStrategy().name());
-        return resource;
-    };
+	public static final Function<Project, ProjectSettingsResource> TO_RESOURCE = project -> {
+		Preconditions.checkNotNull(project);
+		ProjectSettingsResource resource = new ProjectSettingsResource();
+		resource.setProjectId(project.getId());
+		Map<String, List<IssueSubTypeResource>> result = project.getConfiguration()
+				.getSubTypes()
+				.entrySet()
+				.stream()
+				.collect(Collectors.toMap(
+						entry -> entry.getKey().getValue(),
+						entry -> entry.getValue().stream().map(ProjectConverter.TO_SUBTYPE_RESOURCE).collect(Collectors.toList())
+				));
+		resource.setSubTypes(result);
+		resource.setStatisticsStrategy(project.getConfiguration().getStatisticsCalculationStrategy().name());
+		return resource;
+	};
 
 }

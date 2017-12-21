@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.widget.content;
 
@@ -38,23 +38,24 @@ import java.util.Map;
 
 /**
  * Filter strategy for Launches comparison chart & Launches duration widget
- * 
+ *
  * @author Dzmitry_Kavalets
  */
-@Service("CompareLaunchesFilterStrategy")
-public class CompareLaunchesFilterStrategy implements BuildFilterStrategy {
+@Service
+public class CompareLaunchesFilterStrategy implements BuildFilterStrategyLatest {
 
 	@Autowired
 	private WidgetContentProvider widgetContentProvider;
 
 	@Override
-	public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+	public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions,
+			String projectName) {
 		Filter filter = extendFilter(userFilter.getFilter(), projectName);
 		return widgetContentProvider.getChartContent(projectName, filter, userFilter.getSelectionOptions(), contentOptions);
 	}
 
-    @Override
-    public Map<String, List<ChartObject>> loadContentOfLatestLaunches(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+	@Override
+	public Map<String, List<ChartObject>> loadContentOfLatest(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
 		Filter filter = extendFilter(userFilter.getFilter(), projectName);
 		return widgetContentProvider.getChartContent(projectName, filter, userFilter.getSelectionOptions(), contentOptions);
 	}
@@ -67,6 +68,5 @@ public class CompareLaunchesFilterStrategy implements BuildFilterStrategy {
 		}
 		return filter;
 	}
-
 
 }

@@ -17,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 package com.epam.ta.reportportal.core.acl.chain;
 
@@ -36,9 +36,8 @@ import java.util.stream.Collectors;
 
 /**
  * Sharing chain element for processing dashboards.
- * 
- * @author Aliaksei_Makayed
  *
+ * @author Aliaksei_Makayed
  */
 @Service("DashboardChainElement")
 public class DashboardChainElement extends ChainElement {
@@ -61,9 +60,12 @@ public class DashboardChainElement extends ChainElement {
 
 	@Override
 	public List<? extends Shareable> getNextElements(List<? extends Shareable> elementsToProcess, String owner) {
-		Set<String> ids = elementsToProcess.stream().map(e -> (Dashboard) e).flatMap(d -> d.getWidgets().stream())
-				.map(Dashboard.WidgetObject::getWidgetId).collect(Collectors.toSet());
-		if (!ids.isEmpty()){
+		Set<String> ids = elementsToProcess.stream()
+				.map(e -> (Dashboard) e)
+				.flatMap(d -> d.getWidgets().stream())
+				.map(Dashboard.WidgetObject::getWidgetId)
+				.collect(Collectors.toSet());
+		if (!ids.isEmpty()) {
 			return widgetRepository.findOnlyOwnedEntities(ids, owner);
 		}
 		return Collections.emptyList();

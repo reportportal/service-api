@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.database.entity.user.UserUtils;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -45,6 +46,9 @@ import java.util.Map;
 import java.util.Properties;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static com.google.common.net.UrlEscapers.urlPathSegmentEscaper;
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Email Sending Service based on {@link JavaMailSender}
@@ -54,6 +58,8 @@ import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 public class EmailService extends JavaMailSenderImpl {
 
 	private static final String FINISH_LAUNCH_EMAIL_SUBJECT = " Report Portal Notification: launch '%s' #%s finished";
+	private static final String URL_FORMAT = "%s/launches/all";
+	private static final String FILTER_TAG_FORMAT = "%s?filter.has.tags=%s";
 	private static final String EMAIL_TEMPLATE_PREFIX = "templates/email/";
 	private TemplateEngine templateEngine;
 
@@ -99,7 +105,7 @@ public class EmailService extends JavaMailSenderImpl {
 	 */
 	public void sendLaunchFinishNotification(final String[] recipients, final String url, final Launch launch,
 			final Project.Configuration settings) {
-		String subject = String.format(FINISH_LAUNCH_EMAIL_SUBJECT, launch.getName(), launch.getNumber());
+		String subject = format(FINISH_LAUNCH_EMAIL_SUBJECT, launch.getName(), launch.getNumber());
 		MimeMessagePreparator preparator = mimeMessage -> {
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
 			message.setSubject(subject);
@@ -118,10 +124,18 @@ public class EmailService extends JavaMailSenderImpl {
 	String mergeFinishLaunchText(String url, Launch launch, Project.Configuration settings) {
 		Map<String, Object> email = new HashMap<>();
 			/* Email fields values */
+		String basicUrl = format(URL_FORMAT, url);
 		email.put("name", launch.getName());
 		email.put("number", String.valueOf(launch.getNumber()));
 		email.put("description", launch.getDescription());
-		email.put("url", url);
+		email.put("url", format("%s/%s", basicUrl, launch.getId()));
+
+			/* Tags with links */
+		if (!CollectionUtils.isEmpty(launch.getTags())) {
+			email.put("tags", launch.getTags()
+					.stream()
+					.collect(toMap(tag -> tag, tag -> format(FILTER_TAG_FORMAT, basicUrl, urlPathSegmentEscaper().escape(tag)))));
+		}
 
 			/* Launch execution statistics */
 		email.put("total", launch.getStatistics().getExecutionCounter().getTotal().toString());
@@ -140,40 +154,45 @@ public class EmailService extends JavaMailSenderImpl {
 		if (launch.getStatistics().getIssueCounter().getProductBug().entrySet().size() > 1) {
 			Map<StatisticSubType, String> pb = new LinkedHashMap<>();
 			launch.getStatistics().getIssueCounter().getProductBug().forEach((k, v) -> {
-				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
+				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL)) {
 					pb.put(settings.getByLocator(k), v.toString());
+				}
 			});
 			email.put("pbInfo", pb);
 		}
 		if (launch.getStatistics().getIssueCounter().getAutomationBug().entrySet().size() > 1) {
 			Map<StatisticSubType, String> ab = new LinkedHashMap<>();
 			launch.getStatistics().getIssueCounter().getAutomationBug().forEach((k, v) -> {
-				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
+				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL)) {
 					ab.put(settings.getByLocator(k), v.toString());
+				}
 			});
 			email.put("abInfo", ab);
 		}
 		if (launch.getStatistics().getIssueCounter().getSystemIssue().entrySet().size() > 1) {
 			Map<StatisticSubType, String> si = new LinkedHashMap<>();
 			launch.getStatistics().getIssueCounter().getSystemIssue().forEach((k, v) -> {
-				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
+				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL)) {
 					si.put(settings.getByLocator(k), v.toString());
+				}
 			});
 			email.put("siInfo", si);
 		}
 		if (launch.getStatistics().getIssueCounter().getNoDefect().entrySet().size() > 1) {
 			Map<StatisticSubType, String> nd = new LinkedHashMap<>();
 			launch.getStatistics().getIssueCounter().getNoDefect().forEach((k, v) -> {
-				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
+				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL)) {
 					nd.put(settings.getByLocator(k), v.toString());
+				}
 			});
 			email.put("ndInfo", nd);
 		}
 		if (launch.getStatistics().getIssueCounter().getToInvestigate().entrySet().size() > 1) {
 			Map<StatisticSubType, String> ti = new LinkedHashMap<>();
 			launch.getStatistics().getIssueCounter().getToInvestigate().forEach((k, v) -> {
-				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL))
+				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL)) {
 					ti.put(settings.getByLocator(k), v.toString());
+				}
 			});
 			email.put("tiInfo", ti);
 		}

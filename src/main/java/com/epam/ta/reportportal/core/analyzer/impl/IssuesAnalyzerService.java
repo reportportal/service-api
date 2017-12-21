@@ -48,6 +48,8 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Strings.emptyToNull;
+import static com.google.common.base.Strings.nullToEmpty;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -173,7 +175,8 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	private void fromRelevantItem(TestItemIssue issue, String relevantItemId) {
 		TestItem relevantItem = testItemRepository.findOne(relevantItemId);
 		if (relevantItem != null && relevantItem.getIssue() != null) {
-			issue.setIssueDescription(relevantItem.getIssue().getIssueDescription());
+			issue.setIssueDescription(
+					emptyToNull(nullToEmpty(issue.getIssueDescription()) + nullToEmpty(relevantItem.getIssue().getIssueDescription())));
 			issue.setExternalSystemIssues(relevantItem.getIssue().getExternalSystemIssues());
 		}
 	}

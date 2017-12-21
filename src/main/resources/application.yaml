@@ -21,7 +21,7 @@ spring:
     org.quartz.threadPool.threadCount: "1"
 
     org.quartz.jobStore.isClustered: "true"
-    org.quartz.jobStore.clusterCheckinInterval: "1800000"
+    org.quartz.jobStore.clusterCheckinInterval: "180000"
     org.quartz.scheduler.instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
     org.quartz.scheduler.instanceName: reportportal
 
@@ -53,7 +53,7 @@ logging:
     org.springframework.data.mongodb.core.mapping: error
     org.springframework.context.support: warn
     org.springframework.data.mongodb.core.index: warn
-    com.novemberain.quartz : warn
+    com.novemberain.quartz : debug
 
 ## Consul as service registry
 ---

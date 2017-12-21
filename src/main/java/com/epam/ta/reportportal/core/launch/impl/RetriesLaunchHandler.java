@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacade;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
+import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
@@ -55,6 +56,9 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 
 	@Autowired
 	private TestItemRepository testItemRepository;
+
+	@Autowired
+	private LaunchRepository launchRepository;
 
 	@Autowired
 	private StatisticsFacadeFactory statisticsFacadeFactory;
@@ -91,6 +95,10 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 		TestItem lastRetry = moveRetries(retries, statisticsFacade);
 		testItemRepository.delete(retries);
 		testItemRepository.save(lastRetry);
+
+		statisticsFacade.updateParentStatusFromStatistics(lastRetry);
+		statisticsFacade.updateLaunchFromStatistics(launchRepository.findOne(lastRetry.getLaunchRef()));
+
 	}
 
 	/**

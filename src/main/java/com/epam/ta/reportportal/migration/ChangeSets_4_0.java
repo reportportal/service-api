@@ -81,4 +81,9 @@ public class ChangeSets_4_0 {
 		});
 	}
 
+	@ChangeSet(order = "4.0-3", id = "v4.0-Add log indexing checkpoint ID", author = "isharamet")
+	public void addLogIndexingCheckpoint(MongoTemplate mongoTemplate) {
+		mongoTemplate.createCollection("logIndexingCheckpoint");
+	}
+
 }

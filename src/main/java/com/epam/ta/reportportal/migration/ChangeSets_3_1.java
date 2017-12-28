@@ -28,7 +28,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
-import java.io.IOException;
 import java.util.UUID;
 
 /**
@@ -48,10 +47,4 @@ public class ChangeSets_3_1 {
 				new Update().set("instanceId", UUID.randomUUID().toString()), "serverSettings"
 		);
 	}
-
-	@ChangeSet(order = "3.1.0-3", id = "v3.1.3-Add log indexing checkpoint ID", author = "isharamet")
-	public void addLogIndexingCheckpoint(MongoTemplate mongoTemplate) {
-		mongoTemplate.createCollection("logIndexingCheckpoint");
-	}
-
 }

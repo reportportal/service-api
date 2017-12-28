@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.analyzer.impl;
 
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
@@ -33,12 +34,15 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -47,12 +51,17 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.util.CloseableIterator;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.policy.TimeoutRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.util.Predicates.CAN_BE_INDEXED;
@@ -66,6 +75,8 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
  */
 @Service("indexerService")
 public class LogIndexerService implements ILogIndexer {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(LogIndexerService.class);
 
 	public static final int BATCH_SIZE = 1000;
 
@@ -88,6 +99,17 @@ public class LogIndexerService implements ILogIndexer {
 
 	@Autowired
 	private LogRepository logRepository;
+
+	private RetryTemplate retrier;
+
+	public LogIndexerService() {
+		retrier = new RetryTemplate();
+		TimeoutRetryPolicy timeoutRetryPolicy = new TimeoutRetryPolicy();
+		timeoutRetryPolicy.setTimeout(TimeUnit.SECONDS.toMillis(180L));
+		retrier.setRetryPolicy(timeoutRetryPolicy);
+		retrier.setBackOffPolicy(new FixedBackOffPolicy());
+		retrier.setThrowLastExceptionOnExhausted(true);
+	}
 
 	@EventListener
 	public void onApplicationEvent(ContextRefreshedEvent event) {
@@ -134,10 +156,14 @@ public class LogIndexerService implements ILogIndexer {
 
 	@Override
 	public void indexAllLogs() {
+		retrier.execute(context -> {
+			boolean hasClients = analyzerServiceClient.hasClients();
+			LOGGER.info("Checking for analyzer clients availability to start logs indexing.");
+			BusinessRule.expect(hasClients, Predicate.isEqual(true))
+					.verify(ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer's clients.");
+			return hasClients;
+		});
 		String checkpoint = getLastCheckpoint();
-		if (!analyzerServiceClient.hasClients()) {
-			return;
-		}
 		try (CloseableIterator<Log> logIterator = getLogIterator(checkpoint)) {
 			List<IndexLaunch> rq = new ArrayList<>(BATCH_SIZE);
 			while (logIterator.hasNext()) {

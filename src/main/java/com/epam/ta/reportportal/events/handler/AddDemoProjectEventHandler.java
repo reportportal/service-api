@@ -46,7 +46,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Calendar;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 /**
@@ -58,7 +57,7 @@ import java.util.function.Supplier;
 @Component
 public class AddDemoProjectEventHandler implements ApplicationListener<ContextRefreshedEvent> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AddDemoProjectEventHandler.class);
-	private static final AtomicBoolean IMPORTED_FLAG = new AtomicBoolean(false);
+	private static final String SERVER_SETTINGS_COLLECTION = "serverSettings";
 	private static final String DEFAULT_PROFILE_ID = "default";
 
 	@Value("${rp.email.server}")
@@ -166,46 +165,34 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		/*
-		 * if we didn't import demo user and password, import them and set flag
-		 * to TRUE
+		 * if we didn't import default setting import them and set flag
 		 */
-		if (IMPORTED_FLAG.compareAndSet(false, true)) {
+		if (null != serverSettingsRepository.findOne(DEFAULT_PROFILE.get().getId())) {
 			// Save non-existing user photo
 			userRepository.uploadUserPhoto(Constants.NONAME_USER.toString(), NONAME_USER_PHOTO.get());
 
 			// Super administrator
-			if (null == userRepository.findOne(DEFAULT_ADMIN.get().getLogin())) {
-				User user = DEFAULT_ADMIN.get();
-				String photoId = userRepository.uploadUserPhoto(user.getLogin(), DEFAULT_ADMIN_PHOTO.get());
-				user.setPhotoId(photoId);
+			User admin = DEFAULT_ADMIN.get();
+			String adminPhotoId = userRepository.uploadUserPhoto(admin.getLogin(), DEFAULT_ADMIN_PHOTO.get());
+			admin.setPhotoId(adminPhotoId);
 
-				projectRepository.save(personalProjectService.generatePersonalProject(user));
-				userRepository.save(user);
-			}
+			projectRepository.save(personalProjectService.generatePersonalProject(admin));
+			userRepository.save(admin);
 
 			// Down-graded user (previous administrator)
-			if (null == userRepository.findOne(DEFAULT_USER.get().getLogin())) {
-				User user = DEFAULT_USER.get();
-				String photoId = userRepository.uploadUserPhoto(user.getLogin(), DEMO_USER_PHOTO.get());
-				user.setPhotoId(photoId);
+			User user = DEFAULT_USER.get();
+			String photoId = userRepository.uploadUserPhoto(user.getLogin(), DEMO_USER_PHOTO.get());
+			user.setPhotoId(photoId);
 
-				projectRepository.save(personalProjectService.generatePersonalProject(user));
-				userRepository.save(user);
-			}
+			projectRepository.save(personalProjectService.generatePersonalProject(user));
+			userRepository.save(user);
 
 			/* Create server settings repository with default profile */
-			ServerSettings serverSettings = serverSettingsRepository.findOne(DEFAULT_PROFILE.get().getId());
-			if (null == serverSettings) {
-				serverSettings = DEFAULT_PROFILE.get();
-				serverSettingsRepository.save(serverSettings);
-			}
-			if (null == serverSettings.getAnalyticsDetails()) {
-				serverSettings.setAnalyticsDetails(
-						ImmutableMap.<String, AnalyticsDetails>builder().put("all", new AnalyticsDetails(enableByDefault)).build());
-				serverSettingsRepository.save(serverSettings);
-			}
-
+			ServerSettings serverSettings = DEFAULT_PROFILE.get();
+			serverSettingsRepository.save(serverSettings);
+			serverSettings.setAnalyticsDetails(
+					ImmutableMap.<String, AnalyticsDetails>builder().put("all", new AnalyticsDetails(enableByDefault)).build());
+			serverSettingsRepository.save(serverSettings);
 		}
 	}
-
 }

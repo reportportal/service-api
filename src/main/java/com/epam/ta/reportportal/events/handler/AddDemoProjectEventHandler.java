@@ -57,7 +57,6 @@ import java.util.function.Supplier;
 @Component
 public class AddDemoProjectEventHandler implements ApplicationListener<ContextRefreshedEvent> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AddDemoProjectEventHandler.class);
-	private static final String SERVER_SETTINGS_COLLECTION = "serverSettings";
 	private static final String DEFAULT_PROFILE_ID = "default";
 
 	@Value("${rp.email.server}")

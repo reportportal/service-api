@@ -45,7 +45,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
@@ -152,20 +152,17 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 	}
 
 	@Override
-	public OperationCompletionRS saveAnalyticsSettings(String profileId, AnalyticsResource request) {
-		AnalyticsDetails analyticsDetails;
-		String analyticsType = request.getType();
+	public OperationCompletionRS saveAnalyticsSettings(String profileId, AnalyticsResource analyticsResource) {
+		String analyticsType = analyticsResource.getType();
 		ServerSettings settings = findServerSettings(profileId);
-		Map<String, AnalyticsDetails> serverAnalyticsDetails = ofNullable(settings.getAnalyticsDetails()).orElse(new HashMap<>());
-		if (serverAnalyticsDetails.containsKey(analyticsType)) {
-			analyticsDetails = serverAnalyticsDetails.get(analyticsType);
-		} else {
-			analyticsDetails = new AnalyticsDetails();
-		}
-		analyticsDetails.setEnabled(ofNullable(request.getEnabled()).orElse(false));
+		Map<String, AnalyticsDetails> serverAnalyticsDetails = ofNullable(settings.getAnalyticsDetails()).orElse(Collections.emptyMap());
+
+		AnalyticsDetails analyticsDetails = ofNullable(serverAnalyticsDetails.get(analyticsType)).orElse(new AnalyticsDetails());
+		analyticsDetails.setEnabled(ofNullable(analyticsResource.getEnabled()).orElse(false));
 		serverAnalyticsDetails.put(analyticsType, analyticsDetails);
 		settings.setAnalyticsDetails(serverAnalyticsDetails);
-		repository.partialUpdate(settings);
+
+		repository.save(settings);
 		return new OperationCompletionRS("Server Settings with profile '" + profileId + "' is successfully updated.");
 	}
 

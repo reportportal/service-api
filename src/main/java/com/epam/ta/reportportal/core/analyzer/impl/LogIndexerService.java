@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -109,6 +110,11 @@ public class LogIndexerService implements ILogIndexer {
 		retrier.setRetryPolicy(timeoutRetryPolicy);
 		retrier.setBackOffPolicy(new FixedBackOffPolicy());
 		retrier.setThrowLastExceptionOnExhausted(true);
+	}
+
+	@VisibleForTesting
+	protected void setRetrier(RetryTemplate retrier) {
+		this.retrier = retrier;
 	}
 
 	@EventListener

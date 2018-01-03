@@ -43,7 +43,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.*;
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 @Service
 public class AnalyzerServiceClient implements IAnalyzerServiceClient {
@@ -85,8 +84,14 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	}
 
 	@Override
-	public Set<AnalyzedItemRs> analyze(IndexLaunch rq) {
-		return analyzerInstances.get().stream().flatMap(instance -> analyze(instance, rq).stream()).collect(toSet());
+	public Map<String, List<AnalyzedItemRs>> analyze(IndexLaunch rq) {
+		Map<String, List<AnalyzedItemRs>> result = new HashMap<>();
+		analyzerInstances.get().forEach(instance -> {
+			List<AnalyzedItemRs> analyzed = analyze(instance, rq);
+			result.put(instance.getMetadata().get(ClientUtils.ANALYZER_KEY), analyzed);
+			removeAnalyzedFromRq(rq, analyzed);
+		});
+		return result;
 	}
 
 	@Override
@@ -107,6 +112,24 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 		}
 	}
 
+	/**
+	 * Removes form rq analyzed items to make rq for the next analyzer.
+	 *
+	 * @param rq       Request
+	 * @param analyzed List of analyzer items
+	 */
+	private void removeAnalyzedFromRq(IndexLaunch rq, List<AnalyzedItemRs> analyzed) {
+		List<String> analyzedItemIds = analyzed.stream().map(AnalyzedItemRs::getItemId).collect(toList());
+		rq.getTestItems().removeIf(it -> analyzedItemIds.contains(it.getTestItemId()));
+	}
+
+	/**
+	 * Removes items with specified ids from index
+	 *
+	 * @param instance Analyzer instance
+	 * @param project  Project/Index in ES
+	 * @param ids      Ids to be removed
+	 */
 	private void cleanIndex(ServiceInstance instance, String project, List<String> ids) {
 		try {
 			restTemplate.put(instance.getUri().toString() + INDEX_PATH + "/delete",

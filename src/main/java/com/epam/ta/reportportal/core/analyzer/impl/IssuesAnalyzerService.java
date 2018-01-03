@@ -40,6 +40,7 @@ import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
 import com.epam.ta.reportportal.events.TicketAttachedEvent;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -94,16 +95,19 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	public void analyze(Launch launch, List<TestItem> testItems) {
 		if (launch != null) {
 			List<IndexTestItem> rqTestItems = prepareItems(testItems);
-			Set<AnalyzedItemRs> rs = analyze(rqTestItems, launch);
-			if (!isEmpty(rs)) {
-				List<TestItem> updatedItems = updateTestItems(rs, testItems, launch.getProjectRef());
+			Map<String, List<AnalyzedItemRs>> rs = analyze(rqTestItems, launch);
+			if (!MapUtils.isEmpty(rs)) {
+				List<TestItem> updatedItems = rs.entrySet()
+						.stream()
+						.flatMap(it -> updateTestItems(it.getKey(), it.getValue(), testItems, launch.getProjectRef()).stream())
+						.collect(toList());
 				saveUpdatedItems(updatedItems, launch);
 				logIndexer.indexLogs(launch.getId(), updatedItems);
 			}
 		}
 	}
 
-	private Set<AnalyzedItemRs> analyze(List<IndexTestItem> rqTestItems, Launch launch) {
+	private Map<String, List<AnalyzedItemRs>> analyze(List<IndexTestItem> rqTestItems, Launch launch) {
 		if (!rqTestItems.isEmpty()) {
 			IndexLaunch rqLaunch = new IndexLaunch();
 			rqLaunch.setLaunchId(launch.getId());
@@ -112,7 +116,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 			rqLaunch.setTestItems(rqTestItems);
 			return analyzerServiceClient.analyze(rqLaunch);
 		}
-		return Collections.emptySet();
+		return Collections.emptyMap();
 	}
 
 	/**
@@ -136,7 +140,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	 * @param testItems items to be updated
 	 * @return List of updated items
 	 */
-	private List<TestItem> updateTestItems(Set<AnalyzedItemRs> rs, List<TestItem> testItems, String project) {
+	private List<TestItem> updateTestItems(String analyzerInstance, List<AnalyzedItemRs> rs, List<TestItem> testItems, String project) {
 		final Map<IssueDefinition, TestItem> forEvents = new HashMap<>();
 		List<TestItem> beforeUpdate = new ArrayList<>(rs.size());
 		List<TestItem> updatedItems = rs.stream().map(analyzed -> {
@@ -154,8 +158,8 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 			});
 			return toUpdate;
 		}).filter(Optional::isPresent).map(Optional::get).collect(toList());
-		eventPublisher.publishEvent(new ItemIssueTypeDefined(forEvents, null, project));
-		eventPublisher.publishEvent(new TicketAttachedEvent(beforeUpdate, updatedItems, null, project));
+		eventPublisher.publishEvent(new ItemIssueTypeDefined(forEvents, analyzerInstance, project));
+		eventPublisher.publishEvent(new TicketAttachedEvent(beforeUpdate, updatedItems, analyzerInstance, project));
 		return updatedItems;
 	}
 

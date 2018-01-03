@@ -166,14 +166,16 @@ public class IssuesAnalyzerServiceTest {
 		return indexLaunch;
 	}
 
-	private Set<AnalyzedItemRs> analyzedItems(int itemsCount) {
-		Set<AnalyzedItemRs> list = new HashSet<>();
+	private Map<String, List<AnalyzedItemRs>> analyzedItems(int itemsCount) {
+		Map<String, List<AnalyzedItemRs>> res = new HashMap<>();
+		List<AnalyzedItemRs> list = new ArrayList<>();
 		for (int i = 0; i < itemsCount; i++) {
 			AnalyzedItemRs testItem = new AnalyzedItemRs();
 			testItem.setItemId(String.valueOf(i));
 			testItem.setIssueType(PRODUCT_BUG.getLocator());
 			list.add(testItem);
 		}
-		return list;
+		res.put("test", list);
+		return res;
 	}
 }

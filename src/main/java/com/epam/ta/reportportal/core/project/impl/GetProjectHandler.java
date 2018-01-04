@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.ProjectResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.UserResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -48,6 +49,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
@@ -80,16 +82,16 @@ public class GetProjectHandler implements IGetProjectHandler {
 
 	@Override
 	public Iterable<UserResource> getProjectUsers(String project, @FilterFor(User.class) Filter filter, Pageable pageable) {
-		Project dbProject = projectRepository.findOne(project);
-		if (null == dbProject || null == dbProject.getUsers()) {
+		Optional<Project> dbProject = projectRepository.findById(project);
+		if (!dbProject.isPresent() || null == dbProject.get().getUsers()) {
 			return emptyList();
 		}
-		String criteria = dbProject.getUsers().stream().map(Project.UserConfig::getLogin).collect(joining(","));
+		String criteria = dbProject.get().getUsers().stream().map(Project.UserConfig::getLogin).collect(joining(","));
 		filter.addCondition(new FilterCondition(Condition.IN, false, criteria, User.LOGIN));
 		// Filter filter = new Filter(User.class, Condition.IN, false, criteria,
 		// User.LOGIN);
 		Page<User> users = userRepository.findByFilterExcluding(filter, pageable, "email");
-		return userResourceAssembler.toPagedResources(users, dbProject);
+		return userResourceAssembler.toPagedResources(users, dbProject.get());
 	}
 
 	@Override
@@ -112,8 +114,7 @@ public class GetProjectHandler implements IGetProjectHandler {
 
 	@Override
 	public ProjectResource getProject(String project) {
-		Project dbProject = projectRepository.findOne(project);
-		BusinessRule.expect(dbProject, Predicates.notNull()).verify(ErrorType.PROJECT_NOT_FOUND, project);
+		Project dbProject = projectRepository.findById(project).orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, project));
 
 		// ======================================================
 		// TODO !!!!!! UPDATE after new statistics !!!!!!
@@ -121,7 +122,7 @@ public class GetProjectHandler implements IGetProjectHandler {
 
 		if (null != dbProject.getConfiguration().getExternalSystem() && !dbProject.getConfiguration().getExternalSystem().isEmpty()
 				&& null != dbProject.getConfiguration().getSubTypes()) {
-			Iterable<ExternalSystem> systems = externalSystemRepository.findAll(dbProject.getConfiguration().getExternalSystem());
+			Iterable<ExternalSystem> systems = externalSystemRepository.findAllById(dbProject.getConfiguration().getExternalSystem());
 			return projectResourceAssembler.toResource(dbProject, systems);
 		}
 

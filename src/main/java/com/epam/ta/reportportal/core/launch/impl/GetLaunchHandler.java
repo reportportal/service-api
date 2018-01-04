@@ -1,20 +1,20 @@
 /*
  * Copyright 2016 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -85,7 +86,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 	public LaunchResource getLaunch(String launchId, String userName, String projectName) {
 		Launch launch = validate(launchId, projectName);
 		if (launch.getMode() == DEBUG) {
-			Project project = projectRepository.findOne(projectName);
+			Project project = projectRepository.findById(projectName).get();
 			final Project.UserConfig userConfig = findUserConfigByLogin(project, userName);
 			expect(userConfig.getProjectRole(), not(equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
 		}
@@ -132,8 +133,11 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 		validateModeConditions(filter);
 		addLaunchCommonCriteria(DEFAULT, filter, projectName);
 		Page<LaunchResource> resources = launchRepository.findLatestLaunches(filter, pageable).map(LaunchConverter.TO_RESOURCE::apply);
-		return new com.epam.ta.reportportal.ws.model.Page<>(resources.getContent(), resources.getSize(), resources.getNumber() + 1,
-				resources.getTotalElements(), resources.getTotalPages()
+		return new com.epam.ta.reportportal.ws.model.Page<>(resources.getContent(),
+				resources.getSize(),
+				resources.getNumber() + 1,
+				resources.getTotalElements(),
+				resources.getTotalPages()
 		);
 	}
 
@@ -257,8 +261,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 	 * @return Launch - validated launch object if not BusinessRule exceptions
 	 */
 	private Launch validate(String launchId, String projectName) {
-		Launch launch = launchRepository.findOne(launchId);
-		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);
+		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 
 		expect(launch.getProjectRef(), equalTo(projectName)).verify(ErrorType.FORBIDDEN_OPERATION,
 				formattedSupplier("Specified launch with id '{}' not referenced to specified project '{}'", launchId, projectName));

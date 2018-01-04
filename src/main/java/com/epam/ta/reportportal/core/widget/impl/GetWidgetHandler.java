@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.sharing.Shareable;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.entity.widget.Widget;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.WidgetResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
@@ -100,8 +101,7 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 
 	@Override
 	public WidgetResource getWidget(String widgetId, String userName, String project) {
-		Widget widget = widgetRepository.findOne(widgetId);
-		expect(widget, notNull()).verify(WIDGET_NOT_FOUND, widgetId);
+		Widget widget = widgetRepository.findById(widgetId).orElseThrow(() -> new ReportPortalException(WIDGET_NOT_FOUND, widgetId));
 		expect(widget.getProjectName(), equalTo(project)).verify(ACCESS_DENIED);
 
 		/*
@@ -230,6 +230,6 @@ public class GetWidgetHandler implements IGetWidgetHandler {
 	 * @return
 	 */
 	private Optional<UserFilter> findUserFilter(String filterId) {
-		return Optional.ofNullable(filterId == null ? null : userFilterRepository.findOne(filterId));
+		return Optional.ofNullable(filterId).flatMap(userFilterRepository::findById);
 	}
 }

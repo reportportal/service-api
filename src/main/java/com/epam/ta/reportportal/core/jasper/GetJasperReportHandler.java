@@ -114,23 +114,23 @@ public class GetJasperReportHandler implements IGetJasperReportHandler {
 
 	@Override
 	public JasperPrint getLaunchDetails(String launchId, String username) {
-		Launch launch = launchRepository.findOne(launchId);
-		BusinessRule.expect(launch, Predicates.notNull()).verify(ErrorType.LAUNCH_NOT_FOUND, launchId);
-		BusinessRule.expect(launch, Predicates.not(Preconditions.IN_PROGRESS))
+		Optional<Launch> launch = launchRepository.findById(launchId);
+		BusinessRule.expect(launch, Predicates.isPresent()).verify(ErrorType.LAUNCH_NOT_FOUND, launchId);
+		BusinessRule.expect(launch.get(), Predicates.not(Preconditions.IN_PROGRESS))
 				.verify(ErrorType.FORBIDDEN_OPERATION,
 						Suppliers.formattedSupplier("Launch '{}' has IN_PROGRESS status. Impossible to export such elements.", launchId)
 				);
-		User user = userRepository.findOne(username);
-		BusinessRule.expect(user, Predicates.notNull()).verify(ErrorType.USER_NOT_FOUND, username);
-		Map<String, Object> params = processLaunchParams(launch);
-		User owner = userRepository.findOne(launch.getUserRef());
+		Optional<User> user = userRepository.findById(username);
+		BusinessRule.expect(user, Predicates.isPresent()).verify(ErrorType.USER_NOT_FOUND, username);
+		Map<String, Object> params = processLaunchParams(launch.get());
+		Optional<User> owner = userRepository.findById(launch.get().getUserRef());
 		/* Check if launch owner still in system if not - setup principal */
-		if (null != owner) {
-			params.put(OWNER, owner.getFullName());
+		if (owner.isPresent()) {
+			params.put(OWNER, owner.get().getFullName());
 		} else {
-			params.put(OWNER, user.getFullName());
+			params.put(OWNER, user.get().getFullName());
 		}
-		params.put(TEST_ITEMS, dataProvider.getReportSource(launch));
+		params.put(TEST_ITEMS, dataProvider.getReportSource(launch.get()));
 		return reportRender.generateReportPrint(params, new JREmptyDataSource());
 	}
 

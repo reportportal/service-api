@@ -41,8 +41,6 @@ import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
 import com.epam.ta.reportportal.auth.permissions.ProjectAuthority;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.AuthoritiesExtractor;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.FixedAuthoritiesExtractor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDecisionManager;

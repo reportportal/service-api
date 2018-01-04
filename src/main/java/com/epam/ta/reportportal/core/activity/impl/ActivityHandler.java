@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.ActivityResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -72,7 +73,7 @@ public class ActivityHandler implements IActivityHandler {
 
 	@Override
 	public List<ActivityResource> getActivitiesHistory(String projectName, Filter filter, Pageable pageable) {
-		expect(projectRepository.exists(projectName), equalTo(true)).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
+		expect(projectRepository.existsById(projectName), equalTo(true)).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
 		return activityRepository.findActivitiesByProjectId(projectName, filter, pageable)
 				.stream()
 				.map(activityResourceAssembler::toResource)
@@ -82,8 +83,8 @@ public class ActivityHandler implements IActivityHandler {
 	@Override
 	public ActivityResource getActivity(String projectName, String activityId) {
 		expect(activityId, notNull()).verify(ErrorType.ACTIVITY_NOT_FOUND, activityId);
-		Activity activity = activityRepository.findOne(activityId);
-		expect(activity, notNull()).verify(ErrorType.ACTIVITY_NOT_FOUND, activityId);
+		Activity activity = activityRepository.findById(activityId).orElseThrow(() -> new ReportPortalException(ErrorType.ACTIVITY_NOT_FOUND, activityId));
+
 		expect(projectName, equalTo(activity.getProjectRef())).verify(ErrorType.TEST_ITEM_NOT_FOUND, activityId);
 		return activityResourceAssembler.toResource(activity);
 	}
@@ -91,7 +92,7 @@ public class ActivityHandler implements IActivityHandler {
 	@Override
 	public com.epam.ta.reportportal.ws.model.Page<ActivityResource> getItemActivities(String projectName, Filter filter,
 			Pageable pageable) {
-		expect(projectRepository.exists(projectName), equalTo(true)).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
+		expect(projectRepository.existsById(projectName), equalTo(true)).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
 		filter.addCondition(new FilterCondition(EQUALS, false, projectName, PROJECT_REF));
 		Page<Activity> page = activityRepository.findByFilter(filter, pageable);
 		return activityResourceAssembler.toPagedResources(page);
@@ -99,9 +100,9 @@ public class ActivityHandler implements IActivityHandler {
 
 	@Override
 	public List<ActivityResource> getItemActivities(String projectName, String itemId, Filter filter, Pageable pageable) {
-		TestItem testItem = testItemRepository.findOne(itemId);
-		expect(testItem, notNull()).verify(ErrorType.TEST_ITEM_NOT_FOUND, itemId);
-		String projectRef = launchRepository.findOne(testItem.getLaunchRef()).getProjectRef();
+		TestItem testItem = testItemRepository.findById(itemId).orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
+
+		String projectRef = launchRepository.findById(testItem.getLaunchRef()).get().getProjectRef();
 		expect(projectName, equalTo(projectRef)).verify(ErrorType.TEST_ITEM_NOT_FOUND, itemId);
 		return activityRepository.findActivitiesByTestItemId(itemId, filter, pageable)
 				.stream()

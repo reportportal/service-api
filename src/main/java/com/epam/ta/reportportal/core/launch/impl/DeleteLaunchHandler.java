@@ -1,20 +1,20 @@
 /*
  * Copyright 2016 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -43,7 +43,8 @@ import java.util.List;
 
 import static com.epam.ta.reportportal.commons.Preconditions.IN_PROGRESS;
 import static com.epam.ta.reportportal.commons.Preconditions.hasProjectRoles;
-import static com.epam.ta.reportportal.commons.Predicates.*;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
@@ -84,13 +85,11 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 
 	@Override
 	public OperationCompletionRS deleteLaunch(String launchId, String projectName, String principal) {
-		Launch launch = launchRepository.findOne(launchId);
-		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);
+		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+		Project project = projectRepository.findById(projectName)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 
-		Project project = projectRepository.findOne(projectName);
-		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
-
-		User user = userRepository.findOne(principal);
+		User user = userRepository.findById(principal).get();
 		validate(launch, user, project);
 		try {
 			launchRepository.delete(singletonList(launchId));
@@ -106,8 +105,8 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 	public OperationCompletionRS deleteLaunches(String[] ids, String projectName, String userName) {
 		final List<String> toDelete = asList(ids);
 		final List<Launch> launches = launchRepository.find(toDelete);
-		final User user = userRepository.findOne(userName);
-		final Project project = projectRepository.findOne(projectName);
+		final User user = userRepository.findById(userName).get();
+		final Project project = projectRepository.findById(projectName).get();
 		launches.forEach(launch -> validate(launch, user, project));
 		launches.forEach(launch -> logIndexer.cleanIndex(projectName,
 				itemRepository.findIdsNotInIssueType(TO_INVESTIGATE.getLocator(), launch.getId())

@@ -1,14 +1,20 @@
 buildscript {
+    ext {
+        springBootVersion = '2.0.0.M7'
+    }
     repositories {
         mavenCentral()
         jcenter()
         maven {
             url "https://maven.eveoh.nl/content/repositories/releases"
         }
+
+        maven { url 'https://repo.spring.io/libs-milestone' }
+
     }
     dependencies {
         classpath "io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE"
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.9.RELEASE")
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath 'com.bmuschko:gradle-docker-plugin:3.0.12'
     }
 }
@@ -53,6 +59,8 @@ repositories {
     maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
     maven { url "https://dl.bintray.com/michaelklishin/maven/" }
 
+    maven { url 'https://repo.spring.io/libs-milestone' }
+
     if (!releaseMode) {
         maven { url 'https://jitpack.io' }
     }
@@ -60,8 +68,8 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Edgware.RELEASE"
-        mavenBom "org.springframework.boot:spring-boot-dependencies:1.5.9.RELEASE"
+        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Finchley.M4"
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
     }
 }
 
@@ -96,7 +104,6 @@ dependencies {
 //    compile 'org.springframework.cloud:spring-cloud-config-client'
     compile 'org.springframework.retry:spring-retry'
 
-    compile 'org.springframework.cloud:spring-cloud-starter-eureka'
     compile 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
     compile 'org.springframework.cloud:spring-cloud-starter-security'
 

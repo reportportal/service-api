@@ -73,6 +73,6 @@ public class DashboardChainElement extends ChainElement {
 
 	@Override
 	public void saveElements(List<? extends Shareable> elementsToProcess) {
-		dashboardRepository.save(elementsToProcess.stream().map(input -> (Dashboard) input).collect(Collectors.toList()));
+		dashboardRepository.saveAll(elementsToProcess.stream().map(input -> (Dashboard) input).collect(Collectors.toList()));
 	}
 }

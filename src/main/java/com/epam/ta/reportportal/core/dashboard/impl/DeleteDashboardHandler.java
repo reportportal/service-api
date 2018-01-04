@@ -64,23 +64,21 @@ public class DeleteDashboardHandler implements IDeleteDashboardHandler {
 
 	@Override
 	public OperationCompletionRS deleteDashboard(String dashboardId, String userName, String projectName, UserRole userRole) {
-		Dashboard dashboard = dashboardRepository.findOne(dashboardId);
-		BusinessRule.expect(dashboard, Predicates.notNull()).verify(ErrorType.DASHBOARD_NOT_FOUND, dashboardId);
+		Dashboard dashboard = dashboardRepository.findById(dashboardId).orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND, dashboardId));
+
 		Map<String, ProjectRole> roles = projectRepository.findProjectRoles(userName);
 		AclUtils.isAllowedToEdit(dashboard.getAcl(), userName, roles, dashboard.getName(), userRole);
 		BusinessRule.expect(dashboard.getProjectName(), Predicates.equalTo(projectName)).verify(ErrorType.ACCESS_DENIED);
 
 		try {
-			dashboardRepository.delete(dashboardId);
+			dashboardRepository.deleteById(dashboardId);
 		} catch (Exception e) {
 			throw new ReportPortalException("Error during deleting dashboard item", e);
 		}
 		eventPublisher.publishEvent(new DashboardDeletedEvent(dashboard, userName));
 		OperationCompletionRS response = new OperationCompletionRS();
-		StringBuilder msg = new StringBuilder("Dashboard with ID = '");
-		msg.append(dashboardId);
-		msg.append("' successfully deleted.");
-		response.setResultMessage(msg.toString());
+		String msg = "Dashboard with ID = '" + dashboardId + "' successfully deleted.";
+		response.setResultMessage(msg);
 
 		return response;
 	}

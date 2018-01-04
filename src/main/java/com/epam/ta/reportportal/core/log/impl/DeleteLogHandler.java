@@ -36,6 +36,8 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 import static com.epam.ta.reportportal.commons.Preconditions.hasProjectRoles;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -88,14 +90,14 @@ public class DeleteLogHandler implements IDeleteLogHandler {
 
 	@Override
 	public OperationCompletionRS deleteLog(String logId, String projectName, String userName) {
-		User user = userRepository.findOne(userName);
-		expect(user, notNull()).verify(ErrorType.USER_NOT_FOUND, userName);
+		Optional<User> user = userRepository.findById(userName);
+		expect(user, isPresent()).verify(ErrorType.USER_NOT_FOUND, userName);
 
-		Project project = projectRepository.findOne(projectName);
-		expect(project, notNull()).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
+		Optional<Project> project = projectRepository.findById(projectName);
+		expect(project, isPresent()).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
 
 		Log log = validate(logId, projectName);
-		validateRoles(log, user, project);
+		validateRoles(log, user.get(), project.get());
 		try {
 			logRepository.delete(log);
 		} catch (Exception exc) {
@@ -113,15 +115,14 @@ public class DeleteLogHandler implements IDeleteLogHandler {
 	 * @return Log
 	 */
 	private Log validate(String logId, String projectName) {
-		Log log = logRepository.findOne(logId);
-		expect(log, notNull()).verify(ErrorType.LOG_NOT_FOUND, logId);
+		Log log = logRepository.findById(logId).orElseThrow(() -> new ReportPortalException(ErrorType.LOG_NOT_FOUND, logId));
 
-		final TestItem testItem = testItemRepository.findOne(log.getTestItemRef());
+		final TestItem testItem = testItemRepository.findById(log.getTestItemRef()).get();
 		expect(testItem, not(Preconditions.IN_PROGRESS)).verify(ErrorType.TEST_ITEM_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete log '{}' when test item '{}' in progress state", log.getId(), testItem.getId())
 		);
 
-		final String expectedProjectName = launchRepository.findOne(testItem.getLaunchRef()).getProjectRef();
+		final String expectedProjectName = launchRepository.findById(testItem.getLaunchRef()).get().getProjectRef();
 		expect(expectedProjectName, equalTo(projectName)).verify(ErrorType.FORBIDDEN_OPERATION,
 				formattedSupplier("Log '{}' not under specified '{}' project", logId, projectName)
 		);
@@ -130,8 +131,8 @@ public class DeleteLogHandler implements IDeleteLogHandler {
 	}
 
 	private void validateRoles(Log log, User user, Project project) {
-		final TestItem testItem = testItemRepository.findOne(log.getTestItemRef());
-		final Launch launch = launchRepository.findOne(testItem.getLaunchRef());
+		final TestItem testItem = testItemRepository.findById(log.getTestItemRef()).get();
+		final Launch launch = launchRepository.findById(testItem.getLaunchRef()).get();
 		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
 			/*
 			 * Only PROJECT_MANAGER roles could delete launches

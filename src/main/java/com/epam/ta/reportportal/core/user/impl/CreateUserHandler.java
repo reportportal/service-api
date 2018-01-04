@@ -1,20 +1,20 @@
 /*
  * Copyright 2016 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -116,15 +116,17 @@ public class CreateUserHandler implements ICreateUserHandler {
 	public CreateUserRS createUserByAdmin(CreateUserRQFull request, String userName, String basicUrl) {
 		String newUsername = EntityUtils.normalizeId(request.getLogin());
 
-		expect(userRepository.exists(newUsername), equalTo(false)).verify(
-				USER_ALREADY_EXISTS, formattedSupplier("login='{}'", newUsername));
+		expect(userRepository.existsById(newUsername), equalTo(false)).verify(USER_ALREADY_EXISTS,
+				formattedSupplier("login='{}'", newUsername)
+		);
 
-		expect(newUsername, Predicates.SPECIAL_CHARS_ONLY.negate()).verify(
-				ErrorType.INCORRECT_REQUEST, formattedSupplier("Username '{}' consists only of special characters", newUsername));
+		expect(newUsername, Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
+				formattedSupplier("Username '{}' consists only of special characters", newUsername)
+		);
 
 		String projectName = EntityUtils.normalizeId(request.getDefaultProject());
-		Project defaultProject = projectRepository.findOne(projectName);
-		expect(defaultProject, notNull()).verify(PROJECT_NOT_FOUND, projectName);
+		Project defaultProject = projectRepository.findById(projectName)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 
 		String email = EntityUtils.normalizeId(request.getEmail());
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
@@ -145,8 +147,10 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 		List<UserConfig> projectUsers = defaultProject.getUsers();
 		//noinspection ConstantConditions
-		projectUsers.add(
-				UserConfig.newOne().withProjectRole(projectRole.get()).withProposedRole(projectRole.get()).withLogin(user.getId()));
+		projectUsers.add(UserConfig.newOne()
+				.withProjectRole(projectRole.get())
+				.withProposedRole(projectRole.get())
+				.withLogin(user.getId()));
 		defaultProject.setUsers(projectUsers);
 
 		CreateUserRS response = new CreateUserRS();
@@ -182,8 +186,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 	public CreateUserBidRS createUserBid(CreateUserRQ request, Principal principal, String emailURL) {
 		EmailService emailService = emailServiceFactory.getDefaultEmailService(true);
 
-		User creator = userRepository.findOne(principal.getName());
-		expect(creator, notNull()).verify(ACCESS_DENIED);
+		User creator = userRepository.findById(principal.getName()).orElseThrow(() -> new ReportPortalException(ACCESS_DENIED));
 
 		String email = EntityUtils.normalizeId(request.getEmail());
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
@@ -191,9 +194,9 @@ public class CreateUserHandler implements ICreateUserHandler {
 		User email_user = userRepository.findByEmail(request.getEmail());
 		expect(email_user, isNull()).verify(USER_ALREADY_EXISTS, formattedSupplier("email={}", request.getEmail()));
 
-		Project defaultProject = projectRepository.findOne(EntityUtils.normalizeId(request.getDefaultProject()));
+		Project defaultProject = projectRepository.findById(EntityUtils.normalizeId(request.getDefaultProject()))
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, request.getDefaultProject()));
 
-		expect(defaultProject, notNull()).verify(PROJECT_NOT_FOUND, request.getDefaultProject());
 		UserConfig userConfig = findUserConfigByLogin(defaultProject, principal.getName());
 		List<Project> projects = projectRepository.findUserProjects(principal.getName());
 		expect(defaultProject, not(in(projects))).verify(ACCESS_DENIED);
@@ -217,7 +220,8 @@ public class CreateUserHandler implements ICreateUserHandler {
 		try {
 			emailLink.append("/ui/#registration?uuid=");
 			emailLink.append(bid.getId());
-			emailService.sendCreateUserConfirmationEmail("User registration confirmation", new String[] { bid.getEmail() },
+			emailService.sendCreateUserConfirmationEmail("User registration confirmation",
+					new String[] { bid.getEmail() },
 					emailLink.toString()
 			);
 		} catch (Exception e) {
@@ -238,19 +242,21 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 	@Override
 	public CreateUserRS createUser(CreateUserRQConfirm request, String uuid, Principal principal) {
-		UserCreationBid bid = userCreationBidRepository.findOne(uuid);
-		expect(bid, notNull()).verify(INCORRECT_REQUEST, "Impossible to register user. UUID expired or already registered.");
+		UserCreationBid bid = userCreationBidRepository.findById(uuid)
+				.orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST,
+						"Impossible to register user. UUID expired or already registered."
+				));
 
-		User user = userRepository.findOne(request.getLogin());
-		expect(user, isNull()).verify(USER_ALREADY_EXISTS, formattedSupplier("login='{}'", request.getLogin()));
+		User user = userRepository.findById(request.getLogin())
+				.orElseThrow(() -> new ReportPortalException(USER_ALREADY_EXISTS, formattedSupplier("login='{}'", request.getLogin())));
 
 		expect(request.getLogin(), Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
 				formattedSupplier("Username '{}' consists only of special characters", request.getLogin())
 		);
 
 		// synchronized (this)
-		Project defaultProject = projectRepository.findOne(bid.getDefaultProject());
-		expect(defaultProject, notNull()).verify(PROJECT_NOT_FOUND, bid.getDefaultProject());
+		Project defaultProject = projectRepository.findById(bid.getDefaultProject())
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, bid.getDefaultProject()));
 
 		// populate field from existing bid record
 		request.setDefaultProject(bid.getDefaultProject());
@@ -289,7 +295,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 				projectRepository.save(personalProject);
 			}
 
-			userCreationBidRepository.delete(uuid);
+			userCreationBidRepository.deleteById(uuid);
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {
@@ -314,7 +320,9 @@ public class CreateUserHandler implements ICreateUserHandler {
 		restorePasswordBidRepository.save(bid);
 		try {
 			// TODO use default 'from' param or project specified?
-			emailService.sendRestorePasswordEmail("Password recovery", new String[] { email }, baseUrl + "#login?reset=" + bid.getId(),
+			emailService.sendRestorePasswordEmail("Password recovery",
+					new String[] { email },
+					baseUrl + "#login?reset=" + bid.getId(),
 					user.getLogin()
 			);
 		} catch (Exception e) {
@@ -325,7 +333,8 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 	@Override
 	public OperationCompletionRS resetPassword(ResetPasswordRQ rq) {
-		RestorePasswordBid bid = restorePasswordBidRepository.findOne(rq.getUuid());
+		RestorePasswordBid bid = restorePasswordBidRepository.findById(rq.getUuid())
+				.orElseThrow(() -> new ReportPortalException(ACCESS_DENIED, "The password change link is no longer valid."));
 		expect(bid, notNull()).verify(ACCESS_DENIED, "The password change link is no longer valid.");
 		String email = bid.getEmail();
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
@@ -334,7 +343,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		expect(byEmail.getType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR, "Unable to change password for external user");
 		byEmail.setPassword(HASH_FUNCTION.hashString(rq.getPassword(), Charsets.UTF_8).toString());
 		userRepository.save(byEmail);
-		restorePasswordBidRepository.delete(rq.getUuid());
+		restorePasswordBidRepository.deleteById(rq.getUuid());
 		OperationCompletionRS rs = new OperationCompletionRS();
 		rs.setResultMessage("Password has been changed");
 		return rs;
@@ -342,8 +351,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 
 	@Override
 	public YesNoRS isResetPasswordBidExist(String id) {
-		RestorePasswordBid bid = restorePasswordBidRepository.findOne(id);
-		return new YesNoRS(null != bid);
+		return new YesNoRS(restorePasswordBidRepository.findById(id).isPresent());
 	}
 
 }

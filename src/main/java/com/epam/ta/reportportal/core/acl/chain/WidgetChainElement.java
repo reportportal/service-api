@@ -70,7 +70,7 @@ public class WidgetChainElement extends ChainElement {
 
 	@Override
 	public void saveElements(List<? extends Shareable> elementsToProcess) {
-		widgetRepository.save(elementsToProcess.stream().map(input -> (Widget) input).collect(Collectors.toList()));
+		widgetRepository.saveAll(elementsToProcess.stream().map(input -> (Widget) input).collect(Collectors.toList()));
 	}
 
 }

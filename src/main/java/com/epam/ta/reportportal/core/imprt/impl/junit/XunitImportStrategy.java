@@ -144,7 +144,7 @@ public class XunitImportStrategy implements ImportStrategy {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(results.getEndTime());
 		finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectId, userName);
-		Launch launch = launchRepository.findOne(launchId);
+		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 		launch.setStartTime(DateUtils.toDate(results.getStartTime()));
 		launchRepository.partialUpdate(launch);
 	}

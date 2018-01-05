@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -46,10 +47,14 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.util.CloseableIterator;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.policy.TimeoutRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.epam.ta.reportportal.core.analyzer.impl.LogIndexerService.BATCH_SIZE;
 import static org.mockito.Mockito.*;
@@ -77,7 +82,15 @@ public class LogIndexerServiceTest {
 
 	@Before
 	public void setup() {
+		RetryTemplate retrier = new RetryTemplate();
+		TimeoutRetryPolicy timeoutRetryPolicy = new TimeoutRetryPolicy();
+		timeoutRetryPolicy.setTimeout(TimeUnit.SECONDS.toMillis(2L));
+		retrier.setRetryPolicy(timeoutRetryPolicy);
+		retrier.setBackOffPolicy(new FixedBackOffPolicy());
+		retrier.setThrowLastExceptionOnExhausted(true);
+
 		logIndexerService = new LogIndexerService();
+		logIndexerService.setRetrier(retrier);
 		MockitoAnnotations.initMocks(this);
 	}
 
@@ -177,7 +190,7 @@ public class LogIndexerServiceTest {
 		verifyZeroInteractions(mongoOperations, testItemRepository, logRepository, analyzerServiceClient);
 	}
 
-	@Test
+	@Test(expected = ReportPortalException.class)
 	public void testIndexAllLogsNegative() {
 		DBCollection checkpointColl = mock(DBCollection.class);
 		when(mongoOperations.getCollection(eq("logIndexingCheckpoint"))).thenReturn(checkpointColl);
@@ -251,6 +264,7 @@ public class LogIndexerServiceTest {
 		when(checkpointColl.findOne(any(Query.class))).thenReturn(null);
 		when(mongoOperations.stream(any(Query.class), eq(Log.class))).thenReturn(createLogIterator(5));
 		when(testItemRepository.findOne(anyString())).thenReturn(createToInvestigateItem("testItemId"));
+		when(analyzerServiceClient.hasClients()).thenReturn(true);
 		logIndexerService.indexAllLogs();
 		verify(checkpointColl, times(0)).save(any(DBObject.class));
 		verify(analyzerServiceClient, times(0)).index(anyListOf(IndexLaunch.class));

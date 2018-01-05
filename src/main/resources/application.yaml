@@ -15,10 +15,10 @@ spring:
     #- org.quartz.jobStore.addresses: host1,host2
     # database name
     org.quartz.jobStore.dbName: reportportal
-    # Will be used to create collections like mycol_jobs, mycol_triggers, mycol_calendars, mycol_locks
+    # Will be used to create collections like scheduler_jobs, scheduler_triggers, scheduler_calendars, scheduler_locks
     org.quartz.jobStore.collectionPrefix: scheduler
-    # thread count setting is ignored by the MongoDB store but Quartz requries it
-    org.quartz.threadPool.threadCount: "1"
+    # thread count setting is ignored by the MongoDB store but Quartz requires it
+    org.quartz.threadPool.threadCount: "5"
 
     org.quartz.jobStore.isClustered: "true"
     org.quartz.jobStore.clusterCheckinInterval: "180000"

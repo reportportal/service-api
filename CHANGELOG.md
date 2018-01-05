@@ -203,6 +203,7 @@
 * EPMRPP-31435 - 'Ignore in AA' should not to be set for test item in launch on DEBUG level
 * EPMRPP-31447 - WS: "ActionType"=analyze_item for action that was done by user
 * Fix issue with incorrect importing of some junit files
+* EPMRPP-31904 - WS: Jobs do not work properly
 
 ## 4.x.x
 ##### Released: XXX XX, 2018

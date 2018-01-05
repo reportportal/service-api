@@ -62,8 +62,8 @@ public interface ServerAdminHandler {
 	 * Updates analytics settings for specified profile
 	 *
 	 * @param profileId Profile ID
-	 * @param request   Analytics settings
+	 * @param analyticsResource   Analytics settings
 	 * @return Operation results
 	 */
-	OperationCompletionRS saveAnalyticsSettings(String profileId, AnalyticsResource request);
+	OperationCompletionRS saveAnalyticsSettings(String profileId, AnalyticsResource analyticsResource);
 }

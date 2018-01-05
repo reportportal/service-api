@@ -166,7 +166,7 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		/*
 		 * if we didn't import default setting import them and set flag
 		 */
-		if (null != serverSettingsRepository.findOne(DEFAULT_PROFILE.get().getId())) {
+		if (null == serverSettingsRepository.findOne(DEFAULT_PROFILE.get().getId())) {
 			// Save non-existing user photo
 			userRepository.uploadUserPhoto(Constants.NONAME_USER.toString(), NONAME_USER_PHOTO.get());
 

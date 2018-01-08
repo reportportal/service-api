@@ -171,27 +171,34 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 			userRepository.uploadUserPhoto(Constants.NONAME_USER.toString(), NONAME_USER_PHOTO.get());
 
 			// Super administrator
-			User admin = DEFAULT_ADMIN.get();
-			String adminPhotoId = userRepository.uploadUserPhoto(admin.getLogin(), DEFAULT_ADMIN_PHOTO.get());
-			admin.setPhotoId(adminPhotoId);
+			if (null == userRepository.findOne(DEFAULT_ADMIN.get().getLogin())) {
+				User user = DEFAULT_ADMIN.get();
+				String photoId = userRepository.uploadUserPhoto(user.getLogin(), DEFAULT_ADMIN_PHOTO.get());
+				user.setPhotoId(photoId);
 
-			projectRepository.save(personalProjectService.generatePersonalProject(admin));
-			userRepository.save(admin);
+				projectRepository.save(personalProjectService.generatePersonalProject(user));
+				userRepository.save(user);
+			}
 
 			// Down-graded user (previous administrator)
-			User user = DEFAULT_USER.get();
-			String photoId = userRepository.uploadUserPhoto(user.getLogin(), DEMO_USER_PHOTO.get());
-			user.setPhotoId(photoId);
+			if (null == userRepository.findOne(DEFAULT_USER.get().getLogin())) {
+				User user = DEFAULT_USER.get();
+				String photoId = userRepository.uploadUserPhoto(user.getLogin(), DEMO_USER_PHOTO.get());
+				user.setPhotoId(photoId);
 
-			projectRepository.save(personalProjectService.generatePersonalProject(user));
-			userRepository.save(user);
+				projectRepository.save(personalProjectService.generatePersonalProject(user));
+				userRepository.save(user);
+			}
 
 			/* Create server settings repository with default profile */
 			ServerSettings serverSettings = DEFAULT_PROFILE.get();
 			serverSettingsRepository.save(serverSettings);
-			serverSettings.setAnalyticsDetails(
-					ImmutableMap.<String, AnalyticsDetails>builder().put("all", new AnalyticsDetails(enableByDefault)).build());
-			serverSettingsRepository.save(serverSettings);
+
+			if (null == serverSettings.getAnalyticsDetails()) {
+				serverSettings.setAnalyticsDetails(
+						ImmutableMap.<String, AnalyticsDetails>builder().put("all", new AnalyticsDetails(enableByDefault)).build());
+				serverSettingsRepository.save(serverSettings);
+			}
 		}
 	}
 }

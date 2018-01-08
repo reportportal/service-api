@@ -129,7 +129,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		if (finishExecutionRQ.getRetry()) {
 			testItem.setRetryProcessed(Boolean.FALSE);
 			if (BooleanUtils.isNotTrue(launch.getHasRetries())) {
-				launchRepository.updateHasRetries(testItem.getLaunchRef(), true);
+				launchRepository.updateHasRetries(launch.getId(), true);
 			}
 		}
 

@@ -85,7 +85,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 
 	@Override
 	public Map<String, List<AnalyzedItemRs>> analyze(IndexLaunch rq) {
-		Map<String, List<AnalyzedItemRs>> result = new HashMap<>();
+		Map<String, List<AnalyzedItemRs>> result = new HashMap<>(analyzerInstances.get().size());
 		analyzerInstances.get().forEach(instance -> {
 			List<AnalyzedItemRs> analyzed = analyze(instance, rq);
 			result.put(instance.getMetadata().get(ClientUtils.ANALYZER_KEY), analyzed);

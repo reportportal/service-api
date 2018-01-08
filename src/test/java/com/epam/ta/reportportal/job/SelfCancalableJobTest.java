@@ -44,7 +44,7 @@ public class SelfCancalableJobTest {
 
 	@Test
 	public void selfCancalableJobTest() {
-		SelfCancalableJob selfCancalableJob = new SelfCancalableJob(triggerDelegate) {
+		SelfCancelableJob selfCancalableJob = new SelfCancelableJob(triggerDelegate) {
 			@Override
 			public void run() {
 			}

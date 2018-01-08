@@ -25,13 +25,15 @@ import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.project.KeepLogsDelay;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,10 +43,15 @@ import static java.time.Duration.ofDays;
 /**
  * Clean logs job in accordance with project settings
  *
- * @author Andrei_Ramanchuk
+ * @author Andrei Varabyeu
+ * @author Pavel Borntik
  */
 @Service
 public class CleanLogsJob implements Job {
+
+	private static final Duration MIN_DELAY = Duration.ofDays(KeepLogsDelay.TWO_WEEKS.getDays() - 1);
+
+	private static final Duration MAX_DELAY = Duration.ofDays(KeepLogsDelay.SIX_MONTHS.getDays() + 1);
 
 	@Autowired
 	private LogRepository logRepo;
@@ -76,12 +83,18 @@ public class CleanLogsJob implements Job {
 	}
 
 	private void removeOutdatedLogs(String projectId, Duration period) {
-		try (Stream<Launch> launchStream = launchRepo.streamIdsByProject(projectId)) {
+		try (Stream<Launch> launchStream = streamLaunches(projectId)) {
 			launchStream.forEach(launch -> {
 				try (Stream<TestItem> testItemStream = testItemRepo.streamIdsByLaunch(launch.getId())) {
 					logRepo.deleteByPeriodAndItemsRef(period, testItemStream.map(TestItem::getId).collect(Collectors.toList()));
 				}
 			});
 		}
+	}
+
+	private Stream<Launch> streamLaunches(String projectId) {
+		Date beginDate = Date.from(Instant.now().minusSeconds(MAX_DELAY.getSeconds()));
+		Date endDate = Date.from(Instant.now().minusSeconds(MIN_DELAY.getSeconds()));
+		return launchRepo.streamModifiedInRange(projectId, beginDate, endDate);
 	}
 }

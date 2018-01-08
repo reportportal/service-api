@@ -26,7 +26,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
 /**
- * Job executor delegate. Adds possibility to submit self cancallable jobs
+ * Job executor delegate. Adds possibility to submit self cancelable jobs
  *
  * @author Andrei Varabyeu
  */
@@ -42,11 +42,11 @@ public class JobExecutorDelegate {
 	private TaskScheduler taskScheduler;
 
 	/**
-	 * Submits self cancallable job
+	 * Submits self cancelable job
 	 *
-	 * @param SelfCancalableJob
+	 * @param selfCancelableJob
 	 */
-	public void submitJob(SelfCancalableJob SelfCancalableJob) {
-		taskScheduler.schedule(SelfCancalableJob, SelfCancalableJob);
+	public void submitJob(SelfCancelableJob selfCancelableJob) {
+		taskScheduler.schedule(selfCancelableJob, selfCancelableJob);
 	}
 }

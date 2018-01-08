@@ -41,7 +41,7 @@ public class JobExecutorDelegateTest {
 	@InjectMocks
 	private JobExecutorDelegate jobExecutorDelegate = new JobExecutorDelegate();
 	@Mock
-	private SelfCancalableJob selfCancalableJob;
+	private SelfCancelableJob selfCancalableJob;
 	@Mock
 	private TaskScheduler taskScheduler;
 

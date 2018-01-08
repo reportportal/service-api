@@ -62,6 +62,7 @@ import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueT
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 /**
  * Default implementation of {@link FinishTestItemHandler}
@@ -126,7 +127,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			fail().withError(FINISH_ITEM_NOT_ALLOWED, "You are not launch owner.");
 		}
 
-		if (finishExecutionRQ.getRetry()) {
+		if (isTrue(finishExecutionRQ.isRetry())) {
 			testItem.setRetryProcessed(Boolean.FALSE);
 			if (BooleanUtils.isNotTrue(launch.getHasRetries())) {
 				launchRepository.updateHasRetries(launch.getId(), true);

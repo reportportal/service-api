@@ -50,6 +50,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 /**
  * Start Launch operation default implementation
@@ -133,7 +134,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			item.setUniqueId(identifierGenerator.generate(item));
 		}
 
-		if (rq.isRetry()) {
+		if (isTrue(rq.isRetry())) {
 			TestItem retryRoot = getRetryRoot(item.getUniqueId(), parent);
 			if (null == retryRoot.getRetryProcessed()) {
 				retryRoot.setRetryProcessed(false);

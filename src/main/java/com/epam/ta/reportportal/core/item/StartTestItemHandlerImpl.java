@@ -46,8 +46,7 @@ import org.springframework.stereotype.Service;
 import javax.inject.Provider;
 import java.util.concurrent.TimeUnit;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
@@ -191,7 +190,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		expect(rq, Preconditions.startSameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
 				rq.getStartTime(), launch.getStartTime(), launch.getId()
 		);
-		expect(rq.isRetry(), equalTo(false)).verify(BAD_REQUEST_ERROR, "Root test item can't be a retry.");
+		expect(rq.isRetry(), isNull()).verify(BAD_REQUEST_ERROR, "Root test item can't be a retry.");
 
 	}
 

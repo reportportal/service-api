@@ -87,10 +87,9 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 	private void handleRetry(RetryObject retry, StatisticsFacade statisticsFacade) {
 		List<TestItem> retries = retry.getRetries();
 		expect((retries.size() >= MINIMUM_RETRIES_COUNT), isEqual(true)).verify(
-				ErrorType.RETRIES_HANDLER_ERROR, "Minimum retries count is " + MINIMUM_RETRIES_COUNT
-		);
-		retries.forEach(it -> expect(it.hasChilds(), equalTo(false)).verify(
-				ErrorType.RETRIES_HANDLER_ERROR, "Retries cannot have items with children"
+				ErrorType.RETRIES_HANDLER_ERROR, "Minimum retries count is " + MINIMUM_RETRIES_COUNT);
+		retries.forEach(it -> expect(it.hasChilds(), equalTo(false)).verify(ErrorType.RETRIES_HANDLER_ERROR,
+				"Retries cannot have items with children"
 		));
 		TestItem lastRetry = moveRetries(retries, statisticsFacade);
 		testItemRepository.delete(retries);
@@ -124,9 +123,11 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 	 * @return Last retry
 	 */
 	private TestItem moveRetries(List<TestItem> retries, StatisticsFacade statisticsFacade) {
-		retries.forEach(it -> it.setRetryProcessed(Boolean.TRUE));
+		retries.forEach(it -> {
+			resetRetryStatistics(it, statisticsFacade);
+			it.setRetryProcessed(Boolean.TRUE);
+		});
 		TestItem retryRoot = retries.get(0);
-		retryRoot = resetRetryStatistics(retryRoot, statisticsFacade);
 		retries.set(0, retryRoot);
 
 		TestItem lastRetry = retries.get(retries.size() - 1);

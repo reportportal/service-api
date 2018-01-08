@@ -35,7 +35,6 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.Predicates;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -126,6 +125,14 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		if (!launch.getUserRef().equalsIgnoreCase(username)) {
 			fail().withError(FINISH_ITEM_NOT_ALLOWED, "You are not launch owner.");
 		}
+
+		if (finishExecutionRQ.getRetry()) {
+			testItem.setRetryProcessed(Boolean.FALSE);
+			if (BooleanUtils.isNotTrue(launch.getHasRetries())) {
+				launchRepository.updateHasRetries(testItem.getLaunchRef(), true);
+			}
+		}
+
 		final Project project = projectRepository.findOne(launch.getProjectRef());
 
 		Optional<Status> actualStatus = fromValue(finishExecutionRQ.getStatus());
@@ -148,17 +155,12 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			testItem = awareTestItemIssueTypeFromStatus(testItem, providedIssue, project, username);
 		}
 		try {
-			//retry mode
-			if (Predicates.IS_RETRY.test(testItem)) {
-				testItemRepository.save(testItem);
-			} else {
-				testItem.setStatistics(null);
-				testItemRepository.partialUpdate(testItem);
+			testItem.setStatistics(null);
+			testItemRepository.partialUpdate(testItem);
 
-				testItem = statisticsFacade.updateExecutionStatistics(testItem);
-				if (null != testItem.getIssue()) {
-					statisticsFacade.updateIssueStatistics(testItem);
-				}
+			testItem = statisticsFacade.updateExecutionStatistics(testItem);
+			if (null != testItem.getIssue()) {
+				statisticsFacade.updateIssueStatistics(testItem);
 			}
 
 		} catch (Exception e) {

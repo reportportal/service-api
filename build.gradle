@@ -78,7 +78,7 @@ dependencies {
     } else {
         compile('com.github.reportportal:commons-dao:4.0.0')
         compile('com.github.reportportal:commons-rules:4.0.0')
-        compile 'com.github.reportportal:commons-model:4.0.0'
+        compile 'com.github.reportportal:commons-model:36edbf5'
         compile('com.github.reportportal:commons:3.1.0')
     }
 

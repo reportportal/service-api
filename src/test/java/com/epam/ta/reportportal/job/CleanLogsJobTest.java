@@ -32,6 +32,7 @@ import org.mockito.Mock;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.time.Duration;
+import java.util.Date;
 import java.util.stream.Stream;
 
 import static org.mockito.Matchers.any;
@@ -78,7 +79,7 @@ public class CleanLogsJobTest {
 		Stream<TestItem> st = Stream.of(testItem);
 
 		when(projectRepository.streamAllIdsAndConfiguration()).thenReturn(sp);
-		when(launchRepo.streamIdsByProject(anyString())).thenReturn(sl);
+		when(launchRepo.streamModifiedInRange(anyString(), any(Date.class), any(Date.class))).thenReturn(sl);
 		when(testItemRepo.streamIdsByLaunch(anyString())).thenReturn(st);
 
 		cleanLogsJob.execute(null);

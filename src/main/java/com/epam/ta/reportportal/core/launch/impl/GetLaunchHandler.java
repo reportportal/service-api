@@ -45,7 +45,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.text.DecimalFormat;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -216,25 +216,16 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 	}
 
     private Map<String, String> computeFraction(Map<String, Integer> data) {
-		Map<String, String> result = new HashMap<>();
-		DecimalFormat formatter = new DecimalFormat("###.##");
-		int total = data.values().stream().mapToInt(Integer::intValue).sum();
-		String lastKey = null;
-		Double lastValue = 0.0;
-		Double sum = 0.0;
-		Set<Map.Entry<String, Integer>> entries = data.entrySet();
-		for (Map.Entry<String, Integer> entry : entries) {
-			String formattedValue = formatter.format(total != 0 ? (entry.getValue() / (double) total * 100) : 0);
-			lastKey = entry.getKey();
-			lastValue = Double.valueOf(formattedValue);
-			sum += lastValue;
-			result.put(entry.getKey(), formattedValue);
-		}
-		if (total != 0) {
-			result.put(lastKey, formatter.format(100 - (sum - lastValue)));
-		}
+		final int total = data.values().stream().mapToInt(Integer::intValue).sum();
+		return data.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> countPercentage(entry.getValue(), total)));
+	}
 
-		return result;
+	private String countPercentage(int value, int total) {
+		if (total == 0) {
+			return "0";
+		}
+		BigDecimal bigDecimal = new BigDecimal((double) value / total * 100);
+		return bigDecimal.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString();
 	}
 
 	/**

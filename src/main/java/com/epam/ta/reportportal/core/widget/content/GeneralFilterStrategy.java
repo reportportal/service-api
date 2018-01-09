@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.impl.WidgetUtils;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
@@ -33,6 +34,7 @@ import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.database.search.FilterConditionUtils;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +45,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
 
 /**
  * Implementation of
@@ -68,6 +72,7 @@ public class GeneralFilterStrategy implements BuildFilterStrategyLatest {
 
 	@Override
 	public Map<String, ?> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+		BusinessRule.expect(userFilter, notNull()).verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Filter not found.");
 		Filter searchFilter = userFilter.getFilter();
 		if (searchFilter.getTarget().getSimpleName().equalsIgnoreCase(TestItem.class.getSimpleName())) {
 			if (null != contentOptions.getMetadataFields() && contentOptions.getMetadataFields().contains(WidgetUtils.NUMBER)) {

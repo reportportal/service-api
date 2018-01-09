@@ -211,3 +211,7 @@
 ### New Features
 
 * EPMRPP-31780 - Set the name of analyzer which made the changes
+
+### Bugfixes
+
+* EPMRPP-33083 - WS: The extra statistics is returned for No Defects for Comparison launches

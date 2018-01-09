@@ -35,7 +35,6 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.Predicates;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -63,6 +62,7 @@ import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueT
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 /**
  * Default implementation of {@link FinishTestItemHandler}
@@ -126,6 +126,14 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		if (!launch.getUserRef().equalsIgnoreCase(username)) {
 			fail().withError(FINISH_ITEM_NOT_ALLOWED, "You are not launch owner.");
 		}
+
+		if (isTrue(finishExecutionRQ.isRetry())) {
+			testItem.setRetryProcessed(Boolean.FALSE);
+			if (BooleanUtils.isNotTrue(launch.getHasRetries())) {
+				launchRepository.updateHasRetries(launch.getId(), true);
+			}
+		}
+
 		final Project project = projectRepository.findOne(launch.getProjectRef());
 
 		Optional<Status> actualStatus = fromValue(finishExecutionRQ.getStatus());
@@ -148,17 +156,12 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			testItem = awareTestItemIssueTypeFromStatus(testItem, providedIssue, project, username);
 		}
 		try {
-			//retry mode
-			if (Predicates.IS_RETRY.test(testItem)) {
-				testItemRepository.save(testItem);
-			} else {
-				testItem.setStatistics(null);
-				testItemRepository.partialUpdate(testItem);
+			testItem.setStatistics(null);
+			testItemRepository.partialUpdate(testItem);
 
-				testItem = statisticsFacade.updateExecutionStatistics(testItem);
-				if (null != testItem.getIssue()) {
-					statisticsFacade.updateIssueStatistics(testItem);
-				}
+			testItem = statisticsFacade.updateExecutionStatistics(testItem);
+			if (null != testItem.getIssue()) {
+				statisticsFacade.updateIssueStatistics(testItem);
 			}
 
 		} catch (Exception e) {

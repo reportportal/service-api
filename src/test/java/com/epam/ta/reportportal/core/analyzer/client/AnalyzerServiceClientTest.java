@@ -42,7 +42,8 @@ import java.util.*;
 
 import static com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient.ANALYZE_PATH;
 import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.*;
-import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.*;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.PRODUCT_BUG;
+import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.TO_INVESTIGATE;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -71,7 +72,7 @@ public class AnalyzerServiceClientTest {
 	@Test
 	public void noClientsAvailable() {
 		IndexLaunch rq = new IndexLaunch();
-		Set<AnalyzedItemRs> analyzed = client.analyze(rq);
+		Map<String, List<AnalyzedItemRs>> analyzed = client.analyze(rq);
 		List<IndexRs> indexed = client.index(Collections.singletonList(rq));
 		boolean b = client.hasClients();
 		Assert.assertFalse("Should be false if no services", b);
@@ -129,8 +130,11 @@ public class AnalyzerServiceClientTest {
 		when(restTemplate.postForEntity(SERVICE_URL + ANALYZE_PATH, Collections.singletonList(rq), IndexLaunch[].class)).thenReturn(
 				new ResponseEntity<>(basicInvestigation(), HttpStatus.OK));
 
-		Set<AnalyzedItemRs> rs = client.analyze(rq);
-		rs.forEach(it -> Assert.assertEquals(it.getIssueType(), PRODUCT_BUG.getLocator()));
+		Map<String, List<AnalyzedItemRs>> rs = client.analyze(rq);
+		rs.entrySet()
+				.stream()
+				.flatMap(it -> it.getValue().stream())
+				.forEach(it -> Assert.assertEquals(it.getIssueType(), PRODUCT_BUG.getLocator()));
 	}
 
 	@Test
@@ -138,7 +142,7 @@ public class AnalyzerServiceClientTest {
 		IndexLaunch rq = indexLaunch();
 		analyzerPreconditions();
 		responseAnalyzeException(rq);
-		Set<AnalyzedItemRs> rs = client.analyze(rq);
+		Map<String, List<AnalyzedItemRs>> rs = client.analyze(rq);
 		Assert.assertTrue(rs.isEmpty());
 	}
 

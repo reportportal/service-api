@@ -42,7 +42,7 @@ spring:
       enabled: true
   jackson:
     deserialization:
-      FAIL_ON_UNKNOWN_PROPERTIES: true
+      FAIL_ON_UNKNOWN_PROPERTIES: false
 
 eureka:
   instance:

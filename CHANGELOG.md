@@ -217,3 +217,4 @@
 * EPMRPP-33083 - WS: The extra statistics is returned for No Defects for Comparison launches
 * EPMRPP-33080 - WS: Unclassified error on widget preview in case the filter is not saved
 * EPMRPP-32107 - WS: Unclassified error on load widget in case the filter deleted
+* EPMRPP-33089 - Most failed widget: Unclassified error for launch with status Interrupted

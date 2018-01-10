@@ -50,8 +50,8 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static org.apache.commons.lang3.BooleanUtils.isFalse;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 
 /**
  * Start Launch operation default implementation
@@ -192,7 +192,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		expect(rq, Preconditions.startSameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
 				rq.getStartTime(), launch.getStartTime(), launch.getId()
 		);
-		expect(isFalse(rq.isRetry()), equalTo(true)).verify(BAD_REQUEST_ERROR, "Root test item can't be a retry.");
+		expect(toBooleanDefaultIfNull(rq.isRetry(), true), equalTo(true)).verify(BAD_REQUEST_ERROR, "Root test item can't be a retry.");
 	}
 
 	private void validate(TestItem parentTestItem, String parent) {

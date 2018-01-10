@@ -35,7 +35,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
  * Most failed test-cases widget content loader<br> <b>Slow widget because history based</b>
@@ -56,10 +58,17 @@ public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy 
 	@Override
 	public Map<String, List<?>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
 		String criteria = getCriteria(contentOptions);
+
 		List<Launch> launchHistory = getLaunchHistory(contentOptions, projectName);
+		if (isEmpty(launchHistory)) {
+			return emptyMap();
+		}
 		List<String> ids = launchHistory.stream().map(Launch::getId).collect(toList());
 
 		List<MostFailedHistory> history = itemRepository.getMostFailedItemHistory(ids, criteria, ITEMS_COUNT_VALUE);
+		if (isEmpty(history)) {
+			return emptyMap();
+		}
 
 		Map<String, List<?>> result = new HashMap<>(RESULTED_MAP_SIZE);
 		result = processHistory(result, history);

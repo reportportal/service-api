@@ -38,10 +38,7 @@ import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -68,6 +65,9 @@ public class GeneralFilterStrategy implements BuildFilterStrategyLatest {
 
 	@Override
 	public Map<String, ?> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+		if (userFilter == null) {
+			return Collections.emptyMap();
+		}
 		Filter searchFilter = userFilter.getFilter();
 		if (searchFilter.getTarget().getSimpleName().equalsIgnoreCase(TestItem.class.getSimpleName())) {
 			if (null != contentOptions.getMetadataFields() && contentOptions.getMetadataFields().contains(WidgetUtils.NUMBER)) {

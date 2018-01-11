@@ -36,6 +36,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Collections.emptyMap;
+
 /**
  * Filter strategy for Launches comparison chart & Launches duration widget
  *
@@ -50,12 +52,18 @@ public class CompareLaunchesFilterStrategy implements BuildFilterStrategyLatest 
 	@Override
 	public Map<String, List<ChartObject>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions,
 			String projectName) {
+		if (null == userFilter) {
+			return emptyMap();
+		}
 		Filter filter = extendFilter(userFilter.getFilter(), projectName);
 		return widgetContentProvider.getChartContent(projectName, filter, userFilter.getSelectionOptions(), contentOptions);
 	}
 
 	@Override
 	public Map<String, List<ChartObject>> loadContentOfLatest(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+		if (null == userFilter) {
+			return emptyMap();
+		}
 		Filter filter = extendFilter(userFilter.getFilter(), projectName);
 		return widgetContentProvider.getChartContent(projectName, filter, userFilter.getSelectionOptions(), contentOptions);
 	}

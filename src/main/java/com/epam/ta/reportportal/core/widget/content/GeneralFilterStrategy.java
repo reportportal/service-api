@@ -82,6 +82,9 @@ public class GeneralFilterStrategy implements BuildFilterStrategyLatest {
 
 	@Override
 	public Map<String, List<ChartObject>> loadContentOfLatest(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
+		if (userFilter == null) {
+			return Collections.emptyMap();
+		}
 		Filter filter = userFilter.getFilter();
 		if (filter.getTarget().equals(Launch.class)) {
 			filter.addCondition(new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.name(), Launch.MODE_CRITERIA));

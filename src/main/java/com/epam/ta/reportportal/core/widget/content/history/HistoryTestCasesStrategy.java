@@ -33,6 +33,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import static org.springframework.util.CollectionUtils.isEmpty;
+
 /**
  * @author Pavel Bortnik
  */
@@ -75,12 +77,15 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 		return launchHistory;
 	}
 
-	void addLastLaunch(Map<String, List<?>> result, Launch last) {
-		ChartObject lastLaunch = new ChartObject();
-		lastLaunch.setName(last.getName());
-		lastLaunch.setNumber(last.getNumber().toString());
-		lastLaunch.setId(last.getId());
-		result.put(LAST_FOUND_LAUNCH, Collections.singletonList(lastLaunch));
+	void addLastLaunch(Map<String, List<?>> result, List<Launch> launches) {
+		if (!isEmpty(launches)) {
+			Launch last = launches.get(0);
+			ChartObject lastLaunch = new ChartObject();
+			lastLaunch.setName(last.getName());
+			lastLaunch.setNumber(last.getNumber().toString());
+			lastLaunch.setId(last.getId());
+			result.put(LAST_FOUND_LAUNCH, Collections.singletonList(lastLaunch));
+		}
 	}
 
 	String countPercentage(int amount, int total) {

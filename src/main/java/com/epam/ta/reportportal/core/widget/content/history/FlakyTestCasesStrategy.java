@@ -26,15 +26,16 @@ import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.database.entity.history.status.FlakyHistory;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import static java.util.Collections.emptyMap;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toList;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
  * @author Pavel Bortnik
@@ -49,21 +50,19 @@ public class FlakyTestCasesStrategy extends HistoryTestCasesStrategy {
 
 	@Override
 	public Map<String, List<?>> buildFilterAndLoadContent(UserFilter userFilter, ContentOptions contentOptions, String projectName) {
-
 		List<Launch> launchHistory = getLaunchHistory(contentOptions, projectName);
-		if (CollectionUtils.isEmpty(launchHistory)) {
-			return Collections.emptyMap();
+		if (isEmpty(launchHistory)) {
+			return emptyMap();
 		}
+
 		List<FlakyHistory> itemStatusHistory = itemRepository.getFlakyItemStatusHistory(
 				launchHistory.stream().map(Launch::getId).collect(toList()));
-
-		if (CollectionUtils.isEmpty(itemStatusHistory)) {
-			return Collections.emptyMap();
+		if (isEmpty(itemStatusHistory)) {
+			return emptyMap();
 		}
-
 		Map<String, List<?>> result = new HashMap<>(RESULTED_MAP_SIZE);
 		result = processHistory(result, itemStatusHistory);
-		addLastLaunch(result, launchHistory.get(0));
+		addLastLaunch(result, launchHistory);
 		return result;
 	}
 

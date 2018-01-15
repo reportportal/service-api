@@ -1,11 +1,11 @@
 FROM openjdk:8-jre
 
 LABEL maintainer="Andrei Varabyeu <andrei_varabyeu@epam.com>"
-LABEL version="3.3.1"
+LABEL version="3.3.2"
 LABEL description="EPAM Report portal. Main API Service"
 
-ENV APP_FILE service-api-3.3.1
-ENV APP_DOWNLOAD_URL https://dl.bintray.com/epam/reportportal/com/epam/reportportal/service-api/3.3.1/$APP_FILE.jar
+ENV APP_FILE service-api-3.3.2
+ENV APP_DOWNLOAD_URL https://dl.bintray.com/epam/reportportal/com/epam/reportportal/service-api/3.3.2/$APP_FILE.jar
 ENV JAVA_OPTS="-Xmx1g -Djava.security.egd=file:/dev/./urandom -jar"
 ENV JAVA_APP=/app.jar
 

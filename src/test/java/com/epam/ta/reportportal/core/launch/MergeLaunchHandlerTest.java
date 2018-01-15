@@ -161,6 +161,7 @@ public class MergeLaunchHandlerTest extends BaseTest {
     }
 
     @Test
+    @Ignore
     public void deepMergeLaunches() throws Exception{
         ImmutableList<String> ids = ImmutableList.<String>builder().add(MERGE_LAUNCH_2).add(MERGE_LAUNCH_1).build();
         LaunchResource launchResource = mergeLaunchHandler.mergeLaunches(PROJECT1, USER1, getDeepMergeRequest(ids));

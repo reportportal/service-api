@@ -13,6 +13,13 @@ buildscript {
     }
 }
 
+release {
+    git {
+        requireBranch = 'pre-3.3.2'
+        pushToRemote = 'origin'
+        pushToCurrentBranch = true
+    }
+}
 
 plugins {
     id 'net.researchgate.release' version '2.4.1'

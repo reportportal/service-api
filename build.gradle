@@ -13,14 +13,6 @@ buildscript {
     }
 }
 
-release {
-    git {
-        requireBranch = 'pre-3.3.2'
-        pushToRemote = 'origin'
-        pushToCurrentBranch = true
-    }
-}
-
 plugins {
     id 'net.researchgate.release' version '2.4.1'
     id "com.jfrog.bintray" version "1.7"
@@ -35,6 +27,15 @@ apply from: 'build-quality.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-docker.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
+
+release {
+    git {
+        requireBranch = 'pre-3.3.2'
+        pushToRemote = 'origin'
+        pushToCurrentBranch = true
+    }
+}
+
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8

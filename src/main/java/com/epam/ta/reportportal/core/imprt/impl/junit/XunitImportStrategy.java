@@ -42,7 +42,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -78,8 +81,6 @@ public class XunitImportStrategy implements ImportStrategy {
 	public String importLaunch(String projectId, String userName, File file) {
 		try {
 			return processZipFile(file, projectId, userName);
-		} catch (IOException e) {
-			throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, file.getName(), e);
 		} finally {
 			try {
 				if (null != file) {
@@ -91,7 +92,7 @@ public class XunitImportStrategy implements ImportStrategy {
 		}
 	}
 
-	private String processZipFile(File zip, String projectId, String userName) throws IOException {
+	private String processZipFile(File zip, String projectId, String userName) {
 		//copy of the launch's id to use it in catch block if something goes wrong
 		String savedLaunchId = null;
 
@@ -107,10 +108,10 @@ public class XunitImportStrategy implements ImportStrategy {
 					throw new ReportPortalException("There was a problem while parsing file : " + zipEntry.getName(), e);
 				}
 			}).toArray(CompletableFuture[]::new);
-			CompletableFuture.allOf(futures).get(30, TimeUnit.MINUTES);
+			CompletableFuture.allOf(futures).get(10, TimeUnit.MINUTES);
 			finishLaunch(launchId, projectId, userName, processResults(futures));
 			return launchId;
-		} catch (InterruptedException | ExecutionException | TimeoutException | IllegalArgumentException e) {
+		} catch (Exception e) {
 			if (savedLaunchId != null) {
 				Launch launch = new Launch();
 				launch.setId(savedLaunchId);
@@ -118,8 +119,7 @@ public class XunitImportStrategy implements ImportStrategy {
 				launch.setStartTime(Calendar.getInstance().getTime());
 				launchRepository.partialUpdate(launch);
 			}
-			LOGGER.error(e.getMessage());
-			throw new ReportPortalException(ErrorType.BAD_IMPORT_FILE_TYPE, "There are invalid xml files inside.", e);
+			throw new ReportPortalException(ErrorType.IMPORT_FILE_ERROR, e.getCause().getMessage());
 		}
 	}
 

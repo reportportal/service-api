@@ -169,7 +169,7 @@ public class XunitImportHandler extends DefaultHandler {
 		LocalDateTime localDateTime = null;
 		try {
 			localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(timestamp)), ZoneId.systemDefault());
-		} catch (NumberFormatException e) {
+		} catch (NumberFormatException ignored) {
 			//ignored
 		}
 		if (null == localDateTime) {

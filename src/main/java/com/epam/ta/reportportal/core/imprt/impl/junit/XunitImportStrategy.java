@@ -84,7 +84,9 @@ public class XunitImportStrategy implements ImportStrategy {
 		} finally {
 			try {
 				if (null != file) {
-					file.delete();
+					if (file.delete()) {
+						LOGGER.info("File '{}' was successfully deleted.", file.getName());
+					}
 				}
 			} catch (Exception e) {
 				LOGGER.error("File '{}' was not successfully deleted.", file.getName(), e);
@@ -99,7 +101,7 @@ public class XunitImportStrategy implements ImportStrategy {
 		try (ZipFile zipFile = new ZipFile(zip)) {
 			String launchId = startLaunch(projectId, userName, zip.getName().substring(0, zip.getName().indexOf(".zip")));
 			savedLaunchId = launchId;
-			CompletableFuture[] futures = zipFile.stream().filter(isFile.and(isXml)).map(zipEntry -> {
+			CompletableFuture[] futures = zipFile.stream().parallel().filter(isFile.and(isXml)).map(zipEntry -> {
 				try {
 					XunitParseJob job = xmlParseJobProvider.get()
 							.withParameters(projectId, launchId, userName, zipFile.getInputStream(zipEntry));
@@ -108,7 +110,7 @@ public class XunitImportStrategy implements ImportStrategy {
 					throw new ReportPortalException("There was a problem while parsing file : " + zipEntry.getName(), e);
 				}
 			}).toArray(CompletableFuture[]::new);
-			CompletableFuture.allOf(futures).get(10, TimeUnit.MINUTES);
+			CompletableFuture.allOf(futures).get(30, TimeUnit.MINUTES);
 			finishLaunch(launchId, projectId, userName, processResults(futures));
 			return launchId;
 		} catch (Exception e) {

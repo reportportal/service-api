@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.ws.resolver.JacksonViewAwareModule;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
@@ -42,6 +43,7 @@ public class JacksonConfiguration {
 		ObjectMapper om = new ObjectMapper();
 		om.setAnnotationIntrospector(new JacksonAnnotationIntrospector());
 		om.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true);
+		om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		om.registerModule(new JacksonViewAwareModule(om));
 		return om;
 	}

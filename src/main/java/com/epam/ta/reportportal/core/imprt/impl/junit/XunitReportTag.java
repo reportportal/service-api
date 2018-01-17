@@ -35,6 +35,9 @@ public enum XunitReportTag {
 	// the error element
 	ERROR("error"),
 
+	// the warning element,
+	WARNING("warning"),
+
 	// the failure element
 	FAILURE("failure"),
 

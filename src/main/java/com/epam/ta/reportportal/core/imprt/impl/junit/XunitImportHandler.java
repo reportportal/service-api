@@ -120,6 +120,7 @@ public class XunitImportHandler extends DefaultHandler {
 				break;
 			case SYSTEM_OUT:
 			case SYSTEM_ERR:
+			case WARNING:
 				message = new StringBuilder();
 				break;
 			case UNKNOWN:
@@ -147,6 +148,9 @@ public class XunitImportHandler extends DefaultHandler {
 				break;
 			case SYSTEM_ERR:
 				attachLog(LogLevel.ERROR);
+				break;
+			case WARNING:
+				attachLog(LogLevel.WARN);
 				break;
 			case UNKNOWN:
 				LOGGER.warn("Unknown tag: {}", qName);

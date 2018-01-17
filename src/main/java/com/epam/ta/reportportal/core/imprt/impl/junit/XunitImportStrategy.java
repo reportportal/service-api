@@ -39,13 +39,13 @@ import org.springframework.stereotype.Service;
 import javax.inject.Provider;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -54,6 +54,12 @@ import java.util.zip.ZipFile;
 public class XunitImportStrategy implements ImportStrategy {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(XunitImportStrategy.class);
+
+	private static final Date initialStartTime = new Date(0);
+	private static final ExecutorService service = Executors.newFixedThreadPool(5);
+	private static final String XML_REGEX = ".*xml";
+	private static final Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
+	private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName().matches(XML_REGEX);
 
 	@Autowired
 	private Provider<XunitParseJob> xmlParseJobProvider;
@@ -67,16 +73,6 @@ public class XunitImportStrategy implements ImportStrategy {
 	@Autowired
 	private LaunchRepository launchRepository;
 
-	private static final Date initialStartTime = new Date(0);
-
-	private static final ExecutorService service = Executors.newFixedThreadPool(5);
-
-	private static final String XML_REGEX = ".*xml";
-
-	private static final Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
-
-	private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName().matches(XML_REGEX);
-
 	@Override
 	public String importLaunch(String projectId, String userName, File file) {
 		try {
@@ -84,9 +80,7 @@ public class XunitImportStrategy implements ImportStrategy {
 		} finally {
 			try {
 				if (null != file) {
-					if (file.delete()) {
-						LOGGER.info("File '{}' was successfully deleted.", file.getName());
-					}
+					file.delete();
 				}
 			} catch (Exception e) {
 				LOGGER.error("File '{}' was not successfully deleted.", file.getName(), e);
@@ -102,16 +96,13 @@ public class XunitImportStrategy implements ImportStrategy {
 			String launchId = startLaunch(projectId, userName, zip.getName().substring(0, zip.getName().indexOf(".zip")));
 			savedLaunchId = launchId;
 			CompletableFuture[] futures = zipFile.stream().filter(isFile.and(isXml)).map(zipEntry -> {
-				try {
-					XunitParseJob job = xmlParseJobProvider.get()
-							.withParameters(projectId, launchId, userName, zipFile.getInputStream(zipEntry));
-					return CompletableFuture.supplyAsync(job::call, service);
-				} catch (IOException e) {
-					throw new ReportPortalException("There was a problem while parsing file : " + zipEntry.getName(), e);
-				}
+				XunitParseJob job = xmlParseJobProvider.get()
+						.withParameters(projectId, launchId, userName, getEntryStream(zipFile, zipEntry));
+				return CompletableFuture.supplyAsync(job::call, service);
 			}).toArray(CompletableFuture[]::new);
-			CompletableFuture.allOf(futures).get(30, TimeUnit.MINUTES);
-			finishLaunch(launchId, projectId, userName, processResults(futures));
+			//CompletableFuture.allOf(futures).get(30, TimeUnit.MINUTES);
+			ParseResults parseResults = processResults(futures);
+			finishLaunch(launchId, projectId, userName, parseResults);
 			return launchId;
 		} catch (Exception e) {
 			if (savedLaunchId != null) {
@@ -121,6 +112,14 @@ public class XunitImportStrategy implements ImportStrategy {
 				launch.setStartTime(Calendar.getInstance().getTime());
 				launchRepository.partialUpdate(launch);
 			}
+			throw new ReportPortalException(ErrorType.IMPORT_FILE_ERROR, e.getCause().getMessage());
+		}
+	}
+
+	private InputStream getEntryStream(ZipFile file, ZipEntry zipEntry) {
+		try {
+			return file.getInputStream(zipEntry);
+		} catch (IOException e) {
 			throw new ReportPortalException(ErrorType.IMPORT_FILE_ERROR, e.getCause().getMessage());
 		}
 	}

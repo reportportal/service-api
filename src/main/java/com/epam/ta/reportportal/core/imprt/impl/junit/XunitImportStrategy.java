@@ -101,7 +101,7 @@ public class XunitImportStrategy implements ImportStrategy {
 		try (ZipFile zipFile = new ZipFile(zip)) {
 			String launchId = startLaunch(projectId, userName, zip.getName().substring(0, zip.getName().indexOf(".zip")));
 			savedLaunchId = launchId;
-			CompletableFuture[] futures = zipFile.stream().parallel().filter(isFile.and(isXml)).map(zipEntry -> {
+			CompletableFuture[] futures = zipFile.stream().filter(isFile.and(isXml)).map(zipEntry -> {
 				try {
 					XunitParseJob job = xmlParseJobProvider.get()
 							.withParameters(projectId, launchId, userName, zipFile.getInputStream(zipEntry));

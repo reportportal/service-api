@@ -211,6 +211,8 @@
 ### New Features
 
 * EPMRPP-31780 - Set the name of analyzer which made the changes
+* EPMRPP-33154 - [IMPORT] Better handling of importing exceptions 
+* reportportal/reportporatl#322 - Make startTestItemRQ in API 4.x case insensitive
 
 ### Bugfixes
 
@@ -219,3 +221,4 @@
 * EPMRPP-32107 - WS: Unclassified error on load widget in case the filter deleted
 * EPMRPP-33089 - Most failed widget: Unclassified error for launch with status Interrupted
 * EPMRPP-32898 - Search for user with dot symbol in login name returns the error
+* EPMRPP-33155 - [GITHUB] Failed import faced with unknown tag #317

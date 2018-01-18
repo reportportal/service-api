@@ -212,6 +212,7 @@
 
 * EPMRPP-31780 - Set the name of analyzer which made the changes
 * EPMRPP-33154 - [IMPORT] Better handling of importing exceptions 
+* reportportal/reportporatl#322 - Make startTestItemRQ in API 4.x case insensitive
 
 ### Bugfixes
 

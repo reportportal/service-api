@@ -91,7 +91,6 @@ public class XunitImportStrategy implements ImportStrategy {
 	private String processZipFile(File zip, String projectId, String userName) {
 		//copy of the launch's id to use it in catch block if something goes wrong
 		String savedLaunchId = null;
-
 		try (ZipFile zipFile = new ZipFile(zip)) {
 			String launchId = startLaunch(projectId, userName, zip.getName().substring(0, zip.getName().indexOf(".zip")));
 			savedLaunchId = launchId;
@@ -100,19 +99,12 @@ public class XunitImportStrategy implements ImportStrategy {
 						.withParameters(projectId, launchId, userName, getEntryStream(zipFile, zipEntry));
 				return CompletableFuture.supplyAsync(job::call, service);
 			}).toArray(CompletableFuture[]::new);
-			//CompletableFuture.allOf(futures).get(30, TimeUnit.MINUTES);
 			ParseResults parseResults = processResults(futures);
 			finishLaunch(launchId, projectId, userName, parseResults);
 			return launchId;
 		} catch (Exception e) {
-			if (savedLaunchId != null) {
-				Launch launch = new Launch();
-				launch.setId(savedLaunchId);
-				launch.setStatistics(null);
-				launch.setStartTime(Calendar.getInstance().getTime());
-				launchRepository.partialUpdate(launch);
-			}
-			throw new ReportPortalException(ErrorType.IMPORT_FILE_ERROR, e.getCause().getMessage());
+			updateBrokenLaunch(savedLaunchId);
+			throw new ReportPortalException(ErrorType.IMPORT_FILE_ERROR, cleanMessage(e));
 		}
 	}
 
@@ -120,7 +112,7 @@ public class XunitImportStrategy implements ImportStrategy {
 		try {
 			return file.getInputStream(zipEntry);
 		} catch (IOException e) {
-			throw new ReportPortalException(ErrorType.IMPORT_FILE_ERROR, e.getCause().getMessage());
+			throw new ReportPortalException(ErrorType.IMPORT_FILE_ERROR, e.getMessage());
 		}
 	}
 
@@ -148,5 +140,33 @@ public class XunitImportStrategy implements ImportStrategy {
 		Launch launch = launchRepository.findOne(launchId);
 		launch.setStartTime(DateUtils.toDate(results.getStartTime()));
 		launchRepository.partialUpdate(launch);
+	}
+
+	/**
+	 * Got a cause exception message if it has any.
+	 *
+	 * @param e Exception
+	 * @return Clean exception message
+	 */
+	private String cleanMessage(Exception e) {
+		if (e.getCause() != null) {
+			return e.getCause().getMessage();
+		}
+		return e.getMessage();
+	}
+
+	/*
+	 * if the importing results do not contain initial timestamp a launch gets
+	 * a default date if the launch is broken, time should be updated to not to broke
+	 * the statistics
+	 */
+	private void updateBrokenLaunch(String savedLaunchId) {
+		if (savedLaunchId != null) {
+			Launch launch = new Launch();
+			launch.setId(savedLaunchId);
+			launch.setStatistics(null);
+			launch.setStartTime(Calendar.getInstance().getTime());
+			launchRepository.partialUpdate(launch);
+		}
 	}
 }

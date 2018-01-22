@@ -27,6 +27,7 @@ import com.google.common.collect.Lists;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
@@ -45,13 +46,20 @@ public class ChangeSets_4_0 {
 	@ChangeSet(order = "4.0-1", id = "v.4.0-Update refactored widgets", author = "pbortnik")
 	public void updateWidgets(MongoTemplate mongoTemplate) {
 		final String collection = "widget";
-		Query query = query(where("contentOptions.type").is("line_chart").and("contentOptions.gadgetType").is("old_line_chart"));
+		Criteria criteria = new Criteria();
+		Query query = query(criteria.orOperator(
+				where("contentOptions.type").is("line_chart").and("contentOptions.gadgetType").is("old_line_chart"),
+				where("contentOptions.type").is("trends_chart").and("contentOptions.gadgetType").is("statistic_trend")
+		));
 		query.fields().include("_id");
+		String[] viewMode = new String[1];
 		mongoTemplate.stream(query, DBObject.class, collection).forEachRemaining(widget -> {
 			Update update = new Update();
+			String type = (String) ((DBObject) widget.get("contentOptions")).get("type");
 			update.set("contentOptions.type", "trends_chart");
 			update.set("contentOptions.gadgetType", "statistic_trend");
-			update.set("contentOptions.widgetOptions", new BasicDBObject("viewMode", new String[] { "barMode" }));
+			viewMode[0] = "line_chart".equals(type) ? "areaChartMode" : "barMode";
+			update.set("contentOptions.widgetOptions", new BasicDBObject("viewMode", viewMode));
 			mongoTemplate.updateFirst(query(where("_id").is(widget.get("_id"))), update, collection);
 		});
 	}

@@ -52,6 +52,7 @@ public class ChangeSets_4_0 {
 				where("contentOptions.type").is("trends_chart").and("contentOptions.gadgetType").is("statistic_trend")
 		));
 		query.fields().include("_id");
+		query.fields().include("contentOptions");
 		String[] viewMode = new String[1];
 		mongoTemplate.stream(query, DBObject.class, collection).forEachRemaining(widget -> {
 			Update update = new Update();

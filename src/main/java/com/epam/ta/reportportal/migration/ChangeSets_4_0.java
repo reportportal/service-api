@@ -64,7 +64,11 @@ public class ChangeSets_4_0 {
 			update.set("contentOptions.type", "trends_chart");
 			update.set("contentOptions.gadgetType", "statistic_trend");
 			viewMode[0] = "line_chart".equals(type) ? "areaChartMode" : "barMode";
-			widgetOptions.append("viewMode", viewMode);
+			if (widgetOptions != null) {
+				widgetOptions.append("viewMode", viewMode);
+			} else {
+				widgetOptions = new BasicDBObject("viewMode", viewMode);
+			}
 			update.set("contentOptions.widgetOptions", widgetOptions);
 			mongoTemplate.updateFirst(query(where("_id").is(widget.get("_id"))), update, collection);
 		});

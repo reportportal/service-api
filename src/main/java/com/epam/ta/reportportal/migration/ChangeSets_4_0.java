@@ -56,11 +56,20 @@ public class ChangeSets_4_0 {
 		String[] viewMode = new String[1];
 		mongoTemplate.stream(query, DBObject.class, collection).forEachRemaining(widget -> {
 			Update update = new Update();
-			String type = (String) ((DBObject) widget.get("contentOptions")).get("type");
+			DBObject contentOptions = (DBObject) widget.get("contentOptions");
+
+			BasicDBObject widgetOptions = (BasicDBObject) contentOptions.get("widgetOptions");
+			String type = (String) contentOptions.get("type");
+
 			update.set("contentOptions.type", "trends_chart");
 			update.set("contentOptions.gadgetType", "statistic_trend");
 			viewMode[0] = "line_chart".equals(type) ? "areaChartMode" : "barMode";
-			update.set("contentOptions.widgetOptions", new BasicDBObject("viewMode", viewMode));
+			if (widgetOptions != null) {
+				widgetOptions.append("viewMode", viewMode);
+			} else {
+				widgetOptions = new BasicDBObject("viewMode", viewMode);
+			}
+			update.set("contentOptions.widgetOptions", widgetOptions);
 			mongoTemplate.updateFirst(query(where("_id").is(widget.get("_id"))), update, collection);
 		});
 	}

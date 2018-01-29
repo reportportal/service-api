@@ -72,13 +72,13 @@ configurations {
 dependencies {
     if (releaseMode) {
         compile 'com.epam.reportportal:commons-dao:4.0.2'
-        compile 'com.epam.reportportal:commons-rules:4.0.0'
-        compile 'com.epam.reportportal:commons-model:4.0.1'
+        compile 'com.epam.reportportal:commons-rules:4.0.1'
+        compile 'com.epam.reportportal:commons-model:4.0.3'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
         compile('com.github.reportportal:commons-dao:4.0.2')
-        compile('com.github.reportportal:commons-rules:4.0.0')
-        compile 'com.github.reportportal:commons-model:4.0.1'
+        compile('com.github.reportportal:commons-rules:4.0.1')
+        compile 'com.github.reportportal:commons-model:4.0.3'
         compile('com.github.reportportal:commons:3.1.0')
     }
 

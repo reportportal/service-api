@@ -184,6 +184,9 @@
 * EPMRPP-31001 - Most failed test cases: refactored in case of new design
 * EPMRPP-31220 - WS: removing Match issue
 * EPMRPP-31189 - Update script for widgets.
+* EPMRPP-31780 - Set the name of analyzer which made the changes
+* EPMRPP-33154 - [IMPORT] Better handling of importing exceptions 
+* reportportal/reportporatl#322 - Make startTestItemRQ in API 4.x case insensitive
 
 ### Bugfixes
 
@@ -204,18 +207,11 @@
 * EPMRPP-31447 - WS: "ActionType"=analyze_item for action that was done by user
 * Fix issue with incorrect importing of some junit files
 * EPMRPP-31904 - WS: Jobs do not work properly
-
-## 4.x.x
-##### Released: XXX XX, 2018
-
-### New Features
-
-* EPMRPP-31780 - Set the name of analyzer which made the changes
-
-### Bugfixes
-
 * EPMRPP-33083 - WS: The extra statistics is returned for No Defects for Comparison launches
 * EPMRPP-33080 - WS: Unclassified error on widget preview in case the filter is not saved
 * EPMRPP-32107 - WS: Unclassified error on load widget in case the filter deleted
 * EPMRPP-33089 - Most failed widget: Unclassified error for launch with status Interrupted
 * EPMRPP-32898 - Search for user with dot symbol in login name returns the error
+* EPMRPP-33155 - [GITHUB] Failed import faced with unknown tag #317
+* EPMRPP-33181 - WS: Launch statistics charts are not updated correctly with new version
+* EPMRPP-33255 - Update script for widget does not support 'Timeline' mode setting

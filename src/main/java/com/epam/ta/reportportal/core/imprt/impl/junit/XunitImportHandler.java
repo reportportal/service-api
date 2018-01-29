@@ -30,6 +30,8 @@ import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import com.google.common.base.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
@@ -48,6 +50,8 @@ import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toDate;
 import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toMillis;
 
 public class XunitImportHandler extends DefaultHandler {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(XunitImportHandler.class);
 
 	@Autowired
 	private StartTestItemHandler startTestItemHandler;
@@ -116,7 +120,12 @@ public class XunitImportHandler extends DefaultHandler {
 				break;
 			case SYSTEM_OUT:
 			case SYSTEM_ERR:
+			case WARNING:
 				message = new StringBuilder();
+				break;
+			case UNKNOWN:
+				LOGGER.warn("Unknown tag: {}", qName);
+				break;
 		}
 	}
 
@@ -139,6 +148,12 @@ public class XunitImportHandler extends DefaultHandler {
 				break;
 			case SYSTEM_ERR:
 				attachLog(LogLevel.ERROR);
+				break;
+			case WARNING:
+				attachLog(LogLevel.WARN);
+				break;
+			case UNKNOWN:
+				LOGGER.warn("Unknown tag: {}", qName);
 				break;
 		}
 	}
@@ -169,7 +184,7 @@ public class XunitImportHandler extends DefaultHandler {
 		LocalDateTime localDateTime = null;
 		try {
 			localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(timestamp)), ZoneId.systemDefault());
-		} catch (NumberFormatException e) {
+		} catch (NumberFormatException ignored) {
 			//ignored
 		}
 		if (null == localDateTime) {

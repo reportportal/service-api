@@ -40,6 +40,7 @@ import java.io.IOException;
 
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 
 @Service
@@ -61,13 +62,15 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 		Project project = projectRepository.findOne(projectId);
 
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectId);
-		expect(file.getOriginalFilename(), it -> it.matches(ZIP_REGEX)).verify(ErrorType.BAD_IMPORT_FILE_TYPE, file.getOriginalFilename());
+		expect(file.getOriginalFilename(), it -> it.matches(ZIP_REGEX)).verify(
+				INCORRECT_REQUEST, "Should be a zip archive" + file.getOriginalFilename());
 
 		ImportType type = ImportType.fromValue(format).orElse(null);
-		expect(type, notNull()).verify(ErrorType.BAD_IMPORT_FILE_TYPE, format);
-		ImportStrategy strategy = factory.getImportLaunch(type);
+		expect(type, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, format);
+
 		File tempFile = transferToTempFile(file);
 		eventPublisher.publishEvent(new ImportStartedEvent(projectId, userName, file.getOriginalFilename()));
+		ImportStrategy strategy = factory.getImportLaunch(type);
 		String launch = strategy.importLaunch(projectId, userName, tempFile);
 		eventPublisher.publishEvent(new ImportFinishedEvent(projectId, userName, file.getOriginalFilename()));
 		return new OperationCompletionRS("Launch with id = " + launch + " is successfully imported.");

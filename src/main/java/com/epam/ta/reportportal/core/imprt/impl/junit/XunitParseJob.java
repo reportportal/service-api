@@ -21,6 +21,7 @@
 package com.epam.ta.reportportal.core.imprt.impl.junit;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.SAXException;
 
@@ -45,7 +46,7 @@ public class XunitParseJob implements Callable<ParseResults> {
 		try {
 			SAXParserFactory.newInstance().newSAXParser().parse(xmlInputStream, handler);
 		} catch (SAXException | IOException | ParserConfigurationException e) {
-			throw new ReportPortalException("Xml parse job problem.", e);
+			throw new ReportPortalException(ErrorType.PARSING_XML_ERROR, e.getMessage());
 		}
 		return new ParseResults(handler.getStartSuiteTime(), handler.getCommonDuration());
 	}

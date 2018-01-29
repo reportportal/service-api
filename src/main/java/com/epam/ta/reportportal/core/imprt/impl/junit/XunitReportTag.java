@@ -35,6 +35,9 @@ public enum XunitReportTag {
 	// the error element
 	ERROR("error"),
 
+	// the warning element,
+	WARNING("warning"),
+
 	// the failure element
 	FAILURE("failure"),
 
@@ -68,7 +71,10 @@ public enum XunitReportTag {
 	ATTR_VALUE("value"),
 
 	// timestamp of test cases
-	TIMESTAMP("timestamp");
+	TIMESTAMP("timestamp"),
+
+	//unknown tag
+	UNKNOWN("unknown");
 
 	private String value;
 
@@ -81,6 +87,6 @@ public enum XunitReportTag {
 	}
 
 	static XunitReportTag fromString(String type) {
-		return Arrays.stream(values()).filter(it -> it.getValue().equalsIgnoreCase(type)).findAny().orElse(null);
+		return Arrays.stream(values()).filter(it -> it.getValue().equalsIgnoreCase(type)).findAny().orElse(UNKNOWN);
 	}
 }

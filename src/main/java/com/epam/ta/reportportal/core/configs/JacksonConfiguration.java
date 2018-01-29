@@ -44,6 +44,7 @@ public class JacksonConfiguration {
 		om.setAnnotationIntrospector(new JacksonAnnotationIntrospector());
 		om.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true);
 		om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		om.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
 		om.registerModule(new JacksonViewAwareModule(om));
 		return om;
 	}

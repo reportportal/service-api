@@ -124,8 +124,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				TestItem testItem = testItemRepository.findOne(issueDefinition.getId());
 				verifyTestItem(testItem, issueDefinition.getId());
 
-				boolean issueTypeChanged = !testItem.getIssue().getIssueType().equals(issueDefinition.getIssue().getIssueType());
-
 				//if item is updated then it is no longer auto analyzed
 				issueDefinition.getIssue().setAutoAnalyzed(false);
 				eventData.put(issueDefinition, testItem);
@@ -185,9 +183,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				testItem.setIssue(testItemIssue);
 
 				testItemRepository.save(testItem);
-				if (issueTypeChanged) {
-					indexLogs(projectName, testItem);
-				}
+				indexLogs(projectName, testItem);
 
 				testItem = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.updateIssueStatistics(testItem);

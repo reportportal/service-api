@@ -62,10 +62,10 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.util.Predicates.LAUNCH_CAN_BE_INDEXED;
+import static java.util.stream.Collectors.toList;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 /**
@@ -157,7 +157,8 @@ public class LogIndexerService implements ILogIndexer {
 
 	@Override
 	public void cleanIndex(String index, List<String> ids) {
-		analyzerServiceClient.cleanIndex(index, ids);
+		List<String> logIds = logRepository.findGreaterOrEqualLevel(ids, LogLevel.ERROR).stream().map(Log::getId).collect(toList());
+		analyzerServiceClient.cleanIndex(index, logIds);
 	}
 
 	@Override
@@ -234,10 +235,13 @@ public class LogIndexerService implements ILogIndexer {
 	 * @return Prepared list of {@link IndexTestItem} for indexing
 	 */
 	private List<IndexTestItem> prepareItemsForIndexing(List<TestItem> testItems) {
-		return testItems.stream().filter(ITEM_CAN_BE_INDEXED)
-				.map(it -> AnalyzerUtils.fromTestItem(it, logRepository.findGreaterOrEqualLevel(it.getId(), LogLevel.ERROR)))
+		return testItems.stream()
+				.filter(ITEM_CAN_BE_INDEXED)
+				.map(it -> AnalyzerUtils.fromTestItem(it,
+						logRepository.findGreaterOrEqualLevel(Collections.singletonList(it.getId()), LogLevel.ERROR)
+				))
 				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
-				.collect(Collectors.toList());
+				.collect(toList());
 	}
 
 	/**

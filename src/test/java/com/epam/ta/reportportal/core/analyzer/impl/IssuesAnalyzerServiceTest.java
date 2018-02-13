@@ -46,6 +46,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.util.*;
 
 import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.PRODUCT_BUG;
+import static java.util.Collections.singletonList;
 import static org.mockito.Mockito.*;
 
 /**
@@ -86,9 +87,9 @@ public class IssuesAnalyzerServiceTest {
 	public void analyzeWithoutLogs() {
 		Launch launch = launch();
 		TestItem testItems = testItemsTI(1).get(0);
-		when(logRepository.findGreaterOrEqualLevel(testItems.getId(), LogLevel.ERROR)).thenReturn(Collections.emptyList());
-		issuesAnalyzer.analyze(launch, Collections.singletonList(testItems));
-		verify(logRepository, times(1)).findGreaterOrEqualLevel(testItems.getId(), LogLevel.ERROR);
+		when(logRepository.findGreaterOrEqualLevel(singletonList(testItems.getId()), LogLevel.ERROR)).thenReturn(Collections.emptyList());
+		issuesAnalyzer.analyze(launch, singletonList(testItems));
+		verify(logRepository, times(1)).findGreaterOrEqualLevel(singletonList(testItems.getId()), LogLevel.ERROR);
 		verifyZeroInteractions(analyzerServiceClient);
 	}
 
@@ -99,7 +100,7 @@ public class IssuesAnalyzerServiceTest {
 		Project project = project();
 		List<TestItem> items = testItemsTI(itemsCount);
 
-		when(logRepository.findGreaterOrEqualLevel(anyString(), eq(LogLevel.ERROR))).thenReturn(errorLogs(2));
+		when(logRepository.findGreaterOrEqualLevel(anyListOf(String.class), eq(LogLevel.ERROR))).thenReturn(errorLogs(2));
 		when(analyzerServiceClient.analyze(any())).thenReturn(analyzedItems(itemsCount));
 		when(projectRepository.findByName(launch.getProjectRef())).thenReturn(project);
 
@@ -108,7 +109,7 @@ public class IssuesAnalyzerServiceTest {
 
 		issuesAnalyzer.analyze(launch, items);
 
-		verify(logRepository, times(itemsCount)).findGreaterOrEqualLevel(anyString(), eq(LogLevel.ERROR));
+		verify(logRepository, times(itemsCount)).findGreaterOrEqualLevel(anyListOf(String.class), eq(LogLevel.ERROR));
 		verify(analyzerServiceClient, times(1)).analyze(any());
 		verify(testItemRepository, times(1)).updateItemsIssues(any());
 		verify(projectRepository, times(1)).findByName(launch.getProjectRef());

@@ -215,3 +215,4 @@
 * EPMRPP-33155 - [GITHUB] Failed import faced with unknown tag #317
 * EPMRPP-33181 - WS: Launch statistics charts are not updated correctly with new version
 * EPMRPP-33255 - Update script for widget does not support 'Timeline' mode setting
+* EPMRPP-33492 - WS: Logs of launches from DEBUG level are get to ES during the indexing

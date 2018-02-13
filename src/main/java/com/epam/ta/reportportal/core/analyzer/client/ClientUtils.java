@@ -57,7 +57,7 @@ public final class ClientUtils {
 	 * Checks if service support items indexing. <code>false</code>
 	 * by default
 	 */
-	static final Predicate<ServiceInstance> DOES_NEED_INDEX = it -> {
+	static final Predicate<ServiceInstance> SUPPORT_INDEX = it -> {
 		try {
 			return Boolean.valueOf(it.getMetadata().get(ANALYZER_INDEX));
 		} catch (Exception e) {

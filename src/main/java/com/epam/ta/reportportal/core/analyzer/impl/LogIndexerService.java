@@ -35,7 +35,6 @@ import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
@@ -65,7 +64,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.util.Predicates.CAN_BE_INDEXED;
+import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
+import static com.epam.ta.reportportal.util.Predicates.LAUNCH_CAN_BE_INDEXED;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 /**
@@ -136,7 +136,7 @@ public class LogIndexerService implements ILogIndexer {
 	@Override
 	public void indexLogs(String launchId, List<TestItem> testItems) {
 		Launch launch = launchRepository.findOne(launchId);
-		if (launch != null && !Mode.DEBUG.equals(launch.getMode())) {
+		if (LAUNCH_CAN_BE_INDEXED.test(launch)) {
 			List<IndexTestItem> rqTestItems = prepareItemsForIndexing(testItems);
 			if (!CollectionUtils.isEmpty(rqTestItems)) {
 				IndexLaunch rqLaunch = new IndexLaunch();
@@ -213,9 +213,9 @@ public class LogIndexerService implements ILogIndexer {
 		}
 		IndexLaunch rqLaunch = null;
 		TestItem testItem = testItemRepository.findOne(log.getTestItemRef());
-		if (CAN_BE_INDEXED.test(testItem)) {
+		if (ITEM_CAN_BE_INDEXED.test(testItem)) {
 			Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-			if (launch != null) {
+			if (LAUNCH_CAN_BE_INDEXED.test(launch)) {
 				rqLaunch = new IndexLaunch();
 				rqLaunch.setLaunchId(launch.getId());
 				rqLaunch.setLaunchName(launch.getName());
@@ -234,8 +234,7 @@ public class LogIndexerService implements ILogIndexer {
 	 * @return Prepared list of {@link IndexTestItem} for indexing
 	 */
 	private List<IndexTestItem> prepareItemsForIndexing(List<TestItem> testItems) {
-		return testItems.stream()
-				.filter(CAN_BE_INDEXED)
+		return testItems.stream().filter(ITEM_CAN_BE_INDEXED)
 				.map(it -> AnalyzerUtils.fromTestItem(it, logRepository.findGreaterOrEqualLevel(it.getId(), LogLevel.ERROR)))
 				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
 				.collect(Collectors.toList());

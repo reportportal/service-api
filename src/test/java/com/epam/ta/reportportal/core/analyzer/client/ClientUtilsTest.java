@@ -44,7 +44,7 @@ public class ClientUtilsTest {
 		when(mock.getMetadata()).thenReturn(
 				ImmutableMap.<String, String>builder().put(ANALYZER_PRIORITY, "1").put(ANALYZER_INDEX, "true").build());
 		Assert.assertEquals(1, ClientUtils.SERVICE_PRIORITY.applyAsInt(mock));
-		Assert.assertEquals(true, ClientUtils.DOES_NEED_INDEX.test(mock));
+		Assert.assertEquals(true, ClientUtils.SUPPORT_INDEX.test(mock));
 	}
 
 	@Test
@@ -52,7 +52,7 @@ public class ClientUtilsTest {
 		ServiceInstance mock = mock(ServiceInstance.class);
 		when(mock.getMetadata()).thenReturn(Collections.emptyMap());
 		Assert.assertEquals(Integer.MAX_VALUE, ClientUtils.SERVICE_PRIORITY.applyAsInt(mock));
-		Assert.assertEquals(false, ClientUtils.DOES_NEED_INDEX.test(mock));
+		Assert.assertEquals(false, ClientUtils.SUPPORT_INDEX.test(mock));
 	}
 
 	@Test
@@ -61,7 +61,7 @@ public class ClientUtilsTest {
 		when(mock.getMetadata()).thenReturn(
 				ImmutableMap.<String, String>builder().put(ANALYZER_PRIORITY, "abracadabra").put(ANALYZER_INDEX, "666").build());
 		Assert.assertEquals(Integer.MAX_VALUE, ClientUtils.SERVICE_PRIORITY.applyAsInt(mock));
-		Assert.assertEquals(false, ClientUtils.DOES_NEED_INDEX.test(mock));
+		Assert.assertEquals(false, ClientUtils.SUPPORT_INDEX.test(mock));
 	}
 
 }

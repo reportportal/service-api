@@ -6,8 +6,8 @@ import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static com.epam.ta.reportportal.util.Predicates.CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.util.Predicates.IS_RETRY;
+import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 
 /**
  * @author Andrei Varabyeu
@@ -41,7 +41,7 @@ public class PredicatesTest {
 		issue.setIgnoreAnalyzer(false);
 		issue.setIssueType(TestItemIssueType.PRODUCT_BUG.getLocator());
 		testItem.setIssue(issue);
-		Assert.assertTrue("Item should be available for indexing", CAN_BE_INDEXED.test(testItem));
+		Assert.assertTrue("Item should be available for indexing", ITEM_CAN_BE_INDEXED.test(testItem));
 	}
 
 	@Test
@@ -49,7 +49,7 @@ public class PredicatesTest {
 		TestItem testItem = new TestItem();
 		TestItemIssue issue = new TestItemIssue();
 		testItem.setIssue(issue);
-		Assert.assertFalse("Item with TI issue shouldn't be available for indexing", CAN_BE_INDEXED.test(testItem));
+		Assert.assertFalse("Item with TI issue shouldn't be available for indexing", ITEM_CAN_BE_INDEXED.test(testItem));
 	}
 	@Test
 	public void checkIgnoreIndexed() {
@@ -58,6 +58,6 @@ public class PredicatesTest {
 		issue.setIssueType(TestItemIssueType.PRODUCT_BUG.getLocator());
 		issue.setIgnoreAnalyzer(true);
 		testItem.setIssue(issue);
-		Assert.assertFalse("Item with ignore flag shouldn't be available for indexing", CAN_BE_INDEXED.test(testItem));
+		Assert.assertFalse("Item with ignore flag shouldn't be available for indexing", ITEM_CAN_BE_INDEXED.test(testItem));
 	}
 }

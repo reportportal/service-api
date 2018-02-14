@@ -149,10 +149,10 @@ public class LogIndexerServiceTest {
 	public void testIndexLogsTestItemsWithoutLogs() {
 		String launchId = "3";
 		when(launchRepository.findOne(eq(launchId))).thenReturn(createLaunch(launchId));
-		when(logRepository.findGreaterOrEqualLevel(anyString(), eq(LogLevel.ERROR))).thenReturn(Collections.emptyList());
+		when(logRepository.findGreaterOrEqualLevel(anyListOf(String.class), eq(LogLevel.ERROR))).thenReturn(Collections.emptyList());
 		int testItemCount = 10;
 		logIndexerService.indexLogs(launchId, createTestItems(testItemCount));
-		verify(logRepository, times(testItemCount)).findGreaterOrEqualLevel(anyString(), eq(LogLevel.ERROR));
+		verify(logRepository, times(testItemCount)).findGreaterOrEqualLevel(anyListOf(String.class), eq(LogLevel.ERROR));
 		verifyZeroInteractions(mongoOperations, analyzerServiceClient);
 	}
 
@@ -160,11 +160,12 @@ public class LogIndexerServiceTest {
 	public void testIndexLogs() {
 		String launchId = "4";
 		when(launchRepository.findOne(eq(launchId))).thenReturn(createLaunch(launchId));
-		when(logRepository.findGreaterOrEqualLevel(anyString(), eq(LogLevel.ERROR))).thenReturn(Collections.singletonList(createLog("id")));
+		when(logRepository.findGreaterOrEqualLevel(anyListOf(String.class), eq(LogLevel.ERROR))).thenReturn(
+				Collections.singletonList(createLog("id")));
 		int testItemCount = 2;
 		when(analyzerServiceClient.index(anyListOf(IndexLaunch.class))).thenReturn(Collections.singletonList(createIndexRs(testItemCount)));
 		logIndexerService.indexLogs(launchId, createTestItems(testItemCount));
-		verify(logRepository, times(testItemCount)).findGreaterOrEqualLevel(anyString(), eq(LogLevel.ERROR));
+		verify(logRepository, times(testItemCount)).findGreaterOrEqualLevel(anyListOf(String.class), eq(LogLevel.ERROR));
 		verify(analyzerServiceClient).index(anyListOf(IndexLaunch.class));
 		verifyZeroInteractions(mongoOperations);
 	}
@@ -179,6 +180,7 @@ public class LogIndexerServiceTest {
 		logIndexerService.indexLogs(launchId, Collections.singletonList(testItem));
 		verifyZeroInteractions(mongoOperations, testItemRepository, logRepository, analyzerServiceClient);
 	}
+
 	@Test
 
 	public void testIndexInDebug() {

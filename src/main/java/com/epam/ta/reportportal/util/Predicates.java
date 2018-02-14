@@ -21,8 +21,10 @@
 
 package com.epam.ta.reportportal.util;
 
+import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
+import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.base.CharMatcher;
 
 import java.util.function.Predicate;
@@ -51,9 +53,14 @@ public class Predicates {
 	public static final Predicate<TestItem> IS_RETRY = item -> item.getRetryProcessed() != null;
 
 	/**
-	 * Checks if the test item is suitable for indexing in analyzer.
+	 * Checks if the test item is suitable for indexing in analyzer
 	 */
-	public static final Predicate<TestItem> CAN_BE_INDEXED = testItem -> testItem != null && testItem.getIssue() != null
+	public static final Predicate<TestItem> ITEM_CAN_BE_INDEXED = testItem -> testItem != null && testItem.getIssue() != null
 			&& !TestItemIssueType.TO_INVESTIGATE.getLocator().equals(testItem.getIssue().getIssueType()) && !testItem.getIssue()
 			.isIgnoreAnalyzer();
+
+	/**
+	 * Checks if the launch is suitable for indexing in analyzer
+	 */
+	public static final Predicate<Launch> LAUNCH_CAN_BE_INDEXED = launch -> launch != null && Mode.DEFAULT.equals(launch.getMode());
 }

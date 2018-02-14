@@ -47,6 +47,7 @@ public class AnalyzerUtils {
 	 */
 	private static Function<Log, IndexLog> TO_INDEX_LOG = log -> {
 		IndexLog indexLog = new IndexLog();
+		indexLog.setLogId(log.getId());
 		if (log.getLevel() != null) {
 			indexLog.setLogLevel(log.getLevel().toInt());
 		}

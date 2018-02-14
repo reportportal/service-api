@@ -75,8 +75,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	@Override
 	public List<IndexRs> index(List<IndexLaunch> rq) {
 		return analyzerInstances.get()
-				.stream()
-				.filter(DOES_NEED_INDEX)
+				.stream().filter(SUPPORT_INDEX)
 				.map(instance -> index(instance, rq))
 				.filter(Optional::isPresent)
 				.map(Optional::get)
@@ -96,12 +95,12 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 
 	@Override
 	public void cleanIndex(String index, List<String> ids) {
-		analyzerInstances.get().stream().filter(DOES_NEED_INDEX).forEach(instance -> cleanIndex(instance, index, ids));
+		analyzerInstances.get().stream().filter(SUPPORT_INDEX).forEach(instance -> cleanIndex(instance, index, ids));
 	}
 
 	@Override
 	public void deleteIndex(String index) {
-		analyzerInstances.get().stream().filter(DOES_NEED_INDEX).forEach(instance -> deleteIndex(instance, index));
+		analyzerInstances.get().stream().filter(SUPPORT_INDEX).forEach(instance -> deleteIndex(instance, index));
 	}
 
 	private void deleteIndex(ServiceInstance instance, String index) {

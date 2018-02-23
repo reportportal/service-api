@@ -22,35 +22,16 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.core.launch.IStartLaunchHandler;
-import com.epam.ta.reportportal.database.dao.LaunchMetaInfoRepository;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.ProjectRole;
-import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.database.search.Filter;
-import com.epam.ta.reportportal.database.search.FilterCondition;
-import com.epam.ta.reportportal.events.LaunchStartedEvent;
+import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.store.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
-import com.google.common.collect.ImmutableSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Set;
-
-import static com.epam.ta.reportportal.database.entity.Launch.*;
-import static com.epam.ta.reportportal.database.entity.Status.*;
-import static com.epam.ta.reportportal.database.search.Condition.EQUALS;
-import static com.epam.ta.reportportal.database.search.Condition.IN;
-import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
-import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
-import static org.springframework.data.domain.Sort.Direction.DESC;
 
 /**
  * Default implementation of {@link IStartLaunchHandler}
@@ -59,69 +40,54 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
  */
 @Service
 class StartLaunchHandler implements IStartLaunchHandler {
-
 	private final LaunchRepository launchRepository;
-	private final LaunchMetaInfoRepository launchCounter;
 	private final ProjectRepository projectRepository;
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	public StartLaunchHandler(LaunchMetaInfoRepository launchCounter, ProjectRepository projectRepository,
-			LaunchRepository launchRepository, ApplicationEventPublisher eventPublisher) {
-		this.launchCounter = launchCounter;
-		this.projectRepository = projectRepository;
+	public StartLaunchHandler(LaunchRepository launchRepository, ProjectRepository projectRepository,
+			ApplicationEventPublisher eventPublisher) {
 		this.launchRepository = launchRepository;
+		this.projectRepository = projectRepository;
 		this.eventPublisher = eventPublisher;
 	}
 
 	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.epam.ta.reportportal.ws.IStartLaunchHandler#startLaunch(java.lang
-	 * .String, com.epam.ta.reportportal.ws.model.StartLaunchRQ)
-	 */
-	@Override
-	public StartLaunchRS startLaunch(String username, String projectName, StartLaunchRQ startLaunchRQ) {
-
-		if (startLaunchRQ.getMode() == DEBUG) {
-
-			Project project = projectRepository.findByName(projectName);
-			Project.UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, username);
-			if (userConfig.getProjectRole() == ProjectRole.CUSTOMER) {
-				startLaunchRQ.setMode(DEFAULT);
-			}
-		}
-
-		// userName and projectName validations here is redundant, user name and
-		// projectName have already validated by spring security in controller
-		Launch launch = new LaunchBuilder().addStartRQ(startLaunchRQ)
-				.addProject(projectName)
-				.addStatus(IN_PROGRESS)
-				.addUser(username)
-				.get();
-		/*
-		 * Retrieve and set number of launch with provided name
+		 * (non-Javadoc)
+		 *k
+		 * @see
+		 * com.epam.ta.reportportal.ws.IStartLaunchHandler#startLaunch(java.lang
+		 * .String, com.epam.ta.reportportal.ws.model.StartLaunchRQ)
 		 */
-		launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
-		launch.setApproximateDuration(calculateApproximateDuration(projectName, startLaunchRQ.getName(), 5));
+	public StartLaunchRS startLaunch(String username, String projectName, StartLaunchRQ startLaunchRQ) {
+		//TODO replace with new uat
+		//		ProjectUser projectUser = projectRepository.selectProjectUser(projectName, username);
+		//		if (startLaunchRQ.getMode() == Mode.DEBUG) {
+		//			if (projectUser.getProjectRole() == ProjectRoleEnum.CUSTOMER) {
+		//				startLaunchRQ.setMode(Mode.DEFAULT);
+		//			}
+		//		}
+		Launch launch = new LaunchBuilder().addStartRQ(startLaunchRQ).addProject(1).addUser(1L).addTags(startLaunchRQ.getTags()).get();
+		launch.setStatus(StatusEnum.IN_PROGRESS);
+
+		//launch.setApproximateDuration(calculateApproximateDuration(projectName, startLaunchRQ.getName(), 5));
 
 		launchRepository.save(launch);
-
-		eventPublisher.publishEvent(new LaunchStartedEvent(launch));
-		return new StartLaunchRS(launch.getId(), launch.getNumber());
-
+		launchRepository.refresh(launch);
+		//eventPublisher.publishEvent(new LaunchStartedEvent(launch));
+		return new StartLaunchRS(launch.getId().toString(), launch.getNumber().longValue());
 	}
 
 	private double calculateApproximateDuration(String projectName, String launchName, int limit) {
-		Set<FilterCondition> conditions = ImmutableSet.<FilterCondition>builder().add(new FilterCondition(EQUALS, false, launchName, NAME))
-				.add(new FilterCondition(EQUALS, false, projectName, PROJECT))
-				.add(new FilterCondition(IN, true, STOPPED.name() + "," + INTERRUPTED.name() + "," + IN_PROGRESS.name(), STATUS))
-				.add(new FilterCondition(EQUALS, false, DEFAULT.name(), MODE_CRITERIA))
-				.build();
-		Filter filter = new Filter(Launch.class, conditions);
-		Sort sort = new Sort(new Sort.Order(DESC, "start_time"));
-		List<Launch> launches = launchRepository.findByFilterWithSortingAndLimit(filter, sort, limit);
-		return launches.stream().mapToLong(it -> it.getEndTime().getTime() - it.getStartTime().getTime()).average().orElse(0);
+		//		Set<FilterCondition> conditions = ImmutableSet.<FilterCondition>builder().add(new FilterCondition(EQUALS, false, launchName, NAME))
+		//				.add(new FilterCondition(EQUALS, false, projectName, PROJECT))
+		//				.add(new FilterCondition(IN, true, STOPPED.name() + "," + INTERRUPTED.name() + "," + IN_PROGRESS.name(), STATUS))
+		//				.add(new FilterCondition(EQUALS, false, DEFAULT.name(), MODE_CRITERIA))
+		//				.build();
+		//		Filter filter = new Filter(Launch.class, conditions);
+		//		Sort sort = new Sort(new Sort.Order(DESC, "start_time"));
+		//		List<Launch> launches = launchRepository.findByFilterWithSortingAndLimit(filter, sort, limit);
+		//		return launches.stream().mapToLong(it -> it.getEndTime().getTime() - it.getStartTime().getTime()).average().orElse(0);
+		return 0;
 	}
 }

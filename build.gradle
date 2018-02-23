@@ -79,17 +79,21 @@ configurations {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:4.0.0'
+        //compile 'com.epam.reportportal:commons-dao:4.0.0'
         compile 'com.epam.reportportal:commons-rules:4.0.0'
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile('com.github.reportportal:commons-dao:4.0.0')
-        compile('com.github.reportportal:commons-rules:4.0.0')
+        //compile('com.github.reportportal:commons-dao:4.0.0')
+        compile 'com.github.reportportal:commons-rules:spb2-SNAPSHOT'
         compile 'com.github.reportportal:commons-model:4.0.0'
         compile('com.github.reportportal:commons:3.1.0')
     }
 
+    compile('org.springframework.boot:spring-boot-starter-data-jpa')
+    compile group: 'org.hibernate', name: 'hibernate-validator', version: '6.0.7.Final'
+    compile 'org.postgresql:postgresql:42.2.1'
+    compile 'org.jooq:jooq:3.10.4'
     compile 'org.jasypt:jasypt:1.9.2'
 
 
@@ -114,9 +118,9 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-actuator'
     compile 'org.springframework.cloud:spring-cloud-starter-oauth2'
 
-    compile 'org.springframework.data:spring-data-mongodb'
+    //compile 'org.springframework.data:spring-data-mongodb'
 
-    compile 'com.github.mongobee:mongobee:0.12'
+    //compile 'com.github.mongobee:mongobee:0.12'
 
     compile 'org.quartz-scheduler:quartz:2.3.0'
     compile "com.novemberain:quartz-mongodb:2.0.0"
@@ -141,7 +145,7 @@ dependencies {
     testCompile 'org.mockito:mockito-all:2.0.2-beta'
 
     testCompile 'com.jayway.jsonpath:json-path:2.2.0'
-    testCompile 'com.github.fakemongo:fongo:2.0.12'
+    //testCompile 'com.github.fakemongo:fongo:2.0.12'
 
     testCompile 'org.apache.commons:commons-math3:3.6.1'
     testCompile 'org.springframework.boot:spring-boot-starter-test'

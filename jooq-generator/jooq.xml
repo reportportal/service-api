@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-3.10.0.xsd">
+    <!-- Configure the database connection here -->
+    <jdbc>
+        <driver>org.postgresql.Driver</driver>
+        <url>jdbc:postgresql://localhost:5432/reportportal</url>
+        <user>rpuser</user>
+        <password>rppass</password>
+    </jdbc>
+
+    <generator>
+        <!-- The default code generator. You can override this one, to generate your own code style.
+             Supported generators:
+             - org.jooq.util.JavaGenerator
+             - org.jooq.util.ScalaGenerator
+             Defaults to org.jooq.util.JavaGenerator -->
+
+        <database>
+            <!-- The database type. The format here is:
+                 org.util.[database].[database]Database -->
+            <name>org.jooq.util.postgres.PostgresDatabase</name>
+
+            <!-- The database schema (or in the absence of schema support, in your RDBMS this
+                 can be the owner, user, database name) to be generated -->
+            <inputSchema>public</inputSchema>
+
+            <!-- All elements that are generated from your schema
+                 (A Java regular expression. Use the pipe to separate several expressions)
+                 Watch out for case-sensitivity. Depending on your database, this might be important! -->
+            <includes>.*</includes>
+
+            <!-- All elements that are excluded from your schema
+                 (A Java regular expression. Use the pipe to separate several expressions).
+                 Excludes match before includes, i.e. excludes have a higher priority -->
+            <excludes>schema_migrations</excludes>
+        </database>
+
+        <generate>
+            <pojos>true</pojos>
+            <jpaAnnotations>false</jpaAnnotations>
+            <dateAsTimestamp>false</dateAsTimestamp>
+        </generate>
+
+        <target>
+            <!-- The destination package of your generated classes (within the destination directory) -->
+            <packageName>com.epam.ta.reportportal.store.jooq</packageName>
+            <!-- The destination directory of your generated classes. Using Maven directory layout here -->
+            <directory>../src/main/java/</directory>
+        </target>
+    </generator>
+</configuration>
+
+        <!--
+                Put the property file, jooq*.jar and the JDBC driver into a directory, e.g. C:\temp\jooq
+                Go to C:\temp\jooq
+                Run java -cp jooq-3.10.4.jar:jooq-meta-3.10.4.jar:jooq-codegen-3.10.4.jar:postgresql-42.2.1.jar:. org.jooq.util.GenerationTool /jooq.xml
+        -->

@@ -21,25 +21,15 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import com.epam.ta.reportportal.commons.DbUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.launch.IFinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
-import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.Project.UserConfig;
-import com.epam.ta.reportportal.database.entity.Status;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.events.LaunchFinishForcedEvent;
-import com.epam.ta.reportportal.events.LaunchFinishedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
@@ -52,20 +42,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.trimStrings;
 import static com.epam.ta.reportportal.commons.EntityUtils.update;
-import static com.epam.ta.reportportal.commons.Preconditions.hasProjectRoles;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.database.entity.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.database.entity.Status.*;
-import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
-import static com.epam.ta.reportportal.util.Predicates.IS_RETRY;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.toList;
 
@@ -102,92 +90,111 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 
 	@Override
 	public OperationCompletionRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String username) {
+		private static final String LAUNCH_STOP_DESCRIPTION = " stopped";
+		private static final String LAUNCH_STOP_TAG = "stopped";
 
-		Launch launch = launchRepository.findOne(launchId);
-		validate(launchId, launch, finishLaunchRQ);
-		Project project = validateRoles(launch, username, projectName);
+		@Autowired
+		private LaunchRepository launchRepository;
 
-		launch.setEndTime(finishLaunchRQ.getEndTime());
+		@Autowired
+		private TestItemRepository testItemRepository;
+		//
+		//	@Autowired
+		//	private StatisticsFacadeFactory statisticsFacadeFactory;
+		//
+		@Autowired
+		private ProjectRepository projectRepository;
+
+		@Autowired
+		private UserRepository userRepository;
+
+		@Autowired
+		private ApplicationEventPublisher eventPublisher;
+
+	public OperationCompletionRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String username) {
+		//TODO validate roles
+
+		Launch launch = launchRepository.findById(launchId)
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
+		validate(launch, finishLaunchRQ);
 		if (!Strings.isNullOrEmpty(finishLaunchRQ.getDescription())) {
 			launch.setDescription(finishLaunchRQ.getDescription());
 		}
 		if (!CollectionUtils.isEmpty(finishLaunchRQ.getTags())) {
-			launch.setTags(Sets.newHashSet(trimStrings(update(finishLaunchRQ.getTags()))));
+			Set<String> tags = Sets.newHashSet(trimStrings(update(finishLaunchRQ.getTags())));
+			launch.setTags(tags.stream().map(LaunchTag::new).collect(Collectors.toSet()));
 		}
-
-		Optional<Status> status = fromValue(finishLaunchRQ.getStatus());
-		status.ifPresent(providedStatus -> {
-			/* Validate provided status */
-			expect(providedStatus, not(Preconditions.statusIn(IN_PROGRESS, SKIPPED))).verify(INCORRECT_FINISH_STATUS,
-					formattedSupplier("Cannot finish launch '{}' with status '{}'", launchId, providedStatus)
-			);
-			/* Validate actual launch status */
-			if (PASSED.equals(providedStatus)) {
-				/* Validate actual launch status */
-				expect(launch.getStatus(), Preconditions.statusIn(IN_PROGRESS, PASSED)).verify(INCORRECT_FINISH_STATUS,
-						formattedSupplier("Cannot finish launch '{}' with current status '{}' as 'PASSED'", launchId, launch.getStatus())
-				);
-				/*
-				 * Calculate status from launch statistics and validate it
-				 */
-				Status fromStatistics = StatisticsHelper.getStatusFromStatistics(launch.getStatistics());
-				expect(fromStatistics, Preconditions.statusIn(IN_PROGRESS, PASSED)).verify(INCORRECT_FINISH_STATUS,
-						formattedSupplier("Cannot finish launch '{}' with calculated automatically status '{}' as 'PASSED'", launchId,
-								fromStatistics
-						)
-				);
-			}
-		});
-		launch.setStatus(status.orElse(StatisticsHelper.getStatusFromStatistics(launch.getStatistics())));
-		try {
-			launchRepository.save(launch);
-		} catch (Exception exp) {
-			throw new ReportPortalException("Error while Launch updating.", exp);
+		Optional<StatusEnum> statusEnum = fromValue(finishLaunchRQ.getStatus());
+		StatusEnum fromStatistics = StatusEnum.PASSED;
+		if (launchRepository.checkStatus(launchId)) {
+			fromStatistics = StatusEnum.FAILED;
 		}
-		eventPublisher.publishEvent(new LaunchFinishedEvent(launch, project));
+		StatusEnum fromStatisticsStatus = fromStatistics;
+		statusEnum.ifPresent(providedStatus -> validateProvidedStatus(launch, providedStatus, fromStatisticsStatus));
+		launch.setStatus(statusEnum.orElse(fromStatistics));
+		launchRepository.save(launch);
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully finished.");
 	}
 
-	@Override
-	public OperationCompletionRS stopLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String userName) {
-		Launch launch = launchRepository.findOne(launchId);
-		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);
-
-		validateRoles(launch, userName, projectName);
-
-		expect(launch, not(Preconditions.LAUNCH_FINISHED)).verify(FINISH_LAUNCH_NOT_ALLOWED,
-				formattedSupplier("Launch '{}' already finished with status '{}'", launch.getId(), launch.getStatus())
+	private void validateProvidedStatus(Launch launch, StatusEnum providedStatus, StatusEnum calculatedStatus) {
+		/* Validate provided status */
+		expect(providedStatus, not(Preconditions.statusIn(IN_PROGRESS, SKIPPED))).verify(INCORRECT_FINISH_STATUS,
+				formattedSupplier("Cannot finish launch '{}' with status '{}'", launch.getId(), providedStatus)
 		);
+		if (PASSED.equals(providedStatus)) {
+				/* Validate actual launch status */
+			expect(launch.getStatus(), Preconditions.statusIn(IN_PROGRESS, PASSED)).verify(INCORRECT_FINISH_STATUS,
+					formattedSupplier("Cannot finish launch '{}' with current status '{}' as 'PASSED'", launch.getId(), launch.getStatus())
+			);
+				/*
+				 * Calculate status from launch statistics and validate it
+				 */
+			expect(calculatedStatus, Preconditions.statusIn(IN_PROGRESS, PASSED)).verify(INCORRECT_FINISH_STATUS,
+					formattedSupplier("Cannot finish launch '{}' with calculated automatically status '{}' as 'PASSED'", launch.getId(),
+							calculatedStatus
+					)
+			);
+		}
+	}
 
-		launch.setEndTime(finishLaunchRQ.getEndTime());
-		if (null != launch.getDescription()) {
-			launch.setDescription(launch.getDescription().concat(LAUNCH_STOP_DESCRIPTION));
-		} else {
-			launch.setDescription(LAUNCH_STOP_DESCRIPTION);
-		}
-		Set<String> newTags = launch.getTags();
-		if (null == newTags) {
-			newTags = new HashSet<>();
-		}
-		newTags.add(LAUNCH_STOP_TAG);
-		launch.setTags(newTags);
-		launch.setStatus(fromValue(finishLaunchRQ.getStatus()).orElse(STOPPED));
-		try {
-			launchRepository.save(launch);
-			if (launchRepository.hasItems(launch, IN_PROGRESS)) {
-				// Find all IN_PROGRESS children and interrupt them
-				List<TestItem> itemsInProgress = testItemRepository.findInStatusItems(IN_PROGRESS.name(), launch.getId());
-				interruptItems(itemsInProgress);
-			}
-			retriesLaunchHandler.handleRetries(launch);
-		} catch (Exception exp) {
-			throw new ReportPortalException("Error while Launch updating.", exp);
-		}
-		eventPublisher.publishEvent(new LaunchFinishForcedEvent(launch, userName));
+	public OperationCompletionRS stopLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String userName) {
+		//		Launch launch = launchRepository.findOne(launchId);
+		//		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);
+		//
+		//		validateRoles(launch, userName, projectName);
+		//
+		//		expect(launch, not(Preconditions.LAUNCH_FINISHED)).verify(FINISH_LAUNCH_NOT_ALLOWED,
+		//				formattedSupplier("Launch '{}' already finished with status '{}'", launch.getId(), launch.getStatus())
+		//		);
+		//
+		//		launch.setEndTime(finishLaunchRQ.getEndTime());
+		//		if (null != launch.getDescription()) {
+		//			launch.setDescription(launch.getDescription().concat(LAUNCH_STOP_DESCRIPTION));
+		//		} else {
+		//			launch.setDescription(LAUNCH_STOP_DESCRIPTION);
+		//		}
+		//		Set<String> newTags = launch.getTags();
+		//		if (null == newTags) {
+		//			newTags = new HashSet<>();
+		//		}
+		//		newTags.add(LAUNCH_STOP_TAG);
+		//		launch.setTags(newTags);
+		//		launch.setStatus(fromValue(finishLaunchRQ.getStatus()).orElse(STOPPED));
+		//		try {
+		//			launchRepository.save(launch);
+		//			if (launchRepository.hasItems(launch, IN_PROGRESS)) {
+		//				// Find all IN_PROGRESS children and interrupt them
+		//				List<TestItem> itemsInProgress = testItemRepository.findInStatusItems(IN_PROGRESS.name(), launch.getId());
+		//				interruptItems(itemsInProgress);
+		//			}
+		//			retriesLaunchHandler.handleRetries(launch);
+		//		} catch (Exception exp) {
+		//			throw new ReportPortalException("Error while Launch updating.", exp);
+		//		}
+		//		eventPublisher.publishEvent(new LaunchFinishForcedEvent(launch, userName));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully stopped.");
 	}
 
-	@Override
 	public List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, String projectName, String userName) {
 		return bulkRQ.getEntities()
 				.entrySet()
@@ -196,82 +203,69 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 				.collect(toList());
 	}
 
-	private void validate(final String launchId, Launch launch, FinishExecutionRQ finishExecutionRQ) {
-		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);
-
-		expect(launch, not(Preconditions.LAUNCH_FINISHED)).verify(FINISH_LAUNCH_NOT_ALLOWED,
+	private void validate(Launch launch, FinishExecutionRQ finishExecutionRQ) {
+		expect(launch.getStatus(), equalTo(IN_PROGRESS)).verify(
+				FINISH_LAUNCH_NOT_ALLOWED,
 				formattedSupplier("Launch '{}' already finished with status '{}'", launch.getId(), launch.getStatus())
 		);
 
 		expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(launch.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
-				finishExecutionRQ.getEndTime(), launch.getStartTime(), launchId
+				finishExecutionRQ.getEndTime(), launch.getStartTime(), launch.getId()
 		);
 
-		final List<TestItem> items = testItemRepository.findByLaunch(launch);
-		expect(items, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_LAUNCH_NOT_ALLOWED, new Supplier<String>() {
-			@Override
+		List<TestItemCommon> items = testItemRepository.selectItemsInStatusByLaunch(launch.getId(), IN_PROGRESS);
+
+		expect(items.isEmpty(), equalTo(true)).verify(FINISH_LAUNCH_NOT_ALLOWED, new Supplier<String>() {
 			public String get() {
-				String[] values = { launchId, DbUtils.toIds(getInProgressItems(items)).stream().collect(Collectors.joining(",")),
+				String[] values = { launch.getId().toString(),
+						items.stream().map(it -> it.getTestItem().getId().toString()).collect(Collectors.joining(",")),
 						IN_PROGRESS.name() };
 				return MessageFormatter.arrayFormat("Launch '{}' has items '[{}]' with '{}' status", values).getMessage();
 			}
 
-			@Override
 			public String toString() {
 				return get();
 			}
 		});
 	}
 
-	private Project validateRoles(Launch launch, String userName, String projectName) {
-		User user = userRepository.findOne(userName);
-		expect(user, notNull()).verify(USER_NOT_FOUND, userName);
+	//	private Project validateRoles(Launch launch, String userName, String projectName) {
+	//		ProjectUser projectUser = projectRepository.selectProjectUser(projectName, userName);
+	//		expect(projectUser, notNull()).verify(PROJECT_NOT_FOUND, projectName);
+	//
+	//		if (projectUser.getUser().getRole() != ADMINISTRATOR && !Objects.equals(launch.getUserId(), projectUser.getUser().getId())) {
+	//			expect(launch.getProjectId(), equalTo(projectUser.getProject().getId())).verify(ACCESS_DENIED);
+	//				/*
+	//				 * Only PROJECT_MANAGER roles could delete launches
+	//				 */
+	//
+	//			UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, user.getId());
+	//			expect(userConfig, hasProjectRoles(Collections.singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
+	//		}
+	//		return project;
+	//	}
 
-		Project project = projectRepository.findOne(projectName);
-		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
-
-		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
-			expect(launch.getProjectRef(), equalTo(projectName)).verify(ACCESS_DENIED);
-			/*
-			 * Only PROJECT_MANAGER roles could delete launches
-			 */
-			UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, user.getId());
-			expect(userConfig, hasProjectRoles(Collections.singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
-		}
-		return project;
-	}
-
-	/**
-	 * Convert list of test items in list of items with IN_PROGRESS status only
-	 *
-	 * @param items
-	 * @return
-	 */
-	private List<TestItem> getInProgressItems(List<TestItem> items) {
-		return items.stream().filter(descendant -> IN_PROGRESS.equals(descendant.getStatus())).collect(Collectors.toList());
-	}
-
-	private void interruptItems(List<TestItem> testItems) {
-		testItems.forEach(this::interruptItem);
-	}
-
-	private void interruptItem(TestItem item) {
-		if (!INTERRUPTED.equals(item.getStatus())) {
-			item.setStatus(INTERRUPTED);
-			item.setEndTime(Calendar.getInstance().getTime());
-			item = testItemRepository.save(item);
-			if (!item.hasChilds() && !IS_RETRY.test(item)) {
-				Project project = projectRepository.findOne(launchRepository.findOne(item.getLaunchRef()).getProjectRef());
-				item = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
-						.updateExecutionStatistics(item);
-				if (null != item.getIssue()) {
-					item = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
-							.updateIssueStatistics(item);
-				}
-			}
-			if (null != item.getParent()) {
-				interruptItem(testItemRepository.findOne(item.getParent()));
-			}
-		}
-	}
+	//	private void interruptItems(List<TestItem> testItems) {
+	//		testItems.forEach(this::interruptItem);
+	//	}
+	//
+	//	private void interruptItem(TestItem item) {
+	//		if (!INTERRUPTED.equals(item.getStatus())) {
+	//			item.setStatus(INTERRUPTED);
+	//			item.setEndTime(Calendar.getInstance().getTime());
+	//			item = testItemRepository.save(item);
+	//			if (!item.hasChilds() && !IS_RETRY.test(item)) {
+	//				Project project = projectRepository.findOne(launchRepository.findOne(item.getLaunchRef()).getProjectRef());
+	//				item = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
+	//						.updateExecutionStatistics(item);
+	//				if (null != item.getIssue()) {
+	//					item = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
+	//							.updateIssueStatistics(item);
+	//				}
+	//			}
+	//			if (null != item.getParent()) {
+	//				interruptItem(testItemRepository.findOne(item.getParent()));
+	//			}
+	//		}
+	//	}
 }

@@ -40,5 +40,5 @@ public interface FinishTestItemHandler {
 	 * @param username          RQ principal
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS finishTestItem(String testItemId, FinishTestItemRQ finishExecutionRQ, String username);
+	OperationCompletionRS finishTestItem(Long testItemId, FinishTestItemRQ finishExecutionRQ, String username);
 }

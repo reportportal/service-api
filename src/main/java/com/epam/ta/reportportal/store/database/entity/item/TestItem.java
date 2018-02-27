@@ -21,36 +21,38 @@
 
 package com.epam.ta.reportportal.store.database.entity.item;
 
+import com.epam.ta.reportportal.store.database.entity.enums.PostgreSQLEnumType;
 import com.epam.ta.reportportal.store.database.entity.enums.TestItemTypeEnum;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
  */
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "test_item", schema = "public", indexes = { @Index(name = "test_item_pk", unique = true, columnList = "id ASC") })
+@TypeDef(name = "pqsql_enum", typeClass = PostgreSQLEnumType.class)
+@Table(name = "test_item", schema = "public", indexes = { @Index(name = "test_item_pk", unique = true, columnList = "item_id ASC") })
 public class TestItem implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id", unique = true, nullable = false, precision = 64)
-	private Long id;
+	@Column(name = "item_id", unique = true, nullable = false, precision = 64)
+	private Long itemId;
 
 	@Column(name = "name", length = 256)
 	private String name;
 
 	@Enumerated(EnumType.STRING)
+	@Type(type = "pqsql_enum")
 	@Column(name = "type", nullable = false)
 	private TestItemTypeEnum type;
 
@@ -64,8 +66,8 @@ public class TestItem implements Serializable {
 	@Column(name = "last_modified", nullable = false)
 	private Timestamp lastModified;
 
-	@Column(name = "parameters")
-	private Parameter[] parameters;
+	//	@Column(name = "parameters")
+	//	private Parameter[] parameters;
 
 	@Column(name = "unique_id", nullable = false, length = 256)
 	private String uniqueId;
@@ -74,20 +76,23 @@ public class TestItem implements Serializable {
 	@JoinColumn(name = "item_id")
 	private Set<TestItemTag> tags;
 
-	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	@JoinColumn(name = "item_id")
+	@OneToOne(mappedBy = "testItem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private TestItemStructure testItemStructure;
+
+	@OneToOne(mappedBy = "testItem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private TestItemResults testItemResults;
 
 	public TestItem() {
 	}
-	//
-	//	public TestItemStructure getTestItemStructure() {
-	//		return testItemStructure;
-	//	}
-	//
-	//	public void setTestItemStructure(TestItemStructure testItemStructure) {
-	//		this.testItemStructure = testItemStructure;
-	//	}
+
+	public TestItemStructure getTestItemStructure() {
+		return testItemStructure;
+	}
+
+	public void setTestItemStructure(TestItemStructure testItemStructure) {
+		this.testItemStructure = testItemStructure;
+		testItemStructure.setTestItem(this);
+	}
 
 	public TestItemResults getTestItemResults() {
 		return testItemResults;
@@ -95,6 +100,7 @@ public class TestItem implements Serializable {
 
 	public void setTestItemResults(TestItemResults testItemResults) {
 		this.testItemResults = testItemResults;
+		testItemResults.setTestItem(this);
 	}
 
 	public Set<TestItemTag> getTags() {
@@ -102,18 +108,20 @@ public class TestItem implements Serializable {
 	}
 
 	public void setTags(Set<TestItemTag> tags) {
-		ofNullable(this.tags).ifPresent(it -> {
-			it.clear();
-			it.addAll(tags);
-		});
+		if (this.tags != null) {
+			this.tags.clear();
+			this.tags.addAll(tags);
+		} else {
+			this.tags = tags;
+		}
 	}
 
-	public Long getId() {
-		return id;
+	public Long getItemId() {
+		return itemId;
 	}
 
-	public void setId(Long id) {
-		this.id = id;
+	public void setItemId(Long itemId) {
+		this.itemId = itemId;
 	}
 
 	public String getName() {
@@ -156,13 +164,13 @@ public class TestItem implements Serializable {
 		this.lastModified = lastModified;
 	}
 
-	public Parameter[] getParameters() {
-		return parameters;
-	}
-
-	public void setParameters(Parameter[] parameters) {
-		this.parameters = parameters;
-	}
+	//	public Parameter[] getParameters() {
+	//		return parameters;
+	//	}
+	//
+	//	public void setParameters(Parameter[] parameters) {
+	//		this.parameters = parameters;
+	//	}
 
 	public String getUniqueId() {
 		return uniqueId;
@@ -174,9 +182,9 @@ public class TestItem implements Serializable {
 
 	@Override
 	public String toString() {
-		return "TestItem{" + "id=" + id + ", name='" + name + '\'' + ", type=" + type + ", startTime=" + startTime + ", description='"
-				+ description + '\'' + ", lastModified=" + lastModified + ", parameters=" + Arrays.toString(parameters) + ", uniqueId='"
-				+ uniqueId + '\'' + ", tags=" + tags + '}';
+		return "TestItem{" + "itemId=" + itemId + ", name='" + name + '\'' + ", type=" + type + ", startTime=" + startTime
+				+ ", description='" + description + '\'' + ", lastModified=" + lastModified + ", uniqueId='" + uniqueId + '\'' + ", tags="
+				+ tags + ", testItemStructure=" + testItemStructure + ", testItemResults=" + testItemResults + '}';
 	}
 
 	@Override
@@ -188,15 +196,15 @@ public class TestItem implements Serializable {
 			return false;
 		}
 		TestItem testItem = (TestItem) o;
-		return Objects.equals(id, testItem.id) && Objects.equals(name, testItem.name) && type == testItem.type && Objects.equals(
+		return Objects.equals(itemId, testItem.itemId) && Objects.equals(name, testItem.name) && type == testItem.type && Objects.equals(
 				startTime, testItem.startTime) && Objects.equals(description, testItem.description) && Objects.equals(
-				lastModified, testItem.lastModified) && Arrays.equals(parameters, testItem.parameters) && Objects.equals(
-				uniqueId, testItem.uniqueId) && Objects.equals(tags, testItem.tags);
+				lastModified, testItem.lastModified) && Objects.equals(uniqueId, testItem.uniqueId) && Objects.equals(tags, testItem.tags)
+				&& Objects.equals(
+				testItemStructure, testItem.testItemStructure) && Objects.equals(testItemResults, testItem.testItemResults);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, name, type, startTime, description, lastModified, parameters, uniqueId, tags);
+		return Objects.hash(itemId, name, type, startTime, description, lastModified, uniqueId, tags, testItemStructure, testItemResults);
 	}
-
 }

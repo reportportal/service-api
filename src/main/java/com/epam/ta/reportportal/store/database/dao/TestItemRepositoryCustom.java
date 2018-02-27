@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.store.database.dao;
 
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemCommon;
+import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
 
 import java.util.List;
 
@@ -60,5 +61,11 @@ public interface TestItemRepositoryCustom {
 	 * @return List of items
 	 */
 	List<TestItemCommon> selectItemsInIssueByLaunch(Long launchId, String issueType);
+
+	StatusEnum identifyStatus(Long testItemId);
+
+	boolean hasChildren(Long testItemId);
+
+	List<IssueType> selectIssueLocatorsByProject(Long projectId);
 
 }

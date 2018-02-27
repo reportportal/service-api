@@ -34,8 +34,6 @@ import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Set;
 
-import static java.util.Optional.ofNullable;
-
 /**
  * @author Pavel Bortnik
  */
@@ -95,10 +93,12 @@ public class Launch {
 	}
 
 	public void setTags(Set<LaunchTag> tags) {
-		ofNullable(this.tags).ifPresent(it -> {
-			it.clear();
-			it.addAll(tags);
-		});
+		if (this.tags != null) {
+			this.tags.clear();
+			this.tags.addAll(tags);
+		} else {
+			this.tags = tags;
+		}
 	}
 
 	public Long getId() {

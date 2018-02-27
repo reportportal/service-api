@@ -21,12 +21,13 @@
 
 package com.epam.ta.reportportal.core.item;
 
-import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.Preconditions;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemStructure;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
@@ -36,13 +37,9 @@ import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.backoff.FixedBackOffPolicy;
-import org.springframework.retry.policy.TimeoutRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
@@ -57,20 +54,21 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Service
 class StartTestItemHandlerImpl implements StartTestItemHandler {
 
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(StartTestItemHandlerImpl.class);
 
 	private TestItemRepository testItemRepository;
 	private LaunchRepository launchRepository;
 	private UniqueIdGenerator identifierGenerator;
-	private RetryTemplate retrier;
+	//private RetryTemplate retrier;
 
 	public StartTestItemHandlerImpl() {
-		retrier = new RetryTemplate();
-		TimeoutRetryPolicy timeoutRetryPolicy = new TimeoutRetryPolicy();
-		timeoutRetryPolicy.setTimeout(TimeUnit.SECONDS.toMillis(3L));
-		retrier.setRetryPolicy(timeoutRetryPolicy);
-		retrier.setBackOffPolicy(new FixedBackOffPolicy());
-		retrier.setThrowLastExceptionOnExhausted(true);
+		//		retrier = new RetryTemplate();
+		//		TimeoutRetryPolicy timeoutRetryPolicy = new TimeoutRetryPolicy();
+		//		timeoutRetryPolicy.setTimeout(TimeUnit.SECONDS.toMillis(3L));
+		//		retrier.setRetryPolicy(timeoutRetryPolicy);
+		//		retrier.setBackOffPolicy(new FixedBackOffPolicy());
+		//		retrier.setThrowLastExceptionOnExhausted(true);
 	}
 
 	@Autowired
@@ -96,12 +94,16 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		Launch launch = launchRepository.findById(rq.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId().toString()));
 		validate(projectName, rq, launch);
+
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).get();
 
 		TestItemStructure testItemStructure = new TestItemStructure();
 		testItemStructure.setLaunchId(rq.getLaunchId());
+		TestItemResults testItemResults = new TestItemResults();
+		testItemResults.setStatus(StatusEnum.IN_PROGRESS);
 
-		//item.setTestItemStructure(testItemStructure);
+		item.setTestItemStructure(testItemStructure);
+		item.setTestItemResults(testItemResults);
 
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item));
@@ -109,7 +111,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 		testItemRepository.save(item);
 		testItemRepository.refresh(item);
-		return new ItemCreatedRS(item.getId(), item.getUniqueId());
+		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
 
 	/**
@@ -127,8 +129,11 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		TestItemStructure testItemStructure = new TestItemStructure();
 		testItemStructure.setLaunchId(rq.getLaunchId());
 		testItemStructure.setParentId(parentId);
+		TestItemResults testItemResults = new TestItemResults();
+		testItemResults.setStatus(StatusEnum.IN_PROGRESS);
 
-		//item.setTestItemStructure(testItemStructure);
+		item.setTestItemStructure(testItemStructure);
+		item.setTestItemResults(testItemResults);
 
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item));
@@ -155,7 +160,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 		testItemRepository.save(item);
 		testItemRepository.refresh(item);
-		return new ItemCreatedRS(item.getId(), item.getUniqueId());
+		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
 
 	@VisibleForTesting
@@ -199,10 +204,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	}
 
 	private void validate(TestItem parentTestItem, Long parent) {
-		expect(parentTestItem.getTestItemResults(), Objects::nonNull).verify(
-				START_ITEM_NOT_ALLOWED,
-				Suppliers.formattedSupplier("Parent Item '{}' is not in progress", parentTestItem.getId())
-		);
+		//		expect(parentTestItem.getTestItemResults(), Objects::nonNull).verify(START_ITEM_NOT_ALLOWED,
+		//				Suppliers.formattedSupplier("Parent Item '{}' is not in progress", parentTestItem.getId())
+		//		);
 		//		long logCount = logRepository.getNumberOfLogByTestItem(parentTestItem);
 		//		expect(logCount, equalTo(0L)).verify(START_ITEM_NOT_ALLOWED,
 		//				Suppliers.formattedSupplier("Parent Item '{}' already has log items", parentTestItem.getId()));
@@ -210,7 +214,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	private void validate(StartTestItemRQ rq, TestItem parent) {
 		expect(rq, Preconditions.startSameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(), parent.getStartTime(), parent.getId()
+				rq.getStartTime(), parent.getStartTime(), parent.getItemId()
 		);
 	}
 }

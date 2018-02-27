@@ -21,7 +21,10 @@
 
 package com.epam.ta.reportportal.store.database.entity.item.issue;
 
+import com.epam.ta.reportportal.store.database.entity.enums.PostgreSQLEnumType;
 import com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -30,6 +33,7 @@ import java.util.Objects;
  * @author Pavel Bortnik
  */
 @Entity
+@TypeDef(name = "pqsql_enum", typeClass = PostgreSQLEnumType.class)
 @Table(name = "issue_type", schema = "public", indexes = { @Index(name = "issue_type_pk", unique = true, columnList = "id ASC") })
 public class IssueType {
 
@@ -39,6 +43,8 @@ public class IssueType {
 	private Integer id;
 
 	@Column(name = "issue_group", nullable = false)
+	@Enumerated(EnumType.STRING)
+	@Type(type = "pqsql_enum")
 	private TestItemIssueType testItemIssueType;
 
 	@Column(name = "locator", length = 64)

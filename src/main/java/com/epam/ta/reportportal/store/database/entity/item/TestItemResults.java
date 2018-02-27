@@ -21,29 +21,44 @@
 
 package com.epam.ta.reportportal.store.database.entity.item;
 
+import com.epam.ta.reportportal.store.database.entity.enums.PostgreSQLEnumType;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.store.database.entity.item.issue.Issue;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author Pavel Bortnik
  */
 @Entity
+@TypeDef(name = "pqsql_enum", typeClass = PostgreSQLEnumType.class)
 @Table(name = "test_item_results", schema = "public", indexes = {
 		@Index(name = "test_item_results_pk", unique = true, columnList = "item_id ASC") })
 public class TestItemResults implements Serializable {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "item_id", unique = true, nullable = false, precision = 64)
 	private Long itemId;
 
 	@Column(name = "status", nullable = false)
+	@Enumerated(EnumType.STRING)
+	@Type(type = "pqsql_enum")
 	private StatusEnum status;
 
 	@Column(name = "duration", precision = 24)
 	private Float duration;
+
+	@OneToOne(mappedBy = "testItemResults", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private Issue issue;
+
+	@OneToOne
+	@MapsId
+	@JoinColumn(name = "item_id")
+	private TestItem testItem;
 
 	public TestItemResults() {
 	}
@@ -72,4 +87,44 @@ public class TestItemResults implements Serializable {
 		this.duration = duration;
 	}
 
+	public TestItem getTestItem() {
+		return testItem;
+	}
+
+	public void setTestItem(TestItem testItem) {
+		this.testItem = testItem;
+	}
+
+	public Issue getIssue() {
+		return issue;
+	}
+
+	public void setIssue(Issue issue) {
+		this.issue = issue;
+		issue.setTestItemResults(this);
+	}
+
+	@Override
+	public String toString() {
+		return "TestItemResults{" + "itemId=" + itemId + ", status=" + status + ", duration=" + duration + ", issue=" + issue
+				+ ", testItem=" + testItem + '}';
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		TestItemResults that = (TestItemResults) o;
+		return Objects.equals(itemId, that.itemId) && status == that.status && Objects.equals(duration, that.duration) && Objects.equals(
+				issue, that.issue) && Objects.equals(testItem, that.testItem);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(itemId, status, duration, issue, testItem);
+	}
 }

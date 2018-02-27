@@ -21,12 +21,11 @@
 
 package com.epam.ta.reportportal.store.database.entity.enums;
 
-import com.epam.ta.reportportal.store.database.entity.StatisticsAwareness;
 
 import java.util.Arrays;
 import java.util.Optional;
 
-public enum StatusEnum implements StatisticsAwareness {
+public enum StatusEnum {
 
 	//@formatter:off
 	IN_PROGRESS(""),
@@ -49,9 +48,9 @@ public enum StatusEnum implements StatisticsAwareness {
 		return Arrays.stream(StatusEnum.values()).filter(status -> status.name().equalsIgnoreCase(value)).findAny();
 	}
 
-	@Override
-	public String awareStatisticsField() {
-		return executionCounterField;
-	}
+	//	@Override
+	//	public String awareStatisticsField() {
+	//		return executionCounterField;
+	//	}
 
 }

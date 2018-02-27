@@ -23,10 +23,8 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.store.database.entity.enums.TestItemTypeEnum;
-import com.epam.ta.reportportal.store.database.entity.item.Parameter;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemTag;
-import com.epam.ta.reportportal.ws.converter.converters.ParametersConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
@@ -64,9 +62,9 @@ public class TestItemBuilder implements Supplier<TestItem> {
 			testItem.setTags(tags.stream().map(TestItemTag::new).collect(Collectors.toSet()));
 		}
 		List<ParameterResource> parameters = rq.getParameters();
-		if (null != parameters) {
-			testItem.setParameters(parameters.stream().map(ParametersConverter.TO_MODEL).toArray(Parameter[]::new));
-		}
+		//		if (null != parameters) {
+		//			testItem.setParameters(parameters.stream().map(ParametersConverter.TO_MODEL).toArray(Parameter[]::new));
+		//		}
 		TestItemTypeEnum type = TestItemTypeEnum.fromValue(rq.getType());
 		BusinessRule.expect(type, Objects::nonNull).verify(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE, rq.getType());
 		testItem.setType(type);

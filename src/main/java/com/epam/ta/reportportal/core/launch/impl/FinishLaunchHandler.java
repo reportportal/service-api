@@ -107,7 +107,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		}
 		Optional<StatusEnum> statusEnum = fromValue(finishLaunchRQ.getStatus());
 		StatusEnum fromStatistics = PASSED;
-		if (launchRepository.checkStatus(launchId)) {
+		if (launchRepository.identifyStatus(launchId)) {
 			fromStatistics = StatusEnum.FAILED;
 		}
 		StatusEnum fromStatisticsStatus = fromStatistics;
@@ -179,7 +179,11 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 
 	@Override
 	public List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, String projectName, String userName) {
-		return bulkRQ.getEntities().entrySet().stream().map(entry -> stopLaunch(entry.getKey(), entry.getValue(), projectName, userName)).collect(toList());
+		return bulkRQ.getEntities()
+				.entrySet()
+				.stream()
+				.map(entry -> stopLaunch(entry.getKey(), entry.getValue(), projectName, userName))
+				.collect(toList());
 	}
 
 	private void validate(Launch launch, FinishExecutionRQ finishExecutionRQ) {
@@ -197,7 +201,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		expect(items.isEmpty(), equalTo(true)).verify(FINISH_LAUNCH_NOT_ALLOWED, new Supplier<String>() {
 			public String get() {
 				String[] values = { launch.getId().toString(),
-						items.stream().map(it -> it.getTestItem().getId().toString()).collect(Collectors.joining(",")),
+						items.stream().map(it -> it.getTestItem().getItemId().toString()).collect(Collectors.joining(",")),
 						IN_PROGRESS.name() };
 				return MessageFormatter.arrayFormat("Launch '{}' has items '[{}]' with '{}' status", values).getMessage();
 			}

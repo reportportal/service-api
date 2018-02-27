@@ -119,7 +119,7 @@ public class LaunchController implements ILaunchController {
 			@ApiParam(value = "Name of project launch starts under", required = true) @PathVariable String projectName,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
 			Principal principal) {
-		return createLaunchMessageHandler.startLaunch(principal.getName(), normalizeId(projectName), startLaunchRQ);
+		return createLaunchMessageHandler.startLaunch("principal", normalizeId(projectName), startLaunchRQ);
 	}
 
 	@Override
@@ -130,7 +130,7 @@ public class LaunchController implements ILaunchController {
 	@ApiOperation("Finish launch for specified project")
 	public OperationCompletionRS finishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, Principal principal, HttpServletRequest request) {
-		return finishLaunchMessageHandler.finishLaunch(launchId, finishLaunchRQ, normalizeId(projectName), principal.getName());
+		return finishLaunchMessageHandler.finishLaunch(launchId, finishLaunchRQ, normalizeId(projectName), "principal");
 	}
 
 	@Override
@@ -140,7 +140,7 @@ public class LaunchController implements ILaunchController {
 	@ApiOperation("Force finish launch for specified project")
 	public OperationCompletionRS forceFinishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@RequestBody @Validated FinishExecutionRQ finishExecutionRQ, Principal principal) {
-		return finishLaunchMessageHandler.stopLaunch(launchId, finishExecutionRQ, normalizeId(projectName), principal.getName());
+		return finishLaunchMessageHandler.stopLaunch(launchId, finishExecutionRQ, normalizeId(projectName), "principal");
 	}
 
 	@Override
@@ -150,7 +150,7 @@ public class LaunchController implements ILaunchController {
 	@ApiOperation("Force finish launch")
 	public List<OperationCompletionRS> bulkForceFinish(@PathVariable String projectName,
 			@RequestBody @Validated BulkRQ<FinishExecutionRQ> rq, Principal principal) {
-		return finishLaunchMessageHandler.stopLaunch(rq, normalizeId(projectName), principal.getName());
+		return finishLaunchMessageHandler.stopLaunch(rq, normalizeId(projectName), "principal");
 	}
 
 	@Override
@@ -161,7 +161,7 @@ public class LaunchController implements ILaunchController {
 	@ApiOperation("Updates launch for specified project")
 	public OperationCompletionRS updateLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@RequestBody @Validated UpdateLaunchRQ updateLaunchRQ, Principal principal) {
-		return updateLaunchHandler.updateLaunch(launchId, normalizeId(projectName), principal.getName(), updateLaunchRQ);
+		return updateLaunchHandler.updateLaunch(launchId, normalizeId(projectName), "principal", updateLaunchRQ);
 	}
 
 	@Override
@@ -172,7 +172,7 @@ public class LaunchController implements ILaunchController {
 	@ApiOperation("Updates launches for specified project")
 	public List<OperationCompletionRS> updateLaunches(@PathVariable String projectName, @RequestBody @Validated BulkRQ<UpdateLaunchRQ> rq,
 			Principal principal) {
-		return updateLaunchHandler.updateLaunch(rq, normalizeId(projectName), principal.getName());
+		return updateLaunchHandler.updateLaunch(rq, normalizeId(projectName), "principal");
 	}
 
 	@Override
@@ -181,7 +181,7 @@ public class LaunchController implements ILaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified launch by ID")
 	public OperationCompletionRS deleteLaunch(@PathVariable String projectName, @PathVariable Long launchId, Principal principal) {
-		return deleteLaunchMessageHandler.deleteLaunch(launchId, normalizeId(projectName), principal.getName());
+		return deleteLaunchMessageHandler.deleteLaunch(launchId, normalizeId(projectName), "principal");
 	}
 
 	@Override
@@ -190,7 +190,7 @@ public class LaunchController implements ILaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get specified launch")
 	public LaunchResource getLaunch(@PathVariable String projectName, @PathVariable Long launchId, Principal principal) {
-		return getLaunchMessageHandler.getLaunch(launchId, principal.getName(), normalizeId(projectName));
+		return getLaunchMessageHandler.getLaunch(launchId, "principal", normalizeId(projectName));
 	}
 
 	//	@Override
@@ -200,7 +200,7 @@ public class LaunchController implements ILaunchController {
 	//	@ApiOperation("Get list of project launches by filter")
 	//	public Iterable<LaunchResource> getProjectLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
 	//			@SortFor(Launch.class) Pageable pageable, Principal principal) {
-	//		return getLaunchMessageHandler.getProjectLaunches(normalizeId(projectName), filter, pageable, principal.getName());
+	//		return getLaunchMessageHandler.getProjectLaunches(normalizeId(projectName), filter, pageable, "principal");
 	//	}
 	//
 	//	@Override
@@ -221,7 +221,7 @@ public class LaunchController implements ILaunchController {
 	//	@ApiOperation("Get launches of specified project from DEBUG mode")
 	//	public Iterable<LaunchResource> getDebugLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
 	//			@SortFor(Launch.class) Pageable pageable, Principal principal) {
-	//		return getLaunchMessageHandler.getDebugLaunches(normalizeId(projectName), principal.getName(), filter, pageable);
+	//		return getLaunchMessageHandler.getDebugLaunches(normalizeId(projectName), "principal", filter, pageable);
 	//	}
 
 	@Override
@@ -273,7 +273,7 @@ public class LaunchController implements ILaunchController {
 			@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,
 			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
 			Principal principal) {
-		return mergeLaunchesHandler.mergeLaunches(normalizeId(projectName), principal.getName(), mergeLaunchesRQ);
+		return mergeLaunchesHandler.mergeLaunches(normalizeId(projectName), "principal", mergeLaunchesRQ);
 	}
 
 	@Override
@@ -304,7 +304,7 @@ public class LaunchController implements ILaunchController {
 			Principal principal, HttpServletResponse response) throws IOException {
 
 		throw new UnsupportedOperationException();
-		//		JasperPrint jasperPrint = getJasperHandler.getLaunchDetails(launchId, principal.getName());
+		//		JasperPrint jasperPrint = getJasperHandler.getLaunchDetails(launchId, "principal");
 		//
 		//		ReportFormat format = getJasperHandler.getReportFormat(view);
 		//		response.setContentType(format.getContentType());
@@ -323,7 +323,7 @@ public class LaunchController implements ILaunchController {
 	@ApiOperation("Delete specified launches by ids")
 	public OperationCompletionRS deleteLaunches(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
 			Principal principal) {
-		return deleteLaunchMessageHandler.deleteLaunches(ids, projectName, principal.getName());
+		return deleteLaunchMessageHandler.deleteLaunches(ids, projectName, "principal");
 	}
 
 	@Override
@@ -334,6 +334,6 @@ public class LaunchController implements ILaunchController {
 	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file,
 			Principal principal) {
 		throw new UnsupportedOperationException();
-		//return importLaunchHandler.importLaunch(normalizeId(projectName), principal.getName(), "XUNIT", file);
+		//return importLaunchHandler.importLaunch(normalizeId(projectName), "principal", "XUNIT", file);
 	}
 }

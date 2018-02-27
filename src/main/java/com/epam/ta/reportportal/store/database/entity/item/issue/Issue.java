@@ -21,6 +21,8 @@
 
 package com.epam.ta.reportportal.store.database.entity.item.issue;
 
+import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
+
 import javax.persistence.*;
 import java.util.Objects;
 
@@ -28,14 +30,12 @@ import java.util.Objects;
  * @author Pavel Bortnik
  */
 @Entity
-@Table(name = "issue", schema = "public", indexes = { @Index(name = "issue_pk", unique = true, columnList = "id ASC"),
-		@Index(name = "issue_test_item_results_id_key", unique = true, columnList = "test_item_results_id ASC") })
+@Table(name = "issue", schema = "public", indexes = { @Index(name = "issue_pk", unique = true, columnList = "issue_id ASC") })
 public class Issue {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id", unique = true, nullable = false, precision = 64)
-	private Long id;
+	@Column(name = "issue_id", unique = true, nullable = false, precision = 64)
+	private Long issueId;
 
 	@Column(name = "issue_type", precision = 32)
 	private Integer issueType;
@@ -49,15 +49,17 @@ public class Issue {
 	@Column(name = "ignore_analyzer")
 	private Boolean ignoreAnalyzer;
 
-	@Column(name = "test_item_results_id", unique = true, precision = 64)
-	private Long testItemResultsId;
+	@OneToOne
+	@MapsId
+	@JoinColumn(name = "issue_id")
+	private TestItemResults testItemResults;
 
-	public Long getId() {
-		return id;
+	public Long getIssueId() {
+		return issueId;
 	}
 
-	public void setId(Long id) {
-		this.id = id;
+	public void setIssueId(Long issueId) {
+		this.issueId = issueId;
 	}
 
 	public Integer getIssueType() {
@@ -92,18 +94,18 @@ public class Issue {
 		this.ignoreAnalyzer = ignoreAnalyzer;
 	}
 
-	public Long getTestItemResultsId() {
-		return testItemResultsId;
+	public TestItemResults getTestItemResults() {
+		return testItemResults;
 	}
 
-	public void setTestItemResultsId(Long testItemResultsId) {
-		this.testItemResultsId = testItemResultsId;
+	public void setTestItemResults(TestItemResults testItemResults) {
+		this.testItemResults = testItemResults;
 	}
 
 	@Override
 	public String toString() {
-		return "Issue{" + "id=" + id + ", issueType=" + issueType + ", issueDescription='" + issueDescription + '\'' + ", autoAnalyzed="
-				+ autoAnalyzed + ", ignoreAnalyzer=" + ignoreAnalyzer + ", testItemResultsId=" + testItemResultsId + '}';
+		return "Issue{" + "issueId=" + issueId + ", issueType=" + issueType + ", issueDescription='" + issueDescription + '\''
+				+ ", autoAnalyzed=" + autoAnalyzed + ", ignoreAnalyzer=" + ignoreAnalyzer + ", testItemResults=" + testItemResults + '}';
 	}
 
 	@Override
@@ -115,13 +117,13 @@ public class Issue {
 			return false;
 		}
 		Issue issue = (Issue) o;
-		return Objects.equals(id, issue.id) && Objects.equals(issueType, issue.issueType) && Objects.equals(
+		return Objects.equals(issueId, issue.issueId) && Objects.equals(issueType, issue.issueType) && Objects.equals(
 				issueDescription, issue.issueDescription) && Objects.equals(autoAnalyzed, issue.autoAnalyzed) && Objects.equals(
-				ignoreAnalyzer, issue.ignoreAnalyzer) && Objects.equals(testItemResultsId, issue.testItemResultsId);
+				ignoreAnalyzer, issue.ignoreAnalyzer) && Objects.equals(testItemResults, issue.testItemResults);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, issueType, issueDescription, autoAnalyzed, ignoreAnalyzer, testItemResultsId);
+		return Objects.hash(issueId, issueType, issueDescription, autoAnalyzed, ignoreAnalyzer, testItemResults);
 	}
 }

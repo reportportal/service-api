@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.store.database.entity.item;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author Pavel Bortnik
@@ -33,8 +34,7 @@ import java.io.Serializable;
 public class TestItemStructure implements Serializable {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "item_id", unique = true, nullable = false, precision = 64)
+	@Column(name = "item_id", unique = true, nullable = false)
 	private Long itemId;
 
 	@Column(name = "launch_id", nullable = false, precision = 64)
@@ -46,6 +46,11 @@ public class TestItemStructure implements Serializable {
 	@Column(name = "retry_of", precision = 64)
 	private Long retryOf;
 
+	@OneToOne
+	@MapsId
+	@JoinColumn(name = "item_id")
+	private TestItem testItem;
+
 	public TestItemStructure() {
 	}
 
@@ -55,6 +60,14 @@ public class TestItemStructure implements Serializable {
 
 	public void setItemId(Long itemId) {
 		this.itemId = itemId;
+	}
+
+	public TestItem getTestItem() {
+		return testItem;
+	}
+
+	public void setTestItem(TestItem testItem) {
+		this.testItem = testItem;
 	}
 
 	public Long getLaunchId() {
@@ -81,4 +94,27 @@ public class TestItemStructure implements Serializable {
 		this.retryOf = retryOf;
 	}
 
+	@Override
+	public String toString() {
+		return "TestItemStructure{" + "itemId=" + itemId + ", launchId=" + launchId + ", parentId=" + parentId + ", retryOf=" + retryOf
+				+ ", testItem=" + testItem + '}';
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		TestItemStructure that = (TestItemStructure) o;
+		return Objects.equals(itemId, that.itemId) && Objects.equals(launchId, that.launchId) && Objects.equals(parentId, that.parentId)
+				&& Objects.equals(retryOf, that.retryOf) && Objects.equals(testItem, that.testItem);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(itemId, launchId, parentId, retryOf, testItem);
+	}
 }

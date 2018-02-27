@@ -26,8 +26,6 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
-import com.epam.ta.reportportal.store.database.entity.project.Project;
-import com.epam.ta.reportportal.store.database.entity.user.Users;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,13 +34,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.store.commons.Predicates.not;
-import static com.epam.ta.reportportal.store.database.entity.enums.StatusEnum.IN_PROGRESS;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
-import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_IS_NOT_FINISHED;
 import static java.util.Arrays.asList;
 
 /**
@@ -117,22 +108,22 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 		return new OperationCompletionRS("All selected launches have been successfully deleted");
 	}
 
-	private void validate(Launch launch, Users user, Project project) {
-		expect(launch.getProjectId(), equalTo(project.getName())).verify(
-				FORBIDDEN_OPERATION,
-				formattedSupplier("Target launch '{}' not under specified project '{}'", launch.getId(), project.getName())
-		);
-
-		expect(launch, not(l -> l.getStatus().equals(IN_PROGRESS))).verify(
-				LAUNCH_IS_NOT_FINISHED,
-				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId())
-		);
-
-		//TODO replace with new uat
-		//		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
-		//			/* Only PROJECT_MANAGER roles could delete launches */
-		//			UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, user.getId());
-		//			expect(userConfig, hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
-		//		}
-	}
+	//	private void validate(Launch launch, Users user, Project project) {
+	//		expect(launch.getProjectId(), equalTo(project.getName())).verify(
+	//				FORBIDDEN_OPERATION,
+	//				formattedSupplier("Target launch '{}' not under specified project '{}'", launch.getId(), project.getName())
+	//		);
+	//
+	//		expect(launch, not(l -> l.getStatus().equals(IN_PROGRESS))).verify(
+	//				LAUNCH_IS_NOT_FINISHED,
+	//				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId())
+	//		);
+	//
+	//		//TODO replace with new uat
+	//		//		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
+	//		//			/* Only PROJECT_MANAGER roles could delete launches */
+	//		//			UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, user.getId());
+	//		//			expect(userConfig, hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
+	//		//		}
+	//	}
 }

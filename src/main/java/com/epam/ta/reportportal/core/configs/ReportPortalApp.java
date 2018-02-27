@@ -36,26 +36,25 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.config.MongodbConfiguration;
+import com.epam.ta.reportportal.store.config.DatabaseConfiguration;
+import com.epam.ta.reportportal.store.database.dao.ReportPortalRepositoryImpl;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
-import org.springframework.boot.autoconfigure.hateoas.HypermediaAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
  * Application Entry Point
  *
  * @author Andrei Varabyeu
  */
-@SpringBootApplication(exclude = { MongoDataAutoConfiguration.class, HypermediaAutoConfiguration.class,
-		/* configured explicitly for Apache Commons Multipart Resolver */  MultipartAutoConfiguration.class })
-@Import({ SecurityConfiguration.class, JobsConfiguration.class, MvcConfig.class, MongodbConfiguration.class,
-		SecurityConfiguration.SecurityServerConfiguration.class })
-@EnableAspectJAutoProxy(proxyTargetClass = true)
+//@SpringBootApplication(exclude = { HypermediaAutoConfiguration.class,
+//		/* configured explicitly for Apache Commons Multipart Resolver */ })
+@SpringBootApplication
+@Import({ /*SecurityConfiguration.class, JobsConfiguration.class, MvcConfig.class,*/ DatabaseConfiguration.class })
+//@EnableAspectJAutoProxy(proxyTargetClass = true)
+@EnableJpaRepositories(basePackages = "com.epam.ta.reportportal.store", repositoryBaseClass = ReportPortalRepositoryImpl.class)
 @ComponentScan("com.epam.ta.reportportal")
 public class ReportPortalApp {
 

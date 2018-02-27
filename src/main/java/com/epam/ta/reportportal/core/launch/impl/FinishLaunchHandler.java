@@ -21,16 +21,15 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.launch.IFinishLaunchHandler;
-import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
-import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.dao.UserRepository;
-import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.store.commons.Preconditions;
+import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.store.database.entity.item.TestItemCommon;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.store.database.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -48,12 +47,13 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.trimStrings;
-import static com.epam.ta.reportportal.commons.EntityUtils.update;
-import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.database.entity.Status.*;
+import static com.epam.ta.reportportal.store.commons.EntityUtils.trimStrings;
+import static com.epam.ta.reportportal.store.commons.EntityUtils.update;
+import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.store.commons.Predicates.not;
+import static com.epam.ta.reportportal.store.database.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.toList;
 
@@ -67,50 +67,31 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 	private static final String LAUNCH_STOP_DESCRIPTION = " stopped";
 	private static final String LAUNCH_STOP_TAG = "stopped";
 
-	@Autowired
 	private LaunchRepository launchRepository;
 
-	@Autowired
 	private TestItemRepository testItemRepository;
 
-	@Autowired
-	private StatisticsFacadeFactory statisticsFacadeFactory;
-
-	@Autowired
-	private ProjectRepository projectRepository;
-
-	@Autowired
-	private UserRepository userRepository;
-
-	@Autowired
 	private ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	private IRetriesLaunchHandler retriesLaunchHandler;
+	public void setLaunchRepository(LaunchRepository launchRepository) {
+		this.launchRepository = launchRepository;
+	}
+
+	@Autowired
+	public void setTestItemRepository(TestItemRepository testItemRepository) {
+		this.testItemRepository = testItemRepository;
+	}
+
+	@Autowired
+	public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
+		this.eventPublisher = eventPublisher;
+	}
+
+	//	@Autowired
+	//	private StatisticsFacadeFactory statisticsFacadeFactory;
 
 	@Override
-	public OperationCompletionRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String username) {
-		private static final String LAUNCH_STOP_DESCRIPTION = " stopped";
-		private static final String LAUNCH_STOP_TAG = "stopped";
-
-		@Autowired
-		private LaunchRepository launchRepository;
-
-		@Autowired
-		private TestItemRepository testItemRepository;
-		//
-		//	@Autowired
-		//	private StatisticsFacadeFactory statisticsFacadeFactory;
-		//
-		@Autowired
-		private ProjectRepository projectRepository;
-
-		@Autowired
-		private UserRepository userRepository;
-
-		@Autowired
-		private ApplicationEventPublisher eventPublisher;
-
 	public OperationCompletionRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String username) {
 		//TODO validate roles
 
@@ -125,7 +106,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 			launch.setTags(tags.stream().map(LaunchTag::new).collect(Collectors.toSet()));
 		}
 		Optional<StatusEnum> statusEnum = fromValue(finishLaunchRQ.getStatus());
-		StatusEnum fromStatistics = StatusEnum.PASSED;
+		StatusEnum fromStatistics = PASSED;
 		if (launchRepository.checkStatus(launchId)) {
 			fromStatistics = StatusEnum.FAILED;
 		}
@@ -157,7 +138,8 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		}
 	}
 
-	public OperationCompletionRS stopLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String userName) {
+	@Override
+	public OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String userName) {
 		//		Launch launch = launchRepository.findOne(launchId);
 		//		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);
 		//
@@ -195,12 +177,9 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully stopped.");
 	}
 
+	@Override
 	public List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, String projectName, String userName) {
-		return bulkRQ.getEntities()
-				.entrySet()
-				.stream()
-				.map(entry -> stopLaunch(entry.getKey(), entry.getValue(), projectName, userName))
-				.collect(toList());
+		return bulkRQ.getEntities().entrySet().stream().map(entry -> stopLaunch(entry.getKey(), entry.getValue(), projectName, userName)).collect(toList());
 	}
 
 	private void validate(Launch launch, FinishExecutionRQ finishExecutionRQ) {

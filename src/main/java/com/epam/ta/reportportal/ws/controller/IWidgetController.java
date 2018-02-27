@@ -21,10 +21,8 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
@@ -73,18 +71,18 @@ public interface IWidgetController {
 	 */
 	Map<String, ?> getWidgetPreview(String projectName, WidgetPreviewRQ previewRQ, Principal principal);
 
-	/**
-	 * Update widget with specified id
-	 *
-	 * @param projectName Project name
-	 * @param principal   Principal
-	 * @param widgetId    Widget id
-	 * @param updateRQ    Update request
-	 * @param userRole    User role
-	 * @return {@link OperationCompletionRS}
-	 * @throws ReportPortalException
-	 */
-	OperationCompletionRS updateWidget(String projectName, String widgetId, WidgetRQ updateRQ, UserRole userRole, Principal principal);
+	//	/**
+	//	 * Update widget with specified id
+	//	 *
+	//	 * @param projectName Project name
+	//	 * @param principal   Principal
+	//	 * @param widgetId    Widget id
+	//	 * @param updateRQ    Update request
+	//	 * @param userRole    User role
+	//	 * @return {@link OperationCompletionRS}
+	//	 * @throws ReportPortalException
+	//	 */
+	//	OperationCompletionRS updateWidget(String projectName, String widgetId, WidgetRQ updateRQ, UserRole userRole, Principal principal);
 
 	/**
 	 * Get shared widgets names

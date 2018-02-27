@@ -21,14 +21,11 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
-import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 import org.springframework.data.domain.Pageable;
 
 import java.security.Principal;
@@ -71,29 +68,29 @@ public interface IDashboardController {
 	 */
 	DashboardResource getDashboard(String projectName, String dashboardId, Principal principal);
 
-	/**
-	 * Update dashboard with specified id.
-	 *
-	 * @param dashboardId Dashboard ID
-	 * @param projectName Project Name
-	 * @param principal   Login
-	 * @param updateRQ    Request Data
-	 * @return OperationCompletionRS
-	 * @throws ReportPortalException
-	 */
-	OperationCompletionRS updateDashboard(String projectName, String dashboardId, UpdateDashboardRQ updateRQ, Principal principal,
-			UserRole userRole);
-
-	/**
-	 * Delete dashboard with specified id.
-	 *
-	 * @param dashboardId Dashboard ID
-	 * @param projectName Project Name
-	 * @param principal   Login
-	 * @return OperationCompletionRS
-	 * @throws ReportPortalException
-	 */
-	OperationCompletionRS deleteDashboard(String projectName, String dashboardId, UserRole userRole, Principal principal);
+	//	/**
+	//	 * Update dashboard with specified id.
+	//	 *
+	//	 * @param dashboardId Dashboard ID
+	//	 * @param projectName Project Name
+	//	 * @param principal   Login
+	//	 * @param updateRQ    Request Data
+	//	 * @return OperationCompletionRS
+	//	 * @throws ReportPortalException
+	//	 */
+	//	OperationCompletionRS updateDashboard(String projectName, String dashboardId, UpdateDashboardRQ updateRQ, Principal principal,
+	//			UserRole userRole);
+	//
+	//	/**
+	//	 * Delete dashboard with specified id.
+	//	 *
+	//	 * @param dashboardId Dashboard ID
+	//	 * @param projectName Project Name
+	//	 * @param principal   Login
+	//	 * @return OperationCompletionRS
+	//	 * @throws ReportPortalException
+	//	 */
+	//	OperationCompletionRS deleteDashboard(String projectName, String dashboardId, UserRole userRole, Principal principal);
 
 	/**
 	 * Get all dashboards for current user

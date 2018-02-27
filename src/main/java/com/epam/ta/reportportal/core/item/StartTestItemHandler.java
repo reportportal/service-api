@@ -47,5 +47,5 @@ public interface StartTestItemHandler {
 	 * @param rq          Item details
 	 * @return ItemID and uniqueID of test item
 	 */
-	ItemCreatedRS startChildItem(String projectName, StartTestItemRQ rq, String rootItem);
+	ItemCreatedRS startChildItem(String projectName, StartTestItemRQ rq, Long parentId);
 }

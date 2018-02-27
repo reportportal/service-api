@@ -29,10 +29,10 @@
     <bean id="jacksonRequestValidator" class="com.epam.ta.reportportal.ws.validation.JaskonRequiredPropertiesValidator"/>
 
 
-    <bean class="com.epam.ta.reportportal.database.search.CriteriaMapFactory">
-        <constructor-arg name="basePackage"
-                         value="com.epam.ta.reportportal.database.entity"/>
-    </bean>
+    <!--<bean class="com.epam.ta.reportportal.database.search.CriteriaMapFactory">-->
+    <!--<constructor-arg name="basePackage"-->
+    <!--value="com.epam.ta.reportportal.database.entity"/>-->
+    <!--</bean>-->
 
     <bean id="contentTypeResolver" class="com.epam.reportportal.commons.TikaContentTypeResolver"/>
 

@@ -21,14 +21,13 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.launch.IDeleteLaunchHandler;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType;
+import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.store.database.entity.project.Project;
+import com.epam.ta.reportportal.store.database.entity.user.Users;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,11 +36,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.epam.ta.reportportal.commons.Preconditions.IN_PROGRESS;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.store.commons.Predicates.not;
+import static com.epam.ta.reportportal.store.database.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_IS_NOT_FINISHED;
 import static java.util.Arrays.asList;
@@ -54,13 +53,14 @@ import static java.util.Arrays.asList;
  */
 @Service
 public class DeleteLaunchHandler implements IDeleteLaunchHandler {
+
 	private ApplicationEventPublisher eventPublisher;
 
 	private LaunchRepository launchRepository;
 
 	private TestItemRepository itemRepository;
 
-	private ILogIndexer logIndexer;
+	//	private ILogIndexer logIndexer;
 
 	@Autowired
 	public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
@@ -108,9 +108,9 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 		//		final Project project = projectRepository.findById(projectName).get();
 		// 		launches.forEach(launch -> validate(launch, user, project));
 
-		launches.forEach(launch -> logIndexer.cleanIndex(projectName,
-				itemRepository.selectIdsNotInIssueByLaunch(launch.getId(), TestItemIssueType.TO_INVESTIGATE.getLocator())
-		));
+		//		launches.forEach(launch -> logIndexer.cleanIndex(projectName,
+		//				itemRepository.selectIdsNotInIssueByLaunch(launch.getId(), TestItemIssueType.TO_INVESTIGATE.getLocator())
+		//		));
 		launchRepository.deleteAll(launches);
 
 		//		launches.forEach(launch -> eventPublisher.publishEvent(new LaunchDeletedEvent(launch, userName)));

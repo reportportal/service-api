@@ -21,7 +21,6 @@
 
 package com.epam.ta.reportportal.core.item;
 
-import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 import java.util.List;

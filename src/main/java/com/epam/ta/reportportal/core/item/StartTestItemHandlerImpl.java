@@ -21,17 +21,15 @@
 
 package com.epam.ta.reportportal.core.item;
 
-import com.epam.ta.reportportal.commons.Preconditions;
-import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Status;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.store.commons.Preconditions;
+import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import com.epam.ta.reportportal.store.database.entity.item.TestItemStructure;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import com.google.common.annotations.VisibleForTesting;
@@ -43,12 +41,11 @@ import org.springframework.retry.policy.TimeoutRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Provider;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -64,7 +61,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	private TestItemRepository testItemRepository;
 	private LaunchRepository launchRepository;
-	private Provider<TestItemBuilder> testItemBuilder;
 	private UniqueIdGenerator identifierGenerator;
 	private RetryTemplate retrier;
 
@@ -92,23 +88,27 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		this.launchRepository = launchRepository;
 	}
 
-	@Autowired
-	public void setTestItemBuilder(Provider<TestItemBuilder> testItemBuilder) {
-		this.testItemBuilder = testItemBuilder;
-	}
-
 	/**
 	 * Starts root item and related to the specific launch
 	 */
 	@Override
 	public ItemCreatedRS startRootItem(String projectName, StartTestItemRQ rq) {
-		Launch launch = launchRepository.loadStatusProjectRefAndStartTime(rq.getLaunchId());
+		Launch launch = launchRepository.findById(rq.getLaunchId())
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId().toString()));
 		validate(projectName, rq, launch);
-		TestItem item = testItemBuilder.get().addStartItemRequest(rq).addStatus(Status.IN_PROGRESS).addLaunch(launch).build();
+		TestItem item = new TestItemBuilder().addStartItemRequest(rq).get();
+
+		TestItemStructure testItemStructure = new TestItemStructure();
+		testItemStructure.setLaunchId(rq.getLaunchId());
+
+		//item.setTestItemStructure(testItemStructure);
+
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item));
 		}
+
 		testItemRepository.save(item);
+		testItemRepository.refresh(item);
 		return new ItemCreatedRS(item.getId(), item.getUniqueId());
 	}
 
@@ -116,76 +116,80 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 * Starts children item and building it's path from parent with parent's
 	 */
 	@Override
-	public ItemCreatedRS startChildItem(String projectName, StartTestItemRQ rq, String parent) {
-		TestItem parentItem = testItemRepository.findOne(parent);
+	public ItemCreatedRS startChildItem(String projectName, StartTestItemRQ rq, Long parentId) {
+		TestItem parentItem = testItemRepository.findById(parentId)
+				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId.toString()));
 
-		validate(parentItem, parent);
+		validate(parentItem, parentId);
 		validate(rq, parentItem);
 
-		TestItem item = testItemBuilder.get()
-				.addStartItemRequest(rq)
-				.addParent(parentItem)
-				.addPath(parentItem)
-				.addStatus(Status.IN_PROGRESS)
-				.build();
+		TestItem item = new TestItemBuilder().addStartItemRequest(rq).get();
+		TestItemStructure testItemStructure = new TestItemStructure();
+		testItemStructure.setLaunchId(rq.getLaunchId());
+		testItemStructure.setParentId(parentId);
+
+		//item.setTestItemStructure(testItemStructure);
 
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item));
 		}
 
-		if (rq.isRetry()) {
-			TestItem retryRoot = getRetryRoot(item.getUniqueId(), parent);
-			if (null == retryRoot.getRetryProcessed()) {
-				retryRoot.setRetryProcessed(false);
-				testItemRepository.partialUpdate(retryRoot);
-			}
+		//		if (rq.isRetry()) {
+		//			TestItem retryRoot = getRetryRoot(item.getUniqueId(), parent);
+		//			if (null == retryRoot.getRetryProcessed()) {
+		//				retryRoot.setRetryProcessed(false);
+		//				testItemRepository.partialUpdate(retryRoot);
+		//			}
+		//
+		//			item.setRetryProcessed(false);
+		//			testItemRepository.save(item);
+		//			launchRepository.updateHasRetries(item.getLaunchRef(), true);
+		//
+		//		} else {
+		//			LOGGER.debug("Starting Item with name '{}'", item.getName());
+		//			testItemRepository.save(item);
+		//			if (!parentItem.hasChilds()) {
+		//				testItemRepository.updateHasChilds(parentItem.getId(), true);
+		//			}
+		//		}
 
-			item.setRetryProcessed(false);
-			testItemRepository.save(item);
-			launchRepository.updateHasRetries(item.getLaunchRef(), true);
-
-		} else {
-			LOGGER.debug("Starting Item with name '{}'", item.getName());
-			testItemRepository.save(item);
-			if (!parentItem.hasChilds()) {
-				testItemRepository.updateHasChilds(parentItem.getId(), true);
-			}
-		}
-
+		testItemRepository.save(item);
+		testItemRepository.refresh(item);
 		return new ItemCreatedRS(item.getId(), item.getUniqueId());
 	}
 
 	@VisibleForTesting
 	TestItem getRetryRoot(String uniqueID, String parent) {
-		LOGGER.warn("Looking for retry root. Parent: {}. Unique ID: {}", parent, uniqueID);
-		/*
-		 * Due to async nature of RP clients and some TestNG
-		 * implementation details both 'start item' of root of retry and 'start item' events
-		 * may come at the same time (almost). To simplify client side we don't introduce requirement
-		 * that 1st retry item have to wait for the item that causes of retry (retry root). Instead, we
-		 * just introduce some wait on server side. This case if extremely specific, in 99% real-world cases
-		 * results will be returned from first attempt
-		 */
-		return retrier.execute(context -> {
-			/* search for the item with the same unique ID and parent. Since retries do not contain
-			 * parentID, there should be only one result. For correct further processing - it needs
-			 * to be waited for the end of retries root item.
-			 */
-			TestItem item = testItemRepository.findRetryRoot(uniqueID, parent);
-			BusinessRule.expect(item, com.epam.ta.reportportal.commons.Predicates.notNull())
-					.verify(ErrorType.BAD_REQUEST_ERROR, "No retry root found");
-			BusinessRule.expect(item.getStatus(), Predicates.not(it -> it.equals(Status.IN_PROGRESS)))
-					.verify(BAD_REQUEST_ERROR, "Retries root is still IN_PROGRESS");
-			return item;
-		});
+		throw new UnsupportedOperationException();
+		//		LOGGER.warn("Looking for retry root. Parent: {}. Unique ID: {}", parent, uniqueID);
+		//		/*
+		//		 * Due to async nature of RP clients and some TestNG
+		//		 * implementation details both 'start item' of root of retry and 'start item' events
+		//		 * may come at the same time (almost). To simplify client side we don't introduce requirement
+		//		 * that 1st retry item have to wait for the item that causes of retry (retry root). Instead, we
+		//		 * just introduce some wait on server side. This case if extremely specific, in 99% real-world cases
+		//		 * results will be returned from first attempt
+		//		 */
+		//		return retrier.execute(context -> {
+		//			/* search for the item with the same unique ID and parent. Since retries do not contain
+		//			 * parentID, there should be only one result. For correct further processing - it needs
+		//			 * to be waited for the end of retries root item.
+		//			 */
+		//			TestItem item = testItemRepository.findRetryRoot(uniqueID, parent);
+		//			BusinessRule.expect(item, com.epam.ta.reportportal.commons.Predicates.notNull())
+		//					.verify(ErrorType.BAD_REQUEST_ERROR, "No retry root found");
+		//			BusinessRule.expect(item.getStatus(), Predicates.not(it -> it.equals(Status.IN_PROGRESS)))
+		//					.verify(BAD_REQUEST_ERROR, "Retries root is still IN_PROGRESS");
+		//			return item;
+		//		});
 	}
 
 	private void validate(String projectName, StartTestItemRQ rq, Launch launch) {
-		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, rq.getLaunchId());
-		expect(projectName.toLowerCase(), equalTo(launch.getProjectRef())).verify(ACCESS_DENIED);
-		expect(launch, Preconditions.IN_PROGRESS).verify(START_ITEM_NOT_ALLOWED,
-				Suppliers.formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId())
-		);
+		expect(launch, Objects::nonNull).verify(LAUNCH_NOT_FOUND, rq.getLaunchId());
+		//expect(projectName.toLowerCase(), equalTo(launch.getProjectRef())).verify(ACCESS_DENIED);
+		//		expect(launch, Preconditions.IN_PROGRESS).verify(START_ITEM_NOT_ALLOWED,
+		//				Suppliers.formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId())
+		//		);
 
 		expect(rq, Preconditions.startSameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
 				rq.getStartTime(), launch.getStartTime(), launch.getId()
@@ -194,9 +198,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	}
 
-	private void validate(TestItem parentTestItem, String parent) {
-		expect(parentTestItem, notNull()).verify(TEST_ITEM_NOT_FOUND, parent);
-		expect(parentTestItem, Preconditions.IN_PROGRESS).verify(START_ITEM_NOT_ALLOWED,
+	private void validate(TestItem parentTestItem, Long parent) {
+		expect(parentTestItem.getTestItemResults(), Objects::nonNull).verify(
+				START_ITEM_NOT_ALLOWED,
 				Suppliers.formattedSupplier("Parent Item '{}' is not in progress", parentTestItem.getId())
 		);
 		//		long logCount = logRepository.getNumberOfLogByTestItem(parentTestItem);

@@ -20,12 +20,8 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-
-@Profile("!unittest")
-@Configuration
-@EnableDiscoveryClient
+//@Profile("!unittest")
+//@Configuration
+//@EnableDiscoveryClient
 public class DiscoveryClientConfiguration {
 }

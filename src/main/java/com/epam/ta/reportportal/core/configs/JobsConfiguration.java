@@ -21,12 +21,7 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.job.SaveBinaryDataJob;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -38,8 +33,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  *
  * @author Andrei Varabyeu
  */
-@Configuration
-@ComponentScan("com.epam.ta.reportportal.job")
+//@Configuration
+//@ComponentScan("com.epam.ta.reportportal.job")
 public class JobsConfiguration {
 
 	@Bean
@@ -63,11 +58,11 @@ public class JobsConfiguration {
 		return executor;
 	}
 
-	@Bean(name = "saveBinaryDataJob")
-	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	public SaveBinaryDataJob saveBinaryDataJob() {
-		return new SaveBinaryDataJob();
-	}
+	//	@Bean(name = "saveBinaryDataJob")
+	//	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	//	public SaveBinaryDataJob saveBinaryDataJob() {
+	//		return new SaveBinaryDataJob();
+	//	}
 
 	@EnableScheduling
 	public static class SchedulingConfiguration {

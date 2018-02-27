@@ -21,15 +21,12 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.database.search.Filter;
-import com.epam.ta.reportportal.database.search.Queryable;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.item.AddExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
-import org.springframework.data.domain.Pageable;
 
 import java.security.Principal;
 import java.util.List;
@@ -55,7 +52,7 @@ public interface ITestItemController {
 	 * @param principal
 	 * @return EntryCreatedRS
 	 */
-	EntryCreatedRS startChildItem(String projectName, String parentItem, StartTestItemRQ startLaunch, Principal principal);
+	EntryCreatedRS startChildItem(String projectName, Long parentItem, StartTestItemRQ startLaunch, Principal principal);
 
 	/**
 	 * Finishes specified test item
@@ -76,17 +73,17 @@ public interface ITestItemController {
 	 */
 	TestItemResource getTestItem(String projectName, String item, Principal principal);
 
-	/**
-	 * Gets all Test Items of specified launch
-	 *
-	 * @param projectName
-	 * @param filter
-	 * @param pageble
-	 * @param principal
-	 * @return Iterable<TestItemResource>
-	 */
-	Iterable<TestItemResource> getTestItems(String projectName, Filter filter, Queryable predefinedFilter, Pageable pageble,
-			Principal principal);
+	//	/**
+	//	 * Gets all Test Items of specified launch
+	//	 *
+	//	 * @param projectName
+	//	 * @param filter
+	//	 * @param pageble
+	//	 * @param principal
+	//	 * @return Iterable<TestItemResource>
+	//	 */
+	//	Iterable<TestItemResource> getTestItems(String projectName, Filter filter, Queryable predefinedFilter, Pageable pageble,
+	//			Principal principal);
 
 	/**
 	 * Deletes Test Item

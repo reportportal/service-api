@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.ws.validation;
 
-import com.epam.ta.reportportal.commons.accessible.Accessible;
+import com.epam.ta.reportportal.store.commons.accessible.Accessible;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
@@ -61,7 +61,7 @@ public class JaskonRequiredPropertiesValidator implements Validator {
 
 			}
 			if (field.isAnnotationPresent(JsonProperty.class) && field.getAnnotation(JsonProperty.class).required()) {
-				String errorCode = new StringBuilder("NotNull.").append(field.getName()).toString();
+				String errorCode = "NotNull." + field.getName();
 				ValidationUtils.rejectIfEmpty(errors, field.getName(), errorCode, new Object[] { errorCode });
 			}
 		}

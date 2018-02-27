@@ -21,10 +21,8 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.google.common.base.Preconditions;
-import org.apache.commons.lang3.BooleanUtils;
 
 import java.util.function.Function;
 
@@ -38,22 +36,23 @@ public final class LaunchConverter {
 	}
 
 	public static final Function<Launch, LaunchResource> TO_RESOURCE = db -> {
-		Preconditions.checkNotNull(db);
-		LaunchResource resource = new LaunchResource();
-		resource.setLaunchId(db.getId());
-		resource.setName(db.getName());
-		resource.setNumber(db.getNumber());
-		resource.setDescription(db.getDescription());
-		resource.setStatus(db.getStatus() == null ? null : db.getStatus().toString());
-		resource.setStartTime(db.getStartTime());
-		resource.setEndTime(db.getEndTime());
-		resource.setTags(db.getTags());
-		resource.setMode(db.getMode());
-		resource.setApproximateDuration(db.getApproximateDuration());
-		resource.setIsProcessing(false);
-		resource.setOwner(db.getUserRef());
-		resource.setHasRetries(BooleanUtils.isTrue(db.getHasRetries()));
-		resource.setStatistics(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
-		return resource;
+		//		Preconditions.checkNotNull(db);
+		//		LaunchResource resource = new LaunchResource();
+		//		resource.setLaunchId(db.getId());
+		//		resource.setName(db.getName());
+		//		resource.setNumber(db.getNumber());
+		//		resource.setDescription(db.getDescription());
+		//		resource.setStatus(db.getStatus() == null ? null : db.getStatus().toString());
+		//		resource.setStartTime(db.getStartTime());
+		//		resource.setEndTime(db.getEndTime());
+		//		resource.setTags(db.getTags());
+		//		resource.setMode(db.getMode());
+		//		resource.setApproximateDuration(db.getApproximateDuration());
+		//		resource.setIsProcessing(false);
+		//		resource.setOwner(db.getUserRef());
+		//		resource.setHasRetries(BooleanUtils.isTrue(db.getHasRetries()));
+		//		resource.setStatistics(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
+		//		return resource;
+		throw new UnsupportedOperationException();
 	};
 }

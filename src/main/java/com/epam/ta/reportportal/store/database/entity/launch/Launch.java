@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.store.database.entity.enums.PostgreSQLEnumType;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -34,6 +33,8 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Set;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
@@ -94,7 +95,10 @@ public class Launch {
 	}
 
 	public void setTags(Set<LaunchTag> tags) {
-		this.tags = tags;
+		ofNullable(this.tags).ifPresent(it -> {
+			it.clear();
+			it.addAll(tags);
+		});
 	}
 
 	public Long getId() {

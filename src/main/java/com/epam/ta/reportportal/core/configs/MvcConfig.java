@@ -41,7 +41,7 @@ import com.epam.ta.reportportal.commons.exception.forwarding.ClientResponseForwa
 import com.epam.ta.reportportal.commons.exception.rest.DefaultErrorResolver;
 import com.epam.ta.reportportal.commons.exception.rest.ReportPortalExceptionResolver;
 import com.epam.ta.reportportal.commons.exception.rest.RestExceptionHandler;
-import com.epam.ta.reportportal.ws.resolver.*;
+import com.epam.ta.reportportal.ws.resolver.JsonViewSupportFactoryBean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -55,12 +55,14 @@ import org.springframework.core.Ordered;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.validation.beanvalidation.BeanValidationPostProcessor;
-import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExceptionResolver;
-import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Collections;
 import java.util.List;
@@ -95,39 +97,39 @@ public class MvcConfig implements WebMvcConfigurer {
 		}
 	}
 
-	@Override
-	public void addViewControllers(ViewControllerRegistry registry) {
-		registry.addViewController("/").setViewName("forward:/index.htm");
-		registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
+	//	@Override
+	//	public void addViewControllers(ViewControllerRegistry registry) {
+	//		registry.addViewController("/").setViewName("forward:/index.htm");
+	//		registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
+	//
+	//	}
 
-	}
-
-	@Bean
-	public SortArgumentResolver sortArgumentResolver() {
-		SortArgumentResolver argumentResolver = new SortArgumentResolver();
-		argumentResolver.setSortParameter("page.sort");
-		argumentResolver.setQualifierDelimiter("+");
-		return argumentResolver;
-	}
+	//	@Bean
+	//	public SortArgumentResolver sortArgumentResolver() {
+	//		SortArgumentResolver argumentResolver = new SortArgumentResolver();
+	//		argumentResolver.setSortParameter("page.sort");
+	//		argumentResolver.setQualifierDelimiter("+");
+	//		return argumentResolver;
+	//	}
 
 	@Bean
 	public JsonViewSupportFactoryBean jsonViewSupportFactoryBean() {
 		return new JsonViewSupportFactoryBean();
 	}
 
-	@Override
-	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
-		argumentResolvers.clear();
-		PagingHandlerMethodArgumentResolver pageableResolver = new PagingHandlerMethodArgumentResolver(sortArgumentResolver());
-		pageableResolver.setPrefix("page.");
-		pageableResolver.setOneIndexedParameters(true);
-
-		argumentResolvers.add(pageableResolver);
-
-		argumentResolvers.add(new ActiveUserWebArgumentResolver());
-		argumentResolvers.add(new FilterCriteriaResolver());
-		argumentResolvers.add(new PredefinedFilterCriteriaResolver());
-	}
+	//	@Override
+	//	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+	//		argumentResolvers.clear();
+	//		PagingHandlerMethodArgumentResolver pageableResolver = new PagingHandlerMethodArgumentResolver(sortArgumentResolver());
+	//		pageableResolver.setPrefix("page.");
+	//		pageableResolver.setOneIndexedParameters(true);
+	//
+	//		argumentResolvers.add(pageableResolver);
+	//
+	//		argumentResolvers.add(new ActiveUserWebArgumentResolver());
+	//		argumentResolvers.add(new FilterCriteriaResolver());
+	//		argumentResolvers.add(new PredefinedFilterCriteriaResolver());
+	//	}
 
 	@Override
 	public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {

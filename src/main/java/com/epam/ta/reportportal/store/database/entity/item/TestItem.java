@@ -30,6 +30,9 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Set;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
@@ -66,6 +69,44 @@ public class TestItem implements Serializable {
 
 	@Column(name = "unique_id", nullable = false, length = 256)
 	private String uniqueId;
+
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+	@JoinColumn(name = "item_id")
+	private Set<TestItemTag> tags;
+
+	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@JoinColumn(name = "item_id")
+	private TestItemResults testItemResults;
+
+	public TestItem() {
+	}
+	//
+	//	public TestItemStructure getTestItemStructure() {
+	//		return testItemStructure;
+	//	}
+	//
+	//	public void setTestItemStructure(TestItemStructure testItemStructure) {
+	//		this.testItemStructure = testItemStructure;
+	//	}
+
+	public TestItemResults getTestItemResults() {
+		return testItemResults;
+	}
+
+	public void setTestItemResults(TestItemResults testItemResults) {
+		this.testItemResults = testItemResults;
+	}
+
+	public Set<TestItemTag> getTags() {
+		return tags;
+	}
+
+	public void setTags(Set<TestItemTag> tags) {
+		ofNullable(this.tags).ifPresent(it -> {
+			it.clear();
+			it.addAll(tags);
+		});
+	}
 
 	public Long getId() {
 		return id;
@@ -132,6 +173,13 @@ public class TestItem implements Serializable {
 	}
 
 	@Override
+	public String toString() {
+		return "TestItem{" + "id=" + id + ", name='" + name + '\'' + ", type=" + type + ", startTime=" + startTime + ", description='"
+				+ description + '\'' + ", lastModified=" + lastModified + ", parameters=" + Arrays.toString(parameters) + ", uniqueId='"
+				+ uniqueId + '\'' + ", tags=" + tags + '}';
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
@@ -143,18 +191,12 @@ public class TestItem implements Serializable {
 		return Objects.equals(id, testItem.id) && Objects.equals(name, testItem.name) && type == testItem.type && Objects.equals(
 				startTime, testItem.startTime) && Objects.equals(description, testItem.description) && Objects.equals(
 				lastModified, testItem.lastModified) && Arrays.equals(parameters, testItem.parameters) && Objects.equals(
-				uniqueId, testItem.uniqueId);
+				uniqueId, testItem.uniqueId) && Objects.equals(tags, testItem.tags);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, name, type, startTime, description, lastModified, parameters, uniqueId);
+		return Objects.hash(id, name, type, startTime, description, lastModified, parameters, uniqueId, tags);
 	}
 
-	@Override
-	public String toString() {
-		return "TestItem{" + "id=" + id + ", name='" + name + '\'' + ", type=" + type + ", startTime=" + startTime + ", description='"
-				+ description + '\'' + ", lastModified=" + lastModified + ", parameters=" + Arrays.toString(parameters) + ", uniqueId='"
-				+ uniqueId + '\'' + '}';
-	}
 }

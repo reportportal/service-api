@@ -36,15 +36,16 @@
  */
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.*;
+import com.epam.ta.reportportal.ws.model.BulkRQ;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
@@ -84,7 +85,7 @@ public interface ILaunchController {
 	 * @return
 	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS deleteLaunch(String launchId, String projectName, Principal principal);
+	OperationCompletionRS deleteLaunch(String projectName, Long launchId, Principal principal);
 
 	/**
 	 * Finish launch
@@ -95,7 +96,7 @@ public interface ILaunchController {
 	 * @param principal
 	 * @return
 	 */
-	OperationCompletionRS finishLaunch(String projectName, String launchId, FinishExecutionRQ finsihLaunchRQ, Principal principal,
+	OperationCompletionRS finishLaunch(String projectName, Long launchId, FinishExecutionRQ finsihLaunchRQ, Principal principal,
 			HttpServletRequest request);
 
 	/**
@@ -107,7 +108,7 @@ public interface ILaunchController {
 	 * @param principal
 	 * @return
 	 */
-	OperationCompletionRS forceFinishLaunch(String projectName, String launchId, FinishExecutionRQ finsihLaunchRQ, Principal principal);
+	OperationCompletionRS forceFinishLaunch(String projectName, Long launchId, FinishExecutionRQ finsihLaunchRQ, Principal principal);
 
 	/**
 	 * Get Launch resource by specified ID
@@ -117,31 +118,31 @@ public interface ILaunchController {
 	 * @param principal
 	 * @return
 	 */
-	LaunchResource getLaunch(String projectName, String launchId, Principal principal);
+	LaunchResource getLaunch(String projectName, Long launchId, Principal principal);
 
-	/**
-	 * Get all launches for specified project
-	 *
-	 * @param projectName
-	 * @param filter
-	 * @param pageble
-	 * @param principal
-	 * @return
-	 */
-	Iterable<LaunchResource> getProjectLaunches(String projectName, Filter filter, Pageable pageble, Principal principal);
-
-	/**
-	 * Get launches in specified mode for specified user or for all users
-	 *
-	 * @param login
-	 * @param filter
-	 * @param pageable
-	 * @param principal
-	 * @return
-	 */
-	Iterable<LaunchResource> getDebugLaunches(String login, Filter filter, Pageable pageable, Principal principal);
-
-	Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable);
+	//	/**
+	//	 * Get all launches for specified project
+	//	 *
+	//	 * @param projectName
+	//	 * @param filter
+	//	 * @param pageble
+	//	 * @param principal
+	//	 * @return
+	//	 */
+	//	Iterable<LaunchResource> getProjectLaunches(String projectName, Filter filter, Pageable pageble, Principal principal);
+	//
+	//	/**
+	//	 * Get launches in specified mode for specified user or for all users
+	//	 *
+	//	 * @param login
+	//	 * @param filter
+	//	 * @param pageable
+	//	 * @param principal
+	//	 * @return
+	//	 */
+	//	Iterable<LaunchResource> getDebugLaunches(String login, Filter filter, Pageable pageable, Principal principal);
+	//
+	//	Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable);
 
 	/**
 	 * Get launch tags of specified project by value (auto-complete)
@@ -184,7 +185,7 @@ public interface ILaunchController {
 	 * @param principal
 	 * @return
 	 */
-	OperationCompletionRS updateLaunch(String projectName, String launchId, UpdateLaunchRQ updateLaunchRQ, Principal principal);
+	OperationCompletionRS updateLaunch(String projectName, Long launchId, UpdateLaunchRQ updateLaunchRQ, Principal principal);
 
 	/**
 	 * Get comparison info of launches
@@ -194,7 +195,7 @@ public interface ILaunchController {
 	 * @param principal
 	 * @return
 	 */
-	Map<String, List<ChartObject>> compareLaunches(String projectName, String[] ids, Principal principal);
+	Map<String, List<ChartObject>> compareLaunches(String projectName, Long[] ids, Principal principal);
 
 	/**
 	 * Merge specified launches in common one
@@ -217,7 +218,7 @@ public interface ILaunchController {
 	 * @throws ExecutionException
 	 * @throws InterruptedException
 	 */
-	OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId, Principal principal)
+	OperationCompletionRS startLaunchAnalyzer(String projectName, Long launchId, Principal principal)
 			throws InterruptedException, ExecutionException;
 
 	/**
@@ -228,7 +229,7 @@ public interface ILaunchController {
 	 * @param principal
 	 * @return
 	 */
-	Map<String, String> getStatuses(String projectName, String[] ids, Principal principal);
+	Map<String, String> getStatuses(String projectName, Long[] ids, Principal principal);
 
 	/**
 	 * Imports test results of zip archive with xml reports inside
@@ -240,9 +241,9 @@ public interface ILaunchController {
 	 */
 	OperationCompletionRS importLaunch(String projectId, MultipartFile file, Principal principal);
 
-	void getLaunchReport(String projectName, String launchId, String view, Principal principal, HttpServletResponse response)
+	void getLaunchReport(String projectName, Long launchId, String view, Principal principal, HttpServletResponse response)
 			throws IOException;
 
-	OperationCompletionRS deleteLaunches(String projectName, String[] ids, Principal principal);
+	OperationCompletionRS deleteLaunches(String projectName, Long[] ids, Principal principal);
 
 }

@@ -44,7 +44,7 @@ public interface IUpdateLaunchHandler {
 	 * @param rq          Request Data
 	 * @return OperationCompletionRS - Response Data
 	 */
-	OperationCompletionRS updateLaunch(String launchId, String projectName, String userName, UpdateLaunchRQ rq);
+	OperationCompletionRS updateLaunch(Long launchId, String projectName, String userName, UpdateLaunchRQ rq);
 
 	/**
 	 * Start launch analyzer on demand
@@ -53,7 +53,7 @@ public interface IUpdateLaunchHandler {
 	 * @param launchId    ID of launch object
 	 * @return OperationCompletionRS - Response Data
 	 */
-	OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId);
+	OperationCompletionRS startLaunchAnalyzer(String projectName, Long launchId);
 
 	List<OperationCompletionRS> updateLaunch(BulkRQ<UpdateLaunchRQ> rq, String projectName, String userName);
 }

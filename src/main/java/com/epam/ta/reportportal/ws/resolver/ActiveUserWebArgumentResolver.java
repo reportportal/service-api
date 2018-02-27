@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.ws.resolver;
 
-import com.epam.ta.reportportal.database.entity.user.UserRole;
+import com.epam.ta.reportportal.store.database.entity.enums.UserRoleEnum;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.support.WebArgumentResolver;
@@ -34,7 +34,7 @@ import java.util.Optional;
 
 /**
  * {@link org.springframework.web.bind.support.WebArgumentResolver} for
- * ReportPortal User Roles. Will resolve {@link UserRole} in case if method
+ * ReportPortal User Roles. Will resolve {@link UserRoleEnum} in case if method
  * parameter annotated by {@link ActiveRole} annotation
  *
  * @author Andrei Varabyeu
@@ -42,12 +42,12 @@ import java.util.Optional;
 public class ActiveUserWebArgumentResolver implements HandlerMethodArgumentResolver {
 
 	/**
-	 * Returns TRUE if method argument is {@link UserRole} and annotated by
+	 * Returns TRUE if method argument is {@link UserRoleEnum} and annotated by
 	 * {@link ActiveRole} annotation
 	 */
 	@Override
 	public boolean supportsParameter(MethodParameter methodParameter) {
-		return methodParameter.getParameterType().equals(UserRole.class) && null != methodParameter.getParameterAnnotation(
+		return methodParameter.getParameterType().equals(UserRoleEnum.class) && null != methodParameter.getParameterAnnotation(
 				ActiveRole.class);
 	}
 
@@ -66,7 +66,8 @@ public class ActiveUserWebArgumentResolver implements HandlerMethodArgumentResol
 			NativeWebRequest webRequest, WebDataBinderFactory paramWebDataBinderFactory) {
 		Authentication authentication = (Authentication) webRequest.getUserPrincipal();
 		if (!authentication.getAuthorities().isEmpty()) {
-			Optional<UserRole> userRole = UserRole.findByAuthority(authentication.getAuthorities().iterator().next().getAuthority());
+			Optional<UserRoleEnum> userRole = UserRoleEnum.findByAuthority(
+					authentication.getAuthorities().iterator().next().getAuthority());
 			return userRole.isPresent() ? userRole.get() : WebArgumentResolver.UNRESOLVED;
 		}
 		return WebArgumentResolver.UNRESOLVED;

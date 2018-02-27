@@ -36,7 +36,7 @@ public class ReportPortalRepositoryImpl<T, ID extends Serializable> extends Simp
 
 	private EntityManager entityManager;
 
-	public ReportPortalRepositoryImpl(JpaEntityInformation entityInformation, EntityManager entityManager) {
+	public ReportPortalRepositoryImpl(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
 		super(entityInformation, entityManager);
 		this.entityManager = entityManager;
 	}

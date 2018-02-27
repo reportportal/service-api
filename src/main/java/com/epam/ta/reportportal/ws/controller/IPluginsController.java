@@ -21,11 +21,8 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.SystemInfoRS;
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import org.springframework.data.domain.Pageable;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
@@ -37,15 +34,15 @@ import java.security.Principal;
  */
 public interface IPluginsController {
 
-	/**
-	 * Get Launch resource by specified launch Name (for Jenkins)
-	 *
-	 * @param projectName
-	 * @param request
-	 * @param principal
-	 * @return
-	 */
-	LaunchResource getLaunchByName(String projectName, Pageable pageble, Filter filter, Principal principal);
+	//	/**
+	//	 * Get Launch resource by specified launch Name (for Jenkins)
+	//	 *
+	//	 * @param projectName
+	//	 * @param request
+	//	 * @param principal
+	//	 * @return
+	//	 */
+	//	LaunchResource getLaunchByName(String projectName, Pageable pageble, Filter filter, Principal principal);
 
 	/**
 	 * Heartbeat of ReportPortal server status

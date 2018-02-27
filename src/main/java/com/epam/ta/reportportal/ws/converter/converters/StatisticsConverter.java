@@ -21,12 +21,6 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
-import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
-import com.epam.ta.reportportal.database.entity.statistics.Statistics;
-
-import java.util.function.Function;
-
 /**
  * @author Pavel Bortnik
  */
@@ -36,29 +30,29 @@ public final class StatisticsConverter {
 		//static only
 	}
 
-	public static final Function<Statistics, com.epam.ta.reportportal.ws.model.statistics.Statistics> TO_RESOURCE = statistics -> {
-		com.epam.ta.reportportal.ws.model.statistics.Statistics statisticsCounters = new com.epam.ta.reportportal.ws.model.statistics.Statistics();
-		if (statistics != null) {
-			ExecutionCounter executionCounter = statistics.getExecutionCounter();
-			if (executionCounter != null) {
-				com.epam.ta.reportportal.ws.model.statistics.ExecutionCounter execution = new com.epam.ta.reportportal.ws.model.statistics.ExecutionCounter();
-				execution.setTotal(executionCounter.getTotal().toString());
-				execution.setPassed(executionCounter.getPassed().toString());
-				execution.setFailed(executionCounter.getFailed().toString());
-				execution.setSkipped(executionCounter.getSkipped().toString());
-				statisticsCounters.setExecutions(execution);
-			}
-			IssueCounter issueCounter = statistics.getIssueCounter();
-			if (issueCounter != null) {
-				com.epam.ta.reportportal.ws.model.statistics.IssueCounter issues = new com.epam.ta.reportportal.ws.model.statistics.IssueCounter();
-				issues.setProductBug(issueCounter.getProductBug());
-				issues.setSystemIssue(issueCounter.getSystemIssue());
-				issues.setAutomationBug(issueCounter.getAutomationBug());
-				issues.setToInvestigate(issueCounter.getToInvestigate());
-				issues.setNoDefect(issueCounter.getNoDefect());
-				statisticsCounters.setDefects(issues);
-			}
-		}
-		return statisticsCounters;
-	};
+	//	public static final Function<Statistics, com.epam.ta.reportportal.ws.model.statistics.Statistics> TO_RESOURCE = statistics -> {
+	//		com.epam.ta.reportportal.ws.model.statistics.Statistics statisticsCounters = new com.epam.ta.reportportal.ws.model.statistics.Statistics();
+	//		if (statistics != null) {
+	//			ExecutionCounter executionCounter = statistics.getExecutionCounter();
+	//			if (executionCounter != null) {
+	//				com.epam.ta.reportportal.ws.model.statistics.ExecutionCounter execution = new com.epam.ta.reportportal.ws.model.statistics.ExecutionCounter();
+	//				execution.setTotal(executionCounter.getTotal().toString());
+	//				execution.setPassed(executionCounter.getPassed().toString());
+	//				execution.setFailed(executionCounter.getFailed().toString());
+	//				execution.setSkipped(executionCounter.getSkipped().toString());
+	//				statisticsCounters.setExecutions(execution);
+	//			}
+	//			IssueCounter issueCounter = statistics.getIssueCounter();
+	//			if (issueCounter != null) {
+	//				com.epam.ta.reportportal.ws.model.statistics.IssueCounter issues = new com.epam.ta.reportportal.ws.model.statistics.IssueCounter();
+	//				issues.setProductBug(issueCounter.getProductBug());
+	//				issues.setSystemIssue(issueCounter.getSystemIssue());
+	//				issues.setAutomationBug(issueCounter.getAutomationBug());
+	//				issues.setToInvestigate(issueCounter.getToInvestigate());
+	//				issues.setNoDefect(issueCounter.getNoDefect());
+	//				statisticsCounters.setDefects(issues);
+	//			}
+	//		}
+	//		return statisticsCounters;
+	//	};
 }

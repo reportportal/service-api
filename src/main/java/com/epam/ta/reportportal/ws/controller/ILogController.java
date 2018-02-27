@@ -21,22 +21,18 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.database.entity.Log;
-import com.epam.ta.reportportal.database.search.Filter;
+
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.BatchSaveOperatingRS;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.io.Serializable;
 import java.security.Principal;
-import java.util.Map;
 
 /**
  * @author Henadzi_Vrubleuski
@@ -44,7 +40,7 @@ import java.util.Map;
 public interface ILogController {
 
 	/**
-	 * Creates new {@link Log} instance
+	 * Creates new {@link com.epam.ta.reportportal.store.database.entity.log.Log} instance
 	 *
 	 * @param projectName
 	 * @param createLogRQ
@@ -55,7 +51,7 @@ public interface ILogController {
 	EntryCreatedRS createLog(String projectName, SaveLogRQ createLogRQ, Principal principal);
 
 	/**
-	 * Updates {@link Log} instance
+	 * Updates {@link com.epam.ta.reportportal.store.database.entity.log.Log} instance
 	 *
 	 * @param projectName
 	 * @param createLogRQs
@@ -68,7 +64,7 @@ public interface ILogController {
 			Principal principal);
 
 	/**
-	 * Deletes specified {@link Log} instance
+	 * Deletes specified {@link com.epam.ta.reportportal.store.database.entity.log.Log} instance
 	 *
 	 * @param projectName
 	 * @param logId
@@ -78,29 +74,29 @@ public interface ILogController {
 	 */
 	OperationCompletionRS deleteLog(String projectName, String logId, Principal principal);
 
-	/**
-	 * Gets all Logs of specified test step
-	 *
-	 * @param projectName
-	 * @param testId
-	 * @param filter
-	 * @param pageble
-	 * @param principal
-	 * @return
-	 */
-	Iterable<LogResource> getLogs(String projectName, String testId, Filter filter, Pageable pageble, Principal principal);
-
-	/**
-	 * Calculates page number of provided log
-	 *
-	 * @param projectName
-	 * @param logId
-	 * @param filter
-	 * @param pageable
-	 * @param principal
-	 * @return
-	 */
-	Map<String, Serializable> getPageNumber(String projectName, String logId, Filter filter, Pageable pageable, Principal principal);
+	//	/**
+	//	 * Gets all Logs of specified test step
+	//	 *
+	//	 * @param projectName
+	//	 * @param testId
+	//	 * @param filter
+	//	 * @param pageble
+	//	 * @param principal
+	//	 * @return
+	//	 */
+	//	Iterable<LogResource> getLogs(String projectName, String testId, Filter filter, Pageable pageble, Principal principal);
+	//
+	//	/**
+	//	 * Calculates page number of provided log
+	//	 *
+	//	 * @param projectName
+	//	 * @param logId
+	//	 * @param filter
+	//	 * @param pageable
+	//	 * @param principal
+	//	 * @return
+	//	 */
+	//	Map<String, Serializable> getPageNumber(String projectName, String logId, Filter filter, Pageable pageable, Principal principal);
 
 	/**
 	 * Get by its ID

@@ -22,13 +22,14 @@
 package com.epam.ta.reportportal.store.database.dao;
 
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
 /**
  * @author Pavel Bortnik
  */
-public interface LaunchRepository extends ReportPortalRepository<Launch, Long>, LaunchRepositoryCustom {
+public interface LaunchRepository extends ReportPortalRepository<Launch, Long>, JpaRepository<Launch, Long>, LaunchRepositoryCustom {
 
 	void deleteByProjectId(Long projectId);
 

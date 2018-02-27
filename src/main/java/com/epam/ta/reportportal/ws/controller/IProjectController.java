@@ -21,8 +21,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.search.Filter;
+
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -87,14 +86,14 @@ public interface IProjectController {
 	 */
 	OperationCompletionRS deleteProject(String projectName, Principal principal);
 
-	/**
-	 * Get list of {@link com.epam.ta.reportportal.ws.model.user.UserResource}
-	 * for UI page
-	 *
-	 * @param projectName
-	 * @return
-	 */
-	Iterable<UserResource> getProjectUsers(String projectName, Filter filter, Pageable pageable, Principal principal);
+	//	/**
+	//	 * Get list of {@link com.epam.ta.reportportal.ws.model.user.UserResource}
+	//	 * for UI page
+	//	 *
+	//	 * @param projectName
+	//	 * @return
+	//	 */
+	//	Iterable<UserResource> getProjectUsers(String projectName, Filter filter, Pageable pageable, Principal principal);
 
 	/**
 	 * Get {@link ProjectResource} instance
@@ -124,15 +123,15 @@ public interface IProjectController {
 	 */
 	OperationCompletionRS assignProjectUsers(String projectName, AssignUsersRQ assignUsersRQ, Principal principal);
 
-	/**
-	 * Get users available for assign to specified project
-	 *
-	 * @param filter
-	 * @param projectName
-	 * @param principal
-	 * @return
-	 */
-	Iterable<UserResource> getUsersForAssign(Filter filter, Pageable pageable, String projectName, Principal principal);
+	//	/**
+	//	 * Get users available for assign to specified project
+	//	 *
+	//	 * @param filter
+	//	 * @param projectName
+	//	 * @param principal
+	//	 * @return
+	//	 */
+	//	Iterable<UserResource> getUsersForAssign(Filter filter, Pageable pageable, String projectName, Principal principal);
 
 	/**
 	 * Get specified project usernames
@@ -175,13 +174,13 @@ public interface IProjectController {
 	 */
 	OperationCompletionRS updateUserPreference(String projectName, UpdatePreferenceRQ rq, String login, Principal principal);
 
-	/**
-	 * Get information about all projects
-	 *
-	 * @param principal
-	 * @return
-	 */
-	Iterable<ProjectInfoResource> getAllProjectsInfo(Filter filter, Pageable pageable, Principal principal);
+	//	/**
+	//	 * Get information about all projects
+	//	 *
+	//	 * @param principal
+	//	 * @return
+	//	 */
+	//	Iterable<ProjectInfoResource> getAllProjectsInfo(Filter filter, Pageable pageable, Principal principal);
 
 	/**
 	 * Get project information

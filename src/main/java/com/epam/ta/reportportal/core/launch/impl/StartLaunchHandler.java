@@ -23,7 +23,6 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.core.launch.IStartLaunchHandler;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.store.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
@@ -40,25 +39,22 @@ import org.springframework.stereotype.Service;
  */
 @Service
 class StartLaunchHandler implements IStartLaunchHandler {
-	private final LaunchRepository launchRepository;
-	private final ProjectRepository projectRepository;
-	private final ApplicationEventPublisher eventPublisher;
+
+	private LaunchRepository launchRepository;
+
+	private ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	public StartLaunchHandler(LaunchRepository launchRepository, ProjectRepository projectRepository,
-			ApplicationEventPublisher eventPublisher) {
+	public void setLaunchRepository(LaunchRepository launchRepository) {
 		this.launchRepository = launchRepository;
-		this.projectRepository = projectRepository;
+	}
+
+	@Autowired
+	public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
 		this.eventPublisher = eventPublisher;
 	}
 
-	/*
-		 * (non-Javadoc)
-		 *k
-		 * @see
-		 * com.epam.ta.reportportal.ws.IStartLaunchHandler#startLaunch(java.lang
-		 * .String, com.epam.ta.reportportal.ws.model.StartLaunchRQ)
-		 */
+	@Override
 	public StartLaunchRS startLaunch(String username, String projectName, StartLaunchRQ startLaunchRQ) {
 		//TODO replace with new uat
 		//		ProjectUser projectUser = projectRepository.selectProjectUser(projectName, username);
@@ -75,7 +71,7 @@ class StartLaunchHandler implements IStartLaunchHandler {
 		launchRepository.save(launch);
 		launchRepository.refresh(launch);
 		//eventPublisher.publishEvent(new LaunchStartedEvent(launch));
-		return new StartLaunchRS(launch.getId().toString(), launch.getNumber().longValue());
+		return new StartLaunchRS(launch.getId(), launch.getNumber().longValue());
 	}
 
 	private double calculateApproximateDuration(String projectName, String launchName, int limit) {

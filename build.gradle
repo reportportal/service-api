@@ -1,6 +1,7 @@
 buildscript {
     ext {
-        springBootVersion = '2.0.0.M7'
+        springBootVersion = '2.0.0.RC2'
+        springCloudVersion = 'Finchley.M5'
     }
     repositories {
         mavenCentral()
@@ -13,7 +14,7 @@ buildscript {
 
     }
     dependencies {
-        classpath "io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE"
+        classpath "io.spring.gradle:dependency-management-plugin:1.0.2.RELEASE"
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath 'com.bmuschko:gradle-docker-plugin:3.0.12'
     }
@@ -68,8 +69,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Finchley.M4"
-        mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
+        mavenBom "com.github.reportportal:commons-bom:71b4af3"
     }
 }
 
@@ -86,11 +86,11 @@ dependencies {
     } else {
         //compile('com.github.reportportal:commons-dao:4.0.0')
         compile 'com.github.reportportal:commons-rules:spb2-SNAPSHOT'
-        compile 'com.github.reportportal:commons-model:4.0.0'
+        compile 'com.github.reportportal:commons-model:0351b6f'
         compile('com.github.reportportal:commons:3.1.0')
     }
 
-    compile('org.springframework.boot:spring-boot-starter-data-jpa')
+    compile("org.springframework.boot:spring-boot-starter-data-jpa")
     compile group: 'org.hibernate', name: 'hibernate-validator', version: '6.0.7.Final'
     compile 'org.postgresql:postgresql:42.2.1'
     compile 'org.jooq:jooq:3.10.4'
@@ -122,8 +122,8 @@ dependencies {
 
     //compile 'com.github.mongobee:mongobee:0.12'
 
-    compile 'org.quartz-scheduler:quartz:2.3.0'
-    compile "com.novemberain:quartz-mongodb:2.0.0"
+    //compile 'org.quartz-scheduler:quartz:2.3.0'
+    //compile "com.novemberain:quartz-mongodb:2.0.0"
 
     compile 'net.sf.jasperreports:jasperreports:6.3.1'
     //JasperReport's export to XLS uses Apache POI. Reports 6.3.1 needs version NOT

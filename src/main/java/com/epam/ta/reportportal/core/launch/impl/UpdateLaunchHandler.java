@@ -21,20 +21,18 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
-import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
-import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.launch.IUpdateLaunchHandler;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.store.commons.EntityUtils;
+import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemCommon;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.store.database.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
@@ -43,13 +41,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -67,9 +63,9 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 
 	private LaunchRepository launchRepository;
 
-	private IIssuesAnalyzer analyzerService;
-
-	private ILogIndexer logIndexer;
+	//	private IIssuesAnalyzer analyzerService;
+	//
+	//	private ILogIndexer logIndexer;
 
 	//	@Autowired
 	//	//@Qualifier("autoAnalyzeTaskExecutor")
@@ -116,22 +112,21 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		ofNullable(rq.getDescription()).ifPresent(launch::setDescription);
 		Set<String> set = Sets.newHashSet(EntityUtils.trimStrings(rq.getTags()));
 		if (!CollectionUtils.isEmpty(set)) {
-			launch.getTags().clear();
-			launch.getTags().addAll(set.stream().map(LaunchTag::new).collect(toSet()));
+			launch.setTags(set.stream().map(LaunchTag::new).collect(toSet()));
 		}
-		reindexLogs(launch);
+		//reindexLogs(launch);
 		launchRepository.save(launch);
 		return new OperationCompletionRS("Launch with ID = '" + launch.getId() + "' successfully updated.");
 	}
 
 	public OperationCompletionRS startLaunchAnalyzer(String projectName, Long launchId) {
-		expect(analyzerService.hasAnalyzers(), Predicate.isEqual(true)).verify(
-				ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer services are deployed.");
+		//		expect(analyzerService.hasAnalyzers(), Predicate.isEqual(true)).verify(
+		//				ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer services are deployed.");
 
 		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 
 		/* Do not process debug launches */
-		expect(launch.getMode(), equalTo(DEFAULT)).verify(INCORRECT_REQUEST, "Cannot analyze launches in debug mode.");
+		expect(launch.getMode(), equalTo(LaunchModeEnum.DEFAULT)).verify(INCORRECT_REQUEST, "Cannot analyze launches in debug mode.");
 
 		//TODO Refactor with new uat
 		//				expect(launch.getProjectRef(), equalTo(projectName)).verify(FORBIDDEN_OPERATION,
@@ -150,27 +145,26 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 
 	public List<OperationCompletionRS> updateLaunch(BulkRQ<UpdateLaunchRQ> rq, String projectName, String userName) {
 		return rq.getEntities()
-				.entrySet()
-				.stream().map(entry -> updateLaunch(Long.valueOf(entry.getKey()), projectName, userName, entry.getValue()))
+				.entrySet().stream().map(entry -> updateLaunch(entry.getKey(), projectName, userName, entry.getValue()))
 				.collect(toList());
 	}
 
-	/**
-	 * If launch mode has changed - reindex items
-	 *
-	 * @param launch Update launch
-	 */
-	private void reindexLogs(Launch launch) {
-		List<Long> itemIds = testItemRepository.selectIdsNotInIssueByLaunch(launch.getId(), TestItemIssueType.TO_INVESTIGATE.getLocator());
-		if (!CollectionUtils.isEmpty(itemIds)) {
-			if (Mode.DEBUG.name().equals(launch.getMode().name())) {
-
-				logIndexer.cleanIndex(launch.getName(), itemIds);
-			} else {
-				logIndexer.indexLogs(launch.getId(), testItemRepository.findAllById(itemIds));
-			}
-		}
-	}
+	//	/**
+	//	 * If launch mode has changed - reindex items
+	//	 *
+	//	 * @param launch Update launch
+	//	 */
+	//	private void reindexLogs(Launch launch) {
+	//		List<Long> itemIds = testItemRepository.selectIdsNotInIssueByLaunch(launch.getId(), TestItemIssueType.TO_INVESTIGATE.getLocator());
+	//		if (!CollectionUtils.isEmpty(itemIds)) {
+	//			if (Mode.DEBUG.name().equals(launch.getMode().name())) {
+	//
+	//				logIndexer.cleanIndex(launch.getName(), itemIds);
+	//			} else {
+	//				logIndexer.indexLogs(launch.getId(), testItemRepository.findAllById(itemIds));
+	//			}
+	//		}
+	//	}
 
 	private void validate(Launch launch, String userName, String projectName, LaunchModeEnum mode) {
 		//		// BusinessRule.expect(launch.getUserRef(),

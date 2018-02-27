@@ -21,17 +21,11 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.database.entity.user.UserRole;
-import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
-import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
-import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
-import org.springframework.data.domain.Pageable;
 
 import java.security.Principal;
 import java.util.List;
@@ -62,47 +56,47 @@ public interface IUserFilterController {
 	 */
 	UserFilterResource getFilter(String projectName, String filterId, Principal principal);
 
-	/**
-	 * Get all filters
-	 *
-	 * @param projectName Project Name
-	 * @param principal   User performing this request
-	 * @param filter      Filter
-	 * @param pageable    Paging details
-	 * @return Iterable of filters
-	 */
-	Iterable<UserFilterResource> getAllFilters(String projectName, Pageable pageable, Filter filter, Principal principal);
-
-	/**
-	 * Get all owned filters by user for project
-	 *
-	 * @param projectName Project Name
-	 * @param principal   User performing this request
-	 * @param filter      Filter
-	 * @return Iterable of filters
-	 */
-	Iterable<UserFilterResource> getOwnFilters(String projectName, Filter filter, Principal principal);
-
-	/**
-	 * Get all shared filters for specified project
-	 *
-	 * @param projectName Project Name
-	 * @param principal   User performing this request
-	 * @param filter      Filter
-	 * @return Iterable of filters
-	 */
-	Iterable<UserFilterResource> getSharedFilters(String projectName, Filter filter, Principal principal);
-
-	/**
-	 * Delete filter with specified id
-	 *
-	 * @param filterId    ID of filter
-	 * @param projectName Project Name
-	 * @param principal   User performing this request
-	 * @param userRole
-	 * @return OperationCompletionRS
-	 */
-	OperationCompletionRS deleteFilter(String projectName, String filterId, UserRole userRole, Principal principal);
+	//	/**
+	//	 * Get all filters
+	//	 *
+	//	 * @param projectName Project Name
+	//	 * @param principal   User performing this request
+	//	 * @param filter      Filter
+	//	 * @param pageable    Paging details
+	//	 * @return Iterable of filters
+	//	 */
+	//	Iterable<UserFilterResource> getAllFilters(String projectName, Pageable pageable, Filter filter, Principal principal);
+	//
+	//	/**
+	//	 * Get all owned filters by user for project
+	//	 *
+	//	 * @param projectName Project Name
+	//	 * @param principal   User performing this request
+	//	 * @param filter      Filter
+	//	 * @return Iterable of filters
+	//	 */
+	//	Iterable<UserFilterResource> getOwnFilters(String projectName, Filter filter, Principal principal);
+	//
+	//	/**
+	//	 * Get all shared filters for specified project
+	//	 *
+	//	 * @param projectName Project Name
+	//	 * @param principal   User performing this request
+	//	 * @param filter      Filter
+	//	 * @return Iterable of filters
+	//	 */
+	//	Iterable<UserFilterResource> getSharedFilters(String projectName, Filter filter, Principal principal);
+	//
+	//	/**
+	//	 * Delete filter with specified id
+	//	 *
+	//	 * @param filterId    ID of filter
+	//	 * @param projectName Project Name
+	//	 * @param principal   User performing this request
+	//	 * @param userRole
+	//	 * @return OperationCompletionRS
+	//	 */
+	//	OperationCompletionRS deleteFilter(String projectName, String filterId, UserRole userRole, Principal principal);
 
 	/**
 	 * Get all user filter's names
@@ -114,16 +108,16 @@ public interface IUserFilterController {
 	 */
 	Iterable<SharedEntity> getAllFiltersNames(String projectName, Principal principal, boolean isShared);
 
-	/**
-	 * Update user filter with specified id
-	 *
-	 * @param projectName  Project Name
-	 * @param principal    User performing this request
-	 * @param userFilterId , updateRQ
-	 * @return {@link OperationCompletionRS}
-	 */
-	OperationCompletionRS updateUserFilter(String projectName, String userFilterId, UpdateUserFilterRQ updateRQ, Principal principal,
-			UserRole userRole);
+	//	/**
+	//	 * Update user filter with specified id
+	//	 *
+	//	 * @param projectName  Project Name
+	//	 * @param principal    User performing this request
+	//	 * @param userFilterId , updateRQ
+	//	 * @return {@link OperationCompletionRS}
+	//	 */
+	//	OperationCompletionRS updateUserFilter(String projectName, String userFilterId, UpdateUserFilterRQ updateRQ, Principal principal,
+	//			UserRole userRole);
 
 	/**
 	 * Get user filters
@@ -135,15 +129,15 @@ public interface IUserFilterController {
 	 */
 	List<UserFilterResource> getUserFilters(String projectName, String[] ids, Principal principal);
 
-	/**
-	 * Update user filters
-	 *
-	 * @param projectName Project Name
-	 * @param principal   User performing this request
-	 * @param updateRQ    Update DTO
-	 * @return Operation result
-	 */
-	List<OperationCompletionRS> updateUserFilters(String projectName, CollectionsRQ<BulkUpdateFilterRQ> updateRQ, Principal principal,
-			UserRole userRole);
+	//	/**
+	//	 * Update user filters
+	//	 *
+	//	 * @param projectName Project Name
+	//	 * @param principal   User performing this request
+	//	 * @param updateRQ    Update DTO
+	//	 * @return Operation result
+	//	 */
+	//	List<OperationCompletionRS> updateUserFilters(String projectName, CollectionsRQ<BulkUpdateFilterRQ> updateRQ, Principal principal,
+	//			UserRole userRole);
 
 }

@@ -20,7 +20,7 @@
  */
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.database.entity.item.Parameter;
+import com.epam.ta.reportportal.store.database.entity.item.Parameter;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
 
 import java.util.function.Function;

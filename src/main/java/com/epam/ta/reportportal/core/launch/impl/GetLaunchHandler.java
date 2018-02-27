@@ -22,10 +22,12 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.core.launch.IGetLaunchHandler;
-import com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.store.database.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.base.Preconditions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 /**
@@ -45,7 +46,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
  * @author Andrei_Ramanchuk
  */
 @Service
-public class GetLaunchHandler extends StatisticBasedContentLoader implements IGetLaunchHandler {
+public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements IGetLaunchHandler {
 
 	//private ProjectRepository projectRepository;
 	private final LaunchRepository launchRepository;
@@ -60,15 +61,16 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 	//		this.projectRepository = projectRepository;
 	//	}
 
-	//	public LaunchResource getLaunch(Long launchId, String userName, String projectName) {
-	//				Launch launch = validate(launchId, projectName);
-	//				if (launch.getMode() == LaunchModeEnum.DEBUG) {
-	////					Project project = projectRepository.findOne(projectName);
-	////					final Project.UserConfig userConfig = findUserConfigByLogin(project, userName);
-	////					expect(userConfig.getProjectRole(), not(equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
-	//				}
-	//				return LaunchConverter.TO_RESOURCE.apply(launch);
-	//	}
+	@Override
+	public LaunchResource getLaunch(Long launchId, String userName, String projectName) {
+		Launch launch = validate(launchId, projectName);
+		if (launch.getMode() == LaunchModeEnum.DEBUG) {
+			//					Project project = projectRepository.findOne(projectName);
+			//					final Project.UserConfig userConfig = findUserConfigByLogin(project, userName);
+			//					expect(userConfig.getProjectRole(), not(equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
+		}
+		return LaunchConverter.TO_RESOURCE.apply(null);
+	}
 
 	//
 	//	public LaunchResource getLaunchByName(String project, Pageable pageable, Filter filter, String username) {
@@ -116,13 +118,13 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 	//		);
 	//	}
 
-
+	@Override
 	public List<String> getTags(String project, String value) {
 		//return launchRepository.findDistinctValues(project, value, "tags");
 		return null;
 	}
 
-
+	@Override
 	public List<String> getLaunchNames(String project, String value) {
 		//		expect(value.length() > 2, equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
 		//				formattedSupplier("Length of the launch name string '{}' is less than 3 symbols", value)
@@ -131,7 +133,7 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 		return null;
 	}
 
-
+	@Override
 	public List<String> getOwners(String project, String value, String field, String mode) {
 		//		expect(value.length() > 2, equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
 		//				formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
@@ -140,8 +142,8 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 		return null;
 	}
 
-
-	public Map<String, List<ChartObject>> getLaunchesComparisonInfo(String projectName, String[] ids) {
+	@Override
+	public Map<String, List<ChartObject>> getLaunchesComparisonInfo(String projectName, Long[] ids) {
 		//@formatter:off
 //		List<Launch> launches = launchRepository.find(Arrays.asList(ids));
 //		List<ChartObject> objects = new ArrayList<>(launches.size());
@@ -178,8 +180,8 @@ public class GetLaunchHandler extends StatisticBasedContentLoader implements IGe
 		//@formatter:off
 	}
 
-
-	public Map<String, String> getStatuses(String projectName, String[] ids) {
+	@Override
+	public Map<String, String> getStatuses(String projectName, Long[] ids) {
 //		return launchRepository.find(Arrays.asList(ids)).stream().filter(launch -> launch.getProjectRef().equals(projectName))
 //				.collect(Collectors.toMap(Launch::getId, launch -> launch.getStatus().toString()));
 		return null;

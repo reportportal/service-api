@@ -21,11 +21,11 @@
 
 package com.epam.ta.reportportal.store.commons;
 
-import com.epam.ta.reportportal.database.entity.enums.ProjectRoleEnum;
-import com.epam.ta.reportportal.database.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.store.database.entity.enums.ProjectRoleEnum;
+import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang.ArrayUtils;
 
 import java.util.*;
 import java.util.function.Predicate;

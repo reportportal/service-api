@@ -21,17 +21,6 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.ws.model.TestItemResource;
-import com.google.common.base.Preconditions;
-
-import java.util.Comparator;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static java.util.Comparator.comparing;
-
 /**
  * Converts internal DB model to DTO
  *
@@ -42,33 +31,33 @@ public final class TestItemConverter {
 	private TestItemConverter() {
 		//static only
 	}
-
-	public static final Function<TestItem, TestItemResource> TO_RESOURCE = item -> {
-		Preconditions.checkNotNull(item);
-		TestItemResource resource = new TestItemResource();
-		resource.setDescription(item.getItemDescription());
-		resource.setUniqueId(item.getUniqueId());
-		resource.setTags(item.getTags());
-		resource.setEndTime(item.getEndTime());
-		resource.setItemId(item.getId());
-		if (null != item.getParameters()) {
-			resource.setParameters(item.getParameters().stream().map(ParametersConverter.TO_RESOURCE).collect(Collectors.toList()));
-		}
-		resource.setIssue(IssueConverter.TO_MODEL.apply(item.getIssue()));
-		resource.setName(item.getName());
-		resource.setStartTime(item.getStartTime());
-		resource.setStatus(item.getStatus() != null ? item.getStatus().toString() : null);
-		resource.setType(item.getType() != null ? item.getType().name() : null);
-		resource.setParent(item.getParent());
-		resource.setHasChilds(item.hasChilds());
-		resource.setLaunchId(item.getLaunchRef());
-		resource.setStatistics(StatisticsConverter.TO_RESOURCE.apply(item.getStatistics()));
-
-		Optional.ofNullable(item.getRetries())
-				.map(items -> items.stream().map(TestItemConverter.TO_RESOURCE)
-						.sorted(comparing(TestItemResource::getStartTime))
-						.collect(Collectors.toList()))
-				.ifPresent(resource::setRetries);
-		return resource;
-	};
+	//
+	//	public static final Function<TestItem, TestItemResource> TO_RESOURCE = item -> {
+	//		Preconditions.checkNotNull(item);
+	//		TestItemResource resource = new TestItemResource();
+	//		resource.setDescription(item.getItemDescription());
+	//		resource.setUniqueId(item.getUniqueId());
+	//		resource.setTags(item.getTags());
+	//		resource.setEndTime(item.getEndTime());
+	//		resource.setItemId(item.getId());
+	//		if (null != item.getParameters()) {
+	//			resource.setParameters(item.getParameters().stream().map(ParametersConverter.TO_RESOURCE).collect(Collectors.toList()));
+	//		}
+	//		resource.setIssue(IssueConverter.TO_MODEL.apply(item.getIssue()));
+	//		resource.setName(item.getName());
+	//		resource.setStartTime(item.getStartTime());
+	//		resource.setStatus(item.getStatus() != null ? item.getStatus().toString() : null);
+	//		resource.setType(item.getType() != null ? item.getType().name() : null);
+	//		resource.setParent(item.getParent());
+	//		resource.setHasChilds(item.hasChilds());
+	//		resource.setLaunchId(item.getLaunchRef());
+	//		resource.setStatistics(StatisticsConverter.TO_RESOURCE.apply(item.getStatistics()));
+	//
+	//		Optional.ofNullable(item.getRetries())
+	//				.map(items -> items.stream().map(TestItemConverter.TO_RESOURCE)
+	//						.sorted(comparing(TestItemResource::getStartTime))
+	//						.collect(Collectors.toList()))
+	//				.ifPresent(resource::setRetries);
+	//		return resource;
+	//	};
 }

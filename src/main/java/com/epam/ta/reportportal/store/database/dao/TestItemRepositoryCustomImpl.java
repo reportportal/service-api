@@ -73,8 +73,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 				.on(TEST_ITEM.ID.eq(TEST_ITEM_STRUCTURE.ITEM_ID))
 				.join(TEST_ITEM_RESULTS)
 				.on(TEST_ITEM.ID.eq(TEST_ITEM_RESULTS.ITEM_ID))
-				.join(ISSUE)
-				.on(ISSUE.TEST_ITEM_RESULTS_ID.eq(TEST_ITEM_RESULTS.ID))
+				.join(ISSUE).on(ISSUE.TEST_ITEM_RESULTS_ID.eq(TEST_ITEM_RESULTS.ITEM_ID))
 				.join(ISSUE_TYPE)
 				.on(ISSUE.ISSUE_TYPE.eq(ISSUE_TYPE.ID))
 				.where(TEST_ITEM_STRUCTURE.LAUNCH_ID.eq(launchId))
@@ -84,8 +83,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 
 	@Override
 	public List<TestItemCommon> selectItemsInIssueByLaunch(Long launchId, String issueType) {
-		return commonTestItemDslSelect().join(ISSUE)
-				.on(ISSUE.TEST_ITEM_RESULTS_ID.eq(TEST_ITEM_RESULTS.ID))
+		return commonTestItemDslSelect().join(ISSUE).on(ISSUE.TEST_ITEM_RESULTS_ID.eq(TEST_ITEM_RESULTS.ITEM_ID))
 				.join(ISSUE_TYPE)
 				.on(ISSUE.ISSUE_TYPE.eq(ISSUE_TYPE.ID))
 				.where(TEST_ITEM_STRUCTURE.LAUNCH_ID.eq(launchId))

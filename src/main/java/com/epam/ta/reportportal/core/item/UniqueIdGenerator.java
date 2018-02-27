@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.core.item;
 
-import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 
 /**
  * Unique id generator for designate test item's originality

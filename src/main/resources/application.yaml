@@ -6,24 +6,24 @@ rp:
     enableByDefault: true
 
 spring:
-  quartz:
-    # Use the MongoDB store
-    org.quartz.jobStore.class: com.novemberain.quartz.mongodb.MongoDBJobStore
-    # MongoDB URI (optional if 'org.quartz.jobStore.addresses' is set)
-    org.quartz.jobStore.mongoUri: ${rp.mongo.uri}
-    # comma separated list of mongodb hosts/replica set seeds (optional if 'org.quartz.jobStore.mongoUri' is set)
-    #- org.quartz.jobStore.addresses: host1,host2
-    # database name
-    org.quartz.jobStore.dbName: reportportal
-    # Will be used to create collections like mycol_jobs, mycol_triggers, mycol_calendars, mycol_locks
-    org.quartz.jobStore.collectionPrefix: scheduler
-    # thread count setting is ignored by the MongoDB store but Quartz requries it
-    org.quartz.threadPool.threadCount: "1"
-
-    org.quartz.jobStore.isClustered: "true"
-    org.quartz.jobStore.clusterCheckinInterval: "180000"
-    org.quartz.scheduler.instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
-    org.quartz.scheduler.instanceName: reportportal
+#  quartz:
+#    # Use the MongoDB store
+#    org.quartz.jobStore.class: com.novemberain.quartz.mongodb.MongoDBJobStore
+#    # MongoDB URI (optional if 'org.quartz.jobStore.addresses' is set)
+#    org.quartz.jobStore.mongoUri: ${rp.mongo.uri}
+#    # comma separated list of mongodb hosts/replica set seeds (optional if 'org.quartz.jobStore.mongoUri' is set)
+#    #- org.quartz.jobStore.addresses: host1,host2
+#    # database name
+#    org.quartz.jobStore.dbName: reportportal
+#    # Will be used to create collections like mycol_jobs, mycol_triggers, mycol_calendars, mycol_locks
+#    org.quartz.jobStore.collectionPrefix: scheduler
+#    # thread count setting is ignored by the MongoDB store but Quartz requries it
+#    org.quartz.threadPool.threadCount: "1"
+#
+#    org.quartz.jobStore.isClustered: "true"
+#    org.quartz.jobStore.clusterCheckinInterval: "180000"
+#    org.quartz.scheduler.instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+#    org.quartz.scheduler.instanceName: reportportal
   datasource:
     driver-class-name: org.postgresql.Driver
     username: rpuser
@@ -40,57 +40,55 @@ spring:
       port: 8500
       discovery:
         tags:
-          - urlprefix-${server.contextPath:/}
-          - traefik.frontend.rule=PathPrefix:${server.contextPath:/}
-          - statusPageUrlPath=${server.contextPath}${management.contextPath}/info
-          - healthCheckUrlPath=${server.contextPath}${management.contextPath}/info
-        healthCheckPath: ${server.contextPath}/admin/health
-        register: true
+          - urlprefix-${server.servlet.context-path:/}
+          - traefik.frontend.rule=PathPrefix:${server.servlet.context-path:/}
+          - statusPageUrlPath=${server.servlet.context-path}${management.contextPath}/info
+          - healthCheckUrlPath=${server.servlet.context-path}${management.contextPath}/info
+        healthCheckPath: ${server.servlet.context-path}/admin/health
+        register: false
         instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
         health-check-critical-timeout: 30s
-      enabled: true
-eureka:
-  instance:
-    hostname: ${HOSTNAME:localhost}
-    status-page-url-path: ${server.contextPath}${management.contextPath}/info
-    health-check-url-path: ${server.contextPath}${management.contextPath}/health
-  client:
-    register-with-eureka: false
-    enabled: false
+      enabled: false
+#eureka:
+#  instance:
+#    hostname: ${HOSTNAME:localhost}
+#    status-page-url-path: ${server.servlet.context-path}${management.contextPath}/info
+#    health-check-url-path: ${server.servlet.context-path}${management.contextPath}/health
+#  client:
+#    register-with-eureka: false
+#    enabled: false
 logging:
   level:
-    org.springframework.data.mongodb.core.mapping: error
     org.springframework.context.support: warn
-    org.springframework.data.mongodb.core.index: warn
-    com.novemberain.quartz : debug
+#    com.novemberain.quartz : debug
 
 ## Consul as service registry
 ---
-spring:
-  profiles: consul
-  cloud:
-    consul:
-      enabled: true
-      discovery:
-        register: true
-eureka:
-  client:
-    register-with-eureka: false
-    enabled: false
+#spring:
+#  profiles: consul
+#  cloud:
+#    consul:
+#      enabled: true
+#      discovery:
+#        register: true
+#eureka:
+#  client:
+#    register-with-eureka: false
+#    enabled: false
 
 ## Eureka as service registry
 ---
-spring:
-  profiles: eureka
-  cloud:
-    consul:
-      enabled: false
-      discovery:
-        register: false
-eureka:
-  client:
-    register-with-eureka: true
-    enabled: true
+#spring:
+#  profiles: eureka
+#  cloud:
+#    consul:
+#      enabled: false
+#      discovery:
+#        register: false
+#eureka:
+#  client:
+#    register-with-eureka: true
+#    enabled: true
 ---
 
 springfox:

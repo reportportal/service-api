@@ -21,8 +21,6 @@
 
 package com.epam.ta.reportportal.store.database.entity.enums;
 
-import com.epam.ta.reportportal.database.entity.StatisticsAwareness;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,7 +38,7 @@ import java.util.stream.Collectors;
  * @author Dzianis Shlychkou
  * @author Andrei_Ramanchuk
  */
-public enum TestItemIssueType implements StatisticsAwareness {
+public enum TestItemIssueType /*implements StatisticsAwareness*/ {
 
 	NOT_ISSUE_FLAG("NOT_ISSUE", "notIssue", ""),
 
@@ -87,17 +85,17 @@ public enum TestItemIssueType implements StatisticsAwareness {
 				.orElse(null);
 	}
 
-	public static TestItemIssueType fromCounterField(String value) {
-		return Arrays.stream(TestItemIssueType.values())
-				.filter(type -> type.awareStatisticsField().equalsIgnoreCase(value))
-				.findAny()
-				.orElse(null);
-	}
-
-	@Override
-	public String awareStatisticsField() {
-		return issueCounterField;
-	}
+	//	public static TestItemIssueType fromCounterField(String value) {
+	//		return Arrays.stream(TestItemIssueType.values())
+	//				.filter(type -> type.awareStatisticsField().equalsIgnoreCase(value))
+	//				.findAny()
+	//				.orElse(null);
+	//	}
+	//
+	//	@Override
+	//	public String awareStatisticsField() {
+	//		return issueCounterField;
+	//	}
 
 	public static List<String> validValues() {
 		return Arrays.stream(TestItemIssueType.values()).map(TestItemIssueType::getValue).collect(Collectors.toList());

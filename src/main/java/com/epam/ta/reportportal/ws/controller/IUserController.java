@@ -21,8 +21,6 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.database.entity.user.UserRole;
-import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
@@ -77,17 +75,17 @@ public interface IUserController {
 	 */
 	UserBidRS getUserBidInfo(String uuid);
 
-	/**
-	 * Edit User by admin
-	 *
-	 * @param login
-	 * @param editUserRQ
-	 * @param userRole
-	 * @param principal
-	 * @return instance of {@link OperationCompletionRS}
-	 * @throws ReportPortalException
-	 */
-	OperationCompletionRS editUser(String login, EditUserRQ editUserRQ, UserRole userRole, Principal principal);
+	//	/**
+	//	 * Edit User by admin
+	//	 *
+	//	 * @param login
+	//	 * @param editUserRQ
+	//	 * @param userRole
+	//	 * @param principal
+	//	 * @return instance of {@link OperationCompletionRS}
+	//	 * @throws ReportPortalException
+	//	 */
+	//	OperationCompletionRS editUser(String login, EditUserRQ editUserRQ, UserRole userRole, Principal principal);
 
 	/**
 	 * Delete User
@@ -116,14 +114,14 @@ public interface IUserController {
 	 */
 	UserResource getMyself(Principal principal);
 
-	/**
-	 * Get all users list
-	 *
-	 * @param filter
-	 * @param principal
-	 * @return
-	 */
-	Iterable<UserResource> getUsers(Filter filter, Pageable pageable, Principal principal);
+	//	/**
+	//	 * Get all users list
+	//	 *
+	//	 * @param filter
+	//	 * @param principal
+	//	 * @return
+	//	 */
+	//	Iterable<UserResource> getUsers(Filter filter, Pageable pageable, Principal principal);
 
 	/**
 	 * Verify username or email existance

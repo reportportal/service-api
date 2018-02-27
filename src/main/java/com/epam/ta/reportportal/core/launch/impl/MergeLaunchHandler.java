@@ -21,17 +21,14 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.item.TestItemUniqueIdGenerator;
-import com.epam.ta.reportportal.core.item.merge.strategy.MergeStrategyFactory;
 import com.epam.ta.reportportal.core.launch.IMergeLaunchHandler;
-import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
+import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import static com.epam.ta.reportportal.commons.Predicates.*;
 
 /**
  * @author Aliaksei_Makayed
@@ -43,41 +40,28 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
 	private TestItemRepository testItemRepository;
 
-	private ProjectRepository projectRepository;
-
 	private LaunchRepository launchRepository;
 
-	private UserRepository userRepository;
+	//
+	//	@Autowired
+	//	private MergeStrategyFactory mergeStrategyFactory;
+	//
+	//	@Autowired
+	//	private StatisticsFacadeFactory statisticsFacadeFactory;
 
-	@Autowired
-	private MergeStrategyFactory mergeStrategyFactory;
-
-	@Autowired
-	private StatisticsFacadeFactory statisticsFacadeFactory;
-
-	@Autowired
-	private LaunchMetaInfoRepository launchCounter;
 
 	@Autowired
 	private TestItemUniqueIdGenerator identifierGenerator;
+	//
+	//	@Autowired
+	//	private ILogIndexer logIndexer;
 
-	@Autowired
-	private ILogIndexer logIndexer;
-
-	@Autowired
-	public void setProjectRepository(ProjectRepository projectRepository) {
-		this.projectRepository = projectRepository;
-	}
 
 	@Autowired
 	public void setLaunchRepository(LaunchRepository launchRepository) {
 		this.launchRepository = launchRepository;
 	}
 
-	@Autowired
-	public void setUserRepository(UserRepository userRepository) {
-		this.userRepository = userRepository;
-	}
 
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
@@ -85,46 +69,6 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 	}
 
 	@Override
-	public LaunchResource mergeLaunches(String projectName, String userName, MergeLaunchesRQ rq) {
-		private TestItemRepository testItemRepository;
-
-		private ProjectRepository projectRepository;
-
-		private LaunchRepository launchRepository;
-
-		private UserRepository userRepository;
-
-		//	@Autowired
-		//	private MergeStrategyFactory mergeStrategyFactory;
-		//
-		//	@Autowired
-		//	private StatisticsFacadeFactory statisticsFacadeFactory;
-		//
-		//	@Autowired
-		//	private LaunchMetaInfoRepository launchCounter;
-		//
-		//	@Autowired
-		//	private TestItemUniqueIdGenerator identifierGenerator;
-		//
-		//	@Autowired
-		//	private ILogIndexer logIndexer;
-
-		@Autowired public void setProjectRepository (ProjectRepository projectRepository){
-			this.projectRepository = projectRepository;
-		}
-
-		@Autowired public void setLaunchRepository (LaunchRepository launchRepository){
-			this.launchRepository = launchRepository;
-		}
-
-		@Autowired public void setUserRepository (UserRepository userRepository){
-			this.userRepository = userRepository;
-		}
-
-		@Autowired public void setTestItemRepository (TestItemRepository testItemRepository){
-			this.testItemRepository = testItemRepository;
-		}
-
 	public LaunchResource mergeLaunches(String projectName, String userName, MergeLaunchesRQ rq) {
 		//		User user = userRepository.findOne(userName);
 		//		Project project = projectRepository.findOne(projectName);

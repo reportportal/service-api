@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.core.launch;
 
-import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -45,7 +45,7 @@ public interface IFinishLaunchHandler {
 	 * @param username       Username
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String username);
+	OperationCompletionRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String username);
 
 	/**
 	 * Stop Launch instance by user
@@ -56,7 +56,7 @@ public interface IFinishLaunchHandler {
 	 * @param userName       Username
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS stopLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String userName);
+	OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String userName);
 
 	List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, String projectName, String userName);
 }

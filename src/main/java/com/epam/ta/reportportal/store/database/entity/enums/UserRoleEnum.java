@@ -22,7 +22,7 @@
 package com.epam.ta.reportportal.store.database.entity.enums;
 
 import com.google.common.base.Strings;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.Arrays;
 import java.util.Optional;

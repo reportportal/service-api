@@ -21,13 +21,6 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
-import com.epam.ta.reportportal.ws.model.issue.Issue;
-
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 /**
  * @author Pavel Bortnik
  */
@@ -37,35 +30,35 @@ public final class IssueConverter {
 		//static only
 	}
 
-	/**
-	 * Converts issue from db to model
-	 */
-	public static final Function<TestItemIssue, Issue> TO_MODEL = testItemIssue -> {
-		Issue issue = null;
-		if (null != testItemIssue) {
-			issue = new Issue();
-			issue.setIssueType(testItemIssue.getIssueType());
-			issue.setAutoAnalyzed(testItemIssue.isAutoAnalyzed());
-			issue.setIgnoreAnalyzer(testItemIssue.isIgnoreAnalyzer());
-			issue.setComment(testItemIssue.getIssueDescription());
-			Set<TestItemIssue.ExternalSystemIssue> externalSystemIssues = testItemIssue.getExternalSystemIssues();
-			if (null != externalSystemIssues) {
-				issue.setExternalSystemIssues(
-						externalSystemIssues.stream().map(IssueConverter.TO_MODEL_EXTERNAL).collect(Collectors.toSet()));
-			}
-		} return issue;
-	};
-
-	/**
-	 * Converts external system from db to model
-	 */
-	public static final Function<TestItemIssue.ExternalSystemIssue, Issue.ExternalSystemIssue> TO_MODEL_EXTERNAL = externalSystemIssue -> {
-		Issue.ExternalSystemIssue issueResource = new Issue.ExternalSystemIssue();
-		issueResource.setSubmitDate(externalSystemIssue.getSubmitDate());
-		issueResource.setTicketId(externalSystemIssue.getTicketId());
-		issueResource.setSubmitter(externalSystemIssue.getSubmitter());
-		issueResource.setExternalSystemId(externalSystemIssue.getExternalSystemId());
-		issueResource.setUrl(externalSystemIssue.getUrl());
-		return issueResource;
-	};
+	//	/**
+	//	 * Converts issue from db to model
+	//	 */
+	//	public static final Function<TestItemIssue, Issue> TO_MODEL = testItemIssue -> {
+	//		Issue issue = null;
+	//		if (null != testItemIssue) {
+	//			issue = new Issue();
+	//			issue.setIssueType(testItemIssue.getIssueType());
+	//			issue.setAutoAnalyzed(testItemIssue.isAutoAnalyzed());
+	//			issue.setIgnoreAnalyzer(testItemIssue.isIgnoreAnalyzer());
+	//			issue.setComment(testItemIssue.getIssueDescription());
+	//			Set<TestItemIssue.ExternalSystemIssue> externalSystemIssues = testItemIssue.getExternalSystemIssues();
+	//			if (null != externalSystemIssues) {
+	//				issue.setExternalSystemIssues(
+	//						externalSystemIssues.stream().map(IssueConverter.TO_MODEL_EXTERNAL).collect(Collectors.toSet()));
+	//			}
+	//		} return issue;
+	//	};
+	//
+	//	/**
+	//	 * Converts external system from db to model
+	//	 */
+	//	public static final Function<TestItemIssue.ExternalSystemIssue, Issue.ExternalSystemIssue> TO_MODEL_EXTERNAL = externalSystemIssue -> {
+	//		Issue.ExternalSystemIssue issueResource = new Issue.ExternalSystemIssue();
+	//		issueResource.setSubmitDate(externalSystemIssue.getSubmitDate());
+	//		issueResource.setTicketId(externalSystemIssue.getTicketId());
+	//		issueResource.setSubmitter(externalSystemIssue.getSubmitter());
+	//		issueResource.setExternalSystemId(externalSystemIssue.getExternalSystemId());
+	//		issueResource.setUrl(externalSystemIssue.getUrl());
+	//		return issueResource;
+	//	};
 }

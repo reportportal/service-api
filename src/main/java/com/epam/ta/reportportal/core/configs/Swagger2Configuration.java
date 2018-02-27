@@ -21,11 +21,7 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.database.entity.user.UserRole;
-import com.epam.ta.reportportal.database.search.CriteriaMap;
-import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
-import com.epam.ta.reportportal.database.search.Filter;
-import com.epam.ta.reportportal.ws.resolver.FilterFor;
+import com.epam.ta.reportportal.store.database.entity.enums.UserRoleEnum;
 import com.fasterxml.classmate.ResolvedType;
 import com.fasterxml.classmate.TypeResolver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,11 +52,9 @@ import springfox.documentation.swagger.web.UiConfiguration;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.servlet.ServletContext;
-import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Predicates.or;
@@ -102,10 +96,10 @@ public class Swagger2Configuration {
 
 		// @formatter:off
         Docket rpDocket = new Docket(DocumentationType.SWAGGER_2)
-                .ignoredParameterTypes(Principal.class, Filter.class, Pageable.class)
+                //.ignoredParameterTypes(Principal.class, Filter.class, Pageable.class)
                 .pathProvider(rpPathProvider())
                 .useDefaultResponseMessages(false)
-				.ignoredParameterTypes(UserRole.class)
+				.ignoredParameterTypes(UserRoleEnum.class)
                 /* remove default endpoints from listing */
                 .select().apis(not(or(
                         basePackage("org.springframework.boot"),
@@ -138,14 +132,14 @@ public class Swagger2Configuration {
 		private final TypeResolver resolver;
 
 		private final ResolvedType pageableType;
-		private final ResolvedType filterType;
+		//private final ResolvedType filterType;
 
 		@Autowired
 		public OperationPageableParameterReader(TypeNameExtractor nameExtractor, TypeResolver resolver) {
 			this.nameExtractor = nameExtractor;
 			this.resolver = resolver;
 			this.pageableType = resolver.resolve(Pageable.class);
-			this.filterType = resolver.resolve(Filter.class);
+			//this.filterType = resolver.resolve(Filter.class);
 		}
 
 		@Override
@@ -187,27 +181,27 @@ public class Swagger2Configuration {
 							.build());
 					context.operationBuilder().parameters(parameters);
 					//@formatter:on
-
-				} else if (filterType.equals(resolvedType)) {
-					FilterFor filterClass = methodParameter.findAnnotation(FilterFor.class).get();
-					CriteriaMap<?> criteriaMap = CriteriaMapFactory.DEFAULT_INSTANCE_SUPPLIER.get().getCriteriaMap(filterClass.value());
-
-					//@formatter:off
-					List<Parameter> params = criteriaMap.getAllowedSearchCriterias().stream()
-							.map(searchCriteria -> parameterContext
-									.parameterBuilder()
-										.parameterType("query")
-										.name("filter.eq." + searchCriteria)
-										.modelRef(factory.apply(resolver.resolve(criteriaMap.getCriteriaHolder(searchCriteria).getDataType())))
-									.description("Filters by '" + searchCriteria + "'")
-									.build())
-							/* if type is not a collection and first letter is not capital (all known to swagger types start from lower case) */
-							.filter( p -> !(null == p.getModelRef().getItemType() && Character.isUpperCase(p.getModelRef().getType().toCharArray()[0])))
-							.collect(Collectors.toList());
-					//@formatter:on
-
-					context.operationBuilder().parameters(params);
 				}
+				//				} else if (filterType.equals(resolvedType)) {
+				//					FilterFor filterClass = methodParameter.findAnnotation(FilterFor.class).get();
+				//					CriteriaMap<?> criteriaMap = CriteriaMapFactory.DEFAULT_INSTANCE_SUPPLIER.get().getCriteriaMap(filterClass.value());
+				//
+				//					//@formatter:off
+//					List<Parameter> params = criteriaMap.getAllowedSearchCriterias().stream()
+//							.map(searchCriteria -> parameterContext
+//									.parameterBuilder()
+//										.parameterType("query")
+//										.name("filter.eq." + searchCriteria)
+//										.modelRef(factory.apply(resolver.resolve(criteriaMap.getCriteriaHolder(searchCriteria).getDataType())))
+//									.description("Filters by '" + searchCriteria + "'")
+//									.build())
+//							/* if type is not a collection and first letter is not capital (all known to swagger types start from lower case) */
+//							.filter( p -> !(null == p.getModelRef().getItemType() && Character.isUpperCase(p.getModelRef().getType().toCharArray()[0])))
+//							.collect(Collectors.toList());
+//					//@formatter:on
+				//
+				//					context.operationBuilder().parameters(params);
+				//				}
 			}
 		}
 

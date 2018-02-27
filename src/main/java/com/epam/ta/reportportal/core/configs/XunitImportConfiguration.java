@@ -20,13 +20,6 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.core.imprt.impl.junit.XunitImportHandler;
-import com.epam.ta.reportportal.core.imprt.impl.junit.XunitParseJob;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
-
 /**
  * Configs for beans that are related to
  * importing xml report for junit tests
@@ -34,18 +27,18 @@ import org.springframework.context.annotation.Scope;
  *
  * @author Pavel_Bortnik
  */
-@Configuration
+//@Configuration
 public class XunitImportConfiguration {
 
-	@Bean(name = "junitParseJob")
-	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	public XunitParseJob junitParseJob() {
-		return new XunitParseJob();
-	}
-
-	@Bean(name = "junitImportHandler")
-	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	public XunitImportHandler junitImportHandler() {
-		return new XunitImportHandler();
-	}
+	//	@Bean(name = "junitParseJob")
+	//	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	//	public XunitParseJob junitParseJob() {
+	//		return new XunitParseJob();
+	//	}
+	//
+	//	@Bean(name = "junitImportHandler")
+	//	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	//	public XunitImportHandler junitImportHandler() {
+	//		return new XunitImportHandler();
+	//	}
 }

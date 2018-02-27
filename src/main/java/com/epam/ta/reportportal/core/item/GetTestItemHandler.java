@@ -21,9 +21,8 @@
 
 package com.epam.ta.reportportal.core.item;
 
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.search.Queryable;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
+import org.hibernate.persister.entity.Queryable;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;

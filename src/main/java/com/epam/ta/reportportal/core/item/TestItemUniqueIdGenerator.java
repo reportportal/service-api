@@ -21,19 +21,15 @@
 
 package com.epam.ta.reportportal.core.item;
 
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.item.Parameter;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.google.common.base.Strings;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
 
 /**
  * Generates the unique identifier for test item based
@@ -74,28 +70,30 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 	}
 
 	private String prepareForEncoding(TestItem testItem) {
-		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-		String launchName = launch.getName();
-		String projectName = launch.getProjectRef();
-		List<String> pathNames = getPathNames(testItem.getPath());
-		String itemName = testItem.getName();
-		List<Parameter> parameters = Optional.ofNullable(testItem.getParameters()).orElse(Collections.emptyList());
-		StringJoiner joiner = new StringJoiner(";");
-		joiner.add(projectName).add(launchName);
-		if (!CollectionUtils.isEmpty(pathNames)) {
-			joiner.add(pathNames.stream().collect(Collectors.joining(",")));
-		}
-		joiner.add(itemName);
-		if (!parameters.isEmpty()) {
-			joiner.add(parameters.stream()
-					.map(parameter -> (!Strings.isNullOrEmpty(parameter.getKey()) ? parameter.getKey() + "=" : "") + parameter.getValue())
-					.collect(Collectors.joining(",")));
-		}
-		return joiner.toString();
+		throw new UnsupportedOperationException();
+		//		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
+		//		String launchName = launch.getName();
+		//		String projectName = launch.getProjectRef();
+		//		List<String> pathNames = getPathNames(testItem.getPath());
+		//		String itemName = testItem.getName();
+		//		List<Parameter> parameters = Optional.ofNullable(testItem.getParameters()).orElse(Collections.emptyList());
+		//		StringJoiner joiner = new StringJoiner(";");
+		//		joiner.add(projectName).add(launchName);
+		//		if (!CollectionUtils.isEmpty(pathNames)) {
+		//			joiner.add(pathNames.stream().collect(Collectors.joining(",")));
+		//		}
+		//		joiner.add(itemName);
+		//		if (!parameters.isEmpty()) {
+		//			joiner.add(parameters.stream()
+		//					.map(parameter -> (!Strings.isNullOrEmpty(parameter.getKey()) ? parameter.getKey() + "=" : "") + parameter.getValue())
+		//					.collect(Collectors.joining(",")));
+		//		}
+		//		return joiner.toString();
 	}
 
 	private List<String> getPathNames(List<String> path) {
-		Map<String, String> names = testItemRepository.findPathNames(path);
-		return path.stream().map(names::get).collect(Collectors.toList());
+		//		Map<String, String> names = testItemRepository.findPathNames(path);
+		//		return path.stream().map(names::get).collect(Collectors.toList());
+		return null;
 	}
 }

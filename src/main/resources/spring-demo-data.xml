@@ -591,8 +591,7 @@
                 <property name="interruptJobTime" value="1 hour"/>
                 <property name="keepLogs" value="2 weeks"/>
                 <property name="keepScreenshots" value="1 week"/>
-                <property name="isAutoAnalyzerEnabled" value="true"/>
-                <property name="analyzeOnTheFly" value="true"/>
+                <property name="analyzerMode" value="#{T(com.epam.ta.reportportal.database.entity.AnalyzeMode).ALL_LAUNCHES}"/>
                 <property name="projectSpecific" value="DEFAULT"/>
                 <property name="emailConfig">
                     <bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
@@ -713,7 +712,7 @@
                 <property name="interruptJobTime" value="1 hour"/>
                 <property name="keepLogs" value="2 weeks"/>
                 <property name="keepScreenshots" value="1 week"/>
-                <property name="isAutoAnalyzerEnabled" value="true"/>
+                <property name="analyzerMode" value="#{T(com.epam.ta.reportportal.database.entity.AnalyzeMode).ALL_LAUNCHES}"/>
                 <property name="emailConfig">
                     <bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
                         <property name="emailEnabled" value="false"/>
@@ -768,7 +767,7 @@
         <property name="customer" value="test_cust"/>
         <property name="configuration">
             <bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
-                <property name="isAutoAnalyzerEnabled" value="false"/>
+
                 <property name="emailConfig">
                     <bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
                         <property name="emailEnabled" value="true"/>
@@ -797,7 +796,7 @@
         <property name="customer" value="test_cust"/>
         <property name="configuration">
             <bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
-                <property name="isAutoAnalyzerEnabled" value="false"/>
+
                 <property name="emailConfig">
                     <bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
                         <property name="emailEnabled" value="true"/>
@@ -826,7 +825,7 @@
         <property name="customer" value="test_cust"/>
         <property name="configuration">
             <bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
-                <property name="isAutoAnalyzerEnabled" value="false"/>
+
                 <property name="emailConfig">
                     <bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
                         <property name="emailEnabled" value="true"/>
@@ -855,7 +854,7 @@
         <property name="customer" value="test_cust"/>
         <property name="configuration">
             <bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
-                <property name="isAutoAnalyzerEnabled" value="false"/>
+
                 <property name="emailConfig">
                     <bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
                         <property name="emailEnabled" value="true"/>
@@ -884,7 +883,7 @@
         <property name="customer" value="test_cust"/>
         <property name="configuration">
             <bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
-                <property name="isAutoAnalyzerEnabled" value="false"/>
+
                 <property name="emailConfig">
                     <bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
                         <property name="emailEnabled" value="true"/>
@@ -913,7 +912,7 @@
         <property name="customer" value="test_cust"/>
         <property name="configuration">
             <bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
-                <property name="isAutoAnalyzerEnabled" value="false"/>
+
                 <property name="emailConfig">
                     <bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
                         <property name="emailEnabled" value="true"/>

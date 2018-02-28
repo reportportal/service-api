@@ -85,7 +85,6 @@ public class ProjectActivitiesListenerTest extends BaseMvcTest {
 		Assert.assertTrue(fields.contains(LAUNCH_INACTIVITY));
 		Assert.assertTrue(fields.contains(KEEP_LOGS));
 		Assert.assertTrue(fields.contains(KEEP_SCREENSHOTS));
-		Assert.assertTrue(fields.contains(AUTO_ANALYZE));
 		Assert.assertTrue(fields.contains(STATISTICS_CALCULATION_STRATEGY));
 	}
 

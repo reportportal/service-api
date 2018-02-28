@@ -51,6 +51,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.nullToEmpty;
+import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -128,7 +129,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	 */
 	private List<IndexTestItem> prepareItems(List<TestItem> testItems) {
 		return testItems.stream()
-				.map(it -> AnalyzerUtils.fromTestItem(it, logRepository.findGreaterOrEqualLevel(it.getId(), LogLevel.ERROR)))
+				.map(it -> AnalyzerUtils.fromTestItem(it, logRepository.findGreaterOrEqualLevel(singletonList(it.getId()), LogLevel.ERROR)))
 				.filter(it -> !isEmpty(it.getLogs()))
 				.collect(Collectors.toList());
 	}

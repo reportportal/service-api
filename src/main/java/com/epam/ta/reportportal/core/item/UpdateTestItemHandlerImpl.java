@@ -65,7 +65,7 @@ import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSup
 import static com.epam.ta.reportportal.database.entity.Status.PASSED;
 import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.doesHaveUser;
 import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
-import static com.epam.ta.reportportal.util.Predicates.CAN_BE_INDEXED;
+import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.lang.Boolean.FALSE;
@@ -123,6 +123,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			try {
 				TestItem testItem = testItemRepository.findOne(issueDefinition.getId());
 				verifyTestItem(testItem, issueDefinition.getId());
+
 				//if item is updated then it is no longer auto analyzed
 				issueDefinition.getIssue().setAutoAnalyzed(false);
 				eventData.put(issueDefinition, testItem);
@@ -175,9 +176,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 					}
 				}
 
-				ofNullable(issue.getIgnoreAnalyzer()).ifPresent(
-						it -> testItemIssue.setIgnoreAnalyzer(issuesAnalyzerService.hasAnalyzers() && it));
-				ofNullable(issue.getAutoAnalyzed()).ifPresent(testItemIssue::setAutoAnalyzed);
+				testItemIssue.setIgnoreAnalyzer(issuesAnalyzerService.hasAnalyzers() && issue.getIgnoreAnalyzer());
+				testItemIssue.setAutoAnalyzed(issue.getAutoAnalyzed());
 
 				testItemIssue.setIssueDescription(comment);
 				testItem.setIssue(testItemIssue);
@@ -269,7 +269,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @param testItem    Test item to reindex
 	 */
 	private void indexLogs(String projectName, TestItem testItem) {
-		if (CAN_BE_INDEXED.test(testItem)) {
+		if (ITEM_CAN_BE_INDEXED.test(testItem)) {
 			logIndexer.indexLogs(testItem.getLaunchRef(), singletonList(testItem));
 		} else {
 			logIndexer.cleanIndex(projectName, singletonList(testItem.getId()));

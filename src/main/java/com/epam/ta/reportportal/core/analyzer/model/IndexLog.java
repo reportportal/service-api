@@ -32,6 +32,9 @@ import java.util.Objects;
  */
 public class IndexLog {
 
+	@JsonProperty("log_id")
+	private String logId;
+
 	@JsonProperty("logLevel")
 	private int logLevel;
 
@@ -39,6 +42,14 @@ public class IndexLog {
 	private String message;
 
 	public IndexLog() {
+	}
+
+	public String getLogId() {
+		return logId;
+	}
+
+	public void setLogId(String logId) {
+		this.logId = logId;
 	}
 
 	public int getLogLevel() {

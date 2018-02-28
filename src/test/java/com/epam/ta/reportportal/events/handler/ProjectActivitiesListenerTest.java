@@ -68,7 +68,6 @@ public class ProjectActivitiesListenerTest extends BaseMvcTest {
 		projectConfiguration.setKeepLogs(KeepLogsDelay.ONE_MONTH.getValue());
 		projectConfiguration.setKeepScreenshots(KeepScreenshotsDelay.ONE_MONTH.getValue());
 		projectConfiguration.setStatisticCalculationStrategy(StatisticsCalculationStrategy.TEST_BASED.name());
-		projectConfiguration.setIsAAEnabled(false);
 		updateProjectRQ.setConfiguration(projectConfiguration);
 
 		this.mvcMock.perform(put("/project/project1").content(objectMapper.writeValueAsBytes(updateProjectRQ))

@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.Project;
@@ -93,10 +94,10 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	}
 
 	@Override
-	public void analyze(Launch launch, List<TestItem> testItems) {
+	public void analyze(Launch launch, List<TestItem> testItems, AnalyzeMode analyzeMode) {
 		if (launch != null) {
 			List<IndexTestItem> rqTestItems = prepareItems(testItems);
-			Map<String, List<AnalyzedItemRs>> rs = analyze(rqTestItems, launch);
+			Map<String, List<AnalyzedItemRs>> rs = analyze(rqTestItems, launch, analyzeMode);
 			if (!MapUtils.isEmpty(rs)) {
 				List<TestItem> updatedItems = rs.entrySet()
 						.stream()
@@ -108,9 +109,10 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 		}
 	}
 
-	private Map<String, List<AnalyzedItemRs>> analyze(List<IndexTestItem> rqTestItems, Launch launch) {
+	private Map<String, List<AnalyzedItemRs>> analyze(List<IndexTestItem> rqTestItems, Launch launch, AnalyzeMode analyzeMode) {
 		if (!rqTestItems.isEmpty()) {
 			IndexLaunch rqLaunch = new IndexLaunch();
+			rqLaunch.setMode(analyzeMode);
 			rqLaunch.setLaunchId(launch.getId());
 			rqLaunch.setLaunchName(launch.getName());
 			rqLaunch.setProject(launch.getProjectRef());

@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
@@ -122,9 +123,10 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	}
 
 	@Override
-	public OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId) {
+	public OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId, String mode) {
 		expect(analyzerService.hasAnalyzers(), Predicate.isEqual(true)).verify(
 				ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer services are deployed.");
+		AnalyzeMode analyzeMode = AnalyzeMode.fromString(mode);
 
 		Launch launch = launchRepository.findOne(launchId);
 		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);
@@ -141,7 +143,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 
 		List<TestItem> toInvestigate = testItemRepository.findInIssueTypeItems(TO_INVESTIGATE.getLocator(), launchId);
 
-		taskExecutor.execute(() -> analyzerService.analyze(launch, toInvestigate));
+		taskExecutor.execute(() -> analyzerService.analyze(launch, toInvestigate, analyzeMode));
 
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launchId + "' started.");
 	}

@@ -66,8 +66,6 @@ public final class ProjectConverter {
 		project.getConfiguration().setInterruptJobTime(InterruptionJobDelay.ONE_DAY.getValue());
 		project.getConfiguration().setKeepLogs(KeepLogsDelay.THREE_MONTHS.getValue());
 		project.getConfiguration().setKeepScreenshots(KeepScreenshotsDelay.TWO_WEEKS.getValue());
-		project.getConfiguration().setIsAutoAnalyzerEnabled(false);
-		project.getConfiguration().setAnalyzeOnTheFly(false);
 		project.getConfiguration().setStatisticsCalculationStrategy(StatisticsCalculationStrategy.STEP_BASED);
 
 		// Email settings by default
@@ -101,7 +99,7 @@ public final class ProjectConverter {
 		configuration.setKeepLogs(db.getConfiguration().getKeepLogs());
 		configuration.setInterruptJobTime(db.getConfiguration().getInterruptJobTime());
 		configuration.setKeepScreenshots(db.getConfiguration().getKeepScreenshots());
-		configuration.setIsAAEnabled(db.getConfiguration().getIsAutoAnalyzerEnabled());
+		configuration.setAnalyzerMode(db.getConfiguration().getAnalyzerMode().getValue());
 		//configuration.setAnalyzeOnTheFly(db.getConfiguration().getAnalyzeOnTheFly());
 		configuration.setStatisticCalculationStrategy(db.getConfiguration().getStatisticsCalculationStrategy().name());
 

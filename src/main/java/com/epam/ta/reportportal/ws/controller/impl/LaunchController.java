@@ -72,7 +72,6 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -292,12 +291,13 @@ public class LaunchController implements ILaunchController {
 	}
 
 	@Override
-	@RequestMapping(value = "/{launchId}/analyze", method = POST)
+	@RequestMapping(value = "/{launchId}/analyze/{mode}", method = POST)
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Start launch auto-analyzer on demand")
-	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName, @PathVariable String launchId, Principal principal) {
-		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), launchId);
+	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName, @PathVariable String launchId,
+			@PathVariable String mode, Principal principal) {
+		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), launchId, mode);
 	}
 
 	@Override

@@ -291,12 +291,12 @@ public class LaunchController implements ILaunchController {
 	}
 
 	@Override
-	@RequestMapping(value = "/{launchId}/analyze/{mode}", method = POST)
+	@RequestMapping(value = "/{launchId}/analyze", method = POST)
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Start launch auto-analyzer on demand")
 	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName, @PathVariable String launchId,
-			@PathVariable String mode, Principal principal) {
+			@RequestParam(value = "analyzer_mode") String mode, Principal principal) {
 		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), launchId, mode);
 	}
 

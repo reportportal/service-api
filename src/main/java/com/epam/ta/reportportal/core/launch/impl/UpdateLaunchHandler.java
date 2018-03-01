@@ -127,7 +127,6 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		expect(analyzerService.hasAnalyzers(), Predicate.isEqual(true)).verify(
 				ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer services are deployed.");
 		AnalyzeMode analyzeMode = AnalyzeMode.fromString(mode);
-
 		Launch launch = launchRepository.findOne(launchId);
 		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);
 

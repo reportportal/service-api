@@ -51,7 +51,7 @@ public class ProjectActivityHandler {
 	static final String LAUNCH_INACTIVITY = "launchInactivity";
 	static final String STATISTICS_CALCULATION_STRATEGY = "statisticsCalculationStrategy";
 	static final String AUTO_ANALYZE = "auto_analyze";
-	static final String ANALYZE_ON_FLY = "analyze_on_fly";
+	static final String ANALYZE_MODE = "analyze_mode";
 
 	private final ActivityRepository activityRepository;
 
@@ -71,6 +71,7 @@ public class ProjectActivityHandler {
 			processKeepScreenshots(history, project, configuration);
 			processLaunchInactivityTimeout(history, project, configuration);
 			processAutoAnalyze(history, project, configuration);
+			processAnalyzeMode(history, project, configuration);
 			processStatisticsStrategy(history, project, configuration);
 		}
 
@@ -83,6 +84,13 @@ public class ProjectActivityHandler {
 					.addHistory(history.isEmpty() ? null : history)
 					.get();
 			activityRepository.save(activityLog);
+		}
+	}
+
+	private void processAnalyzeMode(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
+		AnalyzeMode oldMode = project.getConfiguration().getAnalyzerMode();
+		if (null != configuration.getAnalyzerMode() && AnalyzeMode.fromString(configuration.getAnalyzerMode()) != oldMode) {
+			history.add(createHistoryField(ANALYZE_MODE, oldMode != null ? oldMode.getValue() : "", configuration.getAnalyzerMode()));
 		}
 	}
 
@@ -114,11 +122,13 @@ public class ProjectActivityHandler {
 	}
 
 	private void processAutoAnalyze(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
-		if ((null != configuration.getAnalyzerMode()) && (!AnalyzeMode.fromString(configuration.getAnalyzerMode())
-				.equals(project.getConfiguration().getAnalyzerMode()))) {
-			String oldValue =
-					project.getConfiguration().getAnalyzerMode() == null ? "" : project.getConfiguration().getAnalyzerMode().getValue();
-			Activity.FieldValues fieldValues = createHistoryField(AUTO_ANALYZE, oldValue, configuration.getAnalyzerMode());
+		if (null != configuration.getIsAutoAnalyzerEnabled() && !configuration.getIsAutoAnalyzerEnabled()
+				.equals(project.getConfiguration().getIsAutoAnalyzerEnabled())) {
+			String oldValue = project.getConfiguration().getIsAutoAnalyzerEnabled() == null ?
+					"" :
+					project.getConfiguration().getIsAutoAnalyzerEnabled().toString();
+			Activity.FieldValues fieldValues = createHistoryField(
+					AUTO_ANALYZE, oldValue, configuration.getIsAutoAnalyzerEnabled().toString());
 			history.add(fieldValues);
 		}
 	}

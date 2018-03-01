@@ -42,6 +42,7 @@ import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,8 +100,7 @@ public class LaunchFinishedEventHandler {
 		afterFinishLaunch(event.getProject(), event.getLaunch());
 	}
 
-	private void afterFinishLaunch(final Project project, final Launch launch) { // NOSONAR
-
+	private void afterFinishLaunch(final Project project, final Launch launch) {
 		/* Avoid NULL object processing */
 		if (null == project || null == launch) {
 			return;
@@ -108,9 +108,6 @@ public class LaunchFinishedEventHandler {
 
 		retriesLaunchHandler.handleRetries(launch);
 		Optional<EmailService> emailService = emailServiceFactory.getDefaultEmailService(project.getConfiguration().getEmailConfig());
-
-		/* If AA enabled then waiting results processing */
-		AnalyzeMode mode = project.getConfiguration().getAnalyzerMode();
 
 		// Do not process debug launches.
 		if (Mode.DEBUG.equals(launch.getMode())) {
@@ -120,7 +117,7 @@ public class LaunchFinishedEventHandler {
 		logIndexer.indexLogs(launch.getId(), testItemRepository.findTestItemWithIssues(launch.getId()));
 
 		/* If email enabled and AA disabled then send results immediately */
-		if (null == mode) {
+		if (!BooleanUtils.toBoolean(project.getConfiguration().getIsAutoAnalyzerEnabled())) {
 			emailService.ifPresent(service -> sendEmailRightNow(launch, project, service));
 			return;
 		}
@@ -128,9 +125,9 @@ public class LaunchFinishedEventHandler {
 		List<TestItem> toInvestigateItems = testItemRepository.findInIssueTypeItems(TestItemIssueType.TO_INVESTIGATE.getLocator(),
 				launch.getId()
 		);
-		analyzerService.analyze(launch, toInvestigateItems, mode);
-
-		/* Previous email sending cycle was skipped due waiting AA results */
+		analyzerService.analyze(launch, toInvestigateItems,
+				Optional.ofNullable(project.getConfiguration().getAnalyzerMode()).orElse(AnalyzeMode.ALL_LAUNCHES)
+		);
 		// Get launch with AA results
 		Launch freshLaunch = launchRepository.findOne(launch.getId());
 		emailService.ifPresent(it -> sendEmailRightNow(freshLaunch, project, it));

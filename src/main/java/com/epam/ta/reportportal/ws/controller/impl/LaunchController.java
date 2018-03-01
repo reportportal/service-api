@@ -296,7 +296,7 @@ public class LaunchController implements ILaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation("Start launch auto-analyzer on demand")
 	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName, @PathVariable String launchId,
-			@RequestParam(value = "analyzer_mode") String mode, Principal principal) {
+			@RequestParam("analyze_mode") String mode, Principal principal) {
 		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), launchId, mode);
 	}
 

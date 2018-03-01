@@ -21,7 +21,6 @@
 
 package com.epam.ta.reportportal.core.analyzer.model;
 
-import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
@@ -43,13 +42,21 @@ public class IndexLaunch {
 	@JsonProperty("project")
 	private String project;
 
-	@JsonProperty("analyze_mode")
-	private AnalyzeMode mode;
+	@JsonProperty("analyzeMode")
+	private String analyzeMode;
 
 	@JsonProperty("testItems")
 	private List<IndexTestItem> testItems;
 
 	public IndexLaunch() {
+	}
+
+	public String getAnalyzeMode() {
+		return analyzeMode;
+	}
+
+	public void setAnalyzeMode(String analyzeMode) {
+		this.analyzeMode = analyzeMode;
 	}
 
 	public String getLaunchId() {
@@ -84,20 +91,6 @@ public class IndexLaunch {
 		this.testItems = testItems;
 	}
 
-	public AnalyzeMode getMode() {
-		return mode;
-	}
-
-	public void setMode(AnalyzeMode mode) {
-		this.mode = mode;
-	}
-
-	@Override
-	public String toString() {
-		return "IndexLaunch{" + "launchId='" + launchId + '\'' + ", launchName='" + launchName + '\'' + ", project='" + project + '\''
-				+ ", mode=" + mode + ", testItems=" + testItems + '}';
-	}
-
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -108,11 +101,11 @@ public class IndexLaunch {
 		}
 		IndexLaunch that = (IndexLaunch) o;
 		return Objects.equals(launchId, that.launchId) && Objects.equals(launchName, that.launchName) && Objects.equals(
-				project, that.project) && mode == that.mode && Objects.equals(testItems, that.testItems);
+				project, that.project) && analyzeMode == that.analyzeMode && Objects.equals(testItems, that.testItems);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(launchId, launchName, project, mode, testItems);
+		return Objects.hash(launchId, launchName, project, analyzeMode, testItems);
 	}
 }

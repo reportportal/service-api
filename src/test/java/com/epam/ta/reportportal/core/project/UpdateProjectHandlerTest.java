@@ -106,8 +106,8 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		configuration.setInterruptJobTime("1 hour");
 		configuration.setKeepScreenshots("1 week");
 		configuration.setProjectSpecific("DEFAULT");
+		configuration.setIsAutoAnalyzerEnabled(true);
 		configuration.setAnalyzerMode(AnalyzeMode.ALL_LAUNCHES.getValue());
-		//configuration.setAnalyzeOnTheFly(true);
 		configuration.setStatisticCalculationStrategy("TEST_BASED");
 		updateProjectRQ.setConfiguration(configuration);
 
@@ -121,8 +121,7 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		assertEquals(configuration.getInterruptJobTime(), dbConfig.getInterruptJobTime());
 		assertEquals(configuration.getKeepScreenshots(), dbConfig.getKeepScreenshots());
 		assertEquals(configuration.getProjectSpecific(), dbConfig.getProjectSpecific().name());
-		assertEquals(AnalyzeMode.fromString(configuration.getAnalyzerMode()), dbConfig.getAnalyzerMode());
-		//assertEquals(configuration.getAnalyzeOnTheFly(), dbConfig.getAnalyzeOnTheFly());
+		assertEquals(configuration.getIsAutoAnalyzerEnabled(), dbConfig.getIsAutoAnalyzerEnabled());
 		assertEquals(configuration.getStatisticCalculationStrategy(), dbConfig.getStatisticsCalculationStrategy().name());
 	}
 

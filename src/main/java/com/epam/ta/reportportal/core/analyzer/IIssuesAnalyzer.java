@@ -41,9 +41,9 @@ public interface IIssuesAnalyzer {
 	 *
 	 * @param launch    Initial launch for history
 	 * @param testItems - current test items with failed status and issue
-	 * @param analyzeMode - analyze mode for the launch
+	 * @param mode      - Analyze mode
 	 */
-	void analyze(Launch launch, List<TestItem> testItems, AnalyzeMode analyzeMode);
+	void analyze(Launch launch, List<TestItem> testItems, AnalyzeMode mode);
 
 	/**
 	 * Checks if any analyzer is available

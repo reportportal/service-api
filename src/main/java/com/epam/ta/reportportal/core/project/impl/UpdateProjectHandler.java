@@ -175,6 +175,10 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			dbConfig.setProjectSpecific(ProjectSpecific.findByName(modelConfig.getProjectSpecific()).get());
 		}
 
+		if (null != modelConfig.getIsAutoAnalyzerEnabled()) {
+			dbConfig.setIsAutoAnalyzerEnabled(modelConfig.getIsAutoAnalyzerEnabled());
+		}
+
 		if (null != modelConfig.getAnalyzerMode()) {
 			dbConfig.setAnalyzerMode(AnalyzeMode.fromString(modelConfig.getAnalyzerMode()));
 		}

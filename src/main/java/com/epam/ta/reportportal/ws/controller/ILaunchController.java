@@ -212,7 +212,7 @@ public interface ILaunchController {
 	 *
 	 * @param projectName Project name
 	 * @param launchId    Launch id
-	 * @param mode        Analyzer mode
+	 * @param mode        Analyze mode
 	 * @param principal   Principal
 	 * @return Result message
 	 * @throws ExecutionException

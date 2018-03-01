@@ -21,6 +21,7 @@
 package com.epam.ta.reportportal.events.handler;
 
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
+import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.events.ProjectUpdatedEvent;
@@ -50,7 +51,7 @@ public class ProjectActivityHandler {
 	static final String LAUNCH_INACTIVITY = "launchInactivity";
 	static final String STATISTICS_CALCULATION_STRATEGY = "statisticsCalculationStrategy";
 	static final String AUTO_ANALYZE = "auto_analyze";
-	static final String ANALYZE_ON_FLY = "analyze_on_fly";
+	static final String ANALYZE_MODE = "analyze_mode";
 
 	private final ActivityRepository activityRepository;
 
@@ -70,7 +71,7 @@ public class ProjectActivityHandler {
 			processKeepScreenshots(history, project, configuration);
 			processLaunchInactivityTimeout(history, project, configuration);
 			processAutoAnalyze(history, project, configuration);
-			//processAnalyzeOnTheFly(history, project, configuration);
+			processAnalyzeMode(history, project, configuration);
 			processStatisticsStrategy(history, project, configuration);
 		}
 
@@ -83,6 +84,13 @@ public class ProjectActivityHandler {
 					.addHistory(history.isEmpty() ? null : history)
 					.get();
 			activityRepository.save(activityLog);
+		}
+	}
+
+	private void processAnalyzeMode(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
+		AnalyzeMode oldMode = project.getConfiguration().getAnalyzerMode();
+		if (null != configuration.getAnalyzerMode() && AnalyzeMode.fromString(configuration.getAnalyzerMode()) != oldMode) {
+			history.add(createHistoryField(ANALYZE_MODE, oldMode != null ? oldMode.getValue() : "", configuration.getAnalyzerMode()));
 		}
 	}
 
@@ -114,25 +122,16 @@ public class ProjectActivityHandler {
 	}
 
 	private void processAutoAnalyze(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
-		if ((null != configuration.getIsAAEnabled()) && (!configuration.getIsAAEnabled()
-				.equals(project.getConfiguration().getIsAutoAnalyzerEnabled()))) {
+		if (null != configuration.getIsAutoAnalyzerEnabled() && !configuration.getIsAutoAnalyzerEnabled()
+				.equals(project.getConfiguration().getIsAutoAnalyzerEnabled())) {
 			String oldValue = project.getConfiguration().getIsAutoAnalyzerEnabled() == null ?
 					"" :
 					project.getConfiguration().getIsAutoAnalyzerEnabled().toString();
-			Activity.FieldValues fieldValues = createHistoryField(AUTO_ANALYZE, oldValue, configuration.getIsAAEnabled().toString());
+			Activity.FieldValues fieldValues = createHistoryField(
+					AUTO_ANALYZE, oldValue, configuration.getIsAutoAnalyzerEnabled().toString());
 			history.add(fieldValues);
 		}
 	}
-
-	//	private void processAnalyzeOnTheFly(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
-	//		if ((null != configuration.getAnalyzeOnTheFly()) && (!configuration.getAnalyzeOnTheFly()
-	//				.equals(project.getConfiguration().getAnalyzeOnTheFly()))) {
-	//			String oldValue = project.getConfiguration().getAnalyzeOnTheFly() == null ? "" :
-	//					project.getConfiguration().getAnalyzeOnTheFly().toString();
-	//			Activity.FieldValues fieldValues = createHistoryField(ANALYZE_ON_FLY, oldValue, configuration.getAnalyzeOnTheFly().toString());
-	//			history.add(fieldValues);
-	//		}
-	//	}
 
 	private void processKeepScreenshots(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
 		if ((null != configuration.getKeepScreenshots()) && (!configuration.getKeepScreenshots()

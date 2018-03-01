@@ -212,12 +212,13 @@ public interface ILaunchController {
 	 *
 	 * @param projectName Project name
 	 * @param launchId    Launch id
+	 * @param mode        Analyze mode
 	 * @param principal   Principal
 	 * @return Result message
 	 * @throws ExecutionException
 	 * @throws InterruptedException
 	 */
-	OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId, Principal principal)
+	OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId, String mode, Principal principal)
 			throws InterruptedException, ExecutionException;
 
 	/**

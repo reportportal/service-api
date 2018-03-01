@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectSpecific;
 import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
@@ -36,6 +37,7 @@ import com.google.common.collect.Lists;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -67,7 +69,7 @@ public final class ProjectConverter {
 		project.getConfiguration().setKeepLogs(KeepLogsDelay.THREE_MONTHS.getValue());
 		project.getConfiguration().setKeepScreenshots(KeepScreenshotsDelay.TWO_WEEKS.getValue());
 		project.getConfiguration().setIsAutoAnalyzerEnabled(false);
-		project.getConfiguration().setAnalyzeOnTheFly(false);
+		project.getConfiguration().setAnalyzerMode(AnalyzeMode.ALL_LAUNCHES);
 		project.getConfiguration().setStatisticsCalculationStrategy(StatisticsCalculationStrategy.STEP_BASED);
 
 		// Email settings by default
@@ -101,8 +103,9 @@ public final class ProjectConverter {
 		configuration.setKeepLogs(db.getConfiguration().getKeepLogs());
 		configuration.setInterruptJobTime(db.getConfiguration().getInterruptJobTime());
 		configuration.setKeepScreenshots(db.getConfiguration().getKeepScreenshots());
-		configuration.setIsAAEnabled(db.getConfiguration().getIsAutoAnalyzerEnabled());
-		//configuration.setAnalyzeOnTheFly(db.getConfiguration().getAnalyzeOnTheFly());
+		configuration.setIsAutoAnalyzerEnabled(db.getConfiguration().getIsAutoAnalyzerEnabled());
+		configuration.setAnalyzerMode(
+				Optional.ofNullable(db.getConfiguration().getAnalyzerMode()).orElse(AnalyzeMode.ALL_LAUNCHES).getValue());
 		configuration.setStatisticCalculationStrategy(db.getConfiguration().getStatisticsCalculationStrategy().name());
 
 		// =============== EMAIL settings ===================

@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.core.project.impl.UpdateProjectHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserType;
@@ -105,7 +106,7 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		configuration.setInterruptJobTime("1 hour");
 		configuration.setKeepScreenshots("1 week");
 		configuration.setProjectSpecific("DEFAULT");
-		configuration.setIsAAEnabled(true);
+		configuration.setAnalyzerMode(AnalyzeMode.ALL_LAUNCHES.getValue());
 		//configuration.setAnalyzeOnTheFly(true);
 		configuration.setStatisticCalculationStrategy("TEST_BASED");
 		updateProjectRQ.setConfiguration(configuration);
@@ -120,7 +121,7 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		assertEquals(configuration.getInterruptJobTime(), dbConfig.getInterruptJobTime());
 		assertEquals(configuration.getKeepScreenshots(), dbConfig.getKeepScreenshots());
 		assertEquals(configuration.getProjectSpecific(), dbConfig.getProjectSpecific().name());
-		assertEquals(configuration.getIsAAEnabled(), dbConfig.getIsAutoAnalyzerEnabled());
+		assertEquals(AnalyzeMode.fromString(configuration.getAnalyzerMode()), dbConfig.getAnalyzerMode());
 		//assertEquals(configuration.getAnalyzeOnTheFly(), dbConfig.getAnalyzeOnTheFly());
 		assertEquals(configuration.getStatisticCalculationStrategy(), dbConfig.getStatisticsCalculationStrategy().name());
 	}

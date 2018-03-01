@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Status;
@@ -41,7 +42,6 @@ import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,9 +101,6 @@ public class LaunchFinishedEventHandler {
 
 	private void afterFinishLaunch(final Project project, final Launch launch) { // NOSONAR
 
-		/* Should we send email right now or wait till AA is finished? */
-		boolean waitForAutoAnalysis;
-
 		/* Avoid NULL object processing */
 		if (null == project || null == launch) {
 			return;
@@ -113,7 +110,7 @@ public class LaunchFinishedEventHandler {
 		Optional<EmailService> emailService = emailServiceFactory.getDefaultEmailService(project.getConfiguration().getEmailConfig());
 
 		/* If AA enabled then waiting results processing */
-		waitForAutoAnalysis = BooleanUtils.toBoolean(project.getConfiguration().getIsAutoAnalyzerEnabled());
+		AnalyzeMode mode = project.getConfiguration().getAnalyzerMode();
 
 		// Do not process debug launches.
 		if (Mode.DEBUG.equals(launch.getMode())) {
@@ -123,26 +120,20 @@ public class LaunchFinishedEventHandler {
 		logIndexer.indexLogs(launch.getId(), testItemRepository.findTestItemWithIssues(launch.getId()));
 
 		/* If email enabled and AA disabled then send results immediately */
-		if (!waitForAutoAnalysis) {
+		if (null == mode) {
 			emailService.ifPresent(service -> sendEmailRightNow(launch, project, service));
-		}
-
-		if (!project.getConfiguration().getIsAutoAnalyzerEnabled()) {
 			return;
 		}
 
 		List<TestItem> toInvestigateItems = testItemRepository.findInIssueTypeItems(TestItemIssueType.TO_INVESTIGATE.getLocator(),
 				launch.getId()
 		);
-
-		analyzerService.analyze(launch, toInvestigateItems);
+		analyzerService.analyze(launch, toInvestigateItems, mode);
 
 		/* Previous email sending cycle was skipped due waiting AA results */
-		if (waitForAutoAnalysis) {
-			// Get launch with AA results
-			Launch freshLaunch = launchRepository.findOne(launch.getId());
-			emailService.ifPresent(it -> sendEmailRightNow(freshLaunch, project, it));
-		}
+		// Get launch with AA results
+		Launch freshLaunch = launchRepository.findOne(launch.getId());
+		emailService.ifPresent(it -> sendEmailRightNow(freshLaunch, project, it));
 	}
 
 	/**

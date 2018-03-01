@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.core.project.IUpdateProjectHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
 import com.epam.ta.reportportal.database.entity.ProjectRole;
@@ -174,13 +175,9 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			dbConfig.setProjectSpecific(ProjectSpecific.findByName(modelConfig.getProjectSpecific()).get());
 		}
 
-		if (null != modelConfig.getIsAAEnabled()) {
-			dbConfig.setIsAutoAnalyzerEnabled(modelConfig.getIsAAEnabled());
+		if (null != modelConfig.getAnalyzerMode()) {
+			dbConfig.setAnalyzerMode(AnalyzeMode.fromString(modelConfig.getAnalyzerMode()));
 		}
-
-		//		if (null != modelConfig.getAnalyzeOnTheFly()) {
-		//			dbConfig.setAnalyzeOnTheFly(modelConfig.getAnalyzeOnTheFly());
-		//		}
 
 		if (null != modelConfig.getStatisticCalculationStrategy()) {
 			dbConfig.setStatisticsCalculationStrategy(fromString(modelConfig.getStatisticCalculationStrategy()).orElseThrow(

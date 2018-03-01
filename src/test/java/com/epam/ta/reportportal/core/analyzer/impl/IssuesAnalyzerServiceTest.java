@@ -88,7 +88,7 @@ public class IssuesAnalyzerServiceTest {
 		Launch launch = launch();
 		TestItem testItems = testItemsTI(1).get(0);
 		when(logRepository.findGreaterOrEqualLevel(singletonList(testItems.getId()), LogLevel.ERROR)).thenReturn(Collections.emptyList());
-		issuesAnalyzer.analyze(launch, singletonList(testItems));
+		issuesAnalyzer.analyze(launch, singletonList(testItems), AnalyzeMode.ALL_LAUNCHES);
 		verify(logRepository, times(1)).findGreaterOrEqualLevel(singletonList(testItems.getId()), LogLevel.ERROR);
 		verifyZeroInteractions(analyzerServiceClient);
 	}
@@ -107,7 +107,7 @@ public class IssuesAnalyzerServiceTest {
 		StepBasedStatisticsFacade mock = mock(StepBasedStatisticsFacade.class);
 		when(statisticsFacadeFactory.getStatisticsFacade(StatisticsCalculationStrategy.STEP_BASED)).thenReturn(mock);
 
-		issuesAnalyzer.analyze(launch, items);
+		issuesAnalyzer.analyze(launch, items, AnalyzeMode.ALL_LAUNCHES);
 
 		verify(logRepository, times(itemsCount)).findGreaterOrEqualLevel(anyListOf(String.class), eq(LogLevel.ERROR));
 		verify(analyzerServiceClient, times(1)).analyze(any());

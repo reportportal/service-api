@@ -112,7 +112,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	private Map<String, List<AnalyzedItemRs>> analyze(List<IndexTestItem> rqTestItems, Launch launch, AnalyzeMode analyzeMode) {
 		if (!rqTestItems.isEmpty()) {
 			IndexLaunch rqLaunch = new IndexLaunch();
-			rqLaunch.setAnalyzeMode(analyzeMode);
+			rqLaunch.setAnalyzeMode(analyzeMode.getValue());
 			rqLaunch.setLaunchId(launch.getId());
 			rqLaunch.setLaunchName(launch.getName());
 			rqLaunch.setProject(launch.getProjectRef());

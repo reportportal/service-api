@@ -21,7 +21,6 @@
 
 package com.epam.ta.reportportal.core.analyzer.model;
 
-import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
@@ -44,7 +43,7 @@ public class IndexLaunch {
 	private String project;
 
 	@JsonProperty("analyzeMode")
-	private AnalyzeMode analyzeMode;
+	private String analyzeMode;
 
 	@JsonProperty("testItems")
 	private List<IndexTestItem> testItems;
@@ -52,11 +51,11 @@ public class IndexLaunch {
 	public IndexLaunch() {
 	}
 
-	public AnalyzeMode getAnalyzeMode() {
+	public String getAnalyzeMode() {
 		return analyzeMode;
 	}
 
-	public void setAnalyzeMode(AnalyzeMode analyzeMode) {
+	public void setAnalyzeMode(String analyzeMode) {
 		this.analyzeMode = analyzeMode;
 	}
 

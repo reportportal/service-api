@@ -61,7 +61,7 @@ public interface ITestItemController {
 	 * @param principal
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS finishTestItem(String projectName, String item, FinishTestItemRQ finishExecutionRQ, Principal principal);
+	OperationCompletionRS finishTestItem(String projectName, Long item, FinishTestItemRQ finishExecutionRQ, Principal principal);
 
 	/**
 	 * Gets Test Item by ID

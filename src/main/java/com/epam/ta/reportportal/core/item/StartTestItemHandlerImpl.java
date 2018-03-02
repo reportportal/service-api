@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.item;
 
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.Preconditions;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
@@ -53,7 +54,6 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
  */
 @Service
 class StartTestItemHandlerImpl implements StartTestItemHandler {
-
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(StartTestItemHandlerImpl.class);
 
@@ -195,6 +195,10 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		//		expect(launch, Preconditions.IN_PROGRESS).verify(START_ITEM_NOT_ALLOWED,
 		//				Suppliers.formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId())
 		//		);
+
+		expect(launch.getStatus(), equalTo(StatusEnum.IN_PROGRESS)).verify(START_ITEM_NOT_ALLOWED,
+				Suppliers.formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId())
+		);
 
 		expect(rq, Preconditions.startSameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
 				rq.getStartTime(), launch.getStartTime(), launch.getId()

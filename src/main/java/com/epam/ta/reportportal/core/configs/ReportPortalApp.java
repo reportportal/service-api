@@ -37,25 +37,20 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.store.config.DatabaseConfiguration;
-import com.epam.ta.reportportal.store.database.dao.ReportPortalRepositoryImpl;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
  * Application Entry Point
  *
  * @author Andrei Varabyeu
  */
-//@SpringBootApplication(exclude = { HypermediaAutoConfiguration.class,
-//		/* configured explicitly for Apache Commons Multipart Resolver */ })
+
 @SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
-@Import({ /*SecurityConfiguration.class, JobsConfiguration.class, MvcConfig.class,*/ DatabaseConfiguration.class })
-//@EnableAspectJAutoProxy(proxyTargetClass = true)
-@EnableJpaRepositories(basePackages = "com.epam.ta.reportportal.store", repositoryBaseClass = ReportPortalRepositoryImpl.class)
+@Import({ DatabaseConfiguration.class })
 @ComponentScan("com.epam.ta.reportportal")
 public class ReportPortalApp {
 

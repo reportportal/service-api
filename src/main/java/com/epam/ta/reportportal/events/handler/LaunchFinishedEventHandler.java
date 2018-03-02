@@ -126,7 +126,7 @@ public class LaunchFinishedEventHandler {
 				launch.getId()
 		);
 		analyzerService.analyze(launch, toInvestigateItems,
-				Optional.ofNullable(project.getConfiguration().getAnalyzerMode()).orElse(AnalyzeMode.ALL_LAUNCHES)
+				Optional.ofNullable(project.getConfiguration().getAnalyzerMode()).orElse(AnalyzeMode.BY_LAUNCH_NAME)
 		);
 		// Get launch with AA results
 		Launch freshLaunch = launchRepository.findOne(launch.getId());

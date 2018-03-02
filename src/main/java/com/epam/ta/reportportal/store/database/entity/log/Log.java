@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.store.database.entity.log;
 
+import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -48,9 +49,6 @@ public class Log {
 	@Column(name = "log_message", nullable = false)
 	private String logMessage;
 
-	@Column(name = "item_id", nullable = false, precision = 64)
-	private Long itemId;
-
 	@LastModifiedDate
 	@Column(name = "last_modified", nullable = false)
 	private Timestamp lastModified;
@@ -58,12 +56,24 @@ public class Log {
 	@Column(name = "log_level", nullable = false, precision = 32)
 	private Integer logLevel;
 
+	@ManyToOne
+	@JoinColumn(name = "item_id")
+	private TestItem testItem;
+
 	public Long getId() {
 		return id;
 	}
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public TestItem getTestItem() {
+		return testItem;
+	}
+
+	public void setTestItem(TestItem testItem) {
+		this.testItem = testItem;
 	}
 
 	public Timestamp getLogTime() {
@@ -80,14 +90,6 @@ public class Log {
 
 	public void setLogMessage(String logMessage) {
 		this.logMessage = logMessage;
-	}
-
-	public Long getItemId() {
-		return itemId;
-	}
-
-	public void setItemId(Long itemId) {
-		this.itemId = itemId;
 	}
 
 	public Timestamp getLastModified() {
@@ -116,18 +118,18 @@ public class Log {
 		}
 		Log log = (Log) o;
 		return Objects.equals(id, log.id) && Objects.equals(logTime, log.logTime) && Objects.equals(logMessage, log.logMessage)
-				&& Objects.equals(itemId, log.itemId) && Objects.equals(lastModified, log.lastModified) && Objects.equals(
-				logLevel, log.logLevel);
+				&& Objects.equals(lastModified, log.lastModified) && Objects.equals(logLevel, log.logLevel) && Objects.equals(
+				testItem, log.testItem);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, logTime, logMessage, itemId, lastModified, logLevel);
+		return Objects.hash(id, logTime, logMessage, lastModified, logLevel, testItem);
 	}
 
 	@Override
 	public String toString() {
-		return "Log{" + "id=" + id + ", logTime=" + logTime + ", logMessage='" + logMessage + '\'' + ", itemId=" + itemId
-				+ ", lastModified=" + lastModified + ", logLevel=" + logLevel + '}';
+		return "Log{" + "id=" + id + ", logTime=" + logTime + ", logMessage='" + logMessage + '\'' + ", lastModified=" + lastModified
+				+ ", logLevel=" + logLevel + '}';
 	}
 }

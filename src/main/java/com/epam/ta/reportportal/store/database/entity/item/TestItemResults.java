@@ -106,8 +106,7 @@ public class TestItemResults implements Serializable {
 
 	@Override
 	public String toString() {
-		return "TestItemResults{" + "itemId=" + itemId + ", status=" + status + ", duration=" + duration + ", issue=" + issue
-				+ ", testItem=" + testItem + '}';
+		return "TestItemResults{" + "itemId=" + itemId + ", status=" + status + ", duration=" + duration + ", issue=" + issue + '}';
 	}
 
 	@Override

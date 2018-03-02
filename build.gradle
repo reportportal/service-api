@@ -86,10 +86,11 @@ dependencies {
     } else {
         //compile('com.github.reportportal:commons-dao:4.0.0')
         compile 'com.github.reportportal:commons-rules:spb2-SNAPSHOT'
-        compile 'com.github.reportportal:commons-model:0351b6f'
+        compile 'com.github.reportportal:commons-model:abe2b80'
         compile('com.github.reportportal:commons:3.1.0')
     }
 
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
     compile("org.springframework.boot:spring-boot-starter-data-jpa")
     compile group: 'org.hibernate', name: 'hibernate-validator', version: '6.0.7.Final'
     compile 'org.postgresql:postgresql:42.2.1'

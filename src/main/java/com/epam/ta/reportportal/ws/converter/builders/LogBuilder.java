@@ -19,19 +19,36 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.store.database.dao;
+package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.store.database.entity.log.Log;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 
 import java.sql.Timestamp;
-import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * @author Pavel Bortnik
  */
-public interface LogRepository extends JpaRepository<Log, Long>, LogRepositoryCustom {
+public class LogBuilder implements Supplier<Log> {
 
-	List<Log> findLogsByLogTime(Timestamp timestamp);
+	private Log log;
+
+	public LogBuilder() {
+		log = new Log();
+	}
+
+	public LogBuilder addSaveLogRq(SaveLogRQ createLogRQ) {
+		log.setLogLevel(Integer.parseInt(createLogRQ.getLevel()));
+		log.setLogMessage(Optional.ofNullable(createLogRQ.getMessage()).orElse("NULL"));
+		log.setLogTime(new Timestamp(createLogRQ.getLogTime().getTime()));
+		return this;
+	}
+
+	@Override
+	public Log get() {
+		return log;
+	}
 
 }

@@ -97,7 +97,7 @@ public class TestItemStructure implements Serializable {
 	@Override
 	public String toString() {
 		return "TestItemStructure{" + "itemId=" + itemId + ", launchId=" + launchId + ", parentId=" + parentId + ", retryOf=" + retryOf
-				+ ", testItem=" + testItem + '}';
+				+ '}';
 	}
 
 	@Override

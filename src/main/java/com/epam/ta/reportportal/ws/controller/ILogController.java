@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.BatchSaveOperatingRS;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import org.springframework.http.ResponseEntity;
 
@@ -98,13 +97,13 @@ public interface ILogController {
 	//	 */
 	//	Map<String, Serializable> getPageNumber(String projectName, String logId, Filter filter, Pageable pageable, Principal principal);
 
-	/**
-	 * Get by its ID
-	 *
-	 * @param projectName
-	 * @param logId
-	 * @param principal
-	 * @return
-	 */
-	LogResource getLog(String projectName, String logId, Principal principal);
+	//	/**
+	//	 * Get by its ID
+	//	 *
+	//	 * @param projectName
+	//	 * @param logId
+	//	 * @param principal
+	//	 * @return
+	//	 */
+	//	LogResource getLog(String projectName, String logId, Principal principal);
 }

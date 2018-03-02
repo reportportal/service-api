@@ -19,19 +19,23 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.store.database.dao;
+package com.epam.ta.reportportal.core.log;
 
-import com.epam.ta.reportportal.store.database.entity.log.Log;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-import java.sql.Timestamp;
-import java.util.List;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 /**
- * @author Pavel Bortnik
+ * * Delete {@link Log} request handler
+ *
+ * @author Henadzi_Vrubleuski
  */
-public interface LogRepository extends JpaRepository<Log, Long>, LogRepositoryCustom {
+public interface IDeleteLogHandler {
 
-	List<Log> findLogsByLogTime(Timestamp timestamp);
-
+	/**
+	 * Delete Specified {@link Log} instance
+	 *
+	 * @param logId
+	 * @return
+	 * @throws ReportPortalException
+	 */
+	OperationCompletionRS deleteLog(String logId, String projectName, String userName);
 }

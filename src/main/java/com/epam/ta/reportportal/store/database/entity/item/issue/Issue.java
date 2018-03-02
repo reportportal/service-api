@@ -105,7 +105,7 @@ public class Issue {
 	@Override
 	public String toString() {
 		return "Issue{" + "issueId=" + issueId + ", issueType=" + issueType + ", issueDescription='" + issueDescription + '\''
-				+ ", autoAnalyzed=" + autoAnalyzed + ", ignoreAnalyzer=" + ignoreAnalyzer + ", testItemResults=" + testItemResults + '}';
+				+ ", autoAnalyzed=" + autoAnalyzed + ", ignoreAnalyzer=" + ignoreAnalyzer + '}';
 	}
 
 	@Override

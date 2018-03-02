@@ -42,10 +42,21 @@ public class IndexLaunch {
 	@JsonProperty("project")
 	private String project;
 
+	@JsonProperty("analyzeMode")
+	private String analyzeMode;
+
 	@JsonProperty("testItems")
 	private List<IndexTestItem> testItems;
 
 	public IndexLaunch() {
+	}
+
+	public String getAnalyzeMode() {
+		return analyzeMode;
+	}
+
+	public void setAnalyzeMode(String analyzeMode) {
+		this.analyzeMode = analyzeMode;
 	}
 
 	public String getLaunchId() {
@@ -90,11 +101,11 @@ public class IndexLaunch {
 		}
 		IndexLaunch that = (IndexLaunch) o;
 		return Objects.equals(launchId, that.launchId) && Objects.equals(launchName, that.launchName) && Objects.equals(
-				project, that.project) && Objects.equals(testItems, that.testItems);
+				project, that.project) && analyzeMode == that.analyzeMode && Objects.equals(testItems, that.testItems);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(launchId, launchName, project, testItems);
+		return Objects.hash(launchId, launchName, project, analyzeMode, testItems);
 	}
 }

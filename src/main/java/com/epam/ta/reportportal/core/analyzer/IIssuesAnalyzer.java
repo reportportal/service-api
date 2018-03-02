@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.analyzer;
 
+import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 
@@ -40,8 +41,9 @@ public interface IIssuesAnalyzer {
 	 *
 	 * @param launch    Initial launch for history
 	 * @param testItems - current test items with failed status and issue
+	 * @param mode      - Analyze mode
 	 */
-	void analyze(Launch launch, List<TestItem> testItems);
+	void analyze(Launch launch, List<TestItem> testItems, AnalyzeMode mode);
 
 	/**
 	 * Checks if any analyzer is available

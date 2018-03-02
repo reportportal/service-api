@@ -137,7 +137,6 @@ public class FinishTestItemHandlerImplTest {
 		testItem.setType(TestItemType.STEP);
 		Project project = new Project();
 		Project.Configuration configuration = new Project.Configuration();
-		configuration.setIsAutoAnalyzerEnabled(true);
 		project.setConfiguration(configuration);
 
 		TestItem updatedTestItem = finishTestItemHandler.awareTestItemIssueTypeFromStatus(testItem, null, project, "someuser");
@@ -166,7 +165,6 @@ public class FinishTestItemHandlerImplTest {
 
 		Project project = new Project();
 		Project.Configuration configuration = new Project.Configuration();
-		configuration.setIsAutoAnalyzerEnabled(false);
 		project.setConfiguration(configuration);
 
 		ExternalSystemRepository externalSystemRepository = mock(ExternalSystemRepository.class);
@@ -199,7 +197,6 @@ public class FinishTestItemHandlerImplTest {
 
 		Project project = new Project();
 		Project.Configuration configuration = new Project.Configuration();
-		configuration.setIsAutoAnalyzerEnabled(false);
 		project.setConfiguration(configuration);
 
 		ExternalSystemRepository externalSystemRepository = mock(ExternalSystemRepository.class);

@@ -21,7 +21,15 @@
 
 package com.epam.ta.reportportal.store.commons;
 
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
+
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.Optional;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.stream.Collectors.toList;
@@ -38,6 +46,11 @@ public class EntityUtils {
 	private EntityUtils() {
 
 	}
+
+	public static Function<Date, LocalDateTime> TO_LOCAL_DATE_TIME = date -> LocalDateTime.ofInstant(
+			Optional.ofNullable(date).orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR)).toInstant(),
+			ZoneId.systemDefault()
+	);
 
 	/**
 	 * Normalize any ID for database ID fields, for example

@@ -26,7 +26,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -44,14 +44,14 @@ public class Log {
 	private Long id;
 
 	@Column(name = "log_time", nullable = false)
-	private Timestamp logTime;
+	private LocalDateTime logTime;
 
 	@Column(name = "log_message", nullable = false)
 	private String logMessage;
 
 	@LastModifiedDate
 	@Column(name = "last_modified", nullable = false)
-	private Timestamp lastModified;
+	private LocalDateTime lastModified;
 
 	@Column(name = "log_level", nullable = false, precision = 32)
 	private Integer logLevel;
@@ -76,12 +76,20 @@ public class Log {
 		this.testItem = testItem;
 	}
 
-	public Timestamp getLogTime() {
+	public LocalDateTime getLogTime() {
 		return logTime;
 	}
 
-	public void setLogTime(Timestamp logTime) {
+	public void setLogTime(LocalDateTime logTime) {
 		this.logTime = logTime;
+	}
+
+	public LocalDateTime getLastModified() {
+		return lastModified;
+	}
+
+	public void setLastModified(LocalDateTime lastModified) {
+		this.lastModified = lastModified;
 	}
 
 	public String getLogMessage() {
@@ -90,14 +98,6 @@ public class Log {
 
 	public void setLogMessage(String logMessage) {
 		this.logMessage = logMessage;
-	}
-
-	public Timestamp getLastModified() {
-		return lastModified;
-	}
-
-	public void setLastModified(Timestamp lastModified) {
-		this.lastModified = lastModified;
 	}
 
 	public Integer getLogLevel() {

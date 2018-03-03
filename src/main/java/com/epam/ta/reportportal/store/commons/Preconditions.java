@@ -27,9 +27,15 @@ import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import org.apache.commons.lang.ArrayUtils;
 
-import java.util.*;
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
+
+import static com.epam.ta.reportportal.store.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 
 /**
  * Several validation checks
@@ -51,8 +57,11 @@ public class Preconditions {
 
 	public static final Predicate<Optional<?>> IS_PRESENT = Optional::isPresent;
 
-	public static Predicate<FinishExecutionRQ> finishSameTimeOrLater(final Date startTime) {
-		return input -> input.getEndTime().getTime() >= startTime.getTime();
+	public static Predicate<FinishExecutionRQ> finishSameTimeOrLater(final LocalDateTime startTime) {
+		return input -> {
+			LocalDateTime endTime = TO_LOCAL_DATE_TIME.apply(input.getEndTime());
+			return endTime.isAfter(startTime) || endTime.isEqual(startTime);
+		};
 	}
 
 	/**
@@ -61,8 +70,11 @@ public class Preconditions {
 	 * @param startTime
 	 * @return
 	 */
-	public static Predicate<StartTestItemRQ> startSameTimeOrLater(final Date startTime) {
-		return input -> input.getStartTime() != null && input.getStartTime().getTime() >= startTime.getTime();
+	public static Predicate<StartTestItemRQ> startSameTimeOrLater(final LocalDateTime startTime) {
+		return input -> {
+			LocalDateTime start = TO_LOCAL_DATE_TIME.apply(input.getStartTime());
+			return start != null && (start.isAfter(startTime) || start.isEqual(startTime));
+		};
 	}
 
 	public static Predicate<StatusEnum> statusIn(final StatusEnum... statuses) {

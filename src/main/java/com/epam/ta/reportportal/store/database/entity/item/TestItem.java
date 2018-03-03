@@ -32,7 +32,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
 
@@ -59,14 +59,14 @@ public class TestItem implements Serializable {
 	private TestItemTypeEnum type;
 
 	@Column(name = "start_time", nullable = false)
-	private Timestamp startTime;
+	private LocalDateTime startTime;
 
 	@Column(name = "description")
 	private String description;
 
 	@LastModifiedDate
 	@Column(name = "last_modified", nullable = false)
-	private Timestamp lastModified;
+	private LocalDateTime lastModified;
 
 	//	@Column(name = "parameters")
 	//	private Parameter[] parameters;
@@ -155,12 +155,20 @@ public class TestItem implements Serializable {
 		this.type = type;
 	}
 
-	public Timestamp getStartTime() {
+	public LocalDateTime getStartTime() {
 		return startTime;
 	}
 
-	public void setStartTime(Timestamp startTime) {
+	public void setStartTime(LocalDateTime startTime) {
 		this.startTime = startTime;
+	}
+
+	public LocalDateTime getLastModified() {
+		return lastModified;
+	}
+
+	public void setLastModified(LocalDateTime lastModified) {
+		this.lastModified = lastModified;
 	}
 
 	public String getDescription() {
@@ -171,13 +179,6 @@ public class TestItem implements Serializable {
 		this.description = description;
 	}
 
-	public Timestamp getLastModified() {
-		return lastModified;
-	}
-
-	public void setLastModified(Timestamp lastModified) {
-		this.lastModified = lastModified;
-	}
 
 	//	public Parameter[] getParameters() {
 	//		return parameters;

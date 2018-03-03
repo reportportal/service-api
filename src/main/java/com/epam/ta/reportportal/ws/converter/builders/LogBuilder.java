@@ -24,7 +24,6 @@ package com.epam.ta.reportportal.ws.converter.builders;
 import com.epam.ta.reportportal.store.database.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 
-import java.sql.Timestamp;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -42,7 +41,7 @@ public class LogBuilder implements Supplier<Log> {
 	public LogBuilder addSaveLogRq(SaveLogRQ createLogRQ) {
 		log.setLogLevel(Integer.parseInt(createLogRQ.getLevel()));
 		log.setLogMessage(Optional.ofNullable(createLogRQ.getMessage()).orElse("NULL"));
-		log.setLogTime(new Timestamp(createLogRQ.getLogTime().getTime()));
+		//log.setLogTime(new Timestamp(createLogRQ.getLogTime().getTime()));
 		return this;
 	}
 

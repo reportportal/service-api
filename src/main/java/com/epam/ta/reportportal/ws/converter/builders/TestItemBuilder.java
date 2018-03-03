@@ -31,7 +31,6 @@ import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 
-import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -51,7 +50,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	}
 
 	public TestItemBuilder addStartItemRequest(StartTestItemRQ rq) {
-		testItem.setStartTime(new Timestamp(rq.getStartTime().getTime()));
+		//testItem.setStartTime(new Timestamp(rq.getStartTime().getTime()));
 		testItem.setName(rq.getName().trim());
 		testItem.setUniqueId(rq.getUniqueId());
 		ofNullable(rq.getDescription()).ifPresent(it -> testItem.setDescription(it.trim()));

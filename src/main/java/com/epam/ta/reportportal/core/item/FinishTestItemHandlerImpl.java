@@ -94,7 +94,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 		//verifyTestItem(testItem, testItemId, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()));
 
-		testItem.getTestItemResults().setDuration((float) (finishExecutionRQ.getEndTime().getTime() - testItem.getStartTime().getTime()));
+		//testItem.getTestItemResults().setDuration((float) (finishExecutionRQ.getEndTime().getTime() - testItem.getStartTime().getTime()));
 
 		if (!isNullOrEmpty(finishExecutionRQ.getDescription())) {
 			testItem.setDescription(finishExecutionRQ.getDescription());

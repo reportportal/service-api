@@ -57,6 +57,33 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 		this.dsl = dsl;
 	}
 
+	//	public void recursive(Long itemId) {
+	//
+	//		com.epam.ta.reportportal.store.jooq.tables.TestItemStructure tisOne = TEST_ITEM_STRUCTURE.as("tis1");
+	//		com.epam.ta.reportportal.store.jooq.tables.TestItem tOne = TEST_ITEM.as("t1");
+	//		com.epam.ta.reportportal.store.jooq.tables.TestItemStructure tisTwo = TEST_ITEM_STRUCTURE.as("tis2");
+	//		com.epam.ta.reportportal.store.jooq.tables.TestItem tTwo = TEST_ITEM.as("t1");
+	//		Result<Record> fetch = dsl.withRecursive("temp")
+	//				.as(dsl.select(tisOne.ITEM_ID, tisOne.PARENT_ID, tOne.NAME.cast(PostgresDataType.VARCHAR.precision(50)).as("path"))
+	//						.from(tisOne)
+	//						.join(tOne)
+	//						.on(tisOne.ITEM_ID.eq(tOne.ITEM_ID))
+	//						.where(tisOne.PARENT_ID.isNull())
+	//						.and(tisOne.ITEM_ID.eq(itemId))
+	//						.union(dsl.select(tisTwo.ITEM_ID, tisTwo.PARENT_ID,
+	//								DSL.concat((DSL.table(DSL.name("temp")).field(DSL.name("path"))), DSL.field(DSL.name("->")), tTwo.NAME)
+	//										.cast(PostgresDataType.VARCHAR.precision(50))
+	//						)
+	//								.from(tisTwo)
+	//								.join(tTwo)
+	//								.on(tisTwo.ITEM_ID.eq(tTwo.ITEM_ID))
+	//								.innerJoin(DSL.table(DSL.name("temp")))
+	//								.on((DSL.table(DSL.name("temp")).field(DSL.name("item_id")).cast(Long.class).eq(tisTwo.ITEM_ID)))))
+	//				.selectFrom(DSL.table(DSL.name("temp")))
+	//				.fetch();
+	//		System.out.println(fetch);
+	//	}
+
 	@Override
 	public List<TestItemCommon> selectItemsInStatusByLaunch(Long launchId, StatusEnum status) {
 		com.epam.ta.reportportal.store.jooq.enums.StatusEnum statusEnum = com.epam.ta.reportportal.store.jooq.enums.StatusEnum.valueOf(
@@ -140,8 +167,10 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 	private SelectOnConditionStep<Record> commonTestItemDslSelect() {
 		return dsl.select()
 				.from(TEST_ITEM)
-				.join(TEST_ITEM_STRUCTURE).on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_STRUCTURE.ITEM_ID))
-				.join(TEST_ITEM_RESULTS).on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_RESULTS.ITEM_ID));
+				.join(TEST_ITEM_STRUCTURE)
+				.on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_STRUCTURE.ITEM_ID))
+				.join(TEST_ITEM_RESULTS)
+				.on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_RESULTS.ITEM_ID));
 	}
 
 }

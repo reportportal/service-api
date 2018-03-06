@@ -7,6 +7,7 @@ import com.epam.ta.reportportal.store.jooq.tables.*;
 
 import javax.annotation.Generated;
 
+
 /**
  * Convenience access to all tables in public
  */
@@ -88,6 +89,11 @@ public class Tables {
 	 * The table <code>public.oauth_registration</code>.
 	 */
 	public static final JOauthRegistration OAUTH_REGISTRATION = com.epam.ta.reportportal.store.jooq.tables.JOauthRegistration.OAUTH_REGISTRATION;
+
+	/**
+	 * The table <code>public.oauth_registration_scope</code>.
+	 */
+	public static final JOauthRegistrationScope OAUTH_REGISTRATION_SCOPE = com.epam.ta.reportportal.store.jooq.tables.JOauthRegistrationScope.OAUTH_REGISTRATION_SCOPE;
 
 	/**
 	 * The table <code>public.project</code>.

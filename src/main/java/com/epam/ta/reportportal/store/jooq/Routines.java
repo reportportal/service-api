@@ -9,6 +9,7 @@ import org.jooq.Field;
 
 import javax.annotation.Generated;
 
+
 /**
  * Convenience access to all stored procedures and functions in public
  */

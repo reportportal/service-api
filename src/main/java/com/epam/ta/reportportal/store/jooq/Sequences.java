@@ -8,6 +8,7 @@ import org.jooq.impl.SequenceImpl;
 
 import javax.annotation.Generated;
 
+
 /**
  * Convenience access to all sequences in public
  */
@@ -103,6 +104,15 @@ public class Sequences {
 			"log_id_seq",
 			JPublic.PUBLIC,
 			org.jooq.impl.SQLDataType.BIGINT.nullable(false)
+	);
+
+	/**
+	 * The sequence <code>public.oauth_registration_scope_id_seq</code>
+	 */
+	public static final Sequence<Integer> OAUTH_REGISTRATION_SCOPE_ID_SEQ = new SequenceImpl<Integer>(
+			"oauth_registration_scope_id_seq",
+			JPublic.PUBLIC,
+			org.jooq.impl.SQLDataType.INTEGER.nullable(false)
 	);
 
 	/**

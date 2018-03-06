@@ -10,6 +10,7 @@ import org.jooq.impl.Internal;
 
 import javax.annotation.Generated;
 
+
 /**
  * A class modelling indexes of tables of the <code>public</code> schema.
  */
@@ -41,6 +42,7 @@ public class Indexes {
 	public static final Index ACCESS_TOKENS_PK = Indexes0.ACCESS_TOKENS_PK;
 	public static final Index OAUTH_REGISTRATION_CLIENT_ID_KEY = Indexes0.OAUTH_REGISTRATION_CLIENT_ID_KEY;
 	public static final Index OAUTH_REGISTRATION_PKEY = Indexes0.OAUTH_REGISTRATION_PKEY;
+	public static final Index OAUTH_REGISTRATION_SCOPE_PK = Indexes0.OAUTH_REGISTRATION_SCOPE_PK;
 	public static final Index PROJECT_PK = Indexes0.PROJECT_PK;
 	public static final Index PROJECT_PROJECT_CONFIGURATION_ID_KEY = Indexes0.PROJECT_PROJECT_CONFIGURATION_ID_KEY;
 	public static final Index PROJECT_CONFIGURATION_EMAIL_CONFIGURATION_ID_KEY = Indexes0.PROJECT_CONFIGURATION_EMAIL_CONFIGURATION_ID_KEY;
@@ -168,6 +170,12 @@ public class Indexes {
 				"oauth_registration_pkey",
 				JOauthRegistration.OAUTH_REGISTRATION,
 				new OrderField[] { JOauthRegistration.OAUTH_REGISTRATION.ID },
+				true
+		);
+		public static Index OAUTH_REGISTRATION_SCOPE_PK = Internal.createIndex(
+				"oauth_registration_scope_pk",
+				JOauthRegistrationScope.OAUTH_REGISTRATION_SCOPE,
+				new OrderField[] { JOauthRegistrationScope.OAUTH_REGISTRATION_SCOPE.ID },
 				true
 		);
 		public static Index PROJECT_PK = Internal.createIndex(

@@ -42,6 +42,7 @@
             <pojos>true</pojos>
             <jpaAnnotations>false</jpaAnnotations>
             <dateAsTimestamp>false</dateAsTimestamp>
+            <includeRoutines>false</includeRoutines>
         </generate>
 
         <target>

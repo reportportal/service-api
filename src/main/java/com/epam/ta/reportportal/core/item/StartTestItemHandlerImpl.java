@@ -88,9 +88,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
-
 		testItemRepository.save(item);
-		testItemRepository.refresh(item);
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
 
@@ -137,9 +135,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		//				testItemRepository.updateHasChilds(parentItem.getId(), true);
 		//			}
 		//		}
-
 		testItemRepository.save(item);
-		testItemRepository.refresh(item);
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
 

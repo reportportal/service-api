@@ -31,7 +31,10 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
@@ -70,13 +73,10 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 	private String prepareForEncoding(TestItem testItem, Launch launch) {
 		Integer projectId = launch.getProjectId();
 		String launchName = launch.getName();
-		List<String> pathNames = testItemRepository.selectPathNames(testItem.getItemId())
-				.entrySet()
-				.stream()
-				.map(Map.Entry::getValue)
-				.collect(toList());
+		Long parent = testItem.getTestItemStructure().getParent().getItemId();
+		List<String> pathNames = testItemRepository.selectPathNames(parent).entrySet().stream().map(Map.Entry::getValue).collect(toList());
 		String itemName = testItem.getName();
-		List<Parameter> parameters = Arrays.asList(Optional.ofNullable(testItem.getParameters()).orElse(new Parameter[0]));
+		List<Parameter> parameters = Collections.emptyList(); //TODO! Arrays.asList(Optional.ofNullable(testItem.getParameters()).orElse(new Parameter[0]));
 		StringJoiner joiner = new StringJoiner(";");
 		joiner.add(projectId.toString()).add(launchName);
 		if (!CollectionUtils.isEmpty(pathNames)) {

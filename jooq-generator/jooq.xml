@@ -39,7 +39,7 @@
         </database>
 
         <generate>
-            <pojos>true</pojos>
+            <pojos>false</pojos>
             <jpaAnnotations>false</jpaAnnotations>
             <dateAsTimestamp>false</dateAsTimestamp>
             <routines>false</routines>

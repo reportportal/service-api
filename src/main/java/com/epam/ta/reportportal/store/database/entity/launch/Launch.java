@@ -69,7 +69,7 @@ public class Launch {
 	private LocalDateTime startTime;
 
 	@Column(name = "number", nullable = false, precision = 32)
-	private Integer number;
+	private Long number;
 
 	@Column(name = "last_modified", nullable = false)
 	@LastModifiedDate
@@ -146,11 +146,11 @@ public class Launch {
 		this.startTime = startTime;
 	}
 
-	public Integer getNumber() {
+	public Long getNumber() {
 		return number;
 	}
 
-	public void setNumber(Integer number) {
+	public void setNumber(Long number) {
 		this.number = number;
 	}
 

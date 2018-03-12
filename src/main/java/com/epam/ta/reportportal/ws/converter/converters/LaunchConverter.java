@@ -21,10 +21,15 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.store.database.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.model.launch.Mode;
 
 import java.util.function.Function;
+
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Pavel Bortnik
@@ -36,6 +41,20 @@ public final class LaunchConverter {
 	}
 
 	public static final Function<Launch, LaunchResource> TO_RESOURCE = db -> {
+		LaunchResource resource = new LaunchResource();
+		resource.setLaunchId(db.getId());
+		resource.setName(db.getName());
+		resource.setNumber(db.getNumber());
+		resource.setDescription(db.getDescription());
+		resource.setStatus(db.getStatus() == null ? null : db.getStatus().toString());
+		resource.setStartTime(EntityUtils.TO_DATE.apply(db.getStartTime()));
+		//resource.setEndTime(db.getEndTime());
+		resource.setTags(db.getTags().stream().map(LaunchTag::getValue).collect(toSet()));
+		resource.setMode(Mode.valueOf(db.getMode().name()));
+		//resource.setApproximateDuration(db.getApproximateDuration());
+		//resource.setIsProcessing(false);
+		//resource.setOwner(db.getUserId());
+
 		//		Preconditions.checkNotNull(db);
 		//		LaunchResource resource = new LaunchResource();
 		//		resource.setLaunchId(db.getId());
@@ -53,6 +72,6 @@ public final class LaunchConverter {
 		//		resource.setHasRetries(BooleanUtils.isTrue(db.getHasRetries()));
 		//		resource.setStatistics(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
 		//		return resource;
-		throw new UnsupportedOperationException();
+		return resource;
 	};
 }

@@ -21,15 +21,12 @@
 
 package com.epam.ta.reportportal.store.commons;
 
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.Optional;
+import java.util.function.Function;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.stream.Collectors.toList;
@@ -47,10 +44,15 @@ public class EntityUtils {
 
 	}
 
-	public static Function<Date, LocalDateTime> TO_LOCAL_DATE_TIME = date -> LocalDateTime.ofInstant(
-			Optional.ofNullable(date).orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR)).toInstant(),
-			ZoneId.systemDefault()
-	);
+	public static Function<Date, LocalDateTime> TO_LOCAL_DATE_TIME = date -> {
+		Preconditions.checkNotNull(date, "Provided value shouldn't be null");
+		return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+	};
+
+	public static Function<LocalDateTime, Date> TO_DATE = localDateTime -> {
+		Preconditions.checkNotNull(localDateTime, "Provided value shouldn't be null");
+		return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+	};
 
 	/**
 	 * Normalize any ID for database ID fields, for example
@@ -58,6 +60,7 @@ public class EntityUtils {
 	 * @param id ID to normalize
 	 * @return String
 	 */
+
 	public static String normalizeId(String id) {
 		return Preconditions.checkNotNull(id, "Provided value shouldn't be null").toLowerCase();
 	}

@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.store.database.entity.item.TestItemStructure;
 import com.epam.ta.reportportal.store.database.entity.item.issue.Issue;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.store.jooq.Tables;
+import com.epam.ta.reportportal.store.jooq.enums.JStatusEnum;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.SelectOnConditionStep;
@@ -38,11 +39,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 import static com.epam.ta.reportportal.store.jooq.Tables.*;
-import static com.epam.ta.reportportal.store.jooq.tables.Issue.ISSUE;
-import static com.epam.ta.reportportal.store.jooq.tables.IssueType.ISSUE_TYPE;
-import static com.epam.ta.reportportal.store.jooq.tables.TestItem.TEST_ITEM;
-import static com.epam.ta.reportportal.store.jooq.tables.TestItemResults.TEST_ITEM_RESULTS;
-import static com.epam.ta.reportportal.store.jooq.tables.TestItemStructure.TEST_ITEM_STRUCTURE;
 
 /**
  * @author Pavel Bortnik
@@ -86,8 +82,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 
 	@Override
 	public List<TestItemCommon> selectItemsInStatusByLaunch(Long launchId, StatusEnum status) {
-		com.epam.ta.reportportal.store.jooq.enums.StatusEnum statusEnum = com.epam.ta.reportportal.store.jooq.enums.StatusEnum.valueOf(
-				status.name());
+		JStatusEnum statusEnum = JStatusEnum.valueOf(status.name());
 		return commonTestItemDslSelect().where(TEST_ITEM_STRUCTURE.LAUNCH_ID.eq(launchId).and(TEST_ITEM_RESULTS.STATUS.eq(statusEnum)))
 				.fetch(r -> {
 					TestItemCommon testItemCommon = new TestItemCommon();
@@ -136,8 +131,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 				.join(TEST_ITEM_RESULTS)
 				.on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_RESULTS.ITEM_ID))
 				.where(TEST_ITEM_STRUCTURE.PARENT_ID.eq(testItemId)
-						.and(TEST_ITEM_RESULTS.STATUS.eq(com.epam.ta.reportportal.store.jooq.enums.StatusEnum.FAILED)
-								.or(TEST_ITEM_RESULTS.STATUS.eq(com.epam.ta.reportportal.store.jooq.enums.StatusEnum.SKIPPED))))) ?
+						.and(TEST_ITEM_RESULTS.STATUS.eq(JStatusEnum.FAILED).or(TEST_ITEM_RESULTS.STATUS.eq(JStatusEnum.SKIPPED))))) ?
 				StatusEnum.FAILED :
 				StatusEnum.PASSED;
 	}

@@ -34,13 +34,8 @@ import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
-import com.google.common.annotations.VisibleForTesting;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Objects;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
@@ -55,21 +50,11 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Service
 class StartTestItemHandlerImpl implements StartTestItemHandler {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(StartTestItemHandlerImpl.class);
-
 	private TestItemRepository testItemRepository;
-	private LaunchRepository launchRepository;
-	private UniqueIdGenerator identifierGenerator;
-	//private RetryTemplate retrier;
 
-	public StartTestItemHandlerImpl() {
-		//		retrier = new RetryTemplate();
-		//		TimeoutRetryPolicy timeoutRetryPolicy = new TimeoutRetryPolicy();
-		//		timeoutRetryPolicy.setTimeout(TimeUnit.SECONDS.toMillis(3L));
-		//		retrier.setRetryPolicy(timeoutRetryPolicy);
-		//		retrier.setBackOffPolicy(new FixedBackOffPolicy());
-		//		retrier.setThrowLastExceptionOnExhausted(true);
-	}
+	private LaunchRepository launchRepository;
+
+	private UniqueIdGenerator identifierGenerator;
 
 	@Autowired
 	public void setIdentifierGenerator(UniqueIdGenerator identifierGenerator) {
@@ -163,34 +148,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
 
-	@VisibleForTesting
-	TestItem getRetryRoot(String uniqueID, String parent) {
-		throw new UnsupportedOperationException();
-		//		LOGGER.warn("Looking for retry root. Parent: {}. Unique ID: {}", parent, uniqueID);
-		//		/*
-		//		 * Due to async nature of RP clients and some TestNG
-		//		 * implementation details both 'start item' of root of retry and 'start item' events
-		//		 * may come at the same time (almost). To simplify client side we don't introduce requirement
-		//		 * that 1st retry item have to wait for the item that causes of retry (retry root). Instead, we
-		//		 * just introduce some wait on server side. This case if extremely specific, in 99% real-world cases
-		//		 * results will be returned from first attempt
-		//		 */
-		//		return retrier.execute(context -> {
-		//			/* search for the item with the same unique ID and parent. Since retries do not contain
-		//			 * parentID, there should be only one result. For correct further processing - it needs
-		//			 * to be waited for the end of retries root item.
-		//			 */
-		//			TestItem item = testItemRepository.findRetryRoot(uniqueID, parent);
-		//			BusinessRule.expect(item, com.epam.ta.reportportal.commons.Predicates.notNull())
-		//					.verify(ErrorType.BAD_REQUEST_ERROR, "No retry root found");
-		//			BusinessRule.expect(item.getStatus(), Predicates.not(it -> it.equals(Status.IN_PROGRESS)))
-		//					.verify(BAD_REQUEST_ERROR, "Retries root is still IN_PROGRESS");
-		//			return item;
-		//		});
-	}
-
 	private void validate(String projectName, StartTestItemRQ rq, Launch launch) {
-		expect(launch, Objects::nonNull).verify(LAUNCH_NOT_FOUND, rq.getLaunchId());
 		//expect(projectName.toLowerCase(), equalTo(launch.getProjectRef())).verify(ACCESS_DENIED);
 		//		expect(launch, Preconditions.IN_PROGRESS).verify(START_ITEM_NOT_ALLOWED,
 		//				Suppliers.formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId())

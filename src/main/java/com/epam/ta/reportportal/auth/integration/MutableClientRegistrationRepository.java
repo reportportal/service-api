@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.auth.integration;
 
 import com.epam.ta.reportportal.store.jooq.tables.pojos.JOauthRegistration;
+import com.epam.ta.reportportal.store.jooq.tables.pojos.JOauthRegistrationScope;
 import com.epam.ta.reportportal.store.jooq.tables.records.JOauthRegistrationRecord;
 import org.jooq.DSLContext;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -10,6 +11,7 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -35,7 +37,7 @@ public class MutableClientRegistrationRepository implements ClientRegistrationRe
 				.clientId(registration.getClientId())
 				.clientSecret(registration.getClientSecret())
 				.clientName(registration.getClientName())
-				.scope(fullRegistration.getValue().stream().map(OauthRegistrationScope::getScope).toArray(String[]::new))
+				.scope(fullRegistration.getValue().stream().map(JOauthRegistrationScope::getScope).toArray(String[]::new))
 				.redirectUriTemplate("{baseUrl}/oauth2/authorization")
 				.build();
 
@@ -70,14 +72,14 @@ public class MutableClientRegistrationRepository implements ClientRegistrationRe
 
 	@Override
 	public ClientRegistration findByRegistrationId(String registrationId) {
-		Map<JOauthRegistration, List<OauthRegistrationScope>> registration = dslContext.select()
+		Map<JOauthRegistration, List<JOauthRegistrationScope>> registration = dslContext.select()
 				.from(OAUTH_REGISTRATION)
 				.join(OAUTH_REGISTRATION_SCOPE)
 				.on(OAUTH_REGISTRATION.ID.eq(OAUTH_REGISTRATION_SCOPE.OAUTH_REGISTRATION_FK))
 				.where(OAUTH_REGISTRATION.ID.eq(registrationId))
 				.fetchGroups(
 						//map records first into the ROLE table and then into the value POJO type
-						r -> r.into(JOauthRegistration.class), r -> r.into(OauthRegistrationScope.class));
+						r -> r.into(JOauthRegistration.class), r -> r.into(JOauthRegistrationScope.class));
 		return REGISTRATION_MAPPER.apply(registration.entrySet().iterator().next());
 	}
 
@@ -96,7 +98,7 @@ public class MutableClientRegistrationRepository implements ClientRegistrationRe
 		dslContext.insertInto(OAUTH_REGISTRATION_SCOPE)
 				.values(registration.getScopes()
 						.stream()
-						.map(s -> new OauthRegistrationScope(null, oauthRegistrationRecord.getId(), s))
+						.map(s -> new JOauthRegistrationScope(null, oauthRegistrationRecord.getId(), s))
 						.collect(Collectors.toList()));
 
 		return registration;
@@ -111,7 +113,7 @@ public class MutableClientRegistrationRepository implements ClientRegistrationRe
 				.from(OAUTH_REGISTRATION)
 				.fetchGroups(
 						//map records first into the ROLE table and then into the value POJO type
-						r -> r.into(JOauthRegistration.class), r -> r.into(OauthRegistrationScope.class))
+						r -> r.into(JOauthRegistration.class), r -> r.into(JOauthRegistrationScope.class))
 				.entrySet()
 				.stream()
 				.map(REGISTRATION_MAPPER)

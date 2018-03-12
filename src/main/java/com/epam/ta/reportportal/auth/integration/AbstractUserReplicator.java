@@ -20,7 +20,7 @@
  */
 package com.epam.ta.reportportal.auth.integration;
 
-import com.epam.ta.reportportal.database.BinaryData;
+
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;

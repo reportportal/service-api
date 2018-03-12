@@ -22,16 +22,15 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemTag;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -50,7 +49,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	}
 
 	public TestItemBuilder addStartItemRequest(StartTestItemRQ rq) {
-		//testItem.setStartTime(new Timestamp(rq.getStartTime().getTime()));
+		testItem.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(rq.getStartTime()));
 		testItem.setName(rq.getName().trim());
 		testItem.setUniqueId(rq.getUniqueId());
 		ofNullable(rq.getDescription()).ifPresent(it -> testItem.setDescription(it.trim()));
@@ -60,7 +59,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 			tags = Sets.newHashSet(trimStrings(update(tags)));
 			testItem.setTags(tags.stream().map(TestItemTag::new).collect(Collectors.toSet()));
 		}
-		List<ParameterResource> parameters = rq.getParameters();
+		//List<ParameterResource> parameters = rq.getParameters();
 		//		if (null != parameters) {
 		//			testItem.setParameters(parameters.stream().map(ParametersConverter.TO_MODEL).toArray(Parameter[]::new));
 		//		}

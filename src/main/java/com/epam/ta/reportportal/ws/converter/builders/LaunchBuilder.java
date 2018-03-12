@@ -21,13 +21,13 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
+import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.base.Strings;
 
-import java.time.ZoneId;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -46,7 +46,7 @@ public class LaunchBuilder implements Supplier<Launch> {
 
 	public LaunchBuilder addStartRQ(StartLaunchRQ request) {
 		if (request != null) {
-			launch.setStartTime(request.getStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+			launch.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(request.getStartTime()));
 			launch.setName(request.getName().trim());
 			addDescription(request.getDescription());
 			addTags(newHashSet(trimStrings(update(request.getTags()))));

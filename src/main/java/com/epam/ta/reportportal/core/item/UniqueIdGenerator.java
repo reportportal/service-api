@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 
 /**
  * Unique id generator for designate test item's originality
@@ -37,7 +38,7 @@ public interface UniqueIdGenerator {
 	 * @param testItem source for id
 	 * @return unique id
 	 */
-	String generate(TestItem testItem);
+	String generate(TestItem testItem, Launch launch);
 
 	/**
 	 * Validate if string has been generated automatically

@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
-import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemStructure;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
@@ -81,17 +80,13 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		validate(projectName, rq, launch);
 
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).get();
-
 		TestItemStructure testItemStructure = new TestItemStructure();
-		testItemStructure.setLaunchId(rq.getLaunchId());
-		TestItemResults testItemResults = new TestItemResults();
-		testItemResults.setStatus(StatusEnum.IN_PROGRESS);
+		testItemStructure.setLaunch(launch);
 
 		item.setTestItemStructure(testItemStructure);
-		item.setTestItemResults(testItemResults);
 
 		if (null == item.getUniqueId()) {
-			item.setUniqueId(identifierGenerator.generate(item));
+			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
 
 		testItemRepository.save(item);
@@ -107,21 +102,21 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		TestItem parentItem = testItemRepository.findById(parentId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId.toString()));
 
+		Launch launch = launchRepository.findById(rq.getLaunchId())
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
+
 		validate(parentItem, parentId);
 		validate(rq, parentItem);
 
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).get();
 		TestItemStructure testItemStructure = new TestItemStructure();
-		testItemStructure.setLaunchId(rq.getLaunchId());
-		testItemStructure.setParentId(parentId);
-		TestItemResults testItemResults = new TestItemResults();
-		testItemResults.setStatus(StatusEnum.IN_PROGRESS);
+		testItemStructure.setLaunch(launch);
+		testItemStructure.setParent(parentItem.getTestItemStructure());
 
 		item.setTestItemStructure(testItemStructure);
-		item.setTestItemResults(testItemResults);
 
 		if (null == item.getUniqueId()) {
-			item.setUniqueId(identifierGenerator.generate(item));
+			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
 
 		//		if (rq.isRetry()) {

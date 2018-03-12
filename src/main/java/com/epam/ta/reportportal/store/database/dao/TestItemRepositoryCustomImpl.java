@@ -23,13 +23,14 @@ package com.epam.ta.reportportal.store.database.dao;
 
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
-import com.epam.ta.reportportal.store.database.entity.item.TestItemCommon;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemStructure;
 import com.epam.ta.reportportal.store.database.entity.item.issue.Issue;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.store.jooq.Tables;
 import com.epam.ta.reportportal.store.jooq.enums.JStatusEnum;
+import com.epam.ta.reportportal.store.jooq.tables.JTestItem;
+import com.epam.ta.reportportal.store.jooq.tables.JTestItemStructure;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.SelectOnConditionStep;
@@ -37,8 +38,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.epam.ta.reportportal.store.jooq.Tables.*;
+import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.name;
 
 /**
  * @author Pavel Bortnik
@@ -53,7 +57,27 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 		this.dsl = dsl;
 	}
 
-	//	public void recursive(Long itemId) {
+	public Map<Long, String> selectPathNames(Long itemId) {
+		JTestItemStructure tis = TEST_ITEM_STRUCTURE.as("tis");
+		JTestItem ti = TEST_ITEM.as("ti");
+		return dsl.withRecursive("p")
+				.as(dsl.select(TEST_ITEM_STRUCTURE.ITEM_ID, TEST_ITEM_STRUCTURE.PARENT_ID, TEST_ITEM.NAME)
+						.from(TEST_ITEM_STRUCTURE)
+						.join(TEST_ITEM)
+						.onKey()
+						.where(TEST_ITEM_STRUCTURE.ITEM_ID.eq(itemId))
+						.unionAll(dsl.select(tis.ITEM_ID, tis.PARENT_ID, ti.NAME)
+								.from(tis)
+								.join(ti)
+								.onKey()
+								.join(name("p"))
+								.on(tis.ITEM_ID.eq(field(name("p", "parent_id"), Long.class)))))
+				.select()
+				.from(name("p"))
+				.fetch().intoMap(field(name("item_id"), Long.class), field(name("name"), String.class));
+	}
+
+	//	public void selectPathNames(Long itemId) {
 	//
 	//		com.epam.ta.reportportal.store.jooq.tables.TestItemStructure tisOne = TEST_ITEM_STRUCTURE.as("tis1");
 	//		com.epam.ta.reportportal.store.jooq.tables.TestItem tOne = TEST_ITEM.as("t1");
@@ -81,15 +105,14 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 	//	}
 
 	@Override
-	public List<TestItemCommon> selectItemsInStatusByLaunch(Long launchId, StatusEnum status) {
+	public List<TestItem> selectItemsInStatusByLaunch(Long launchId, StatusEnum status) {
 		JStatusEnum statusEnum = JStatusEnum.valueOf(status.name());
 		return commonTestItemDslSelect().where(TEST_ITEM_STRUCTURE.LAUNCH_ID.eq(launchId).and(TEST_ITEM_RESULTS.STATUS.eq(statusEnum)))
 				.fetch(r -> {
-					TestItemCommon testItemCommon = new TestItemCommon();
-					testItemCommon.setTestItem(r.into(TestItem.class));
-					testItemCommon.setTestItemStructure(r.into(TestItemStructure.class));
-					testItemCommon.setTestItemResults(r.into(TestItemResults.class));
-					return testItemCommon;
+					TestItem testItem = r.into(TestItem.class);
+					testItem.setTestItemStructure(r.into(TestItemStructure.class));
+					testItem.setTestItemResults(r.into(TestItemResults.class));
+					return testItem;
 				});
 	}
 
@@ -111,15 +134,20 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 	}
 
 	@Override
-	public List<TestItemCommon> selectItemsInIssueByLaunch(Long launchId, String issueType) {
-		return commonTestItemDslSelect().join(ISSUE).on(ISSUE.ISSUE_ID.eq(TEST_ITEM_RESULTS.ITEM_ID))
+	public List<TestItem> selectItemsInIssueByLaunch(Long launchId, String issueType) {
+		return commonTestItemDslSelect().join(ISSUE)
+				.on(ISSUE.ISSUE_ID.eq(TEST_ITEM_RESULTS.ITEM_ID))
 				.join(ISSUE_TYPE)
 				.on(ISSUE.ISSUE_TYPE.eq(ISSUE_TYPE.ID))
 				.where(TEST_ITEM_STRUCTURE.LAUNCH_ID.eq(launchId))
 				.and(ISSUE_TYPE.LOCATOR.eq(issueType))
-				.fetch(r -> new TestItemCommon(r.into(TestItem.class), r.into(TestItemResults.class), r.into(TestItemStructure.class),
-						r.into(Issue.class), r.into(IssueType.class)
-				));
+				.fetch(r -> {
+					TestItem testItem = r.into(TestItem.class);
+					testItem.setTestItemStructure(r.into(TestItemStructure.class));
+					testItem.setTestItemResults(r.into(TestItemResults.class));
+					testItem.getTestItemResults().setIssue(r.into(Issue.class));
+					return testItem;
+				});
 	}
 
 	@Override

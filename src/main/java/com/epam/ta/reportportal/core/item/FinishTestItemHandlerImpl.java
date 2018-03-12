@@ -105,8 +105,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 					.collect(toSet()));
 		}
 
-		Long launchId = testItem.getTestItemStructure().getLaunchId();
-		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+		Launch launch = Optional.ofNullable(testItem.getTestItemStructure().getLaunch())
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
 
 		//		if (!launch.getUserRef().equalsIgnoreCase(username)) {
 		//			fail().withError(FINISH_ITEM_NOT_ALLOWED, "You are not launch owner.");

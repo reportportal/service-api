@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 public interface ITestItemController {
 
@@ -71,7 +72,7 @@ public interface ITestItemController {
 	 * @param principal
 	 * @return TestItemResource
 	 */
-	TestItemResource getTestItem(String projectName, String item, Principal principal);
+	Map<Long, String> getTestItem(String projectName, String item, Principal principal);
 
 	//	/**
 	//	 * Gets all Test Items of specified launch

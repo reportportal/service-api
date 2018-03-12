@@ -21,9 +21,10 @@
 
 package com.epam.ta.reportportal.store.database.entity.item;
 
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * @author Pavel Bortnik
@@ -37,11 +38,13 @@ public class TestItemStructure implements Serializable {
 	@Column(name = "item_id", unique = true, nullable = false)
 	private Long itemId;
 
-	@Column(name = "launch_id", nullable = false, precision = 64)
-	private Long launchId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "launch_id")
+	private Launch launch;
 
-	@Column(name = "parent_id", precision = 64)
-	private Long parentId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "parent_id")
+	private TestItemStructure parent;
 
 	@Column(name = "retry_of", precision = 64)
 	private Long retryOf;
@@ -70,20 +73,20 @@ public class TestItemStructure implements Serializable {
 		this.testItem = testItem;
 	}
 
-	public Long getLaunchId() {
-		return launchId;
+	public Launch getLaunch() {
+		return launch;
 	}
 
-	public void setLaunchId(Long launchId) {
-		this.launchId = launchId;
+	public void setLaunch(Launch launch) {
+		this.launch = launch;
 	}
 
-	public Long getParentId() {
-		return parentId;
+	public TestItemStructure getParent() {
+		return parent;
 	}
 
-	public void setParentId(Long parentId) {
-		this.parentId = parentId;
+	public void setParent(TestItemStructure parent) {
+		this.parent = parent;
 	}
 
 	public Long getRetryOf() {
@@ -94,27 +97,4 @@ public class TestItemStructure implements Serializable {
 		this.retryOf = retryOf;
 	}
 
-	@Override
-	public String toString() {
-		return "TestItemStructure{" + "itemId=" + itemId + ", launchId=" + launchId + ", parentId=" + parentId + ", retryOf=" + retryOf
-				+ '}';
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		TestItemStructure that = (TestItemStructure) o;
-		return Objects.equals(itemId, that.itemId) && Objects.equals(launchId, that.launchId) && Objects.equals(parentId, that.parentId)
-				&& Objects.equals(retryOf, that.retryOf) && Objects.equals(testItem, that.testItem);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(itemId, launchId, parentId, retryOf, testItem);
-	}
 }

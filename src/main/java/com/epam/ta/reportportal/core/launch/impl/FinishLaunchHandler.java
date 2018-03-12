@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.store.commons.Preconditions;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.store.database.entity.item.TestItemCommon;
+import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
@@ -187,8 +187,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 	}
 
 	private void validate(Launch launch, FinishExecutionRQ finishExecutionRQ) {
-		expect(launch.getStatus(), equalTo(IN_PROGRESS)).verify(
-				FINISH_LAUNCH_NOT_ALLOWED,
+		expect(launch.getStatus(), equalTo(IN_PROGRESS)).verify(FINISH_LAUNCH_NOT_ALLOWED,
 				formattedSupplier("Launch '{}' already finished with status '{}'", launch.getId(), launch.getStatus())
 		);
 
@@ -196,13 +195,12 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 				finishExecutionRQ.getEndTime(), launch.getStartTime(), launch.getId()
 		);
 
-		List<TestItemCommon> items = testItemRepository.selectItemsInStatusByLaunch(launch.getId(), IN_PROGRESS);
+		List<TestItem> items = testItemRepository.selectItemsInStatusByLaunch(launch.getId(), IN_PROGRESS);
 
 		expect(items.isEmpty(), equalTo(true)).verify(FINISH_LAUNCH_NOT_ALLOWED, new Supplier<String>() {
 			public String get() {
 				String[] values = { launch.getId().toString(),
-						items.stream().map(it -> it.getTestItem().getItemId().toString()).collect(Collectors.joining(",")),
-						IN_PROGRESS.name() };
+						items.stream().map(it -> it.getItemId().toString()).collect(Collectors.joining(",")), IN_PROGRESS.name() };
 				return MessageFormatter.arrayFormat("Launch '{}' has items '[{}]' with '{}' status", values).getMessage();
 			}
 

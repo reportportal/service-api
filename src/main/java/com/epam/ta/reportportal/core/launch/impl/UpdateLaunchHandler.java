@@ -28,7 +28,7 @@ import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType;
-import com.epam.ta.reportportal.store.database.entity.item.TestItemCommon;
+import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
@@ -135,7 +135,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		//				Project project = projectRepository.findOne(projectName);
 		//				expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
-		List<TestItemCommon> toInvestigate = testItemRepository.selectItemsInIssueByLaunch(
+		List<TestItem> toInvestigate = testItemRepository.selectItemsInIssueByLaunch(
 				launchId, TestItemIssueType.TO_INVESTIGATE.getLocator());
 
 		//taskExecutor.execute(() -> analyzerService.analyze(launch, toInvestigate));
@@ -145,7 +145,9 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 
 	public List<OperationCompletionRS> updateLaunch(BulkRQ<UpdateLaunchRQ> rq, String projectName, String userName) {
 		return rq.getEntities()
-				.entrySet().stream().map(entry -> updateLaunch(entry.getKey(), projectName, userName, entry.getValue()))
+				.entrySet()
+				.stream()
+				.map(entry -> updateLaunch(entry.getKey(), projectName, userName, entry.getValue()))
 				.collect(toList());
 	}
 

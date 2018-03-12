@@ -22,17 +22,18 @@
 package com.epam.ta.reportportal.store.database.dao;
 
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.store.database.entity.item.TestItemCommon;
+import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Pavel Bortnik
  */
 public interface TestItemRepositoryCustom {
 
-	//	void recursive(Long itemId);
+	Map<Long, String> selectPathNames(Long itemId);
 
 	/**
 	 * Select common items object that have provided status for
@@ -42,7 +43,7 @@ public interface TestItemRepositoryCustom {
 	 * @param status   Status
 	 * @return List of items
 	 */
-	List<TestItemCommon> selectItemsInStatusByLaunch(Long launchId, StatusEnum status);
+	List<TestItem> selectItemsInStatusByLaunch(Long launchId, StatusEnum status);
 
 	/**
 	 * Select ids of items that has different issue from provided for
@@ -62,7 +63,7 @@ public interface TestItemRepositoryCustom {
 	 * @param issueType Issue type
 	 * @return List of items
 	 */
-	List<TestItemCommon> selectItemsInIssueByLaunch(Long launchId, String issueType);
+	List<TestItem> selectItemsInIssueByLaunch(Long launchId, String issueType);
 
 	StatusEnum identifyStatus(Long testItemId);
 

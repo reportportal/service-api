@@ -40,6 +40,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -114,10 +115,10 @@ public class TestItemController implements ITestItemController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Find test item by ID")
-	public TestItemResource getTestItem(@PathVariable String projectName, @PathVariable String testItemId, Principal principal) {
-		//testItemRepository.recursive(11L);
+	public Map<Long, String> getTestItem(@PathVariable String projectName, @PathVariable String testItemId, Principal principal) {
+		//testItemRepository.selectPathNames(11L);
 		//return getTestItemHandler.getTestItem(testItemId);
-		return null;
+		return testItemRepository.selectPathNames(3l);
 	}
 
 	//	@Override

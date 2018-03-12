@@ -94,7 +94,7 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter-data-jpa")
     compile group: 'org.hibernate', name: 'hibernate-validator', version: '6.0.7.Final'
     compile 'org.postgresql:postgresql:42.2.1'
-    compile 'org.jooq:jooq:3.10.4'
+    compile 'org.jooq:jooq:3.10.5'
     compile 'org.jasypt:jasypt:1.9.2'
 
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'

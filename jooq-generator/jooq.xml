@@ -14,10 +14,10 @@
              - org.jooq.util.JavaGenerator
              - org.jooq.util.ScalaGenerator
              Defaults to org.jooq.util.JavaGenerator -->
+
         <strategy>
             <name>org.jooq.util.example.JPrefixGeneratorStrategy</name>
         </strategy>
-
         <database>
             <!-- The database type. The format here is:
                  org.util.[database].[database]Database -->
@@ -42,7 +42,7 @@
             <pojos>true</pojos>
             <jpaAnnotations>false</jpaAnnotations>
             <dateAsTimestamp>false</dateAsTimestamp>
-            <includeRoutines>false</includeRoutines>
+            <routines>false</routines>
         </generate>
 
         <target>
@@ -57,5 +57,5 @@
         <!--
                 Put the property file, jooq*.jar and the JDBC driver into a directory, e.g. C:\temp\jooq
                 Go to C:\temp\jooq
-                Run java -cp jooq-3.10.5.jar;jooq-meta-3.10.5.jar;jooq-codegen-3.10.5.jar;postgresql-42.2.1.jar;. org.jooq.util.GenerationTool /jooq.xml
+                Run java -cp jooq-3.10.4.jar:jooq-meta-3.10.4.jar:jooq-codegen-3.10.4.jar:postgresql-42.2.1.jar:. org.jooq.util.GenerationTool /jooq.xml
         -->

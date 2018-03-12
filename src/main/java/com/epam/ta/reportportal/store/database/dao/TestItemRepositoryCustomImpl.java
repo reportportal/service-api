@@ -39,11 +39,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 import static com.epam.ta.reportportal.store.jooq.Tables.*;
-import static com.epam.ta.reportportal.store.jooq.tables.JIssue.ISSUE;
-import static com.epam.ta.reportportal.store.jooq.tables.JIssueType.ISSUE_TYPE;
-import static com.epam.ta.reportportal.store.jooq.tables.JTestItem.TEST_ITEM;
-import static com.epam.ta.reportportal.store.jooq.tables.JTestItemResults.TEST_ITEM_RESULTS;
-import static com.epam.ta.reportportal.store.jooq.tables.JTestItemStructure.TEST_ITEM_STRUCTURE;
 
 /**
  * @author Pavel Bortnik
@@ -87,8 +82,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 
 	@Override
 	public List<TestItemCommon> selectItemsInStatusByLaunch(Long launchId, StatusEnum status) {
-		JStatusEnum statusEnum = JStatusEnum.valueOf(
-				status.name());
+		JStatusEnum statusEnum = JStatusEnum.valueOf(status.name());
 		return commonTestItemDslSelect().where(TEST_ITEM_STRUCTURE.LAUNCH_ID.eq(launchId).and(TEST_ITEM_RESULTS.STATUS.eq(statusEnum)))
 				.fetch(r -> {
 					TestItemCommon testItemCommon = new TestItemCommon();

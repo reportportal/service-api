@@ -27,10 +27,11 @@ import com.epam.ta.reportportal.store.database.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemTag;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.google.common.collect.Sets;
-import org.apache.commons.collections.CollectionUtils;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -52,20 +53,38 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		testItem.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(rq.getStartTime()));
 		testItem.setName(rq.getName().trim());
 		testItem.setUniqueId(rq.getUniqueId());
-		ofNullable(rq.getDescription()).ifPresent(it -> testItem.setDescription(it.trim()));
+		addDescription(rq.getDescription());
+		addTags(rq.getTags());
+		addParameters(rq.getParameters());
+		addType(rq.getType());
+		return this;
+	}
 
-		Set<String> tags = rq.getTags();
-		if (!CollectionUtils.isEmpty(tags)) {
+	public TestItemBuilder addType(String typeValue) {
+		TestItemTypeEnum type = TestItemTypeEnum.fromValue(typeValue);
+		BusinessRule.expect(type, Objects::nonNull).verify(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE, typeValue);
+		testItem.setType(type);
+		return this;
+	}
+
+	public TestItemBuilder addDescription(String description) {
+		ofNullable(description).ifPresent(it -> testItem.setDescription(it.trim()));
+		return this;
+	}
+
+	public TestItemBuilder addTags(Set<String> tags) {
+		if (null != tags) {
 			tags = Sets.newHashSet(trimStrings(update(tags)));
 			testItem.setTags(tags.stream().map(TestItemTag::new).collect(Collectors.toSet()));
 		}
-		//List<ParameterResource> parameters = rq.getParameters();
+		return this;
+	}
+
+	//TODO parameters
+	public TestItemBuilder addParameters(List<ParameterResource> parameters) {
 		//		if (null != parameters) {
 		//			testItem.setParameters(parameters.stream().map(ParametersConverter.TO_MODEL).toArray(Parameter[]::new));
 		//		}
-		TestItemTypeEnum type = TestItemTypeEnum.fromValue(rq.getType());
-		BusinessRule.expect(type, Objects::nonNull).verify(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE, rq.getType());
-		testItem.setType(type);
 		return this;
 	}
 

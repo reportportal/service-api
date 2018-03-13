@@ -25,4 +25,13 @@ package com.epam.ta.reportportal.store.database.dao;
  * @author Pavel Bortnik
  */
 public interface LogRepositoryCustom {
+
+	/**
+	 * Checks if the test item has any logs.
+	 *
+	 * @param itemId Item id
+	 * @return true if logs were found
+	 */
+	boolean hasLogs(Long itemId);
+
 }

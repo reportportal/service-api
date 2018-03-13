@@ -25,6 +25,8 @@ import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import static com.epam.ta.reportportal.store.jooq.Tables.LOG;
+
 /**
  * @author Pavel Bortnik
  */
@@ -38,4 +40,8 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
 		this.dsl = dsl;
 	}
 
+	@Override
+	public boolean hasLogs(Long itemId) {
+		return dsl.fetchExists(dsl.selectOne().from(LOG).where(LOG.ITEM_ID.eq(itemId)));
+	}
 }

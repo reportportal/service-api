@@ -21,10 +21,10 @@
 
 package com.epam.ta.reportportal.core.item;
 
-import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.Preconditions;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.store.database.dao.LogRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
@@ -37,14 +37,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.store.commons.Predicates.isNull;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
- * Start Launch operation default implementation
+ * Start Test Item operation default implementation
  *
  * @author Andrei Varabyeu
- * @author Andrei_Ramanchuk
+ * @author Pavel Bortnik
  */
 @Service
 class StartTestItemHandlerImpl implements StartTestItemHandler {
@@ -52,6 +54,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	private TestItemRepository testItemRepository;
 
 	private LaunchRepository launchRepository;
+
+	private LogRepository logRepository;
 
 	private UniqueIdGenerator identifierGenerator;
 
@@ -70,9 +74,11 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		this.launchRepository = launchRepository;
 	}
 
-	/**
-	 * Starts root item and related to the specific launch
-	 */
+	@Autowired
+	public void setLogRepository(LogRepository logRepository) {
+		this.logRepository = logRepository;
+	}
+
 	@Override
 	public ItemCreatedRS startRootItem(String projectName, StartTestItemRQ rq) {
 		Launch launch = launchRepository.findById(rq.getLaunchId())
@@ -82,9 +88,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).get();
 		TestItemStructure testItemStructure = new TestItemStructure();
 		testItemStructure.setLaunch(launch);
-
 		item.setTestItemStructure(testItemStructure);
-
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
@@ -92,82 +96,58 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
 
-	/**
-	 * Starts children item and building it's path from parent with parent's
-	 */
 	@Override
 	public ItemCreatedRS startChildItem(String projectName, StartTestItemRQ rq, Long parentId) {
 		TestItem parentItem = testItemRepository.findById(parentId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId.toString()));
-
 		Launch launch = launchRepository.findById(rq.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
-
-		validate(parentItem, parentId);
 		validate(rq, parentItem);
 
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).get();
+
 		TestItemStructure testItemStructure = new TestItemStructure();
 		testItemStructure.setLaunch(launch);
 		testItemStructure.setParent(parentItem.getTestItemStructure());
-
 		item.setTestItemStructure(testItemStructure);
 
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
-
-		//		if (rq.isRetry()) {
-		//			TestItem retryRoot = getRetryRoot(item.getUniqueId(), parent);
-		//			if (null == retryRoot.getRetryProcessed()) {
-		//				retryRoot.setRetryProcessed(false);
-		//				testItemRepository.partialUpdate(retryRoot);
-		//			}
-		//
-		//			item.setRetryProcessed(false);
-		//			testItemRepository.save(item);
-		//			launchRepository.updateHasRetries(item.getLaunchRef(), true);
-		//
-		//		} else {
-		//			LOGGER.debug("Starting Item with name '{}'", item.getName());
-		//			testItemRepository.save(item);
-		//			if (!parentItem.hasChilds()) {
-		//				testItemRepository.updateHasChilds(parentItem.getId(), true);
-		//			}
-		//		}
+		//TODO retries
 		testItemRepository.save(item);
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
 
 	private void validate(String projectName, StartTestItemRQ rq, Launch launch) {
 		//expect(projectName.toLowerCase(), equalTo(launch.getProjectRef())).verify(ACCESS_DENIED);
-		//		expect(launch, Preconditions.IN_PROGRESS).verify(START_ITEM_NOT_ALLOWED,
-		//				Suppliers.formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId())
-		//		);
 
 		expect(launch.getStatus(), equalTo(StatusEnum.IN_PROGRESS)).verify(START_ITEM_NOT_ALLOWED,
-				Suppliers.formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId())
+				formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId())
 		);
-
-		expect(rq, Preconditions.startSameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
+		expect(rq.getStartTime(), Preconditions.sameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
 				rq.getStartTime(), launch.getStartTime(), launch.getId()
 		);
-		expect(rq.isRetry(), equalTo(false)).verify(BAD_REQUEST_ERROR, "Root test item can't be a retry.");
-
 	}
 
-	private void validate(TestItem parentTestItem, Long parent) {
-		//		expect(parentTestItem.getTestItemResults(), Objects::nonNull).verify(START_ITEM_NOT_ALLOWED,
-		//				Suppliers.formattedSupplier("Parent Item '{}' is not in progress", parentTestItem.getId())
-		//		);
-		//		long logCount = logRepository.getNumberOfLogByTestItem(parentTestItem);
-		//		expect(logCount, equalTo(0L)).verify(START_ITEM_NOT_ALLOWED,
-		//				Suppliers.formattedSupplier("Parent Item '{}' already has log items", parentTestItem.getId()));
-	}
-
+	/**
+	 * Verifies if the start of a child item is allowed. Conditions are
+	 * - the item's start time must be same or later than the parent's
+	 * - the parent item must be in progress
+	 * - the parent item hasn't any logs
+	 *
+	 * @param rq     Start child item request
+	 * @param parent Parent item
+	 */
 	private void validate(StartTestItemRQ rq, TestItem parent) {
-		expect(rq, Preconditions.startSameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
+		expect(rq.getStartTime(), Preconditions.sameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
 				rq.getStartTime(), parent.getStartTime(), parent.getItemId()
+		);
+		expect(parent.getTestItemResults(), isNull()).verify(START_ITEM_NOT_ALLOWED,
+				formattedSupplier("Parent Item '{}' is not in progress", parent.getItemId())
+		);
+		expect(logRepository.hasLogs(parent.getItemId()), equalTo(false)).verify(START_ITEM_NOT_ALLOWED,
+				formattedSupplier("Parent Item '{}' already has log items", parent.getItemId())
 		);
 	}
 }

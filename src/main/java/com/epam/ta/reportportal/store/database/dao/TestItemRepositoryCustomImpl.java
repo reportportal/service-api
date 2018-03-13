@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemStructure;
-import com.epam.ta.reportportal.store.database.entity.item.issue.Issue;
+import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.store.jooq.Tables;
 import com.epam.ta.reportportal.store.jooq.enums.JStatusEnum;
@@ -74,35 +74,9 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 								.on(tis.ITEM_ID.eq(field(name("p", "parent_id"), Long.class)))))
 				.select()
 				.from(name("p"))
-				.fetch().intoMap(field(name("item_id"), Long.class), field(name("name"), String.class));
+				.fetch()
+				.intoMap(field(name("item_id"), Long.class), field(name("name"), String.class));
 	}
-
-	//	public void selectPathNames(Long itemId) {
-	//
-	//		com.epam.ta.reportportal.store.jooq.tables.TestItemStructure tisOne = TEST_ITEM_STRUCTURE.as("tis1");
-	//		com.epam.ta.reportportal.store.jooq.tables.TestItem tOne = TEST_ITEM.as("t1");
-	//		com.epam.ta.reportportal.store.jooq.tables.TestItemStructure tisTwo = TEST_ITEM_STRUCTURE.as("tis2");
-	//		com.epam.ta.reportportal.store.jooq.tables.TestItem tTwo = TEST_ITEM.as("t1");
-	//		Result<Record> fetch = dsl.withRecursive("temp")
-	//				.as(dsl.select(tisOne.ITEM_ID, tisOne.PARENT_ID, tOne.NAME.cast(PostgresDataType.VARCHAR.precision(50)).as("path"))
-	//						.from(tisOne)
-	//						.join(tOne)
-	//						.on(tisOne.ITEM_ID.eq(tOne.ITEM_ID))
-	//						.where(tisOne.PARENT_ID.isNull())
-	//						.and(tisOne.ITEM_ID.eq(itemId))
-	//						.union(dsl.select(tisTwo.ITEM_ID, tisTwo.PARENT_ID,
-	//								DSL.concat((DSL.table(DSL.name("temp")).field(DSL.name("path"))), DSL.field(DSL.name("->")), tTwo.NAME)
-	//										.cast(PostgresDataType.VARCHAR.precision(50))
-	//						)
-	//								.from(tisTwo)
-	//								.join(tTwo)
-	//								.on(tisTwo.ITEM_ID.eq(tTwo.ITEM_ID))
-	//								.innerJoin(DSL.table(DSL.name("temp")))
-	//								.on((DSL.table(DSL.name("temp")).field(DSL.name("item_id")).cast(Long.class).eq(tisTwo.ITEM_ID)))))
-	//				.selectFrom(DSL.table(DSL.name("temp")))
-	//				.fetch();
-	//		System.out.println(fetch);
-	//	}
 
 	@Override
 	public List<TestItem> selectItemsInStatusByLaunch(Long launchId, StatusEnum status) {
@@ -145,7 +119,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 					TestItem testItem = r.into(TestItem.class);
 					testItem.setTestItemStructure(r.into(TestItemStructure.class));
 					testItem.setTestItemResults(r.into(TestItemResults.class));
-					testItem.getTestItemResults().setIssue(r.into(Issue.class));
+					testItem.getTestItemResults().setIssue(r.into(IssueEntity.class));
 					return testItem;
 				});
 	}

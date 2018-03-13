@@ -26,34 +26,28 @@ import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
-import com.epam.ta.reportportal.store.database.entity.item.TestItemTag;
+import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
+import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
-import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.StreamSupport;
 
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.store.commons.EntityUtils.trimStrings;
-import static com.epam.ta.reportportal.store.commons.EntityUtils.update;
 import static com.epam.ta.reportportal.store.database.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType.NOT_ISSUE_FLAG;
 import static com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType.TO_INVESTIGATE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.epam.ta.reportportal.ws.model.ErrorType.AMBIGUOUS_TEST_ITEM_STATUS;
+import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_NOT_FOUND;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
  * Default implementation of {@link FinishTestItemHandler}
@@ -65,15 +59,24 @@ import static org.springframework.util.CollectionUtils.isEmpty;
  */
 @Service
 class FinishTestItemHandlerImpl implements FinishTestItemHandler {
-	private static final Logger LOGGER = LoggerFactory.getLogger(StartTestItemHandlerImpl.class);
 
 	private LaunchRepository launchRepository;
+
 	private TestItemRepository testItemRepository;
+
+	private Function<Issue, IssueEntity> TO_ISSUE = from -> {
+		IssueEntity issue = new IssueEntity();
+		issue.setAutoAnalyzed(from.getAutoAnalyzed());
+		issue.setIgnoreAnalyzer(from.getIgnoreAnalyzer());
+		issue.setIssueDescription(from.getComment());
+		return issue;
+	};
+
 	//	private ExternalSystemRepository externalSystemRepository;
 
 	@Autowired
-	public void setLaunchRepository(LaunchRepository launchRepo) {
-		this.launchRepository = launchRepo;
+	public void setLaunchRepository(LaunchRepository launchRepository) {
+		this.launchRepository = launchRepository;
 	}
 
 	@Autowired
@@ -92,54 +95,56 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		TestItem testItem = testItemRepository.findById(testItemId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId));
 
-		//verifyTestItem(testItem, testItemId, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()));
-
-		//testItem.getTestItemResults().setDuration((float) (finishExecutionRQ.getEndTime().getTime() - testItem.getStartTime().getTime()));
-
-		if (!isNullOrEmpty(finishExecutionRQ.getDescription())) {
-			testItem.setDescription(finishExecutionRQ.getDescription());
-		}
-		if (!isEmpty(finishExecutionRQ.getTags())) {
-			testItem.setTags(StreamSupport.stream(trimStrings(update(finishExecutionRQ.getTags())).spliterator(), false)
-					.map(TestItemTag::new)
-					.collect(toSet()));
-		}
-
-		Launch launch = Optional.ofNullable(testItem.getTestItemStructure().getLaunch())
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
-
+		//		verifyTestItem(testItem, testItemId, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()));
+		//
+		//		Launch launch = Optional.ofNullable(testItem.getTestItemStructure().getLaunch())
+		//				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
+		//
 		//		if (!launch.getUserRef().equalsIgnoreCase(username)) {
 		//			fail().withError(FINISH_ITEM_NOT_ALLOWED, "You are not launch owner.");
 		//		}
-
 		//		final Project project = projectRepository.findOne(launch.getProjectRef());
 
+		TestItemResults testItemResults = processItemResults(testItemId, finishExecutionRQ);
+		testItem = new TestItemBuilder(testItem).addDescription(finishExecutionRQ.getDescription())
+				.addTags(finishExecutionRQ.getTags())
+				.addTestItemResults(testItemResults, finishExecutionRQ.getEndTime())
+				.get();
+		testItemRepository.save(testItem);
+
+		return new OperationCompletionRS("TestItem with ID = '" + testItemId + "' successfully finished.");
+	}
+
+	/**
+	 * If test item has descendants, it's status is resolved from statistics
+	 * When status provided, no matter test item has or not descendants, test
+	 * item status is resolved to provided
+	 *
+	 * @param testItemId        Test item id
+	 * @param finishExecutionRQ Finish test item request
+	 * @return TestItemResults object
+	 */
+	private TestItemResults processItemResults(Long testItemId, FinishTestItemRQ finishExecutionRQ) {
+		TestItemResults testItemResults = new TestItemResults();
 		Optional<StatusEnum> actualStatus = fromValue(finishExecutionRQ.getStatus());
 		Issue providedIssue = finishExecutionRQ.getIssue();
-
-
-		/*
-		 * If test item has descendants, it's status is resolved from statistics
-		 * When status provided, no matter test item has or not descendants, test
-		 * item status is resolved to provided
-		 */
 		boolean hasChildren = testItemRepository.hasChildren(testItemId);
 		if (actualStatus.isPresent() && !hasChildren) {
-			testItem.getTestItemResults().setStatus(actualStatus.get());
+			testItemResults.setStatus(actualStatus.get());
 		} else {
-			testItem.getTestItemResults().setStatus(testItemRepository.identifyStatus(testItemId));
+			testItemResults.setStatus(testItemRepository.identifyStatus(testItemId));
 		}
 
-		if (Preconditions.statusIn(FAILED, SKIPPED).test(testItem.getTestItemResults().getStatus())) {
+		if (Preconditions.statusIn(FAILED, SKIPPED).test(testItemResults.getStatus())) {
 			if (null != providedIssue) {
 				//in provided issue should be locator id or NOT_ISSUE value
 				String locator = providedIssue.getIssueType();
 				if (!NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(locator)) {
 					List<IssueType> projectIssueTypes = testItemRepository.selectIssueLocatorsByProject(1L);
 					IssueType issueType = verifyIssue(testItemId, providedIssue, projectIssueTypes);
-					com.epam.ta.reportportal.store.database.entity.item.issue.Issue issue = TO_ISSUE.apply(providedIssue);
+					IssueEntity issue = TO_ISSUE.apply(providedIssue);
 					issue.setIssueType(issueType.getId());
-					testItem.getTestItemResults().setIssue(issue);
+					testItemResults.setIssue(issue);
 				}
 			} else {
 				List<IssueType> issueTypes = testItemRepository.selectIssueLocatorsByProject(1L);
@@ -147,23 +152,13 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 						.filter(it -> it.getLocator().equalsIgnoreCase(TO_INVESTIGATE.getLocator()))
 						.findFirst()
 						.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_ERROR));
-				com.epam.ta.reportportal.store.database.entity.item.issue.Issue issue = new com.epam.ta.reportportal.store.database.entity.item.issue.Issue();
+				IssueEntity issue = new IssueEntity();
 				issue.setIssueType(toInvestigate.getId());
-				testItem.getTestItemResults().setIssue(issue);
-
+				testItemResults.setIssue(issue);
 			}
-			testItemRepository.save(testItem);
 		}
-		return new OperationCompletionRS("TestItem with ID = '" + testItemId + "' successfully finished.");
+		return testItemResults;
 	}
-
-	private Function<Issue, com.epam.ta.reportportal.store.database.entity.item.issue.Issue> TO_ISSUE = from -> {
-		com.epam.ta.reportportal.store.database.entity.item.issue.Issue issue = new com.epam.ta.reportportal.store.database.entity.item.issue.Issue();
-		issue.setAutoAnalyzed(from.getAutoAnalyzed());
-		issue.setIgnoreAnalyzer(from.getIgnoreAnalyzer());
-		issue.setIssueDescription(from.getComment());
-		return issue;
-	};
 
 	/**
 	 * Validation procedure for specified test item
@@ -173,6 +168,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param actualStatus      Actual status of item
 	 * @return TestItem updated item
 	 */
+
 	private void verifyTestItem(TestItem testItem, final Long testItemId, FinishTestItemRQ finishExecutionRQ,
 			Optional<StatusEnum> actualStatus) {
 		//		try {

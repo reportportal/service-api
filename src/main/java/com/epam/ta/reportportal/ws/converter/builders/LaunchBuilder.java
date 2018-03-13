@@ -29,9 +29,6 @@ import com.epam.ta.reportportal.store.database.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
-import org.apache.commons.collections.CollectionUtils;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -41,6 +38,7 @@ import static com.epam.ta.reportportal.store.commons.EntityUtils.trimStrings;
 import static com.epam.ta.reportportal.store.commons.EntityUtils.update;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.StreamSupport.stream;
 
 public class LaunchBuilder implements Supplier<Launch> {
 
@@ -66,9 +64,7 @@ public class LaunchBuilder implements Supplier<Launch> {
 	}
 
 	public LaunchBuilder addDescription(String description) {
-		if (!Strings.isNullOrEmpty(description)) {
-			launch.setDescription(description.trim());
-		}
+		ofNullable(description).ifPresent(it -> launch.setDescription(it.trim()));
 		return this;
 	}
 
@@ -83,10 +79,8 @@ public class LaunchBuilder implements Supplier<Launch> {
 	}
 
 	public LaunchBuilder addTags(Set<String> tags) {
-		if (!CollectionUtils.isEmpty(tags)) {
-			tags = Sets.newHashSet(trimStrings(update(tags)));
-			launch.setTags(tags.stream().map(LaunchTag::new).collect(Collectors.toSet()));
-		}
+		ofNullable(tags).ifPresent(it -> launch.setTags(
+				stream((trimStrings(update(it)).spliterator()), false).map(LaunchTag::new).collect(Collectors.toSet())));
 		return this;
 	}
 

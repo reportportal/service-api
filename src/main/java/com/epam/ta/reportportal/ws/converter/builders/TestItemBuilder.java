@@ -25,21 +25,24 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemTag;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import com.google.common.collect.Sets;
 
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.store.commons.EntityUtils.trimStrings;
-import static com.epam.ta.reportportal.store.commons.EntityUtils.update;
+import static com.epam.ta.reportportal.store.commons.EntityUtils.*;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.StreamSupport.stream;
 
 public class TestItemBuilder implements Supplier<TestItem> {
 
@@ -47,6 +50,10 @@ public class TestItemBuilder implements Supplier<TestItem> {
 
 	public TestItemBuilder() {
 		testItem = new TestItem();
+	}
+
+	public TestItemBuilder(TestItem testItem) {
+		this.testItem = testItem;
 	}
 
 	public TestItemBuilder addStartItemRequest(StartTestItemRQ rq) {
@@ -73,10 +80,22 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	}
 
 	public TestItemBuilder addTags(Set<String> tags) {
-		if (null != tags) {
-			tags = Sets.newHashSet(trimStrings(update(tags)));
-			testItem.setTags(tags.stream().map(TestItemTag::new).collect(Collectors.toSet()));
-		}
+		ofNullable(tags).ifPresent(it -> testItem.setTags(
+				stream((trimStrings(update(it)).spliterator()), false).map(TestItemTag::new).collect(Collectors.toSet())));
+		return this;
+	}
+
+	public TestItemBuilder addTestItemResults(TestItemResults testItemResults, Date endTime) {
+		checkNotNull(testItemResults, "Provided value shouldn't be null");
+		testItem.setTestItemResults(testItemResults);
+		addDuration(endTime);
+		return this;
+	}
+
+	public TestItemBuilder addDuration(Date endTime) {
+		checkNotNull(endTime, "Provided value shouldn't be null");
+		checkNotNull(testItem.getTestItemResults(), "Test item results shouldn't be null");
+		testItem.getTestItemResults().setDuration(ChronoUnit.MILLIS.between(testItem.getStartTime(), TO_LOCAL_DATE_TIME.apply(endTime)));
 		return this;
 	}
 
@@ -92,4 +111,5 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	public TestItem get() {
 		return this.testItem;
 	}
+
 }

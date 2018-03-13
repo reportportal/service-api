@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JTestItemResults extends TableImpl<JTestItemResultsRecord> {
 
-    private static final long serialVersionUID = 1035400608;
+    private static final long serialVersionUID = 1879769971;
 
     /**
      * The reference instance of <code>public.test_item_results</code>
@@ -68,7 +68,7 @@ public class JTestItemResults extends TableImpl<JTestItemResultsRecord> {
     /**
      * The column <code>public.test_item_results.duration</code>.
      */
-    public final TableField<JTestItemResultsRecord, Float> DURATION = createField("duration", org.jooq.impl.SQLDataType.REAL, this, "");
+    public final TableField<JTestItemResultsRecord, Long> DURATION = createField("duration", org.jooq.impl.SQLDataType.BIGINT, this, "");
 
     /**
      * Create a <code>public.test_item_results</code> table reference

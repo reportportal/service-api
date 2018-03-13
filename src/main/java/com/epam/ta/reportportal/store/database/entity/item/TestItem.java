@@ -68,8 +68,8 @@ public class TestItem implements Serializable {
 	@Column(name = "last_modified", nullable = false)
 	private LocalDateTime lastModified;
 
-//	@Column(name = "parameters")
-//	private Parameter[] parameters;
+	@Column(name = "parameters")
+	private Parameter[] parameters;
 
 	@Column(name = "unique_id", nullable = false, length = 256)
 	private String uniqueId;
@@ -179,13 +179,13 @@ public class TestItem implements Serializable {
 		this.description = description;
 	}
 
-//	public Parameter[] getParameters() {
-//		return parameters;
-//	}
-//
-//	public void setParameters(Parameter[] parameters) {
-//		this.parameters = parameters;
-//	}
+	public Parameter[] getParameters() {
+		return parameters;
+	}
+
+	public void setParameters(Parameter[] parameters) {
+		this.parameters = parameters;
+	}
 
 	public String getUniqueId() {
 		return uniqueId;

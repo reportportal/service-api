@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -30,7 +31,6 @@ import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Map;
 
 public interface ITestItemController {
 
@@ -72,7 +72,7 @@ public interface ITestItemController {
 	 * @param principal
 	 * @return TestItemResource
 	 */
-	Map<Long, String> getTestItem(String projectName, String item, Principal principal);
+	TestItem getTestItem(String projectName, String item, Principal principal);
 
 	//	/**
 	//	 * Gets all Test Items of specified launch

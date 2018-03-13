@@ -44,12 +44,12 @@ public class EntityUtils {
 
 	}
 
-	public static Function<Date, LocalDateTime> TO_LOCAL_DATE_TIME = date -> {
+	public static final Function<Date, LocalDateTime> TO_LOCAL_DATE_TIME = date -> {
 		Preconditions.checkNotNull(date, "Provided value shouldn't be null");
 		return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
 	};
 
-	public static Function<LocalDateTime, Date> TO_DATE = localDateTime -> {
+	public static final Function<LocalDateTime, Date> TO_DATE = localDateTime -> {
 		Preconditions.checkNotNull(localDateTime, "Provided value shouldn't be null");
 		return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
 	};
@@ -61,44 +61,9 @@ public class EntityUtils {
 	 * @return String
 	 */
 
+	@Deprecated
 	public static String normalizeId(String id) {
 		return Preconditions.checkNotNull(id, "Provided value shouldn't be null").toLowerCase();
-	}
-
-	/**
-	 * Normalized provided user name
-	 *
-	 * @param username Username to normalize
-	 * @return String
-	 * @deprecated in favor of {@link #normalizeId(String)}
-	 */
-	@Deprecated
-	public static String normalizeUsername(String username) {
-		return Preconditions.checkNotNull(username, "Username shouldn't be null").toLowerCase();
-	}
-
-	/**
-	 * Normalized provided project name
-	 *
-	 * @param projectName Project to normalize
-	 * @return String
-	 * @deprecated in favor of {@link #normalizeId(String)}
-	 */
-	@Deprecated
-	public static String normalizeProjectName(String projectName) {
-		return Preconditions.checkNotNull(projectName, "Project name shouldn't be null").toLowerCase();
-	}
-
-	/**
-	 * Normalized provided email address
-	 *
-	 * @param email email to normalize
-	 * @return String
-	 * @deprecated in favor of {@link #normalizeId(String)}
-	 */
-	@Deprecated
-	public static String normalizeEmail(String email) {
-		return Preconditions.checkNotNull(email, "Email shouldn't be null").toLowerCase();
 	}
 
 	/**

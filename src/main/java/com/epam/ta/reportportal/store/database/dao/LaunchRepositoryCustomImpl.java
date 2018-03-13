@@ -86,4 +86,9 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 						r.into(ExecutionStatistics.class)
 				));
 	}
+
+	@Override
+	public Long calculateApproximateDuration(Long launchId) {
+		return null;
+	}
 }

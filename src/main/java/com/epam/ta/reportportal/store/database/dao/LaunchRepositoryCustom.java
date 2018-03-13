@@ -42,4 +42,6 @@ public interface LaunchRepositoryCustom {
 
 	List<LaunchFull> fullLaunchWithStatistics();
 
+	Long calculateApproximateDuration(Long launchId);
+
 }

@@ -23,10 +23,15 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.launch.LaunchTag;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -35,6 +40,7 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.store.commons.EntityUtils.trimStrings;
 import static com.epam.ta.reportportal.store.commons.EntityUtils.update;
 import static com.google.common.collect.Sets.newHashSet;
+import static java.util.Optional.ofNullable;
 
 public class LaunchBuilder implements Supplier<Launch> {
 
@@ -44,16 +50,18 @@ public class LaunchBuilder implements Supplier<Launch> {
 		this.launch = new Launch();
 	}
 
+	public LaunchBuilder(Launch launch) {
+		this.launch = launch;
+	}
+
 	public LaunchBuilder addStartRQ(StartLaunchRQ request) {
-		if (request != null) {
-			launch.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(request.getStartTime()));
-			launch.setName(request.getName().trim());
-			addDescription(request.getDescription());
-			addTags(newHashSet(trimStrings(update(request.getTags()))));
-			if (request.getMode() != null) {
-				launch.setMode(LaunchModeEnum.valueOf(request.getMode().name()));
-			}
-		}
+		Preconditions.checkNotNull(request, ErrorType.BAD_REQUEST_ERROR);
+		launch.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(request.getStartTime()));
+		launch.setName(request.getName().trim());
+		launch.setStatus(StatusEnum.IN_PROGRESS);
+		addDescription(request.getDescription());
+		addTags(newHashSet(trimStrings(update(request.getTags()))));
+		ofNullable(request.getMode()).ifPresent(it -> launch.setMode(LaunchModeEnum.valueOf(request.getMode().name())));
 		return this;
 	}
 
@@ -75,7 +83,10 @@ public class LaunchBuilder implements Supplier<Launch> {
 	}
 
 	public LaunchBuilder addTags(Set<String> tags) {
-		launch.setTags(tags.stream().map(LaunchTag::new).collect(Collectors.toSet()));
+		if (!CollectionUtils.isEmpty(tags)) {
+			tags = Sets.newHashSet(trimStrings(update(tags)));
+			launch.setTags(tags.stream().map(LaunchTag::new).collect(Collectors.toSet()));
+		}
 		return this;
 	}
 

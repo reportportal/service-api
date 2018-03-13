@@ -192,7 +192,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		//							IN_PROGRESS.name(), descendants
 		//					)
 		//			);
-		//			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime())).verify(
+		//			expect(finishExecutionRQ, Preconditions.sameTimeOrLater(testItem.getStartTime())).verify(
 		//					FINISH_TIME_EARLIER_THAN_START_TIME, finishExecutionRQ.getEndTime(), testItem.getStartTime(), testItemId);
 		//
 		//			/*

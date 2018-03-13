@@ -182,7 +182,7 @@ public class Launch {
 	public String toString() {
 		return "Launch{" + "id=" + id + ", projectId=" + projectId + ", userId=" + userId + ", name='" + name + '\'' + ", description='"
 				+ description + '\'' + ", startTime=" + startTime + ", number=" + number + ", lastModified=" + lastModified + ", mode="
-				+ mode + ", status=" + status + '}';
+				+ mode + ", status=" + status + ", tags=" + tags + '}';
 	}
 
 	@Override
@@ -197,11 +197,11 @@ public class Launch {
 		return Objects.equals(id, launch.id) && Objects.equals(projectId, launch.projectId) && Objects.equals(userId, launch.userId)
 				&& Objects.equals(name, launch.name) && Objects.equals(description, launch.description) && Objects.equals(
 				startTime, launch.startTime) && Objects.equals(number, launch.number) && Objects.equals(lastModified, launch.lastModified)
-				&& mode == launch.mode && status == launch.status;
+				&& mode == launch.mode && status == launch.status && Objects.equals(tags, launch.tags);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, projectId, userId, name, description, startTime, number, lastModified, mode, status);
+		return Objects.hash(id, projectId, userId, name, description, startTime, number, lastModified, mode, status, tags);
 	}
 }

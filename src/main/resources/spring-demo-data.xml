@@ -617,7 +617,7 @@
 
     <bean id="externalSystem" class="com.epam.ta.reportportal.database.entity.ExternalSystem">
         <property name="id" value="54958aec4e84859227150765"/>
-        <property name="externalSystemType" value="#{T(com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType).JIRA}"/>
+        <property name="externalSystemType" value="JIRA"/>
         <property name="externalSystemAuth" value="#{T(com.epam.ta.reportportal.database.entity.AuthType).BASIC}"/>
         <property name="url" value="https://jira.epam.com/jira/"/>
         <property name="project" value="EPMCDP"/>
@@ -626,7 +626,7 @@
 
     <bean id="externalSystem1" class="com.epam.ta.reportportal.database.entity.ExternalSystem">
         <property name="id" value="54958aec4e84859227150766"/>
-        <property name="externalSystemType" value="#{T(com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType).RALLY}"/>
+        <property name="externalSystemType" value="RALLY"/>
         <property name="externalSystemAuth" value="#{T(com.epam.ta.reportportal.database.entity.AuthType).APIKEY}"/>
         <property name="url" value="https://rally1.rallydev.com"/>
         <property name="project" value="EPMCDP"/>
@@ -666,7 +666,7 @@
 
     <bean id="externalSystem2" class="com.epam.ta.reportportal.database.entity.ExternalSystem">
         <property name="id" value="54958aec4e84859227150767"/>
-        <property name="externalSystemType" value="#{T(com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType).JIRA}"/>
+        <property name="externalSystemType" value="JIRA"/>
         <property name="externalSystemAuth" value="#{T(com.epam.ta.reportportal.database.entity.AuthType).BASIC}"/>
         <property name="url" value="https://jira.epam.com"/>
         <property name="project" value="project1"/>

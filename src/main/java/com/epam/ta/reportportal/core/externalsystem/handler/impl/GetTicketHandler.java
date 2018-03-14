@@ -69,7 +69,7 @@ public class GetTicketHandler implements IGetTicketHandler {
 		// TODO update if project will be used different systems
 		ExternalSystem system = externalSystemRepository.findOne(systemId);
 		expect(system, notNull()).verify(EXTERNAL_SYSTEM_NOT_FOUND, systemId);
-		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name());
+		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType());
 		return externalSystemStrategy.getTicket(ticketId, system).orElse(null);
 	}
 
@@ -77,7 +77,7 @@ public class GetTicketHandler implements IGetTicketHandler {
 	public List<PostFormField> getSubmitTicketFields(String ticketType, String projectName, String systemId) {
 		validateProject(projectName);
 		ExternalSystem system = validateExternalSystem(systemId);
-		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name());
+		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType());
 		return externalSystemStrategy.getTicketFields(ticketType, system);
 	}
 
@@ -85,7 +85,7 @@ public class GetTicketHandler implements IGetTicketHandler {
 	public List<String> getAllowableIssueTypes(String projectName, String systemId) {
 		validateProject(projectName);
 		ExternalSystem system = validateExternalSystem(systemId);
-		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType().name());
+		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType());
 		return externalSystemStrategy.getIssueTypes(system);
 	}
 

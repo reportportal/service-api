@@ -45,7 +45,7 @@ public final class ExternalSystemConverter {
 		resource.setUrl(model.getUrl());
 		resource.setProjectRef(model.getProjectRef());
 		resource.setProject(model.getProject());
-		resource.setExternalSystemType(model.getExternalSystemType().name());
+		resource.setExternalSystemType(model.getExternalSystemType());
 		resource.setExternalSystemAuth(model.getExternalSystemAuth().name());
 		resource.setUsername(model.getUsername());
 		resource.setAccessKey(model.getAccessKey());

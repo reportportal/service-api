@@ -21,19 +21,8 @@
 
 package com.epam.ta.reportportal.core.externalsystem;
 
-import com.epam.ta.reportportal.commons.Preconditions;
-import com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
-
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_EXTERNAL_SYSTEM_NAME;
-import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM;
 
 /**
  * Contains functionality for providing external system strategy by system name.
@@ -54,23 +43,23 @@ public class StrategyProvider {
 	 * @return
 	 */
 	public ExternalSystemStrategy getStrategy(String externalSystemName) {
-		Optional<ExternalSystemType> externalSystem = ExternalSystemType.findByName(externalSystemName);
-		validate(externalSystem, externalSystemName);
-		externalSystemStrategy.checkAvailable(externalSystem.get());
+		//Optional<ExternalSystemType> externalSystem = ExternalSystemType.findByName(externalSystemName);
+		//validate(externalSystem, externalSystemName);
+		externalSystemStrategy.checkAvailable(externalSystemName);
 		return externalSystemStrategy;
 	}
 
-	/**
-	 * Validate if external system is known to report portal and if it is
-	 * possible to use specified external system in the specified project.
-	 */
-	private void validate(Optional<ExternalSystemType> externalSystem, String externalSystemName) {
-
-		// TODO consider to move this validation to spring security rule
-		expect(externalSystem, Preconditions.IS_PRESENT).verify(
-				INCORRECT_EXTERNAL_SYSTEM_NAME, formattedSupplier("Unknown external system '{}'.", externalSystemName));
-		expect(externalSystem.get(), not(equalTo(ExternalSystemType.NONE))).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
-				formattedSupplier("External system is not defined in project settings.", externalSystemName)
-		);
-	}
+//	/**
+//	 * Validate if external system is known to report portal and if it is
+//	 * possible to use specified external system in the specified project.
+//	 */
+//	private void validate(Optional<ExternalSystemType> externalSystem, String externalSystemName) {
+//
+//		// TODO consider to move this validation to spring security rule
+//		expect(externalSystem, Preconditions.IS_PRESENT).verify(
+//				INCORRECT_EXTERNAL_SYSTEM_NAME, formattedSupplier("Unknown external system '{}'.", externalSystemName));
+//		expect(externalSystem.get(), not(equalTo(ExternalSystemType.NONE))).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
+//				formattedSupplier("External system is not defined in project settings.", externalSystemName)
+//		);
+//	}
 }

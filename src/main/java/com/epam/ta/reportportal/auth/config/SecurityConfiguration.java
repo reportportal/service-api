@@ -2,10 +2,13 @@ package com.epam.ta.reportportal.auth.config;
 
 import com.epam.ta.reportportal.auth.OAuthSuccessHandler;
 import com.epam.ta.reportportal.auth.ReportPortalClient;
+import com.epam.ta.reportportal.auth.UserRoleHierarchy;
 import com.epam.ta.reportportal.auth.basic.BasicPasswordAuthenticationProvider;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.auth.integration.MutableClientRegistrationRepository;
+import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
 import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.jooq.DSLContext;
@@ -14,8 +17,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.access.AccessDecisionManager;
+import org.springframework.security.access.AccessDecisionVoter;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.vote.AffirmativeBased;
+import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -29,14 +42,44 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
+import org.springframework.security.web.access.expression.WebExpressionVoter;
+
+import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class SecurityConfiguration {
+
+	@Bean
+	public PermissionEvaluatorFactoryBean permissionEvaluator() {
+		return new PermissionEvaluatorFactoryBean();
+	}
+
+	@Configuration
+	@EnableGlobalMethodSecurity(proxyTargetClass = true, prePostEnabled = true)
+	public static class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
+
+		@Autowired
+		private RoleHierarchy roleHierarchy;
+
+		@Autowired
+		private PermissionEvaluator permissionEvaluator;
+
+		@Override
+		protected MethodSecurityExpressionHandler createExpressionHandler() {
+			DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
+			handler.setRoleHierarchy(roleHierarchy);
+			handler.setPermissionEvaluator(permissionEvaluator);
+			return handler;
+		}
+
+	}
 
 	@Configuration
 	@Order(4)
@@ -189,10 +232,12 @@ public class SecurityConfiguration {
 	public static class ResourceServerAuthConfiguration extends ResourceServerConfigurerAdapter {
 		@Override
 		public void configure(HttpSecurity http) throws Exception {
-			http.requestMatchers()
+			http
+					.requestMatchers()
 					.antMatchers("/sso/me/**", "/sso/internal/**", "/settings/**")
 					.and()
 					.authorizeRequests()
+					.accessDecisionManager(webAccessDecisionManager())
 					.antMatchers("/settings/**")
 					.hasRole("ADMINISTRATOR")
 					.antMatchers("/sso/internal/**")
@@ -203,6 +248,36 @@ public class SecurityConfiguration {
 					.sessionManagement()
 					.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
+		}
+
+		@Bean
+		public static RoleHierarchy userRoleHierarchy() {
+			return new UserRoleHierarchy();
+		}
+
+		@Autowired
+		private PermissionEvaluator permissionEvaluator;
+
+		@Bean
+		public static PermissionEvaluatorFactoryBean permissionEvaluatorFactoryBean() {
+			return new PermissionEvaluatorFactoryBean();
+		}
+
+		private DefaultWebSecurityExpressionHandler webSecurityExpressionHandler() {
+			OAuth2WebSecurityExpressionHandler handler = new OAuth2WebSecurityExpressionHandler();
+			handler.setRoleHierarchy(userRoleHierarchy());
+			handler.setPermissionEvaluator(permissionEvaluator);
+			return handler;
+		}
+
+		private AccessDecisionManager webAccessDecisionManager() {
+			List<AccessDecisionVoter<?>> accessDecisionVoters = Lists.newArrayList();
+			accessDecisionVoters.add(new AuthenticatedVoter());
+			WebExpressionVoter webVoter = new WebExpressionVoter();
+			webVoter.setExpressionHandler(webSecurityExpressionHandler());
+			accessDecisionVoters.add(webVoter);
+
+			return new AffirmativeBased(accessDecisionVoters);
 		}
 
 	}
@@ -225,4 +300,18 @@ public class SecurityConfiguration {
 		}
 
 	}
+
+	//	static class ReportPortalAuthorityExtractor extends FixedAuthoritiesExtractor {
+	//		@Override
+	//		public List<GrantedAuthority> extractAuthorities(Map<String, Object> map) {
+	//			List<GrantedAuthority> userRoles = super.extractAuthorities(map);
+	//			Optional.ofNullable(map.get("projects"))
+	//					.map(p -> ((Map<String, String>) p).entrySet()
+	//							.stream()
+	//							.map(e -> new ProjectAuthority(e.getKey(), e.getValue()))
+	//							.collect(Collectors.toList()))
+	//					.ifPresent(userRoles::addAll);
+	//			return userRoles;
+	//		}
+	//	}
 }

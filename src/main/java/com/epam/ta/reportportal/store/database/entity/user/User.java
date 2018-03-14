@@ -1,0 +1,114 @@
+package com.epam.ta.reportportal.store.database.entity.user;
+
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.List;
+
+@Entity
+@EntityListeners(AuditingEntityListener.class)
+@Table(name = "project", schema = "public")
+public class User implements Serializable {
+
+	private static final long serialVersionUID = 923392981;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id", unique = true, nullable = false, precision = 64)
+	private Integer id;
+
+	@Column(name = "login")
+	private String login;
+
+	@Column(name = "password")
+	private String password;
+
+	@Column(name = "email")
+	private String email;
+
+	@Column(name = "role")
+	private UserRole role;
+	private String type;
+	private Integer defaultProjectId;
+	private String fullName;
+
+	@OneToMany(mappedBy = "project")
+	private List<ProjectUser> projects;
+
+	public User() {
+	}
+
+	public Integer getId() {
+		return this.id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getLogin() {
+		return this.login;
+	}
+
+	public void setLogin(String login) {
+		this.login = login;
+	}
+
+	public String getPassword() {
+		return this.password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getEmail() {
+		return this.email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public UserRole getRole() {
+		return role;
+	}
+
+	public void setRole(UserRole role) {
+		this.role = role;
+	}
+
+	public List<ProjectUser> getProjects() {
+		return projects;
+	}
+
+	public void setProjects(List<ProjectUser> projects) {
+		this.projects = projects;
+	}
+
+	public String getType() {
+		return this.type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public Integer getDefaultProjectId() {
+		return this.defaultProjectId;
+	}
+
+	public void setDefaultProjectId(Integer defaultProjectId) {
+		this.defaultProjectId = defaultProjectId;
+	}
+
+	public String getFullName() {
+		return this.fullName;
+	}
+
+	public void setFullName(String fullName) {
+		this.fullName = fullName;
+	}
+
+}

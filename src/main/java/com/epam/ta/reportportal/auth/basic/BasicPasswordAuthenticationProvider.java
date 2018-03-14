@@ -20,7 +20,7 @@
  */
 package com.epam.ta.reportportal.auth.basic;
 
-import com.epam.reportportal.auth.event.UiAuthenticationFailureEventHandler;
+import com.epam.ta.reportportal.auth.event.UiAuthenticationFailureEventHandler;
 import com.epam.ta.reportportal.auth.event.UiUserSignedInEvent;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.ws.model.ErrorType;

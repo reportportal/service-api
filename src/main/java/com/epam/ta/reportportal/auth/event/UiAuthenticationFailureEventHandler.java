@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.epam.reportportal.auth.event;
+package com.epam.ta.reportportal.auth.event;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;

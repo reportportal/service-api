@@ -50,6 +50,7 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -244,8 +245,8 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 		startRQ.setDescription(mergeLaunchesRQ.getDescription());
 		startRQ.setName(ofNullable(mergeLaunchesRQ.getName()).orElse(
 				"Merged: " + launches.stream().map(Launch::getName).distinct().collect(joining(", "))));
-		startRQ.setTags(
-				ofNullable(mergeLaunchesRQ.getTags()).orElse(launches.stream().flatMap(it -> it.getTags().stream()).collect(toSet())));
+		startRQ.setTags(ofNullable(mergeLaunchesRQ.getTags()).orElse(
+				launches.stream().flatMap(it -> ofNullable(it.getTags()).orElse(Collections.emptySet()).stream()).collect(toSet())));
 		startRQ.setStartTime(ofNullable(mergeLaunchesRQ.getStartTime()).orElse(launches.stream()
 				.sorted(comparing(Launch::getStartTime))
 				.findFirst()

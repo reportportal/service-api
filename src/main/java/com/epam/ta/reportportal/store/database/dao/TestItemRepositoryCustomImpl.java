@@ -81,7 +81,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 	@Override
 	public List<TestItem> selectItemsInStatusByLaunch(Long launchId, StatusEnum status) {
 		JStatusEnum statusEnum = JStatusEnum.valueOf(status.name());
-		return commonTestItemDslSelect().where(TEST_ITEM_STRUCTURE.LAUNCH_ID.eq(launchId).and(TEST_ITEM_RESULTS.STATUS.eq(statusEnum)))
+		return commonTestItemDslSelect().where(TEST_ITEM.LAUNCH_ID.eq(launchId).and(TEST_ITEM_RESULTS.STATUS.eq(statusEnum)))
 				.fetch(r -> {
 					TestItem testItem = r.into(TestItem.class);
 					testItem.setTestItemStructure(r.into(TestItemStructure.class));
@@ -102,7 +102,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 				.on(ISSUE.ISSUE_ID.eq(TEST_ITEM_RESULTS.ITEM_ID))
 				.join(ISSUE_TYPE)
 				.on(ISSUE.ISSUE_TYPE.eq(ISSUE_TYPE.ID))
-				.where(TEST_ITEM_STRUCTURE.LAUNCH_ID.eq(launchId))
+				.where(TEST_ITEM.LAUNCH_ID.eq(launchId))
 				.and(ISSUE_TYPE.LOCATOR.ne(issueType))
 				.fetchInto(Long.class);
 	}
@@ -113,7 +113,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 				.on(ISSUE.ISSUE_ID.eq(TEST_ITEM_RESULTS.ITEM_ID))
 				.join(ISSUE_TYPE)
 				.on(ISSUE.ISSUE_TYPE.eq(ISSUE_TYPE.ID))
-				.where(TEST_ITEM_STRUCTURE.LAUNCH_ID.eq(launchId))
+				.where(TEST_ITEM.LAUNCH_ID.eq(launchId))
 				.and(ISSUE_TYPE.LOCATOR.eq(issueType))
 				.fetch(r -> {
 					TestItem testItem = r.into(TestItem.class);

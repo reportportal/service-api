@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.store.database.dao.LogRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
-import com.epam.ta.reportportal.store.database.entity.item.TestItemStructure;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
@@ -85,10 +84,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId().toString()));
 		validate(projectName, rq, launch);
 
-		TestItem item = new TestItemBuilder().addStartItemRequest(rq).get();
-		TestItemStructure testItemStructure = new TestItemStructure();
-		testItemStructure.setLaunch(launch);
-		item.setTestItemStructure(testItemStructure);
+		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addLaunch(launch).get();
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
@@ -104,13 +100,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
 		validate(rq, parentItem);
 
-		TestItem item = new TestItemBuilder().addStartItemRequest(rq).get();
-
-		TestItemStructure testItemStructure = new TestItemStructure();
-		testItemStructure.setLaunch(launch);
-		testItemStructure.setParent(parentItem.getTestItemStructure());
-		item.setTestItemStructure(testItemStructure);
-
+		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addLaunch(launch).addParent(parentItem.getTestItemStructure()).get();
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}

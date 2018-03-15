@@ -26,7 +26,9 @@ import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
+import com.epam.ta.reportportal.store.database.entity.item.TestItemStructure;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemTag;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
@@ -48,12 +50,16 @@ public class TestItemBuilder implements Supplier<TestItem> {
 
 	private TestItem testItem;
 
+	private TestItemStructure structure;
+
 	public TestItemBuilder() {
 		testItem = new TestItem();
+		structure = new TestItemStructure();
 	}
 
 	public TestItemBuilder(TestItem testItem) {
 		this.testItem = testItem;
+		this.structure = testItem.getTestItemStructure();
 	}
 
 	public TestItemBuilder addStartItemRequest(StartTestItemRQ rq) {
@@ -64,6 +70,16 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		addTags(rq.getTags());
 		addParameters(rq.getParameters());
 		addType(rq.getType());
+		return this;
+	}
+
+	public TestItemBuilder addLaunch(Launch launch) {
+		testItem.setLaunch(launch);
+		return this;
+	}
+
+	public TestItemBuilder addParent(TestItemStructure parentStructure) {
+		structure.setParent(parentStructure);
 		return this;
 	}
 
@@ -109,6 +125,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 
 	@Override
 	public TestItem get() {
+		testItem.setTestItemStructure(structure);
 		return this.testItem;
 	}
 

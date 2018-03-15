@@ -18,6 +18,7 @@ import java.util.List;
 import javax.annotation.Generated;
 
 import org.jooq.Field;
+import org.jooq.ForeignKey;
 import org.jooq.Identity;
 import org.jooq.Index;
 import org.jooq.Name;
@@ -42,7 +43,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JTestItem extends TableImpl<JTestItemRecord> {
 
-    private static final long serialVersionUID = -1890641307;
+    private static final long serialVersionUID = -1911735876;
 
     /**
      * The reference instance of <code>public.test_item</code>
@@ -61,6 +62,11 @@ public class JTestItem extends TableImpl<JTestItemRecord> {
      * The column <code>public.test_item.item_id</code>.
      */
     public final TableField<JTestItemRecord, Long> ITEM_ID = createField("item_id", org.jooq.impl.SQLDataType.BIGINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('test_item_item_id_seq'::regclass)", org.jooq.impl.SQLDataType.BIGINT)), this, "");
+
+    /**
+     * The column <code>public.test_item.launch_id</code>.
+     */
+    public final TableField<JTestItemRecord, Long> LAUNCH_ID = createField("launch_id", org.jooq.impl.SQLDataType.BIGINT, this, "");
 
     /**
      * The column <code>public.test_item.name</code>.
@@ -164,6 +170,14 @@ public class JTestItem extends TableImpl<JTestItemRecord> {
     @Override
     public List<UniqueKey<JTestItemRecord>> getKeys() {
         return Arrays.<UniqueKey<JTestItemRecord>>asList(Keys.TEST_ITEM_PK);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<ForeignKey<JTestItemRecord, ?>> getReferences() {
+        return Arrays.<ForeignKey<JTestItemRecord, ?>>asList(Keys.TEST_ITEM__TEST_ITEM_LAUNCH_ID_FKEY);
     }
 
     /**

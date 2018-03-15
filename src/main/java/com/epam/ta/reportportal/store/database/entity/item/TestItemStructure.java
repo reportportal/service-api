@@ -21,8 +21,6 @@
 
 package com.epam.ta.reportportal.store.database.entity.item;
 
-import com.epam.ta.reportportal.store.database.entity.launch.Launch;
-
 import javax.persistence.*;
 import java.io.Serializable;
 
@@ -37,10 +35,6 @@ public class TestItemStructure implements Serializable {
 	@Id
 	@Column(name = "item_id", unique = true, nullable = false)
 	private Long itemId;
-
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "launch_id")
-	private Launch launch;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "parent_id")
@@ -71,14 +65,6 @@ public class TestItemStructure implements Serializable {
 
 	public void setTestItem(TestItem testItem) {
 		this.testItem = testItem;
-	}
-
-	public Launch getLaunch() {
-		return launch;
-	}
-
-	public void setLaunch(Launch launch) {
-		this.launch = launch;
 	}
 
 	public TestItemStructure getParent() {

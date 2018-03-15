@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JTestItemStructure extends TableImpl<JTestItemStructureRecord> {
 
-    private static final long serialVersionUID = -506810855;
+    private static final long serialVersionUID = -296083114;
 
     /**
      * The reference instance of <code>public.test_item_structure</code>
@@ -58,11 +58,6 @@ public class JTestItemStructure extends TableImpl<JTestItemStructureRecord> {
      * The column <code>public.test_item_structure.item_id</code>.
      */
     public final TableField<JTestItemStructureRecord, Long> ITEM_ID = createField("item_id", org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
-
-    /**
-     * The column <code>public.test_item_structure.launch_id</code>.
-     */
-    public final TableField<JTestItemStructureRecord, Long> LAUNCH_ID = createField("launch_id", org.jooq.impl.SQLDataType.BIGINT, this, "");
 
     /**
      * The column <code>public.test_item_structure.parent_id</code>.
@@ -140,7 +135,7 @@ public class JTestItemStructure extends TableImpl<JTestItemStructureRecord> {
      */
     @Override
     public List<ForeignKey<JTestItemStructureRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<JTestItemStructureRecord, ?>>asList(Keys.TEST_ITEM_STRUCTURE__TEST_ITEM_STRUCTURE_ITEM_ID_FKEY, Keys.TEST_ITEM_STRUCTURE__TEST_ITEM_STRUCTURE_LAUNCH_ID_FKEY, Keys.TEST_ITEM_STRUCTURE__TEST_ITEM_STRUCTURE_PARENT_ID_FKEY, Keys.TEST_ITEM_STRUCTURE__TEST_ITEM_STRUCTURE_RETRY_OF_FKEY);
+        return Arrays.<ForeignKey<JTestItemStructureRecord, ?>>asList(Keys.TEST_ITEM_STRUCTURE__TEST_ITEM_STRUCTURE_ITEM_ID_FKEY, Keys.TEST_ITEM_STRUCTURE__TEST_ITEM_STRUCTURE_PARENT_ID_FKEY, Keys.TEST_ITEM_STRUCTURE__TEST_ITEM_STRUCTURE_RETRY_OF_FKEY);
     }
 
     /**

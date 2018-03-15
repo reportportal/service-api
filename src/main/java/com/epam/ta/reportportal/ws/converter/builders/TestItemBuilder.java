@@ -36,7 +36,10 @@ import com.google.common.collect.Sets;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import java.sql.Date;
+import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
@@ -46,7 +49,7 @@ import static java.util.stream.Collectors.toList;
 public class TestItemBuilder extends Builder<TestItem> {
 
 	public TestItemBuilder addStartItemRequest(StartTestItemRQ rq) {
-		getObject().setStartTime(rq.getStartTime());
+		getObject().setStartTime(Optional.ofNullable(rq.getStartTime()).orElse(Date.from(Instant.now())));
 		getObject().setName(rq.getName().trim());
 		getObject().setUniqueId(rq.getUniqueId());
 		if (null != rq.getDescription()) {

@@ -21,15 +21,19 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -78,9 +82,27 @@ public class LaunchBuilder implements Supplier<Launch> {
 		return this;
 	}
 
+	public LaunchBuilder addTag(String tag) {
+		Preconditions.checkNotNull(tag, "Provided value should not be null");
+		Set<LaunchTag> newTags = Optional.ofNullable(launch.getTags()).orElse(Sets.newHashSet());
+		newTags.add(new LaunchTag(tag));
+		launch.setTags(newTags);
+		return this;
+	}
+
 	public LaunchBuilder addTags(Set<String> tags) {
 		ofNullable(tags).ifPresent(it -> launch.setTags(
 				stream((trimStrings(update(it)).spliterator()), false).map(LaunchTag::new).collect(Collectors.toSet())));
+		return this;
+	}
+
+	public LaunchBuilder addMode(Mode mode) {
+		ofNullable(mode).ifPresent(it -> launch.setMode(LaunchModeEnum.valueOf(it.name())));
+		return this;
+	}
+
+	public LaunchBuilder addStatus(String status) {
+		launch.setStatus(StatusEnum.fromValue(status).orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FINISH_STATUS)));
 		return this;
 	}
 

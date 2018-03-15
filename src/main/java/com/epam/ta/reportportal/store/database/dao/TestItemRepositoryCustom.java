@@ -46,6 +46,15 @@ public interface TestItemRepositoryCustom {
 	List<TestItem> selectItemsInStatusByLaunch(Long launchId, StatusEnum status);
 
 	/**
+	 * Select common items object that are in progress in
+	 * specified launch
+	 *
+	 * @param launchId Launch
+	 * @return List of items
+	 */
+	List<TestItem> selectInProgressItemsByLaunch(Long launchId);
+
+	/**
 	 * Select ids of items that has different issue from provided for
 	 * specified launch
 	 *

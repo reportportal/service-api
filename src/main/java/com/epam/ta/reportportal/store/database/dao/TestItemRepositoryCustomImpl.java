@@ -81,11 +81,27 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 	@Override
 	public List<TestItem> selectItemsInStatusByLaunch(Long launchId, StatusEnum status) {
 		JStatusEnum statusEnum = JStatusEnum.valueOf(status.name());
-		return commonTestItemDslSelect().where(TEST_ITEM.LAUNCH_ID.eq(launchId).and(TEST_ITEM_RESULTS.STATUS.eq(statusEnum)))
+		return commonTestItemDslSelect().where(TEST_ITEM.LAUNCH_ID.eq(launchId).and(TEST_ITEM_RESULTS.STATUS.eq(statusEnum))).fetch(r -> {
+			TestItem testItem = r.into(TestItem.class);
+			testItem.setTestItemStructure(r.into(TestItemStructure.class));
+			testItem.setTestItemResults(r.into(TestItemResults.class));
+			return testItem;
+		});
+	}
+
+	@Override
+	public List<TestItem> selectInProgressItemsByLaunch(Long launchId) {
+		return dsl.select(TEST_ITEM.ITEM_ID, TEST_ITEM.START_TIME)
+				.from(TEST_ITEM)
+				.join(TEST_ITEM_STRUCTURE)
+				.on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_STRUCTURE.ITEM_ID))
+				.leftJoin(TEST_ITEM_RESULTS)
+				.on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_RESULTS.ITEM_ID))
+				.where(TEST_ITEM.LAUNCH_ID.eq(launchId))
+				.and(TEST_ITEM_RESULTS.ITEM_ID.isNull())
 				.fetch(r -> {
 					TestItem testItem = r.into(TestItem.class);
 					testItem.setTestItemStructure(r.into(TestItemStructure.class));
-					testItem.setTestItemResults(r.into(TestItemResults.class));
 					return testItem;
 				});
 	}

@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.store.database.dao;
 
+import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.launch.ExecutionStatistics;
 import com.epam.ta.reportportal.store.database.entity.launch.LaunchFull;
 import com.epam.ta.reportportal.store.jooq.enums.JStatusEnum;
@@ -55,6 +56,26 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 	}
 
 	@Override
+	public Boolean hasItems(Long launchId, StatusEnum statusEnum) {
+		return dsl.fetchExists(dsl.selectOne()
+				.from(TEST_ITEM)
+				.join(TEST_ITEM_RESULTS)
+				.onKey()
+				.where(TEST_ITEM.LAUNCH_ID.eq(launchId))
+				.and(TEST_ITEM_RESULTS.STATUS.eq(JStatusEnum.valueOf(statusEnum.name()))));
+	}
+
+	@Override
+	public Boolean hasInProgressItems(Long launchId) {
+		return dsl.fetchExists(dsl.selectOne()
+				.from(TEST_ITEM)
+				.leftJoin(TEST_ITEM_RESULTS)
+				.onKey()
+				.where(TEST_ITEM.LAUNCH_ID.eq(launchId))
+				.and(TEST_ITEM_RESULTS.ITEM_ID.isNull()));
+	}
+
+	@Override
 	public Boolean identifyStatus(Long launchId) {
 		return dsl.fetchExists(dsl.selectOne()
 				.from(TEST_ITEM)
@@ -74,7 +95,9 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 				sum(when(tr.STATUS.eq(JStatusEnum.FAILED), 1).otherwise(0)).as("failed"),
 				sum(when(tr.STATUS.eq(JStatusEnum.SKIPPED), 1).otherwise(0)).as("skipped"), count(tr.STATUS).as("total")
 		)
-				.from(ti).join(tr).on(ti.ITEM_ID.eq(tr.ITEM_ID))
+				.from(ti)
+				.join(tr)
+				.on(ti.ITEM_ID.eq(tr.ITEM_ID))
 				.join(l)
 				.on(l.ID.eq(ti.LAUNCH_ID))
 				.groupBy(l.ID, l.PROJECT_ID, l.USER_ID, l.NAME, l.DESCRIPTION, l.START_TIME, l.NUMBER, l.LAST_MODIFIED, l.MODE)

@@ -23,32 +23,26 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.core.launch.IUpdateLaunchHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
-import com.epam.ta.reportportal.store.database.entity.launch.LaunchTag;
+import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
-import com.google.common.collect.Sets;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
-import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * Default implementation of {@link IUpdateLaunchHandler}
@@ -91,16 +85,6 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		this.testItemRepository = testItemRepository;
 	}
 
-	//	@Autowired
-	//	public void setUserRepository(UserRepository userRepository) {
-	//		this.userRepository = userRepository;
-	//	}
-	//
-	//	@Autowired
-	//	public void setProjectRepository(ProjectRepository projectRepository) {
-	//		this.projectRepository = projectRepository;
-	//	}
-
 	public OperationCompletionRS updateLaunch(Long launchId, String projectName, String userName, UpdateLaunchRQ rq) {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
@@ -108,12 +92,8 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		//TODO Replace validation with new uat
 		//validate(launch, userName, projectName, rq.getMode());
 
-		ofNullable(rq.getMode()).ifPresent(mode -> launch.setMode(LaunchModeEnum.valueOf(rq.getMode().name())));
-		ofNullable(rq.getDescription()).ifPresent(launch::setDescription);
-		Set<String> set = Sets.newHashSet(EntityUtils.trimStrings(rq.getTags()));
-		if (!CollectionUtils.isEmpty(set)) {
-			launch.setTags(set.stream().map(LaunchTag::new).collect(toSet()));
-		}
+		launch = new LaunchBuilder(launch).addMode(rq.getMode()).addDescription(rq.getDescription()).addTags(rq.getTags()).get();
+
 		//reindexLogs(launch);
 		launchRepository.save(launch);
 		return new OperationCompletionRS("Launch with ID = '" + launch.getId() + "' successfully updated.");

@@ -57,7 +57,7 @@ public class ExternalSystemActivityHandler {
 	@EventListener
 	public void onExternalSystemCreated(ExternalSystemCreatedEvent event) {
 		ExternalSystem externalSystem = event.getExternalSystem();
-		String name = externalSystem.getExternalSystemType().name() + ":" + externalSystem.getProject();
+		String name = externalSystem.getExternalSystemType() + ":" + externalSystem.getProject();
 		Activity activity = new ActivityBuilder().addObjectName(name)
 				.addObjectType(EXTERNAL_SYSTEM)
 				.addLoggedObjectRef(externalSystem.getId())
@@ -73,7 +73,7 @@ public class ExternalSystemActivityHandler {
 	public void onExternalSystemUpdate(ExternalSystemUpdatedEvent event) {
 		ExternalSystem externalSystem = event.getExternalSystem();
 		if (externalSystem != null) {
-			String name = externalSystem.getExternalSystemType().name() + ":" + externalSystem.getProject();
+			String name = externalSystem.getExternalSystemType() + ":" + externalSystem.getProject();
 			Activity activity = new ActivityBuilder().addObjectName(name)
 					.addObjectType(EXTERNAL_SYSTEM)
 					.addLoggedObjectRef(externalSystem.getId())
@@ -89,7 +89,7 @@ public class ExternalSystemActivityHandler {
 	public void onExternalSystemDelete(ExternalSystemDeletedEvent event) {
 		ExternalSystem externalSystem = event.getExternalSystem();
 		if (externalSystem != null) {
-			String name = externalSystem.getExternalSystemType().name() + ":" + externalSystem.getProject();
+			String name = externalSystem.getExternalSystemType() + ":" + externalSystem.getProject();
 			Activity activity = new ActivityBuilder().addObjectName(name)
 					.addObjectType(EXTERNAL_SYSTEM)
 					.addLoggedObjectRef(externalSystem.getId())
@@ -107,7 +107,7 @@ public class ExternalSystemActivityHandler {
 		Iterable<ExternalSystem> externalSystems = event.getExternalSystems();
 		if (null != externalSystems) {
 			List<Activity> activities = StreamSupport.stream(externalSystems.spliterator(), false).map(externalSystem -> {
-				String name = externalSystem.getExternalSystemType().name() + ":" + externalSystem.getProject();
+				String name = externalSystem.getExternalSystemType() + ":" + externalSystem.getProject();
 				return new ActivityBuilder().addObjectName(name)
 						.addObjectType(EXTERNAL_SYSTEM)
 						.addLoggedObjectRef(externalSystem.getId())

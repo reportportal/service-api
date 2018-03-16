@@ -39,14 +39,18 @@ import com.epam.ta.reportportal.database.entity.ProjectRole;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.TestItemType;
 import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
+import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,8 +63,9 @@ import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueT
 import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.database.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
+import static java.util.Comparator.comparing;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.*;
 
 /**
  * @author Aliaksei_Makayed
@@ -125,7 +130,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 		boolean hasRetries = launchesList.stream().anyMatch(it -> it.getHasRetries() != null);
 		validateMergingLaunches(launchesList, user, project);
 
-		Launch launch = createResultedLaunch(projectName, userName, rq, hasRetries);
+		Launch launch = createResultedLaunch(projectName, userName, rq, hasRetries, launchesList);
 		boolean isNameChanged = !launch.getName().equals(launchesList.get(0).getName());
 		updateChildrenOfLaunches(launch.getId(), rq.getLaunches(), rq.isExtendSuitesDescription(), isNameChanged);
 
@@ -152,7 +157,12 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
 		launch = launchRepository.findOne(launch.getId());
 		launch.setStatus(StatisticsHelper.getStatusFromStatistics(launch.getStatistics()));
-		launch.setEndTime(rq.getEndTime());
+
+		launch.setEndTime(ofNullable(rq.getEndTime()).orElse(launchesList.stream()
+				.sorted(comparing(Launch::getEndTime).reversed())
+				.findFirst()
+				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Invalid launches"))
+				.getEndTime()));
 
 		launchRepository.save(launch);
 		launchRepository.delete(launchesIds);
@@ -228,13 +238,20 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 	 * @param mergeLaunchesRQ
 	 * @return launch
 	 */
-	private Launch createResultedLaunch(String projectName, String userName, MergeLaunchesRQ mergeLaunchesRQ, boolean hasRetries) {
+	private Launch createResultedLaunch(String projectName, String userName, MergeLaunchesRQ mergeLaunchesRQ, boolean hasRetries,
+			List<Launch> launches) {
 		StartLaunchRQ startRQ = new StartLaunchRQ();
-		startRQ.setMode(mergeLaunchesRQ.getMode());
+		startRQ.setMode(ofNullable(mergeLaunchesRQ.getMode()).orElse(Mode.DEFAULT));
 		startRQ.setDescription(mergeLaunchesRQ.getDescription());
-		startRQ.setName(mergeLaunchesRQ.getName());
-		startRQ.setTags(mergeLaunchesRQ.getTags());
-		startRQ.setStartTime(mergeLaunchesRQ.getStartTime());
+		startRQ.setName(ofNullable(mergeLaunchesRQ.getName()).orElse(
+				"Merged: " + launches.stream().map(Launch::getName).distinct().collect(joining(", "))));
+		startRQ.setTags(ofNullable(mergeLaunchesRQ.getTags()).orElse(
+				launches.stream().flatMap(it -> ofNullable(it.getTags()).orElse(Collections.emptySet()).stream()).collect(toSet())));
+		startRQ.setStartTime(ofNullable(mergeLaunchesRQ.getStartTime()).orElse(launches.stream()
+				.sorted(comparing(Launch::getStartTime))
+				.findFirst()
+				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Invalid launches"))
+				.getStartTime()));
 		Launch launch = new LaunchBuilder().addStartRQ(startRQ).addProject(projectName).addStatus(IN_PROGRESS).addUser(userName).get();
 		launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
 		launch.setHasRetries(hasRetries ? true : null);

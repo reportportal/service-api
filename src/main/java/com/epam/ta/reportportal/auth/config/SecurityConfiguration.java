@@ -168,10 +168,18 @@ public class SecurityConfiguration {
 
 		@Override
 		public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
+			//@formatter:off
 			endpoints
+					.pathMapping("/oauth/token", "/sso/oauth/token")
+					.pathMapping("/oauth/token_key", "/sso/oauth/token_key")
+					.pathMapping("/oauth/check_token", "/sso/oauth/check_token")
+					.pathMapping("/oauth/authorize", "/sso/oauth/authorize")
+					.pathMapping("/oauth/confirm_access", "/sso/oauth/confirm_access")
 					.tokenStore(tokenStore())
+//					.exceptionTranslator(new OAuthErrorHandler(new ReportPortalExceptionResolver(new DefaultErrorResolver(ExceptionMappings.DEFAULT_MAPPING))))
 					.accessTokenConverter(accessTokenConverter())
 					.authenticationManager(authenticationManager);
+			//@formatter:on
 		}
 
 		@Override

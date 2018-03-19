@@ -31,7 +31,7 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "issue", schema = "public", indexes = { @Index(name = "issue_pk", unique = true, columnList = "issue_id ASC") })
-public class Issue {
+public class IssueEntity {
 
 	@Id
 	@Column(name = "issue_id", unique = true, nullable = false, precision = 64)
@@ -116,7 +116,7 @@ public class Issue {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		Issue issue = (Issue) o;
+		IssueEntity issue = (IssueEntity) o;
 		return Objects.equals(issueId, issue.issueId) && Objects.equals(issueType, issue.issueType) && Objects.equals(
 				issueDescription, issue.issueDescription) && Objects.equals(autoAnalyzed, issue.autoAnalyzed) && Objects.equals(
 				ignoreAnalyzer, issue.ignoreAnalyzer) && Objects.equals(testItemResults, issue.testItemResults);

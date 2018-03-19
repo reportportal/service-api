@@ -39,7 +39,7 @@
         </database>
 
         <generate>
-            <pojos>true</pojos>
+            <pojos>false</pojos>
             <jpaAnnotations>false</jpaAnnotations>
             <dateAsTimestamp>false</dateAsTimestamp>
             <routines>false</routines>
@@ -57,5 +57,5 @@
         <!--
                 Put the property file, jooq*.jar and the JDBC driver into a directory, e.g. C:\temp\jooq
                 Go to C:\temp\jooq
-                Run java -cp jooq-3.10.4.jar:jooq-meta-3.10.4.jar:jooq-codegen-3.10.4.jar:postgresql-42.2.1.jar:. org.jooq.util.GenerationTool /jooq.xml
+                Run java -cp jooq-3.10.5.jar:jooq-meta-3.10.5.jar:jooq-codegen-3.10.5.jar:postgresql-42.2.1.jar:. org.jooq.util.GenerationTool /jooq.xml
         -->

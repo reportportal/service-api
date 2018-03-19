@@ -23,7 +23,7 @@ package com.epam.ta.reportportal.store.database.entity.item;
 
 import com.epam.ta.reportportal.store.database.entity.enums.PostgreSQLEnumType;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.store.database.entity.item.issue.Issue;
+import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
@@ -49,11 +49,11 @@ public class TestItemResults implements Serializable {
 	@Type(type = "pqsql_enum")
 	private StatusEnum status;
 
-	@Column(name = "duration", precision = 24)
-	private Float duration;
+	@Column(name = "duration")
+	private Long duration;
 
 	@OneToOne(mappedBy = "testItemResults", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private Issue issue;
+	private IssueEntity issue;
 
 	@OneToOne
 	@MapsId
@@ -79,11 +79,11 @@ public class TestItemResults implements Serializable {
 		this.status = status;
 	}
 
-	public Float getDuration() {
+	public Long getDuration() {
 		return duration;
 	}
 
-	public void setDuration(Float duration) {
+	public void setDuration(Long duration) {
 		this.duration = duration;
 	}
 
@@ -95,11 +95,11 @@ public class TestItemResults implements Serializable {
 		this.testItem = testItem;
 	}
 
-	public Issue getIssue() {
+	public IssueEntity getIssue() {
 		return issue;
 	}
 
-	public void setIssue(Issue issue) {
+	public void setIssue(IssueEntity issue) {
 		this.issue = issue;
 		issue.setTestItemResults(this);
 	}

@@ -23,15 +23,11 @@ package com.epam.ta.reportportal.store.commons;
 
 import com.epam.ta.reportportal.store.database.entity.enums.ProjectRoleEnum;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.lang.ArrayUtils;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
 
@@ -57,23 +53,11 @@ public class Preconditions {
 
 	public static final Predicate<Optional<?>> IS_PRESENT = Optional::isPresent;
 
-	public static Predicate<FinishExecutionRQ> finishSameTimeOrLater(final LocalDateTime startTime) {
-		return input -> {
-			LocalDateTime endTime = TO_LOCAL_DATE_TIME.apply(input.getEndTime());
-			return endTime.isAfter(startTime) || endTime.isEqual(startTime);
-		};
-	}
-
-	/**
-	 * Start time of item to be creates is later than provided start time
-	 *
-	 * @param startTime
-	 * @return
-	 */
-	public static Predicate<StartTestItemRQ> startSameTimeOrLater(final LocalDateTime startTime) {
-		return input -> {
-			LocalDateTime start = TO_LOCAL_DATE_TIME.apply(input.getStartTime());
-			return start != null && (start.isAfter(startTime) || start.isEqual(startTime));
+	public static Predicate<Date> sameTimeOrLater(final LocalDateTime than) {
+		com.google.common.base.Preconditions.checkNotNull(than, ErrorType.BAD_REQUEST_ERROR);
+		return date -> {
+			LocalDateTime localDateTime = TO_LOCAL_DATE_TIME.apply(date);
+			return localDateTime.isAfter(than) || localDateTime.isEqual(than);
 		};
 	}
 

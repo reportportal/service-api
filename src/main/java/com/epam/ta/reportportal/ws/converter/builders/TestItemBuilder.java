@@ -22,56 +22,111 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
+import com.epam.ta.reportportal.store.database.entity.item.TestItemStructure;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemTag;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import com.google.common.collect.Sets;
-import org.apache.commons.collections.CollectionUtils;
 
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.store.commons.EntityUtils.trimStrings;
-import static com.epam.ta.reportportal.store.commons.EntityUtils.update;
+import static com.epam.ta.reportportal.store.commons.EntityUtils.*;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.StreamSupport.stream;
 
 public class TestItemBuilder implements Supplier<TestItem> {
 
 	private TestItem testItem;
 
+	private TestItemStructure structure;
+
 	public TestItemBuilder() {
 		testItem = new TestItem();
+		structure = new TestItemStructure();
+	}
+
+	public TestItemBuilder(TestItem testItem) {
+		this.testItem = testItem;
+		this.structure = testItem.getTestItemStructure();
 	}
 
 	public TestItemBuilder addStartItemRequest(StartTestItemRQ rq) {
-		//testItem.setStartTime(new Timestamp(rq.getStartTime().getTime()));
+		testItem.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(rq.getStartTime()));
 		testItem.setName(rq.getName().trim());
 		testItem.setUniqueId(rq.getUniqueId());
-		ofNullable(rq.getDescription()).ifPresent(it -> testItem.setDescription(it.trim()));
+		addDescription(rq.getDescription());
+		addTags(rq.getTags());
+		addParameters(rq.getParameters());
+		addType(rq.getType());
+		return this;
+	}
 
-		Set<String> tags = rq.getTags();
-		if (!CollectionUtils.isEmpty(tags)) {
-			tags = Sets.newHashSet(trimStrings(update(tags)));
-			testItem.setTags(tags.stream().map(TestItemTag::new).collect(Collectors.toSet()));
-		}
-		List<ParameterResource> parameters = rq.getParameters();
+	public TestItemBuilder addLaunch(Launch launch) {
+		testItem.setLaunch(launch);
+		return this;
+	}
+
+	public TestItemBuilder addParent(TestItemStructure parentStructure) {
+		structure.setParent(parentStructure);
+		return this;
+	}
+
+	public TestItemBuilder addType(String typeValue) {
+		TestItemTypeEnum type = TestItemTypeEnum.fromValue(typeValue);
+		BusinessRule.expect(type, Objects::nonNull).verify(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE, typeValue);
+		testItem.setType(type);
+		return this;
+	}
+
+	public TestItemBuilder addDescription(String description) {
+		ofNullable(description).ifPresent(it -> testItem.setDescription(it.trim()));
+		return this;
+	}
+
+	public TestItemBuilder addTags(Set<String> tags) {
+		ofNullable(tags).ifPresent(it -> testItem.setTags(
+				stream((trimStrings(update(it)).spliterator()), false).map(TestItemTag::new).collect(Collectors.toSet())));
+		return this;
+	}
+
+	public TestItemBuilder addTestItemResults(TestItemResults testItemResults, Date endTime) {
+		checkNotNull(testItemResults, "Provided value shouldn't be null");
+		testItem.setTestItemResults(testItemResults);
+		addDuration(endTime);
+		return this;
+	}
+
+	public TestItemBuilder addDuration(Date endTime) {
+		checkNotNull(endTime, "Provided value shouldn't be null");
+		checkNotNull(testItem.getTestItemResults(), "Test item results shouldn't be null");
+		testItem.getTestItemResults().setDuration(ChronoUnit.MILLIS.between(testItem.getStartTime(), TO_LOCAL_DATE_TIME.apply(endTime)));
+		return this;
+	}
+
+	//TODO parameters
+	public TestItemBuilder addParameters(List<ParameterResource> parameters) {
 		//		if (null != parameters) {
 		//			testItem.setParameters(parameters.stream().map(ParametersConverter.TO_MODEL).toArray(Parameter[]::new));
 		//		}
-		TestItemTypeEnum type = TestItemTypeEnum.fromValue(rq.getType());
-		BusinessRule.expect(type, Objects::nonNull).verify(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE, rq.getType());
-		testItem.setType(type);
 		return this;
 	}
 
 	@Override
 	public TestItem get() {
+		testItem.setTestItemStructure(structure);
 		return this.testItem;
 	}
+
 }

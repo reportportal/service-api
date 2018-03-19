@@ -23,7 +23,9 @@ package com.epam.ta.reportportal.ws.controller.impl;
 
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.controller.ITestItemController;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
@@ -114,10 +116,10 @@ public class TestItemController implements ITestItemController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Find test item by ID")
-	public TestItemResource getTestItem(@PathVariable String projectName, @PathVariable String testItemId, Principal principal) {
-		//testItemRepository.recursive(11L);
+	public TestItem getTestItem(@PathVariable String projectName, @PathVariable String testItemId, Principal principal) {
+		//testItemRepository.selectPathNames(11L);
 		//return getTestItemHandler.getTestItem(testItemId);
-		return null;
+		return testItemRepository.findById(3l).orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "3"));
 	}
 
 	//	@Override

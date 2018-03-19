@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.core.launch.IGetLaunchHandler;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
@@ -35,9 +36,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 /**
  * Default implementation of {@link IGetLaunchHandler}
@@ -63,13 +61,20 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 
 	@Override
 	public LaunchResource getLaunch(Long launchId, String userName, String projectName) {
-		Launch launch = validate(launchId, projectName);
+		Launch launch = launchRepository.findById(launchId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+
+		//
+		//		expect(launch.get().getProjectId(), equalTo(projectName)).verify(
+		//				ErrorType.FORBIDDEN_OPERATION,
+		//				formattedSupplier("Specified launch with id '{}' not referenced to specified project '{}'", launchId, projectName));
+
 		if (launch.getMode() == LaunchModeEnum.DEBUG) {
 			//					Project project = projectRepository.findOne(projectName);
 			//					final Project.UserConfig userConfig = findUserConfigByLogin(project, userName);
 			//					expect(userConfig.getProjectRole(), not(equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
 		}
-		return LaunchConverter.TO_RESOURCE.apply(null);
+		return LaunchConverter.TO_RESOURCE.apply(launch);
 	}
 
 	//
@@ -223,25 +228,5 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 //		expect(filter.getFilterConditions().stream().anyMatch(HAS_ANY_MODE), equalTo(false))
 //				.verify(INCORRECT_FILTER_PARAMETERS, "Filters for 'mode' aren't applicable for project's launches.");
 //	}
-//
-	/**
-	 * Validate launch reference to specified project ID
-	 *
-	 * @param launchId
-	 *            - validating launch ID
-	 * @param projectName
-	 *            - specified project name
-	 * @return Launch - validated launch object if not BusinessRule exceptions
-	 */
-	private Launch validate(Long launchId, String projectName) {
-		Optional<Launch> launch = launchRepository.findById(launchId);
 
-		expect(launch, Optional::isPresent).verify(ErrorType.LAUNCH_NOT_FOUND, launchId);
-//
-//		expect(launch.get().getProjectId(), equalTo(projectName)).verify(
-//				ErrorType.FORBIDDEN_OPERATION,
-//				formattedSupplier("Specified launch with id '{}' not referenced to specified project '{}'", launchId, projectName));
-
-		return launch.get();
-	}
 }

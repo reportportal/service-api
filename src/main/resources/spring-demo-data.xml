@@ -3390,5 +3390,8 @@
         </property>
         <property name="uniqueId" value="auto:be63982fe504558e328b8f565636634d"/>
     </bean>
+    <bean id="sessionFactory"/>
+    <bean id="sessionFactory"/>
+    <bean id="sessionFactory"/>
 
 </beans>

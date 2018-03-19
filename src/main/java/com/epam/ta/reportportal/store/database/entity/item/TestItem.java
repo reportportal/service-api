@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.store.database.entity.item;
 
 import com.epam.ta.reportportal.store.database.entity.enums.PostgreSQLEnumType;
 import com.epam.ta.reportportal.store.database.entity.enums.TestItemTypeEnum;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.log.Log;
 import com.google.common.collect.Sets;
 import org.hibernate.annotations.Type;
@@ -49,6 +50,10 @@ public class TestItem implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "item_id", unique = true, nullable = false, precision = 64)
 	private Long itemId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "launch_id")
+	private Launch launch;
 
 	@Column(name = "name", length = 256)
 	private String name;
@@ -139,6 +144,14 @@ public class TestItem implements Serializable {
 		this.itemId = itemId;
 	}
 
+	public Launch getLaunch() {
+		return launch;
+	}
+
+	public void setLaunch(Launch launch) {
+		this.launch = launch;
+	}
+
 	public String getName() {
 		return name;
 	}
@@ -178,7 +191,6 @@ public class TestItem implements Serializable {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-
 
 	//	public Parameter[] getParameters() {
 	//		return parameters;

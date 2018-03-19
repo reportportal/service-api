@@ -25,8 +25,6 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
 import org.springframework.stereotype.Component;
 
-import javax.validation.constraints.NotNull;
-
 /**
  * Validates that user is allowed to report (start/finish, launch, start/finish item, log)
  *
@@ -40,7 +38,7 @@ public class ReporterPermission extends BaseProjectPermission {
 	 * Validates that user is allowed to report (start/finish, launch, start/finish item, log)
 	 */
 	@Override
-	protected boolean checkAllowed(@NotNull ReportPortalUser user, @NotNull String project, ProjectRole role) {
+	protected boolean checkAllowed(ReportPortalUser user, String project, ProjectRole role) {
 		return role.sameOrHigherThan(ProjectRole.CUSTOMER);
 	}
 }

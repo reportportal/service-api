@@ -1,7 +1,7 @@
 buildscript {
     ext {
-        springBootVersion = '2.0.0.RC2'
-        springCloudVersion = 'Finchley.M5'
+        springBootVersion = '2.0.0.RELEASE'
+        springCloudVersion = 'Finchley.M7'
     }
     repositories {
         mavenCentral()
@@ -69,7 +69,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "com.github.reportportal:commons-bom:71b4af3"
+        mavenBom "com.github.reportportal:commons-bom:fc981d4"
     }
 }
 
@@ -106,6 +106,8 @@ dependencies {
     compile "ch.qos.logback:logback-classic:${logback}"
     compile 'net.coobird:thumbnailator:0.4.8'
     compile 'com.sun.mail:javax.mail:1.6.0'
+    compile group: 'org.aspectj', name: 'aspectjweaver', version: '1.8.9'
+    compile group: 'org.aspectj', name: 'aspectjrt', version: '1.8.9'
 
 //    compile 'org.springframework.cloud:spring-cloud-config-client'
     compile 'org.springframework.retry:spring-retry'

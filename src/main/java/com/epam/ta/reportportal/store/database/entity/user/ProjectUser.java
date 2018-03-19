@@ -15,11 +15,12 @@ public class ProjectUser implements Serializable {
 	@EmbeddedId
 	private ProjectUserId id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	@MapsId("project_id")
 	private Project project;
 
 	@Column(name = "project_role")
+	@Enumerated(EnumType.STRING)
 	private ProjectRole role;
 
 	public ProjectUserId getId() {

@@ -1,5 +1,7 @@
 package com.epam.ta.reportportal.store.database.entity.user;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
@@ -8,7 +10,7 @@ import java.util.List;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "project", schema = "public")
+@Table(name = "users", schema = "public")
 public class User implements Serializable {
 
 	private static final long serialVersionUID = 923392981;
@@ -28,12 +30,20 @@ public class User implements Serializable {
 	private String email;
 
 	@Column(name = "role")
+	@Enumerated(EnumType.STRING)
 	private UserRole role;
+
+	@Column(name = "type")
 	private String type;
+
+	@Column(name = "default_project_id")
 	private Integer defaultProjectId;
+
+	@Column(name = "full_name")
 	private String fullName;
 
-	@OneToMany(mappedBy = "project")
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "project")
+	@Fetch(value = FetchMode.JOIN)
 	private List<ProjectUser> projects;
 
 	public User() {

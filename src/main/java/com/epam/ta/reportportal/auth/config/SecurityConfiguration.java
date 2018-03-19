@@ -27,9 +27,8 @@ import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -54,35 +53,39 @@ import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
+@Configuration
 public class SecurityConfiguration {
 
-	@Bean
-	public PermissionEvaluatorFactoryBean permissionEvaluator() {
-		return new PermissionEvaluatorFactoryBean();
-	}
+	//	@Configuration
+	//	@EnableGlobalMethodSecurity(proxyTargetClass = true, prePostEnabled = true)
+	//	public static class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
+	//
+	//		@Autowired
+	//		private RoleHierarchy roleHierarchy;
+	//
+	//		@Autowired
+	//		private PermissionEvaluator permissionEvaluator;
+	//
+	//		@Override
+	//		protected MethodSecurityExpressionHandler createExpressionHandler() {
+	//			DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
+	//			handler.setRoleHierarchy(roleHierarchy);
+	//			handler.setPermissionEvaluator(permissionEvaluator);
+	//			return handler;
+	//		}
+	//
+	//		@Bean
+	//		public PermissionEvaluatorFactoryBean permissionEvaluator() {
+	//			return new PermissionEvaluatorFactoryBean();
+	//		}
+	//
+	//
+	//	}
 
 	@Configuration
-	@EnableGlobalMethodSecurity(proxyTargetClass = true, prePostEnabled = true)
-	public static class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
-
-		@Autowired
-		private RoleHierarchy roleHierarchy;
-
-		@Autowired
-		private PermissionEvaluator permissionEvaluator;
-
-		@Override
-		protected MethodSecurityExpressionHandler createExpressionHandler() {
-			DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
-			handler.setRoleHierarchy(roleHierarchy);
-			handler.setPermissionEvaluator(permissionEvaluator);
-			return handler;
-		}
-
-	}
-
-	@Configuration
-	@Order(4)
+	@Order(2)
+	@EnableWebSecurity
+	//	@EnableGlobalMethodSecurity(proxyTargetClass = true, prePostEnabled = true)
 	public static class GlobalWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 		public static final String SSO_LOGIN_PATH = "/sso/login";
@@ -232,8 +235,7 @@ public class SecurityConfiguration {
 	public static class ResourceServerAuthConfiguration extends ResourceServerConfigurerAdapter {
 		@Override
 		public void configure(HttpSecurity http) throws Exception {
-			http
-					.requestMatchers()
+			http.requestMatchers()
 					.antMatchers("/sso/me/**", "/sso/internal/**", "/settings/**")
 					.and()
 					.authorizeRequests()
@@ -280,6 +282,18 @@ public class SecurityConfiguration {
 			return new AffirmativeBased(accessDecisionVoters);
 		}
 
+		@Bean
+		MethodSecurityExpressionHandler createExpressionHandler() {
+			DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
+			handler.setRoleHierarchy(userRoleHierarchy());
+			handler.setPermissionEvaluator(permissionEvaluator);
+			return handler;
+		}
+
+		@Bean
+		public PermissionEvaluatorFactoryBean permissionEvaluator() {
+			return new PermissionEvaluatorFactoryBean();
+		}
 	}
 
 	public static class MD5PasswordEncoder implements PasswordEncoder {

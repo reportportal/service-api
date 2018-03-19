@@ -120,6 +120,10 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
 	@Override
 	public LaunchResource mergeLaunches(String projectName, String userName, MergeLaunchesRQ rq) {
+
+		MergeStrategyType type = MergeStrategyType.fromValue(rq.getMergeStrategyType());
+		expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
+
 		User user = userRepository.findOne(userName);
 		Project project = projectRepository.findOne(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
@@ -133,9 +137,6 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 		Launch launch = createResultedLaunch(projectName, userName, rq, hasRetries, launchesList);
 		boolean isNameChanged = !launch.getName().equals(launchesList.get(0).getName());
 		updateChildrenOfLaunches(launch.getId(), rq.getLaunches(), rq.isExtendSuitesDescription(), isNameChanged);
-
-		MergeStrategyType type = MergeStrategyType.fromValue(rq.getMergeStrategyType());
-		expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
 
 		// deep merge strategies
 		if (!type.equals(MergeStrategyType.BASIC)) {

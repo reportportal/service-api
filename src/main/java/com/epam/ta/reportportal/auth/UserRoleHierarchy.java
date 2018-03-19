@@ -93,7 +93,7 @@ public class UserRoleHierarchy implements RoleHierarchy {
 	}
 
 	private GrantedAuthority asAuthority(UserRole userRole) {
-		return new SimpleGrantedAuthority("role_".concat(userRole.getAuthority()));
+		return new SimpleGrantedAuthority(userRole.getAuthority());
 	}
 
 }

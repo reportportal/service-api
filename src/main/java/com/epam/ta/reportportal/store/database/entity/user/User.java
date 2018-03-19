@@ -8,6 +8,9 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * @author Andrei Varabyeu
+ */
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "users", schema = "public")

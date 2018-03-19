@@ -21,8 +21,6 @@
 package com.epam.ta.reportportal.auth.endpoint;
 
 import com.epam.ta.reportportal.auth.integration.MutableClientRegistrationRepository;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -79,11 +77,7 @@ public class OAuthConfigurationEndpoint {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation(value = "Deletes OAuth Integration Settings", notes = "'default' profile is using till additional UI implementations")
 	public OperationCompletionRS deleteOAuthSetting(@PathVariable("authId") String clientID) {
-
-		if (!clientRegistrations.delete(clientID)) {
-			throw new ReportPortalException(ErrorType.OAUTH_INTEGRATION_NOT_FOUND);
-		}
-
+		clientRegistrations.delete(clientID);
 		return new OperationCompletionRS("Auth settings '" + clientID + "' were successfully removed");
 	}
 

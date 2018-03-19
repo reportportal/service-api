@@ -7,6 +7,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import javax.persistence.*;
 import java.io.Serializable;
 
+/**
+ * @author Andrei Varabyeu
+ */
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "project_user", schema = "public")

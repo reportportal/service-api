@@ -4,6 +4,9 @@ import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import java.io.Serializable;
 
+/**
+ * @author Andrei Varabyeu
+ */
 @Embeddable
 public class ProjectUserId implements Serializable {
 

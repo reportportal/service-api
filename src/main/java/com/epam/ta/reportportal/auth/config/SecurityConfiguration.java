@@ -7,12 +7,15 @@ import com.epam.ta.reportportal.auth.basic.BasicPasswordAuthenticationProvider;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.auth.integration.MutableClientRegistrationRepository;
 import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
+import com.epam.ta.reportportal.auth.permissions.ProjectAuthority;
+import com.epam.ta.reportportal.store.database.dao.OAuthRegistrationRepository;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.AuthoritiesExtractor;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.FixedAuthoritiesExtractor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -31,6 +34,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -50,6 +54,9 @@ import org.springframework.security.web.access.expression.DefaultWebSecurityExpr
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -83,7 +90,7 @@ public class SecurityConfiguration {
 	//	}
 
 	@Configuration
-	@Order(2)
+	@Order(4)
 	@EnableWebSecurity
 	//	@EnableGlobalMethodSecurity(proxyTargetClass = true, prePostEnabled = true)
 	public static class GlobalWebSecurityConfig extends WebSecurityConfigurerAdapter {
@@ -92,6 +99,9 @@ public class SecurityConfiguration {
 
 		@Autowired
 		private OAuthSuccessHandler successHandler;
+
+		@Autowired
+		OAuthRegistrationRepository oAuthRegistrationRepository;
 
 		@Override
 		protected final void configure(HttpSecurity http) throws Exception {
@@ -143,13 +153,9 @@ public class SecurityConfiguration {
 			 return super.authenticationManager();
 		}
 
-
-		@Autowired
-		DSLContext dslContext;
-
 		@Bean
 		public ClientRegistrationRepository clientRegistrationRepository(){
-			return new MutableClientRegistrationRepository(dslContext);
+			return new MutableClientRegistrationRepository(oAuthRegistrationRepository);
 		}
 
 	}
@@ -244,7 +250,7 @@ public class SecurityConfiguration {
 		@Override
 		public void configure(HttpSecurity http) throws Exception {
 			http.requestMatchers()
-					.antMatchers("/sso/me/**", "/sso/internal/**", "/settings/**")
+					.antMatchers("/**")
 					.and()
 					.authorizeRequests()
 					.accessDecisionManager(webAccessDecisionManager())
@@ -253,7 +259,7 @@ public class SecurityConfiguration {
 					.antMatchers("/sso/internal/**")
 					.hasRole("INTERNAL")
 					.anyRequest()
-					.authenticated()
+					.hasRole("USER")
 					.and()
 					.sessionManagement()
 					.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
@@ -271,6 +277,11 @@ public class SecurityConfiguration {
 		@Bean
 		public static PermissionEvaluatorFactoryBean permissionEvaluatorFactoryBean() {
 			return new PermissionEvaluatorFactoryBean();
+		}
+
+		@Bean
+		public static AuthoritiesExtractor rpAuthoritiesExtractor() {
+			return new ReportPortalAuthorityExtractor();
 		}
 
 		private DefaultWebSecurityExpressionHandler webSecurityExpressionHandler() {
@@ -323,17 +334,17 @@ public class SecurityConfiguration {
 
 	}
 
-	//	static class ReportPortalAuthorityExtractor extends FixedAuthoritiesExtractor {
-	//		@Override
-	//		public List<GrantedAuthority> extractAuthorities(Map<String, Object> map) {
-	//			List<GrantedAuthority> userRoles = super.extractAuthorities(map);
-	//			Optional.ofNullable(map.get("projects"))
-	//					.map(p -> ((Map<String, String>) p).entrySet()
-	//							.stream()
-	//							.map(e -> new ProjectAuthority(e.getKey(), e.getValue()))
-	//							.collect(Collectors.toList()))
-	//					.ifPresent(userRoles::addAll);
-	//			return userRoles;
-	//		}
-	//	}
+	static class ReportPortalAuthorityExtractor extends FixedAuthoritiesExtractor {
+		@Override
+		public List<GrantedAuthority> extractAuthorities(Map<String, Object> map) {
+			List<GrantedAuthority> userRoles = super.extractAuthorities(map);
+			Optional.ofNullable(map.get("projects"))
+					.map(p -> ((Map<String, String>) p).entrySet()
+							.stream()
+							.map(e -> new ProjectAuthority(e.getKey(), e.getValue()))
+							.collect(Collectors.toList()))
+					.ifPresent(userRoles::addAll);
+			return userRoles;
+		}
+	}
 }

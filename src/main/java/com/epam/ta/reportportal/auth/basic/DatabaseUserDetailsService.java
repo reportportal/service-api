@@ -23,10 +23,8 @@ package com.epam.ta.reportportal.auth.basic;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.util.AuthUtils;
 import com.epam.ta.reportportal.store.database.dao.UserRepository;
-import com.epam.ta.reportportal.store.database.entity.user.User;
 import com.epam.ta.reportportal.store.database.entity.user.ProjectUser;
-import com.epam.ta.reportportal.store.jooq.enums.JUserRoleEnum;
-import com.epam.ta.reportportal.store.jooq.tables.pojos.JUsers;
+import com.epam.ta.reportportal.store.database.entity.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -36,7 +34,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Spring's {@link UserDetailsService} implementation. Uses {@link JUsers} entity
+ * Spring's {@link UserDetailsService} implementation. Uses {@link User} entity
  * from ReportPortal database
  *
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
@@ -62,7 +60,7 @@ public class DatabaseUserDetailsService implements UserDetailsService {
 				true,
 				true,
 				true,
-				AuthUtils.AS_AUTHORITIES.apply(JUserRoleEnum.valueOf(user.get().getRole().name().toUpperCase()))
+				AuthUtils.AS_AUTHORITIES.apply(user.get().getRole())
 		);
 
 		return new ReportPortalUser(u,

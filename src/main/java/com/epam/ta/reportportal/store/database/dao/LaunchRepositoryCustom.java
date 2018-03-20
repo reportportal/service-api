@@ -49,8 +49,6 @@ public interface LaunchRepositoryCustom {
 	 */
 	Boolean hasItems(Long launchId, StatusEnum statusEnum);
 
-	Boolean hasInProgressItems(Long launchId);
-
 	Boolean identifyStatus(Long launchId);
 
 	List<LaunchFull> fullLaunchWithStatistics();

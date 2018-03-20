@@ -28,10 +28,8 @@ import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
-import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
-import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
@@ -41,7 +39,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -153,10 +150,8 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 				.get();
 
 		launchRepository.save(launch);
-		if (launchRepository.hasInProgressItems(launch.getId())) {
-			List<TestItem> itemsInProgress = testItemRepository.selectInProgressItemsByLaunch(launch.getId());
-			interruptItems(itemsInProgress);
-		}
+		testItemRepository.interruptInProgressItems(launchId);
+
 		//		eventPublisher.publishEvent(new LaunchFinishForcedEvent(launch, userName));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully stopped.");
 	}
@@ -201,15 +196,4 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 	//		}
 	//		return project;
 	//	}
-
-	private void interruptItems(List<TestItem> testItems) {
-		testItems.forEach(this::interruptItem);
-	}
-
-	private void interruptItem(TestItem item) {
-		TestItemResults testItemResults = new TestItemResults();
-		testItemResults.setStatus(INTERRUPTED);
-		item = new TestItemBuilder(item).addTestItemResults(testItemResults, Calendar.getInstance().getTime()).get();
-		testItemRepository.refresh(item);
-	}
 }

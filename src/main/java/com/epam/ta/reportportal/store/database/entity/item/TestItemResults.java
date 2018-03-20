@@ -50,7 +50,7 @@ public class TestItemResults implements Serializable {
 	private StatusEnum status;
 
 	@Column(name = "duration")
-	private Long duration;
+	private Double duration;
 
 	@OneToOne(mappedBy = "testItemResults", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private IssueEntity issue;
@@ -79,11 +79,11 @@ public class TestItemResults implements Serializable {
 		this.status = status;
 	}
 
-	public Long getDuration() {
+	public Double getDuration() {
 		return duration;
 	}
 
-	public void setDuration(Long duration) {
+	public void setDuration(Double duration) {
 		this.duration = duration;
 	}
 

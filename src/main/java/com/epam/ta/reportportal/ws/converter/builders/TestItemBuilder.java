@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.store.commons.EntityUtils;
+import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
@@ -66,6 +67,11 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		testItem.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(rq.getStartTime()));
 		testItem.setName(rq.getName().trim());
 		testItem.setUniqueId(rq.getUniqueId());
+
+		TestItemResults testItemResults = ofNullable(testItem.getTestItemResults()).orElse(new TestItemResults());
+		testItemResults.setStatus(StatusEnum.IN_PROGRESS);
+		testItem.setTestItemResults(testItemResults);
+
 		addDescription(rq.getDescription());
 		addTags(rq.getTags());
 		addParameters(rq.getParameters());
@@ -111,7 +117,8 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	public TestItemBuilder addDuration(Date endTime) {
 		checkNotNull(endTime, "Provided value shouldn't be null");
 		checkNotNull(testItem.getTestItemResults(), "Test item results shouldn't be null");
-		testItem.getTestItemResults().setDuration(ChronoUnit.MILLIS.between(testItem.getStartTime(), TO_LOCAL_DATE_TIME.apply(endTime)));
+		testItem.getTestItemResults()
+				.setDuration(ChronoUnit.MILLIS.between(testItem.getStartTime(), TO_LOCAL_DATE_TIME.apply(endTime)) / 1000d);
 		return this;
 	}
 

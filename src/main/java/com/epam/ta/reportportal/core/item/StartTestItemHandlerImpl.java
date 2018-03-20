@@ -38,7 +38,6 @@ import org.springframework.stereotype.Service;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.store.commons.Predicates.isNull;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -133,7 +132,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		expect(rq.getStartTime(), Preconditions.sameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
 				rq.getStartTime(), parent.getStartTime(), parent.getItemId()
 		);
-		expect(parent.getTestItemResults(), isNull()).verify(START_ITEM_NOT_ALLOWED,
+		expect(parent.getTestItemResults().getStatus(), Preconditions.statusIn(StatusEnum.IN_PROGRESS)).verify(START_ITEM_NOT_ALLOWED,
 				formattedSupplier("Parent Item '{}' is not in progress", parent.getItemId())
 		);
 		expect(logRepository.hasLogs(parent.getItemId()), equalTo(false)).verify(START_ITEM_NOT_ALLOWED,

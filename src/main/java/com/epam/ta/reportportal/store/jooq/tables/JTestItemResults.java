@@ -9,22 +9,13 @@ import com.epam.ta.reportportal.store.jooq.JPublic;
 import com.epam.ta.reportportal.store.jooq.Keys;
 import com.epam.ta.reportportal.store.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.store.jooq.tables.records.JTestItemResultsRecord;
-
-import java.util.Arrays;
-import java.util.List;
-
-import javax.annotation.Generated;
-
-import org.jooq.Field;
-import org.jooq.ForeignKey;
-import org.jooq.Index;
-import org.jooq.Name;
-import org.jooq.Schema;
-import org.jooq.Table;
-import org.jooq.TableField;
-import org.jooq.UniqueKey;
+import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
+
+import javax.annotation.Generated;
+import java.util.Arrays;
+import java.util.List;
 
 
 /**
@@ -40,7 +31,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JTestItemResults extends TableImpl<JTestItemResultsRecord> {
 
-    private static final long serialVersionUID = 1879769971;
+    private static final long serialVersionUID = 858275558;
 
     /**
      * The reference instance of <code>public.test_item_results</code>
@@ -68,7 +59,7 @@ public class JTestItemResults extends TableImpl<JTestItemResultsRecord> {
     /**
      * The column <code>public.test_item_results.duration</code>.
      */
-    public final TableField<JTestItemResultsRecord, Long> DURATION = createField("duration", org.jooq.impl.SQLDataType.BIGINT, this, "");
+    public final TableField<JTestItemResultsRecord, Double> DURATION = createField("duration", org.jooq.impl.SQLDataType.DOUBLE, this, "");
 
     /**
      * Create a <code>public.test_item_results</code> table reference

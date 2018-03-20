@@ -30,10 +30,14 @@ import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.store.jooq.Tables;
 import com.epam.ta.reportportal.store.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.store.jooq.tables.JTestItem;
+import com.epam.ta.reportportal.store.jooq.tables.JTestItemResults;
 import com.epam.ta.reportportal.store.jooq.tables.JTestItemStructure;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.SelectOnConditionStep;
+import org.jooq.impl.DSL;
+import org.jooq.types.DayToSecond;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -41,8 +45,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.store.jooq.Tables.*;
-import static org.jooq.impl.DSL.field;
-import static org.jooq.impl.DSL.name;
+import static org.jooq.impl.DSL.*;
 
 /**
  * @author Pavel Bortnik
@@ -87,23 +90,6 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 			testItem.setTestItemResults(r.into(TestItemResults.class));
 			return testItem;
 		});
-	}
-
-	@Override
-	public List<TestItem> selectInProgressItemsByLaunch(Long launchId) {
-		return dsl.select(TEST_ITEM.ITEM_ID, TEST_ITEM.START_TIME)
-				.from(TEST_ITEM)
-				.join(TEST_ITEM_STRUCTURE)
-				.on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_STRUCTURE.ITEM_ID))
-				.leftJoin(TEST_ITEM_RESULTS)
-				.on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_RESULTS.ITEM_ID))
-				.where(TEST_ITEM.LAUNCH_ID.eq(launchId))
-				.and(TEST_ITEM_RESULTS.ITEM_ID.isNull())
-				.fetch(r -> {
-					TestItem testItem = r.into(TestItem.class);
-					testItem.setTestItemStructure(r.into(TestItemStructure.class));
-					return testItem;
-				});
 	}
 
 	@Override
@@ -174,6 +160,24 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 				.join(Tables.ISSUE_TYPE)
 				.on(ISSUE_TYPE_PROJECT_CONFIGURATION.ISSUE_TYPE_ID.eq(Tables.ISSUE_TYPE.ID))
 				.fetchInto(IssueType.class);
+	}
+
+	@Override
+	public void interruptInProgressItems(Long launchId) {
+		JTestItemResults res = TEST_ITEM_RESULTS.as("res");
+		JTestItem ts = TEST_ITEM.as("ts");
+		dsl.update(res)
+				.set(res.STATUS, JStatusEnum.INTERRUPTED)
+				.set(res.DURATION, extractEpochFrom(DSL.timestampDiff(currentTimestamp(), ts.START_TIME)))
+				.from(ts)
+				.where(ts.LAUNCH_ID.eq(launchId))
+				.and(res.ITEM_ID.eq(ts.ITEM_ID))
+				.and(res.STATUS.eq(JStatusEnum.IN_PROGRESS))
+				.execute();
+	}
+
+	private static Field<Double> extractEpochFrom(Field<DayToSecond> field) {
+		return DSL.field("extract(epoch from {0})", Double.class, field);
 	}
 
 	private SelectOnConditionStep<Record> commonTestItemDslSelect() {

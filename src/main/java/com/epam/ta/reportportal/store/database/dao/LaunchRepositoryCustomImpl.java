@@ -66,16 +66,6 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 	}
 
 	@Override
-	public Boolean hasInProgressItems(Long launchId) {
-		return dsl.fetchExists(dsl.selectOne()
-				.from(TEST_ITEM)
-				.leftJoin(TEST_ITEM_RESULTS)
-				.onKey()
-				.where(TEST_ITEM.LAUNCH_ID.eq(launchId))
-				.and(TEST_ITEM_RESULTS.ITEM_ID.isNull()));
-	}
-
-	@Override
 	public Boolean identifyStatus(Long launchId) {
 		return dsl.fetchExists(dsl.selectOne()
 				.from(TEST_ITEM)

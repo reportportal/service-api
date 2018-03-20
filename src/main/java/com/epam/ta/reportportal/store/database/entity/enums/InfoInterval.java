@@ -25,8 +25,8 @@ import java.util.Arrays;
 
 /**
  * Get project information intervals<br>
- * <ul>
  * Available values:
+ * <ul>
  * <li>1 week</li>
  * <li>3 months (by default)</li>
  * <li>6 months</li>

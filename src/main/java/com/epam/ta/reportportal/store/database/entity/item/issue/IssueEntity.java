@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.store.database.entity.item.issue;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -31,7 +32,7 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "issue", schema = "public", indexes = { @Index(name = "issue_pk", unique = true, columnList = "issue_id ASC") })
-public class IssueEntity {
+public class IssueEntity implements Serializable {
 
 	@Id
 	@Column(name = "issue_id", unique = true, nullable = false, precision = 64)
@@ -118,8 +119,12 @@ public class IssueEntity {
 		}
 		IssueEntity issue = (IssueEntity) o;
 		return Objects.equals(issueId, issue.issueId) && Objects.equals(issueType, issue.issueType) && Objects.equals(
-				issueDescription, issue.issueDescription) && Objects.equals(autoAnalyzed, issue.autoAnalyzed) && Objects.equals(
-				ignoreAnalyzer, issue.ignoreAnalyzer) && Objects.equals(testItemResults, issue.testItemResults);
+				issueDescription,
+				issue.issueDescription
+		) && Objects.equals(autoAnalyzed, issue.autoAnalyzed) && Objects.equals(ignoreAnalyzer, issue.ignoreAnalyzer) && Objects.equals(
+				testItemResults,
+				issue.testItemResults
+		);
 	}
 
 	@Override

@@ -31,6 +31,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
@@ -46,7 +47,7 @@ import java.util.Set;
 		@UniqueConstraint(columnNames = { "name", "number", "project_id" }) }, indexes = {
 		@Index(name = "launch_pk", unique = true, columnList = "id ASC"),
 		@Index(name = "unq_name_number", unique = true, columnList = "name ASC, number ASC, project_id ASC") })
-public class Launch {
+public class Launch implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -196,8 +197,10 @@ public class Launch {
 		Launch launch = (Launch) o;
 		return Objects.equals(id, launch.id) && Objects.equals(projectId, launch.projectId) && Objects.equals(userId, launch.userId)
 				&& Objects.equals(name, launch.name) && Objects.equals(description, launch.description) && Objects.equals(
-				startTime, launch.startTime) && Objects.equals(number, launch.number) && Objects.equals(lastModified, launch.lastModified)
-				&& mode == launch.mode && status == launch.status && Objects.equals(tags, launch.tags);
+				startTime,
+				launch.startTime
+		) && Objects.equals(number, launch.number) && Objects.equals(lastModified, launch.lastModified) && mode == launch.mode
+				&& status == launch.status && Objects.equals(tags, launch.tags);
 	}
 
 	@Override

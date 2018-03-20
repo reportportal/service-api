@@ -260,7 +260,6 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 		Launch launch = new LaunchBuilder().addStartRQ(startRQ).addProject(projectName).addStatus(IN_PROGRESS).addUser(userName).get();
 		launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));
 		launch.setHasRetries(hasRetries ? true : null);
-		launch.setEndTime(endTime);
 		return launchRepository.save(launch);
 	}
 }

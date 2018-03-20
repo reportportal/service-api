@@ -1,26 +1,35 @@
 /*
  * Copyright 2017 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.core.item;
+package com.epam.ta.reportportal.core.item.impl;
 
+import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -30,10 +39,16 @@ import org.springframework.stereotype.Service;
  * @author Andrei_Ramanchuk
  */
 @Service
-public class UpdateTestItemHandlerImpl /*implements UpdateTestItemHandler*/ {
+public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
+
+	private TestItemRepository testItemRepository;
+
+	@Autowired
+	public void setTestItemRepository(TestItemRepository testItemRepository) {
+		this.testItemRepository = testItemRepository;
+	}
 
 	//	private final ApplicationEventPublisher eventPublisher;
-	//	private final TestItemRepository testItemRepository;
 	//	private final StatisticsFacadeFactory statisticsFacadeFactory;
 	//	private final UserRepository userRepository;
 	//	private final ProjectRepository projectRepository;
@@ -147,14 +162,16 @@ public class UpdateTestItemHandlerImpl /*implements UpdateTestItemHandler*/ {
 	//		return updated;
 	//	}
 	//
-	//	@Override
-	//	public OperationCompletionRS updateTestItem(String projectName, String item, UpdateTestItemRQ rq, String userName) {
-	//		TestItem testItem = validate(projectName, userName, item);
-	//		ofNullable(rq.getTags()).ifPresent(tags -> testItem.setTags(newHashSet(trimStrings(update(tags)))));
-	//		ofNullable(rq.getDescription()).ifPresent(testItem::setItemDescription);
-	//		testItemRepository.save(testItem);
-	//		return new OperationCompletionRS("TestItem with ID = '" + item + "' successfully updated.");
-	//	}
+	@Override
+	public OperationCompletionRS updateTestItem(String projectName, Long itemId, UpdateTestItemRQ rq, String userName) {
+		TestItem testItem = testItemRepository.findById(itemId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
+		validate(projectName, userName, testItem);
+		testItem = new TestItemBuilder(testItem).addTags(rq.getTags()).addDescription(rq.getDescription()).get();
+		testItemRepository.save(testItem);
+		return new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated.");
+	}
+
 	//
 	//	@Override
 	//	public List<OperationCompletionRS> addExternalIssues(String projectName, AddExternalIssueRQ rq, String userName) {
@@ -192,22 +209,21 @@ public class UpdateTestItemHandlerImpl /*implements UpdateTestItemHandler*/ {
 	//				.collect(toList());
 	//	}
 	//
-	//	private TestItem validate(String projectName, String userName, String id) {
-	//		TestItem testItem = testItemRepository.findOne(id);
-	//		expect(testItem, notNull()).verify(TEST_ITEM_NOT_FOUND, id);
-	//
-	//		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-	//		Project project = projectRepository.findOne(launch.getProjectRef());
-	//		String launchOwner = launch.getUserRef();
-	//		if (userRepository.findOne(userName).getRole() != UserRole.ADMINISTRATOR) {
-	//			expect(projectName, equalTo(project.getName())).verify(ACCESS_DENIED);
-	//			if (doesHaveUser(project, userName) && findUserConfigByLogin(project, userName).getProjectRole()
-	//					.lowerThan(ProjectRole.PROJECT_MANAGER)) {
-	//				expect(userName, equalTo(launchOwner)).verify(ACCESS_DENIED);
-	//			}
-	//		}
-	//		return testItem;
-	//	}
+	private void validate(String projectName, String userName, TestItem testItem) {
+		//
+		//
+		//		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
+		//		Project project = projectRepository.findOne(launch.getProjectRef());
+		//		String launchOwner = launch.getUserRef();
+		//		if (userRepository.findOne(userName).getRole() != UserRole.ADMINISTRATOR) {
+		//			expect(projectName, equalTo(project.getName())).verify(ACCESS_DENIED);
+		//			if (doesHaveUser(project, userName) && findUserConfigByLogin(project, userName).getProjectRole()
+		//					.lowerThan(ProjectRole.PROJECT_MANAGER)) {
+		//				expect(userName, equalTo(launchOwner)).verify(ACCESS_DENIED);
+		//			}
+		//		}
+		//		return testItem;
+	}
 	//
 	//	/**
 	//	 * Index logs if item is not ignored for analyzer

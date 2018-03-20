@@ -90,13 +90,21 @@ public interface ITestItemController {
 	 * Deletes Test Item
 	 *
 	 * @param projectName
-	 * @param item
+	 * @param itemId
 	 * @param principal
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS deleteTestItem(String projectName, String item, Principal principal);
+	OperationCompletionRS deleteTestItem(String projectName, Long itemId, Principal principal);
 
-	List<OperationCompletionRS> deleteTestItems(String projectName, String[] ids, Principal principal);
+	/**
+	 * Deletes Test Items
+	 *
+	 * @param projectName
+	 * @param ids
+	 * @param principal
+	 * @return
+	 */
+	List<OperationCompletionRS> deleteTestItems(String projectName, Long[] ids, Principal principal);
 
 	/**
 	 * Update test item issue block (defects) and updated statistics
@@ -144,12 +152,12 @@ public interface ITestItemController {
 	 * Update test items
 	 *
 	 * @param projectName
-	 * @param item
+	 * @param itemId
 	 * @param rq
 	 * @param principal
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS updateTestItem(String projectName, String item, UpdateTestItemRQ rq, Principal principal);
+	OperationCompletionRS updateTestItem(String projectName, Long itemId, UpdateTestItemRQ rq, Principal principal);
 
 	/**
 	 * Attach external issues

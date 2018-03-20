@@ -34,14 +34,22 @@ import java.util.List;
 public interface DeleteTestItemHandler {
 
 	/**
-	 * Deletes {@link TestItem} instance
+	 * Delete test item by id.
 	 *
-	 * @param itemId
-	 * @param project
-	 * @param username
+	 * @param itemId   Item id
+	 * @param project  Project
+	 * @param username User
 	 * @return
 	 */
-	OperationCompletionRS deleteTestItem(String itemId, String project, String username, boolean isBatch);
+	OperationCompletionRS deleteTestItem(Long itemId, String project, String username);
 
-	List<OperationCompletionRS> deleteTestItem(String[] ids, String project, String user);
+	/**
+	 * Delete list of items by ids.
+	 *
+	 * @param ids     Test item ids
+	 * @param project Project
+	 * @param user    User
+	 * @return
+	 */
+	List<OperationCompletionRS> deleteTestItem(Long[] ids, String project, String user);
 }

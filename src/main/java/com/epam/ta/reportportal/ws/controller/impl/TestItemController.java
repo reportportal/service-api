@@ -21,8 +21,10 @@
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
+import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
+import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
@@ -57,23 +59,23 @@ public class TestItemController implements ITestItemController {
 	@Autowired
 	private StartTestItemHandler startTestItemHandler;
 
-	//	@Autowired
-	//	private DeleteTestItemHandler deleteTestItemHandler;
-	//
+	@Autowired
+	private DeleteTestItemHandler deleteTestItemHandler;
+
 	@Autowired
 	private FinishTestItemHandler finishTestItemHandler;
 
 	@Autowired
 	private TestItemRepository testItemRepository;
 
+	@Autowired
+	private UpdateTestItemHandler updateTestItemHandler;
+
 	//	@Autowired
 	//	private GetTestItemHandler getTestItemHandler;
 
 	//	@Autowired
 	//	private TestItemsHistoryHandler testItemsHistoryHandler;
-
-	//	@Autowired
-	//	private UpdateTestItemHandler updateTestItemHandler;
 
 	//	@Autowired
 	//	private MergeTestItemHandler mergeTestItemHandler;
@@ -132,14 +134,13 @@ public class TestItemController implements ITestItemController {
 	//		return getTestItemHandler.getTestItems(new CompositeFilter(filter, predefinedFilter), pageable);
 	//	}
 
-	@DeleteMapping("/{item}")
+	@Override
+	@DeleteMapping("/{itemId}")
 	@ResponseBody
 	@ResponseStatus(OK)
-	@Override
 	@ApiOperation("Delete test item")
-	public OperationCompletionRS deleteTestItem(@PathVariable String projectName, @PathVariable String item, Principal principal) {
-		//return deleteTestItemHandler.deleteTestItem(item, normalizeId(projectName), principal.getName(), false);
-		return null;
+	public OperationCompletionRS deleteTestItem(@PathVariable String projectName, @PathVariable Long itemId, Principal principal) {
+		return deleteTestItemHandler.deleteTestItem(itemId, "project", "user");
 	}
 
 	@Override
@@ -147,10 +148,9 @@ public class TestItemController implements ITestItemController {
 	@ResponseStatus(OK)
 	@DeleteMapping
 	@ApiOperation("Delete test items by specified ids")
-	public List<OperationCompletionRS> deleteTestItems(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
+	public List<OperationCompletionRS> deleteTestItems(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
 			Principal principal) {
-		//return deleteTestItemHandler.deleteTestItem(ids, normalizeId(projectName), principal.getName());
-		return null;
+		return deleteTestItemHandler.deleteTestItem(ids, projectName, "user");
 	}
 
 	@Override
@@ -190,15 +190,14 @@ public class TestItemController implements ITestItemController {
 	}
 
 	@Override
-	@PutMapping("/{item}/update")
+	@PutMapping("/{itemId}/update")
 	@ResponseBody
 	@ResponseStatus(OK)
 	//@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Update test item")
-	public OperationCompletionRS updateTestItem(@PathVariable String projectName, @PathVariable String item,
+	public OperationCompletionRS updateTestItem(@PathVariable String projectName, @PathVariable Long itemId,
 			@RequestBody @Validated UpdateTestItemRQ rq, Principal principal) {
-		//return updateTestItemHandler.updateTestItem(normalizeId(projectName), item, rq, principal.getName());
-		return null;
+		return updateTestItemHandler.updateTestItem(projectName, itemId, rq, "user");
 	}
 
 	@Override

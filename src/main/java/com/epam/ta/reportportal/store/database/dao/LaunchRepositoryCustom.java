@@ -21,7 +21,6 @@
 
 package com.epam.ta.reportportal.store.database.dao;
 
-import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.launch.LaunchFull;
 
 import java.util.List;
@@ -31,28 +30,8 @@ import java.util.List;
  */
 public interface LaunchRepositoryCustom {
 
-	/**
-	 * True if the provided launch contains any items.
-	 *
-	 * @param launchId Checking launch id
-	 * @return True if contains, false if not
-	 */
-	Boolean hasItems(Long launchId);
-
-	/**
-	 * True if the provided launch contains any items with
-	 * a specified status
-	 *
-	 * @param launchId   Checking launch id
-	 * @param statusEnum Checking status
-	 * @return True if contains, false if not
-	 */
-	Boolean hasItems(Long launchId, StatusEnum statusEnum);
-
 	Boolean identifyStatus(Long launchId);
 
 	List<LaunchFull> fullLaunchWithStatistics();
-
-	Long calculateApproximateDuration(Long launchId);
 
 }

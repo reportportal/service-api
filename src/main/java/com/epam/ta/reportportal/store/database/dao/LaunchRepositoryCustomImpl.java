@@ -21,7 +21,6 @@
 
 package com.epam.ta.reportportal.store.database.dao;
 
-import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.launch.ExecutionStatistics;
 import com.epam.ta.reportportal.store.database.entity.launch.LaunchFull;
 import com.epam.ta.reportportal.store.jooq.enums.JStatusEnum;
@@ -48,21 +47,6 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 	@Autowired
 	public void setDsl(DSLContext dsl) {
 		this.dsl = dsl;
-	}
-
-	@Override
-	public Boolean hasItems(Long launchId) {
-		return dsl.fetchExists(dsl.selectOne().from(TEST_ITEM).where(TEST_ITEM.LAUNCH_ID.eq(launchId)));
-	}
-
-	@Override
-	public Boolean hasItems(Long launchId, StatusEnum statusEnum) {
-		return dsl.fetchExists(dsl.selectOne()
-				.from(TEST_ITEM)
-				.join(TEST_ITEM_RESULTS)
-				.onKey()
-				.where(TEST_ITEM.LAUNCH_ID.eq(launchId))
-				.and(TEST_ITEM_RESULTS.STATUS.eq(JStatusEnum.valueOf(statusEnum.name()))));
 	}
 
 	@Override
@@ -94,10 +78,5 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 				.fetch(r -> new LaunchFull(r.into(com.epam.ta.reportportal.store.database.entity.launch.Launch.class),
 						r.into(ExecutionStatistics.class)
 				));
-	}
-
-	@Override
-	public Long calculateApproximateDuration(Long launchId) {
-		return null;
 	}
 }

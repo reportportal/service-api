@@ -41,10 +41,12 @@ import org.jooq.types.DayToSecond;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.store.jooq.Tables.*;
+import static java.util.stream.Collectors.toList;
 import static org.jooq.impl.DSL.*;
 
 /**
@@ -82,25 +84,40 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 	}
 
 	@Override
-	public List<TestItem> selectItemsInStatusByLaunch(Long launchId, StatusEnum status) {
-		JStatusEnum statusEnum = JStatusEnum.valueOf(status.name());
-		return commonTestItemDslSelect().where(TEST_ITEM.LAUNCH_ID.eq(launchId).and(TEST_ITEM_RESULTS.STATUS.eq(statusEnum))).fetch(r -> {
-			TestItem testItem = r.into(TestItem.class);
-			testItem.setTestItemStructure(r.into(TestItemStructure.class));
-			testItem.setTestItemResults(r.into(TestItemResults.class));
-			return testItem;
-		});
+	public List<TestItem> selectItemsInStatusByLaunch(Long launchId, StatusEnum... statuses) {
+		List<JStatusEnum> jStatuses = Arrays.stream(statuses).map(it -> JStatusEnum.valueOf(it.name())).collect(toList());
+		return commonTestItemDslSelect().where(TEST_ITEM.LAUNCH_ID.eq(launchId).and(TEST_ITEM_RESULTS.STATUS.in(jStatuses)))
+				.fetch(this::fetchTestItem);
+	}
+
+	@Override
+	public List<TestItem> selectItemsInStatusByParent(Long itemId, StatusEnum... statuses) {
+		List<JStatusEnum> jStatuses = Arrays.stream(statuses).map(it -> JStatusEnum.valueOf(it.name())).collect(toList());
+		return commonTestItemDslSelect().where(TEST_ITEM_STRUCTURE.PARENT_ID.eq(itemId).and(TEST_ITEM_RESULTS.STATUS.in(jStatuses)))
+				.fetch(this::fetchTestItem);
+	}
+
+	@Override
+	public Boolean hasItemsInStatusByLaunch(Long launchId, StatusEnum... statuses) {
+		List<JStatusEnum> jStatuses = Arrays.stream(statuses).map(it -> JStatusEnum.valueOf(it.name())).collect(toList());
+		return dsl.fetchExists(dsl.selectOne()
+				.from(TEST_ITEM)
+				.join(TEST_ITEM_RESULTS)
+				.onKey()
+				.where(TEST_ITEM.LAUNCH_ID.eq(launchId))
+				.and(TEST_ITEM_RESULTS.STATUS.in(jStatuses)));
+	}
+
+	@Override
+	public Boolean hasItemsInStatusByParent(Long parentId, StatusEnum... statuses) {
+		List<JStatusEnum> jStatuses = Arrays.stream(statuses).map(it -> JStatusEnum.valueOf(it.name())).collect(toList());
+		return dsl.fetchExists(
+				commonTestItemDslSelect().where(TEST_ITEM_STRUCTURE.PARENT_ID.eq(parentId)).and(TEST_ITEM_RESULTS.STATUS.in(jStatuses)));
 	}
 
 	@Override
 	public List<Long> selectIdsNotInIssueByLaunch(Long launchId, String issueType) {
-		return dsl.select(TEST_ITEM.ITEM_ID)
-				.from(TEST_ITEM)
-				.join(TEST_ITEM_STRUCTURE)
-				.on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_STRUCTURE.ITEM_ID))
-				.join(TEST_ITEM_RESULTS)
-				.on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_RESULTS.ITEM_ID))
-				.join(ISSUE)
+		return commonTestItemDslSelect().join(ISSUE)
 				.on(ISSUE.ISSUE_ID.eq(TEST_ITEM_RESULTS.ITEM_ID))
 				.join(ISSUE_TYPE)
 				.on(ISSUE.ISSUE_TYPE.eq(ISSUE_TYPE.ID))
@@ -118,11 +135,9 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 				.where(TEST_ITEM.LAUNCH_ID.eq(launchId))
 				.and(ISSUE_TYPE.LOCATOR.eq(issueType))
 				.fetch(r -> {
-					TestItem testItem = r.into(TestItem.class);
-					testItem.setTestItemStructure(r.into(TestItemStructure.class));
-					testItem.setTestItemResults(r.into(TestItemResults.class));
-					testItem.getTestItemResults().setIssue(r.into(IssueEntity.class));
-					return testItem;
+					TestItem item = fetchTestItem(r);
+					item.getTestItemResults().setIssue(r.into(IssueEntity.class));
+					return item;
 				});
 	}
 
@@ -176,9 +191,21 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 				.execute();
 	}
 
+	/**
+	 * Extracts duration in seconds from interval.
+	 *
+	 * @param field Interval
+	 * @return Duration in seconds
+	 */
 	private static Field<Double> extractEpochFrom(Field<DayToSecond> field) {
 		return DSL.field("extract(epoch from {0})", Double.class, field);
 	}
+
+	/**
+	 * Commons select of an item with it's results and structure
+	 *
+	 * @return Select condition step
+	 */
 
 	private SelectOnConditionStep<Record> commonTestItemDslSelect() {
 		return dsl.select()
@@ -187,6 +214,19 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 				.on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_STRUCTURE.ITEM_ID))
 				.join(TEST_ITEM_RESULTS)
 				.on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_RESULTS.ITEM_ID));
+	}
+
+	/**
+	 * Fetching record results into Test item object.
+	 *
+	 * @param r Record
+	 * @return Test Item
+	 */
+	private TestItem fetchTestItem(Record r) {
+		TestItem testItem = r.into(TestItem.class);
+		testItem.setTestItemStructure(r.into(TestItemStructure.class));
+		testItem.setTestItemResults(r.into(TestItemResults.class));
+		return testItem;
 	}
 
 }

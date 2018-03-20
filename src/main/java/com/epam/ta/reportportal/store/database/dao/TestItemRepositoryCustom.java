@@ -33,31 +33,67 @@ import java.util.Map;
  */
 public interface TestItemRepositoryCustom {
 
+	/**
+	 * Select ids and names of down to item structure tree.
+	 *
+	 * @param itemId Root item
+	 * @return Map of id -> name
+	 */
 	Map<Long, String> selectPathNames(Long itemId);
 
 	/**
 	 * Select common items object that have provided status for
-	 * specified launch
+	 * specified launch.
 	 *
 	 * @param launchId Launch
-	 * @param status   Status
+	 * @param statuses Statuses
 	 * @return List of items
 	 */
-	List<TestItem> selectItemsInStatusByLaunch(Long launchId, StatusEnum status);
+	List<TestItem> selectItemsInStatusByLaunch(Long launchId, StatusEnum... statuses);
+
+	/**
+	 * Select common items object that have provided status for
+	 * specified parent item.
+	 *
+	 * @param parentId Parent item
+	 * @param statuses Statuses
+	 * @return List of items
+	 */
+	List<TestItem> selectItemsInStatusByParent(Long parentId, StatusEnum... statuses);
+
+	/**
+	 * True if the provided launch contains any items with
+	 * a specified status.
+	 *
+	 * @param launchId Checking launch id
+	 * @param statuses Checking statuses
+	 * @return True if contains, false if not
+	 */
+	Boolean hasItemsInStatusByLaunch(Long launchId, StatusEnum... statuses);
+
+	/**
+	 * True if the provided parent item contains any items with
+	 * a specified status.
+	 *
+	 * @param parentId Checking launch id
+	 * @param statuses Checking statuses
+	 * @return True if contains, false if not
+	 */
+	Boolean hasItemsInStatusByParent(Long parentId, StatusEnum... statuses);
 
 	/**
 	 * Select ids of items that has different issue from provided for
-	 * specified launch
+	 * specified launch.
 	 *
 	 * @param launchId  Launch
 	 * @param issueType Issue type locator
-	 * @return List of item ids.
+	 * @return List of item ids
 	 */
 	List<Long> selectIdsNotInIssueByLaunch(Long launchId, String issueType);
 
 	/**
 	 * Select test items that has issue with provided issue type for
-	 * specified launch
+	 * specified launch.
 	 *
 	 * @param launchId  Launch id
 	 * @param issueType Issue type
@@ -65,14 +101,28 @@ public interface TestItemRepositoryCustom {
 	 */
 	List<TestItem> selectItemsInIssueByLaunch(Long launchId, String issueType);
 
+	/**
+	 * Identifies status of the provided item using it's children.
+	 *
+	 * @param testItemId Test Item
+	 * @return Status of test item
+	 */
 	StatusEnum identifyStatus(Long testItemId);
 
+	/**
+	 * Checks does test item have children.
+	 *
+	 * @param testItemId Test item
+	 * @return True if has
+	 */
 	boolean hasChildren(Long testItemId);
 
+	//TODO move to project repo
 	List<IssueType> selectIssueLocatorsByProject(Long projectId);
 
 	/**
 	 * Finishes in progress items with a interrupt status.
 	 */
 	void interruptInProgressItems(Long launchId);
+
 }

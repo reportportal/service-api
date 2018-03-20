@@ -136,7 +136,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			testItemResults.setStatus(testItemRepository.identifyStatus(testItem.getItemId()));
 		}
 
-		if (Preconditions.statusIn(FAILED, SKIPPED).test(testItemResults.getStatus())) {
+		if (Preconditions.statusIn(FAILED, SKIPPED).test(testItemResults.getStatus()) && !hasChildren) {
 			if (null != providedIssue) {
 				//in provided issue should be locator id or NOT_ISSUE value
 				String locator = providedIssue.getIssueType();

@@ -160,8 +160,7 @@ public class TestItemController implements ITestItemController {
 	@ApiOperation("Update issues of specified test items")
 	public List<Issue> defineTestItemIssueType(@PathVariable String projectName, @RequestBody @Validated DefineIssueRQ request,
 			Principal principal) {
-		//return updateTestItemHandler.defineTestItemsIssues(normalizeId(projectName), request, principal.getName());
-		return null;
+		return updateTestItemHandler.defineTestItemsIssues(projectName, request, "user");
 	}
 
 	@Override

@@ -22,7 +22,8 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.item.AddExternalIssueRQ;
+import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
+import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 
 import java.util.List;
@@ -34,33 +35,33 @@ import java.util.List;
  */
 public interface UpdateTestItemHandler {
 
-//	/**
-//	 * Define TestItem issue (or list of issues)
-//	 *
-//	 * @param project     project name
-//	 * @param defineIssue issues request data
-//	 * @param userName    request principal name
-//	 * @return list of defined issues for specified test items
-//	 */
-//	List<Issue> defineTestItemsIssues(String project, DefineIssueRQ defineIssue, String userName);
+	/**
+	 * Define TestItem issue (or list of issues)
+	 *
+	 * @param project     project name
+	 * @param defineIssue issues request data
+	 * @param userName    request principal name
+	 * @return list of defined issues for specified test items
+	 */
+	List<Issue> defineTestItemsIssues(String project, DefineIssueRQ defineIssue, String userName);
 
 	/**
 	 * Update specified test item
 	 *
-	 * @param itemId     test item ID
+	 * @param itemId   test item ID
 	 * @param rq       update test item request data
 	 * @param userName request principal name
 	 * @return OperationCompletionRS
 	 */
 	OperationCompletionRS updateTestItem(String projectName, Long itemId, UpdateTestItemRQ rq, String userName);
 
-//	/**
-//	 * Add external system issue link directly to test items
-//	 *
-//	 * @param projectName
-//	 * @param rq
-//	 * @param userName
-//	 * @return
-//	 */
-//	List<OperationCompletionRS> addExternalIssues(String projectName, AddExternalIssueRQ rq, String userName);
+	//	/**
+	//	 * Add external system issue link directly to test items
+	//	 *
+	//	 * @param projectName
+	//	 * @param rq
+	//	 * @param userName
+	//	 * @return
+	//	 */
+	//	List<OperationCompletionRS> addExternalIssues(String projectName, AddExternalIssueRQ rq, String userName);
 }

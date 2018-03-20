@@ -144,7 +144,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 					List<IssueType> projectIssueTypes = testItemRepository.selectIssueLocatorsByProject(1L);
 					IssueType issueType = verifyIssue(testItem.getItemId(), providedIssue, projectIssueTypes);
 					IssueEntity issue = TO_ISSUE.apply(providedIssue);
-					issue.setIssueType(issueType.getId());
+					issue.setIssueType(issueType);
 					testItemResults.setIssue(issue);
 				}
 			} else {
@@ -154,7 +154,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 						.findFirst()
 						.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_ERROR));
 				IssueEntity issue = new IssueEntity();
-				issue.setIssueType(toInvestigate.getId());
+				issue.setIssueType(toInvestigate);
 				testItemResults.setIssue(issue);
 			}
 		}

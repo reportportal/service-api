@@ -37,8 +37,9 @@ public class IssueEntity {
 	@Column(name = "issue_id", unique = true, nullable = false, precision = 64)
 	private Long issueId;
 
-	@Column(name = "issue_type", precision = 32)
-	private Integer issueType;
+	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@JoinColumn(name = "issue_type")
+	private IssueType issueType;
 
 	@Column(name = "issue_description")
 	private String issueDescription;
@@ -62,11 +63,11 @@ public class IssueEntity {
 		this.issueId = issueId;
 	}
 
-	public Integer getIssueType() {
+	public IssueType getIssueType() {
 		return issueType;
 	}
 
-	public void setIssueType(Integer issueType) {
+	public void setIssueType(IssueType issueType) {
 		this.issueType = issueType;
 	}
 
@@ -103,12 +104,6 @@ public class IssueEntity {
 	}
 
 	@Override
-	public String toString() {
-		return "Issue{" + "issueId=" + issueId + ", issueType=" + issueType + ", issueDescription='" + issueDescription + '\''
-				+ ", autoAnalyzed=" + autoAnalyzed + ", ignoreAnalyzer=" + ignoreAnalyzer + '}';
-	}
-
-	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
@@ -116,14 +111,20 @@ public class IssueEntity {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		IssueEntity issue = (IssueEntity) o;
-		return Objects.equals(issueId, issue.issueId) && Objects.equals(issueType, issue.issueType) && Objects.equals(
-				issueDescription, issue.issueDescription) && Objects.equals(autoAnalyzed, issue.autoAnalyzed) && Objects.equals(
-				ignoreAnalyzer, issue.ignoreAnalyzer) && Objects.equals(testItemResults, issue.testItemResults);
+		IssueEntity that = (IssueEntity) o;
+		return Objects.equals(issueId, that.issueId) && Objects.equals(issueType, that.issueType) && Objects.equals(
+				issueDescription, that.issueDescription) && Objects.equals(autoAnalyzed, that.autoAnalyzed) && Objects.equals(
+				ignoreAnalyzer, that.ignoreAnalyzer) && Objects.equals(testItemResults, that.testItemResults);
 	}
 
 	@Override
 	public int hashCode() {
 		return Objects.hash(issueId, issueType, issueDescription, autoAnalyzed, ignoreAnalyzer, testItemResults);
+	}
+
+	@Override
+	public String toString() {
+		return "IssueEntity{" + "issueId=" + issueId + ", issueType=" + issueType + ", issueDescription='" + issueDescription + '\''
+				+ ", autoAnalyzed=" + autoAnalyzed + ", ignoreAnalyzer=" + ignoreAnalyzer + ", testItemResults=" + testItemResults + '}';
 	}
 }

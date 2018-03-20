@@ -21,22 +21,38 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
+import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
+import com.epam.ta.reportportal.ws.model.issue.Issue;
+import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.store.commons.Predicates.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.AMBIGUOUS_TEST_ITEM_STATUS;
+import static java.util.stream.Collectors.toList;
+
 /**
  * Default implementation of {@link UpdateTestItemHandler}
  *
- * @author Dzianis Shlychkou
- * @author Andrei_Ramanchuk
+ * @author Pavel Bortnik
  */
 @Service
 public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
@@ -72,7 +88,45 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	//		this.logIndexer = logIndexer;
 	//		this.issuesAnalyzerService = issuesAnalyzerService;
 	//	}
-	//
+
+	@Override
+	public List<Issue> defineTestItemsIssues(String project, DefineIssueRQ defineIssue, String userName) {
+		List<String> errors = new ArrayList<>();
+		List<IssueDefinition> definitions = defineIssue.getIssues();
+		expect(definitions.isEmpty(), equalTo(false)).verify(ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION);
+
+		List<IssueEntity> updated = new ArrayList<>(defineIssue.getIssues().size());
+
+		definitions.forEach(issueDefinition -> {
+			try {
+				TestItem testItem = testItemRepository.findById(issueDefinition.getId())
+						.orElseThrow(() -> new BusinessRuleViolationException(
+								Suppliers.formattedSupplier("Cannot update issue type for test item '{}', cause it is not found.",
+										issueDefinition.getId()
+								).get()));
+				verifyTestItem(testItem, issueDefinition.getId());
+
+				Issue issue = issueDefinition.getIssue();
+				IssueType issueType = verifyTestItemDefinedIssueType(issue.getIssueType(), testItem.getItemId(), 1l);
+
+				IssueEntity itemsIssue = testItem.getTestItemResults().getIssue();
+				itemsIssue.setIssueType(issueType);
+				if (null != issue.getComment()) {
+					itemsIssue.setIssueDescription(issue.getComment().trim());
+				}
+				itemsIssue.setIgnoreAnalyzer(issue.getIgnoreAnalyzer());
+				itemsIssue.setAutoAnalyzed(false);
+				testItemRepository.save(testItem);
+
+				//TODO EXTERNAL SYSTEM LOGIC, ANALYZER LOGIC
+
+			} catch (BusinessRuleViolationException e) {
+				errors.add(e.getMessage());
+			}
+		});
+		return null;
+	}
+
 	//	@Override
 	//	public List<Issue> defineTestItemsIssues(String projectName, DefineIssueRQ defineIssue, String userName) {
 	//		List<String> errors = new ArrayList<>();
@@ -240,58 +294,52 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	//		}
 	//	}
 	//
-	//	/**
-	//	 * Verifies that provided test item issue type is valid, and test item
-	//	 * domain object could be processed correctly
-	//	 *
-	//	 * @param type     - provided issue type
-	//	 * @param settings - project settings
-	//	 * @return verified issue type
-	//	 */
-	//	private String verifyTestItemDefinedIssueType(final String type, final Project.Configuration settings) {
-	//		StatisticSubType defined = settings.getByLocator(type);
-	//		expect(defined, notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS,
-	//				formattedSupplier("Invalid test item issue type definition '{}'. Valid issue types locators are: {}", type,
-	//						settings.getSubTypes()
-	//								.values()
-	//								.stream()
-	//								.flatMap(Collection::stream)
-	//								.map(StatisticSubType::getLocator)
-	//								.collect(Collectors.toList())
-	//				)
-	//		);
-	//		return defined.getLocator();
-	//	}
-	//
-	//	/**
-	//	 * Complex of domain verification for test item. Verifies that test item
-	//	 * domain object could be processed correctly.
-	//	 *
-	//	 * @param id - test item id
-	//	 * @throws BusinessRuleViolationException when business rule violation
-	//	 */
-	//	private void verifyTestItem(TestItem testItem, String id) throws BusinessRuleViolationException {
-	//		expect(
-	//				testItem, notNull(), Suppliers.formattedSupplier("Cannot update issue type for test item '{}', cause it is not found.", id))
-	//				.verify();
-	//
-	//		expect(testItem.getStatus(), not(equalTo(PASSED)),
-	//				Suppliers.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
-	//						PASSED.name()
-	//				)
-	//		).verify();
-	//
-	//		expect(
-	//				testItem.hasChilds(), not(equalTo(TRUE)), Suppliers.formattedSupplier(
-	//						"It is not allowed to udpate issue type for items with descendants. Test item '{}' has descendants.", id)).verify();
-	//
-	//		expect(
-	//				testItem.getIssue(), notNull(), Suppliers.formattedSupplier(
-	//						"Cannot update issue type for test item '{}', cause there is no info about actual issue type value.", id)).verify();
-	//
-	//		expect(
-	//				testItem.getIssue().getIssueType(), notNull(), Suppliers.formattedSupplier(
-	//						"Cannot update issue type for test item {}, cause it's actual issue type value is not provided.", id)).verify();
-	//	}
+
+	/**
+	 * Verifies that provided test item issue type is valid, and test item
+	 * domain object could be processed correctly
+	 *
+	 * @param locator
+	 * @param testItemId
+	 * @param projectId
+	 * @return verified issue type
+	 */
+	private IssueType verifyTestItemDefinedIssueType(String locator, Long testItemId, Long projectId) {
+		List<IssueType> projectIssueTypes = testItemRepository.selectIssueLocatorsByProject(projectId);
+		return projectIssueTypes.stream()
+				.filter(it -> it.getTestItemIssueType().getLocator().equalsIgnoreCase(locator))
+				.findAny()
+				.orElseThrow(() -> new ReportPortalException(
+						AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
+						"Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types locators are: {}",
+						locator, testItemId, projectIssueTypes.stream().map(IssueType::getLocator).collect(toList())
+				)));
+	}
+
+	/**
+	 * Complex of domain verification for test item. Verifies that test item
+	 * domain object could be processed correctly.
+	 *
+	 * @param id - test item id
+	 * @throws BusinessRuleViolationException when business rule violation
+	 */
+	private void verifyTestItem(TestItem item, Long id) throws BusinessRuleViolationException {
+		expect(item.getTestItemResults().getStatus(), not(equalTo(StatusEnum.PASSED)),
+				Suppliers.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
+						StatusEnum.PASSED.name()
+				)
+		).verify();
+		expect(
+				testItemRepository.hasChildren(item.getItemId()), equalTo(false), Suppliers.formattedSupplier(
+						"It is not allowed to udpate issue type for items with descendants. Test item '{}' has descendants.", id)).verify();
+
+		expect(
+				item.getTestItemResults().getIssue(), notNull(), Suppliers.formattedSupplier(
+						"Cannot update issue type for test item '{}', cause there is no info about actual issue type value.", id)).verify();
+
+		expect(
+				item.getTestItemResults().getIssue().getIssueType(), notNull(), Suppliers.formattedSupplier(
+						"Cannot update issue type for test item {}, cause it's actual issue type value is not provided.", id)).verify();
+	}
 
 }

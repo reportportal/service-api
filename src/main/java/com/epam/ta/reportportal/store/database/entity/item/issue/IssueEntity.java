@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.store.database.entity.item.issue;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -31,13 +32,13 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "issue", schema = "public", indexes = { @Index(name = "issue_pk", unique = true, columnList = "issue_id ASC") })
-public class IssueEntity {
+public class IssueEntity implements Serializable {
 
 	@Id
 	@Column(name = "issue_id", unique = true, nullable = false, precision = 64)
 	private Long issueId;
 
-	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@ManyToOne
 	@JoinColumn(name = "issue_type")
 	private IssueType issueType;
 
@@ -54,6 +55,9 @@ public class IssueEntity {
 	@MapsId
 	@JoinColumn(name = "issue_id")
 	private TestItemResults testItemResults;
+
+	public IssueEntity() {
+	}
 
 	public Long getIssueId() {
 		return issueId;
@@ -114,17 +118,17 @@ public class IssueEntity {
 		IssueEntity that = (IssueEntity) o;
 		return Objects.equals(issueId, that.issueId) && Objects.equals(issueType, that.issueType) && Objects.equals(
 				issueDescription, that.issueDescription) && Objects.equals(autoAnalyzed, that.autoAnalyzed) && Objects.equals(
-				ignoreAnalyzer, that.ignoreAnalyzer) && Objects.equals(testItemResults, that.testItemResults);
+				ignoreAnalyzer, that.ignoreAnalyzer);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(issueId, issueType, issueDescription, autoAnalyzed, ignoreAnalyzer, testItemResults);
+		return Objects.hash(issueId, issueType, issueDescription, autoAnalyzed, ignoreAnalyzer);
 	}
 
 	@Override
 	public String toString() {
 		return "IssueEntity{" + "issueId=" + issueId + ", issueType=" + issueType + ", issueDescription='" + issueDescription + '\''
-				+ ", autoAnalyzed=" + autoAnalyzed + ", ignoreAnalyzer=" + ignoreAnalyzer + ", testItemResults=" + testItemResults + '}';
+				+ ", autoAnalyzed=" + autoAnalyzed + ", ignoreAnalyzer=" + ignoreAnalyzer;
 	}
 }

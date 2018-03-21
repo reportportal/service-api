@@ -38,6 +38,7 @@ import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
@@ -82,6 +83,7 @@ public class TestItemController implements ITestItemController {
 
 	@Override
 	@PostMapping
+	@Transactional
 	@ResponseBody
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a root test item")
@@ -93,6 +95,7 @@ public class TestItemController implements ITestItemController {
 
 	@Override
 	@PostMapping("/{parentItem}")
+	@Transactional
 	@ResponseBody
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a child test item")
@@ -104,6 +107,7 @@ public class TestItemController implements ITestItemController {
 
 	@Override
 	@PutMapping("/{testItemId}")
+	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Finish test item")
@@ -136,6 +140,7 @@ public class TestItemController implements ITestItemController {
 
 	@Override
 	@DeleteMapping("/{itemId}")
+	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Delete test item")
@@ -145,6 +150,7 @@ public class TestItemController implements ITestItemController {
 
 	@Override
 	@ResponseBody
+	@Transactional
 	@ResponseStatus(OK)
 	@DeleteMapping
 	@ApiOperation("Delete test items by specified ids")
@@ -155,6 +161,7 @@ public class TestItemController implements ITestItemController {
 
 	@Override
 	@PutMapping
+	@Transactional
 	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiOperation("Update issues of specified test items")
@@ -190,6 +197,7 @@ public class TestItemController implements ITestItemController {
 
 	@Override
 	@PutMapping("/{itemId}/update")
+	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
 	//@PreAuthorize(ASSIGNED_TO_PROJECT)

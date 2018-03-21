@@ -141,14 +141,14 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				//in provided issue should be locator id or NOT_ISSUE value
 				String locator = providedIssue.getIssueType();
 				if (!NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(locator)) {
-					List<IssueType> projectIssueTypes = testItemRepository.selectIssueLocatorsByProject(1L);
+					List<IssueType> projectIssueTypes = testItemRepository.selectIssueLocatorsByProject(1L); //TODO project
 					IssueType issueType = verifyIssue(testItem.getItemId(), providedIssue, projectIssueTypes);
 					IssueEntity issue = TO_ISSUE.apply(providedIssue);
 					issue.setIssueType(issueType);
 					testItemResults.setIssue(issue);
 				}
 			} else {
-				List<IssueType> issueTypes = testItemRepository.selectIssueLocatorsByProject(1L);
+				List<IssueType> issueTypes = testItemRepository.selectIssueLocatorsByProject(1L); //TODO  project
 				IssueType toInvestigate = issueTypes.stream()
 						.filter(it -> it.getLocator().equalsIgnoreCase(TO_INVESTIGATE.getLocator()))
 						.findFirst()

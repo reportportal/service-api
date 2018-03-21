@@ -27,6 +27,7 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -35,7 +36,7 @@ import java.util.Objects;
 @Entity
 @TypeDef(name = "pqsql_enum", typeClass = PostgreSQLEnumType.class)
 @Table(name = "issue_type", schema = "public", indexes = { @Index(name = "issue_type_pk", unique = true, columnList = "id ASC") })
-public class IssueType {
+public class IssueType implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,14 +51,17 @@ public class IssueType {
 	@Column(name = "locator", length = 64)
 	private String locator;
 
-	@Column(name = "long_name", length = 256)
+	@Column(name = "issue_name", length = 256)
 	private String longName;
 
-	@Column(name = "short_name", length = 64)
+	@Column(name = "abbreviation", length = 64)
 	private String shortName;
 
 	@Column(name = "hex_color", length = 7)
 	private String hexColor;
+
+	public IssueType() {
+	}
 
 	public Integer getId() {
 		return id;

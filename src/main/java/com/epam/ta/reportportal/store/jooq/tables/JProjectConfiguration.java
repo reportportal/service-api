@@ -18,7 +18,6 @@ import javax.annotation.Generated;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Identity;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Schema;
@@ -42,7 +41,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JProjectConfiguration extends TableImpl<JProjectConfigurationRecord> {
 
-    private static final long serialVersionUID = -1930607265;
+    private static final long serialVersionUID = 1778011419;
 
     /**
      * The reference instance of <code>public.project_configuration</code>
@@ -60,7 +59,7 @@ public class JProjectConfiguration extends TableImpl<JProjectConfigurationRecord
     /**
      * The column <code>public.project_configuration.id</code>.
      */
-    public final TableField<JProjectConfigurationRecord, Integer> ID = createField("id", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('project_configuration_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+    public final TableField<JProjectConfigurationRecord, Long> ID = createField("id", org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * The column <code>public.project_configuration.project_type</code>.
@@ -99,7 +98,7 @@ public class JProjectConfiguration extends TableImpl<JProjectConfigurationRecord
     /**
      * The column <code>public.project_configuration.email_configuration_id</code>.
      */
-    public final TableField<JProjectConfigurationRecord, Integer> EMAIL_CONFIGURATION_ID = createField("email_configuration_id", org.jooq.impl.SQLDataType.INTEGER, this, "");
+    public final TableField<JProjectConfigurationRecord, Long> EMAIL_CONFIGURATION_ID = createField("email_configuration_id", org.jooq.impl.SQLDataType.BIGINT, this, "");
 
     /**
      * The column <code>public.project_configuration.created_on</code>.
@@ -155,14 +154,6 @@ public class JProjectConfiguration extends TableImpl<JProjectConfigurationRecord
      * {@inheritDoc}
      */
     @Override
-    public Identity<JProjectConfigurationRecord, Integer> getIdentity() {
-        return Keys.IDENTITY_PROJECT_CONFIGURATION;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public UniqueKey<JProjectConfigurationRecord> getPrimaryKey() {
         return Keys.PROJECT_CONFIGURATION_PK;
     }
@@ -180,7 +171,7 @@ public class JProjectConfiguration extends TableImpl<JProjectConfigurationRecord
      */
     @Override
     public List<ForeignKey<JProjectConfigurationRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<JProjectConfigurationRecord, ?>>asList(Keys.PROJECT_CONFIGURATION__PROJECT_CONFIGURATION_EMAIL_CONFIGURATION_ID_FKEY);
+        return Arrays.<ForeignKey<JProjectConfigurationRecord, ?>>asList(Keys.PROJECT_CONFIGURATION__PROJECT_CONFIGURATION_ID_FKEY, Keys.PROJECT_CONFIGURATION__PROJECT_CONFIGURATION_EMAIL_CONFIGURATION_ID_FKEY);
     }
 
     /**

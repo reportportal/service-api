@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.ws.controller.impl;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
@@ -37,13 +38,13 @@ import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.security.Principal;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.CREATED;
@@ -89,8 +90,8 @@ public class TestItemController implements ITestItemController {
 	@ApiOperation("Start a root test item")
 	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS startRootItem(@PathVariable String projectName, @RequestBody @Validated StartTestItemRQ startTestItemRQ,
-			Principal principal) {
-		return startTestItemHandler.startRootItem(projectName, startTestItemRQ);
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return startTestItemHandler.startRootItem(user, projectName, startTestItemRQ);
 	}
 
 	@Override
@@ -101,8 +102,8 @@ public class TestItemController implements ITestItemController {
 	@ApiOperation("Start a child test item")
 	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS startChildItem(@PathVariable String projectName, @PathVariable Long parentItem,
-			@RequestBody @Validated StartTestItemRQ startTestItemRQ, Principal principal) {
-		return startTestItemHandler.startChildItem(projectName, startTestItemRQ, parentItem);
+			@RequestBody @Validated StartTestItemRQ startTestItemRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return startTestItemHandler.startChildItem(user, projectName, startTestItemRQ, parentItem);
 	}
 
 	@Override
@@ -113,8 +114,8 @@ public class TestItemController implements ITestItemController {
 	@ApiOperation("Finish test item")
 	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public OperationCompletionRS finishTestItem(@PathVariable String projectName, @PathVariable Long testItemId,
-			@RequestBody @Validated FinishTestItemRQ finishExecutionRQ, Principal principal) {
-		return finishTestItemHandler.finishTestItem(testItemId, finishExecutionRQ, "default");
+			@RequestBody @Validated FinishTestItemRQ finishExecutionRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return finishTestItemHandler.finishTestItem(user, projectName, testItemId, finishExecutionRQ);
 	}
 
 	@Override
@@ -122,7 +123,7 @@ public class TestItemController implements ITestItemController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Find test item by ID")
-	public TestItem getTestItem(@PathVariable String projectName, @PathVariable String testItemId, Principal principal) {
+	public TestItem getTestItem(@PathVariable String projectName, @PathVariable String testItemId, @AuthenticationPrincipal ReportPortalUser user) {
 		//testItemRepository.selectPathNames(11L);
 		//return getTestItemHandler.getTestItem(testItemId);
 		return testItemRepository.findById(3l).orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "3"));
@@ -134,7 +135,7 @@ public class TestItemController implements ITestItemController {
 	//	@ResponseStatus(OK)
 	//	@ApiOperation("Find test items by specified filter")
 	//	public Iterable<TestItemResource> getTestItems(@PathVariable String projectName, @FilterFor(TestItem.class) Filter filter,
-	//			@FilterFor(TestItem.class) Queryable predefinedFilter, @SortFor(TestItem.class) Pageable pageable, Principal principal) {
+	//			@FilterFor(TestItem.class) Queryable predefinedFilter, @SortFor(TestItem.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
 	//		return getTestItemHandler.getTestItems(new CompositeFilter(filter, predefinedFilter), pageable);
 	//	}
 
@@ -144,7 +145,7 @@ public class TestItemController implements ITestItemController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Delete test item")
-	public OperationCompletionRS deleteTestItem(@PathVariable String projectName, @PathVariable Long itemId, Principal principal) {
+	public OperationCompletionRS deleteTestItem(@PathVariable String projectName, @PathVariable Long itemId, @AuthenticationPrincipal ReportPortalUser user) {
 		return deleteTestItemHandler.deleteTestItem(itemId, "project", "user");
 	}
 
@@ -155,7 +156,7 @@ public class TestItemController implements ITestItemController {
 	@DeleteMapping
 	@ApiOperation("Delete test items by specified ids")
 	public List<OperationCompletionRS> deleteTestItems(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
-			Principal principal) {
+			@AuthenticationPrincipal ReportPortalUser user) {
 		return deleteTestItemHandler.deleteTestItem(ids, projectName, "user");
 	}
 
@@ -166,7 +167,7 @@ public class TestItemController implements ITestItemController {
 	@ResponseBody
 	@ApiOperation("Update issues of specified test items")
 	public List<Issue> defineTestItemIssueType(@PathVariable String projectName, @RequestBody @Validated DefineIssueRQ request,
-			Principal principal) {
+			@AuthenticationPrincipal ReportPortalUser user) {
 		return updateTestItemHandler.defineTestItemsIssues(projectName, request, "user");
 	}
 
@@ -179,7 +180,7 @@ public class TestItemController implements ITestItemController {
 			@RequestParam(value = "history_depth", required = false, defaultValue = DEFAULT_HISTORY_DEPTH) int historyDepth,
 			@RequestParam(value = "ids") String[] ids,
 			@RequestParam(value = "is_full", required = false, defaultValue = DEFAULT_HISTORY_FULL) boolean showBrokenLaunches,
-			Principal principal) {
+			@AuthenticationPrincipal ReportPortalUser user) {
 		throw new UnsupportedOperationException();
 		//return testItemsHistoryHandler.getItemsHistory(normalizeId(projectName), ids, historyDepth, showBrokenLaunches);
 	}
@@ -190,7 +191,7 @@ public class TestItemController implements ITestItemController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique tags of specified launch")
 	public List<String> getAllTags(@PathVariable String projectName, @RequestParam(value = "launch") String id,
-			@RequestParam(value = "filter." + "cnt." + "tags") String value, Principal principal) {
+			@RequestParam(value = "filter." + "cnt." + "tags") String value, @AuthenticationPrincipal ReportPortalUser user) {
 		//return getTestItemHandler.getTags(id, value);
 		return null;
 	}
@@ -203,7 +204,7 @@ public class TestItemController implements ITestItemController {
 	//@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Update test item")
 	public OperationCompletionRS updateTestItem(@PathVariable String projectName, @PathVariable Long itemId,
-			@RequestBody @Validated UpdateTestItemRQ rq, Principal principal) {
+			@RequestBody @Validated UpdateTestItemRQ rq, @AuthenticationPrincipal ReportPortalUser user) {
 		return updateTestItemHandler.updateTestItem(projectName, itemId, rq, "user");
 	}
 
@@ -214,7 +215,7 @@ public class TestItemController implements ITestItemController {
 	//@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Attach external issue for specified test items")
 	public List<OperationCompletionRS> addExternalIssues(@PathVariable String projectName, @RequestBody @Validated AddExternalIssueRQ rq,
-			Principal principal) {
+			@AuthenticationPrincipal ReportPortalUser user) {
 		//return updateTestItemHandler.addExternalIssues(normalizeId(projectName), rq, principal.getName());
 		return null;
 	}
@@ -226,7 +227,7 @@ public class TestItemController implements ITestItemController {
 	//@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Get test items by specified ids")
 	public List<TestItemResource> getTestItems(@PathVariable String projectName, @RequestParam(value = "ids") String[] ids,
-			Principal principal) {
+			@AuthenticationPrincipal ReportPortalUser user) {
 		//return getTestItemHandler.getTestItems(ids);
 		return null;
 	}
@@ -239,7 +240,7 @@ public class TestItemController implements ITestItemController {
 	//    @ApiOperation("Merge test item")
 	@ApiIgnore
 	public OperationCompletionRS mergeTestItem(@PathVariable String projectName, @PathVariable String item,
-			@RequestBody @Validated MergeTestItemRQ rq, Principal principal) {
+			@RequestBody @Validated MergeTestItemRQ rq, @AuthenticationPrincipal ReportPortalUser user) {
 		throw new UnsupportedOperationException();
 		//return mergeTestItemHandler.mergeTestItem(normalizeId(projectName), item, rq, principal.getName());
 	}

@@ -169,7 +169,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 		return dsl.select()
 				.from(PROJECT)
 				.join(PROJECT_CONFIGURATION)
-				.on(PROJECT.PROJECT_CONFIGURATION_ID.eq(PROJECT_CONFIGURATION.ID))
+				.on(PROJECT_CONFIGURATION.ID.eq(PROJECT.ID))
 				.join(ISSUE_TYPE_PROJECT_CONFIGURATION)
 				.on(PROJECT_CONFIGURATION.ID.eq(ISSUE_TYPE_PROJECT_CONFIGURATION.CONFIGURATION_ID))
 				.join(Tables.ISSUE_TYPE)
@@ -189,6 +189,18 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 				.and(res.ITEM_ID.eq(ts.ITEM_ID))
 				.and(res.STATUS.eq(JStatusEnum.IN_PROGRESS))
 				.execute();
+	}
+
+	@Override
+	public IssueType selectIssueTypeByLocator(Long projectId, String locator) {
+		return dsl.select()
+				.from(ISSUE_TYPE)
+				.join(ISSUE_TYPE_PROJECT_CONFIGURATION)
+				.on(ISSUE_TYPE.ID.eq(ISSUE_TYPE_PROJECT_CONFIGURATION.ISSUE_TYPE_ID))
+				.where(ISSUE_TYPE_PROJECT_CONFIGURATION.CONFIGURATION_ID.eq(projectId))
+				.and(ISSUE_TYPE.LOCATOR.eq(locator))
+				.fetchOne()
+				.into(IssueType.class);
 	}
 
 	/**

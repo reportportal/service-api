@@ -23,7 +23,6 @@ package com.epam.ta.reportportal.auth.basic;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.util.AuthUtils;
 import com.epam.ta.reportportal.store.database.dao.UserRepository;
-import com.epam.ta.reportportal.store.database.entity.user.ProjectUser;
 import com.epam.ta.reportportal.store.database.entity.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -54,17 +53,16 @@ public class DatabaseUserDetailsService implements UserDetailsService {
 		String login = user.get().getLogin();
 		String password = user.get().getPassword() == null ? "" : user.get().getPassword();
 
-		org.springframework.security.core.userdetails.User u = new org.springframework.security.core.userdetails.User(login,
-				password,
-				true,
-				true,
-				true,
-				true,
-				AuthUtils.AS_AUTHORITIES.apply(user.get().getRole())
+		org.springframework.security.core.userdetails.User u = new org.springframework.security.core.userdetails.User(login, password, true,
+				true, true, true, AuthUtils.AS_AUTHORITIES.apply(user.get().getRole())
 		);
 
-		return new ReportPortalUser(u,
-				user.get().getProjects().stream().collect(Collectors.toMap(p -> p.getProject().getName(), ProjectUser::getRole))
+		return new ReportPortalUser(u, user.get().getId(), user.get()
+				.getProjects()
+				.stream()
+				.collect(Collectors.toMap(p -> p.getProject().getName(),
+						p -> new ReportPortalUser.ProjectDetails(p.getProject().getId(), p.getRole())
+				))
 		);
 	}
 

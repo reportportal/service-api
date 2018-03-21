@@ -61,6 +61,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -345,7 +346,9 @@ public class SecurityConfiguration {
 		public Map<String, ?> convertUserAuthentication(Authentication authentication) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> claims = (Map<String, Object>) super.convertUserAuthentication(authentication);
-			claims.put("projects", ((ReportPortalUser) authentication.getPrincipal()).getProjectRoles());
+			ReportPortalUser principal = (ReportPortalUser) authentication.getPrincipal();
+			claims.put("userId", principal.getUserId());
+			claims.put("projects", principal.getProjectDetails());
 			return claims;
 		}
 
@@ -355,13 +358,21 @@ public class SecurityConfiguration {
 			if (null != auth) {
 				UsernamePasswordAuthenticationToken user = ((UsernamePasswordAuthenticationToken) auth);
 				Collection<GrantedAuthority> authorities = user.getAuthorities();
-				@SuppressWarnings("unchecked")
-				Map<String, ProjectRole> projects = map.containsKey("projects") ?
-						(Map<String, ProjectRole>) map.get("projects") :
-						Collections.emptyMap();
-				return new UsernamePasswordAuthenticationToken(new ReportPortalUser(user.getName(), "N/A", authorities, projects),
-						user.getCredentials(),
-						authorities
+
+				Long userId = map.containsKey("userId") ? ((Integer) map.get("userId")).longValue() : null;
+				Map<String, Map> projects = map.containsKey("projects") ? (Map) map.get("projects") : Collections.emptyMap();
+
+				Map<String, ReportPortalUser.ProjectDetails> collect = projects.entrySet()
+						.stream()
+						.collect(Collectors.toMap(
+								Map.Entry::getKey,
+								e -> new ReportPortalUser.ProjectDetails(Long.valueOf((Integer) e.getValue().get("projectId")),
+										ProjectRole.valueOf((String) e.getValue().get("projectRole"))
+								)
+						));
+
+				return new UsernamePasswordAuthenticationToken(new ReportPortalUser(user.getName(), "N/A", authorities, userId, collect),
+						user.getCredentials(), authorities
 				);
 			}
 

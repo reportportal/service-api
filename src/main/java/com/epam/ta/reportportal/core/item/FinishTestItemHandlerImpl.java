@@ -20,6 +20,7 @@
  */
 package com.epam.ta.reportportal.core.item;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.Preconditions;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
@@ -29,8 +30,8 @@ import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -91,22 +92,17 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	//	}
 
 	@Override
-	public OperationCompletionRS finishTestItem(Long testItemId, FinishTestItemRQ finishExecutionRQ, String username) {
+	public OperationCompletionRS finishTestItem(ReportPortalUser user, String projectName, Long testItemId,
+			FinishTestItemRQ finishExecutionRQ) {
 
 		TestItem testItem = testItemRepository.findById(testItemId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId));
+		boolean hasChildren = testItemRepository.hasChildren(testItem.getItemId());
+		verifyTestItem(user, testItem, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()), hasChildren);
 
-		verifyTestItem(testItem, testItemId, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()));
-		//
-		//		Launch launch = Optional.ofNullable(testItem.getTestItemStructure().getLaunch())
-		//				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
-		//
-		//		if (!launch.getUserRef().equalsIgnoreCase(username)) {
-		//			fail().withError(FINISH_ITEM_NOT_ALLOWED, "You are not launch owner.");
-		//		}
-		//		final Project project = projectRepository.findOne(launch.getProjectRef());
+		TestItemResults testItemResults = processItemResults(
+				user.getProjectDetails().get(projectName).getProjectId(), testItem, finishExecutionRQ, hasChildren);
 
-		TestItemResults testItemResults = processItemResults(testItem, finishExecutionRQ);
 		testItem = new TestItemBuilder(testItem).addDescription(finishExecutionRQ.getDescription())
 				.addTags(finishExecutionRQ.getTags())
 				.addTestItemResults(testItemResults, finishExecutionRQ.getEndTime())
@@ -125,11 +121,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param finishExecutionRQ Finish test item request
 	 * @return TestItemResults object
 	 */
-	private TestItemResults processItemResults(TestItem testItem, FinishTestItemRQ finishExecutionRQ) {
+	private TestItemResults processItemResults(Long projectId, TestItem testItem, FinishTestItemRQ finishExecutionRQ, boolean hasChildren) {
 		TestItemResults testItemResults = Optional.ofNullable(testItem.getTestItemResults()).orElse(new TestItemResults());
 		Optional<StatusEnum> actualStatus = fromValue(finishExecutionRQ.getStatus());
 		Issue providedIssue = finishExecutionRQ.getIssue();
-		boolean hasChildren = testItemRepository.hasChildren(testItem.getItemId());
+
 		if (actualStatus.isPresent() && !hasChildren) {
 			testItemResults.setStatus(actualStatus.get());
 		} else {
@@ -141,18 +137,13 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				//in provided issue should be locator id or NOT_ISSUE value
 				String locator = providedIssue.getIssueType();
 				if (!NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(locator)) {
-					List<IssueType> projectIssueTypes = testItemRepository.selectIssueLocatorsByProject(1L); //TODO project
-					IssueType issueType = verifyIssue(testItem.getItemId(), providedIssue, projectIssueTypes);
+					IssueType issueType = testItemRepository.selectIssueTypeByLocator(projectId, locator);
 					IssueEntity issue = TO_ISSUE.apply(providedIssue);
 					issue.setIssueType(issueType);
 					testItemResults.setIssue(issue);
 				}
 			} else {
-				List<IssueType> issueTypes = testItemRepository.selectIssueLocatorsByProject(1L); //TODO  project
-				IssueType toInvestigate = issueTypes.stream()
-						.filter(it -> it.getLocator().equalsIgnoreCase(TO_INVESTIGATE.getLocator()))
-						.findFirst()
-						.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_ERROR));
+				IssueType toInvestigate = testItemRepository.selectIssueTypeByLocator(projectId, TO_INVESTIGATE.getLocator());
 				IssueEntity issue = new IssueEntity();
 				issue.setIssueType(toInvestigate);
 				testItemResults.setIssue(issue);
@@ -164,39 +155,34 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	/**
 	 * Validation procedure for specified test item
 	 *
-	 * @param testItemId        ID of test item
+	 * @param user              Report portal user
+	 * @param testItem          Test item
 	 * @param finishExecutionRQ Request data
 	 * @param actualStatus      Actual status of item
-	 * @return TestItem updated item
+	 * @param hasChildren       Does item contain children
 	 */
+	private void verifyTestItem(ReportPortalUser user, TestItem testItem, FinishTestItemRQ finishExecutionRQ,
+			Optional<StatusEnum> actualStatus, boolean hasChildren) {
 
-	private void verifyTestItem(TestItem testItem, final Long testItemId, FinishTestItemRQ finishExecutionRQ,
-			Optional<StatusEnum> actualStatus) {
+		Launch launch = Optional.ofNullable(testItem.getLaunch()).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
+		expect(user.getUserId(), equalTo(launch.getUserId())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not launch owner.");
+
 		expect(testItem.getTestItemResults().getStatus(), Preconditions.statusIn(IN_PROGRESS)).verify(
 				REPORTING_ITEM_ALREADY_FINISHED, testItem.getItemId());
+
 		List<TestItem> items = testItemRepository.selectItemsInStatusByParent(testItem.getItemId(), IN_PROGRESS);
 		expect(items.isEmpty(), equalTo(true)).verify(FINISH_ITEM_NOT_ALLOWED,
-				formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'", testItemId, IN_PROGRESS.name(),
-						items
+				formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'", testItem.getItemId(),
+						IN_PROGRESS.name(), items
 				)
 		);
-		//		try {
-		//
-		//			expect(!actualStatus.isPresent() && !testItem.hasChilds(), equalTo(Boolean.FALSE), formattedSupplier(
-		//					"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
-		//					testItemId
-		//			)).verify();
+		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
+				"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
+				testItem.getItemId()
+		));
 
 		expect(finishExecutionRQ.getEndTime(), Preconditions.sameTimeOrLater(testItem.getStartTime())).verify(
-				FINISH_TIME_EARLIER_THAN_START_TIME, finishExecutionRQ.getEndTime(), testItem.getStartTime(), testItemId);
-		//
-		//			/*
-		//			 * If there is issue provided we have to be sure issue type is
-		//			 * correct
-		//			 */
-		//		} catch (BusinessRuleViolationException e) {
-		//			fail().withError(AMBIGUOUS_TEST_ITEM_STATUS, e.getMessage());
-		//		}
+				FINISH_TIME_EARLIER_THAN_START_TIME, finishExecutionRQ.getEndTime(), testItem.getStartTime(), testItem.getItemId());
 	}
 
 	private IssueType verifyIssue(Long testItemId, Issue issue, List<IssueType> projectIssueTypes) {

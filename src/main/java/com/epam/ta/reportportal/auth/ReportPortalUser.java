@@ -14,19 +14,53 @@ import java.util.Map;
  */
 public class ReportPortalUser extends User {
 
-	private Map<String, ProjectRole> projectRoles;
+	private Long userId;
 
-	public ReportPortalUser(String username, String password, Collection<? extends GrantedAuthority> authorities,
-			Map<String, ProjectRole> projectRoles) {
+	private Map<String, ProjectDetails> projectDetails;
+
+	public ReportPortalUser(String username, String password, Collection<? extends GrantedAuthority> authorities, Long userId,
+			Map<String, ProjectDetails> projectDetails) {
 		super(username, password, authorities);
-		this.projectRoles = projectRoles;
+		this.userId = userId;
+		this.projectDetails = projectDetails;
 	}
 
-	public ReportPortalUser(User user, Map<String, ProjectRole> projectRoles) {
-		this(user.getUsername(), user.getPassword(), user.getAuthorities(), projectRoles);
+	public ReportPortalUser(User user, Long userId, Map<String, ProjectDetails> projectDetails) {
+		this(user.getUsername(), user.getPassword(), user.getAuthorities(), userId, projectDetails);
 	}
 
-	public Map<String, ProjectRole> getProjectRoles() {
-		return projectRoles;
+	public Long getUserId() {
+		return userId;
+	}
+
+	public Map<String, ProjectDetails> getProjectDetails() {
+		return projectDetails;
+	}
+
+	public static class ProjectDetails {
+
+		private Long projectId;
+		private ProjectRole projectRole;
+
+		public ProjectDetails(Long projectId, ProjectRole projectRole) {
+			this.projectId = projectId;
+			this.projectRole = projectRole;
+		}
+
+		public Long getProjectId() {
+			return projectId;
+		}
+
+		public void setProjectId(Long projectId) {
+			this.projectId = projectId;
+		}
+
+		public ProjectRole getProjectRole() {
+			return projectRole;
+		}
+
+		public void setProjectRole(ProjectRole projectRole) {
+			this.projectRole = projectRole;
+		}
 	}
 }

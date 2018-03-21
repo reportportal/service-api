@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JWidget extends TableImpl<JWidgetRecord> {
 
-    private static final long serialVersionUID = -153685513;
+    private static final long serialVersionUID = 1137058850;
 
     /**
      * The reference instance of <code>public.widget</code>
@@ -68,7 +68,7 @@ public class JWidget extends TableImpl<JWidgetRecord> {
     /**
      * The column <code>public.widget.project_id</code>.
      */
-    public final TableField<JWidgetRecord, Integer> PROJECT_ID = createField("project_id", org.jooq.impl.SQLDataType.INTEGER, this, "");
+    public final TableField<JWidgetRecord, Long> PROJECT_ID = createField("project_id", org.jooq.impl.SQLDataType.BIGINT, this, "");
 
     /**
      * Create a <code>public.widget</code> table reference

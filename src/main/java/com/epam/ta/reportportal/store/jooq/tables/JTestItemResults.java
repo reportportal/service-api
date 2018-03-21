@@ -9,13 +9,22 @@ import com.epam.ta.reportportal.store.jooq.JPublic;
 import com.epam.ta.reportportal.store.jooq.Keys;
 import com.epam.ta.reportportal.store.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.store.jooq.tables.records.JTestItemResultsRecord;
-import org.jooq.*;
-import org.jooq.impl.DSL;
-import org.jooq.impl.TableImpl;
 
-import javax.annotation.Generated;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.annotation.Generated;
+
+import org.jooq.Field;
+import org.jooq.ForeignKey;
+import org.jooq.Index;
+import org.jooq.Name;
+import org.jooq.Schema;
+import org.jooq.Table;
+import org.jooq.TableField;
+import org.jooq.UniqueKey;
+import org.jooq.impl.DSL;
+import org.jooq.impl.TableImpl;
 
 
 /**

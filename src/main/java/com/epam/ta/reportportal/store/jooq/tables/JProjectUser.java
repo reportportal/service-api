@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JProjectUser extends TableImpl<JProjectUserRecord> {
 
-    private static final long serialVersionUID = -1080862885;
+    private static final long serialVersionUID = -497738359;
 
     /**
      * The reference instance of <code>public.project_user</code>
@@ -58,12 +58,12 @@ public class JProjectUser extends TableImpl<JProjectUserRecord> {
     /**
      * The column <code>public.project_user.user_id</code>.
      */
-    public final TableField<JProjectUserRecord, Integer> USER_ID = createField("user_id", org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
+    public final TableField<JProjectUserRecord, Long> USER_ID = createField("user_id", org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * The column <code>public.project_user.project_id</code>.
      */
-    public final TableField<JProjectUserRecord, Integer> PROJECT_ID = createField("project_id", org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
+    public final TableField<JProjectUserRecord, Long> PROJECT_ID = createField("project_id", org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * The column <code>public.project_user.project_role</code>.

@@ -42,7 +42,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JUsers extends TableImpl<JUsersRecord> {
 
-    private static final long serialVersionUID = -975575814;
+    private static final long serialVersionUID = -837238256;
 
     /**
      * The reference instance of <code>public.users</code>
@@ -60,7 +60,7 @@ public class JUsers extends TableImpl<JUsersRecord> {
     /**
      * The column <code>public.users.id</code>.
      */
-    public final TableField<JUsersRecord, Integer> ID = createField("id", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('users_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+    public final TableField<JUsersRecord, Long> ID = createField("id", org.jooq.impl.SQLDataType.BIGINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('users_id_seq'::regclass)", org.jooq.impl.SQLDataType.BIGINT)), this, "");
 
     /**
      * The column <code>public.users.login</code>.
@@ -152,7 +152,7 @@ public class JUsers extends TableImpl<JUsersRecord> {
      * {@inheritDoc}
      */
     @Override
-    public Identity<JUsersRecord, Integer> getIdentity() {
+    public Identity<JUsersRecord, Long> getIdentity() {
         return Keys.IDENTITY_USERS;
     }
 

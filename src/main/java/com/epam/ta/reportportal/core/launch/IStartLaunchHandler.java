@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.launch;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 
@@ -34,10 +35,10 @@ public interface IStartLaunchHandler {
 	/**
 	 * Creates new launch for specified project
 	 *
-	 * @param user          User name
+	 * @param user          ReportPortal user
 	 * @param project       Project name
 	 * @param startLaunchRQ Request Data
 	 * @return StartLaunchRS
 	 */
-	StartLaunchRS startLaunch(String user, String project, StartLaunchRQ startLaunchRQ);
+	StartLaunchRS startLaunch(ReportPortalUser user, String project, StartLaunchRQ startLaunchRQ);
 }

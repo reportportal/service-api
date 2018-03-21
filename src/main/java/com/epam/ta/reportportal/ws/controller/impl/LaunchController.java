@@ -36,6 +36,7 @@
  */
 package com.epam.ta.reportportal.ws.controller.impl;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.*;
 import com.epam.ta.reportportal.ws.controller.ILaunchController;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
@@ -50,6 +51,7 @@ import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -111,8 +113,8 @@ public class LaunchController implements ILaunchController {
 	//	private ImportLaunchHandler importLaunchHandler;
 
 	@Override
-	@PostMapping
 	@Transactional
+	@PostMapping
 	@ResponseBody
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
@@ -120,8 +122,8 @@ public class LaunchController implements ILaunchController {
 	public EntryCreatedRS startLaunch(
 			@ApiParam(value = "Name of project launch starts under", required = true) @PathVariable String projectName,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
-			Principal principal) {
-		return createLaunchMessageHandler.startLaunch("principal", normalizeId(projectName), startLaunchRQ);
+			@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
+		return createLaunchMessageHandler.startLaunch(reportPortalUser, normalizeId(projectName), startLaunchRQ);
 	}
 
 	@Override

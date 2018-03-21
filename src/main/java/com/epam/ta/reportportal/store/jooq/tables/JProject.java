@@ -15,7 +15,6 @@ import java.util.List;
 import javax.annotation.Generated;
 
 import org.jooq.Field;
-import org.jooq.ForeignKey;
 import org.jooq.Identity;
 import org.jooq.Index;
 import org.jooq.Name;
@@ -40,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JProject extends TableImpl<JProjectRecord> {
 
-    private static final long serialVersionUID = 2128417000;
+    private static final long serialVersionUID = 385764521;
 
     /**
      * The reference instance of <code>public.project</code>
@@ -58,7 +57,7 @@ public class JProject extends TableImpl<JProjectRecord> {
     /**
      * The column <code>public.project.id</code>.
      */
-    public final TableField<JProjectRecord, Integer> ID = createField("id", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('project_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+    public final TableField<JProjectRecord, Long> ID = createField("id", org.jooq.impl.SQLDataType.BIGINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('project_id_seq'::regclass)", org.jooq.impl.SQLDataType.BIGINT)), this, "");
 
     /**
      * The column <code>public.project.name</code>.
@@ -70,11 +69,6 @@ public class JProject extends TableImpl<JProjectRecord> {
      */
     @java.lang.Deprecated
     public final TableField<JProjectRecord, Object> METADATA = createField("metadata", org.jooq.impl.DefaultDataType.getDefaultDataType("jsonb"), this, "");
-
-    /**
-     * The column <code>public.project.project_configuration_id</code>.
-     */
-    public final TableField<JProjectRecord, Integer> PROJECT_CONFIGURATION_ID = createField("project_configuration_id", org.jooq.impl.SQLDataType.INTEGER, this, "");
 
     /**
      * Create a <code>public.project</code> table reference
@@ -118,14 +112,14 @@ public class JProject extends TableImpl<JProjectRecord> {
      */
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.PROJECT_PK, Indexes.PROJECT_PROJECT_CONFIGURATION_ID_KEY);
+        return Arrays.<Index>asList(Indexes.PROJECT_PK);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Identity<JProjectRecord, Integer> getIdentity() {
+    public Identity<JProjectRecord, Long> getIdentity() {
         return Keys.IDENTITY_PROJECT;
     }
 
@@ -142,15 +136,7 @@ public class JProject extends TableImpl<JProjectRecord> {
      */
     @Override
     public List<UniqueKey<JProjectRecord>> getKeys() {
-        return Arrays.<UniqueKey<JProjectRecord>>asList(Keys.PROJECT_PK, Keys.PROJECT_PROJECT_CONFIGURATION_ID_KEY);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<ForeignKey<JProjectRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<JProjectRecord, ?>>asList(Keys.PROJECT__PROJECT_PROJECT_CONFIGURATION_ID_FKEY);
+        return Arrays.<UniqueKey<JProjectRecord>>asList(Keys.PROJECT_PK);
     }
 
     /**

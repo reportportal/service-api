@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
@@ -29,7 +30,6 @@ import com.epam.ta.reportportal.ws.model.item.AddExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 
-import java.security.Principal;
 import java.util.List;
 
 public interface ITestItemController {
@@ -39,10 +39,10 @@ public interface ITestItemController {
 	 *
 	 * @param projectName
 	 * @param testItem
-	 * @param principal
+	 * @param user
 	 * @return EntryCreatedRS
 	 */
-	EntryCreatedRS startRootItem(String projectName, StartTestItemRQ testItem, Principal principal);
+	EntryCreatedRS startRootItem(String projectName, StartTestItemRQ testItem, ReportPortalUser user);
 
 	/**
 	 * Starts child test item
@@ -50,29 +50,29 @@ public interface ITestItemController {
 	 * @param projectName
 	 * @param parentItem
 	 * @param startLaunch
-	 * @param principal
+	 * @param user
 	 * @return EntryCreatedRS
 	 */
-	EntryCreatedRS startChildItem(String projectName, Long parentItem, StartTestItemRQ startLaunch, Principal principal);
+	EntryCreatedRS startChildItem(String projectName, Long parentItem, StartTestItemRQ startLaunch, ReportPortalUser user);
 
 	/**
 	 * Finishes specified test item
 	 *
 	 * @param finishExecutionRQ
-	 * @param principal
+	 * @param user
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS finishTestItem(String projectName, Long item, FinishTestItemRQ finishExecutionRQ, Principal principal);
+	OperationCompletionRS finishTestItem(String projectName, Long item, FinishTestItemRQ finishExecutionRQ, ReportPortalUser user);
 
 	/**
 	 * Gets Test Item by ID
 	 *
 	 * @param projectName
 	 * @param item
-	 * @param principal
+	 * @param user
 	 * @return TestItemResource
 	 */
-	TestItem getTestItem(String projectName, String item, Principal principal);
+	TestItem getTestItem(String projectName, String item, ReportPortalUser user);
 
 	//	/**
 	//	 * Gets all Test Items of specified launch
@@ -80,31 +80,31 @@ public interface ITestItemController {
 	//	 * @param projectName
 	//	 * @param filter
 	//	 * @param pageble
-	//	 * @param principal
+	//	 * @param user
 	//	 * @return Iterable<TestItemResource>
 	//	 */
 	//	Iterable<TestItemResource> getTestItems(String projectName, Filter filter, Queryable predefinedFilter, Pageable pageble,
-	//			Principal principal);
+	//			ReportPortalUser user);
 
 	/**
 	 * Deletes Test Item
 	 *
 	 * @param projectName
 	 * @param itemId
-	 * @param principal
+	 * @param user
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS deleteTestItem(String projectName, Long itemId, Principal principal);
+	OperationCompletionRS deleteTestItem(String projectName, Long itemId, ReportPortalUser user);
 
 	/**
 	 * Deletes Test Items
 	 *
 	 * @param projectName
 	 * @param ids
-	 * @param principal
+	 * @param user
 	 * @return
 	 */
-	List<OperationCompletionRS> deleteTestItems(String projectName, Long[] ids, Principal principal);
+	List<OperationCompletionRS> deleteTestItems(String projectName, Long[] ids, ReportPortalUser user);
 
 	/**
 	 * Update test item issue block (defects) and updated statistics
@@ -113,7 +113,7 @@ public interface ITestItemController {
 	 * @param request
 	 * @return List<Issue>
 	 */
-	List<Issue> defineTestItemIssueType(String projectName, DefineIssueRQ request, Principal principal);
+	List<Issue> defineTestItemIssueType(String projectName, DefineIssueRQ request, ReportPortalUser user);
 
 	/**
 	 * Get test item's history. Result map structure:
@@ -124,7 +124,7 @@ public interface ITestItemController {
 	 *
 	 * @param projectName
 	 * @param historyDepth
-	 * @param principal
+	 * @param user
 	 * @param ids
 	 * @param showBrokenLaunches - <b>boolean</b> should in_progress and interrupted launches
 	 *                           been included in history:<br>
@@ -135,7 +135,7 @@ public interface ITestItemController {
 	 * @return Map<String, List<TestItemResource>>
 	 */
 	List<TestItemHistoryElement> getItemsHistory(String projectName, int historyDepth, String[] ids, boolean showBrokenLaunches,
-			Principal principal);
+			ReportPortalUser user);
 
 	/**
 	 * Get specified tags
@@ -143,10 +143,10 @@ public interface ITestItemController {
 	 * @param project
 	 * @param launchId
 	 * @param value
-	 * @param principal
+	 * @param user
 	 * @return List<String>
 	 */
-	List<String> getAllTags(String project, String launchId, String value, Principal principal);
+	List<String> getAllTags(String project, String launchId, String value, ReportPortalUser user);
 
 	/**
 	 * Update test items
@@ -154,22 +154,22 @@ public interface ITestItemController {
 	 * @param projectName
 	 * @param itemId
 	 * @param rq
-	 * @param principal
+	 * @param user
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS updateTestItem(String projectName, Long itemId, UpdateTestItemRQ rq, Principal principal);
+	OperationCompletionRS updateTestItem(String projectName, Long itemId, UpdateTestItemRQ rq, ReportPortalUser user);
 
 	/**
 	 * Attach external issues
 	 *
 	 * @param projectName
 	 * @param rq
-	 * @param principal
+	 * @param user
 	 * @return List<OperationCompletionRS>
 	 */
-	List<OperationCompletionRS> addExternalIssues(String projectName, AddExternalIssueRQ rq, Principal principal);
+	List<OperationCompletionRS> addExternalIssues(String projectName, AddExternalIssueRQ rq, ReportPortalUser user);
 
-	List<TestItemResource> getTestItems(String projectName, String[] ids, Principal principal);
+	List<TestItemResource> getTestItems(String projectName, String[] ids, ReportPortalUser user);
 
 	/**
 	 * Merge Suites
@@ -177,8 +177,8 @@ public interface ITestItemController {
 	 * @param projectName
 	 * @param item
 	 * @param rq
-	 * @param principal
+	 * @param user
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS mergeTestItem(String projectName, String item, MergeTestItemRQ rq, Principal principal);
+	OperationCompletionRS mergeTestItem(String projectName, String item, MergeTestItemRQ rq, ReportPortalUser user);
 }

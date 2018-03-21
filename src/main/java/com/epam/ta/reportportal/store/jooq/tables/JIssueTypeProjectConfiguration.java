@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JIssueTypeProjectConfiguration extends TableImpl<JIssueTypeProjectConfigurationRecord> {
 
-    private static final long serialVersionUID = -570192949;
+    private static final long serialVersionUID = 1786878314;
 
     /**
      * The reference instance of <code>public.issue_type_project_configuration</code>
@@ -57,7 +57,7 @@ public class JIssueTypeProjectConfiguration extends TableImpl<JIssueTypeProjectC
     /**
      * The column <code>public.issue_type_project_configuration.configuration_id</code>.
      */
-    public final TableField<JIssueTypeProjectConfigurationRecord, Integer> CONFIGURATION_ID = createField("configuration_id", org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
+    public final TableField<JIssueTypeProjectConfigurationRecord, Long> CONFIGURATION_ID = createField("configuration_id", org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * The column <code>public.issue_type_project_configuration.issue_type_id</code>.

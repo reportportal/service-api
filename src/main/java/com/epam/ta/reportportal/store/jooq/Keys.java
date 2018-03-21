@@ -95,13 +95,12 @@ public class Keys {
     public static final Identity<JLaunchTagRecord, Long> IDENTITY_LAUNCH_TAG = Identities0.IDENTITY_LAUNCH_TAG;
     public static final Identity<JLogRecord, Long> IDENTITY_LOG = Identities0.IDENTITY_LOG;
     public static final Identity<JOauthRegistrationScopeRecord, Integer> IDENTITY_OAUTH_REGISTRATION_SCOPE = Identities0.IDENTITY_OAUTH_REGISTRATION_SCOPE;
-    public static final Identity<JProjectRecord, Integer> IDENTITY_PROJECT = Identities0.IDENTITY_PROJECT;
-    public static final Identity<JProjectConfigurationRecord, Integer> IDENTITY_PROJECT_CONFIGURATION = Identities0.IDENTITY_PROJECT_CONFIGURATION;
-    public static final Identity<JProjectEmailConfigurationRecord, Integer> IDENTITY_PROJECT_EMAIL_CONFIGURATION = Identities0.IDENTITY_PROJECT_EMAIL_CONFIGURATION;
+    public static final Identity<JProjectRecord, Long> IDENTITY_PROJECT = Identities0.IDENTITY_PROJECT;
+    public static final Identity<JProjectEmailConfigurationRecord, Long> IDENTITY_PROJECT_EMAIL_CONFIGURATION = Identities0.IDENTITY_PROJECT_EMAIL_CONFIGURATION;
     public static final Identity<JServerSettingsRecord, Short> IDENTITY_SERVER_SETTINGS = Identities0.IDENTITY_SERVER_SETTINGS;
     public static final Identity<JTestItemRecord, Long> IDENTITY_TEST_ITEM = Identities0.IDENTITY_TEST_ITEM;
     public static final Identity<JTicketRecord, Long> IDENTITY_TICKET = Identities0.IDENTITY_TICKET;
-    public static final Identity<JUsersRecord, Integer> IDENTITY_USERS = Identities0.IDENTITY_USERS;
+    public static final Identity<JUsersRecord, Long> IDENTITY_USERS = Identities0.IDENTITY_USERS;
     public static final Identity<JWidgetRecord, Integer> IDENTITY_WIDGET = Identities0.IDENTITY_WIDGET;
 
     // -------------------------------------------------------------------------
@@ -129,7 +128,6 @@ public class Keys {
     public static final UniqueKey<JOauthRegistrationRecord> OAUTH_REGISTRATION_CLIENT_ID_KEY = UniqueKeys0.OAUTH_REGISTRATION_CLIENT_ID_KEY;
     public static final UniqueKey<JOauthRegistrationScopeRecord> OAUTH_REGISTRATION_SCOPE_PK = UniqueKeys0.OAUTH_REGISTRATION_SCOPE_PK;
     public static final UniqueKey<JProjectRecord> PROJECT_PK = UniqueKeys0.PROJECT_PK;
-    public static final UniqueKey<JProjectRecord> PROJECT_PROJECT_CONFIGURATION_ID_KEY = UniqueKeys0.PROJECT_PROJECT_CONFIGURATION_ID_KEY;
     public static final UniqueKey<JProjectConfigurationRecord> PROJECT_CONFIGURATION_PK = UniqueKeys0.PROJECT_CONFIGURATION_PK;
     public static final UniqueKey<JProjectConfigurationRecord> PROJECT_CONFIGURATION_EMAIL_CONFIGURATION_ID_KEY = UniqueKeys0.PROJECT_CONFIGURATION_EMAIL_CONFIGURATION_ID_KEY;
     public static final UniqueKey<JProjectEmailConfigurationRecord> PROJECT_EMAIL_CONFIGURATION_PK = UniqueKeys0.PROJECT_EMAIL_CONFIGURATION_PK;
@@ -166,7 +164,7 @@ public class Keys {
     public static final ForeignKey<JLogRecord, JTestItemRecord> LOG__LOG_ITEM_ID_FKEY = ForeignKeys0.LOG__LOG_ITEM_ID_FKEY;
     public static final ForeignKey<JOauthAccessTokenRecord, JUsersRecord> OAUTH_ACCESS_TOKEN__OAUTH_ACCESS_TOKEN_USER_ID_FKEY = ForeignKeys0.OAUTH_ACCESS_TOKEN__OAUTH_ACCESS_TOKEN_USER_ID_FKEY;
     public static final ForeignKey<JOauthRegistrationScopeRecord, JOauthRegistrationRecord> OAUTH_REGISTRATION_SCOPE__OAUTH_REGISTRATION_SCOPE_OAUTH_REGISTRATION_FK_FKEY = ForeignKeys0.OAUTH_REGISTRATION_SCOPE__OAUTH_REGISTRATION_SCOPE_OAUTH_REGISTRATION_FK_FKEY;
-    public static final ForeignKey<JProjectRecord, JProjectConfigurationRecord> PROJECT__PROJECT_PROJECT_CONFIGURATION_ID_FKEY = ForeignKeys0.PROJECT__PROJECT_PROJECT_CONFIGURATION_ID_FKEY;
+    public static final ForeignKey<JProjectConfigurationRecord, JProjectRecord> PROJECT_CONFIGURATION__PROJECT_CONFIGURATION_ID_FKEY = ForeignKeys0.PROJECT_CONFIGURATION__PROJECT_CONFIGURATION_ID_FKEY;
     public static final ForeignKey<JProjectConfigurationRecord, JProjectEmailConfigurationRecord> PROJECT_CONFIGURATION__PROJECT_CONFIGURATION_EMAIL_CONFIGURATION_ID_FKEY = ForeignKeys0.PROJECT_CONFIGURATION__PROJECT_CONFIGURATION_EMAIL_CONFIGURATION_ID_FKEY;
     public static final ForeignKey<JProjectUserRecord, JUsersRecord> PROJECT_USER__PROJECT_USER_USER_ID_FKEY = ForeignKeys0.PROJECT_USER__PROJECT_USER_USER_ID_FKEY;
     public static final ForeignKey<JProjectUserRecord, JProjectRecord> PROJECT_USER__PROJECT_USER_PROJECT_ID_FKEY = ForeignKeys0.PROJECT_USER__PROJECT_USER_PROJECT_ID_FKEY;
@@ -195,13 +193,12 @@ public class Keys {
         public static Identity<JLaunchTagRecord, Long> IDENTITY_LAUNCH_TAG = Internal.createIdentity(JLaunchTag.LAUNCH_TAG, JLaunchTag.LAUNCH_TAG.ID);
         public static Identity<JLogRecord, Long> IDENTITY_LOG = Internal.createIdentity(JLog.LOG, JLog.LOG.ID);
         public static Identity<JOauthRegistrationScopeRecord, Integer> IDENTITY_OAUTH_REGISTRATION_SCOPE = Internal.createIdentity(JOauthRegistrationScope.OAUTH_REGISTRATION_SCOPE, JOauthRegistrationScope.OAUTH_REGISTRATION_SCOPE.ID);
-        public static Identity<JProjectRecord, Integer> IDENTITY_PROJECT = Internal.createIdentity(JProject.PROJECT, JProject.PROJECT.ID);
-        public static Identity<JProjectConfigurationRecord, Integer> IDENTITY_PROJECT_CONFIGURATION = Internal.createIdentity(JProjectConfiguration.PROJECT_CONFIGURATION, JProjectConfiguration.PROJECT_CONFIGURATION.ID);
-        public static Identity<JProjectEmailConfigurationRecord, Integer> IDENTITY_PROJECT_EMAIL_CONFIGURATION = Internal.createIdentity(JProjectEmailConfiguration.PROJECT_EMAIL_CONFIGURATION, JProjectEmailConfiguration.PROJECT_EMAIL_CONFIGURATION.ID);
+        public static Identity<JProjectRecord, Long> IDENTITY_PROJECT = Internal.createIdentity(JProject.PROJECT, JProject.PROJECT.ID);
+        public static Identity<JProjectEmailConfigurationRecord, Long> IDENTITY_PROJECT_EMAIL_CONFIGURATION = Internal.createIdentity(JProjectEmailConfiguration.PROJECT_EMAIL_CONFIGURATION, JProjectEmailConfiguration.PROJECT_EMAIL_CONFIGURATION.ID);
         public static Identity<JServerSettingsRecord, Short> IDENTITY_SERVER_SETTINGS = Internal.createIdentity(JServerSettings.SERVER_SETTINGS, JServerSettings.SERVER_SETTINGS.ID);
         public static Identity<JTestItemRecord, Long> IDENTITY_TEST_ITEM = Internal.createIdentity(JTestItem.TEST_ITEM, JTestItem.TEST_ITEM.ITEM_ID);
         public static Identity<JTicketRecord, Long> IDENTITY_TICKET = Internal.createIdentity(JTicket.TICKET, JTicket.TICKET.ID);
-        public static Identity<JUsersRecord, Integer> IDENTITY_USERS = Internal.createIdentity(JUsers.USERS, JUsers.USERS.ID);
+        public static Identity<JUsersRecord, Long> IDENTITY_USERS = Internal.createIdentity(JUsers.USERS, JUsers.USERS.ID);
         public static Identity<JWidgetRecord, Integer> IDENTITY_WIDGET = Internal.createIdentity(JWidget.WIDGET, JWidget.WIDGET.ID);
     }
 
@@ -227,7 +224,6 @@ public class Keys {
         public static final UniqueKey<JOauthRegistrationRecord> OAUTH_REGISTRATION_CLIENT_ID_KEY = Internal.createUniqueKey(JOauthRegistration.OAUTH_REGISTRATION, "oauth_registration_client_id_key", JOauthRegistration.OAUTH_REGISTRATION.CLIENT_ID);
         public static final UniqueKey<JOauthRegistrationScopeRecord> OAUTH_REGISTRATION_SCOPE_PK = Internal.createUniqueKey(JOauthRegistrationScope.OAUTH_REGISTRATION_SCOPE, "oauth_registration_scope_pk", JOauthRegistrationScope.OAUTH_REGISTRATION_SCOPE.ID);
         public static final UniqueKey<JProjectRecord> PROJECT_PK = Internal.createUniqueKey(JProject.PROJECT, "project_pk", JProject.PROJECT.ID);
-        public static final UniqueKey<JProjectRecord> PROJECT_PROJECT_CONFIGURATION_ID_KEY = Internal.createUniqueKey(JProject.PROJECT, "project_project_configuration_id_key", JProject.PROJECT.PROJECT_CONFIGURATION_ID);
         public static final UniqueKey<JProjectConfigurationRecord> PROJECT_CONFIGURATION_PK = Internal.createUniqueKey(JProjectConfiguration.PROJECT_CONFIGURATION, "project_configuration_pk", JProjectConfiguration.PROJECT_CONFIGURATION.ID);
         public static final UniqueKey<JProjectConfigurationRecord> PROJECT_CONFIGURATION_EMAIL_CONFIGURATION_ID_KEY = Internal.createUniqueKey(JProjectConfiguration.PROJECT_CONFIGURATION, "project_configuration_email_configuration_id_key", JProjectConfiguration.PROJECT_CONFIGURATION.EMAIL_CONFIGURATION_ID);
         public static final UniqueKey<JProjectEmailConfigurationRecord> PROJECT_EMAIL_CONFIGURATION_PK = Internal.createUniqueKey(JProjectEmailConfiguration.PROJECT_EMAIL_CONFIGURATION, "project_email_configuration_pk", JProjectEmailConfiguration.PROJECT_EMAIL_CONFIGURATION.ID);
@@ -262,7 +258,7 @@ public class Keys {
         public static final ForeignKey<JLogRecord, JTestItemRecord> LOG__LOG_ITEM_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.TEST_ITEM_PK, JLog.LOG, "log__log_item_id_fkey", JLog.LOG.ITEM_ID);
         public static final ForeignKey<JOauthAccessTokenRecord, JUsersRecord> OAUTH_ACCESS_TOKEN__OAUTH_ACCESS_TOKEN_USER_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.USERS_PK, JOauthAccessToken.OAUTH_ACCESS_TOKEN, "oauth_access_token__oauth_access_token_user_id_fkey", JOauthAccessToken.OAUTH_ACCESS_TOKEN.USER_ID);
         public static final ForeignKey<JOauthRegistrationScopeRecord, JOauthRegistrationRecord> OAUTH_REGISTRATION_SCOPE__OAUTH_REGISTRATION_SCOPE_OAUTH_REGISTRATION_FK_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.OAUTH_REGISTRATION_PKEY, JOauthRegistrationScope.OAUTH_REGISTRATION_SCOPE, "oauth_registration_scope__oauth_registration_scope_oauth_registration_fk_fkey", JOauthRegistrationScope.OAUTH_REGISTRATION_SCOPE.OAUTH_REGISTRATION_FK);
-        public static final ForeignKey<JProjectRecord, JProjectConfigurationRecord> PROJECT__PROJECT_PROJECT_CONFIGURATION_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.PROJECT_CONFIGURATION_PK, JProject.PROJECT, "project__project_project_configuration_id_fkey", JProject.PROJECT.PROJECT_CONFIGURATION_ID);
+        public static final ForeignKey<JProjectConfigurationRecord, JProjectRecord> PROJECT_CONFIGURATION__PROJECT_CONFIGURATION_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.PROJECT_PK, JProjectConfiguration.PROJECT_CONFIGURATION, "project_configuration__project_configuration_id_fkey", JProjectConfiguration.PROJECT_CONFIGURATION.ID);
         public static final ForeignKey<JProjectConfigurationRecord, JProjectEmailConfigurationRecord> PROJECT_CONFIGURATION__PROJECT_CONFIGURATION_EMAIL_CONFIGURATION_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.PROJECT_EMAIL_CONFIGURATION_PK, JProjectConfiguration.PROJECT_CONFIGURATION, "project_configuration__project_configuration_email_configuration_id_fkey", JProjectConfiguration.PROJECT_CONFIGURATION.EMAIL_CONFIGURATION_ID);
         public static final ForeignKey<JProjectUserRecord, JUsersRecord> PROJECT_USER__PROJECT_USER_USER_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.USERS_PK, JProjectUser.PROJECT_USER, "project_user__project_user_user_id_fkey", JProjectUser.PROJECT_USER.USER_ID);
         public static final ForeignKey<JProjectUserRecord, JProjectRecord> PROJECT_USER__PROJECT_USER_PROJECT_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.PROJECT_PK, JProjectUser.PROJECT_USER, "project_user__project_user_project_id_fkey", JProjectUser.PROJECT_USER.PROJECT_ID);

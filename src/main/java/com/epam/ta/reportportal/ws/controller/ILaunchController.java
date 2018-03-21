@@ -36,6 +36,7 @@
  */
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
@@ -72,7 +73,7 @@ public interface ILaunchController {
 	 * @param principal
 	 * @return
 	 */
-	EntryCreatedRS startLaunch(String project, StartLaunchRQ startLaunchRQ, Principal principal);
+	EntryCreatedRS startLaunch(String project, StartLaunchRQ startLaunchRQ, ReportPortalUser reportPortalUser);
 
 	List<OperationCompletionRS> updateLaunches(String projectName, BulkRQ<UpdateLaunchRQ> rq, Principal principal);
 

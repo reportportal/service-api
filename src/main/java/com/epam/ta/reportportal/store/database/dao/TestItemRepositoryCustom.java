@@ -125,4 +125,12 @@ public interface TestItemRepositoryCustom {
 	 */
 	void interruptInProgressItems(Long launchId);
 
+	/**
+	 * Selects issue type object by provided locator for specified project.
+	 *
+	 * @param projectId Project id
+	 * @param locator   Issue type locator
+	 * @return Issue type
+	 */
+	IssueType selectIssueTypeByLocator(Long projectId, String locator);
 }

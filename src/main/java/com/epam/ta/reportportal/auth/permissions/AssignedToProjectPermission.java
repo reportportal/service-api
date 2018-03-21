@@ -66,7 +66,7 @@ class AssignedToProjectPermission implements Permission {
 		OAuth2Authentication oauth = (OAuth2Authentication) authentication;
 		ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
 		BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
-		ProjectRole role = rpUser.getProjectRoles().get(targetDomainObject.toString());
+		ProjectRole role = rpUser.getProjectDetails().get(targetDomainObject.toString()).getProjectRole();
 
 		return role != null;
 	}

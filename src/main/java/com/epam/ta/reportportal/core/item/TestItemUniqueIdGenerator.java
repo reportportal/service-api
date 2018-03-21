@@ -68,7 +68,7 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 	}
 
 	private String prepareForEncoding(TestItem testItem, Launch launch) {
-		Integer projectId = launch.getProjectId();
+		Long projectId = launch.getProjectId();
 		String launchName = launch.getName();
 		List<String> pathNames = new ArrayList<>();
 		Optional.ofNullable(testItem.getTestItemStructure().getParent()).ifPresent(it -> {

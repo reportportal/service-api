@@ -52,7 +52,7 @@ abstract class BaseProjectPermission implements Permission {
 		ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
 		BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
-		ProjectRole role = rpUser.getProjectRoles().get(projectName.toString());
+		ProjectRole role = rpUser.getProjectDetails().get(projectName.toString()).getProjectRole();
 		return checkAllowed(rpUser, projectName.toString(), role);
 	}
 

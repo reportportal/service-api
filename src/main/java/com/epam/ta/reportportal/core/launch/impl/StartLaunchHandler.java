@@ -21,8 +21,10 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.IStartLaunchHandler;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.store.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
@@ -41,6 +43,8 @@ class StartLaunchHandler implements IStartLaunchHandler {
 
 	private LaunchRepository launchRepository;
 
+	private ProjectRepository projectRepository;
+
 	private ApplicationEventPublisher eventPublisher;
 
 	@Autowired
@@ -49,20 +53,30 @@ class StartLaunchHandler implements IStartLaunchHandler {
 	}
 
 	@Autowired
+	public void setProjectRepository(ProjectRepository projectRepository) {
+		this.projectRepository = projectRepository;
+	}
+
+	@Autowired
 	public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
 		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
-	public StartLaunchRS startLaunch(String username, String projectName, StartLaunchRQ startLaunchRQ) {
-		// TODO replace with new uat
+	public StartLaunchRS startLaunch(ReportPortalUser user, String projectName, StartLaunchRQ startLaunchRQ) {
+		// TODO remove this logic
 		//		ProjectUser projectUser = projectRepository.selectProjectUser(projectName, username);
 		//		if (startLaunchRQ.getMode() == Mode.DEBUG) {
 		//			if (projectUser.getProjectRole() == ProjectRoleEnum.CUSTOMER) {
 		//				startLaunchRQ.setMode(Mode.DEFAULT);
 		//			}
 		//		}
-		Launch launch = new LaunchBuilder().addStartRQ(startLaunchRQ).addProject(1).addUser(1L).addTags(startLaunchRQ.getTags()).get();
+
+		Launch launch = new LaunchBuilder().addStartRQ(startLaunchRQ)
+				.addProject(user.getProjectDetails().get(projectName).getProjectId())
+				.addUser(user.getUserId())
+				.addTags(startLaunchRQ.getTags())
+				.get();
 		launchRepository.save(launch);
 		launchRepository.refresh(launch);
 		//eventPublisher.publishEvent(new LaunchStartedEvent(launch));

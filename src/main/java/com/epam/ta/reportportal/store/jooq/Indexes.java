@@ -77,7 +77,6 @@ public class Indexes {
     public static final Index OAUTH_REGISTRATION_PKEY = Indexes0.OAUTH_REGISTRATION_PKEY;
     public static final Index OAUTH_REGISTRATION_SCOPE_PK = Indexes0.OAUTH_REGISTRATION_SCOPE_PK;
     public static final Index PROJECT_PK = Indexes0.PROJECT_PK;
-    public static final Index PROJECT_PROJECT_CONFIGURATION_ID_KEY = Indexes0.PROJECT_PROJECT_CONFIGURATION_ID_KEY;
     public static final Index PROJECT_CONFIGURATION_EMAIL_CONFIGURATION_ID_KEY = Indexes0.PROJECT_CONFIGURATION_EMAIL_CONFIGURATION_ID_KEY;
     public static final Index PROJECT_CONFIGURATION_PK = Indexes0.PROJECT_CONFIGURATION_PK;
     public static final Index PROJECT_EMAIL_CONFIGURATION_PK = Indexes0.PROJECT_EMAIL_CONFIGURATION_PK;
@@ -118,7 +117,6 @@ public class Indexes {
         public static Index OAUTH_REGISTRATION_PKEY = Internal.createIndex("oauth_registration_pkey", JOauthRegistration.OAUTH_REGISTRATION, new OrderField[] { JOauthRegistration.OAUTH_REGISTRATION.ID }, true);
         public static Index OAUTH_REGISTRATION_SCOPE_PK = Internal.createIndex("oauth_registration_scope_pk", JOauthRegistrationScope.OAUTH_REGISTRATION_SCOPE, new OrderField[] { JOauthRegistrationScope.OAUTH_REGISTRATION_SCOPE.ID }, true);
         public static Index PROJECT_PK = Internal.createIndex("project_pk", JProject.PROJECT, new OrderField[] { JProject.PROJECT.ID }, true);
-        public static Index PROJECT_PROJECT_CONFIGURATION_ID_KEY = Internal.createIndex("project_project_configuration_id_key", JProject.PROJECT, new OrderField[] { JProject.PROJECT.PROJECT_CONFIGURATION_ID }, true);
         public static Index PROJECT_CONFIGURATION_EMAIL_CONFIGURATION_ID_KEY = Internal.createIndex("project_configuration_email_configuration_id_key", JProjectConfiguration.PROJECT_CONFIGURATION, new OrderField[] { JProjectConfiguration.PROJECT_CONFIGURATION.EMAIL_CONFIGURATION_ID }, true);
         public static Index PROJECT_CONFIGURATION_PK = Internal.createIndex("project_configuration_pk", JProjectConfiguration.PROJECT_CONFIGURATION, new OrderField[] { JProjectConfiguration.PROJECT_CONFIGURATION.ID }, true);
         public static Index PROJECT_EMAIL_CONFIGURATION_PK = Internal.createIndex("project_email_configuration_pk", JProjectEmailConfiguration.PROJECT_EMAIL_CONFIGURATION, new OrderField[] { JProjectEmailConfiguration.PROJECT_EMAIL_CONFIGURATION.ID }, true);

@@ -51,23 +51,23 @@ public class SsoEndpoint {
 
 	private final TokenServicesFacade tokenServicesFacade;
 
-
 	@Autowired
 	public SsoEndpoint(TokenServicesFacade tokenServicesFacade) {
 		this.tokenServicesFacade = tokenServicesFacade;
 	}
 
-    @RequestMapping({ "/sso/me", "/sso/user" })
-    public Map<String, Object> user(Authentication user) {
+	@RequestMapping({ "/sso/me", "/sso/user" })
+	public Map<String, Object> user(Authentication user) {
 
-        ImmutableMap.Builder<String, Object> details = ImmutableMap.<String, Object>builder().put("user", user.getName())
-                .put("authorities", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
+		ImmutableMap.Builder<String, Object> details = ImmutableMap.<String, Object>builder().put("user", user.getName())
+				.put("authorities", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
 
-        if (user.getPrincipal() instanceof ReportPortalUser){
-            details.put("projects", ((ReportPortalUser) user.getPrincipal()).getProjectRoles());
-        }
-        return details.build();
-    }
+		if (user.getPrincipal() instanceof ReportPortalUser) {
+			details.put("userId", ((ReportPortalUser) user.getPrincipal()).getUserId());
+			details.put("projects", ((ReportPortalUser) user.getPrincipal()).getProjectDetails());
+		}
+		return details.build();
+	}
 
 	@RequestMapping(value = { "/sso/me/apitoken" }, method = RequestMethod.GET)
 	@ApiOperation(value = "Get api token")

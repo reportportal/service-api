@@ -22,49 +22,59 @@
 package com.epam.ta.reportportal.store.config;
 
 import com.epam.ta.reportportal.store.database.dao.ReportPortalRepositoryImpl;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import javax.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
 
 /**
  * @author Pavel Bortnik
  */
 
 @EnableJpaAuditing
-@EntityScan(basePackages = "com.epam.ta.reportportal.store")
 @EnableJpaRepositories(basePackages = { "com.epam.ta.reportportal.store" }, repositoryBaseClass = ReportPortalRepositoryImpl.class)
+@EnableTransactionManagement
 public class DatabaseConfiguration {
 
-	//	@Autowired
-	//	private DataSourceProperties properties;
-	//
-	//	@Bean
-	//	public DataSource dataSource() {
-	//		return properties.initializeDataSourceBuilder().build();
-	//	}
-	//
-	//	@Bean
-	//	public EntityManagerFactory entityManagerFactory() {
-	//
-	//		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-	//		vendorAdapter.setGenerateDdl(true);
-	//
-	//		LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
-	//		factory.setJpaVendorAdapter(vendorAdapter);
-	//		factory.setPackagesToScan("com.epam.ta.reportportal.database.entity");
-	//		factory.setDataSource(dataSource());
-	//		factory.afterPropertiesSet();
-	//
-	//		return factory.getObject();
-	//	}
-	//
-	//	@Bean
-	//	public PlatformTransactionManager transactionManager() {
-	//		JpaTransactionManager txManager = new JpaTransactionManager();
-	//		txManager.setEntityManagerFactory(entityManagerFactory());
-	//		txManager.setDataSource(dataSource());
-	//		return txManager;
-	//	}
+	@Autowired
+	private DataSourceProperties properties;
+
+	@Bean
+	public DataSource dataSource() {
+		return properties.initializeDataSourceBuilder().build();
+	}
+
+	@Bean
+	public EntityManagerFactory entityManagerFactory() {
+
+		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+		vendorAdapter.setGenerateDdl(true);
+
+		LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+		factory.setJpaVendorAdapter(vendorAdapter);
+		factory.setPackagesToScan("com.epam.ta.reportportal.store");
+		factory.setDataSource(dataSource());
+		factory.afterPropertiesSet();
+
+		return factory.getObject();
+	}
+
+	@Bean
+	public PlatformTransactionManager transactionManager() {
+		JpaTransactionManager txManager = new JpaTransactionManager();
+		txManager.setEntityManagerFactory(entityManagerFactory());
+		txManager.setDataSource(dataSource());
+		return txManager;
+	}
 	//
 	//	@Bean
 	//	public TransactionAwareDataSourceProxy transactionAwareDataSource() {

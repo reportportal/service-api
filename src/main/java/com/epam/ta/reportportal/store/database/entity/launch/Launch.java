@@ -55,7 +55,7 @@ public class Launch implements Serializable {
 	private Long id;
 
 	@Column(name = "project_id", nullable = false, precision = 32)
-	private Integer projectId;
+	private Long projectId;
 
 	@Column(name = "user_id", nullable = false, precision = 32)
 	private Long userId;
@@ -107,11 +107,11 @@ public class Launch implements Serializable {
 		this.id = id;
 	}
 
-	public Integer getProjectId() {
+	public Long getProjectId() {
 		return projectId;
 	}
 
-	public void setProjectId(Integer projectId) {
+	public void setProjectId(Long projectId) {
 		this.projectId = projectId;
 	}
 

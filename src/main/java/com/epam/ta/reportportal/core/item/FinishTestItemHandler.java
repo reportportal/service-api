@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.item;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
@@ -40,5 +41,5 @@ public interface FinishTestItemHandler {
 	 * @param username          RQ principal
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS finishTestItem(Long testItemId, FinishTestItemRQ finishExecutionRQ, String username);
+	OperationCompletionRS finishTestItem(ReportPortalUser user, String projectName, Long testItemId, FinishTestItemRQ finishExecutionRQ);
 }

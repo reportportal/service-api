@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.item;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.Preconditions;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
@@ -78,11 +79,10 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	}
 
 	@Override
-	public ItemCreatedRS startRootItem(String projectName, StartTestItemRQ rq) {
+	public ItemCreatedRS startRootItem(ReportPortalUser user, String projectName, StartTestItemRQ rq) {
 		Launch launch = launchRepository.findById(rq.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId().toString()));
-		validate(projectName, rq, launch);
-
+		validate(user, projectName, rq, launch);
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addLaunch(launch).get();
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
@@ -92,7 +92,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	}
 
 	@Override
-	public ItemCreatedRS startChildItem(String projectName, StartTestItemRQ rq, Long parentId) {
+	public ItemCreatedRS startChildItem(ReportPortalUser user, String projectName, StartTestItemRQ rq, Long parentId) {
 		TestItem parentItem = testItemRepository.findById(parentId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId.toString()));
 		Launch launch = launchRepository.findById(rq.getLaunchId())
@@ -108,9 +108,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
 
-	private void validate(String projectName, StartTestItemRQ rq, Launch launch) {
-		//expect(projectName.toLowerCase(), equalTo(launch.getProjectRef())).verify(ACCESS_DENIED);
-
+	private void validate(ReportPortalUser user, String projectName, StartTestItemRQ rq, Launch launch) {
+		expect(user.getProjectDetails().get(projectName).getProjectId(), equalTo(launch.getProjectId())).verify(ACCESS_DENIED);
 		expect(launch.getStatus(), equalTo(StatusEnum.IN_PROGRESS)).verify(START_ITEM_NOT_ALLOWED,
 				formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId())
 		);

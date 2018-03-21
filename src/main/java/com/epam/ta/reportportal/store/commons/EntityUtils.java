@@ -61,7 +61,6 @@ public class EntityUtils {
 	 * @return String
 	 */
 
-	@Deprecated
 	public static String normalizeId(String id) {
 		return Preconditions.checkNotNull(id, "Provided value shouldn't be null").toLowerCase();
 	}

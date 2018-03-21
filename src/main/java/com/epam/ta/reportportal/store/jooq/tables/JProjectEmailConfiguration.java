@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JProjectEmailConfiguration extends TableImpl<JProjectEmailConfigurationRecord> {
 
-    private static final long serialVersionUID = -1205599358;
+    private static final long serialVersionUID = -2041692742;
 
     /**
      * The reference instance of <code>public.project_email_configuration</code>
@@ -57,7 +57,7 @@ public class JProjectEmailConfiguration extends TableImpl<JProjectEmailConfigura
     /**
      * The column <code>public.project_email_configuration.id</code>.
      */
-    public final TableField<JProjectEmailConfigurationRecord, Integer> ID = createField("id", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('project_email_configuration_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+    public final TableField<JProjectEmailConfigurationRecord, Long> ID = createField("id", org.jooq.impl.SQLDataType.BIGINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('project_email_configuration_id_seq'::regclass)", org.jooq.impl.SQLDataType.BIGINT)), this, "");
 
     /**
      * The column <code>public.project_email_configuration.enabled</code>.
@@ -118,7 +118,7 @@ public class JProjectEmailConfiguration extends TableImpl<JProjectEmailConfigura
      * {@inheritDoc}
      */
     @Override
-    public Identity<JProjectEmailConfigurationRecord, Integer> getIdentity() {
+    public Identity<JProjectEmailConfigurationRecord, Long> getIdentity() {
         return Keys.IDENTITY_PROJECT_EMAIL_CONFIGURATION;
     }
 

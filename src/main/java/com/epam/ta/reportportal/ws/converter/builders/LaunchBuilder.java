@@ -77,7 +77,7 @@ public class LaunchBuilder implements Supplier<Launch> {
 		return this;
 	}
 
-	public LaunchBuilder addProject(Integer projectId) {
+	public LaunchBuilder addProject(Long projectId) {
 		launch.setProjectId(projectId);
 		return this;
 	}

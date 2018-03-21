@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.store.database.entity.item;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -29,7 +30,7 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "item_tag", schema = "public", indexes = { @Index(name = "item_tag_pk", unique = true, columnList = "id ASC") })
-public class TestItemTag {
+public class TestItemTag implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.store.database.entity.launch;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -29,7 +30,7 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "launch_tag", schema = "public", indexes = { @Index(name = "launch_tag_pk", unique = true, columnList = "id ASC") })
-public class LaunchTag {
+public class LaunchTag implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

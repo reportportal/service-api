@@ -61,6 +61,7 @@ logging:
   level:
     org.springframework.context.support: warn
 #    com.novemberain.quartz : debug
+    org.springframework.security: debug
 
 ## Consul as service registry
 ---

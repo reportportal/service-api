@@ -2,20 +2,19 @@ package com.epam.ta.reportportal.auth.config;
 
 import com.epam.ta.reportportal.auth.OAuthSuccessHandler;
 import com.epam.ta.reportportal.auth.ReportPortalClient;
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.UserRoleHierarchy;
 import com.epam.ta.reportportal.auth.basic.BasicPasswordAuthenticationProvider;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.auth.integration.MutableClientRegistrationRepository;
 import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
-import com.epam.ta.reportportal.auth.permissions.ProjectAuthority;
 import com.epam.ta.reportportal.store.database.dao.OAuthRegistrationRepository;
+import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.AuthoritiesExtractor;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.FixedAuthoritiesExtractor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -30,10 +29,12 @@ import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,18 +46,21 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
+import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.DefaultUserAuthenticationConverter;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -138,13 +142,11 @@ public class SecurityConfiguration {
 		public AuthenticationProvider basicPasswordAuthProvider() {
 			BasicPasswordAuthenticationProvider provider = new BasicPasswordAuthenticationProvider();
 			provider.setUserDetailsService(userDetailsService());
-			provider.setPasswordEncoder(passwordEncoder());
+			provider.setPasswordEncoder(new MD5PasswordEncoder());
 			return provider;
 		}
 
-		public PasswordEncoder passwordEncoder() {
-			return new MD5PasswordEncoder();
-		}
+
 
 		@Override
 		@Primary
@@ -229,6 +231,9 @@ public class SecurityConfiguration {
 		public JwtAccessTokenConverter accessTokenConverter() {
 			JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
 			converter.setSigningKey("123");
+			DefaultAccessTokenConverter converter1 = new DefaultAccessTokenConverter();
+			converter1.setUserTokenConverter(new ReportPortalAuthenticationConverter());
+			converter.setAccessTokenConverter(converter1);
 			return converter;
 		}
 
@@ -247,6 +252,19 @@ public class SecurityConfiguration {
 	@Configuration
 	@EnableResourceServer
 	public static class ResourceServerAuthConfiguration extends ResourceServerConfigurerAdapter {
+
+		@Autowired
+		private TokenStore tokenStore;
+		@Autowired
+		private PermissionEvaluator permissionEvaluator;
+
+		@Override
+		public void configure(ResourceServerSecurityConfigurer resources) {
+			DefaultTokenServices tokenServices = new DefaultTokenServices();
+			tokenServices.setTokenStore(tokenStore);
+			resources.tokenServices(tokenServices);
+		}
+
 		@Override
 		public void configure(HttpSecurity http) throws Exception {
 			http.requestMatchers()
@@ -271,17 +289,9 @@ public class SecurityConfiguration {
 			return new UserRoleHierarchy();
 		}
 
-		@Autowired
-		private PermissionEvaluator permissionEvaluator;
-
 		@Bean
 		public static PermissionEvaluatorFactoryBean permissionEvaluatorFactoryBean() {
 			return new PermissionEvaluatorFactoryBean();
-		}
-
-		@Bean
-		public static AuthoritiesExtractor rpAuthoritiesExtractor() {
-			return new ReportPortalAuthorityExtractor();
 		}
 
 		private DefaultWebSecurityExpressionHandler webSecurityExpressionHandler() {
@@ -309,10 +319,6 @@ public class SecurityConfiguration {
 			return handler;
 		}
 
-		@Bean
-		public PermissionEvaluatorFactoryBean permissionEvaluator() {
-			return new PermissionEvaluatorFactoryBean();
-		}
 	}
 
 	public static class MD5PasswordEncoder implements PasswordEncoder {
@@ -334,17 +340,33 @@ public class SecurityConfiguration {
 
 	}
 
-	static class ReportPortalAuthorityExtractor extends FixedAuthoritiesExtractor {
+	static class ReportPortalAuthenticationConverter extends DefaultUserAuthenticationConverter {
 		@Override
-		public List<GrantedAuthority> extractAuthorities(Map<String, Object> map) {
-			List<GrantedAuthority> userRoles = super.extractAuthorities(map);
-			Optional.ofNullable(map.get("projects"))
-					.map(p -> ((Map<String, String>) p).entrySet()
-							.stream()
-							.map(e -> new ProjectAuthority(e.getKey(), e.getValue()))
-							.collect(Collectors.toList()))
-					.ifPresent(userRoles::addAll);
-			return userRoles;
+		public Map<String, ?> convertUserAuthentication(Authentication authentication) {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> claims = (Map<String, Object>) super.convertUserAuthentication(authentication);
+			claims.put("projects", ((ReportPortalUser) authentication.getPrincipal()).getProjectRoles());
+			return claims;
+		}
+
+		@Override
+		public Authentication extractAuthentication(Map<String, ?> map) {
+			Authentication auth = super.extractAuthentication(map);
+			if (null != auth) {
+				UsernamePasswordAuthenticationToken user = ((UsernamePasswordAuthenticationToken) auth);
+				Collection<GrantedAuthority> authorities = user.getAuthorities();
+				@SuppressWarnings("unchecked")
+				Map<String, ProjectRole> projects = map.containsKey("projects") ?
+						(Map<String, ProjectRole>) map.get("projects") :
+						Collections.emptyMap();
+				return new UsernamePasswordAuthenticationToken(new ReportPortalUser(user.getName(), "N/A", authorities, projects),
+						user.getCredentials(),
+						authorities
+				);
+			}
+
+			return null;
+
 		}
 	}
 }

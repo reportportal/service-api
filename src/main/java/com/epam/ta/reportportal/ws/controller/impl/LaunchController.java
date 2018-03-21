@@ -51,6 +51,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -111,6 +112,7 @@ public class LaunchController implements ILaunchController {
 
 	@Override
 	@PostMapping
+	@Transactional
 	@ResponseBody
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
@@ -124,6 +126,7 @@ public class LaunchController implements ILaunchController {
 
 	@Override
 	@RequestMapping(value = "/{launchId}/finish", method = PUT)
+	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
 	//@PreAuthorize(ALLOWED_TO_REPORT)
@@ -135,6 +138,7 @@ public class LaunchController implements ILaunchController {
 
 	@Override
 	@PutMapping("/{launchId}/stop")
+	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Force finish launch for specified project")
@@ -155,6 +159,7 @@ public class LaunchController implements ILaunchController {
 
 	@Override
 	@PutMapping("/{launchId}/update")
+	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
 	//@PreAuthorize(ASSIGNED_TO_PROJECT)
@@ -177,6 +182,7 @@ public class LaunchController implements ILaunchController {
 
 	@Override
 	@DeleteMapping("/{launchId}")
+	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified launch by ID")
@@ -186,6 +192,7 @@ public class LaunchController implements ILaunchController {
 
 	@Override
 	@GetMapping("/{launchId}")
+	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Get specified launch")

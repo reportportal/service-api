@@ -19,7 +19,7 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.ws.controller.impl;
+package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.core.log.IDeleteLogHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.commons.Predicates;
-import com.epam.ta.reportportal.ws.controller.ILogController;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import io.swagger.annotations.ApiOperation;
@@ -59,7 +58,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 @Controller
 @RequestMapping("/{projectName}/log")
 //@PreAuthorize(ASSIGNED_TO_PROJECT)
-public class LogController implements ILogController {
+public class LogController {
 
 	private ICreateLogHandler createLogMessageHandler;
 	private IDeleteLogHandler deleteLogMessageHandler;
@@ -81,7 +80,6 @@ public class LogController implements ILogController {
 		this.validator = validator;
 	}
 
-	@Override
 	@RequestMapping(method = RequestMethod.POST, consumes = { MediaType.APPLICATION_JSON_VALUE })
 	@ResponseBody
 	@ResponseStatus(CREATED)
@@ -92,7 +90,6 @@ public class LogController implements ILogController {
 		return createLogMessageHandler.createLog(createLogRQ, null, EntityUtils.normalizeId(projectName));
 	}
 
-	@Override
 	@RequestMapping(method = RequestMethod.POST, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	@ResponseBody
 	// @ApiOperation("Create log (batching operation)")
@@ -147,7 +144,6 @@ public class LogController implements ILogController {
 		return new ResponseEntity<>(response, CREATED);
 	}
 
-	@Override
 	@RequestMapping(value = "/{logId}", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ApiOperation("Delete log")
@@ -155,7 +151,7 @@ public class LogController implements ILogController {
 		return deleteLogMessageHandler.deleteLog(logId, EntityUtils.normalizeId(projectName), principal.getName());
 	}
 
-	//	@Override
+	//	
 	//	@RequestMapping(method = RequestMethod.GET)
 	//	@ResponseBody
 	//	@ApiOperation("Get logs by filter")
@@ -165,7 +161,7 @@ public class LogController implements ILogController {
 	//		return getLogHandler.getLogs(testStepId, EntityUtils.normalizeId(projectName), filter, pageable);
 	//	}
 	//
-	//	@Override
+	//	
 	//	@RequestMapping(value = "/{logId}/page", method = RequestMethod.GET)
 	//	@ResponseBody
 	//	@ApiOperation("Get logs by filter")
@@ -175,7 +171,7 @@ public class LogController implements ILogController {
 	//				"number", getLogHandler.getPageNumber(logId, EntityUtils.normalizeId(projectName), filter, pageable)).build();
 	//	}
 	//
-	//	@Override
+	//	
 	//	@RequestMapping(value = "/{logId}", method = RequestMethod.GET)
 	//	@ResponseBody
 	//	@ApiOperation("Get log")

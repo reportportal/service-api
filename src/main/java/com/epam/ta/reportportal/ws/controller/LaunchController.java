@@ -1,20 +1,20 @@
 /*
- * Copyright 2016 EPAM Systems
- * 
- * 
+ * Copyright 2017 EPAM Systems
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -34,11 +34,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.epam.ta.reportportal.ws.controller.impl;
+package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.*;
-import com.epam.ta.reportportal.ws.controller.ILaunchController;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
@@ -86,7 +85,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.*;
 @Controller
 @RequestMapping("/{projectName}/launch")
 //@PreAuthorize(ASSIGNED_TO_PROJECT)
-public class LaunchController implements ILaunchController {
+public class LaunchController {
 
 	@Autowired
 	private IStartLaunchHandler createLaunchMessageHandler;
@@ -112,9 +111,8 @@ public class LaunchController implements ILaunchController {
 	//	@Autowired
 	//	private ImportLaunchHandler importLaunchHandler;
 
-	@Override
-	@Transactional
 	@PostMapping
+	@Transactional
 	@ResponseBody
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
@@ -126,7 +124,6 @@ public class LaunchController implements ILaunchController {
 		return createLaunchMessageHandler.startLaunch(reportPortalUser, normalizeId(projectName), startLaunchRQ);
 	}
 
-	@Override
 	@RequestMapping(value = "/{launchId}/finish", method = PUT)
 	@Transactional
 	@ResponseBody
@@ -138,7 +135,6 @@ public class LaunchController implements ILaunchController {
 		return finishLaunchMessageHandler.finishLaunch(launchId, finishLaunchRQ, normalizeId(projectName), "principal");
 	}
 
-	@Override
 	@PutMapping("/{launchId}/stop")
 	@Transactional
 	@ResponseBody
@@ -149,7 +145,6 @@ public class LaunchController implements ILaunchController {
 		return finishLaunchMessageHandler.stopLaunch(launchId, finishExecutionRQ, normalizeId(projectName), "principal");
 	}
 
-	@Override
 	@PutMapping("/stop")
 	@ResponseBody
 	@ResponseStatus(OK)
@@ -159,7 +154,6 @@ public class LaunchController implements ILaunchController {
 		return finishLaunchMessageHandler.stopLaunch(rq, normalizeId(projectName), "principal");
 	}
 
-	@Override
 	@PutMapping("/{launchId}/update")
 	@Transactional
 	@ResponseBody
@@ -171,9 +165,9 @@ public class LaunchController implements ILaunchController {
 		return updateLaunchHandler.updateLaunch(launchId, normalizeId(projectName), "principal", updateLaunchRQ);
 	}
 
-	@Override
-	@ResponseBody
 	@PutMapping("/update")
+	@Transactional
+	@ResponseBody
 	//@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ResponseStatus(OK)
 	@ApiOperation("Updates launches for specified project")
@@ -182,7 +176,6 @@ public class LaunchController implements ILaunchController {
 		return updateLaunchHandler.updateLaunch(rq, normalizeId(projectName), "principal");
 	}
 
-	@Override
 	@DeleteMapping("/{launchId}")
 	@Transactional
 	@ResponseBody
@@ -192,7 +185,6 @@ public class LaunchController implements ILaunchController {
 		return deleteLaunchMessageHandler.deleteLaunch(launchId, normalizeId(projectName), "principal");
 	}
 
-	@Override
 	@GetMapping("/{launchId}")
 	@Transactional
 	@ResponseBody
@@ -202,7 +194,7 @@ public class LaunchController implements ILaunchController {
 		return getLaunchMessageHandler.getLaunch(launchId, "principal", normalizeId(projectName));
 	}
 
-	//	@Override
+	//	
 	//	@GetMapping
 	//	@ResponseBody
 	//	@ResponseStatus(OK)
@@ -212,7 +204,7 @@ public class LaunchController implements ILaunchController {
 	//		return getLaunchMessageHandler.getProjectLaunches(normalizeId(projectName), filter, pageable, "principal");
 	//	}
 	//
-	//	@Override
+	//	
 	//	@RequestMapping(value = "/latest", method = GET)
 	//	@ResponseBody
 	//	@ResponseStatus(OK)
@@ -222,7 +214,7 @@ public class LaunchController implements ILaunchController {
 	//		return getLaunchMessageHandler.getLatestLaunches(normalizeId(projectName), filter, pageable);
 	//	}
 	//
-	//	@Override
+	//	
 	//	@RequestMapping(value = "/mode", method = GET)
 	//	@ResponseBody
 	//	@ResponseStatus(OK)
@@ -233,7 +225,6 @@ public class LaunchController implements ILaunchController {
 	//		return getLaunchMessageHandler.getDebugLaunches(normalizeId(projectName), "principal", filter, pageable);
 	//	}
 
-	@Override
 	@RequestMapping(value = "/tags", method = GET)
 	@ResponseBody
 	@ResponseStatus(OK)
@@ -243,7 +234,6 @@ public class LaunchController implements ILaunchController {
 		return getLaunchMessageHandler.getTags(normalizeId(projectName), value);
 	}
 
-	@Override
 	@RequestMapping(value = "/owners", method = GET)
 	@ResponseBody
 	@ResponseStatus(OK)
@@ -253,7 +243,6 @@ public class LaunchController implements ILaunchController {
 		return getLaunchMessageHandler.getOwners(normalizeId(projectName), value, "userRef", mode);
 	}
 
-	@Override
 	@RequestMapping(value = "/names", method = GET)
 	@ResponseBody
 	@ResponseStatus(OK)
@@ -263,7 +252,6 @@ public class LaunchController implements ILaunchController {
 		return getLaunchMessageHandler.getLaunchNames(normalizeId(projectName), value);
 	}
 
-	@Override
 	@RequestMapping(value = "/compare", method = GET)
 	@ResponseBody
 	@ResponseStatus(OK)
@@ -273,7 +261,6 @@ public class LaunchController implements ILaunchController {
 		return getLaunchMessageHandler.getLaunchesComparisonInfo(normalizeId(projectName), ids);
 	}
 
-	@Override
 	@PostMapping("/merge")
 	@ResponseBody
 	@ResponseStatus(OK)
@@ -285,7 +272,6 @@ public class LaunchController implements ILaunchController {
 		return mergeLaunchesHandler.mergeLaunches(normalizeId(projectName), "principal", mergeLaunchesRQ);
 	}
 
-	@Override
 	@RequestMapping(value = "/{launchId}/analyze", method = POST)
 	@ResponseBody
 	@ResponseStatus(OK)
@@ -294,7 +280,6 @@ public class LaunchController implements ILaunchController {
 		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), launchId);
 	}
 
-	@Override
 	@RequestMapping(value = "/status", method = GET)
 	@ResponseBody
 	@ResponseStatus(OK)
@@ -303,7 +288,6 @@ public class LaunchController implements ILaunchController {
 		return getLaunchMessageHandler.getStatuses(normalizeId(projectName), ids);
 	}
 
-	@Override
 	@RequestMapping(value = "/{launchId}/report", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(OK)
@@ -325,7 +309,6 @@ public class LaunchController implements ILaunchController {
 
 	}
 
-	@Override
 	@DeleteMapping
 	@ResponseBody
 	@ResponseStatus(OK)
@@ -335,7 +318,6 @@ public class LaunchController implements ILaunchController {
 		return deleteLaunchMessageHandler.deleteLaunches(ids, projectName, "principal");
 	}
 
-	@Override
 	@RequestMapping(value = "/import", method = RequestMethod.POST)
 	@ResponseBody
 	@ResponseStatus(OK)

@@ -117,6 +117,8 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	public TestItemBuilder addDuration(Date endTime) {
 		checkNotNull(endTime, "Provided value shouldn't be null");
 		checkNotNull(testItem.getTestItemResults(), "Test item results shouldn't be null");
+
+		//converts to seconds
 		testItem.getTestItemResults()
 				.setDuration(ChronoUnit.MILLIS.between(testItem.getStartTime(), TO_LOCAL_DATE_TIME.apply(endTime)) / 1000d);
 		return this;

@@ -21,6 +21,11 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
+import com.epam.ta.reportportal.ws.model.issue.Issue;
+
+import java.util.function.Function;
+
 /**
  * @author Pavel Bortnik
  */
@@ -29,6 +34,14 @@ public final class IssueConverter {
 	private IssueConverter() {
 		//static only
 	}
+
+	public static final Function<Issue, IssueEntity> TO_ISSUE = from -> {
+		IssueEntity issue = new IssueEntity();
+		issue.setAutoAnalyzed(from.getAutoAnalyzed());
+		issue.setIgnoreAnalyzer(from.getIgnoreAnalyzer());
+		issue.setIssueDescription(from.getComment());
+		return issue;
+	};
 
 	//	/**
 	//	 * Converts issue from db to model

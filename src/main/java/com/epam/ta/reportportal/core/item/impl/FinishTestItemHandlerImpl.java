@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -41,7 +42,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
@@ -54,10 +54,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 /**
  * Default implementation of {@link FinishTestItemHandler}
  *
- * @author Andrei Varabyeu
- * @author Aliaksei Makayed
- * @author Dzianis Shlychkou
- * @author Andrei_Ramanchuk
+ * @author Pavel Bortnik
  */
 @Service
 class FinishTestItemHandlerImpl implements FinishTestItemHandler {
@@ -67,14 +64,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private TestItemRepository testItemRepository;
 
 	private IssueTypeHandler issueTypeHandler;
-
-	private Function<Issue, IssueEntity> TO_ISSUE = from -> {
-		IssueEntity issue = new IssueEntity();
-		issue.setAutoAnalyzed(from.getAutoAnalyzed());
-		issue.setIgnoreAnalyzer(from.getIgnoreAnalyzer());
-		issue.setIssueDescription(from.getComment());
-		return issue;
-	};
 
 	//	private ExternalSystemRepository externalSystemRepository;
 
@@ -101,9 +90,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	@Override
 	public OperationCompletionRS finishTestItem(ReportPortalUser user, String projectName, Long testItemId,
 			FinishTestItemRQ finishExecutionRQ) {
-
 		TestItem testItem = testItemRepository.findById(testItemId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId));
+
 		boolean hasChildren = testItemRepository.hasChildren(testItem.getItemId());
 		verifyTestItem(user, testItem, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()), hasChildren);
 
@@ -115,7 +104,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				.addTestItemResults(testItemResults, finishExecutionRQ.getEndTime())
 				.get();
 		testItemRepository.save(testItem);
-
 		return new OperationCompletionRS("TestItem with ID = '" + testItemId + "' successfully finished.");
 	}
 
@@ -145,7 +133,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				String locator = providedIssue.getIssueType();
 				if (!NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(locator)) {
 					IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, locator);
-					IssueEntity issue = TO_ISSUE.apply(providedIssue);
+					IssueEntity issue = IssueConverter.TO_ISSUE.apply(providedIssue);
 					issue.setIssueId(testItemResults.getItemId());
 					issue.setIssueType(issueType);
 					testItemResults.setIssue(issue);
@@ -160,7 +148,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		}
 		return testItemResults;
 	}
-
 
 	/**
 	 * Validation procedure for specified test item

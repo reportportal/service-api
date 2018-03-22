@@ -21,25 +21,32 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.store.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.dao.UserRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
+import com.epam.ta.reportportal.store.database.entity.user.User;
+import com.epam.ta.reportportal.store.database.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.store.commons.Predicates.not;
-import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_IS_NOT_FINISHED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_IS_NOT_FINISHED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -53,6 +60,10 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 	private TestItemRepository testItemRepository;
 
+	private ProjectRepository projectRepository;
+
+	private UserRepository userRepository;
+
 	// TODO ANALYZER
 	//	@Autowired
 	//	private ILogIndexer logIndexer;
@@ -62,33 +73,34 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		this.testItemRepository = testItemRepository;
 	}
 
+	@Autowired
+	public void setProjectRepository(ProjectRepository projectRepository) {
+		this.projectRepository = projectRepository;
+	}
+
+	@Autowired
+	public void setUserRepository(UserRepository userRepository) {
+		this.userRepository = userRepository;
+	}
+
 	@Override
-	public OperationCompletionRS deleteTestItem(Long itemId, String projectName, String username) {
-
-		//	Project project = projectRepository.findOne(projectName);
-		//	expect(project, notNull()).verify(PROJECT_NOT_FOUND, project);
-		//
-		//	User user = userRepository.findOne(username);
-		//	expect(user, notNull()).verify(USER_NOT_FOUND, username);
-
+	public OperationCompletionRS deleteTestItem(Long itemId, String projectName, ReportPortalUser reportPortalUser) {
+		User user = userRepository.findByLogin(reportPortalUser.getUsername())
+				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, reportPortalUser.getUsername()));
 		TestItem item = testItemRepository.findById(itemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
-		validate(item, projectName);
-
-		// TODO validate roles
-		//validateRoles(item, user, project);
-
+		validate(item, reportPortalUser, projectName);
+		validateRoles(item, user, reportPortalUser, projectName);
 		testItemRepository.delete(item);
 		return new OperationCompletionRS("Test Item with ID = '" + itemId + "' has been successfully deleted.");
 	}
 
 	@Override
-	public List<OperationCompletionRS> deleteTestItem(Long[] ids, String project, String user) {
-		//logIndexer.cleanIndex(project, Arrays.asList(ids));
-		return Stream.of(ids).map(it -> deleteTestItem(it, project, user)).collect(toList());
+	public List<OperationCompletionRS> deleteTestItem(Long[] ids, String project, ReportPortalUser reportPortalUser) {
+		return Stream.of(ids).map(it -> deleteTestItem(it, project, reportPortalUser)).collect(toList());
 	}
 
-	private void validate(TestItem testItem, String projectName) {
+	private void validate(TestItem testItem, ReportPortalUser user, String projectName) {
 		expect(testItem.getTestItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(TEST_ITEM_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId())
 		);
@@ -98,19 +110,19 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 						launch.getId()
 				)
 		);
-		//		expect(projectName, equalTo(parentLaunch.getProjectRef())).verify(FORBIDDEN_OPERATION,
-		//				formattedSupplier("Deleting testItem '{}' is not under specified project '{}'", testItem.getId(), projectName)
-		//		);
+		expect(launch.getProjectId(), equalTo(user.getProjectDetails().get(projectName).getProjectId())).verify(FORBIDDEN_OPERATION,
+				formattedSupplier("Deleting testItem '{}' is not under specified project '{}'", testItem.getItemId(), projectName)
+		);
 	}
 
-	//	private void validateRoles(TestItem testItem, User user, Project project) {
-	//		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-	//		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
-	//				/*
-	//				 * Only PROJECT_MANAGER roles could delete testItems
-	//				 */
-	//			UserConfig userConfig = findUserConfigByLogin(project, user.getId());
-	//			expect(userConfig, hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
-	//		}
-	//	}
+	private void validateRoles(TestItem testItem, User user, ReportPortalUser rpUser, String projectName) {
+		Launch launch = testItem.getLaunch();
+		if (user.getRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getId(), launch.getUserId())) {
+			/*
+			 * Only PROJECT_MANAGER roles could delete testItems
+			 */
+			expect(rpUser.getProjectDetails().get(projectName).getProjectRole(), equalTo(ProjectRole.PROJECT_MANAGER)).verify(
+					ACCESS_DENIED);
+		}
+	}
 }

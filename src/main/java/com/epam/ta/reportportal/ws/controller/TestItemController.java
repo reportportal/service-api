@@ -1,25 +1,25 @@
 /*
- * Copyright 2016 EPAM Systems
- * 
- * 
+ * Copyright 2017 EPAM Systems
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.ws.controller.impl;
+package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
-import com.epam.ta.reportportal.ws.controller.ITestItemController;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -53,7 +52,7 @@ import static org.springframework.http.HttpStatus.OK;
 @Controller
 @RequestMapping("/{projectName}/item")
 //@PreAuthorize(ASSIGNED_TO_PROJECT)
-public class TestItemController implements ITestItemController {
+public class TestItemController {
 
 	public static final String DEFAULT_HISTORY_DEPTH = "5";
 	public static final String DEFAULT_HISTORY_FULL = "true";
@@ -82,7 +81,6 @@ public class TestItemController implements ITestItemController {
 	//	@Autowired
 	//	private MergeTestItemHandler mergeTestItemHandler;
 
-	@Override
 	@PostMapping
 	@Transactional
 	@ResponseBody
@@ -94,7 +92,6 @@ public class TestItemController implements ITestItemController {
 		return startTestItemHandler.startRootItem(user, projectName, startTestItemRQ);
 	}
 
-	@Override
 	@PostMapping("/{parentItem}")
 	@Transactional
 	@ResponseBody
@@ -106,7 +103,6 @@ public class TestItemController implements ITestItemController {
 		return startTestItemHandler.startChildItem(user, projectName, startTestItemRQ, parentItem);
 	}
 
-	@Override
 	@PutMapping("/{testItemId}")
 	@Transactional
 	@ResponseBody
@@ -118,18 +114,18 @@ public class TestItemController implements ITestItemController {
 		return finishTestItemHandler.finishTestItem(user, projectName, testItemId, finishExecutionRQ);
 	}
 
-	@Override
 	@GetMapping("/{testItemId}")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Find test item by ID")
-	public TestItem getTestItem(@PathVariable String projectName, @PathVariable String testItemId, @AuthenticationPrincipal ReportPortalUser user) {
+	public TestItem getTestItem(@PathVariable String projectName, @PathVariable String testItemId,
+			@AuthenticationPrincipal ReportPortalUser user) {
 		//testItemRepository.selectPathNames(11L);
 		//return getTestItemHandler.getTestItem(testItemId);
 		return testItemRepository.findById(3l).orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "3"));
 	}
 
-	//	@Override
+	//	
 	//	@GetMapping
 	//	@ResponseBody
 	//	@ResponseStatus(OK)
@@ -139,17 +135,16 @@ public class TestItemController implements ITestItemController {
 	//		return getTestItemHandler.getTestItems(new CompositeFilter(filter, predefinedFilter), pageable);
 	//	}
 
-	@Override
 	@DeleteMapping("/{itemId}")
 	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Delete test item")
-	public OperationCompletionRS deleteTestItem(@PathVariable String projectName, @PathVariable Long itemId, @AuthenticationPrincipal ReportPortalUser user) {
+	public OperationCompletionRS deleteTestItem(@PathVariable String projectName, @PathVariable Long itemId,
+			@AuthenticationPrincipal ReportPortalUser user) {
 		return deleteTestItemHandler.deleteTestItem(itemId, "project", "user");
 	}
 
-	@Override
 	@ResponseBody
 	@Transactional
 	@ResponseStatus(OK)
@@ -160,7 +155,6 @@ public class TestItemController implements ITestItemController {
 		return deleteTestItemHandler.deleteTestItem(ids, projectName, "user");
 	}
 
-	@Override
 	@PutMapping
 	@Transactional
 	@ResponseStatus(OK)
@@ -171,7 +165,6 @@ public class TestItemController implements ITestItemController {
 		return updateTestItemHandler.defineTestItemsIssues(projectName, request, "user");
 	}
 
-	@Override
 	@GetMapping("/history")
 	@ResponseStatus(OK)
 	@ResponseBody
@@ -185,7 +178,6 @@ public class TestItemController implements ITestItemController {
 		//return testItemsHistoryHandler.getItemsHistory(normalizeId(projectName), ids, historyDepth, showBrokenLaunches);
 	}
 
-	@Override
 	@GetMapping("/tags")
 	@ResponseBody
 	@ResponseStatus(OK)
@@ -196,7 +188,6 @@ public class TestItemController implements ITestItemController {
 		return null;
 	}
 
-	@Override
 	@PutMapping("/{itemId}/update")
 	@Transactional
 	@ResponseBody
@@ -208,7 +199,6 @@ public class TestItemController implements ITestItemController {
 		return updateTestItemHandler.updateTestItem(projectName, itemId, rq, "user");
 	}
 
-	@Override
 	@PutMapping("/issue/add")
 	@ResponseBody
 	@ResponseStatus(OK)
@@ -220,7 +210,6 @@ public class TestItemController implements ITestItemController {
 		return null;
 	}
 
-	@Override
 	@GetMapping("/items")
 	@ResponseBody
 	@ResponseStatus(OK)
@@ -232,7 +221,6 @@ public class TestItemController implements ITestItemController {
 		return null;
 	}
 
-	@Override
 	@PutMapping("/{item}/merge")
 	@ResponseBody
 	@ResponseStatus(OK)

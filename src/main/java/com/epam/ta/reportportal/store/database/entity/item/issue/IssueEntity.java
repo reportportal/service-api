@@ -21,8 +21,6 @@
 
 package com.epam.ta.reportportal.store.database.entity.item.issue;
 
-import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
-
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Objects;
@@ -50,11 +48,6 @@ public class IssueEntity implements Serializable {
 
 	@Column(name = "ignore_analyzer")
 	private Boolean ignoreAnalyzer;
-
-	@OneToOne
-	@MapsId
-	@JoinColumn(name = "issue_id")
-	private TestItemResults testItemResults;
 
 	public IssueEntity() {
 	}
@@ -97,14 +90,6 @@ public class IssueEntity implements Serializable {
 
 	public void setIgnoreAnalyzer(Boolean ignoreAnalyzer) {
 		this.ignoreAnalyzer = ignoreAnalyzer;
-	}
-
-	public TestItemResults getTestItemResults() {
-		return testItemResults;
-	}
-
-	public void setTestItemResults(TestItemResults testItemResults) {
-		this.testItemResults = testItemResults;
 	}
 
 	@Override

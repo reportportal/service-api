@@ -59,9 +59,16 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private TestItemRepository testItemRepository;
 
+	private IssueTypeHandler issueTypeHandler;
+
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
 		this.testItemRepository = testItemRepository;
+	}
+
+	@Autowired
+	public void setIssueTypeHandler(IssueTypeHandler issueTypeHandler) {
+		this.issueTypeHandler = issueTypeHandler;
 	}
 
 	//	private final ApplicationEventPublisher eventPublisher;
@@ -107,7 +114,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				verifyTestItem(testItem, issueDefinition.getId());
 
 				Issue issue = issueDefinition.getIssue();
-				IssueType issueType = verifyTestItemDefinedIssueType(issue.getIssueType(), testItem.getItemId(), 1l);
+				IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(), 1L, issue.getIssueType());
 
 				IssueEntity itemsIssue = testItem.getTestItemResults().getIssue();
 				itemsIssue.setIssueType(issueType);
@@ -295,15 +302,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	//	}
 	//
 
-	/**
-	 * Verifies that provided test item issue type is valid, and test item
-	 * domain object could be processed correctly
-	 *
-	 * @param locator
-	 * @param testItemId
-	 * @param projectId
-	 * @return verified issue type
-	 */
 	private IssueType verifyTestItemDefinedIssueType(String locator, Long testItemId, Long projectId) {
 		List<IssueType> projectIssueTypes = testItemRepository.selectIssueLocatorsByProject(projectId);
 		return projectIssueTypes.stream()

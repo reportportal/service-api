@@ -44,6 +44,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.store.jooq.Tables.*;
 import static java.util.stream.Collectors.toList;
@@ -192,15 +193,14 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 	}
 
 	@Override
-	public IssueType selectIssueTypeByLocator(Long projectId, String locator) {
-		return dsl.select()
+	public Optional<IssueType> selectIssueTypeByLocator(Long projectId, String locator) {
+		return Optional.ofNullable(dsl.select()
 				.from(ISSUE_TYPE)
 				.join(ISSUE_TYPE_PROJECT_CONFIGURATION)
 				.on(ISSUE_TYPE.ID.eq(ISSUE_TYPE_PROJECT_CONFIGURATION.ISSUE_TYPE_ID))
 				.where(ISSUE_TYPE_PROJECT_CONFIGURATION.CONFIGURATION_ID.eq(projectId))
 				.and(ISSUE_TYPE.LOCATOR.eq(locator))
-				.fetchOne()
-				.into(IssueType.class);
+				.fetchOneInto(IssueType.class));
 	}
 
 	/**

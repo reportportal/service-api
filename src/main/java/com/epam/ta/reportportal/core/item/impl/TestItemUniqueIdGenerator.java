@@ -19,8 +19,9 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.core.item;
+package com.epam.ta.reportportal.core.item.impl;
 
+import com.epam.ta.reportportal.core.item.UniqueIdGenerator;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.entity.item.Parameter;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;

@@ -1,26 +1,27 @@
 /*
  * Copyright 2017 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.epam.ta.reportportal.core.item;
+package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.Preconditions;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
@@ -49,7 +50,6 @@ import static com.epam.ta.reportportal.store.database.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType.NOT_ISSUE_FLAG;
 import static com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Default implementation of {@link FinishTestItemHandler}
@@ -65,6 +65,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private LaunchRepository launchRepository;
 
 	private TestItemRepository testItemRepository;
+
+	private IssueTypeHandler issueTypeHandler;
 
 	private Function<Issue, IssueEntity> TO_ISSUE = from -> {
 		IssueEntity issue = new IssueEntity();
@@ -84,6 +86,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
 		this.testItemRepository = testItemRepository;
+	}
+
+	@Autowired
+	public void setIssueTypeHandler(IssueTypeHandler issueTypeHandler) {
+		this.issueTypeHandler = issueTypeHandler;
 	}
 
 	//	@Autowired
@@ -137,14 +144,14 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				//in provided issue should be locator id or NOT_ISSUE value
 				String locator = providedIssue.getIssueType();
 				if (!NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(locator)) {
-					IssueType issueType = testItemRepository.selectIssueTypeByLocator(projectId, locator);
+					IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, locator);
 					IssueEntity issue = TO_ISSUE.apply(providedIssue);
 					issue.setIssueId(testItemResults.getItemId());
 					issue.setIssueType(issueType);
 					testItemResults.setIssue(issue);
 				}
 			} else {
-				IssueType toInvestigate = testItemRepository.selectIssueTypeByLocator(projectId, TO_INVESTIGATE.getLocator());
+				IssueType toInvestigate = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, TO_INVESTIGATE.getLocator());
 				IssueEntity issue = new IssueEntity();
 				issue.setIssueId(testItemResults.getItemId());
 				issue.setIssueType(toInvestigate);
@@ -153,6 +160,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		}
 		return testItemResults;
 	}
+
 
 	/**
 	 * Validation procedure for specified test item
@@ -165,7 +173,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 */
 	private void verifyTestItem(ReportPortalUser user, TestItem testItem, FinishTestItemRQ finishExecutionRQ,
 			Optional<StatusEnum> actualStatus, boolean hasChildren) {
-
 		Launch launch = Optional.ofNullable(testItem.getLaunch()).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
 		expect(user.getUserId(), equalTo(launch.getUserId())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not launch owner.");
 
@@ -185,16 +192,5 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 		expect(finishExecutionRQ.getEndTime(), Preconditions.sameTimeOrLater(testItem.getStartTime())).verify(
 				FINISH_TIME_EARLIER_THAN_START_TIME, finishExecutionRQ.getEndTime(), testItem.getStartTime(), testItem.getItemId());
-	}
-
-	private IssueType verifyIssue(Long testItemId, Issue issue, List<IssueType> projectIssueTypes) {
-		return projectIssueTypes.stream()
-				.filter(it -> it.getTestItemIssueType().getLocator().equalsIgnoreCase(issue.getIssueType()))
-				.findAny()
-				.orElseThrow(() -> new ReportPortalException(
-						AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
-						"Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types locators are: {}",
-						issue.getIssueType(), testItemId, projectIssueTypes.stream().map(IssueType::getLocator).collect(toList())
-				)));
 	}
 }

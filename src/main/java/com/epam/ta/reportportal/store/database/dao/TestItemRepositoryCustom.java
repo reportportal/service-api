@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Pavel Bortnik
@@ -132,5 +133,5 @@ public interface TestItemRepositoryCustom {
 	 * @param locator   Issue type locator
 	 * @return Issue type
 	 */
-	IssueType selectIssueTypeByLocator(Long projectId, String locator);
+	Optional<IssueType> selectIssueTypeByLocator(Long projectId, String locator);
 }

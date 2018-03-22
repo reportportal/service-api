@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
+import com.google.common.base.Preconditions;
 
 import java.util.function.Function;
 
@@ -43,24 +44,24 @@ public final class IssueConverter {
 		return issue;
 	};
 
-	//	/**
-	//	 * Converts issue from db to model
-	//	 */
-	//	public static final Function<TestItemIssue, Issue> TO_MODEL = testItemIssue -> {
-	//		Issue issue = null;
-	//		if (null != testItemIssue) {
-	//			issue = new Issue();
-	//			issue.setIssueType(testItemIssue.getIssueType());
-	//			issue.setAutoAnalyzed(testItemIssue.isAutoAnalyzed());
-	//			issue.setIgnoreAnalyzer(testItemIssue.isIgnoreAnalyzer());
-	//			issue.setComment(testItemIssue.getIssueDescription());
-	//			Set<TestItemIssue.ExternalSystemIssue> externalSystemIssues = testItemIssue.getExternalSystemIssues();
-	//			if (null != externalSystemIssues) {
-	//				issue.setExternalSystemIssues(
-	//						externalSystemIssues.stream().map(IssueConverter.TO_MODEL_EXTERNAL).collect(Collectors.toSet()));
-	//			}
-	//		} return issue;
-	//	};
+	/**
+	 * Converts issue from db to model
+	 */
+	public static final Function<IssueEntity, Issue> TO_MODEL = issueEntity -> {
+		Preconditions.checkNotNull(issueEntity);
+		Issue issue = new Issue();
+		issue.setIssueType(issueEntity.getIssueType().getLocator());
+		issue.setAutoAnalyzed(issueEntity.getAutoAnalyzed());
+		issue.setIgnoreAnalyzer(issueEntity.getIgnoreAnalyzer());
+		issue.setComment(issueEntity.getIssueDescription());
+
+		//TODO EXTERNAL SYSTEMS CONVERTER
+		//		Set<TestItemIssue.ExternalSystemIssue> externalSystemIssues = issueEntity.getExternalSystemIssues();
+		//		if (null != externalSystemIssues) {
+		//			issue.setExternalSystemIssues(externalSystemIssues.stream().map(IssueConverter.TO_MODEL_EXTERNAL).collect(Collectors.toSet()));
+		//		}
+		return issue;
+	};
 	//
 	//	/**
 	//	 * Converts external system from db to model

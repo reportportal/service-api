@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.item;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -40,20 +41,20 @@ public interface UpdateTestItemHandler {
 	 *
 	 * @param project     project name
 	 * @param defineIssue issues request data
-	 * @param userName    request principal name
+	 * @param user        user
 	 * @return list of defined issues for specified test items
 	 */
-	List<Issue> defineTestItemsIssues(String project, DefineIssueRQ defineIssue, String userName);
+	List<Issue> defineTestItemsIssues(String project, DefineIssueRQ defineIssue, ReportPortalUser user);
 
 	/**
 	 * Update specified test item
 	 *
 	 * @param itemId   test item ID
 	 * @param rq       update test item request data
-	 * @param userName request principal name
+	 * @param user request principal name
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS updateTestItem(String projectName, Long itemId, UpdateTestItemRQ rq, String userName);
+	OperationCompletionRS updateTestItem(String projectName, Long itemId, UpdateTestItemRQ rq, ReportPortalUser user);
 
 	//	/**
 	//	 * Add external system issue link directly to test items

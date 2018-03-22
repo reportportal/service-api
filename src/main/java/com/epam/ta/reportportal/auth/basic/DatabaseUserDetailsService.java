@@ -57,13 +57,12 @@ public class DatabaseUserDetailsService implements UserDetailsService {
 				true, true, true, AuthUtils.AS_AUTHORITIES.apply(user.get().getRole())
 		);
 
-		return new ReportPortalUser(u, user.get().getId(), user.get()
+		return new ReportPortalUser(u, user.get().getId(), user.get().getRole(), user.get()
 				.getProjects()
 				.stream()
 				.collect(Collectors.toMap(p -> p.getProject().getName(),
 						p -> new ReportPortalUser.ProjectDetails(p.getProject().getId(), p.getRole())
-				))
-		);
+				)));
 	}
 
 }

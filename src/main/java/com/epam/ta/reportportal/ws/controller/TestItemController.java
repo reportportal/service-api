@@ -142,7 +142,7 @@ public class TestItemController {
 	@ApiOperation("Delete test item")
 	public OperationCompletionRS deleteTestItem(@PathVariable String projectName, @PathVariable Long itemId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteTestItemHandler.deleteTestItem(itemId, "project", "user");
+		return deleteTestItemHandler.deleteTestItem(itemId, projectName, user);
 	}
 
 	@ResponseBody
@@ -152,7 +152,7 @@ public class TestItemController {
 	@ApiOperation("Delete test items by specified ids")
 	public List<OperationCompletionRS> deleteTestItems(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteTestItemHandler.deleteTestItem(ids, projectName, "user");
+		return deleteTestItemHandler.deleteTestItem(ids, projectName, user);
 	}
 
 	@PutMapping
@@ -162,7 +162,7 @@ public class TestItemController {
 	@ApiOperation("Update issues of specified test items")
 	public List<Issue> defineTestItemIssueType(@PathVariable String projectName, @RequestBody @Validated DefineIssueRQ request,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateTestItemHandler.defineTestItemsIssues(projectName, request, "user");
+		return updateTestItemHandler.defineTestItemsIssues(projectName, request, user);
 	}
 
 	@GetMapping("/history")

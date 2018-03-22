@@ -24,14 +24,11 @@ package com.epam.ta.reportportal.core.item.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.store.database.dao.UserRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
-import com.epam.ta.reportportal.store.database.entity.user.User;
 import com.epam.ta.reportportal.store.database.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -60,10 +57,6 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 	private TestItemRepository testItemRepository;
 
-	private ProjectRepository projectRepository;
-
-	private UserRepository userRepository;
-
 	// TODO ANALYZER
 	//	@Autowired
 	//	private ILogIndexer logIndexer;
@@ -73,24 +66,11 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		this.testItemRepository = testItemRepository;
 	}
 
-	@Autowired
-	public void setProjectRepository(ProjectRepository projectRepository) {
-		this.projectRepository = projectRepository;
-	}
-
-	@Autowired
-	public void setUserRepository(UserRepository userRepository) {
-		this.userRepository = userRepository;
-	}
-
 	@Override
 	public OperationCompletionRS deleteTestItem(Long itemId, String projectName, ReportPortalUser reportPortalUser) {
-		User user = userRepository.findByLogin(reportPortalUser.getUsername())
-				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, reportPortalUser.getUsername()));
 		TestItem item = testItemRepository.findById(itemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
 		validate(item, reportPortalUser, projectName);
-		validateRoles(item, user, reportPortalUser, projectName);
 		testItemRepository.delete(item);
 		return new OperationCompletionRS("Test Item with ID = '" + itemId + "' has been successfully deleted.");
 	}
@@ -113,16 +93,11 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		expect(launch.getProjectId(), equalTo(user.getProjectDetails().get(projectName).getProjectId())).verify(FORBIDDEN_OPERATION,
 				formattedSupplier("Deleting testItem '{}' is not under specified project '{}'", testItem.getItemId(), projectName)
 		);
-	}
-
-	private void validateRoles(TestItem testItem, User user, ReportPortalUser rpUser, String projectName) {
-		Launch launch = testItem.getLaunch();
-		if (user.getRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getId(), launch.getUserId())) {
+		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUserId(), launch.getUserId())) {
 			/*
 			 * Only PROJECT_MANAGER roles could delete testItems
 			 */
-			expect(rpUser.getProjectDetails().get(projectName).getProjectRole(), equalTo(ProjectRole.PROJECT_MANAGER)).verify(
-					ACCESS_DENIED);
+			expect(user.getProjectDetails().get(projectName).getProjectRole(), equalTo(ProjectRole.PROJECT_MANAGER)).verify(ACCESS_DENIED);
 		}
 	}
 }

@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.auth;
 
 import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
+import com.epam.ta.reportportal.store.database.entity.user.UserRole;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
@@ -16,21 +17,28 @@ public class ReportPortalUser extends User {
 
 	private Long userId;
 
+	private UserRole userRole;
+
 	private Map<String, ProjectDetails> projectDetails;
 
-	public ReportPortalUser(String username, String password, Collection<? extends GrantedAuthority> authorities, Long userId,
+	public ReportPortalUser(String username, String password, Collection<? extends GrantedAuthority> authorities, Long userId, UserRole role,
 			Map<String, ProjectDetails> projectDetails) {
 		super(username, password, authorities);
 		this.userId = userId;
+		this.userRole = role;
 		this.projectDetails = projectDetails;
 	}
 
-	public ReportPortalUser(User user, Long userId, Map<String, ProjectDetails> projectDetails) {
-		this(user.getUsername(), user.getPassword(), user.getAuthorities(), userId, projectDetails);
+	public ReportPortalUser(User user, Long userId, UserRole role, Map<String, ProjectDetails> projectDetails) {
+		this(user.getUsername(), user.getPassword(), user.getAuthorities(), userId, role, projectDetails);
 	}
 
 	public Long getUserId() {
 		return userId;
+	}
+
+	public UserRole getUserRole() {
+		return userRole;
 	}
 
 	public Map<String, ProjectDetails> getProjectDetails() {

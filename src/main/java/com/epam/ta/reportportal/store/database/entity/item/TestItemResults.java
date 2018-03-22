@@ -101,6 +101,7 @@ public class TestItemResults implements Serializable {
 	}
 
 	public void setIssue(IssueEntity issue) {
+		issue.setIssueId(this.itemId);
 		this.issue = issue;
 	}
 

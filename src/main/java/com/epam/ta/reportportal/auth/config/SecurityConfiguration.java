@@ -10,6 +10,7 @@ import com.epam.ta.reportportal.auth.integration.MutableClientRegistrationReposi
 import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
 import com.epam.ta.reportportal.store.database.dao.OAuthRegistrationRepository;
 import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
+import com.epam.ta.reportportal.store.database.entity.user.UserRole;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashFunction;
@@ -348,6 +349,7 @@ public class SecurityConfiguration {
 			Map<String, Object> claims = (Map<String, Object>) super.convertUserAuthentication(authentication);
 			ReportPortalUser principal = (ReportPortalUser) authentication.getPrincipal();
 			claims.put("userId", principal.getUserId());
+			claims.put("userRole", principal.getUserRole());
 			claims.put("projects", principal.getProjectDetails());
 			return claims;
 		}
@@ -360,6 +362,7 @@ public class SecurityConfiguration {
 				Collection<GrantedAuthority> authorities = user.getAuthorities();
 
 				Long userId = map.containsKey("userId") ? parseId(map.get("userId")) : null;
+				UserRole userRole = map.containsKey("userRole") ? (UserRole) map.get("userRole") : null;
 				Map<String, Map> projects = map.containsKey("projects") ? (Map) map.get("projects") : Collections.emptyMap();
 
 				Map<String, ReportPortalUser.ProjectDetails> collect = projects.entrySet()
@@ -370,8 +373,9 @@ public class SecurityConfiguration {
 								)
 						));
 
-				return new UsernamePasswordAuthenticationToken(new ReportPortalUser(user.getName(), "N/A", authorities, userId, collect),
-						user.getCredentials(), authorities
+				return new UsernamePasswordAuthenticationToken(
+						new ReportPortalUser(user.getName(), "N/A", authorities, userId, userRole, collect), user.getCredentials(),
+						authorities
 				);
 			}
 

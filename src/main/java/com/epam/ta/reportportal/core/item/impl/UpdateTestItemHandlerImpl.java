@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
@@ -30,7 +31,12 @@ import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
+import com.epam.ta.reportportal.store.database.entity.user.UserRole;
+import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
@@ -44,10 +50,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.store.commons.Predicates.*;
-import static com.epam.ta.reportportal.ws.model.ErrorType.AMBIGUOUS_TEST_ITEM_STATUS;
-import static java.util.stream.Collectors.toList;
+import static com.epam.ta.reportportal.ws.model.ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION;
 
 /**
  * Default implementation of {@link UpdateTestItemHandler}
@@ -71,38 +75,14 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		this.issueTypeHandler = issueTypeHandler;
 	}
 
-	//	private final ApplicationEventPublisher eventPublisher;
-	//	private final StatisticsFacadeFactory statisticsFacadeFactory;
-	//	private final UserRepository userRepository;
-	//	private final ProjectRepository projectRepository;
-	//	private final LaunchRepository launchRepository;
-	//	private final ExternalSystemRepository externalSystemRepository;
-	//	private final LogIndexerService logIndexer;
-	//	private final IssuesAnalyzerService issuesAnalyzerService;
-	//
-	//	@Autowired
-	//	public UpdateTestItemHandlerImpl(TestItemRepository testItemRepository, StatisticsFacadeFactory statisticsFacadeFactory,
-	//			UserRepository userRepository, ProjectRepository projectRepository, LaunchRepository launchRepository,
-	//			ExternalSystemRepository externalSystemRepository, ApplicationEventPublisher eventPublisher, LogIndexerService logIndexer,
-	//			IssuesAnalyzerService issuesAnalyzerService) {
-	//		this.eventPublisher = eventPublisher;
-	//		this.testItemRepository = testItemRepository;
-	//		this.statisticsFacadeFactory = statisticsFacadeFactory;
-	//		this.userRepository = userRepository;
-	//		this.projectRepository = projectRepository;
-	//		this.launchRepository = launchRepository;
-	//		this.externalSystemRepository = externalSystemRepository;
-	//		this.logIndexer = logIndexer;
-	//		this.issuesAnalyzerService = issuesAnalyzerService;
-	//	}
-
 	@Override
-	public List<Issue> defineTestItemsIssues(String project, DefineIssueRQ defineIssue, String userName) {
+	public List<Issue> defineTestItemsIssues(String projectName, DefineIssueRQ defineIssue, ReportPortalUser user) {
 		List<String> errors = new ArrayList<>();
 		List<IssueDefinition> definitions = defineIssue.getIssues();
-		expect(definitions.isEmpty(), equalTo(false)).verify(ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION);
 
-		List<IssueEntity> updated = new ArrayList<>(defineIssue.getIssues().size());
+		expect(definitions.isEmpty(), equalTo(false)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION);
+
+		List<Issue> updated = new ArrayList<>(defineIssue.getIssues().size());
 
 		definitions.forEach(issueDefinition -> {
 			try {
@@ -112,122 +92,35 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 										issueDefinition.getId()
 								).get()));
 				verifyTestItem(testItem, issueDefinition.getId());
-
 				Issue issue = issueDefinition.getIssue();
-				IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(), 1L, issue.getIssueType());
 
-				IssueEntity itemsIssue = testItem.getTestItemResults().getIssue();
-				itemsIssue.setIssueType(issueType);
-				if (null != issue.getComment()) {
-					itemsIssue.setIssueDescription(issue.getComment().trim());
-				}
-				itemsIssue.setIgnoreAnalyzer(issue.getIgnoreAnalyzer());
-				itemsIssue.setAutoAnalyzed(false);
-				testItemRepository.save(testItem);
+				IssueType issueType = issueTypeHandler.defineIssueType(
+						testItem.getItemId(), user.getProjectDetails().get(projectName).getProjectId(), issue.getIssueType());
+
+				IssueEntity issueEntity = new IssueEntityBuilder(testItem.getTestItemResults().getIssue()).addIssueType(issueType)
+						.addDescription(issue.getComment())
+						.addIgnoreFlag(issue.getIgnoreAnalyzer())
+						.addAutoAnalyzedFlag(false)
+						.get();
+
+				testItem.getTestItemResults().setIssue(issueEntity);
 
 				//TODO EXTERNAL SYSTEM LOGIC, ANALYZER LOGIC
-
+				testItemRepository.save(testItem);
+				updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
 			} catch (BusinessRuleViolationException e) {
 				errors.add(e.getMessage());
 			}
 		});
-		return null;
+		expect(!errors.isEmpty(), equalTo(false)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
+		return updated;
 	}
 
-	//	@Override
-	//	public List<Issue> defineTestItemsIssues(String projectName, DefineIssueRQ defineIssue, String userName) {
-	//		List<String> errors = new ArrayList<>();
-	//		List<IssueDefinition> definitions = defineIssue.getIssues();
-	//
-	//		expect(definitions, NOT_EMPTY_COLLECTION).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, "");
-	//
-	//		List<Issue> updated = new ArrayList<>(defineIssue.getIssues().size());
-	//		ImmutableMap.Builder<IssueDefinition, TestItem> eventData = ImmutableMap.builder();
-	//		for (IssueDefinition issueDefinition : definitions) {
-	//			try {
-	//				TestItem testItem = testItemRepository.findOne(issueDefinition.getId());
-	//				verifyTestItem(testItem, issueDefinition.getId());
-	//				//if item is updated then it is no longer auto analyzed
-	//				issueDefinition.getIssue().setAutoAnalyzed(false);
-	//				eventData.put(issueDefinition, testItem);
-	//
-	//				final Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-	//
-	//				final Project project = projectRepository.findOne(launch.getProjectRef());
-	//
-	//				Issue issue = issueDefinition.getIssue();
-	//				String issueType = verifyTestItemDefinedIssueType(issue.getIssueType(), project.getConfiguration());
-	//
-	//				testItem = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
-	//						.resetIssueStatistics(testItem);
-	//
-	//				TestItemIssue testItemIssue = testItem.getIssue();
-	//				testItemIssue.setIssueType(issueType);
-	//
-	//				String comment = issueDefinition.getIssue().getComment();
-	//				if (null != comment) {
-	//					comment = comment.trim();
-	//				}
-	//
-	//				if (null != issue.getExternalSystemIssues()) {
-	//					Set<TestItemIssue.ExternalSystemIssue> issuesFromDB =
-	//							null == testItemIssue.getExternalSystemIssues() ? new HashSet<>() : testItemIssue.getExternalSystemIssues();
-	//					Set<TestItemIssue.ExternalSystemIssue> issuesFromRequest = issue.getExternalSystemIssues()
-	//							.stream()
-	//							.map(TestItemUtils.externalIssueDtoConverter(userName))
-	//							.collect(toSet());
-	//					Set<TestItemIssue.ExternalSystemIssue> difference = newHashSet(Sets.difference(issuesFromRequest, issuesFromDB));
-	//					if (!difference.isEmpty()) {
-	//						for (TestItemIssue.ExternalSystemIssue externalSystemIssue : difference) {
-	//							externalSystemIssue.setSubmitter(userName);
-	//							externalSystemIssue.setSubmitDate(new Date().getTime());
-	//
-	//						}
-	//						Set<TestItemIssue.ExternalSystemIssue> externalSystemIssues;
-	//						if (issuesFromRequest.size() < issuesFromDB.size()) {
-	//							issuesFromRequest.removeAll(difference);
-	//							issuesFromRequest.addAll(difference);
-	//							externalSystemIssues = issuesFromRequest;
-	//						} else {
-	//							externalSystemIssues = issuesFromDB;
-	//							externalSystemIssues.addAll(difference);
-	//						}
-	//						testItemIssue.setExternalSystemIssues(externalSystemIssues);
-	//					} else {
-	//						issuesFromDB.removeAll(newHashSet(Sets.difference(issuesFromDB, issuesFromRequest)));
-	//						testItemIssue.setExternalSystemIssues(issuesFromDB);
-	//					}
-	//				}
-	//
-	//				ofNullable(issue.getIgnoreAnalyzer()).ifPresent(
-	//						it -> testItemIssue.setIgnoreAnalyzer(issuesAnalyzerService.hasAnalyzers() && it));
-	//				ofNullable(issue.getAutoAnalyzed()).ifPresent(testItemIssue::setAutoAnalyzed);
-	//
-	//				testItemIssue.setIssueDescription(comment);
-	//				testItem.setIssue(testItemIssue);
-	//
-	//				testItemRepository.save(testItem);
-	//				indexLogs(projectName, testItem);
-	//
-	//				testItem = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
-	//						.updateIssueStatistics(testItem);
-	//				updated.add(IssueConverter.TO_MODEL.apply(testItem.getIssue()));
-	//			} catch (BusinessRuleViolationException e) {
-	//				errors.add(e.getMessage());
-	//			}
-	//		}
-	//
-	//		expect(!errors.isEmpty(), equalTo(FALSE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
-	//
-	//		eventPublisher.publishEvent(new ItemIssueTypeDefined(eventData.build(), userName, projectName));
-	//		return updated;
-	//	}
-	//
 	@Override
-	public OperationCompletionRS updateTestItem(String projectName, Long itemId, UpdateTestItemRQ rq, String userName) {
+	public OperationCompletionRS updateTestItem(String projectName, Long itemId, UpdateTestItemRQ rq, ReportPortalUser user) {
 		TestItem testItem = testItemRepository.findById(itemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
-		validate(projectName, userName, testItem);
+		validate(projectName, user, testItem);
 		testItem = new TestItemBuilder(testItem).addTags(rq.getTags()).addDescription(rq.getDescription()).get();
 		testItemRepository.save(testItem);
 		return new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated.");
@@ -270,21 +163,25 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	//				.collect(toList());
 	//	}
 	//
-	private void validate(String projectName, String userName, TestItem testItem) {
-		//
-		//
-		//		Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-		//		Project project = projectRepository.findOne(launch.getProjectRef());
-		//		String launchOwner = launch.getUserRef();
-		//		if (userRepository.findOne(userName).getRole() != UserRole.ADMINISTRATOR) {
-		//			expect(projectName, equalTo(project.getName())).verify(ACCESS_DENIED);
-		//			if (doesHaveUser(project, userName) && findUserConfigByLogin(project, userName).getProjectRole()
-		//					.lowerThan(ProjectRole.PROJECT_MANAGER)) {
-		//				expect(userName, equalTo(launchOwner)).verify(ACCESS_DENIED);
-		//			}
-		//		}
-		//		return testItem;
+
+	/**
+	 * Validates test item access ability.
+	 *
+	 * @param projectName Project
+	 * @param user        User
+	 * @param testItem    Test Item
+	 */
+	private void validate(String projectName, ReportPortalUser user, TestItem testItem) {
+		Launch launch = testItem.getLaunch();
+		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+			expect(launch.getProjectId(), equalTo(user.getProjectDetails().get(projectName).getProjectId())).verify(
+					ErrorType.ACCESS_DENIED, "Launch is not under the specified project.");
+			if (user.getProjectDetails().get(projectName).getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
+				expect(user.getUserId(), equalTo(launch.getUserId())).verify(ErrorType.ACCESS_DENIED, "You are not a launch owner.");
+			}
+		}
 	}
+
 	//
 	//	/**
 	//	 * Index logs if item is not ignored for analyzer
@@ -301,18 +198,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	//		}
 	//	}
 	//
-
-	private IssueType verifyTestItemDefinedIssueType(String locator, Long testItemId, Long projectId) {
-		List<IssueType> projectIssueTypes = testItemRepository.selectIssueLocatorsByProject(projectId);
-		return projectIssueTypes.stream()
-				.filter(it -> it.getTestItemIssueType().getLocator().equalsIgnoreCase(locator))
-				.findAny()
-				.orElseThrow(() -> new ReportPortalException(
-						AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
-						"Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types locators are: {}",
-						locator, testItemId, projectIssueTypes.stream().map(IssueType::getLocator).collect(toList())
-				)));
-	}
 
 	/**
 	 * Complex of domain verification for test item. Verifies that test item

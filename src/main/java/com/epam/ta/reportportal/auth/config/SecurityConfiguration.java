@@ -359,14 +359,13 @@ public class SecurityConfiguration {
 				UsernamePasswordAuthenticationToken user = ((UsernamePasswordAuthenticationToken) auth);
 				Collection<GrantedAuthority> authorities = user.getAuthorities();
 
-				Long userId = map.containsKey("userId") ? ((Integer) map.get("userId")).longValue() : null;
+				Long userId = map.containsKey("userId") ? parseId(map.get("userId")) : null;
 				Map<String, Map> projects = map.containsKey("projects") ? (Map) map.get("projects") : Collections.emptyMap();
 
 				Map<String, ReportPortalUser.ProjectDetails> collect = projects.entrySet()
 						.stream()
-						.collect(Collectors.toMap(
-								Map.Entry::getKey,
-								e -> new ReportPortalUser.ProjectDetails(Long.valueOf((Integer) e.getValue().get("projectId")),
+						.collect(Collectors.toMap(Map.Entry::getKey,
+								e -> new ReportPortalUser.ProjectDetails(parseId(e.getValue().get("projectId")),
 										ProjectRole.valueOf((String) e.getValue().get("projectRole"))
 								)
 						));
@@ -378,6 +377,13 @@ public class SecurityConfiguration {
 
 			return null;
 
+		}
+
+		private Long parseId(Object id) {
+			if (id instanceof Integer) {
+				return Long.valueOf((Integer) id);
+			}
+			return (Long) id;
 		}
 	}
 }

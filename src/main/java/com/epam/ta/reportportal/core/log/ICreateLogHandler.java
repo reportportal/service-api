@@ -21,7 +21,6 @@
 
 package com.epam.ta.reportportal.core.log;
 
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,20 +28,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-/**
- * Create {@link com.epam.ta.reportportal.database.entity.log.Log} request handler
- *
- * @author Henadzi_Vrubleuski
- */
 public interface ICreateLogHandler {
 
-	/**
-	 * Creates {@link com.epam.ta.reportportal.database.entity.log.Log} instance and save binary data related to this log
-	 *
-	 * @param createLogRQ
-	 * @return
-	 * @throws ReportPortalException
-	 */
 	@Nonnull
 	EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, @Nullable MultipartFile file, @Nullable String projectName);
 }

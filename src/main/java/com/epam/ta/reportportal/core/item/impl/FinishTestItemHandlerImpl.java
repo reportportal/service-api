@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.item.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.commons.Preconditions;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
@@ -97,7 +98,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		verifyTestItem(user, testItem, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()), hasChildren);
 
 		TestItemResults testItemResults = processItemResults(
-				user.getProjectDetails().get(projectName).getProjectId(), testItem, finishExecutionRQ, hasChildren);
+				EntityUtils.takeProjectDetails(user, projectName).getProjectId(), testItem, finishExecutionRQ, hasChildren);
 
 		testItem = new TestItemBuilder(testItem).addDescription(finishExecutionRQ.getDescription())
 				.addTags(finishExecutionRQ.getTags())

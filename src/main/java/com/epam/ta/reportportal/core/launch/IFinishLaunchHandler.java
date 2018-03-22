@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.launch;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
@@ -42,10 +43,10 @@ public interface IFinishLaunchHandler {
 	 * @param launchId       ID of launch
 	 * @param finishLaunchRQ Request data
 	 * @param projectName    Project name
-	 * @param username       Username
+	 * @param user           User
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String username);
+	OperationCompletionRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, String projectName, ReportPortalUser user);
 
 	/**
 	 * Stop Launch instance by user
@@ -53,10 +54,18 @@ public interface IFinishLaunchHandler {
 	 * @param launchId       ID of launch
 	 * @param finishLaunchRQ Request data
 	 * @param projectName    Project ID
-	 * @param userName       Username
+	 * @param user           User
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String userName);
+	OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, String projectName, ReportPortalUser user);
 
-	List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, String projectName, String userName);
+	/**
+	 * Bulk stop launches operation.
+	 *
+	 * @param bulkRQ      Bulk request
+	 * @param projectName Project name
+	 * @param user        User
+	 * @return OperationCompetionsRS
+	 */
+	List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, String projectName, ReportPortalUser user);
 }

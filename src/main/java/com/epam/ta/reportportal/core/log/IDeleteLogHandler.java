@@ -21,21 +21,9 @@
 
 package com.epam.ta.reportportal.core.log;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
-/**
- * * Delete {@link Log} request handler
- *
- * @author Henadzi_Vrubleuski
- */
 public interface IDeleteLogHandler {
-
-	/**
-	 * Delete Specified {@link Log} instance
-	 *
-	 * @param logId
-	 * @return
-	 * @throws ReportPortalException
-	 */
-	OperationCompletionRS deleteLog(String logId, String projectName, String userName);
+	OperationCompletionRS deleteLog(String logId, String projectName, ReportPortalUser user);
 }

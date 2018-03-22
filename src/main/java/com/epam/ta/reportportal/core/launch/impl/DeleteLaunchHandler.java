@@ -21,11 +21,14 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.IDeleteLaunchHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.store.database.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +36,14 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.store.commons.Predicates.not;
+import static com.epam.ta.reportportal.store.database.entity.project.ProjectRole.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Arrays.asList;
 
 /**
@@ -41,6 +51,7 @@ import static java.util.Arrays.asList;
  *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
+ * @author Pavel Bortnik
  */
 @Service
 public class DeleteLaunchHandler implements IDeleteLaunchHandler {
@@ -48,8 +59,6 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 	private ApplicationEventPublisher eventPublisher;
 
 	private LaunchRepository launchRepository;
-
-	private TestItemRepository itemRepository;
 
 	//	private ILogIndexer logIndexer;
 
@@ -63,42 +72,28 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 		this.launchRepository = launchRepository;
 	}
 
-	@Autowired
-	public void setItemRepository(TestItemRepository itemRepository) {
-		this.itemRepository = itemRepository;
-	}
-
 	//	@Autowired
 	//	public void setLogIndexer(ILogIndexer logIndexer) {
 	//		this.logIndexer = logIndexer;
 	//	}
 
-	//TODO replace project and user validations with new uat. Activities
-	public OperationCompletionRS deleteLaunch(Long launchId, String projectName, String principal) {
+	//TODO Analyzer, Activities
+	public OperationCompletionRS deleteLaunch(Long launchId, String projectName, ReportPortalUser user) {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-
-		//		Project project = projectRepository.findById(projectName)
-		//				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
-		//		User user = userRepository.findById(principal).get();
-		//		validate(launch, user, project);
-
+		validate(launch, user, projectName);
 		launchRepository.delete(launch);
+
 		//		logIndexer.cleanIndex(
 		//				projectName, itemRepository.selectIdsNotInIssueByLaunch(launchId, TestItemIssueType.TO_INVESTIGATE.getLocator()));
-
 		//		eventPublisher.publishEvent(new LaunchDeletedEvent(launch, principal));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully deleted.");
 	}
 
-	//TODO replace project and user validations with new uat. Analyzer indexing. Activities
-	public OperationCompletionRS deleteLaunches(Long[] ids, String projectName, String userName) {
+	//TODO Analyzer, Activities
+	public OperationCompletionRS deleteLaunches(Long[] ids, String projectName, ReportPortalUser user) {
 		List<Launch> launches = launchRepository.findAllById(asList(ids));
-
-		//		final User user = userRepository.findById(userName).get();
-		//		final Project project = projectRepository.findById(projectName).get();
-		// 		launches.forEach(launch -> validate(launch, user, project));
-
+		launches.forEach(l -> validate(l, user, projectName));
 		//		launches.forEach(launch -> logIndexer.cleanIndex(projectName,
 		//				itemRepository.selectIdsNotInIssueByLaunch(launch.getId(), TestItemIssueType.TO_INVESTIGATE.getLocator())
 		//		));
@@ -108,22 +103,17 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 		return new OperationCompletionRS("All selected launches have been successfully deleted");
 	}
 
-	//	private void validate(Launch launch, Users user, Project project) {
-	//		expect(launch.getProjectId(), equalTo(project.getName())).verify(
-	//				FORBIDDEN_OPERATION,
-	//				formattedSupplier("Target launch '{}' not under specified project '{}'", launch.getId(), project.getName())
-	//		);
-	//
-	//		expect(launch, not(l -> l.getStatus().equals(IN_PROGRESS))).verify(
-	//				LAUNCH_IS_NOT_FINISHED,
-	//				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId())
-	//		);
-	//
-	//		//TODO replace with new uat
-	//		//		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
-	//		//			/* Only PROJECT_MANAGER roles could delete launches */
-	//		//			UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, user.getId());
-	//		//			expect(userConfig, hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
-	//		//		}
-	//	}
+	private void validate(Launch launch, ReportPortalUser user, String projectName) {
+		ReportPortalUser.ProjectDetails projectDetails = EntityUtils.takeProjectDetails(user, projectName);
+		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
+				formattedSupplier("Target launch '{}' not under specified project '{}'", launch.getId(), projectName)
+		);
+		expect(launch, not(l -> l.getStatus().equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
+				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId())
+		);
+		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUserId(), launch.getUserId())) {
+			/* Only PROJECT_MANAGER roles could delete launches */
+			expect(projectDetails.getProjectRole(), equalTo(PROJECT_MANAGER)).verify(ACCESS_DENIED);
+		}
+	}
 }

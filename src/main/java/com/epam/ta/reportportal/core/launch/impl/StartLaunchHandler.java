@@ -24,14 +24,17 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.IStartLaunchHandler;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.store.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
+import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+
+import static com.epam.ta.reportportal.store.commons.EntityUtils.takeProjectDetails;
 
 /**
  * Default implementation of {@link IStartLaunchHandler}
@@ -43,18 +46,11 @@ class StartLaunchHandler implements IStartLaunchHandler {
 
 	private LaunchRepository launchRepository;
 
-	private ProjectRepository projectRepository;
-
 	private ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	public void setLaunchRepository(LaunchRepository launchRepository) {
 		this.launchRepository = launchRepository;
-	}
-
-	@Autowired
-	public void setProjectRepository(ProjectRepository projectRepository) {
-		this.projectRepository = projectRepository;
 	}
 
 	@Autowired
@@ -64,13 +60,7 @@ class StartLaunchHandler implements IStartLaunchHandler {
 
 	@Override
 	public StartLaunchRS startLaunch(ReportPortalUser user, String projectName, StartLaunchRQ startLaunchRQ) {
-		// TODO remove this logic
-		//		ProjectUser projectUser = projectRepository.selectProjectUser(projectName, username);
-		//		if (startLaunchRQ.getMode() == Mode.DEBUG) {
-		//			if (projectUser.getProjectRole() == ProjectRoleEnum.CUSTOMER) {
-		//				startLaunchRQ.setMode(Mode.DEFAULT);
-		//			}
-		//		}
+		validateRoles(user, projectName, startLaunchRQ);
 
 		Launch launch = new LaunchBuilder().addStartRQ(startLaunchRQ)
 				.addProject(user.getProjectDetails().get(projectName).getProjectId())
@@ -81,5 +71,14 @@ class StartLaunchHandler implements IStartLaunchHandler {
 		launchRepository.refresh(launch);
 		//eventPublisher.publishEvent(new LaunchStartedEvent(launch));
 		return new StartLaunchRS(launch.getId(), launch.getNumber());
+	}
+
+	private void validateRoles(ReportPortalUser user, String projectName, StartLaunchRQ startLaunchRQ) {
+		ReportPortalUser.ProjectDetails projectDetails = takeProjectDetails(user, projectName);
+		if (startLaunchRQ.getMode() == Mode.DEBUG) {
+			if (projectDetails.getProjectRole() == ProjectRole.CUSTOMER) {
+				startLaunchRQ.setMode(Mode.DEFAULT);
+			}
+		}
 	}
 }

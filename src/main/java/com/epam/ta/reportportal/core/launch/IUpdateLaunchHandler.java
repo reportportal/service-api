@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2018 EPAM Systems
  * 
  * 
  * This file is part of EPAM Report Portal.
@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.launch;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
@@ -32,6 +33,7 @@ import java.util.List;
  *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
+ * @author Pavel Bortnik
  */
 public interface IUpdateLaunchHandler {
 
@@ -40,11 +42,11 @@ public interface IUpdateLaunchHandler {
 	 *
 	 * @param launchId    ID of Launch object
 	 * @param projectName Related project name value
-	 * @param userName    Recipient user name
+	 * @param user        Recipient user
 	 * @param rq          Request Data
 	 * @return OperationCompletionRS - Response Data
 	 */
-	OperationCompletionRS updateLaunch(Long launchId, String projectName, String userName, UpdateLaunchRQ rq);
+	OperationCompletionRS updateLaunch(Long launchId, String projectName, ReportPortalUser user, UpdateLaunchRQ rq);
 
 	/**
 	 * Start launch analyzer on demand
@@ -55,5 +57,13 @@ public interface IUpdateLaunchHandler {
 	 */
 	OperationCompletionRS startLaunchAnalyzer(String projectName, Long launchId);
 
-	List<OperationCompletionRS> updateLaunch(BulkRQ<UpdateLaunchRQ> rq, String projectName, String userName);
+	/**
+	 * Bulk launch update.
+	 *
+	 * @param rq          Bulk request
+	 * @param projectName Project name
+	 * @param user        User
+	 * @return OperationCompletionRS
+	 */
+	List<OperationCompletionRS> updateLaunch(BulkRQ<UpdateLaunchRQ> rq, String projectName, ReportPortalUser user);
 }

@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationExceptio
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
@@ -95,7 +96,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				Issue issue = issueDefinition.getIssue();
 
 				IssueType issueType = issueTypeHandler.defineIssueType(
-						testItem.getItemId(), user.getProjectDetails().get(projectName).getProjectId(), issue.getIssueType());
+						testItem.getItemId(), EntityUtils.takeProjectDetails(user, projectName).getProjectId(), issue.getIssueType());
 
 				IssueEntity issueEntity = new IssueEntityBuilder(testItem.getTestItemResults().getIssue()).addIssueType(issueType)
 						.addDescription(issue.getComment())
@@ -172,11 +173,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @param testItem    Test Item
 	 */
 	private void validate(String projectName, ReportPortalUser user, TestItem testItem) {
+		ReportPortalUser.ProjectDetails projectDetails = EntityUtils.takeProjectDetails(user, projectName);
 		Launch launch = testItem.getLaunch();
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(launch.getProjectId(), equalTo(user.getProjectDetails().get(projectName).getProjectId())).verify(
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
 					ErrorType.ACCESS_DENIED, "Launch is not under the specified project.");
-			if (user.getProjectDetails().get(projectName).getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
+			if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
 				expect(user.getUserId(), equalTo(launch.getUserId())).verify(ErrorType.ACCESS_DENIED, "You are not a launch owner.");
 			}
 		}

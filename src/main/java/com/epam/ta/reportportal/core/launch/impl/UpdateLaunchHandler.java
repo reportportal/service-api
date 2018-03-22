@@ -21,26 +21,29 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.IUpdateLaunchHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.store.database.entity.enums.LaunchModeEnum;
-import com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType;
-import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
+import com.epam.ta.reportportal.store.database.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.store.commons.EntityUtils.takeProjectDetails;
 import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+import static com.epam.ta.reportportal.store.database.entity.project.ProjectRole.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
 import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
 import static java.util.stream.Collectors.toList;
 
@@ -52,8 +55,6 @@ import static java.util.stream.Collectors.toList;
  */
 @Service
 public class UpdateLaunchHandler implements IUpdateLaunchHandler {
-
-	private TestItemRepository testItemRepository;
 
 	private LaunchRepository launchRepository;
 
@@ -80,55 +81,50 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		this.launchRepository = launchRepository;
 	}
 
-	@Autowired
-	public void setTestItemRepository(TestItemRepository testItemRepository) {
-		this.testItemRepository = testItemRepository;
-	}
-
-	public OperationCompletionRS updateLaunch(Long launchId, String projectName, String userName, UpdateLaunchRQ rq) {
+	@Override
+	public OperationCompletionRS updateLaunch(Long launchId, String projectName, ReportPortalUser user, UpdateLaunchRQ rq) {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
-
-		//TODO Replace validation with new uat
-		//validate(launch, userName, projectName, rq.getMode());
-
+		validate(launch, user, projectName, rq.getMode());
 		launch = new LaunchBuilder(launch).addMode(rq.getMode()).addDescription(rq.getDescription()).addTags(rq.getTags()).get();
-
 		//reindexLogs(launch);
 		launchRepository.save(launch);
 		return new OperationCompletionRS("Launch with ID = '" + launch.getId() + "' successfully updated.");
 	}
 
-	public OperationCompletionRS startLaunchAnalyzer(String projectName, Long launchId) {
-		//		expect(analyzerService.hasAnalyzers(), Predicate.isEqual(true)).verify(
-		//				ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer services are deployed.");
-
-		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
-
-		/* Do not process debug launches */
-		expect(launch.getMode(), equalTo(LaunchModeEnum.DEFAULT)).verify(INCORRECT_REQUEST, "Cannot analyze launches in debug mode.");
-
-		//TODO Refactor with new uat
-		//				expect(launch.getProjectRef(), equalTo(projectName)).verify(FORBIDDEN_OPERATION,
-		//						Suppliers.formattedSupplier("Launch with ID '{}' is not under '{}' project.", launchId, projectName)
-		//				);
-		//				Project project = projectRepository.findOne(projectName);
-		//				expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
-
-		List<TestItem> toInvestigate = testItemRepository.selectItemsInIssueByLaunch(
-				launchId, TestItemIssueType.TO_INVESTIGATE.getLocator());
-
-		//taskExecutor.execute(() -> analyzerService.analyze(launch, toInvestigate));
-
-		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launchId + "' started.");
-	}
-
-	public List<OperationCompletionRS> updateLaunch(BulkRQ<UpdateLaunchRQ> rq, String projectName, String userName) {
+	@Override
+	public List<OperationCompletionRS> updateLaunch(BulkRQ<UpdateLaunchRQ> rq, String projectName, ReportPortalUser user) {
 		return rq.getEntities()
 				.entrySet()
 				.stream()
-				.map(entry -> updateLaunch(entry.getKey(), projectName, userName, entry.getValue()))
+				.map(entry -> updateLaunch(entry.getKey(), projectName, user, entry.getValue()))
 				.collect(toList());
+	}
+
+	@Override
+	public OperationCompletionRS startLaunchAnalyzer(String projectName, Long launchId) {
+		//		//		expect(analyzerService.hasAnalyzers(), Predicate.isEqual(true)).verify(
+		//		//				ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer services are deployed.");
+		//
+		//		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+		//
+		//		/* Do not process debug launches */
+		//		expect(launch.getMode(), equalTo(LaunchModeEnum.DEFAULT)).verify(INCORRECT_REQUEST, "Cannot analyze launches in debug mode.");
+		//
+		//		//TODO Refactor with new uat
+		//		//				expect(launch.getProjectRef(), equalTo(projectName)).verify(FORBIDDEN_OPERATION,
+		//		//						Suppliers.formattedSupplier("Launch with ID '{}' is not under '{}' project.", launchId, projectName)
+		//		//				);
+		//		//				Project project = projectRepository.findOne(projectName);
+		//		//				expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
+		//
+		//		List<TestItem> toInvestigate = testItemRepository.selectItemsInIssueByLaunch(
+		//				launchId, TestItemIssueType.TO_INVESTIGATE.getLocator());
+		//
+		//		//taskExecutor.execute(() -> analyzerService.analyze(launch, toInvestigate));
+		//
+		//		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launchId + "' started.");
+		return new OperationCompletionRS("Not yet");
 	}
 
 	//	/**
@@ -148,31 +144,21 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	//		}
 	//	}
 
-	private void validate(Launch launch, String userName, String projectName, LaunchModeEnum mode) {
-		//		// BusinessRule.expect(launch.getUserRef(),
-		//		// Predicates.notNull()).verify(ErrorType.ACCESS_DENIED);
-		//		String launchOwner = launch.getUserRef();
-		//		User principal = userRepository.findOne(userName);
-		//		Project project = projectRepository.findOne(projectName);
-		//		if ((findUserConfigByLogin(project, userName).getProjectRole() == CUSTOMER) && (null != mode)) {
-		//			expect(mode, equalTo(DEFAULT)).verify(ACCESS_DENIED);
-		//		}
-		//		if (principal.getRole() != ADMINISTRATOR) {
-		//			expect(launch.getProjectRef(), equalTo(projectName)).verify(ACCESS_DENIED);
-		//			if ((null == launchOwner) || (!launchOwner.equalsIgnoreCase(userName))) {
-		//				/*
-		//				 * Only PROJECT_MANAGER roles could move launches
-		//				 * to/from DEBUG mode
-		//				 */
-		//				UserConfig userConfig = findUserConfigByLogin(project, userName);
-		//				expect(userConfig, Preconditions.hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
-		//			} else {
-		//				/*
-		//				 * Only owner could change launch mode
-		//				 */
-		//				expect(userName, equalTo(launchOwner)).verify(ACCESS_DENIED);
-		//			}
-		//		}
+	private void validate(Launch launch, ReportPortalUser user, String projectName, Mode mode) {
+		ReportPortalUser.ProjectDetails projectDetails = takeProjectDetails(user, projectName);
+		if (projectDetails.getProjectRole() == ProjectRole.CUSTOMER && null != mode) {
+			expect(mode, equalTo(Mode.DEFAULT)).verify(ACCESS_DENIED);
+		}
+		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
+			if (!Objects.equals(launch.getUserId(), user.getUserId())) {
+				/*
+				 * Only PROJECT_MANAGER roles could move launches
+				 * to/from DEBUG mode
+				 */
+				expect(projectDetails.getProjectRole(), equalTo(PROJECT_MANAGER)).verify(ACCESS_DENIED);
+			}
+		}
 	}
 
 }

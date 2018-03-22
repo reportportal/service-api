@@ -21,10 +21,14 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.log.ICreateLogHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.store.commons.Preconditions;
+import com.epam.ta.reportportal.store.commons.Predicates;
 import com.epam.ta.reportportal.store.database.dao.LogRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.entity.enums.LogLevel;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.log.Log;
 import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
@@ -35,6 +39,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Nonnull;
+
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 /**
  * Create log handler. Save log and binary data related to it
@@ -93,20 +99,17 @@ public class CreateLogHandler implements ICreateLogHandler {
 	/**
 	 * Validates business rules related to test item of this log
 	 *
-	 * @param testItem
+	 * @param testItem  Test item
+	 * @param saveLogRQ Save log request
 	 */
 	protected void validate(TestItem testItem, SaveLogRQ saveLogRQ) {
-		//		BusinessRule.expect(
-		//				testItem.getStartTime().before(saveLogRQ.getLogTime()) || testItem.getStartTime().equals(saveLogRQ.getLogTime()),
-		//				Predicates.equalTo(Boolean.TRUE)
-		//		).verify(
-		//				ErrorType.LOGGING_IS_NOT_ALLOWED,
-		//				Suppliers.formattedSupplier("Log has incorrect log time. Log time should be after parent item's start time.")
-		//		);
-		//
-		//		BusinessRule.expect(LogLevel.toLevelOrUnknown(saveLogRQ.getLevel()), Predicates.notNull()).verify(
-		//				ErrorType.BAD_SAVE_LOG_REQUEST,
-		//				Suppliers.formattedSupplier("Cannot convert '{}' to valid 'LogLevel'", saveLogRQ.getLevel())
-		//		);
+		expect(saveLogRQ.getLogTime(), Preconditions.sameTimeOrLater(testItem.getStartTime())).verify(
+				ErrorType.LOGGING_IS_NOT_ALLOWED,
+				Suppliers.formattedSupplier("Log has incorrect log time. Log time should be after parent item's start time.")
+		);
+		expect(LogLevel.toLevelOrUnknown(saveLogRQ.getLevel()), Predicates.notNull()).verify(
+				ErrorType.BAD_SAVE_LOG_REQUEST,
+				Suppliers.formattedSupplier("Cannot convert '{}' to valid 'LogLevel'", saveLogRQ.getLevel())
+		);
 	}
 }

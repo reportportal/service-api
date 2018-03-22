@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2018 EPAM Systems
  * 
  * 
  * This file is part of EPAM Report Portal.
@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.IFinishLaunchHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.Preconditions;
@@ -29,6 +30,7 @@ import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.store.database.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -40,15 +42,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.store.commons.EntityUtils.takeProjectDetails;
 import static com.epam.ta.reportportal.store.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.store.commons.Predicates.not;
 import static com.epam.ta.reportportal.store.database.entity.enums.StatusEnum.*;
+import static com.epam.ta.reportportal.store.database.entity.project.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -56,7 +61,7 @@ import static java.util.stream.Collectors.toList;
 /**
  * Default implementation of {@link IFinishLaunchHandler}
  *
- * @author Andrei_Ramanchuk
+ * @author Pave Bortnik
  */
 @Service
 @Transactional
@@ -86,16 +91,14 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		this.eventPublisher = eventPublisher;
 	}
 
-	//	@Autowired
-	//	private StatisticsFacadeFactory statisticsFacadeFactory;
-
 	@Override
-	public OperationCompletionRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String username) {
-		//TODO validate roles with new uat
-
+	public OperationCompletionRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, String projectName, ReportPortalUser user) {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
+
+		validateRoles(launch, user, projectName);
 		validate(launch, finishLaunchRQ);
+
 		launch = new LaunchBuilder(launch).addDescription(finishLaunchRQ.getDescription()).addTags(finishLaunchRQ.getTags()).get();
 
 		Optional<StatusEnum> statusEnum = fromValue(finishLaunchRQ.getStatus());
@@ -112,33 +115,12 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully finished.");
 	}
 
-	private void validateProvidedStatus(Launch launch, StatusEnum providedStatus, StatusEnum fromStatisticsStatus) {
-		/* Validate provided status */
-		expect(providedStatus, not(statusIn(IN_PROGRESS, SKIPPED))).verify(INCORRECT_FINISH_STATUS,
-				formattedSupplier("Cannot finish launch '{}' with status '{}'", launch.getId(), providedStatus)
-		);
-		if (PASSED.equals(providedStatus)) {
-				/* Validate actual launch status */
-			expect(launch.getStatus(), statusIn(IN_PROGRESS, PASSED)).verify(INCORRECT_FINISH_STATUS,
-					formattedSupplier("Cannot finish launch '{}' with current status '{}' as 'PASSED'", launch.getId(), launch.getStatus())
-			);
-				/*
-				 * Calculate status from launch statistics and validate it
-				 */
-			expect(fromStatisticsStatus, statusIn(IN_PROGRESS, PASSED)).verify(INCORRECT_FINISH_STATUS,
-					formattedSupplier("Cannot finish launch '{}' with calculated automatically status '{}' as 'PASSED'", launch.getId(),
-							fromStatisticsStatus
-					)
-			);
-		}
-	}
-
 	@Override
-	public OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, String projectName, String userName) {
+	public OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, String projectName, ReportPortalUser user) {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 
-		//validateRoles(launch, userName, projectName)
+		validateRoles(launch, user, projectName);
 
 		expect(launch.getStatus(), statusIn(IN_PROGRESS)).verify(FINISH_LAUNCH_NOT_ALLOWED,
 				formattedSupplier("Launch '{}' already finished with status '{}'", launch.getId(), launch.getStatus())
@@ -157,11 +139,11 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 	}
 
 	@Override
-	public List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, String projectName, String userName) {
+	public List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, String projectName, ReportPortalUser user) {
 		return bulkRQ.getEntities()
 				.entrySet()
 				.stream()
-				.map(entry -> stopLaunch(entry.getKey(), entry.getValue(), projectName, userName))
+				.map(entry -> stopLaunch(entry.getKey(), entry.getValue(), projectName, user))
 				.collect(toList());
 	}
 
@@ -181,19 +163,29 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		);
 	}
 
-	//	private Project validateRoles(Launch launch, String userName, String projectName) {
-	//		ProjectUser projectUser = projectRepository.selectProjectUser(projectName, userName);
-	//		expect(projectUser, notNull()).verify(PROJECT_NOT_FOUND, projectName);
-	//
-	//		if (projectUser.getUser().getRole() != ADMINISTRATOR && !Objects.equals(launch.getUserId(), projectUser.getUser().getId())) {
-	//			expect(launch.getProjectId(), equalTo(projectUser.getProject().getId())).verify(ACCESS_DENIED);
-	//				/*
-	//				 * Only PROJECT_MANAGER roles could delete launches
-	//				 */
-	//
-	//			UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, user.getId());
-	//			expect(userConfig, hasProjectRoles(Collections.singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
-	//		}
-	//		return project;
-	//	}
+	private void validateRoles(Launch launch, ReportPortalUser user, String projectName) {
+		ReportPortalUser.ProjectDetails projectDetails = takeProjectDetails(user, projectName);
+		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(launch.getUserId(), user.getUserId())) {
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
+			expect(projectDetails.getProjectRole(), equalTo(PROJECT_MANAGER)).verify(ACCESS_DENIED);
+		}
+	}
+
+	private void validateProvidedStatus(Launch launch, StatusEnum providedStatus, StatusEnum fromStatisticsStatus) {
+		/* Validate provided status */
+		expect(providedStatus, not(statusIn(IN_PROGRESS, SKIPPED))).verify(INCORRECT_FINISH_STATUS,
+				formattedSupplier("Cannot finish launch '{}' with status '{}'", launch.getId(), providedStatus)
+		);
+		if (PASSED.equals(providedStatus)) {
+			/* Validate actual launch status */
+			expect(launch.getStatus(), statusIn(IN_PROGRESS, PASSED)).verify(INCORRECT_FINISH_STATUS,
+					formattedSupplier("Cannot finish launch '{}' with current status '{}' as 'PASSED'", launch.getId(), launch.getStatus())
+			);
+			expect(fromStatisticsStatus, statusIn(IN_PROGRESS, PASSED)).verify(INCORRECT_FINISH_STATUS,
+					formattedSupplier("Cannot finish launch '{}' with calculated automatically status '{}' as 'PASSED'", launch.getId(),
+							fromStatisticsStatus
+					)
+			);
+		}
+	}
 }

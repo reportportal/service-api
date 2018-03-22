@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.log.ICreateLogHandler;
@@ -37,7 +38,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,7 +50,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.Path;
 import javax.validation.Validator;
-import java.security.Principal;
 import java.util.*;
 
 import static org.springframework.http.HttpStatus.CREATED;
@@ -81,16 +83,19 @@ public class LogController {
 	}
 
 	@RequestMapping(method = RequestMethod.POST, consumes = { MediaType.APPLICATION_JSON_VALUE })
+	@Transactional
 	@ResponseBody
 	@ResponseStatus(CREATED)
 	@ApiOperation("Create log")
 	//@PreAuthorize(ALLOWED_TO_REPORT)
-	public EntryCreatedRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ, Principal principal) {
+	public EntryCreatedRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ, @AuthenticationPrincipal
+			ReportPortalUser user) {
 		validateSaveRQ(createLogRQ);
 		return createLogMessageHandler.createLog(createLogRQ, null, EntityUtils.normalizeId(projectName));
 	}
 
 	@RequestMapping(method = RequestMethod.POST, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+	@Transactional
 	@ResponseBody
 	// @ApiOperation("Create log (batching operation)")
 	// Specific handler should be added for springfox in case of similar POST
@@ -99,7 +104,7 @@ public class LogController {
 	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectName,
 			@RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs, HttpServletRequest request,
-			Principal principal) {
+			@AuthenticationPrincipal ReportPortalUser user) {
 
 		String prjName = EntityUtils.normalizeId(projectName);
 		/*
@@ -119,7 +124,7 @@ public class LogController {
 					 * There is no filename in request. Use simple save
 					 * method
 					 */
-					responseItem = createLog(prjName, createLogRq, principal);
+					responseItem = createLog(prjName, createLogRq, user);
 
 				} else {
 					/* Find by request part */
@@ -147,8 +152,8 @@ public class LogController {
 	@RequestMapping(value = "/{logId}", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ApiOperation("Delete log")
-	public OperationCompletionRS deleteLog(@PathVariable String projectName, @PathVariable String logId, Principal principal) {
-		return deleteLogMessageHandler.deleteLog(logId, EntityUtils.normalizeId(projectName), principal.getName());
+	public OperationCompletionRS deleteLog(@PathVariable String projectName, @PathVariable String logId, @AuthenticationPrincipal ReportPortalUser user) {
+		return deleteLogMessageHandler.deleteLog(logId, EntityUtils.normalizeId(projectName), user);
 	}
 
 	//	

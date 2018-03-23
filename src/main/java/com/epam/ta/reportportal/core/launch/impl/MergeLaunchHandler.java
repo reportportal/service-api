@@ -127,8 +127,9 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 		Set<String> launchesIds = rq.getLaunches();
 		expect(launchesIds.size() > 1, equalTo(true)).verify(BAD_REQUEST_ERROR, rq.getLaunches());
 		List<Launch> launchesList = launchRepository.find(launchesIds);
-		boolean hasRetries = launchesList.stream().anyMatch(it -> it.getHasRetries() != null);
+		
 		validateMergingLaunches(launchesList, user, project);
+		boolean hasRetries = launchesList.stream().anyMatch(it -> it.getHasRetries() != null);
 
 		Launch launch = createResultedLaunch(projectName, userName, rq, hasRetries, launchesList);
 		boolean isNameChanged = !launch.getName().equals(launchesList.get(0).getName());

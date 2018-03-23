@@ -362,7 +362,7 @@ public class SecurityConfiguration {
 				Collection<GrantedAuthority> authorities = user.getAuthorities();
 
 				Long userId = map.containsKey("userId") ? parseId(map.get("userId")) : null;
-				UserRole userRole = map.containsKey("userRole") ? (UserRole) map.get("userRole") : null;
+				UserRole userRole = map.containsKey("userRole") ? UserRole.valueOf(map.get("userRole").toString()) : null;
 				Map<String, Map> projects = map.containsKey("projects") ? (Map) map.get("projects") : Collections.emptyMap();
 
 				Map<String, ReportPortalUser.ProjectDetails> collect = projects.entrySet()

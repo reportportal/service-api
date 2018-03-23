@@ -86,7 +86,7 @@ public class Launch implements Serializable {
 	@Type(type = "pqsql_enum")
 	private StatusEnum status;
 
-	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
 	@JoinColumn(name = "launch_id")
 	private Set<LaunchTag> tags = Sets.newHashSet();
 
@@ -196,8 +196,7 @@ public class Launch implements Serializable {
 		}
 		Launch launch = (Launch) o;
 		return Objects.equals(id, launch.id) && Objects.equals(projectId, launch.projectId) && Objects.equals(userId, launch.userId)
-				&& Objects.equals(name, launch.name) && Objects.equals(description, launch.description) && Objects.equals(
-				startTime,
+				&& Objects.equals(name, launch.name) && Objects.equals(description, launch.description) && Objects.equals(startTime,
 				launch.startTime
 		) && Objects.equals(number, launch.number) && Objects.equals(lastModified, launch.lastModified) && mode == launch.mode
 				&& status == launch.status && Objects.equals(tags, launch.tags);

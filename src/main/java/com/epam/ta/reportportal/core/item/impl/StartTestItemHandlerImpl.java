@@ -100,6 +100,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId.toString()));
 		Launch launch = launchRepository.findById(rq.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
+		validateProject(user, projectName);
 		validate(rq, parentItem);
 
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addLaunch(launch).addParent(parentItem.getTestItemStructure()).get();
@@ -141,5 +142,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		expect(logRepository.hasLogs(parent.getItemId()), equalTo(false)).verify(START_ITEM_NOT_ALLOWED,
 				formattedSupplier("Parent Item '{}' already has log items", parent.getItemId())
 		);
+	}
+
+	private void validateProject(ReportPortalUser user, String projectName) {
+		EntityUtils.takeProjectDetails(user, projectName);
 	}
 }

@@ -26,6 +26,7 @@ import com.github.mongobee.changeset.ChangeSet;
 import com.google.common.collect.Lists;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -104,4 +105,22 @@ public class ChangeSets_4_0 {
 		mongoTemplate.createCollection("logIndexingCheckpoint");
 	}
 
+	@ChangeSet(order = "4.0-4", id = "v4.1-Update metadata project names to lower case", author = "pbortnik")
+	public void updateAttachmentsMetadata(MongoTemplate mongoTemplate) {
+		String collection = "fs.files";
+		Query q = query(where("metadata.project").exists(true));
+		q.fields().include("_id");
+		q.fields().include("metadata.project");
+		mongoTemplate.stream(q, DBObject.class, collection).forEachRemaining(o -> {
+			Map<String, String> metadata = (Map<String, String>) o.get("metadata");
+			String project = metadata.get("project");
+			if (null != project && !StringUtils.isAllLowerCase(project)) {
+				String inLower = project.toLowerCase();
+				Update update = new Update();
+				update.set("metadata.project", inLower);
+				mongoTemplate.updateFirst(query(where("_id").is(o.get("_id"))), update, collection);
+			}
+		});
+
+	}
 }

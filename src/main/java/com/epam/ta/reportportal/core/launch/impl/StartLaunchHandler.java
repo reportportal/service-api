@@ -67,7 +67,8 @@ class StartLaunchHandler implements IStartLaunchHandler {
 				.addUser(user.getUserId())
 				.addTags(startLaunchRQ.getTags())
 				.get();
-		launchRepository.save(launch);
+		launchRepository.saveAndFlush(launch);
+		launchRepository.refresh(launch);
 		//eventPublisher.publishEvent(new LaunchStartedEvent(launch));
 		return new StartLaunchRS(launch.getId(), launch.getNumber());
 	}

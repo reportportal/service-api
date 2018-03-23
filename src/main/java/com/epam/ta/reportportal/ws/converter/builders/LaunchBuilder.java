@@ -33,7 +33,6 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -84,7 +83,7 @@ public class LaunchBuilder implements Supplier<Launch> {
 
 	public LaunchBuilder addTag(String tag) {
 		Preconditions.checkNotNull(tag, "Provided value should not be null");
-		Set<LaunchTag> newTags = Optional.ofNullable(launch.getTags()).orElse(Sets.newHashSet());
+		Set<LaunchTag> newTags = Sets.newHashSet(launch.getTags());
 		newTags.add(new LaunchTag(tag));
 		launch.setTags(newTags);
 		return this;

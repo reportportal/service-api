@@ -23,7 +23,6 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.database.entity.AuthType;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
-import com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType;
 import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +43,7 @@ public class ExternalSystemBuilder extends Builder<ExternalSystem> {
 
 	public ExternalSystemBuilder addExternalSystem(CreateExternalSystemRQ request, String rpProject) {
 		// TODO null check
-		getObject().setExternalSystemType(ExternalSystemType.findByName(request.getExternalSystemType()).orElse(null));
+		getObject().setExternalSystemType(request.getExternalSystemType());
 		getObject().setUrl(request.getUrl());
 		getObject().setExternalSystemAuth(AuthType.findByName(request.getExternalSystemAuth()));
 		getObject().setProjectRef(rpProject);

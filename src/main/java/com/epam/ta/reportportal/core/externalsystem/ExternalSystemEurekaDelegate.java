@@ -23,7 +23,6 @@ package com.epam.ta.reportportal.core.externalsystem;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
-import com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
@@ -55,7 +54,7 @@ public class ExternalSystemEurekaDelegate implements ExternalSystemStrategy {
 		this.eurekaTemplate = eurekaTemplate;
 	}
 
-	void checkAvailable(ExternalSystemType systemType) {
+	void checkAvailable(String systemType) {
 		getServiceInstance(systemType);
 	}
 
@@ -100,8 +99,8 @@ public class ExternalSystemEurekaDelegate implements ExternalSystemStrategy {
 		).getBody();
 	}
 
-	private ServiceInstance getServiceInstance(ExternalSystemType externalSystem) {
-		String externalSystemType = externalSystem.name().toLowerCase();
+	private ServiceInstance getServiceInstance(String externalSystem) {
+		String externalSystemType = externalSystem.toLowerCase();
 
 		Optional<ServiceInstance> delegate = discoveryClient.getServices()
 				.stream()

@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
+import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.Status;
@@ -99,11 +100,7 @@ public class LaunchFinishedEventHandler {
 		afterFinishLaunch(event.getProject(), event.getLaunch());
 	}
 
-	private void afterFinishLaunch(final Project project, final Launch launch) { // NOSONAR
-
-		/* Should we send email right now or wait till AA is finished? */
-		boolean waitForAutoAnalysis;
-
+	private void afterFinishLaunch(final Project project, final Launch launch) {
 		/* Avoid NULL object processing */
 		if (null == project || null == launch) {
 			return;
@@ -111,9 +108,6 @@ public class LaunchFinishedEventHandler {
 
 		retriesLaunchHandler.handleRetries(launch);
 		Optional<EmailService> emailService = emailServiceFactory.getDefaultEmailService(project.getConfiguration().getEmailConfig());
-
-		/* If AA enabled then waiting results processing */
-		waitForAutoAnalysis = BooleanUtils.toBoolean(project.getConfiguration().getIsAutoAnalyzerEnabled());
 
 		// Do not process debug launches.
 		if (Mode.DEBUG.equals(launch.getMode())) {
@@ -123,26 +117,20 @@ public class LaunchFinishedEventHandler {
 		logIndexer.indexLogs(launch.getId(), testItemRepository.findTestItemWithIssues(launch.getId()));
 
 		/* If email enabled and AA disabled then send results immediately */
-		if (!waitForAutoAnalysis) {
+		if (!BooleanUtils.toBoolean(project.getConfiguration().getIsAutoAnalyzerEnabled())) {
 			emailService.ifPresent(service -> sendEmailRightNow(launch, project, service));
-		}
-
-		if (!project.getConfiguration().getIsAutoAnalyzerEnabled()) {
 			return;
 		}
 
 		List<TestItem> toInvestigateItems = testItemRepository.findInIssueTypeItems(TestItemIssueType.TO_INVESTIGATE.getLocator(),
 				launch.getId()
 		);
-
-		analyzerService.analyze(launch, toInvestigateItems);
-
-		/* Previous email sending cycle was skipped due waiting AA results */
-		if (waitForAutoAnalysis) {
-			// Get launch with AA results
-			Launch freshLaunch = launchRepository.findOne(launch.getId());
-			emailService.ifPresent(it -> sendEmailRightNow(freshLaunch, project, it));
-		}
+		analyzerService.analyze(launch, toInvestigateItems,
+				Optional.ofNullable(project.getConfiguration().getAnalyzerMode()).orElse(AnalyzeMode.BY_LAUNCH_NAME)
+		);
+		// Get launch with AA results
+		Launch freshLaunch = launchRepository.findOne(launch.getId());
+		emailService.ifPresent(it -> sendEmailRightNow(freshLaunch, project, it));
 	}
 
 	/**

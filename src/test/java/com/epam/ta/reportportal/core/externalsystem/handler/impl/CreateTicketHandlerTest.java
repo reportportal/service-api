@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType;
 import com.epam.ta.reportportal.events.TicketPostedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
@@ -140,7 +139,7 @@ public class CreateTicketHandlerTest {
 		when(projectRepository.findByName(PROJECT_ID)).thenReturn(project());
 		when(externalSystemRepository.findOne(EXTERNAL_SYSTEM_ID)).thenReturn(null);
 		exception.expect(ReportPortalException.class);
-		exception.expectMessage("ExternalSystem with ID '" + EXTERNAL_SYSTEM_ID +"' not found. Did you use correct ExternalSystem ID?");
+		exception.expectMessage("ExternalSystem with ID '" + EXTERNAL_SYSTEM_ID + "' not found. Did you use correct ExternalSystem ID?");
 		createTicketHandler.createIssue(postTicketRQ, PROJECT_ID, EXTERNAL_SYSTEM_ID, "user");
 	}
 
@@ -167,7 +166,7 @@ public class CreateTicketHandlerTest {
 		ExternalSystem externalSystem = externalSystem();
 		when(externalSystemRepository.findOne(EXTERNAL_SYSTEM_ID)).thenReturn(externalSystem);
 		ExternalSystemStrategy strategy = mock(ExternalSystemStrategy.class);
-		when(strategyProvider.getStrategy(externalSystem.getExternalSystemType().name())).thenReturn(strategy);
+		when(strategyProvider.getStrategy(externalSystem.getExternalSystemType())).thenReturn(strategy);
 		when(strategy.submitTicket(postTicketRQ, externalSystem)).thenReturn(ticket());
 
 		createTicketHandler.createIssue(postTicketRQ, PROJECT_ID, EXTERNAL_SYSTEM_ID, "user");
@@ -214,7 +213,7 @@ public class CreateTicketHandlerTest {
 	private ExternalSystem externalSystem() {
 		ExternalSystem externalSystem = new ExternalSystem();
 		externalSystem.setId(EXTERNAL_SYSTEM_ID);
-		externalSystem.setExternalSystemType(ExternalSystemType.JIRA);
+		externalSystem.setExternalSystemType("JIRA");
 		externalSystem.setFields(Collections.emptyList());
 		return externalSystem;
 	}

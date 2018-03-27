@@ -123,6 +123,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			try {
 				TestItem testItem = testItemRepository.findOne(issueDefinition.getId());
 				verifyTestItem(testItem, issueDefinition.getId());
+				TestItem before = SerializationUtils.clone(testItem);
 
 				//if item is updated then it is no longer auto analyzed
 				issueDefinition.getIssue().setAutoAnalyzed(false);
@@ -173,6 +174,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 					} else {
 						issuesFromDB.removeAll(newHashSet(Sets.difference(issuesFromDB, issuesFromRequest)));
 						testItemIssue.setExternalSystemIssues(issuesFromDB);
+						eventPublisher.publishEvent(
+								new TicketAttachedEvent(singletonList(before), singletonList(testItem), userName, projectName));
 					}
 				}
 
@@ -230,6 +233,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 					tiIssues.addAll(testItem.getIssue().getExternalSystemIssues());
 					testItem.getIssue().setExternalSystemIssues(tiIssues);
 				}
+				testItem.getIssue().setAutoAnalyzed(false);
 			} catch (BusinessRuleViolationException e) {
 				errors.add(e.getMessage());
 			}

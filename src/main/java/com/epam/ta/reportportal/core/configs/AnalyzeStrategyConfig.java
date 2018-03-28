@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  *
  *
  * This file is part of EPAM Report Portal.
@@ -21,7 +21,8 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.core.item.merge.strategy.*;
+import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
+import com.epam.ta.reportportal.core.analyzer.strategy.*;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -30,22 +31,29 @@ import org.springframework.context.annotation.Configuration;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author Pavel Bortnik
+ */
 @Configuration
-public class MergeStrategyConfig {
+public class AnalyzeStrategyConfig {
+
 	@Autowired
 	private TestItemRepository testItemRepository;
 
+	@Autowired
+	private ILogIndexer logIndexer;
+
 	@Bean
-	public Map<MergeStrategyType, MergeStrategy> mergeTypeMapping() {
-		Map<MergeStrategyType, MergeStrategy> mapping = new HashMap<>();
-		mapping.put(MergeStrategyType.TEST, new TestMergeStrategy(testItemRepository));
-		mapping.put(MergeStrategyType.SUITE, new SuiteMergeStrategy(testItemRepository));
-		mapping.put(MergeStrategyType.DEEP, new DeepMergeStrategy(testItemRepository));
+	public Map<AnalyzeItemsMode, AnalyzeItemsStrategy> analyzerModeMapping() {
+		Map<AnalyzeItemsMode, AnalyzeItemsStrategy> mapping = new HashMap<>();
+		mapping.put(AnalyzeItemsMode.TO_INVESTIGATE, new ToInvestigateStrategy(testItemRepository));
+		mapping.put(AnalyzeItemsMode.AUTO_ANALYZED, new AutoAnalyzedStrategy(testItemRepository, logIndexer));
+		mapping.put(AnalyzeItemsMode.MANUALLY_ANALYZED, new ManuallyAnalyzedStrategy(testItemRepository, logIndexer));
 		return mapping;
 	}
 
 	@Bean
-	public MergeStrategyFactory mergeStrategyFactory() {
-		return new MergeStrategyFactory(mergeTypeMapping());
+	public AnalyzeStrategyFactory analyzeStrategyFactory() {
+		return new AnalyzeStrategyFactory(analyzerModeMapping());
 	}
 }

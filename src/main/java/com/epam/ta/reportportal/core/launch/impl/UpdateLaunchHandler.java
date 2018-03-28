@@ -26,6 +26,8 @@ import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
+import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeStrategyFactory;
 import com.epam.ta.reportportal.core.launch.IUpdateLaunchHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
@@ -40,6 +42,7 @@ import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.google.common.collect.Sets;
@@ -88,6 +91,9 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	private IIssuesAnalyzer analyzerService;
 
 	@Autowired
+	private AnalyzeStrategyFactory analyzeStrategyFactory;
+
+	@Autowired
 	private ILogIndexer logIndexer;
 
 	@Autowired
@@ -123,15 +129,15 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	}
 
 	@Override
-	public OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId, String mode) {
+	public OperationCompletionRS startLaunchAnalyzer(String projectName, AnalyzeLaunchRQ analyzeRQ) {
 		expect(analyzerService.hasAnalyzers(), Predicate.isEqual(true)).verify(
 				ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer services are deployed.");
-		AnalyzeMode analyzeMode = AnalyzeMode.fromString(mode);
-		Launch launch = launchRepository.findOne(launchId);
-		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launchId);
+		AnalyzeMode analyzeMode = AnalyzeMode.fromString(analyzeRQ.getAnalyzerHistoryMode());
+		Launch launch = launchRepository.findOne(analyzeRQ.getLaunchId());
+		expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, analyzeRQ.getLaunchId());
 
 		expect(launch.getProjectRef(), equalTo(projectName)).verify(FORBIDDEN_OPERATION,
-				Suppliers.formattedSupplier("Launch with ID '{}' is not under '{}' project.", launchId, projectName)
+				Suppliers.formattedSupplier("Launch with ID '{}' is not under '{}' project.", analyzeRQ.getLaunchId(), projectName)
 		);
 
 		/* Do not process debug launches */
@@ -140,11 +146,11 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		Project project = projectRepository.findOne(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
-		List<TestItem> toInvestigate = testItemRepository.findInIssueTypeItems(TO_INVESTIGATE.getLocator(), launchId);
+		List<TestItem> items = collectItemsByModes(projectName, launch.getId(), analyzeRQ.getAnalyzeItemsMode());
 
-		taskExecutor.execute(() -> analyzerService.analyze(launch, toInvestigate, analyzeMode));
+		taskExecutor.execute(() -> analyzerService.analyze(launch, items, analyzeMode));
 
-		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launchId + "' started.");
+		return new OperationCompletionRS("Auto-analyzer for launch ID='" + analyzeRQ.getLaunchId() + "' started.");
 	}
 
 	@Override
@@ -153,6 +159,14 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 				.entrySet()
 				.stream()
 				.map(entry -> updateLaunch(entry.getKey(), projectName, userName, entry.getValue()))
+				.collect(toList());
+	}
+
+	private List<TestItem> collectItemsByModes(String project, String launchId, List<String> analyzeItemsMode) {
+		return analyzeItemsMode.stream()
+				.map(AnalyzeItemsMode::fromString)
+				.flatMap(it -> analyzeStrategyFactory.getStrategy(it).getItems(project, launchId).stream())
+				.distinct()
 				.collect(toList());
 	}
 

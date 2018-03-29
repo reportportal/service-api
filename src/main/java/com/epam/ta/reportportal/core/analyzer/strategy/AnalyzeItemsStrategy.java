@@ -28,6 +28,7 @@ import java.util.List;
 /**
  * @author Pavel Bortnik
  */
+@FunctionalInterface
 public interface AnalyzeItemsStrategy {
 
 	List<TestItem> getItems(String project, String launchId);

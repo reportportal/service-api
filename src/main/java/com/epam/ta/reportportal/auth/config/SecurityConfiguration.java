@@ -200,7 +200,7 @@ public class SecurityConfiguration {
                     	.secret("{bcrypt}$2a$10$ka8W./nA2Uiqsd2uOzazdu2lMbipaMB6RJNInB1Y0NMKQzj7plsie")
                     	.authorizedGrantTypes("refresh_token", "password")
                     	.scopes("ui")
-						.accessTokenValiditySeconds(500)
+						.accessTokenValiditySeconds(5000)
                     .and()
                     .withClient(ReportPortalClient.api.name())
                     	.secret("apiman")

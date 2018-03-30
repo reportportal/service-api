@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.store.database.dao;
 
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -31,4 +32,8 @@ import java.util.Optional;
 public interface BugTrackingSystemRepository extends ReportPortalRepository<BugTrackingSystem, Integer>, BugTrackingSystemRepositoryCustom {
 
 	Optional<BugTrackingSystem> findByUrlAndBtsProjectAndProjectId(String url, String btsProject, Long projectId);
+
+	Optional<BugTrackingSystem> findByIdAndProjectId(Integer id, Long projectId);
+
+	List<BugTrackingSystem> findAllByProjectId(Long projectId);
 }

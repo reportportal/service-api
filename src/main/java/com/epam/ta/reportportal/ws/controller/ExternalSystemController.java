@@ -23,9 +23,11 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.externalsystem.handler.ICreateExternalSystemHandler;
+import com.epam.ta.reportportal.core.externalsystem.handler.IDeleteExternalSystemHandler;
 import com.epam.ta.reportportal.core.externalsystem.handler.IGetExternalSystemHandler;
 import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
 import io.swagger.annotations.ApiOperation;
@@ -59,8 +61,8 @@ public class ExternalSystemController {
 	@Autowired
 	private ICreateExternalSystemHandler createExternalSystemHandler;
 
-	//	@Autowired
-	//	private IDeleteExternalSystemHandler deleteExternalSystemHandler;
+	@Autowired
+	private IDeleteExternalSystemHandler deleteExternalSystemHandler;
 	//
 	//	@Autowired
 	//	private IUpdateExternalSystemHandler updateExternalSystemHandler;
@@ -88,27 +90,28 @@ public class ExternalSystemController {
 			@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
 		return getExternalSystemHandler.getExternalSystem(EntityUtils.normalizeId(projectName), systemId);
 	}
-	//
-	//
-	//	@RequestMapping(value = "/{systemId}", method = RequestMethod.DELETE)
-	//	@ResponseBody
-	//	@PreAuthorize(PROJECT_MANAGER)
-	//	@ResponseStatus(HttpStatus.OK)
-	//	@ApiOperation("Delete registered external system instance")
-	//	public OperationCompletionRS deleteExternalSystem(@PathVariable String projectName, @PathVariable String systemId,
-	//			@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
-	//		return deleteExternalSystemHandler.deleteExternalSystem(EntityUtils.normalizeId(projectName), systemId, principal.getName());
-	//	}
-	//
-	//
-	//	@RequestMapping(value = "/clear", method = RequestMethod.DELETE)
-	//	@ResponseBody
-	//	@PreAuthorize(PROJECT_MANAGER)
-	//	@ResponseStatus(HttpStatus.OK)
-	//	@ApiOperation("Delete all external system assigned to specified project")
-	//	public OperationCompletionRS deleteAllExternalSystems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser reportPortalUser) {
-	//		return deleteExternalSystemHandler.deleteAllExternalSystems(EntityUtils.normalizeId(projectName), principal.getName());
-	//	}
+
+	@Transactional
+	@RequestMapping(value = "/{systemId}", method = RequestMethod.DELETE)
+	@ResponseBody
+	//@PreAuthorize(PROJECT_MANAGER)
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Delete registered external system instance")
+	public OperationCompletionRS deleteExternalSystem(@PathVariable String projectName, @PathVariable Integer systemId,
+			@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
+		return deleteExternalSystemHandler.deleteExternalSystem(EntityUtils.normalizeId(projectName), systemId, reportPortalUser);
+	}
+
+	@Transactional
+	@RequestMapping(value = "/clear", method = RequestMethod.DELETE)
+	@ResponseBody
+	//@PreAuthorize(PROJECT_MANAGER)
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Delete all external system assigned to specified project")
+	public OperationCompletionRS deleteAllExternalSystems(@PathVariable String projectName,
+			@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
+		return deleteExternalSystemHandler.deleteAllExternalSystems(EntityUtils.normalizeId(projectName), reportPortalUser);
+	}
 	//
 	//
 	//	@RequestMapping(value = "/{systemId}", method = RequestMethod.PUT, consumes = { APPLICATION_JSON_VALUE })

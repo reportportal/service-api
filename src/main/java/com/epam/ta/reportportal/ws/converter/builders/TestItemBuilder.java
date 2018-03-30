@@ -34,15 +34,16 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.store.commons.EntityUtils.*;
+import static com.epam.ta.reportportal.store.commons.EntityUtils.trimStrings;
+import static com.epam.ta.reportportal.store.commons.EntityUtils.update;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.StreamSupport.stream;
@@ -107,20 +108,19 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		return this;
 	}
 
-	public TestItemBuilder addTestItemResults(TestItemResults testItemResults, Date endTime) {
+	public TestItemBuilder addTestItemResults(TestItemResults testItemResults) {
 		checkNotNull(testItemResults, "Provided value shouldn't be null");
 		testItem.setTestItemResults(testItemResults);
-		addDuration(endTime);
+		addDuration(testItemResults.getEndTime());
 		return this;
 	}
 
-	public TestItemBuilder addDuration(Date endTime) {
+	public TestItemBuilder addDuration(LocalDateTime endTime) {
 		checkNotNull(endTime, "Provided value shouldn't be null");
 		checkNotNull(testItem.getTestItemResults(), "Test item results shouldn't be null");
 
 		//converts to seconds
-		testItem.getTestItemResults()
-				.setDuration(ChronoUnit.MILLIS.between(testItem.getStartTime(), TO_LOCAL_DATE_TIME.apply(endTime)) / 1000d);
+		testItem.getTestItemResults().setDuration(ChronoUnit.MILLIS.between(testItem.getStartTime(), endTime) / 1000d);
 		return this;
 	}
 

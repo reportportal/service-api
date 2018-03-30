@@ -41,6 +41,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -99,7 +100,10 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		validateRoles(launch, user, projectName);
 		validate(launch, finishLaunchRQ);
 
-		launch = new LaunchBuilder(launch).addDescription(finishLaunchRQ.getDescription()).addTags(finishLaunchRQ.getTags()).get();
+		launch = new LaunchBuilder(launch).addDescription(finishLaunchRQ.getDescription())
+				.addTags(finishLaunchRQ.getTags())
+				.addEndTime(finishLaunchRQ.getEndTime())
+				.get();
 
 		Optional<StatusEnum> statusEnum = fromValue(finishLaunchRQ.getStatus());
 		StatusEnum fromStatistics = PASSED;
@@ -130,6 +134,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 				.addTag(LAUNCH_STOP_TAG)
 				.addStatus(ofNullable(finishLaunchRQ.getStatus()).orElse(STOPPED.name()))
 				.get();
+		launch.setEndTime(LocalDateTime.now());
 
 		launchRepository.save(launch);
 		testItemRepository.interruptInProgressItems(launchId);

@@ -69,6 +69,9 @@ public class Launch implements Serializable {
 	@Column(name = "start_time", nullable = false, updatable = false)
 	private LocalDateTime startTime;
 
+	@Column(name = "end_time", nullable = false, updatable = false)
+	private LocalDateTime endTime;
+
 	@Column(name = "number", nullable = false, precision = 32)
 	private Long number;
 
@@ -145,6 +148,14 @@ public class Launch implements Serializable {
 
 	public void setStartTime(LocalDateTime startTime) {
 		this.startTime = startTime;
+	}
+
+	public LocalDateTime getEndTime() {
+		return endTime;
+	}
+
+	public void setEndTime(LocalDateTime endTime) {
+		this.endTime = endTime;
 	}
 
 	public Long getNumber() {

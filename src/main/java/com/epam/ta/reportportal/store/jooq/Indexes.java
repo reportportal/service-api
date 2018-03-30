@@ -5,6 +5,7 @@ package com.epam.ta.reportportal.store.jooq;
 
 
 import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystem;
+import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystemAuth;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboard;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboardWidget;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFieldAllowedValue;
@@ -57,6 +58,7 @@ public class Indexes {
     // -------------------------------------------------------------------------
 
     public static final Index BUG_TRACKING_SYSTEM_PK = Indexes0.BUG_TRACKING_SYSTEM_PK;
+    public static final Index BUG_TRACKING_SYSTEM_AUTH_PK = Indexes0.BUG_TRACKING_SYSTEM_AUTH_PK;
     public static final Index DASHBOARD_PK = Indexes0.DASHBOARD_PK;
     public static final Index UNQ_NAME_PROJECT = Indexes0.UNQ_NAME_PROJECT;
     public static final Index DASHBOARD_WIDGET_PK = Indexes0.DASHBOARD_WIDGET_PK;
@@ -97,6 +99,7 @@ public class Indexes {
 
     private static class Indexes0 {
         public static Index BUG_TRACKING_SYSTEM_PK = Internal.createIndex("bug_tracking_system_pk", JBugTrackingSystem.BUG_TRACKING_SYSTEM, new OrderField[] { JBugTrackingSystem.BUG_TRACKING_SYSTEM.ID }, true);
+        public static Index BUG_TRACKING_SYSTEM_AUTH_PK = Internal.createIndex("bug_tracking_system_auth_pk", JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH, new OrderField[] { JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH.ID }, true);
         public static Index DASHBOARD_PK = Internal.createIndex("dashboard_pk", JDashboard.DASHBOARD, new OrderField[] { JDashboard.DASHBOARD.ID }, true);
         public static Index UNQ_NAME_PROJECT = Internal.createIndex("unq_name_project", JDashboard.DASHBOARD, new OrderField[] { JDashboard.DASHBOARD.NAME, JDashboard.DASHBOARD.PROJECT_ID }, true);
         public static Index DASHBOARD_WIDGET_PK = Internal.createIndex("dashboard_widget_pk", JDashboardWidget.DASHBOARD_WIDGET, new OrderField[] { JDashboardWidget.DASHBOARD_WIDGET.DASHBOARD_ID, JDashboardWidget.DASHBOARD_WIDGET.WIDGET_ID }, true);

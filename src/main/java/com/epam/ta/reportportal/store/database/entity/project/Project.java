@@ -1,9 +1,12 @@
 package com.epam.ta.reportportal.store.database.entity.project;
 
+import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
+import com.google.common.collect.Sets;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Set;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
@@ -19,6 +22,10 @@ public class Project implements Serializable {
 
 	@Column(name = "name")
 	private String name;
+
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+	@JoinColumn(name = "item_id")
+	private Set<BugTrackingSystem> bugTrackingSystems = Sets.newHashSet();
 
 	public Long getId() {
 		return this.id;

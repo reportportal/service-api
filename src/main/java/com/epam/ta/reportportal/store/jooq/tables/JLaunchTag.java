@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JLaunchTag extends TableImpl<JLaunchTagRecord> {
 
-    private static final long serialVersionUID = -266870931;
+    private static final long serialVersionUID = 500664204;
 
     /**
      * The reference instance of <code>public.launch_tag</code>
@@ -63,7 +63,7 @@ public class JLaunchTag extends TableImpl<JLaunchTagRecord> {
     /**
      * The column <code>public.launch_tag.value</code>.
      */
-    public final TableField<JLaunchTagRecord, String> VALUE = createField("value", org.jooq.impl.SQLDataType.CLOB, this, "");
+    public final TableField<JLaunchTagRecord, String> VALUE = createField("value", org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "");
 
     /**
      * The column <code>public.launch_tag.launch_id</code>.

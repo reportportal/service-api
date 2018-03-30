@@ -5,6 +5,7 @@ package com.epam.ta.reportportal.store.jooq;
 
 
 import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystem;
+import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystemAuth;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboard;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboardWidget;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFieldAllowedValue;
@@ -52,6 +53,11 @@ public class Tables {
      * The table <code>public.bug_tracking_system</code>.
      */
     public static final JBugTrackingSystem BUG_TRACKING_SYSTEM = com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystem.BUG_TRACKING_SYSTEM;
+
+    /**
+     * The table <code>public.bug_tracking_system_auth</code>.
+     */
+    public static final JBugTrackingSystemAuth BUG_TRACKING_SYSTEM_AUTH = com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH;
 
     /**
      * The table <code>public.dashboard</code>.

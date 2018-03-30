@@ -21,7 +21,11 @@
 
 package com.epam.ta.reportportal.store.database.entity.enums;
 
+import com.epam.ta.reportportal.exception.ReportPortalException;
+
 import java.util.Arrays;
+
+import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_AUTHENTICATION_TYPE;
 
 /**
  * Authentication mechanics enum for external system
@@ -48,7 +52,10 @@ public enum AuthType {
 	}
 
 	public static AuthType findByName(String name) {
-		return Arrays.stream(AuthType.values()).filter(type -> type.name().equalsIgnoreCase(name)).findAny().orElse(null);
+		return Arrays.stream(AuthType.values())
+				.filter(type -> type.name().equalsIgnoreCase(name))
+				.findAny()
+				.orElseThrow(() -> new ReportPortalException(INCORRECT_AUTHENTICATION_TYPE, name));
 	}
 
 	public static boolean isPresent(String name) {

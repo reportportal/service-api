@@ -5,6 +5,7 @@ package com.epam.ta.reportportal.store.jooq;
 
 
 import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystem;
+import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystemAuth;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboard;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboardWidget;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFieldAllowedValue;
@@ -59,7 +60,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JPublic extends SchemaImpl {
 
-    private static final long serialVersionUID = 215377721;
+    private static final long serialVersionUID = 788016046;
 
     /**
      * The reference instance of <code>public</code>
@@ -70,6 +71,11 @@ public class JPublic extends SchemaImpl {
      * The table <code>public.bug_tracking_system</code>.
      */
     public final JBugTrackingSystem BUG_TRACKING_SYSTEM = com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystem.BUG_TRACKING_SYSTEM;
+
+    /**
+     * The table <code>public.bug_tracking_system_auth</code>.
+     */
+    public final JBugTrackingSystemAuth BUG_TRACKING_SYSTEM_AUTH = com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH;
 
     /**
      * The table <code>public.dashboard</code>.
@@ -226,6 +232,7 @@ public class JPublic extends SchemaImpl {
 
     private final List<Sequence<?>> getSequences0() {
         return Arrays.<Sequence<?>>asList(
+            Sequences.BUG_TRACKING_SYSTEM_AUTH_ID_SEQ,
             Sequences.BUG_TRACKING_SYSTEM_ID_SEQ,
             Sequences.DASHBOARD_ID_SEQ,
             Sequences.DEFECT_FIELD_ALLOWED_VALUE_ID_SEQ,
@@ -255,6 +262,7 @@ public class JPublic extends SchemaImpl {
     private final List<Table<?>> getTables0() {
         return Arrays.<Table<?>>asList(
             JBugTrackingSystem.BUG_TRACKING_SYSTEM,
+            JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH,
             JDashboard.DASHBOARD,
             JDashboardWidget.DASHBOARD_WIDGET,
             JDefectFieldAllowedValue.DEFECT_FIELD_ALLOWED_VALUE,

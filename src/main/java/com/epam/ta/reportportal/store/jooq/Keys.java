@@ -5,6 +5,7 @@ package com.epam.ta.reportportal.store.jooq;
 
 
 import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystem;
+import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystemAuth;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboard;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboardWidget;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFieldAllowedValue;
@@ -31,6 +32,7 @@ import com.epam.ta.reportportal.store.jooq.tables.JTestItemStructure;
 import com.epam.ta.reportportal.store.jooq.tables.JTicket;
 import com.epam.ta.reportportal.store.jooq.tables.JUsers;
 import com.epam.ta.reportportal.store.jooq.tables.JWidget;
+import com.epam.ta.reportportal.store.jooq.tables.records.JBugTrackingSystemAuthRecord;
 import com.epam.ta.reportportal.store.jooq.tables.records.JBugTrackingSystemRecord;
 import com.epam.ta.reportportal.store.jooq.tables.records.JDashboardRecord;
 import com.epam.ta.reportportal.store.jooq.tables.records.JDashboardWidgetRecord;
@@ -86,6 +88,7 @@ public class Keys {
     // -------------------------------------------------------------------------
 
     public static final Identity<JBugTrackingSystemRecord, Integer> IDENTITY_BUG_TRACKING_SYSTEM = Identities0.IDENTITY_BUG_TRACKING_SYSTEM;
+    public static final Identity<JBugTrackingSystemAuthRecord, Integer> IDENTITY_BUG_TRACKING_SYSTEM_AUTH = Identities0.IDENTITY_BUG_TRACKING_SYSTEM_AUTH;
     public static final Identity<JDashboardRecord, Integer> IDENTITY_DASHBOARD = Identities0.IDENTITY_DASHBOARD;
     public static final Identity<JDefectFieldAllowedValueRecord, Integer> IDENTITY_DEFECT_FIELD_ALLOWED_VALUE = Identities0.IDENTITY_DEFECT_FIELD_ALLOWED_VALUE;
     public static final Identity<JDefectFormFieldRecord, Integer> IDENTITY_DEFECT_FORM_FIELD = Identities0.IDENTITY_DEFECT_FORM_FIELD;
@@ -108,6 +111,7 @@ public class Keys {
     // -------------------------------------------------------------------------
 
     public static final UniqueKey<JBugTrackingSystemRecord> BUG_TRACKING_SYSTEM_PK = UniqueKeys0.BUG_TRACKING_SYSTEM_PK;
+    public static final UniqueKey<JBugTrackingSystemAuthRecord> BUG_TRACKING_SYSTEM_AUTH_PK = UniqueKeys0.BUG_TRACKING_SYSTEM_AUTH_PK;
     public static final UniqueKey<JDashboardRecord> DASHBOARD_PK = UniqueKeys0.DASHBOARD_PK;
     public static final UniqueKey<JDashboardRecord> UNQ_NAME_PROJECT = UniqueKeys0.UNQ_NAME_PROJECT;
     public static final UniqueKey<JDashboardWidgetRecord> DASHBOARD_WIDGET_PK = UniqueKeys0.DASHBOARD_WIDGET_PK;
@@ -146,6 +150,8 @@ public class Keys {
     // FOREIGN KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final ForeignKey<JBugTrackingSystemRecord, JProjectRecord> BUG_TRACKING_SYSTEM__BUG_TRACKING_SYSTEM_PROJECT_ID_FKEY = ForeignKeys0.BUG_TRACKING_SYSTEM__BUG_TRACKING_SYSTEM_PROJECT_ID_FKEY;
+    public static final ForeignKey<JBugTrackingSystemAuthRecord, JBugTrackingSystemRecord> BUG_TRACKING_SYSTEM_AUTH__BUG_TRACKING_SYSTEM_AUTH_ID_FKEY = ForeignKeys0.BUG_TRACKING_SYSTEM_AUTH__BUG_TRACKING_SYSTEM_AUTH_ID_FKEY;
     public static final ForeignKey<JDashboardRecord, JProjectRecord> DASHBOARD__DASHBOARD_PROJECT_ID_FKEY = ForeignKeys0.DASHBOARD__DASHBOARD_PROJECT_ID_FKEY;
     public static final ForeignKey<JDashboardWidgetRecord, JDashboardRecord> DASHBOARD_WIDGET__DASHBOARD_WIDGET_DASHBOARD_ID_FKEY = ForeignKeys0.DASHBOARD_WIDGET__DASHBOARD_WIDGET_DASHBOARD_ID_FKEY;
     public static final ForeignKey<JDashboardWidgetRecord, JWidgetRecord> DASHBOARD_WIDGET__DASHBOARD_WIDGET_WIDGET_ID_FKEY = ForeignKeys0.DASHBOARD_WIDGET__DASHBOARD_WIDGET_WIDGET_ID_FKEY;
@@ -184,6 +190,7 @@ public class Keys {
 
     private static class Identities0 {
         public static Identity<JBugTrackingSystemRecord, Integer> IDENTITY_BUG_TRACKING_SYSTEM = Internal.createIdentity(JBugTrackingSystem.BUG_TRACKING_SYSTEM, JBugTrackingSystem.BUG_TRACKING_SYSTEM.ID);
+        public static Identity<JBugTrackingSystemAuthRecord, Integer> IDENTITY_BUG_TRACKING_SYSTEM_AUTH = Internal.createIdentity(JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH, JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH.ID);
         public static Identity<JDashboardRecord, Integer> IDENTITY_DASHBOARD = Internal.createIdentity(JDashboard.DASHBOARD, JDashboard.DASHBOARD.ID);
         public static Identity<JDefectFieldAllowedValueRecord, Integer> IDENTITY_DEFECT_FIELD_ALLOWED_VALUE = Internal.createIdentity(JDefectFieldAllowedValue.DEFECT_FIELD_ALLOWED_VALUE, JDefectFieldAllowedValue.DEFECT_FIELD_ALLOWED_VALUE.ID);
         public static Identity<JDefectFormFieldRecord, Integer> IDENTITY_DEFECT_FORM_FIELD = Internal.createIdentity(JDefectFormField.DEFECT_FORM_FIELD, JDefectFormField.DEFECT_FORM_FIELD.ID);
@@ -204,6 +211,7 @@ public class Keys {
 
     private static class UniqueKeys0 {
         public static final UniqueKey<JBugTrackingSystemRecord> BUG_TRACKING_SYSTEM_PK = Internal.createUniqueKey(JBugTrackingSystem.BUG_TRACKING_SYSTEM, "bug_tracking_system_pk", JBugTrackingSystem.BUG_TRACKING_SYSTEM.ID);
+        public static final UniqueKey<JBugTrackingSystemAuthRecord> BUG_TRACKING_SYSTEM_AUTH_PK = Internal.createUniqueKey(JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH, "bug_tracking_system_auth_pk", JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH.ID);
         public static final UniqueKey<JDashboardRecord> DASHBOARD_PK = Internal.createUniqueKey(JDashboard.DASHBOARD, "dashboard_pk", JDashboard.DASHBOARD.ID);
         public static final UniqueKey<JDashboardRecord> UNQ_NAME_PROJECT = Internal.createUniqueKey(JDashboard.DASHBOARD, "unq_name_project", JDashboard.DASHBOARD.NAME, JDashboard.DASHBOARD.PROJECT_ID);
         public static final UniqueKey<JDashboardWidgetRecord> DASHBOARD_WIDGET_PK = Internal.createUniqueKey(JDashboardWidget.DASHBOARD_WIDGET, "dashboard_widget_pk", JDashboardWidget.DASHBOARD_WIDGET.DASHBOARD_ID, JDashboardWidget.DASHBOARD_WIDGET.WIDGET_ID);
@@ -240,6 +248,8 @@ public class Keys {
     }
 
     private static class ForeignKeys0 {
+        public static final ForeignKey<JBugTrackingSystemRecord, JProjectRecord> BUG_TRACKING_SYSTEM__BUG_TRACKING_SYSTEM_PROJECT_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.PROJECT_PK, JBugTrackingSystem.BUG_TRACKING_SYSTEM, "bug_tracking_system__bug_tracking_system_project_id_fkey", JBugTrackingSystem.BUG_TRACKING_SYSTEM.PROJECT_ID);
+        public static final ForeignKey<JBugTrackingSystemAuthRecord, JBugTrackingSystemRecord> BUG_TRACKING_SYSTEM_AUTH__BUG_TRACKING_SYSTEM_AUTH_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.BUG_TRACKING_SYSTEM_PK, JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH, "bug_tracking_system_auth__bug_tracking_system_auth_id_fkey", JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH.ID);
         public static final ForeignKey<JDashboardRecord, JProjectRecord> DASHBOARD__DASHBOARD_PROJECT_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.PROJECT_PK, JDashboard.DASHBOARD, "dashboard__dashboard_project_id_fkey", JDashboard.DASHBOARD.PROJECT_ID);
         public static final ForeignKey<JDashboardWidgetRecord, JDashboardRecord> DASHBOARD_WIDGET__DASHBOARD_WIDGET_DASHBOARD_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.DASHBOARD_PK, JDashboardWidget.DASHBOARD_WIDGET, "dashboard_widget__dashboard_widget_dashboard_id_fkey", JDashboardWidget.DASHBOARD_WIDGET.DASHBOARD_ID);
         public static final ForeignKey<JDashboardWidgetRecord, JWidgetRecord> DASHBOARD_WIDGET__DASHBOARD_WIDGET_WIDGET_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.WIDGET_ID, JDashboardWidget.DASHBOARD_WIDGET, "dashboard_widget__dashboard_widget_widget_id_fkey", JDashboardWidget.DASHBOARD_WIDGET.WIDGET_ID);

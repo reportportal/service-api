@@ -24,6 +24,11 @@ import org.jooq.impl.SequenceImpl;
 public class Sequences {
 
     /**
+     * The sequence <code>public.bug_tracking_system_auth_id_seq</code>
+     */
+    public static final Sequence<Integer> BUG_TRACKING_SYSTEM_AUTH_ID_SEQ = new SequenceImpl<Integer>("bug_tracking_system_auth_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.INTEGER.nullable(false));
+
+    /**
      * The sequence <code>public.bug_tracking_system_id_seq</code>
      */
     public static final Sequence<Integer> BUG_TRACKING_SYSTEM_ID_SEQ = new SequenceImpl<Integer>("bug_tracking_system_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.INTEGER.nullable(false));

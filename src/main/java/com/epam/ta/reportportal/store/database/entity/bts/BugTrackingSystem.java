@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.store.database.entity.bts;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Set;
 
 /**
  * @author Pavel Bortnik
@@ -52,6 +53,9 @@ public class BugTrackingSystem implements Serializable {
 	@OneToOne(mappedBy = "bugTrackingSystem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private BugTrackingSystemAuth auth;
 
+	@OneToMany(mappedBy = "bugTrackingSystem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private Set<DefectFormField> defectFormFields;
+
 	public BugTrackingSystem() {
 	}
 
@@ -69,6 +73,14 @@ public class BugTrackingSystem implements Serializable {
 
 	public void setProjectId(Long projectId) {
 		this.projectId = projectId;
+	}
+
+	public Set<DefectFormField> getDefectFormFields() {
+		return defectFormFields;
+	}
+
+	public void setDefectFormFields(Set<DefectFormField> defectFormFields) {
+		this.defectFormFields = defectFormFields;
 	}
 
 	public String getUrl() {

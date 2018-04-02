@@ -34,25 +34,34 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "bug_tracking_system_auth")
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
-@DiscriminatorColumn(name = "auth_type")
-public abstract class BugTrackingSystemAuth implements Serializable {
+public class BugTrackingSystemAuth implements Serializable {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
 	private Integer id;
 
-	@Enumerated(EnumType.STRING)
-	@Type(type = "pgsql_enum")
-	@Column(name = "auth_type", insertable = false, updatable = false)
-	private AuthType authType;
-
+	@JoinColumn(name = "id")
 	@OneToOne
 	@MapsId
-	@JoinColumn(name = "id")
 	private BugTrackingSystem bugTrackingSystem;
+
+	@Enumerated(EnumType.STRING)
+	@Type(type = "pgsql_enum")
+	@Column(name = "auth_type")
+	private AuthType authType;
+
+	@Column(name = "username")
+	private String username;
+
+	@Column(name = "password")
+	private String password;
+
+	@Column(name = "domain")
+	private String domain;
+
+	@Column(name = "accessKey")
+	private String accessKey;
 
 	public BugTrackingSystemAuth() {
 	}
@@ -65,19 +74,51 @@ public abstract class BugTrackingSystemAuth implements Serializable {
 		this.id = id;
 	}
 
-	public AuthType getAuthType() {
-		return authType;
-	}
-
-	public void setAuthType(AuthType authType) {
-		this.authType = authType;
-	}
-
 	public BugTrackingSystem getBugTrackingSystem() {
 		return bugTrackingSystem;
 	}
 
 	public void setBugTrackingSystem(BugTrackingSystem bugTrackingSystem) {
 		this.bugTrackingSystem = bugTrackingSystem;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getDomain() {
+		return domain;
+	}
+
+	public void setDomain(String domain) {
+		this.domain = domain;
+	}
+
+	public String getAccessKey() {
+		return accessKey;
+	}
+
+	public void setAccessKey(String accessKey) {
+		this.accessKey = accessKey;
+	}
+
+	public AuthType getAuthType() {
+		return authType;
+	}
+
+	public void setAuthType(AuthType authType) {
+		this.authType = authType;
 	}
 }

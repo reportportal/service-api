@@ -22,9 +22,6 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
-import com.epam.ta.reportportal.store.database.entity.bts.auth.ApiKeyAuth;
-import com.epam.ta.reportportal.store.database.entity.bts.auth.BasicAuth;
-import com.epam.ta.reportportal.store.database.entity.bts.auth.NtlmAuth;
 import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
 import com.google.common.base.Preconditions;
 
@@ -51,16 +48,9 @@ public final class ExternalSystemConverter {
 		resource.setProject(bugTrackingSystem.getBtsProject());
 		resource.setExternalSystemType(bugTrackingSystem.getBtsType());
 		resource.setExternalSystemAuth(bugTrackingSystem.getAuth().getAuthType().name());
-
-		if (bugTrackingSystem.getAuth() instanceof BasicAuth) {
-			resource.setUsername(((BasicAuth) bugTrackingSystem.getAuth()).getUsername());
-		} else if (bugTrackingSystem.getAuth() instanceof ApiKeyAuth) {
-			resource.setAccessKey(((ApiKeyAuth) bugTrackingSystem.getAuth()).getAccessKey());
-		} else if (bugTrackingSystem.getAuth() instanceof NtlmAuth) {
-			NtlmAuth auth = (NtlmAuth) bugTrackingSystem.getAuth();
-			resource.setUsername(auth.getUsername());
-			resource.setDomain(auth.getDomain());
-		}
+		resource.setUsername(bugTrackingSystem.getAuth().getUsername());
+		resource.setDomain(bugTrackingSystem.getAuth().getDomain());
+		resource.setAccessKey(bugTrackingSystem.getAuth().getAccessKey());
 		resource.setFields(Collections.emptyList());
 		return resource;
 	};

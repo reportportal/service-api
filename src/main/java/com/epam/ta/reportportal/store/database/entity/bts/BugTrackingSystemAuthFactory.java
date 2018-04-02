@@ -22,12 +22,10 @@
 package com.epam.ta.reportportal.store.database.entity.bts;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.database.entity.bts.auth.ApiKeyAuth;
-import com.epam.ta.reportportal.store.database.entity.bts.auth.BasicAuth;
-import com.epam.ta.reportportal.store.database.entity.bts.auth.NtlmAuth;
 import com.epam.ta.reportportal.store.database.entity.enums.AuthType;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
+import com.google.common.base.Preconditions;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -41,28 +39,50 @@ public class BugTrackingSystemAuthFactory {
 	@Autowired
 	private BasicTextEncryptor simpleEncryptor;
 
-	public BugTrackingSystemAuth createAuthObject(AuthType authType, CreateExternalSystemRQ rq) {
+	public BugTrackingSystemAuth createAuthObject(BugTrackingSystemAuth auth, CreateExternalSystemRQ rq) {
+		Preconditions.checkNotNull(rq, "Provided parameter can't be null");
+		AuthType authType = AuthType.findByName(rq.getExternalSystemAuth());
+		auth = resetFields(auth);
+		auth.setAuthType(authType);
 		switch (authType) {
 			case APIKEY:
-				ApiKeyAuth apiKeyAuth = new ApiKeyAuth();
-				apiKeyAuth.setAuthType(authType);
-				apiKeyAuth.setAccessKey(rq.getAccessKey());
-				return apiKeyAuth;
+				if (null != rq.getAccessKey()) {
+					auth.setAccessKey(rq.getAccessKey());
+					return auth;
+				}
+				break;
 			case BASIC:
-				BasicAuth basicAuth = new BasicAuth();
-				basicAuth.setAuthType(authType);
-				basicAuth.setUsername(rq.getUsername());
-				basicAuth.setPassword(simpleEncryptor.encrypt(rq.getPassword()));
-				return basicAuth;
+				if (null != rq.getUsername() && null != rq.getPassword()) {
+					auth.setUsername(rq.getUsername());
+					auth.setPassword(simpleEncryptor.encrypt(rq.getPassword()));
+					return auth;
+				}
+				break;
 			case NTLM:
-				NtlmAuth auth = new NtlmAuth();
-				auth.setUsername(rq.getUsername());
-				auth.setPassword(simpleEncryptor.encrypt(rq.getPassword()));
-				auth.setDomain(rq.getDomain());
-				return auth;
+				if (null != rq.getUsername() && null != rq.getPassword() && null != rq.getDomain()) {
+					auth.setUsername(rq.getUsername());
+					auth.setPassword(simpleEncryptor.encrypt(rq.getPassword()));
+					auth.setDomain(rq.getDomain());
+					return auth;
+				}
+				break;
+			case OAUTH:
+				if (null != rq.getAccessKey()) {
+					auth.setAccessKey(rq.getAccessKey());
+					return auth;
+				}
+				break;
 			default:
 				throw new ReportPortalException(ErrorType.INCORRECT_AUTHENTICATION_TYPE);
 		}
+		throw new ReportPortalException(ErrorType.INCORRECT_REQUEST);
 	}
 
+	private BugTrackingSystemAuth resetFields(BugTrackingSystemAuth auth) {
+		auth.setAccessKey(null);
+		auth.setUsername(null);
+		auth.setDomain(null);
+		auth.setPassword(null);
+		return auth;
+	}
 }

@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.store.database.dao.BugTrackingSystemRepository;
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystemAuth;
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystemAuthFactory;
-import com.epam.ta.reportportal.store.database.entity.enums.AuthType;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -76,8 +75,7 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 		//ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(createRQ.getExternalSystemType());
 		//expect(externalSystemStrategy, notNull()).verify(EXTERNAL_SYSTEM_NOT_FOUND, createRQ.getExternalSystemType());
 
-		AuthType authType = AuthType.findByName(createRQ.getExternalSystemAuth());
-		BugTrackingSystemAuth auth = bugTrackingSystemAuthFactory.createAuthObject(authType, createRQ);
+		BugTrackingSystemAuth auth = bugTrackingSystemAuthFactory.createAuthObject(new BugTrackingSystemAuth(), createRQ);
 
 		BugTrackingSystem bugTrackingSystem = new BugTrackingSystemBuilder().addExternalSystem(createRQ)
 				.addSystemAuth(auth)

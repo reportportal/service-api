@@ -25,11 +25,13 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.externalsystem.handler.ICreateExternalSystemHandler;
 import com.epam.ta.reportportal.core.externalsystem.handler.IDeleteExternalSystemHandler;
 import com.epam.ta.reportportal.core.externalsystem.handler.IGetExternalSystemHandler;
+import com.epam.ta.reportportal.core.externalsystem.handler.IUpdateExternalSystemHandler;
 import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
+import com.epam.ta.reportportal.ws.model.externalsystem.UpdateExternalSystemRQ;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -63,10 +65,10 @@ public class ExternalSystemController {
 
 	@Autowired
 	private IDeleteExternalSystemHandler deleteExternalSystemHandler;
-	//
-	//	@Autowired
-	//	private IUpdateExternalSystemHandler updateExternalSystemHandler;
-	//
+
+	@Autowired
+	private IUpdateExternalSystemHandler updateExternalSystemHandler;
+
 	@Autowired
 	private IGetExternalSystemHandler getExternalSystemHandler;
 
@@ -112,30 +114,30 @@ public class ExternalSystemController {
 			@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
 		return deleteExternalSystemHandler.deleteAllExternalSystems(EntityUtils.normalizeId(projectName), reportPortalUser);
 	}
-	//
-	//
-	//	@RequestMapping(value = "/{systemId}", method = RequestMethod.PUT, consumes = { APPLICATION_JSON_VALUE })
-	//	@ResponseBody
-	//	@PreAuthorize(PROJECT_MANAGER)
-	//	@ResponseStatus(HttpStatus.OK)
-	//	@ApiOperation("Update registered external system instance")
-	//	public OperationCompletionRS updateExternalSystem(@Validated @RequestBody UpdateExternalSystemRQ request,
-	//			@PathVariable String projectName, @PathVariable String systemId, @AuthenticationPrincipal ReportPortalUser reportPortalUser) {
-	//		return updateExternalSystemHandler.updateExternalSystem(request, EntityUtils.normalizeId(projectName), systemId,
-	//				principal.getName()
-	//		);
-	//	}
-	//
-	//
-	//	@RequestMapping(value = "/{systemId}/connect", method = RequestMethod.PUT, consumes = { APPLICATION_JSON_VALUE })
-	//	@ResponseBody
-	//	@ResponseStatus(HttpStatus.OK)
-	//	@PreAuthorize(PROJECT_MANAGER)
-	//	@ApiOperation("Check connection to external system instance")
-	//	public OperationCompletionRS jiraConnection(@PathVariable String projectName, @PathVariable String systemId,
-	//			@RequestBody @Validated UpdateExternalSystemRQ updateRQ, @AuthenticationPrincipal ReportPortalUser reportPortalUser) {
-	//		return updateExternalSystemHandler.externalSystemConnect(systemId, updateRQ, principal.getName());
-	//	}
+
+	@Transactional
+	@RequestMapping(value = "/{systemId}", method = RequestMethod.PUT, consumes = { APPLICATION_JSON_VALUE })
+	@ResponseBody
+	//@PreAuthorize(PROJECT_MANAGER)
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Update registered external system instance")
+	public OperationCompletionRS updateExternalSystem(@Validated @RequestBody UpdateExternalSystemRQ request,
+			@PathVariable String projectName, @PathVariable Integer systemId, @AuthenticationPrincipal ReportPortalUser reportPortalUser) {
+
+		return updateExternalSystemHandler.updateExternalSystem(request, EntityUtils.normalizeId(projectName), systemId, reportPortalUser);
+	}
+
+	@Transactional
+	@RequestMapping(value = "/{systemId}/connect", method = RequestMethod.PUT, consumes = { APPLICATION_JSON_VALUE })
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	//@PreAuthorize(PROJECT_MANAGER)
+	@ApiOperation("Check connection to external system instance")
+	public OperationCompletionRS checkConnection(@PathVariable String projectName, @PathVariable Integer systemId,
+			@RequestBody @Validated UpdateExternalSystemRQ updateRQ, @AuthenticationPrincipal ReportPortalUser reportPortalUser) {
+		return updateExternalSystemHandler.externalSystemConnect(
+				updateRQ, EntityUtils.normalizeId(projectName), systemId, reportPortalUser);
+	}
 	//
 	//
 	//	@RequestMapping(value = "/{systemId}/fields-set", method = RequestMethod.GET)

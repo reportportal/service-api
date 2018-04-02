@@ -21,6 +21,8 @@
 
 package com.epam.ta.reportportal.core.externalsystem;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 /**
  * Contains functionality for providing external system strategy by system name.
  *
@@ -29,7 +31,7 @@ package com.epam.ta.reportportal.core.externalsystem;
 //@Service
 public class StrategyProvider {
 
-	//@Autowired
+	@Autowired
 	private ExternalSystemEurekaDelegate externalSystemStrategy;
 
 	/**

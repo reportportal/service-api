@@ -9,7 +9,6 @@ import com.epam.ta.reportportal.store.jooq.JPublic;
 import com.epam.ta.reportportal.store.jooq.Keys;
 import com.epam.ta.reportportal.store.jooq.enums.JTestItemTypeEnum;
 import com.epam.ta.reportportal.store.jooq.tables.records.JTestItemRecord;
-import com.epam.ta.reportportal.store.jooq.udt.records.JParameterRecord;
 
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -43,7 +42,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JTestItem extends TableImpl<JTestItemRecord> {
 
-    private static final long serialVersionUID = -1911735876;
+    private static final long serialVersionUID = 1081396406;
 
     /**
      * The reference instance of <code>public.test_item</code>
@@ -87,11 +86,6 @@ public class JTestItem extends TableImpl<JTestItemRecord> {
      * The column <code>public.test_item.description</code>.
      */
     public final TableField<JTestItemRecord, String> DESCRIPTION = createField("description", org.jooq.impl.SQLDataType.CLOB, this, "");
-
-    /**
-     * The column <code>public.test_item.parameters</code>.
-     */
-    public final TableField<JTestItemRecord, JParameterRecord[]> PARAMETERS = createField("parameters", com.epam.ta.reportportal.store.jooq.udt.JParameter.PARAMETER.getDataType().getArrayDataType(), this, "");
 
     /**
      * The column <code>public.test_item.last_modified</code>.

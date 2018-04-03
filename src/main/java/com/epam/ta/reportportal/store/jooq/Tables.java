@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.store.jooq.tables.JLog;
 import com.epam.ta.reportportal.store.jooq.tables.JOauthAccessToken;
 import com.epam.ta.reportportal.store.jooq.tables.JOauthRegistration;
 import com.epam.ta.reportportal.store.jooq.tables.JOauthRegistrationScope;
+import com.epam.ta.reportportal.store.jooq.tables.JParameter;
 import com.epam.ta.reportportal.store.jooq.tables.JProject;
 import com.epam.ta.reportportal.store.jooq.tables.JProjectConfiguration;
 import com.epam.ta.reportportal.store.jooq.tables.JProjectEmailConfiguration;
@@ -139,6 +140,11 @@ public class Tables {
      * The table <code>public.oauth_registration_scope</code>.
      */
     public static final JOauthRegistrationScope OAUTH_REGISTRATION_SCOPE = com.epam.ta.reportportal.store.jooq.tables.JOauthRegistrationScope.OAUTH_REGISTRATION_SCOPE;
+
+    /**
+     * The table <code>public.parameter</code>.
+     */
+    public static final JParameter PARAMETER = com.epam.ta.reportportal.store.jooq.tables.JParameter.PARAMETER;
 
     /**
      * The table <code>public.project</code>.

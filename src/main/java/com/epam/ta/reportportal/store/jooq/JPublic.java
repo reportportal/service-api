@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.store.jooq.tables.JLog;
 import com.epam.ta.reportportal.store.jooq.tables.JOauthAccessToken;
 import com.epam.ta.reportportal.store.jooq.tables.JOauthRegistration;
 import com.epam.ta.reportportal.store.jooq.tables.JOauthRegistrationScope;
+import com.epam.ta.reportportal.store.jooq.tables.JParameter;
 import com.epam.ta.reportportal.store.jooq.tables.JProject;
 import com.epam.ta.reportportal.store.jooq.tables.JProjectConfiguration;
 import com.epam.ta.reportportal.store.jooq.tables.JProjectEmailConfiguration;
@@ -33,7 +34,6 @@ import com.epam.ta.reportportal.store.jooq.tables.JTestItemStructure;
 import com.epam.ta.reportportal.store.jooq.tables.JTicket;
 import com.epam.ta.reportportal.store.jooq.tables.JUsers;
 import com.epam.ta.reportportal.store.jooq.tables.JWidget;
-import com.epam.ta.reportportal.store.jooq.udt.JParameter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,7 +44,6 @@ import javax.annotation.Generated;
 import org.jooq.Catalog;
 import org.jooq.Sequence;
 import org.jooq.Table;
-import org.jooq.UDT;
 import org.jooq.impl.SchemaImpl;
 
 
@@ -61,7 +60,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JPublic extends SchemaImpl {
 
-    private static final long serialVersionUID = -318751773;
+    private static final long serialVersionUID = -203995119;
 
     /**
      * The reference instance of <code>public</code>
@@ -157,6 +156,11 @@ public class JPublic extends SchemaImpl {
      * The table <code>public.oauth_registration_scope</code>.
      */
     public final JOauthRegistrationScope OAUTH_REGISTRATION_SCOPE = com.epam.ta.reportportal.store.jooq.tables.JOauthRegistrationScope.OAUTH_REGISTRATION_SCOPE;
+
+    /**
+     * The table <code>public.parameter</code>.
+     */
+    public final JParameter PARAMETER = com.epam.ta.reportportal.store.jooq.tables.JParameter.PARAMETER;
 
     /**
      * The table <code>public.project</code>.
@@ -284,6 +288,7 @@ public class JPublic extends SchemaImpl {
             JOauthAccessToken.OAUTH_ACCESS_TOKEN,
             JOauthRegistration.OAUTH_REGISTRATION,
             JOauthRegistrationScope.OAUTH_REGISTRATION_SCOPE,
+            JParameter.PARAMETER,
             JProject.PROJECT,
             JProjectConfiguration.PROJECT_CONFIGURATION,
             JProjectEmailConfiguration.PROJECT_EMAIL_CONFIGURATION,
@@ -295,17 +300,5 @@ public class JPublic extends SchemaImpl {
             JTicket.TICKET,
             JUsers.USERS,
             JWidget.WIDGET);
-    }
-
-    @Override
-    public final List<UDT<?>> getUDTs() {
-        List result = new ArrayList();
-        result.addAll(getUDTs0());
-        return result;
-    }
-
-    private final List<UDT<?>> getUDTs0() {
-        return Arrays.<UDT<?>>asList(
-            JParameter.PARAMETER);
     }
 }

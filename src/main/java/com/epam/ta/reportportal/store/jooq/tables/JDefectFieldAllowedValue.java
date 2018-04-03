@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JDefectFieldAllowedValue extends TableImpl<JDefectFieldAllowedValueRecord> {
 
-    private static final long serialVersionUID = 1700002494;
+    private static final long serialVersionUID = -1650071098;
 
     /**
      * The reference instance of <code>public.defect_field_allowed_value</code>
@@ -58,12 +58,12 @@ public class JDefectFieldAllowedValue extends TableImpl<JDefectFieldAllowedValue
     /**
      * The column <code>public.defect_field_allowed_value.id</code>.
      */
-    public final TableField<JDefectFieldAllowedValueRecord, Integer> ID = createField("id", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('defect_field_allowed_value_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+    public final TableField<JDefectFieldAllowedValueRecord, Long> ID = createField("id", org.jooq.impl.SQLDataType.BIGINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('defect_field_allowed_value_id_seq'::regclass)", org.jooq.impl.SQLDataType.BIGINT)), this, "");
 
     /**
      * The column <code>public.defect_field_allowed_value.defect_form_field</code>.
      */
-    public final TableField<JDefectFieldAllowedValueRecord, Integer> DEFECT_FORM_FIELD = createField("defect_form_field", org.jooq.impl.SQLDataType.INTEGER, this, "");
+    public final TableField<JDefectFieldAllowedValueRecord, Long> DEFECT_FORM_FIELD = createField("defect_form_field", org.jooq.impl.SQLDataType.BIGINT, this, "");
 
     /**
      * The column <code>public.defect_field_allowed_value.value_id</code>.
@@ -73,7 +73,7 @@ public class JDefectFieldAllowedValue extends TableImpl<JDefectFieldAllowedValue
     /**
      * The column <code>public.defect_field_allowed_value.value_name</code>.
      */
-    public final TableField<JDefectFieldAllowedValueRecord, String> VALUE_NAME = createField("value_name", org.jooq.impl.SQLDataType.VARCHAR, this, "");
+    public final TableField<JDefectFieldAllowedValueRecord, String> VALUE_NAME = createField("value_name", org.jooq.impl.SQLDataType.VARCHAR.nullable(false), this, "");
 
     /**
      * Create a <code>public.defect_field_allowed_value</code> table reference
@@ -124,7 +124,7 @@ public class JDefectFieldAllowedValue extends TableImpl<JDefectFieldAllowedValue
      * {@inheritDoc}
      */
     @Override
-    public Identity<JDefectFieldAllowedValueRecord, Integer> getIdentity() {
+    public Identity<JDefectFieldAllowedValueRecord, Long> getIdentity() {
         return Keys.IDENTITY_DEFECT_FIELD_ALLOWED_VALUE;
     }
 

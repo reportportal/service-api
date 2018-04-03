@@ -10,6 +10,7 @@ import com.epam.ta.reportportal.store.jooq.Keys;
 import com.epam.ta.reportportal.store.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.store.jooq.tables.records.JTestItemResultsRecord;
 
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 
@@ -40,7 +41,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JTestItemResults extends TableImpl<JTestItemResultsRecord> {
 
-    private static final long serialVersionUID = 858275558;
+    private static final long serialVersionUID = 463079168;
 
     /**
      * The reference instance of <code>public.test_item_results</code>
@@ -64,6 +65,11 @@ public class JTestItemResults extends TableImpl<JTestItemResultsRecord> {
      * The column <code>public.test_item_results.status</code>.
      */
     public final TableField<JTestItemResultsRecord, JStatusEnum> STATUS = createField("status", org.jooq.util.postgres.PostgresDataType.VARCHAR.asEnumDataType(com.epam.ta.reportportal.store.jooq.enums.JStatusEnum.class), this, "");
+
+    /**
+     * The column <code>public.test_item_results.end_time</code>.
+     */
+    public final TableField<JTestItemResultsRecord, Timestamp> END_TIME = createField("end_time", org.jooq.impl.SQLDataType.TIMESTAMP, this, "");
 
     /**
      * The column <code>public.test_item_results.duration</code>.

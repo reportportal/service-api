@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JOauthRegistrationScope extends TableImpl<JOauthRegistrationScopeRecord> {
 
-    private static final long serialVersionUID = -446784035;
+    private static final long serialVersionUID = 60132344;
 
     /**
      * The reference instance of <code>public.oauth_registration_scope</code>
@@ -69,6 +69,11 @@ public class JOauthRegistrationScope extends TableImpl<JOauthRegistrationScopeRe
      * The column <code>public.oauth_registration_scope.scope</code>.
      */
     public final TableField<JOauthRegistrationScopeRecord, String> SCOPE = createField("scope", org.jooq.impl.SQLDataType.VARCHAR(256), this, "");
+
+    /**
+     * The column <code>public.oauth_registration_scope.registration_id</code>.
+     */
+    public final TableField<JOauthRegistrationScopeRecord, String> REGISTRATION_ID = createField("registration_id", org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
      * Create a <code>public.oauth_registration_scope</code> table reference
@@ -144,7 +149,7 @@ public class JOauthRegistrationScope extends TableImpl<JOauthRegistrationScopeRe
      */
     @Override
     public List<ForeignKey<JOauthRegistrationScopeRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<JOauthRegistrationScopeRecord, ?>>asList(Keys.OAUTH_REGISTRATION_SCOPE__OAUTH_REGISTRATION_SCOPE_OAUTH_REGISTRATION_FK_FKEY);
+        return Arrays.<ForeignKey<JOauthRegistrationScopeRecord, ?>>asList(Keys.OAUTH_REGISTRATION_SCOPE__OAUTH_REGISTRATION_SCOPE_OAUTH_REGISTRATION_FK_FKEY, Keys.OAUTH_REGISTRATION_SCOPE__FKEUINO9MH8BEG2PT0S0XRBAKUB);
     }
 
     /**

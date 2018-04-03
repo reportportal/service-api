@@ -43,7 +43,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JLaunch extends TableImpl<JLaunchRecord> {
 
-    private static final long serialVersionUID = 804580113;
+    private static final long serialVersionUID = 1633200325;
 
     /**
      * The reference instance of <code>public.launch</code>
@@ -87,6 +87,11 @@ public class JLaunch extends TableImpl<JLaunchRecord> {
      * The column <code>public.launch.start_time</code>.
      */
     public final TableField<JLaunchRecord, Timestamp> START_TIME = createField("start_time", org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "");
+
+    /**
+     * The column <code>public.launch.end_time</code>.
+     */
+    public final TableField<JLaunchRecord, Timestamp> END_TIME = createField("end_time", org.jooq.impl.SQLDataType.TIMESTAMP, this, "");
 
     /**
      * The column <code>public.launch.number</code>.

@@ -7,7 +7,6 @@ package com.epam.ta.reportportal.store.jooq.tables;
 import com.epam.ta.reportportal.store.jooq.Indexes;
 import com.epam.ta.reportportal.store.jooq.JPublic;
 import com.epam.ta.reportportal.store.jooq.Keys;
-import com.epam.ta.reportportal.store.jooq.enums.JAuthTypeEnum;
 import com.epam.ta.reportportal.store.jooq.tables.records.JBugTrackingSystemRecord;
 
 import java.util.Arrays;
@@ -41,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JBugTrackingSystem extends TableImpl<JBugTrackingSystemRecord> {
 
-    private static final long serialVersionUID = 764594885;
+    private static final long serialVersionUID = 239032616;
 
     /**
      * The reference instance of <code>public.bug_tracking_system</code>
@@ -59,7 +58,7 @@ public class JBugTrackingSystem extends TableImpl<JBugTrackingSystemRecord> {
     /**
      * The column <code>public.bug_tracking_system.id</code>.
      */
-    public final TableField<JBugTrackingSystemRecord, Integer> ID = createField("id", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('bug_tracking_system_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+    public final TableField<JBugTrackingSystemRecord, Long> ID = createField("id", org.jooq.impl.SQLDataType.BIGINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('bug_tracking_system_id_seq'::regclass)", org.jooq.impl.SQLDataType.BIGINT)), this, "");
 
     /**
      * The column <code>public.bug_tracking_system.url</code>.
@@ -70,11 +69,6 @@ public class JBugTrackingSystem extends TableImpl<JBugTrackingSystemRecord> {
      * The column <code>public.bug_tracking_system.type</code>.
      */
     public final TableField<JBugTrackingSystemRecord, String> TYPE = createField("type", org.jooq.impl.SQLDataType.VARCHAR.nullable(false), this, "");
-
-    /**
-     * The column <code>public.bug_tracking_system.authtype</code>.
-     */
-    public final TableField<JBugTrackingSystemRecord, JAuthTypeEnum> AUTHTYPE = createField("authtype", org.jooq.util.postgres.PostgresDataType.VARCHAR.asEnumDataType(com.epam.ta.reportportal.store.jooq.enums.JAuthTypeEnum.class), this, "");
 
     /**
      * The column <code>public.bug_tracking_system.bts_project</code>.
@@ -128,14 +122,14 @@ public class JBugTrackingSystem extends TableImpl<JBugTrackingSystemRecord> {
      */
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BUG_TRACKING_SYSTEM_PK);
+        return Arrays.<Index>asList(Indexes.BUG_TRACKING_SYSTEM_PK, Indexes.UNIQUE_BTS);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Identity<JBugTrackingSystemRecord, Integer> getIdentity() {
+    public Identity<JBugTrackingSystemRecord, Long> getIdentity() {
         return Keys.IDENTITY_BUG_TRACKING_SYSTEM;
     }
 
@@ -152,7 +146,7 @@ public class JBugTrackingSystem extends TableImpl<JBugTrackingSystemRecord> {
      */
     @Override
     public List<UniqueKey<JBugTrackingSystemRecord>> getKeys() {
-        return Arrays.<UniqueKey<JBugTrackingSystemRecord>>asList(Keys.BUG_TRACKING_SYSTEM_PK);
+        return Arrays.<UniqueKey<JBugTrackingSystemRecord>>asList(Keys.BUG_TRACKING_SYSTEM_PK, Keys.UNIQUE_BTS);
     }
 
     /**

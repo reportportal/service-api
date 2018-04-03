@@ -25,6 +25,7 @@ import com.google.common.collect.Sets;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -52,8 +53,9 @@ public class DefectFormField implements Serializable {
 	@Column(name = "required")
 	private boolean isRequired;
 
-	//	@Column(name = "values")
-	//	private String[] values;
+	@ElementCollection
+	@CollectionTable(name = "defect_form_field_value", joinColumns = @JoinColumn(name = "id"))
+	private List<String> values;
 
 	@OneToMany(mappedBy = "defectFormField", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
 	private Set<DefectFieldAllowedValue> defectFieldAllowedValues = Sets.newHashSet();
@@ -101,13 +103,13 @@ public class DefectFormField implements Serializable {
 		isRequired = required;
 	}
 
-	//	public String[] getValues() {
-	//		return values;
-	//	}
-	//
-	//	public void setValues(String[] values) {
-	//		this.values = values;
-	//	}
+	public List<String> getValues() {
+		return values;
+	}
+
+	public void setValues(List<String> values) {
+		this.values = values;
+	}
 
 	public Set<DefectFieldAllowedValue> getDefectFieldAllowedValues() {
 		return defectFieldAllowedValues;

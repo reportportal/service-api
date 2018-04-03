@@ -10,6 +10,7 @@ import com.epam.ta.reportportal.store.jooq.tables.JDashboard;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboardWidget;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFieldAllowedValue;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFormField;
+import com.epam.ta.reportportal.store.jooq.tables.JDefectFormFieldValue;
 import com.epam.ta.reportportal.store.jooq.tables.JIssue;
 import com.epam.ta.reportportal.store.jooq.tables.JIssueTicket;
 import com.epam.ta.reportportal.store.jooq.tables.JIssueType;
@@ -60,7 +61,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JPublic extends SchemaImpl {
 
-    private static final long serialVersionUID = 1307011987;
+    private static final long serialVersionUID = -318751773;
 
     /**
      * The reference instance of <code>public</code>
@@ -96,6 +97,11 @@ public class JPublic extends SchemaImpl {
      * The table <code>public.defect_form_field</code>.
      */
     public final JDefectFormField DEFECT_FORM_FIELD = com.epam.ta.reportportal.store.jooq.tables.JDefectFormField.DEFECT_FORM_FIELD;
+
+    /**
+     * The table <code>public.defect_form_field_value</code>.
+     */
+    public final JDefectFormFieldValue DEFECT_FORM_FIELD_VALUE = com.epam.ta.reportportal.store.jooq.tables.JDefectFormFieldValue.DEFECT_FORM_FIELD_VALUE;
 
     /**
      * The table <code>public.issue</code>.
@@ -266,6 +272,7 @@ public class JPublic extends SchemaImpl {
             JDashboardWidget.DASHBOARD_WIDGET,
             JDefectFieldAllowedValue.DEFECT_FIELD_ALLOWED_VALUE,
             JDefectFormField.DEFECT_FORM_FIELD,
+            JDefectFormFieldValue.DEFECT_FORM_FIELD_VALUE,
             JIssue.ISSUE,
             JIssueTicket.ISSUE_TICKET,
             JIssueType.ISSUE_TYPE,

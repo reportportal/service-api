@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.store.database.entity.bts.DefectFormField;
 import com.epam.ta.reportportal.ws.model.externalsystem.AllowedValue;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
 import com.google.common.base.Preconditions;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -45,7 +46,9 @@ public final class ExternalSystemFieldsConverter {
 		defectFormField.setFieldId(field.getFieldName());
 		defectFormField.setType(field.getFieldType());
 		defectFormField.setRequired(field.getIsRequired());
-		//defectFormField.setValues(field.getValue().toArray(new String[field.getValue().size()]));
+		if (!CollectionUtils.isEmpty(field.getValue())) {
+			defectFormField.setValues(field.getValue());
+		}
 		defectFormField.setDefectFieldAllowedValues(
 				field.getDefinedValues().stream().map(ExternalSystemFieldsConverter.VALUE_TO_DB).collect(Collectors.toSet()));
 		return defectFormField;
@@ -61,6 +64,7 @@ public final class ExternalSystemFieldsConverter {
 				.stream()
 				.map(ExternalSystemFieldsConverter.VALUE_TO_MODEL)
 				.collect(Collectors.toList()));
+		postFormField.setValue(defectFormField.getValues());
 		return postFormField;
 	};
 

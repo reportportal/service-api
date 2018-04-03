@@ -21,6 +21,9 @@
 
 package com.epam.ta.reportportal.store.database.entity.bts;
 
+import com.epam.ta.reportportal.store.database.entity.project.Project;
+import com.google.common.collect.Sets;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Set;
@@ -36,13 +39,14 @@ public class BugTrackingSystem implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", unique = true, nullable = false, precision = 32)
-	private Integer id;
+	private Long id;
 
 	@Column(name = "url", nullable = false)
 	private String url;
 
-	@Column(name = "project_id")
-	private Long projectId;
+	@ManyToOne
+	@JoinColumn(name = "project_id", nullable = false)
+	private Project project;
 
 	@Column(name = "type")
 	private String btsType;
@@ -53,26 +57,26 @@ public class BugTrackingSystem implements Serializable {
 	@OneToOne(mappedBy = "bugTrackingSystem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private BugTrackingSystemAuth auth;
 
-	@OneToMany(mappedBy = "bugTrackingSystem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private Set<DefectFormField> defectFormFields;
+	@OneToMany(mappedBy = "bugTrackingSystem", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+	private Set<DefectFormField> defectFormFields = Sets.newHashSet();
 
 	public BugTrackingSystem() {
 	}
 
-	public Integer getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(Integer id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 
-	public Long getProjectId() {
-		return projectId;
+	public Project getProject() {
+		return project;
 	}
 
-	public void setProjectId(Long projectId) {
-		this.projectId = projectId;
+	public void setProject(Project project) {
+		this.project = project;
 	}
 
 	public Set<DefectFormField> getDefectFormFields() {
@@ -80,7 +84,9 @@ public class BugTrackingSystem implements Serializable {
 	}
 
 	public void setDefectFormFields(Set<DefectFormField> defectFormFields) {
-		this.defectFormFields = defectFormFields;
+		this.defectFormFields.clear();
+		this.defectFormFields.addAll(defectFormFields);
+		this.defectFormFields.forEach(it -> it.setBugTrackingSystem(this));
 	}
 
 	public String getUrl() {

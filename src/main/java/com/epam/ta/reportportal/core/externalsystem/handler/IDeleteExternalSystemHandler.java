@@ -40,7 +40,7 @@ public interface IDeleteExternalSystemHandler {
 	 * @param user             User
 	 * @return Operation result
 	 */
-	OperationCompletionRS deleteExternalSystem(String projectName, Integer externalSystemId, ReportPortalUser user);
+	OperationCompletionRS deleteExternalSystem(String projectName, Long externalSystemId, ReportPortalUser user);
 
 	/**
 	 * Delete all external system assigned to specified Report Portal project

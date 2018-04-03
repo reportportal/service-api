@@ -43,7 +43,7 @@ public class GetExternalSystemHandler implements IGetExternalSystemHandler {
 	private BugTrackingSystemRepository externalSystemRepository;
 
 	@Override
-	public ExternalSystemResource getExternalSystem(String projectName, Integer id) {
+	public ExternalSystemResource getExternalSystem(String projectName, Long id) {
 		BugTrackingSystem bugTrackingSystem = externalSystemRepository.findById(id)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.EXTERNAL_SYSTEM_NOT_FOUND, id));
 		return ExternalSystemConverter.TO_RESOURCE.apply(bugTrackingSystem);

@@ -42,8 +42,9 @@ public class DefectFieldAllowedValue implements Serializable {
 	@Column(name = "value_name")
 	private String valueName;
 
-	@Column(name = "defect_form_field")
-	private Long defectFormField;
+	@ManyToOne
+	@JoinColumn(name = "defect_form_field", nullable = false)
+	private DefectFormField defectFormField;
 
 	public DefectFieldAllowedValue() {
 	}
@@ -72,11 +73,11 @@ public class DefectFieldAllowedValue implements Serializable {
 		this.valueName = valueName;
 	}
 
-	public Long getDefectFormField() {
+	public DefectFormField getDefectFormField() {
 		return defectFormField;
 	}
 
-	public void setDefectFormField(Long defectFormField) {
+	public void setDefectFormField(DefectFormField defectFormField) {
 		this.defectFormField = defectFormField;
 	}
 }

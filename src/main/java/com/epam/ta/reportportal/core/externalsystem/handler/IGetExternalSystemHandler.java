@@ -38,6 +38,6 @@ public interface IGetExternalSystemHandler {
 	 * @param id          External System ID
 	 * @return Found External System
 	 */
-	ExternalSystemResource getExternalSystem(String projectName, Integer id);
+	ExternalSystemResource getExternalSystem(String projectName, Long id);
 
 }

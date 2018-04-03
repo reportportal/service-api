@@ -21,6 +21,8 @@
 
 package com.epam.ta.reportportal.store.database.entity.bts;
 
+import com.google.common.collect.Sets;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Set;
@@ -40,8 +42,9 @@ public class DefectFormField implements Serializable {
 	@Column(name = "field_id")
 	private String fieldId;
 
-	@Column(name = "bugtracking_system")
-	private Integer bugTrackingSystem;
+	@ManyToOne
+	@JoinColumn(name = "bug_tracking_system_id", nullable = false)
+	private BugTrackingSystem bugTrackingSystem;
 
 	@Column(name = "type")
 	private String type;
@@ -52,8 +55,8 @@ public class DefectFormField implements Serializable {
 	//	@Column(name = "values")
 	//	private String[] values;
 
-	@OneToMany(mappedBy = "defectFormField", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private Set<DefectFieldAllowedValue> defectFieldAllowedValues;
+	@OneToMany(mappedBy = "defectFormField", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+	private Set<DefectFieldAllowedValue> defectFieldAllowedValues = Sets.newHashSet();
 
 	public DefectFormField() {
 	}
@@ -74,11 +77,11 @@ public class DefectFormField implements Serializable {
 		this.fieldId = fieldId;
 	}
 
-	public Integer getBugTrackingSystem() {
+	public BugTrackingSystem getBugTrackingSystem() {
 		return bugTrackingSystem;
 	}
 
-	public void setBugTrackingSystem(Integer bugTrackingSystem) {
+	public void setBugTrackingSystem(BugTrackingSystem bugTrackingSystem) {
 		this.bugTrackingSystem = bugTrackingSystem;
 	}
 
@@ -111,6 +114,8 @@ public class DefectFormField implements Serializable {
 	}
 
 	public void setDefectFieldAllowedValues(Set<DefectFieldAllowedValue> defectFieldAllowedValues) {
-		this.defectFieldAllowedValues = defectFieldAllowedValues;
+		this.defectFieldAllowedValues.clear();
+		this.defectFieldAllowedValues.addAll(defectFieldAllowedValues);
+		this.defectFieldAllowedValues.forEach(it -> it.setDefectFormField(this));
 	}
 }

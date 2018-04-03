@@ -42,7 +42,7 @@ public interface IUpdateExternalSystemHandler {
 	 * @param user        Report portal user
 	 * @return Operation result
 	 */
-	OperationCompletionRS updateExternalSystem(UpdateExternalSystemRQ request, String projectName, Integer id, ReportPortalUser user);
+	OperationCompletionRS updateExternalSystem(UpdateExternalSystemRQ request, String projectName, Long id, ReportPortalUser user);
 
 	/**
 	 * Validate connection of provided ExternalSystem configuration
@@ -53,7 +53,6 @@ public interface IUpdateExternalSystemHandler {
 	 * @param user        Report portal user
 	 * @return Operation result
 	 */
-	OperationCompletionRS externalSystemConnect(UpdateExternalSystemRQ updateRQ, String projectName, Integer systemId,
-			ReportPortalUser user);
+	OperationCompletionRS externalSystemConnect(UpdateExternalSystemRQ updateRQ, String projectName, Long systemId, ReportPortalUser user);
 
 }

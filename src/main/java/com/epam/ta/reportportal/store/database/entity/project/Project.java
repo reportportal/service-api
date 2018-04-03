@@ -23,7 +23,7 @@ public class Project implements Serializable {
 	@Column(name = "name")
 	private String name;
 
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
 	private Set<BugTrackingSystem> bugTrackingSystems = Sets.newHashSet();
 
 	public Long getId() {

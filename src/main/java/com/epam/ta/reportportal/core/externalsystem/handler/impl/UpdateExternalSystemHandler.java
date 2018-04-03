@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.store.database.dao.BugTrackingSystemRepository;
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystemAuth;
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystemAuthFactory;
+import com.epam.ta.reportportal.store.database.entity.project.Project;
 import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemFieldsConverter;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.UpdateExternalSystemRQ;
@@ -66,8 +67,7 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 	private ApplicationEventPublisher eventPublisher;
 
 	@Override
-	public OperationCompletionRS updateExternalSystem(UpdateExternalSystemRQ request, String projectName, Integer id,
-			ReportPortalUser user) {
+	public OperationCompletionRS updateExternalSystem(UpdateExternalSystemRQ request, String projectName, Long id, ReportPortalUser user) {
 		ReportPortalUser.ProjectDetails projectDetails = EntityUtils.takeProjectDetails(user, projectName);
 		BugTrackingSystem bugTrackingSystem = bugTrackingSystemRepository.findById(id)
 				.orElseThrow(() -> new ReportPortalException(EXTERNAL_SYSTEM_NOT_FOUND, id));
@@ -75,7 +75,7 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 		/* Remember initial parameters of saved external system */
 		final String sysUrl = bugTrackingSystem.getUrl();
 		final String sysProject = bugTrackingSystem.getBtsProject();
-		final Long rpProject = bugTrackingSystem.getProjectId();
+		final Long rpProject = bugTrackingSystem.getProject().getId();
 
 		ofNullable(request.getUrl()).ifPresent(it -> {
 			if (request.getUrl().endsWith("/")) {
@@ -104,11 +104,15 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 			bugTrackingSystem.setBtsProject(request.getProject());
 		}
 		/* Hard referenced project update */
-		bugTrackingSystem.setProjectId(projectDetails.getProjectId());
+		Project project = new Project();
+		project.setId(projectDetails.getProjectId());
+		bugTrackingSystem.setProject(project);
 
 		if (!CollectionUtils.isEmpty(request.getFields())) {
-			bugTrackingSystem.setDefectFormFields(
-					request.getFields().stream().map(ExternalSystemFieldsConverter.FIELD_TO_DB).collect(Collectors.toSet()));
+			bugTrackingSystem.setDefectFormFields(request.getFields()
+					.stream()
+					.map(ExternalSystemFieldsConverter.FIELD_TO_DB)
+					.collect(Collectors.toSet()));
 		}
 
 		if (null != request.getExternalSystemAuth()) {
@@ -135,7 +139,7 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 	}
 
 	@Override
-	public OperationCompletionRS externalSystemConnect(UpdateExternalSystemRQ updateRQ, String projectName, Integer systemId,
+	public OperationCompletionRS externalSystemConnect(UpdateExternalSystemRQ updateRQ, String projectName, Long systemId,
 			ReportPortalUser user) {
 		ReportPortalUser.ProjectDetails projectDetails = EntityUtils.takeProjectDetails(user, projectName);
 		BugTrackingSystem bugTrackingSystem = bugTrackingSystemRepository.findById(systemId)

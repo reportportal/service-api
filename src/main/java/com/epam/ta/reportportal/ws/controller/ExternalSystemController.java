@@ -88,7 +88,7 @@ public class ExternalSystemController {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get registered external system instance")
-	public ExternalSystemResource getExternalSystem(@PathVariable String projectName, @PathVariable Integer systemId,
+	public ExternalSystemResource getExternalSystem(@PathVariable String projectName, @PathVariable Long systemId,
 			@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
 		return getExternalSystemHandler.getExternalSystem(EntityUtils.normalizeId(projectName), systemId);
 	}
@@ -99,7 +99,7 @@ public class ExternalSystemController {
 	//@PreAuthorize(PROJECT_MANAGER)
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Delete registered external system instance")
-	public OperationCompletionRS deleteExternalSystem(@PathVariable String projectName, @PathVariable Integer systemId,
+	public OperationCompletionRS deleteExternalSystem(@PathVariable String projectName, @PathVariable Long systemId,
 			@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
 		return deleteExternalSystemHandler.deleteExternalSystem(EntityUtils.normalizeId(projectName), systemId, reportPortalUser);
 	}
@@ -122,7 +122,7 @@ public class ExternalSystemController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Update registered external system instance")
 	public OperationCompletionRS updateExternalSystem(@Validated @RequestBody UpdateExternalSystemRQ request,
-			@PathVariable String projectName, @PathVariable Integer systemId, @AuthenticationPrincipal ReportPortalUser reportPortalUser) {
+			@PathVariable String projectName, @PathVariable Long systemId, @AuthenticationPrincipal ReportPortalUser reportPortalUser) {
 
 		return updateExternalSystemHandler.updateExternalSystem(request, EntityUtils.normalizeId(projectName), systemId, reportPortalUser);
 	}
@@ -133,7 +133,7 @@ public class ExternalSystemController {
 	@ResponseStatus(HttpStatus.OK)
 	//@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Check connection to external system instance")
-	public OperationCompletionRS checkConnection(@PathVariable String projectName, @PathVariable Integer systemId,
+	public OperationCompletionRS checkConnection(@PathVariable String projectName, @PathVariable Long systemId,
 			@RequestBody @Validated UpdateExternalSystemRQ updateRQ, @AuthenticationPrincipal ReportPortalUser reportPortalUser) {
 		return updateExternalSystemHandler.externalSystemConnect(
 				updateRQ, EntityUtils.normalizeId(projectName), systemId, reportPortalUser);

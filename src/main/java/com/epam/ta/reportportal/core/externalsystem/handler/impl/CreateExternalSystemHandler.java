@@ -79,14 +79,14 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 
 		BugTrackingSystem bugTrackingSystem = new BugTrackingSystemBuilder().addExternalSystem(createRQ)
 				.addSystemAuth(auth)
-				.addProjectId(projectDetails.getProjectId())
+				.addProject(projectDetails.getProjectId())
 				.get();
 
 		//expect(externalSystemStrategy.connectionTest(externalSystem), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, projectName);
 
 		bugTrackingSystemRepository.save(bugTrackingSystem);
 		//eventPublisher.publishEvent(new ExternalSystemCreatedEvent(createOne, username));
-		return new EntryCreatedRS(bugTrackingSystem.getId().longValue());
+		return new EntryCreatedRS(bugTrackingSystem.getId());
 	}
 
 }

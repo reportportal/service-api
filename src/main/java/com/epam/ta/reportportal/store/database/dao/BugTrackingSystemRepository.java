@@ -29,11 +29,11 @@ import java.util.Optional;
 /**
  * @author Pavel Bortnik
  */
-public interface BugTrackingSystemRepository extends ReportPortalRepository<BugTrackingSystem, Integer>, BugTrackingSystemRepositoryCustom {
+public interface BugTrackingSystemRepository extends ReportPortalRepository<BugTrackingSystem, Long>, BugTrackingSystemRepositoryCustom {
 
 	Optional<BugTrackingSystem> findByUrlAndBtsProjectAndProjectId(String url, String btsProject, Long projectId);
 
-	Optional<BugTrackingSystem> findByIdAndProjectId(Integer id, Long projectId);
+	Optional<BugTrackingSystem> findByIdAndProjectId(Long id, Long projectId);
 
 	List<BugTrackingSystem> findAllByProjectId(Long projectId);
 }

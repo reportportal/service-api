@@ -38,8 +38,9 @@ import java.io.Serializable;
 public class BugTrackingSystemAuth implements Serializable {
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
-	private Integer id;
+	private Long id;
 
 	@JoinColumn(name = "id")
 	@OneToOne
@@ -66,11 +67,11 @@ public class BugTrackingSystemAuth implements Serializable {
 	public BugTrackingSystemAuth() {
 	}
 
-	public Integer getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(Integer id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 

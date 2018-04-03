@@ -52,7 +52,7 @@ public class DeleteExternalSystemHandler implements IDeleteExternalSystemHandler
 	private ApplicationEventPublisher eventPublisher;
 
 	@Override
-	public synchronized OperationCompletionRS deleteExternalSystem(String projectName, Integer id, ReportPortalUser user) {
+	public synchronized OperationCompletionRS deleteExternalSystem(String projectName, Long id, ReportPortalUser user) {
 		ReportPortalUser.ProjectDetails projectDetails = EntityUtils.takeProjectDetails(user, projectName);
 
 		BugTrackingSystem bugTrackingSystem = bugTrackingSystemRepository.findByIdAndProjectId(id, projectDetails.getProjectId())

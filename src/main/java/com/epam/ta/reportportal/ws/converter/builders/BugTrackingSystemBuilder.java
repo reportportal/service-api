@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystemAuth;
+import com.epam.ta.reportportal.store.database.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
 
 import java.util.function.Supplier;
@@ -50,8 +51,10 @@ public class BugTrackingSystemBuilder implements Supplier<BugTrackingSystem> {
 			return this;
 		}
 
-		public BugTrackingSystemBuilder addProjectId(Long projectId) {
-			bugTrackingSystem.setProjectId(projectId);
+		public BugTrackingSystemBuilder addProject(Long projectId) {
+			Project project = new Project();
+			project.setId(projectId);
+			bugTrackingSystem.setProject(project);
 			return this;
 		}
 

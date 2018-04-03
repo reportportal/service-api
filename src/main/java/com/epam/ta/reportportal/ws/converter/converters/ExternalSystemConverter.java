@@ -44,7 +44,7 @@ public final class ExternalSystemConverter {
 		ExternalSystemResource resource = new ExternalSystemResource();
 		resource.setSystemId(bugTrackingSystem.getId().toString());
 		resource.setUrl(bugTrackingSystem.getUrl());
-		resource.setProjectRef(bugTrackingSystem.getProjectId().toString());
+		resource.setProjectRef(bugTrackingSystem.getProject().getId().toString());
 		resource.setProject(bugTrackingSystem.getBtsProject());
 		resource.setExternalSystemType(bugTrackingSystem.getBtsType());
 		resource.setExternalSystemAuth(bugTrackingSystem.getAuth().getAuthType().name());

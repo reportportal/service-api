@@ -61,11 +61,11 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 	@Override
 	public EntryCreatedRS createExternalSystem(CreateExternalSystemRQ createRQ, String projectName, ReportPortalUser user) {
 		ReportPortalUser.ProjectDetails projectDetails = EntityUtils.takeProjectDetails(user, projectName);
-
-		/* Remove trailing slash if exists */
-		if (createRQ.getUrl().endsWith("/")) {
-			createRQ.setUrl(createRQ.getUrl().substring(0, createRQ.getUrl().length() - 1));
-		}
+		//
+		//		/* Remove trailing slash if exists */
+		//		if (createRQ.getUrl().endsWith("/")) {
+		//			createRQ.setUrl(createRQ.getUrl().substring(0, createRQ.getUrl().length() - 1));
+		//		}
 
 		bugTrackingSystemRepository.findByUrlAndBtsProjectAndProjectId(
 				createRQ.getUrl(), createRQ.getProject(), projectDetails.getProjectId())
@@ -76,10 +76,10 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 		//ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(createRQ.getExternalSystemType());
 		//expect(externalSystemStrategy, notNull()).verify(EXTERNAL_SYSTEM_NOT_FOUND, createRQ.getExternalSystemType());
 
-		BugTrackingSystemAuth auth = bugTrackingSystemAuthFactory.createAuthObject(new BugTrackingSystemAuth(), createRQ);
-
-		BugTrackingSystem bugTrackingSystem = new BugTrackingSystemBuilder().addExternalSystem(createRQ)
-				.addSystemAuth(auth)
+		BugTrackingSystem bugTrackingSystem = new BugTrackingSystemBuilder().addUrl(createRQ.getUrl())
+				.addExternalSystemType(createRQ.getExternalSystemType())
+				.addExternalProject(createRQ.getProject())
+				.addSystemAuth(bugTrackingSystemAuthFactory.createAuthObject(new BugTrackingSystemAuth(), createRQ))
 				.addProject(projectDetails.getProjectId())
 				.get();
 

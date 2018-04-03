@@ -55,6 +55,7 @@ public class DefectFormField implements Serializable {
 
 	@ElementCollection
 	@CollectionTable(name = "defect_form_field_value", joinColumns = @JoinColumn(name = "id"))
+	@Column(name = "values")
 	private List<String> values;
 
 	@OneToMany(mappedBy = "defectFormField", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)

@@ -23,9 +23,13 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystemAuth;
+import com.epam.ta.reportportal.store.database.entity.bts.DefectFormField;
 import com.epam.ta.reportportal.store.database.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -33,30 +37,67 @@ import java.util.function.Supplier;
  */
 public class BugTrackingSystemBuilder implements Supplier<BugTrackingSystem> {
 
-		private BugTrackingSystem bugTrackingSystem;
-	
-		public BugTrackingSystemBuilder() {
-			bugTrackingSystem = new BugTrackingSystem();
-		}
+	private BugTrackingSystem bugTrackingSystem;
 
-		public BugTrackingSystemBuilder addExternalSystem(CreateExternalSystemRQ rq) {
-			bugTrackingSystem.setUrl(rq.getUrl());
-			bugTrackingSystem.setBtsType(rq.getExternalSystemType());
-			bugTrackingSystem.setBtsProject(rq.getProject());
-			return this;
-		}
+	public BugTrackingSystemBuilder() {
+		bugTrackingSystem = new BugTrackingSystem();
+	}
 
-		public BugTrackingSystemBuilder addSystemAuth(BugTrackingSystemAuth auth) {
-			bugTrackingSystem.setAuth(auth);
-			return this;
-		}
+	public BugTrackingSystemBuilder(BugTrackingSystem bugTrackingSystem) {
+		this.bugTrackingSystem = bugTrackingSystem;
+	}
 
-		public BugTrackingSystemBuilder addProject(Long projectId) {
-			Project project = new Project();
-			project.setId(projectId);
-			bugTrackingSystem.setProject(project);
-			return this;
+	public BugTrackingSystemBuilder addUrl(String url) {
+		if (!StringUtils.isEmpty(url)) {
+			if (url.endsWith("/")) {
+				url = url.substring(0, url.length() - 1);
+			}
 		}
+		bugTrackingSystem.setUrl(url);
+		return this;
+	}
+
+	public BugTrackingSystemBuilder addExternalSystemType(String systemType) {
+		if (!StringUtils.isEmpty(systemType)) {
+			bugTrackingSystem.setBtsType(systemType);
+		}
+		return this;
+	}
+
+	public BugTrackingSystemBuilder addExternalProject(String project) {
+		if (!StringUtils.isEmpty(project)) {
+			bugTrackingSystem.setBtsProject(project);
+		}
+		return this;
+	}
+
+	public BugTrackingSystemBuilder addExternalSystem(CreateExternalSystemRQ rq) {
+		bugTrackingSystem.setUrl(rq.getUrl());
+		bugTrackingSystem.setBtsType(rq.getExternalSystemType());
+		bugTrackingSystem.setBtsProject(rq.getProject());
+		return this;
+	}
+
+	public BugTrackingSystemBuilder addSystemAuth(BugTrackingSystemAuth auth) {
+		bugTrackingSystem.setAuth(auth);
+		return this;
+	}
+
+	public BugTrackingSystemBuilder addProject(Long projectId) {
+		Project project = new Project();
+		project.setId(projectId);
+		bugTrackingSystem.setProject(project);
+		return this;
+	}
+
+	public BugTrackingSystemBuilder addFields(Set<DefectFormField> fields) {
+		if (!CollectionUtils.isEmpty(fields)) {
+			bugTrackingSystem.getDefectFormFields().clear();
+			bugTrackingSystem.getDefectFormFields().addAll(fields);
+			bugTrackingSystem.getDefectFormFields().forEach(it -> it.setBugTrackingSystem(bugTrackingSystem));
+		}
+		return this;
+	}
 
 	@Override
 	public BugTrackingSystem get() {

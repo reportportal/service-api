@@ -27,24 +27,18 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.dao.BugTrackingSystemRepository;
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
-import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystemAuth;
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystemAuthFactory;
-import com.epam.ta.reportportal.store.database.entity.project.Project;
+import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemFieldsConverter;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.UpdateExternalSystemRQ;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.ws.model.ErrorType.EXTERNAL_SYSTEM_ALREADY_EXISTS;
 import static com.epam.ta.reportportal.ws.model.ErrorType.EXTERNAL_SYSTEM_NOT_FOUND;
-import static java.util.Optional.ofNullable;
 
 /**
  * Initial realization for {@link IUpdateExternalSystemHandler} interface
@@ -78,58 +72,38 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 		final String sysProject = bugTrackingSystem.getBtsProject();
 		final Long rpProject = bugTrackingSystem.getProject().getId();
 
-		ofNullable(request.getUrl()).ifPresent(it -> {
-			if (request.getUrl().endsWith("/")) {
-				request.setUrl(request.getUrl().substring(0, request.getUrl().length() - 1));
-			}
-		});
+		BugTrackingSystemBuilder builder = new BugTrackingSystemBuilder(bugTrackingSystem);
 
-		/* Check input params for avoid external system duplication */
-		if (!sysUrl.equalsIgnoreCase(request.getUrl()) || !sysProject.equalsIgnoreCase(request.getProject()) || !Objects.equals(
-				rpProject, projectDetails.getProjectId())) {
-			bugTrackingSystemRepository.findByUrlAndBtsProjectAndProjectId(
-					request.getUrl(), request.getProject(), projectDetails.getProjectId()).ifPresent(it -> {
-				throw new ReportPortalException(EXTERNAL_SYSTEM_ALREADY_EXISTS, request.getUrl() + " & " + request.getProject());
-			});
-		}
+		//		/* Check input params for avoid external system duplication */
+		//		if (!sysUrl.equalsIgnoreCase(request.getUrl()) || !sysProject.equalsIgnoreCase(request.getProject()) || !Objects.equals(
+		//				rpProject, projectDetails.getProjectId())) {
+		//			bugTrackingSystemRepository.findByUrlAndBtsProjectAndProjectId(
+		//					request.getUrl(), request.getProject(), projectDetails.getProjectId()).ifPresent(it -> {
+		//				throw new ReportPortalException(EXTERNAL_SYSTEM_ALREADY_EXISTS, request.getUrl() + " & " + request.getProject());
+		//			});
+		//		}
 
-		bugTrackingSystem.setUrl(request.getUrl());
-
-		if (!StringUtils.isEmpty(request.getExternalSystemType())) {
-			bugTrackingSystem.setBtsType(request.getExternalSystemType());
-		}
+		bugTrackingSystem = builder.addUrl(request.getUrl())
+				.addExternalSystemType(request.getExternalSystemType())
+				.addExternalProject(request.getProject())
+				.addProject(projectDetails.getProjectId())
+				.addFields(request.getFields().stream().map(ExternalSystemFieldsConverter.FIELD_TO_DB).collect(Collectors.toSet()))
+				.addSystemAuth(bugTrackingSystemAuthFactory.createAuthObject(bugTrackingSystem.getAuth(), request))
+				.get();
 
 		//		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(bugTrackingSystem.getBtsType());
 
-		if (StringUtils.isEmpty(request.getProject())) {
-			bugTrackingSystem.setBtsProject(request.getProject());
-		}
-		/* Hard referenced project update */
-		Project project = new Project();
-		project.setId(projectDetails.getProjectId());
-		bugTrackingSystem.setProject(project);
-
-		if (!CollectionUtils.isEmpty(request.getFields())) {
-			bugTrackingSystem.setDefectFormFields(
-					request.getFields().stream().map(ExternalSystemFieldsConverter.FIELD_TO_DB).collect(Collectors.toSet()));
-		}
-
-		if (null != request.getExternalSystemAuth()) {
-			BugTrackingSystemAuth auth = bugTrackingSystemAuthFactory.createAuthObject(bugTrackingSystem.getAuth(), request);
-			bugTrackingSystem.setAuth(auth);
-
-			//			if (authType.requiresPassword()) {
-			//				String decrypted = bugTrackingSystem.getAuth();
-			//				exist.setPassword(simpleEncryptor.decrypt(exist.getPassword()));
-			//				expect(externalSystemStrategy.connectionTest(exist), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
-			//						projectName
-			//				);
-			//				exist.setPassword(decrypted);
-			//			} else {
-			//				expect(externalSystemStrategy.connectionTest(exist), equalTo(true)).verify(
-			//						UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, projectName);
-			//			}
-		}
+		//			if (authType.requiresPassword()) {
+		//				String decrypted = bugTrackingSystem.getAuth();
+		//				exist.setPassword(simpleEncryptor.decrypt(exist.getPassword()));
+		//				expect(externalSystemStrategy.connectionTest(exist), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
+		//						projectName
+		//				);
+		//				exist.setPassword(decrypted);
+		//			} else {
+		//				expect(externalSystemStrategy.connectionTest(exist), equalTo(true)).verify(
+		//						UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, projectName);
+		//			}
 
 		bugTrackingSystemRepository.save(bugTrackingSystem);
 
@@ -146,11 +120,10 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 
 		//ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(updateRQ.getExternalSystemType());
 
-		BugTrackingSystem details = new BugTrackingSystem();
-		details.setUrl(updateRQ.getUrl());
-		details.setBtsProject(updateRQ.getProject());
-		BugTrackingSystemAuth auth = bugTrackingSystemAuthFactory.createAuthObject(bugTrackingSystem.getAuth(), updateRQ);
-		details.setAuth(auth);
+		BugTrackingSystem details = new BugTrackingSystemBuilder().addUrl(updateRQ.getUrl())
+				.addExternalProject(updateRQ.getProject())
+				.addSystemAuth(bugTrackingSystemAuthFactory.createAuthObject(bugTrackingSystem.getAuth(), updateRQ))
+				.get();
 
 		//		expect(externalSystemStrategy.connectionTest(details), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
 		//				system.getProjectRef()

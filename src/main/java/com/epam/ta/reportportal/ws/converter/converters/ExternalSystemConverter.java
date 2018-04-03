@@ -25,8 +25,8 @@ import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
 import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
 import com.google.common.base.Preconditions;
 
-import java.util.Collections;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Converts internal DB model from/to DTO
@@ -51,7 +51,10 @@ public final class ExternalSystemConverter {
 		resource.setUsername(bugTrackingSystem.getAuth().getUsername());
 		resource.setDomain(bugTrackingSystem.getAuth().getDomain());
 		resource.setAccessKey(bugTrackingSystem.getAuth().getAccessKey());
-		resource.setFields(Collections.emptyList());
+		resource.setFields(bugTrackingSystem.getDefectFormFields()
+				.stream()
+				.map(ExternalSystemFieldsConverter.FIELD_TO_MODEL)
+				.collect(Collectors.toList()));
 		return resource;
 	};
 }

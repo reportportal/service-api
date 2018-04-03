@@ -50,6 +50,7 @@ import static java.util.Optional.ofNullable;
  * Initial realization for {@link IUpdateExternalSystemHandler} interface
  *
  * @author Andrei_Ramanchuk
+ * @author Pavel Bortnik
  */
 @Service
 public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler {
@@ -109,10 +110,8 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 		bugTrackingSystem.setProject(project);
 
 		if (!CollectionUtils.isEmpty(request.getFields())) {
-			bugTrackingSystem.setDefectFormFields(request.getFields()
-					.stream()
-					.map(ExternalSystemFieldsConverter.FIELD_TO_DB)
-					.collect(Collectors.toSet()));
+			bugTrackingSystem.setDefectFormFields(
+					request.getFields().stream().map(ExternalSystemFieldsConverter.FIELD_TO_DB).collect(Collectors.toSet()));
 		}
 
 		if (null != request.getExternalSystemAuth()) {

@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
  * Basic interface for {@link} realization
  *
  * @author Andrei_Ramanchuk
+ * @author Pavel Bortnik
  */
 public interface ICreateExternalSystemHandler {
 

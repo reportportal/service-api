@@ -35,6 +35,7 @@ import org.springframework.stereotype.Service;
  * Implementation of {@link IGetExternalSystemHandler} interface
  *
  * @author Andrei_Ramanchuk
+ * @author Pavel Bortnik
  */
 @Service
 public class GetExternalSystemHandler implements IGetExternalSystemHandler {

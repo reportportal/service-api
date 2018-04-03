@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
  * Interface for {@link DeleteExternalSystemHandler} external system handler
  *
  * @author Andrei_Ramanchuk
+ * @author Pavel Bortnik
  */
 public interface IDeleteExternalSystemHandler {
 

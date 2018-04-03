@@ -51,11 +51,32 @@ public final class ExternalSystemFieldsConverter {
 		return defectFormField;
 	};
 
+	public static final Function<DefectFormField, PostFormField> FIELD_TO_MODEL = defectFormField -> {
+		Preconditions.checkNotNull(defectFormField);
+		PostFormField postFormField = new PostFormField();
+		postFormField.setFieldName(defectFormField.getFieldId());
+		postFormField.setFieldType(defectFormField.getType());
+		postFormField.setIsRequired(defectFormField.isRequired());
+		postFormField.setDefinedValues(defectFormField.getDefectFieldAllowedValues()
+				.stream()
+				.map(ExternalSystemFieldsConverter.VALUE_TO_MODEL)
+				.collect(Collectors.toList()));
+		return postFormField;
+	};
+
 	public static final Function<AllowedValue, DefectFieldAllowedValue> VALUE_TO_DB = value -> {
 		Preconditions.checkNotNull(value);
 		DefectFieldAllowedValue allowedValue = new DefectFieldAllowedValue();
 		allowedValue.setValueId(value.getValueId());
 		allowedValue.setValueName(value.getValueName());
+		return allowedValue;
+	};
+
+	public static final Function<DefectFieldAllowedValue, AllowedValue> VALUE_TO_MODEL = defectFieldAllowedValue -> {
+		Preconditions.checkNotNull(defectFieldAllowedValue);
+		AllowedValue allowedValue = new AllowedValue();
+		allowedValue.setValueId(defectFieldAllowedValue.getValueId());
+		allowedValue.setValueName(defectFieldAllowedValue.getValueName());
 		return allowedValue;
 	};
 }

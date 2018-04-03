@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
  * Basic interface for {@link GetExternalSystemHandler}
  *
  * @author Andrei_Ramanchuk
+ * @author Pavel Bortnik
  */
 public interface IGetExternalSystemHandler {
 

@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.ws.model.externalsystem.UpdateExternalSystemRQ;
  * Basic interface for {@link UpdateExternalSystemHandler}
  *
  * @author Andrei_Ramanchuk
+ * @author Pavel Bortnik
  */
 public interface IUpdateExternalSystemHandler {
 

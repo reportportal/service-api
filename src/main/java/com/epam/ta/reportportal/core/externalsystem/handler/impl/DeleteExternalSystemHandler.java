@@ -41,6 +41,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.EXTERNAL_SYSTEM_NOT_FO
  * Basic implementation for {@link IDeleteExternalSystemHandler} interface
  *
  * @author Andrei_Ramanchuk
+ * @author Pavel Bortnik
  */
 @Service
 public class DeleteExternalSystemHandler implements IDeleteExternalSystemHandler {

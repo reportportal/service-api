@@ -25,14 +25,12 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.enums.TestItemTypeEnum;
-import com.epam.ta.reportportal.store.database.entity.item.TestItem;
-import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
-import com.epam.ta.reportportal.store.database.entity.item.TestItemStructure;
-import com.epam.ta.reportportal.store.database.entity.item.TestItemTag;
+import com.epam.ta.reportportal.store.database.entity.item.*;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -124,11 +122,15 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		return this;
 	}
 
-	//TODO parameters
 	public TestItemBuilder addParameters(List<ParameterResource> parameters) {
-		//		if (null != parameters) {
-		//			testItem.setParameters(parameters.stream().map(ParametersConverter.TO_MODEL).toArray(Parameter[]::new));
-		//		}
+		if (!CollectionUtils.isEmpty(parameters)) {
+			testItem.setParameters(parameters.stream().map(it -> {
+				Parameter parameter = new Parameter();
+				parameter.setKey(it.getKey());
+				parameter.setValue(it.getValue());
+				return parameter;
+			}).collect(Collectors.toList()));
+		}
 		return this;
 	}
 

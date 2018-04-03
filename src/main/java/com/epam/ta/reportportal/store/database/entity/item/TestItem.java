@@ -34,6 +34,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -73,8 +74,9 @@ public class TestItem implements Serializable {
 	@Column(name = "last_modified", nullable = false)
 	private LocalDateTime lastModified;
 
-	//	@Column(name = "parameters")
-	//	private Parameter[] parameters;
+	@ElementCollection
+	@CollectionTable(name = "parameter", joinColumns = @JoinColumn(name = "item_id"))
+	private List<Parameter> parameters;
 
 	@Column(name = "unique_id", nullable = false, length = 256)
 	private String uniqueId;
@@ -192,13 +194,13 @@ public class TestItem implements Serializable {
 		this.description = description;
 	}
 
-	//	public Parameter[] getParameters() {
-	//		return parameters;
-	//	}
-	//
-	//	public void setParameters(Parameter[] parameters) {
-	//		this.parameters = parameters;
-	//	}
+	public List<Parameter> getParameters() {
+		return parameters;
+	}
+
+	public void setParameters(List<Parameter> parameters) {
+		this.parameters = parameters;
+	}
 
 	public String getUniqueId() {
 		return uniqueId;

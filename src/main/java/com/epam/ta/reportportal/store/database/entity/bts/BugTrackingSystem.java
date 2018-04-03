@@ -83,12 +83,6 @@ public class BugTrackingSystem implements Serializable {
 		return defectFormFields;
 	}
 
-	public void setDefectFormFields(Set<DefectFormField> defectFormFields) {
-		this.defectFormFields.clear();
-		this.defectFormFields.addAll(defectFormFields);
-		this.defectFormFields.forEach(it -> it.setBugTrackingSystem(this));
-	}
-
 	public String getUrl() {
 		return url;
 	}

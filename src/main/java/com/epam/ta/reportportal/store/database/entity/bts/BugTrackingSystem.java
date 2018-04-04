@@ -54,10 +54,10 @@ public class BugTrackingSystem implements Serializable {
 	@Column(name = "bts_project", nullable = false)
 	private String btsProject;
 
-	@OneToOne(mappedBy = "bugTrackingSystem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@OneToOne(mappedBy = "bugTrackingSystem", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private BugTrackingSystemAuth auth;
 
-	@OneToMany(mappedBy = "bugTrackingSystem", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+	@OneToMany(mappedBy = "bugTrackingSystem", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
 	private Set<DefectFormField> defectFormFields = Sets.newHashSet();
 
 	public BugTrackingSystem() {

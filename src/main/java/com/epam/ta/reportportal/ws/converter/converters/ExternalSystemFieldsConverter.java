@@ -28,6 +28,8 @@ import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
 import com.google.common.base.Preconditions;
 import org.apache.commons.collections.CollectionUtils;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -47,7 +49,7 @@ public final class ExternalSystemFieldsConverter {
 		defectFormField.setType(field.getFieldType());
 		defectFormField.setRequired(field.getIsRequired());
 		if (!CollectionUtils.isEmpty(field.getValue())) {
-			defectFormField.setValues(field.getValue());
+			defectFormField.setValues(new HashSet<>(field.getValue()));
 		}
 		defectFormField.setDefectFieldAllowedValues(
 				field.getDefinedValues().stream().map(ExternalSystemFieldsConverter.VALUE_TO_DB).collect(Collectors.toSet()));
@@ -64,7 +66,7 @@ public final class ExternalSystemFieldsConverter {
 				.stream()
 				.map(ExternalSystemFieldsConverter.VALUE_TO_MODEL)
 				.collect(Collectors.toList()));
-		postFormField.setValue(defectFormField.getValues());
+		postFormField.setValue(new ArrayList<>(defectFormField.getValues()));
 		return postFormField;
 	};
 

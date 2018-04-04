@@ -74,7 +74,7 @@ public class TestItem implements Serializable {
 	@Column(name = "last_modified", nullable = false)
 	private LocalDateTime lastModified;
 
-	@ElementCollection
+	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name = "parameter", joinColumns = @JoinColumn(name = "item_id"))
 	private List<Parameter> parameters;
 

@@ -61,33 +61,33 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 	@Override
 	public EntryCreatedRS createExternalSystem(CreateExternalSystemRQ createRQ, String projectName, ReportPortalUser user) {
 		ReportPortalUser.ProjectDetails projectDetails = EntityUtils.takeProjectDetails(user, projectName);
-		//
-		//		/* Remove trailing slash if exists */
-		//		if (createRQ.getUrl().endsWith("/")) {
-		//			createRQ.setUrl(createRQ.getUrl().substring(0, createRQ.getUrl().length() - 1));
-		//		}
-
-		bugTrackingSystemRepository.findByUrlAndBtsProjectAndProjectId(
-				createRQ.getUrl(), createRQ.getProject(), projectDetails.getProjectId())
-				.ifPresent(it -> new ReportPortalException(ErrorType.EXTERNAL_SYSTEM_ALREADY_EXISTS,
-						createRQ.getUrl() + " & " + createRQ.getProject()
-				));
 
 		//ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(createRQ.getExternalSystemType());
 		//expect(externalSystemStrategy, notNull()).verify(EXTERNAL_SYSTEM_NOT_FOUND, createRQ.getExternalSystemType());
 
 		BugTrackingSystem bugTrackingSystem = new BugTrackingSystemBuilder().addUrl(createRQ.getUrl())
-				.addExternalSystemType(createRQ.getExternalSystemType())
-				.addExternalProject(createRQ.getProject())
+				.addBugTrackingSystemType(createRQ.getExternalSystemType())
+				.addBugTrackingProject(createRQ.getProject())
 				.addSystemAuth(bugTrackingSystemAuthFactory.createAuthObject(new BugTrackingSystemAuth(), createRQ))
 				.addProject(projectDetails.getProjectId())
 				.get();
+
+		//checkUnique(bugTrackingSystem, projectDetails.getProjectId());
 
 		//expect(externalSystemStrategy.connectionTest(externalSystem), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, projectName);
 
 		bugTrackingSystemRepository.save(bugTrackingSystem);
 		//eventPublisher.publishEvent(new ExternalSystemCreatedEvent(createOne, username));
 		return new EntryCreatedRS(bugTrackingSystem.getId());
+	}
+
+	//TODO probably could be handled by database
+	private void checkUnique(BugTrackingSystem bugTrackingSystem, Long projectId) {
+		bugTrackingSystemRepository.findByUrlAndBtsProjectAndProjectId(
+				bugTrackingSystem.getUrl(), bugTrackingSystem.getBtsProject(), projectId)
+				.ifPresent(it -> new ReportPortalException(ErrorType.EXTERNAL_SYSTEM_ALREADY_EXISTS,
+						bugTrackingSystem.getUrl() + " & " + bugTrackingSystem.getBtsProject()
+				));
 	}
 
 }

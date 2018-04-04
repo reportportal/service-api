@@ -67,29 +67,25 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 		BugTrackingSystem bugTrackingSystem = bugTrackingSystemRepository.findById(id)
 				.orElseThrow(() -> new ReportPortalException(EXTERNAL_SYSTEM_NOT_FOUND, id));
 
-		/* Remember initial parameters of saved external system */
-		final String sysUrl = bugTrackingSystem.getUrl();
-		final String sysProject = bugTrackingSystem.getBtsProject();
-		final Long rpProject = bugTrackingSystem.getProject().getId();
-
 		BugTrackingSystemBuilder builder = new BugTrackingSystemBuilder(bugTrackingSystem);
 
-		//		/* Check input params for avoid external system duplication */
-		//		if (!sysUrl.equalsIgnoreCase(request.getUrl()) || !sysProject.equalsIgnoreCase(request.getProject()) || !Objects.equals(
-		//				rpProject, projectDetails.getProjectId())) {
-		//			bugTrackingSystemRepository.findByUrlAndBtsProjectAndProjectId(
-		//					request.getUrl(), request.getProject(), projectDetails.getProjectId()).ifPresent(it -> {
-		//				throw new ReportPortalException(EXTERNAL_SYSTEM_ALREADY_EXISTS, request.getUrl() + " & " + request.getProject());
-		//			});
-		//		}
-
 		bugTrackingSystem = builder.addUrl(request.getUrl())
-				.addExternalSystemType(request.getExternalSystemType())
-				.addExternalProject(request.getProject())
+				.addBugTrackingSystemType(request.getExternalSystemType())
+				.addBugTrackingProject(request.getProject())
 				.addProject(projectDetails.getProjectId())
 				.addFields(request.getFields().stream().map(ExternalSystemFieldsConverter.FIELD_TO_DB).collect(Collectors.toSet()))
 				.addSystemAuth(bugTrackingSystemAuthFactory.createAuthObject(bugTrackingSystem.getAuth(), request))
 				.get();
+
+		//TODO probably could be handled by database
+//				/* Check input params for avoid external system duplication */
+//		if (!sysUrl.equalsIgnoreCase(bugTrackingSystem.getUrl()) || !sysProject.equalsIgnoreCase(bugTrackingSystem.getBtsProject())
+//				|| !Objects.equals(rpProject, projectDetails.getProjectId())) {
+//			bugTrackingSystemRepository.findByUrlAndBtsProjectAndProjectId(
+//					request.getUrl(), request.getProject(), projectDetails.getProjectId()).ifPresent(it -> {
+//				throw new ReportPortalException(EXTERNAL_SYSTEM_ALREADY_EXISTS, request.getUrl() + " & " + request.getProject());
+//			});
+//		}
 
 		//		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(bugTrackingSystem.getBtsType());
 
@@ -121,7 +117,7 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 		//ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(updateRQ.getExternalSystemType());
 
 		BugTrackingSystem details = new BugTrackingSystemBuilder().addUrl(updateRQ.getUrl())
-				.addExternalProject(updateRQ.getProject())
+				.addBugTrackingProject(updateRQ.getProject())
 				.addSystemAuth(bugTrackingSystemAuthFactory.createAuthObject(bugTrackingSystem.getAuth(), updateRQ))
 				.get();
 

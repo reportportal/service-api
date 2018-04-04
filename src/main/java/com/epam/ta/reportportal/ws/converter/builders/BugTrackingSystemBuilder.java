@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystemAuth;
 import com.epam.ta.reportportal.store.database.entity.bts.DefectFormField;
 import com.epam.ta.reportportal.store.database.entity.project.Project;
-import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -57,24 +56,17 @@ public class BugTrackingSystemBuilder implements Supplier<BugTrackingSystem> {
 		return this;
 	}
 
-	public BugTrackingSystemBuilder addExternalSystemType(String systemType) {
+	public BugTrackingSystemBuilder addBugTrackingSystemType(String systemType) {
 		if (!StringUtils.isEmpty(systemType)) {
 			bugTrackingSystem.setBtsType(systemType);
 		}
 		return this;
 	}
 
-	public BugTrackingSystemBuilder addExternalProject(String project) {
+	public BugTrackingSystemBuilder addBugTrackingProject(String project) {
 		if (!StringUtils.isEmpty(project)) {
 			bugTrackingSystem.setBtsProject(project);
 		}
-		return this;
-	}
-
-	public BugTrackingSystemBuilder addExternalSystem(CreateExternalSystemRQ rq) {
-		bugTrackingSystem.setUrl(rq.getUrl());
-		bugTrackingSystem.setBtsType(rq.getExternalSystemType());
-		bugTrackingSystem.setBtsProject(rq.getProject());
 		return this;
 	}
 

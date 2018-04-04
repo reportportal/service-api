@@ -21,9 +21,13 @@
 
 package com.epam.ta.reportportal.store.database.entity.item.issue;
 
+import com.epam.ta.reportportal.store.database.entity.bts.Ticket;
+import com.google.common.collect.Sets;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author Pavel Bortnik
@@ -48,6 +52,10 @@ public class IssueEntity implements Serializable {
 
 	@Column(name = "ignore_analyzer")
 	private Boolean ignoreAnalyzer;
+
+	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinTable(name = "issue_ticket", joinColumns = @JoinColumn(name = "issue_id"), inverseJoinColumns = @JoinColumn(name = "ticket_id"))
+	private Set<Ticket> tickets = Sets.newHashSet();
 
 	public IssueEntity() {
 	}

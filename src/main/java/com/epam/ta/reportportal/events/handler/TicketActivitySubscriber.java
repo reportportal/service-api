@@ -120,9 +120,12 @@ public class TicketActivitySubscriber {
 			Activity.FieldValues fieldValues = results.get(testItem.getId());
 
 			String newValue = issuesIdsToString(testItem.getIssue().getExternalSystemIssues(), separator);
-			if (newValue != null) {
+			if (!fieldValues.getOldValue().isEmpty()) {
 				fieldValues.withField(TICKET_ID).withNewValue(newValue);
-				ActivityEventType type = testItem.getIssue().isAutoAnalyzed() ? ATTACH_ISSUE_AA : ATTACH_ISSUE;
+				ActivityEventType type = testItem.getIssue().isAutoAnalyzed() ? LOAD_ISSUE_AA : LOAD_ISSUE;
+				if (fieldValues.getOldValue().length() > newValue.length()) {
+					type = UNLOAD_ISSUE;
+				}
 				Activity activity = new ActivityBuilder().addProjectRef(event.getProject())
 						.addActionType(type)
 						.addLoggedObjectRef(testItem.getId())
@@ -152,7 +155,7 @@ public class TicketActivitySubscriber {
 					.map(externalSystemIssue -> externalSystemIssue.getTicketId().concat(":").concat(externalSystemIssue.getUrl()))
 					.collect(Collectors.joining(separator));
 		}
-		return null;
+		return "";
 	}
 
 	private List<Activity> processTestItemIssues(String projectName, String principal, Map<IssueDefinition, TestItem> data) {

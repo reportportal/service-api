@@ -25,6 +25,8 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
+import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
+import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 
 import java.util.List;
@@ -49,20 +51,22 @@ public interface UpdateTestItemHandler {
 	/**
 	 * Update specified test item
 	 *
-	 * @param itemId   test item ID
-	 * @param rq       update test item request data
-	 * @param user request principal name
+	 * @param itemId test item ID
+	 * @param rq     update test item request data
+	 * @param user   request principal name
 	 * @return OperationCompletionRS
 	 */
 	OperationCompletionRS updateTestItem(String projectName, Long itemId, UpdateTestItemRQ rq, ReportPortalUser user);
 
-	//	/**
-	//	 * Add external system issue link directly to test items
-	//	 *
-	//	 * @param projectName
-	//	 * @param rq
-	//	 * @param userName
-	//	 * @return
-	//	 */
-	//	List<OperationCompletionRS> addExternalIssues(String projectName, AddExternalIssueRQ rq, String userName);
+	/**
+	 * Add external system issue link directly to test items
+	 *
+	 * @param projectName
+	 * @param rq
+	 * @param user
+	 * @return
+	 */
+	List<OperationCompletionRS> linkExternalIssues(String projectName, LinkExternalIssueRQ rq, ReportPortalUser user);
+
+	List<OperationCompletionRS> unlinkExternalIssues(String projectName, UnlinkExternalIssueRq rq, ReportPortalUser user);
 }

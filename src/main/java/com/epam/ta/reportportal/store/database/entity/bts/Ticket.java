@@ -27,6 +27,7 @@ import com.google.common.collect.Sets;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -45,8 +46,8 @@ public class Ticket implements Serializable {
 	@Column(name = "ticket_id")
 	private String ticketId;
 
-	@Column(name = "sumitter_id")
-	private String submitterId;
+	@Column(name = "submitter_id")
+	private Long submitterId;
 
 	@Column(name = "submit_date")
 	private LocalDateTime submitDate;
@@ -79,11 +80,11 @@ public class Ticket implements Serializable {
 		this.ticketId = ticketId;
 	}
 
-	public String getSubmitterId() {
+	public Long getSubmitterId() {
 		return submitterId;
 	}
 
-	public void setSubmitterId(String submitterId) {
+	public void setSubmitterId(Long submitterId) {
 		this.submitterId = submitterId;
 	}
 
@@ -117,5 +118,22 @@ public class Ticket implements Serializable {
 
 	public void setIssues(Set<IssueEntity> issues) {
 		this.issues = issues;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		Ticket ticket = (Ticket) o;
+		return Objects.equals(ticketId, ticket.ticketId);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(ticketId);
 	}
 }

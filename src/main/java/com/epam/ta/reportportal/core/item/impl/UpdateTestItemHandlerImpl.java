@@ -27,7 +27,9 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.EntityUtils;
+import com.epam.ta.reportportal.store.database.dao.BugTrackingSystemRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.entity.bts.Ticket;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
@@ -37,22 +39,31 @@ import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
 import com.epam.ta.reportportal.store.database.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemIssueConverter;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
+import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
+import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.store.commons.Predicates.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.EXTERNAL_SYSTEM_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION;
+import static java.lang.Boolean.FALSE;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Default implementation of {@link UpdateTestItemHandler}
@@ -63,6 +74,8 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.FAILED_TEST_ITEM_ISSUE
 public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private TestItemRepository testItemRepository;
+
+	private BugTrackingSystemRepository bugTrackingSystemRepository;
 
 	private IssueTypeHandler issueTypeHandler;
 
@@ -76,13 +89,16 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		this.issueTypeHandler = issueTypeHandler;
 	}
 
+	@Autowired
+	public void setBugTrackingSystemRepository(BugTrackingSystemRepository bugTrackingSystemRepository) {
+		this.bugTrackingSystemRepository = bugTrackingSystemRepository;
+	}
+
 	@Override
 	public List<Issue> defineTestItemsIssues(String projectName, DefineIssueRQ defineIssue, ReportPortalUser user) {
 		List<String> errors = new ArrayList<>();
 		List<IssueDefinition> definitions = defineIssue.getIssues();
-
 		expect(definitions.isEmpty(), equalTo(false)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION);
-
 		List<Issue> updated = new ArrayList<>(defineIssue.getIssues().size());
 
 		definitions.forEach(issueDefinition -> {
@@ -92,15 +108,17 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 								Suppliers.formattedSupplier("Cannot update issue type for test item '{}', cause it is not found.",
 										issueDefinition.getId()
 								).get()));
-				verifyTestItem(testItem, issueDefinition.getId());
-				Issue issue = issueDefinition.getIssue();
 
+				verifyTestItem(testItem, issueDefinition.getId());
+
+				Issue issue = issueDefinition.getIssue();
 				IssueType issueType = issueTypeHandler.defineIssueType(
 						testItem.getItemId(), EntityUtils.takeProjectDetails(user, projectName).getProjectId(), issue.getIssueType());
 
 				IssueEntity issueEntity = new IssueEntityBuilder(testItem.getTestItemResults().getIssue()).addIssueType(issueType)
 						.addDescription(issue.getComment())
 						.addIgnoreFlag(issue.getIgnoreAnalyzer())
+						.addTickets(issue.getExternalSystemIssues(), user.getUserId())
 						.addAutoAnalyzedFlag(false)
 						.get();
 
@@ -127,43 +145,55 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		return new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated.");
 	}
 
-	//
-	//	@Override
-	//	public List<OperationCompletionRS> addExternalIssues(String projectName, AddExternalIssueRQ rq, String userName) {
-	//		List<String> errors = new ArrayList<>();
-	//		ExternalSystem extSystem = externalSystemRepository.findOne(rq.getExternalSystemId());
-	//		expect(extSystem, notNull()).verify(EXTERNAL_SYSTEM_NOT_FOUND, rq.getExternalSystemId());
-	//
-	//		Iterable<TestItem> testItems = testItemRepository.findAll(rq.getTestItemIds());
-	//		List<TestItem> before = SerializationUtils.clone(Lists.newArrayList(testItems));
-	//		StreamSupport.stream(testItems.spliterator(), false).forEach(testItem -> {
-	//			try {
-	//				verifyTestItem(testItem, testItem.getId());
-	//				Set<TestItemIssue.ExternalSystemIssue> tiIssues = rq.getIssues()
-	//						.stream()
-	//						.filter(issue -> !issue.getTicketId().trim().isEmpty())
-	//						.map(TestItemUtils.externalIssueDtoConverter(rq.getExternalSystemId(), userName))
-	//						.collect(toSet());
-	//				if (null == testItem.getIssue().getExternalSystemIssues()) {
-	//					testItem.getIssue().setExternalSystemIssues(tiIssues);
-	//				} else {
-	//					tiIssues.addAll(testItem.getIssue().getExternalSystemIssues());
-	//					testItem.getIssue().setExternalSystemIssues(tiIssues);
-	//				}
-	//			} catch (BusinessRuleViolationException e) {
-	//				errors.add(e.getMessage());
-	//			}
-	//		});
-	//
-	//		expect(!errors.isEmpty(), equalTo(FALSE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
-	//
-	//		testItemRepository.save(testItems);
-	//		eventPublisher.publishEvent(new TicketAttachedEvent(before, Lists.newArrayList(testItems), userName, projectName));
-	//		return StreamSupport.stream(testItems.spliterator(), false)
-	//				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getId() + "' successfully updated."))
-	//				.collect(toList());
-	//	}
-	//
+	@Override
+	public List<OperationCompletionRS> linkExternalIssues(String projectName, LinkExternalIssueRQ rq, ReportPortalUser user) {
+		List<String> errors = new ArrayList<>();
+		bugTrackingSystemRepository.findById(rq.getExternalSystemId())
+				.orElseThrow(() -> new ReportPortalException(EXTERNAL_SYSTEM_NOT_FOUND, rq.getExternalSystemId()));
+		Iterable<TestItem> testItems = testItemRepository.findAllById(rq.getTestItemIds());
+		StreamSupport.stream(testItems.spliterator(), false).forEach(testItem -> {
+			try {
+				verifyTestItem(testItem, testItem.getItemId());
+				IssueEntity issue = testItem.getTestItemResults().getIssue();
+				issue.getTickets().addAll(rq.getIssues().stream().map(it -> {
+					Ticket apply = ExternalSystemIssueConverter.TO_TICKET.apply(it);
+					apply.setSubmitterId(user.getUserId());
+					apply.setBugTrackingSystemId(rq.getExternalSystemId());
+					apply.setSubmitDate(LocalDateTime.now());
+					return apply;
+				}).collect(Collectors.toSet()));
+			} catch (BusinessRuleViolationException e) {
+				errors.add(e.getMessage());
+			}
+		});
+		expect(!errors.isEmpty(), equalTo(FALSE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
+		testItemRepository.saveAll(testItems);
+		//eventPublisher.publishEvent(new TicketAttachedEvent(before, Lists.newArrayList(testItems), userName, projectName));
+		return StreamSupport.stream(testItems.spliterator(), false)
+				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))
+				.collect(toList());
+	}
+
+	@Override
+	public List<OperationCompletionRS> unlinkExternalIssues(String projectName, UnlinkExternalIssueRq rq, ReportPortalUser user) {
+		List<String> errors = new ArrayList<>();
+		List<TestItem> testItems = testItemRepository.findAllById(rq.getTestItemIds());
+		bugTrackingSystemRepository.findById(rq.getExternalSystemId())
+				.orElseThrow(() -> new ReportPortalException(EXTERNAL_SYSTEM_NOT_FOUND, rq.getExternalSystemId()));
+		testItems.forEach(testItem -> {
+			try {
+				verifyTestItem(testItem, testItem.getItemId());
+				testItem.getTestItemResults().getIssue().getTickets().removeIf(it -> rq.getIssueIds().contains(it.getTicketId()));
+			} catch (BusinessRuleViolationException e) {
+				errors.add(e.getMessage());
+			}
+		});
+		expect(!errors.isEmpty(), equalTo(FALSE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
+		testItemRepository.saveAll(testItems);
+		return testItems.stream()
+				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))
+				.collect(toList());
+	}
 
 	/**
 	 * Validates test item access ability.

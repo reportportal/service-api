@@ -22,10 +22,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.externalsystem.handler.ICreateExternalSystemHandler;
-import com.epam.ta.reportportal.core.externalsystem.handler.IDeleteExternalSystemHandler;
-import com.epam.ta.reportportal.core.externalsystem.handler.IGetExternalSystemHandler;
-import com.epam.ta.reportportal.core.externalsystem.handler.IUpdateExternalSystemHandler;
+import com.epam.ta.reportportal.core.externalsystem.handler.*;
 import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -54,8 +51,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 //@PreAuthorize(ASSIGNED_TO_PROJECT)
 public class ExternalSystemController {
 
-	//	@Autowired
-	//	private ICreateTicketHandler createTicketHandler;
+	@Autowired
+	private ICreateTicketHandler createTicketHandler;
 	//
 	//	@Autowired
 	//	private IGetTicketHandler getTicketHandler;

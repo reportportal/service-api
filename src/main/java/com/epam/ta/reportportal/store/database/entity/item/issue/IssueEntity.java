@@ -84,6 +84,14 @@ public class IssueEntity implements Serializable {
 		this.issueDescription = issueDescription;
 	}
 
+	public Set<Ticket> getTickets() {
+		return tickets;
+	}
+
+	public void setTickets(Set<Ticket> tickets) {
+		this.tickets = tickets;
+	}
+
 	public Boolean getAutoAnalyzed() {
 		return autoAnalyzed;
 	}

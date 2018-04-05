@@ -36,7 +36,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JParameter extends TableImpl<JParameterRecord> {
 
-    private static final long serialVersionUID = -1174290834;
+    private static final long serialVersionUID = -1939220732;
 
     /**
      * The reference instance of <code>public.parameter</code>
@@ -54,17 +54,17 @@ public class JParameter extends TableImpl<JParameterRecord> {
     /**
      * The column <code>public.parameter.item_id</code>.
      */
-    public final TableField<JParameterRecord, Long> ITEM_ID = createField("item_id", org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
+    public final TableField<JParameterRecord, Long> ITEM_ID = createField("item_id", org.jooq.impl.SQLDataType.BIGINT, this, "");
 
     /**
      * The column <code>public.parameter.key</code>.
      */
-    public final TableField<JParameterRecord, String> KEY = createField("key", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
+    public final TableField<JParameterRecord, String> KEY = createField("key", org.jooq.impl.SQLDataType.VARCHAR.nullable(false), this, "");
 
     /**
      * The column <code>public.parameter.value</code>.
      */
-    public final TableField<JParameterRecord, String> VALUE = createField("value", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
+    public final TableField<JParameterRecord, String> VALUE = createField("value", org.jooq.impl.SQLDataType.VARCHAR.nullable(false), this, "");
 
     /**
      * Create a <code>public.parameter</code> table reference
@@ -108,7 +108,7 @@ public class JParameter extends TableImpl<JParameterRecord> {
      */
     @Override
     public List<ForeignKey<JParameterRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<JParameterRecord, ?>>asList(Keys.PARAMETER__FKE7JDRKHBW7W40AKWVQIX6GK08);
+        return Arrays.<ForeignKey<JParameterRecord, ?>>asList(Keys.PARAMETER__PARAMETER_ITEM_ID_FKEY);
     }
 
     /**

@@ -36,7 +36,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JDefectFormFieldValue extends TableImpl<JDefectFormFieldValueRecord> {
 
-    private static final long serialVersionUID = 7092789;
+    private static final long serialVersionUID = -1079968258;
 
     /**
      * The reference instance of <code>public.defect_form_field_value</code>
@@ -54,12 +54,12 @@ public class JDefectFormFieldValue extends TableImpl<JDefectFormFieldValueRecord
     /**
      * The column <code>public.defect_form_field_value.id</code>.
      */
-    public final TableField<JDefectFormFieldValueRecord, Long> ID = createField("id", org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
+    public final TableField<JDefectFormFieldValueRecord, Long> ID = createField("id", org.jooq.impl.SQLDataType.BIGINT, this, "");
 
     /**
      * The column <code>public.defect_form_field_value.values</code>.
      */
-    public final TableField<JDefectFormFieldValueRecord, String> VALUES = createField("values", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
+    public final TableField<JDefectFormFieldValueRecord, String> VALUES = createField("values", org.jooq.impl.SQLDataType.VARCHAR.nullable(false), this, "");
 
     /**
      * Create a <code>public.defect_form_field_value</code> table reference
@@ -103,7 +103,7 @@ public class JDefectFormFieldValue extends TableImpl<JDefectFormFieldValueRecord
      */
     @Override
     public List<ForeignKey<JDefectFormFieldValueRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<JDefectFormFieldValueRecord, ?>>asList(Keys.DEFECT_FORM_FIELD_VALUE__FK2ADVM473MIC8N1NUHXAJ7OALA);
+        return Arrays.<ForeignKey<JDefectFormFieldValueRecord, ?>>asList(Keys.DEFECT_FORM_FIELD_VALUE__DEFECT_FORM_FIELD_VALUE_ID_FKEY);
     }
 
     /**

@@ -155,7 +155,7 @@ public class TicketActivitySubscriber {
 					.map(externalSystemIssue -> externalSystemIssue.getTicketId().concat(":").concat(externalSystemIssue.getUrl()))
 					.collect(Collectors.joining(separator));
 		}
-		return "";
+		return null;
 	}
 
 	private List<Activity> processTestItemIssues(String projectName, String principal, Map<IssueDefinition, TestItem> data) {

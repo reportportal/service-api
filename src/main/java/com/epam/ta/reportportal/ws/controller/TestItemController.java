@@ -33,6 +33,8 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
+import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
+import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +46,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.epam.ta.reportportal.store.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -197,16 +200,27 @@ public class TestItemController {
 		return updateTestItemHandler.updateTestItem(projectName, itemId, rq, user);
 	}
 
-	//	@PutMapping("/issue/add")
-	//	@ResponseBody
-	//	@ResponseStatus(OK)
-	//	//@PreAuthorize(ASSIGNED_TO_PROJECT)
-	//	@ApiOperation("Attach external issue for specified test items")
-	//	public List<OperationCompletionRS> addExternalIssues(@PathVariable String projectName, @RequestBody @Validated AddExternalIssueRQ rq,
-	//			@AuthenticationPrincipal ReportPortalUser user) {
-	//		//return updateTestItemHandler.addExternalIssues(normalizeId(projectName), rq, principal.getName());
-	//		return null;
-	//	}
+	@Transactional
+	@PutMapping("/issue/link")
+	@ResponseBody
+	@ResponseStatus(OK)
+	//@PreAuthorize(ASSIGNED_TO_PROJECT)
+	@ApiOperation("Attach external issue for specified test items")
+	public List<OperationCompletionRS> addExternalIssues(@PathVariable String projectName, @RequestBody @Validated LinkExternalIssueRQ rq,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return updateTestItemHandler.linkExternalIssues(normalizeId(projectName), rq, user);
+	}
+
+	@Transactional
+	@PutMapping("/issue/unlink")
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Unlink external issue for specified test items")
+	public List<OperationCompletionRS> unlinkExternalIssues(@PathVariable String projectName,
+			@RequestBody @Validated UnlinkExternalIssueRq rq, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateTestItemHandler.unlinkExternalIssues(normalizeId(projectName), rq, user);
+	}
+
 	//
 	//	@GetMapping("/items")
 	//	@ResponseBody

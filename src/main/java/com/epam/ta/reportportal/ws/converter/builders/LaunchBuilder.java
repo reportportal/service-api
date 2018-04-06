@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
+import java.util.Date;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -102,6 +103,11 @@ public class LaunchBuilder implements Supplier<Launch> {
 
 	public LaunchBuilder addStatus(String status) {
 		launch.setStatus(StatusEnum.fromValue(status).orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FINISH_STATUS)));
+		return this;
+	}
+
+	public LaunchBuilder addEndTime(Date date) {
+		launch.setEndTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(date));
 		return this;
 	}
 

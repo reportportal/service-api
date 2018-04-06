@@ -21,17 +21,24 @@
 
 package com.epam.ta.reportportal.store.database.entity.item;
 
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
 import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * @author Pavel Bortnik
  */
+@Embeddable
 public class Parameter implements Serializable {
 
+	@Column(name = "key")
 	private String key;
 
+	@Column(name = "value")
 	private String value;
+
+	public Parameter() {
+	}
 
 	public String getKey() {
 		return key;
@@ -49,25 +56,4 @@ public class Parameter implements Serializable {
 		this.value = value;
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		Parameter parameter = (Parameter) o;
-		return Objects.equals(key, parameter.key) && Objects.equals(value, parameter.value);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(key, value);
-	}
-
-	@Override
-	public String toString() {
-		return "Parameter{" + "key='" + key + '\'' + ", value='" + value + '\'' + '}';
-	}
 }

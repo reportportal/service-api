@@ -5,10 +5,12 @@ package com.epam.ta.reportportal.store.jooq;
 
 
 import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystem;
+import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystemAuth;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboard;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboardWidget;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFieldAllowedValue;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFormField;
+import com.epam.ta.reportportal.store.jooq.tables.JDefectFormFieldValue;
 import com.epam.ta.reportportal.store.jooq.tables.JIssue;
 import com.epam.ta.reportportal.store.jooq.tables.JIssueTicket;
 import com.epam.ta.reportportal.store.jooq.tables.JIssueType;
@@ -20,6 +22,7 @@ import com.epam.ta.reportportal.store.jooq.tables.JLog;
 import com.epam.ta.reportportal.store.jooq.tables.JOauthAccessToken;
 import com.epam.ta.reportportal.store.jooq.tables.JOauthRegistration;
 import com.epam.ta.reportportal.store.jooq.tables.JOauthRegistrationScope;
+import com.epam.ta.reportportal.store.jooq.tables.JParameter;
 import com.epam.ta.reportportal.store.jooq.tables.JProject;
 import com.epam.ta.reportportal.store.jooq.tables.JProjectConfiguration;
 import com.epam.ta.reportportal.store.jooq.tables.JProjectEmailConfiguration;
@@ -54,6 +57,11 @@ public class Tables {
     public static final JBugTrackingSystem BUG_TRACKING_SYSTEM = com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystem.BUG_TRACKING_SYSTEM;
 
     /**
+     * The table <code>public.bug_tracking_system_auth</code>.
+     */
+    public static final JBugTrackingSystemAuth BUG_TRACKING_SYSTEM_AUTH = com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH;
+
+    /**
      * The table <code>public.dashboard</code>.
      */
     public static final JDashboard DASHBOARD = com.epam.ta.reportportal.store.jooq.tables.JDashboard.DASHBOARD;
@@ -72,6 +80,11 @@ public class Tables {
      * The table <code>public.defect_form_field</code>.
      */
     public static final JDefectFormField DEFECT_FORM_FIELD = com.epam.ta.reportportal.store.jooq.tables.JDefectFormField.DEFECT_FORM_FIELD;
+
+    /**
+     * The table <code>public.defect_form_field_value</code>.
+     */
+    public static final JDefectFormFieldValue DEFECT_FORM_FIELD_VALUE = com.epam.ta.reportportal.store.jooq.tables.JDefectFormFieldValue.DEFECT_FORM_FIELD_VALUE;
 
     /**
      * The table <code>public.issue</code>.
@@ -127,6 +140,11 @@ public class Tables {
      * The table <code>public.oauth_registration_scope</code>.
      */
     public static final JOauthRegistrationScope OAUTH_REGISTRATION_SCOPE = com.epam.ta.reportportal.store.jooq.tables.JOauthRegistrationScope.OAUTH_REGISTRATION_SCOPE;
+
+    /**
+     * The table <code>public.parameter</code>.
+     */
+    public static final JParameter PARAMETER = com.epam.ta.reportportal.store.jooq.tables.JParameter.PARAMETER;
 
     /**
      * The table <code>public.project</code>.

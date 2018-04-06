@@ -26,7 +26,7 @@ public class Sequences {
     /**
      * The sequence <code>public.bug_tracking_system_id_seq</code>
      */
-    public static final Sequence<Integer> BUG_TRACKING_SYSTEM_ID_SEQ = new SequenceImpl<Integer>("bug_tracking_system_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.INTEGER.nullable(false));
+    public static final Sequence<Long> BUG_TRACKING_SYSTEM_ID_SEQ = new SequenceImpl<Long>("bug_tracking_system_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.BIGINT.nullable(false));
 
     /**
      * The sequence <code>public.dashboard_id_seq</code>
@@ -36,12 +36,12 @@ public class Sequences {
     /**
      * The sequence <code>public.defect_field_allowed_value_id_seq</code>
      */
-    public static final Sequence<Integer> DEFECT_FIELD_ALLOWED_VALUE_ID_SEQ = new SequenceImpl<Integer>("defect_field_allowed_value_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.INTEGER.nullable(false));
+    public static final Sequence<Long> DEFECT_FIELD_ALLOWED_VALUE_ID_SEQ = new SequenceImpl<Long>("defect_field_allowed_value_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.BIGINT.nullable(false));
 
     /**
      * The sequence <code>public.defect_form_field_id_seq</code>
      */
-    public static final Sequence<Integer> DEFECT_FORM_FIELD_ID_SEQ = new SequenceImpl<Integer>("defect_form_field_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.INTEGER.nullable(false));
+    public static final Sequence<Long> DEFECT_FORM_FIELD_ID_SEQ = new SequenceImpl<Long>("defect_form_field_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.BIGINT.nullable(false));
 
     /**
      * The sequence <code>public.issue_type_id_seq</code>

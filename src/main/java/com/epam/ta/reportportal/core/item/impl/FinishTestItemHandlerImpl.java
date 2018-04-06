@@ -102,8 +102,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 		testItem = new TestItemBuilder(testItem).addDescription(finishExecutionRQ.getDescription())
 				.addTags(finishExecutionRQ.getTags())
-				.addTestItemResults(testItemResults, finishExecutionRQ.getEndTime())
+				.addTestItemResults(testItemResults)
 				.get();
+
 		testItemRepository.save(testItem);
 		return new OperationCompletionRS("TestItem with ID = '" + testItemId + "' successfully finished.");
 	}
@@ -145,6 +146,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				testItemResults.setIssue(issue);
 			}
 		}
+		testItemResults.setEndTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()));
 		return testItemResults;
 	}
 

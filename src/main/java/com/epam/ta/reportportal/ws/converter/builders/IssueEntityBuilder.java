@@ -21,11 +21,19 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
+import com.epam.ta.reportportal.store.database.entity.bts.Ticket;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemIssueConverter;
+import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.base.Preconditions;
+import org.apache.commons.collections.CollectionUtils;
 
+import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.function.Supplier;
+
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Pavel Bortnik
@@ -68,5 +76,19 @@ public class IssueEntityBuilder implements Supplier<IssueEntity> {
 	@Override
 	public IssueEntity get() {
 		return this.issueEntity;
+	}
+
+	public IssueEntityBuilder addTickets(Set<Issue.ExternalSystemIssue> externalSystemIssues, Long userId) {
+		if (!CollectionUtils.isEmpty(externalSystemIssues)) {
+			Set<Ticket> tickets = externalSystemIssues.stream().map(it -> {
+				Ticket apply = ExternalSystemIssueConverter.TO_TICKET.apply(it);
+				apply.setSubmitterId(userId);
+				apply.setSubmitDate(LocalDateTime.now());
+				apply.getIssues().add(this.issueEntity);
+				return apply;
+			}).collect(toSet());
+			issueEntity.getTickets().addAll(tickets);
+		}
+		return this;
 	}
 }

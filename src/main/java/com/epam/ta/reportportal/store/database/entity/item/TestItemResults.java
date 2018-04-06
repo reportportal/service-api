@@ -29,6 +29,7 @@ import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -48,6 +49,9 @@ public class TestItemResults implements Serializable {
 	@Enumerated(EnumType.STRING)
 	@Type(type = "pqsql_enum")
 	private StatusEnum status;
+
+	@Column(name = "end_time")
+	private LocalDateTime endTime;
 
 	@Column(name = "duration")
 	private Double duration;
@@ -78,6 +82,14 @@ public class TestItemResults implements Serializable {
 
 	public void setStatus(StatusEnum status) {
 		this.status = status;
+	}
+
+	public LocalDateTime getEndTime() {
+		return endTime;
+	}
+
+	public void setEndTime(LocalDateTime endTime) {
+		this.endTime = endTime;
 	}
 
 	public Double getDuration() {

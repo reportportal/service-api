@@ -77,14 +77,14 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 					testItemRepository.selectPathNames(it.getItemId()).entrySet().stream().map(Map.Entry::getValue).collect(toList()));
 		});
 		String itemName = testItem.getName();
-		List<Parameter> parameters = Collections.emptyList(); //TODO! Arrays.asList(Optional.ofNullable(testItem.getParameters()).orElse(new Parameter[0]));
 		StringJoiner joiner = new StringJoiner(";");
 		joiner.add(projectId.toString()).add(launchName);
 		if (!CollectionUtils.isEmpty(pathNames)) {
 			joiner.add(pathNames.stream().collect(Collectors.joining(",")));
 		}
 		joiner.add(itemName);
-		if (!parameters.isEmpty()) {
+		List<Parameter> parameters = testItem.getParameters();
+		if (!CollectionUtils.isEmpty(parameters)) {
 			joiner.add(parameters.stream()
 					.map(parameter -> (!Strings.isNullOrEmpty(parameter.getKey()) ? parameter.getKey() + "=" : "") + parameter.getValue())
 					.collect(Collectors.joining(",")));

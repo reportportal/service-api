@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JDefectFormField extends TableImpl<JDefectFormFieldRecord> {
 
-    private static final long serialVersionUID = -1722007481;
+    private static final long serialVersionUID = -591785741;
 
     /**
      * The reference instance of <code>public.defect_form_field</code>
@@ -58,12 +58,12 @@ public class JDefectFormField extends TableImpl<JDefectFormFieldRecord> {
     /**
      * The column <code>public.defect_form_field.id</code>.
      */
-    public final TableField<JDefectFormFieldRecord, Integer> ID = createField("id", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('defect_form_field_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+    public final TableField<JDefectFormFieldRecord, Long> ID = createField("id", org.jooq.impl.SQLDataType.BIGINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('defect_form_field_id_seq'::regclass)", org.jooq.impl.SQLDataType.BIGINT)), this, "");
 
     /**
-     * The column <code>public.defect_form_field.bugtracking_system</code>.
+     * The column <code>public.defect_form_field.bug_tracking_system_id</code>.
      */
-    public final TableField<JDefectFormFieldRecord, Integer> BUGTRACKING_SYSTEM = createField("bugtracking_system", org.jooq.impl.SQLDataType.INTEGER, this, "");
+    public final TableField<JDefectFormFieldRecord, Long> BUG_TRACKING_SYSTEM_ID = createField("bug_tracking_system_id", org.jooq.impl.SQLDataType.BIGINT, this, "");
 
     /**
      * The column <code>public.defect_form_field.field_id</code>.
@@ -79,11 +79,6 @@ public class JDefectFormField extends TableImpl<JDefectFormFieldRecord> {
      * The column <code>public.defect_form_field.required</code>.
      */
     public final TableField<JDefectFormFieldRecord, Boolean> REQUIRED = createField("required", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("false", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
-
-    /**
-     * The column <code>public.defect_form_field.values</code>.
-     */
-    public final TableField<JDefectFormFieldRecord, String[]> VALUES = createField("values", org.jooq.impl.SQLDataType.VARCHAR.getArrayDataType(), this, "");
 
     /**
      * Create a <code>public.defect_form_field</code> table reference
@@ -134,7 +129,7 @@ public class JDefectFormField extends TableImpl<JDefectFormFieldRecord> {
      * {@inheritDoc}
      */
     @Override
-    public Identity<JDefectFormFieldRecord, Integer> getIdentity() {
+    public Identity<JDefectFormFieldRecord, Long> getIdentity() {
         return Keys.IDENTITY_DEFECT_FORM_FIELD;
     }
 
@@ -159,7 +154,7 @@ public class JDefectFormField extends TableImpl<JDefectFormFieldRecord> {
      */
     @Override
     public List<ForeignKey<JDefectFormFieldRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<JDefectFormFieldRecord, ?>>asList(Keys.DEFECT_FORM_FIELD__DEFECT_FORM_FIELD_BUGTRACKING_SYSTEM_FKEY);
+        return Arrays.<ForeignKey<JDefectFormFieldRecord, ?>>asList(Keys.DEFECT_FORM_FIELD__DEFECT_FORM_FIELD_BUG_TRACKING_SYSTEM_ID_FKEY);
     }
 
     /**

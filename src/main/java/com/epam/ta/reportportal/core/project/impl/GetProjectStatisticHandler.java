@@ -99,7 +99,7 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 	private ProjectInfoWidgetDataConverter dataConverter;
 
 	private static final Predicate<ActivityEventType> ACTIVITIES_PROJECT_FILTER = it -> it == UPDATE_DEFECT || it == DELETE_DEFECT
-						|| it == LOAD_ISSUE || it == UNLOAD_ISSUE || it == LOAD_ISSUE_AA || it == UPDATE_ITEM;
+			|| it == LINK_ISSUE || it == LINK_ISSUE_AA || it == UNLINK_ISSUE || it == UPDATE_ITEM;
 
 	@Override
 	public Iterable<ProjectInfoResource> getAllProjectsInfo(Filter filter, Pageable pageable) {

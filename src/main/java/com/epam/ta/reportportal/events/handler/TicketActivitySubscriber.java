@@ -38,6 +38,7 @@ import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import com.google.common.base.Strings;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -123,7 +124,7 @@ public class TicketActivitySubscriber {
 			if (null != newValue) {
 				fieldValues.withField(TICKET_ID).withNewValue(newValue);
 				ActivityEventType type = testItem.getIssue().isAutoAnalyzed() ? LINK_ISSUE_AA : LINK_ISSUE;
-				if (!fieldValues.getOldValue().isEmpty() && fieldValues.getOldValue().length() > newValue.length()) {
+				if (!Strings.isNullOrEmpty(fieldValues.getOldValue()) && fieldValues.getOldValue().length() > newValue.length()) {
 					type = UNLINK_ISSUE;
 				}
 				Activity activity = new ActivityBuilder().addProjectRef(event.getProject())

@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.dao.BugTrackingSystemRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.dao.TicketRepository;
 import com.epam.ta.reportportal.store.database.entity.bts.Ticket;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
@@ -77,6 +78,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private BugTrackingSystemRepository bugTrackingSystemRepository;
 
+	private TicketRepository ticketRepository;
+
 	private IssueTypeHandler issueTypeHandler;
 
 	@Autowired
@@ -92,6 +95,11 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	@Autowired
 	public void setBugTrackingSystemRepository(BugTrackingSystemRepository bugTrackingSystemRepository) {
 		this.bugTrackingSystemRepository = bugTrackingSystemRepository;
+	}
+
+	@Autowired
+	public void setTicketRepository(TicketRepository ticketRepository) {
+		this.ticketRepository = ticketRepository;
 	}
 
 	@Override
@@ -151,10 +159,17 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		bugTrackingSystemRepository.findById(rq.getExternalSystemId())
 				.orElseThrow(() -> new ReportPortalException(EXTERNAL_SYSTEM_NOT_FOUND, rq.getExternalSystemId()));
 		Iterable<TestItem> testItems = testItemRepository.findAllById(rq.getTestItemIds());
+
+		List<Ticket> existedTickets = ticketRepository.findByTicketIdIn(
+				rq.getIssues().stream().map(Issue.ExternalSystemIssue::getTicketId).collect(toList()));
+		List<String> existedTicketsIds = existedTickets.stream().map(Ticket::getTicketId).collect(toList());
+		rq.getIssues().removeIf(it -> existedTicketsIds.contains(it.getTicketId()));
+
 		StreamSupport.stream(testItems.spliterator(), false).forEach(testItem -> {
 			try {
 				verifyTestItem(testItem, testItem.getItemId());
 				IssueEntity issue = testItem.getTestItemResults().getIssue();
+				issue.getTickets().addAll(existedTickets);
 				issue.getTickets().addAll(rq.getIssues().stream().map(it -> {
 					Ticket apply = ExternalSystemIssueConverter.TO_TICKET.apply(it);
 					apply.setSubmitterId(user.getUserId());

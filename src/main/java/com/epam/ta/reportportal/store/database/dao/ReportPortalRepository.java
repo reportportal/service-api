@@ -21,10 +21,12 @@
 
 package com.epam.ta.reportportal.store.database.dao;
 
+import com.epam.ta.reportportal.store.commons.querygen.Filter;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author Pavel Bortnik
@@ -33,5 +35,7 @@ import java.io.Serializable;
 public interface ReportPortalRepository<T, ID extends Serializable> extends JpaRepository<T, ID> {
 
 	void refresh(T t);
+
+	List<T> findByFilter(Filter filter);
 
 }

@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.store.database.dao;
 import com.epam.ta.reportportal.store.commons.querygen.Filter;
 import com.epam.ta.reportportal.store.commons.querygen.QueryBuilder;
 import org.jooq.DSLContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,12 +40,13 @@ public class ReportPortalRepositoryImpl<T, ID extends Serializable> extends Simp
 		implements ReportPortalRepository<T, ID> {
 
 	private final EntityManager entityManager;
-	private final DSLContext dslContext;
 
-	public ReportPortalRepositoryImpl(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager, DSLContext dslContext) {
+	@Autowired
+	private DSLContext dslContext;
+
+	public ReportPortalRepositoryImpl(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
 		super(entityInformation, entityManager);
 		this.entityManager = entityManager;
-		this.dslContext = dslContext;
 	}
 
 	@Override

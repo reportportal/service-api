@@ -24,7 +24,7 @@ package com.epam.ta.reportportal.core.configs;
 import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsCollector;
-import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeStrategyFactory;
+import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
@@ -73,8 +73,7 @@ public class AnalyzeStrategyConfig {
 		return mapping;
 	}
 
-	@Bean(name = "analyzeStrategyFactory")
-	public AnalyzeStrategyFactory analyzeStrategyFactory() {
-		return new AnalyzeStrategyFactory(getAnalyzerModeMapping());
+	public AnalyzeCollectorFactory analyzeStrategyFactory() {
+		return new AnalyzeCollectorFactory(getAnalyzerModeMapping());
 	}
 }

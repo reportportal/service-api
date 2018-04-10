@@ -26,11 +26,11 @@ import java.util.Map;
 /**
  * @author Pavel Bortnik
  */
-public class AnalyzeStrategyFactory {
+public class AnalyzeCollectorFactory {
 
 	private Map<AnalyzeItemsMode, AnalyzeItemsCollector> mapping;
 
-	public AnalyzeStrategyFactory(Map<AnalyzeItemsMode, AnalyzeItemsCollector> mapping) {
+	public AnalyzeCollectorFactory(Map<AnalyzeItemsMode, AnalyzeItemsCollector> mapping) {
 		this.mapping = mapping;
 	}
 

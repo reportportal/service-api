@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
-import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeStrategyFactory;
+import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
 import com.epam.ta.reportportal.core.launch.IUpdateLaunchHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
@@ -91,7 +91,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	private IIssuesAnalyzer analyzerService;
 
 	@Autowired
-	private AnalyzeStrategyFactory analyzeStrategyFactory;
+	private AnalyzeCollectorFactory analyzeStrategyFactory;
 
 	@Autowired
 	private ILogIndexer logIndexer;

@@ -28,13 +28,13 @@ import java.util.Map;
  */
 public class AnalyzeStrategyFactory {
 
-	private Map<AnalyzeItemsMode, AnalyzeItemsStrategy> mapping;
+	private Map<AnalyzeItemsMode, AnalyzeItemsCollector> mapping;
 
-	public AnalyzeStrategyFactory(Map<AnalyzeItemsMode, AnalyzeItemsStrategy> mapping) {
+	public AnalyzeStrategyFactory(Map<AnalyzeItemsMode, AnalyzeItemsCollector> mapping) {
 		this.mapping = mapping;
 	}
 
-	public AnalyzeItemsStrategy getStrategy(AnalyzeItemsMode type) {
+	public AnalyzeItemsCollector getCollector(AnalyzeItemsMode type) {
 		return this.mapping.get(type);
 	}
 }

@@ -165,7 +165,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	private List<TestItem> collectItemsByModes(String project, String launchId, List<String> analyzeItemsMode) {
 		return analyzeItemsMode.stream()
 				.map(AnalyzeItemsMode::fromString)
-				.flatMap(it -> analyzeStrategyFactory.getStrategy(it).getItems(project, launchId).stream())
+				.flatMap(it -> analyzeStrategyFactory.getCollector(it).collectItems(project, launchId).stream())
 				.distinct()
 				.collect(toList());
 	}

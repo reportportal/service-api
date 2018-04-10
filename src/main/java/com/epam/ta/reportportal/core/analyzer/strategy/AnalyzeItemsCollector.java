@@ -29,8 +29,8 @@ import java.util.List;
  * @author Pavel Bortnik
  */
 @FunctionalInterface
-public interface AnalyzeItemsStrategy {
+public interface AnalyzeItemsCollector {
 
-	List<TestItem> getItems(String project, String launchId);
+	List<TestItem> collectItems(String project, String launchId);
 
 }

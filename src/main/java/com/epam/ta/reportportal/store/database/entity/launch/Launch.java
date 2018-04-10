@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.store.database.entity.launch;
 
+import com.epam.ta.reportportal.store.commons.querygen.FilterCriteria;
 import com.epam.ta.reportportal.store.database.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.store.database.entity.enums.PostgreSQLEnumType;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
@@ -61,6 +62,7 @@ public class Launch implements Serializable {
 	private Long userId;
 
 	@Column(name = "name", nullable = false, length = 256)
+	@FilterCriteria("name")
 	private String name;
 
 	@Column(name = "description")

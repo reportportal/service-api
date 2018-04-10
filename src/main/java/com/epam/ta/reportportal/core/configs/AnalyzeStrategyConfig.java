@@ -73,7 +73,8 @@ public class AnalyzeStrategyConfig {
 		return mapping;
 	}
 
-	public AnalyzeCollectorFactory analyzeStrategyFactory() {
+	@Bean
+	public AnalyzeCollectorFactory analyzeCollectorFactory() {
 		return new AnalyzeCollectorFactory(getAnalyzerModeMapping());
 	}
 }

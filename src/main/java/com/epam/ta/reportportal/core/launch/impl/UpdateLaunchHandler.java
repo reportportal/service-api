@@ -91,7 +91,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	private IIssuesAnalyzer analyzerService;
 
 	@Autowired
-	private AnalyzeCollectorFactory analyzeStrategyFactory;
+	private AnalyzeCollectorFactory analyzeCollectorFactory;
 
 	@Autowired
 	private ILogIndexer logIndexer;
@@ -165,7 +165,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	private List<TestItem> collectItemsByModes(String project, String launchId, List<String> analyzeItemsMode) {
 		return analyzeItemsMode.stream()
 				.map(AnalyzeItemsMode::fromString)
-				.flatMap(it -> analyzeStrategyFactory.getCollector(it).collectItems(project, launchId).stream())
+				.flatMap(it -> analyzeCollectorFactory.getCollector(it).collectItems(project, launchId).stream())
 				.distinct()
 				.collect(toList());
 	}

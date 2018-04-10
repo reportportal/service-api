@@ -40,7 +40,6 @@ import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
 import com.epam.ta.reportportal.store.database.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
-import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemIssueConverter;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -50,14 +49,12 @@ import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
+import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.store.commons.Predicates.*;
@@ -65,6 +62,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.EXTERNAL_SYSTEM_NOT_FO
 import static com.epam.ta.reportportal.ws.model.ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION;
 import static java.lang.Boolean.FALSE;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.StreamSupport.stream;
 
 /**
  * Default implementation of {@link UpdateTestItemHandler}
@@ -156,6 +154,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	@Override
 	public List<OperationCompletionRS> linkExternalIssues(String projectName, LinkExternalIssueRQ rq, ReportPortalUser user) {
 		List<String> errors = new ArrayList<>();
+
 		bugTrackingSystemRepository.findById(rq.getExternalSystemId())
 				.orElseThrow(() -> new ReportPortalException(EXTERNAL_SYSTEM_NOT_FOUND, rq.getExternalSystemId()));
 		Iterable<TestItem> testItems = testItemRepository.findAllById(rq.getTestItemIds());
@@ -165,18 +164,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		List<String> existedTicketsIds = existedTickets.stream().map(Ticket::getTicketId).collect(toList());
 		rq.getIssues().removeIf(it -> existedTicketsIds.contains(it.getTicketId()));
 
-		StreamSupport.stream(testItems.spliterator(), false).forEach(testItem -> {
+		stream(testItems.spliterator(), false).forEach(testItem -> {
 			try {
 				verifyTestItem(testItem, testItem.getItemId());
 				IssueEntity issue = testItem.getTestItemResults().getIssue();
 				issue.getTickets().addAll(existedTickets);
-				issue.getTickets().addAll(rq.getIssues().stream().map(it -> {
-					Ticket apply = ExternalSystemIssueConverter.TO_TICKET.apply(it);
-					apply.setSubmitterId(user.getUserId());
-					apply.setBugTrackingSystemId(rq.getExternalSystemId());
-					apply.setSubmitDate(LocalDateTime.now());
-					return apply;
-				}).collect(Collectors.toSet()));
+				new IssueEntityBuilder(issue).addTickets(Sets.newHashSet(rq.getIssues()), user.getUserId()).get();
 			} catch (BusinessRuleViolationException e) {
 				errors.add(e.getMessage());
 			}
@@ -184,8 +177,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		expect(!errors.isEmpty(), equalTo(FALSE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 		testItemRepository.saveAll(testItems);
 		//eventPublisher.publishEvent(new TicketAttachedEvent(before, Lists.newArrayList(testItems), userName, projectName));
-		return StreamSupport.stream(testItems.spliterator(), false)
-				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))
+		return stream(testItems.spliterator(), false).map(
+				testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))
 				.collect(toList());
 	}
 

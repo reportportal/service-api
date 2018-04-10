@@ -84,6 +84,7 @@ public class IssueEntityBuilder implements Supplier<IssueEntity> {
 				Ticket apply = ExternalSystemIssueConverter.TO_TICKET.apply(it);
 				apply.setSubmitterId(userId);
 				apply.setSubmitDate(LocalDateTime.now());
+				apply.setBugTrackingSystemId(it.getExternalSystemId());
 				apply.getIssues().add(this.issueEntity);
 				return apply;
 			}).collect(toSet());

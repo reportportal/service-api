@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 
 import java.util.List;
@@ -49,12 +50,11 @@ public interface IUpdateLaunchHandler {
 	/**
 	 * Start launch analyzer on demand
 	 *
-	 * @param projectName related project name value
-	 * @param launchId    ID of launch object
-	 * @param mode        Analyze mode
+	 * @param projectName       related project name value
+	 * @param analyzeLaunchRQ analyzer rq
 	 * @return OperationCompletionRS - Response Data
 	 */
-	OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId, String mode);
+	OperationCompletionRS startLaunchAnalyzer(String projectName, AnalyzeLaunchRQ analyzeLaunchRQ);
 
 	List<OperationCompletionRS> updateLaunch(BulkRQ<UpdateLaunchRQ> rq, String projectName, String userName);
 }

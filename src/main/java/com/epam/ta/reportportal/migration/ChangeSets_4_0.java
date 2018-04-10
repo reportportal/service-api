@@ -123,4 +123,22 @@ public class ChangeSets_4_0 {
 		});
 
 	}
+
+	@ChangeSet(order = "4.2-1", id = "v4.2-Update activities names", author = "pbortnik")
+	public void updateActivitiesNames(MongoTemplate mongoTemplate) {
+		String collection = "activity";
+		Query q = query(where("actionType").in(Lists.newArrayList("load_issue", "load_issue_aa", "attach_issue")));
+		q.fields().include(("_id"));
+		q.fields().include("actionType");
+		mongoTemplate.stream(q, DBObject.class, collection).forEachRemaining(o -> {
+			String type = (String) o.get("actionType");
+			Update u = new Update();
+			if ("load_issue".equals(type) || "attach_issue".equals(type)) {
+				u.set("actionType", "link_issue");
+			} else if ("load_issue_aa".equals(type)) {
+				u.set("actionType", "link_issue_aa");
+			}
+			mongoTemplate.updateFirst(query(where("_id").is(o.get("_id"))), u, collection);
+		});
+	}
 }

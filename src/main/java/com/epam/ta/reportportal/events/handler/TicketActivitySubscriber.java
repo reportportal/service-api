@@ -38,6 +38,7 @@ import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import com.google.common.base.Strings;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -120,11 +121,11 @@ public class TicketActivitySubscriber {
 			Activity.FieldValues fieldValues = results.get(testItem.getId());
 
 			String newValue = issuesIdsToString(testItem.getIssue().getExternalSystemIssues(), separator);
-			if (!fieldValues.getOldValue().isEmpty()) {
+			if (null != newValue) {
 				fieldValues.withField(TICKET_ID).withNewValue(newValue);
-				ActivityEventType type = testItem.getIssue().isAutoAnalyzed() ? LOAD_ISSUE_AA : LOAD_ISSUE;
-				if (fieldValues.getOldValue().length() > newValue.length()) {
-					type = UNLOAD_ISSUE;
+				ActivityEventType type = testItem.getIssue().isAutoAnalyzed() ? LINK_ISSUE_AA : LINK_ISSUE;
+				if (!Strings.isNullOrEmpty(fieldValues.getOldValue()) && fieldValues.getOldValue().length() > newValue.length()) {
+					type = UNLINK_ISSUE;
 				}
 				Activity activity = new ActivityBuilder().addProjectRef(event.getProject())
 						.addActionType(type)
@@ -155,7 +156,7 @@ public class TicketActivitySubscriber {
 					.map(externalSystemIssue -> externalSystemIssue.getTicketId().concat(":").concat(externalSystemIssue.getUrl()))
 					.collect(Collectors.joining(separator));
 		}
-		return "";
+		return null;
 	}
 
 	private List<Activity> processTestItemIssues(String projectName, String principal, Map<IssueDefinition, TestItem> data) {

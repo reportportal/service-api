@@ -39,10 +39,7 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.*;
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
+import com.epam.ta.reportportal.ws.model.launch.*;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
@@ -210,15 +207,14 @@ public interface ILaunchController {
 	/**
 	 * Start auto-analyzer for specified launch
 	 *
-	 * @param projectName Project name
-	 * @param launchId    Launch id
-	 * @param mode        Analyze mode
-	 * @param principal   Principal
+	 * @param projectName     Project name
+	 * @param analyzeLaunchRQ Analyze launches rq
+	 * @param principal       Principal
 	 * @return Result message
 	 * @throws ExecutionException
 	 * @throws InterruptedException
 	 */
-	OperationCompletionRS startLaunchAnalyzer(String projectName, String launchId, String mode, Principal principal)
+	OperationCompletionRS startLaunchAnalyzer(String projectName, AnalyzeLaunchRQ analyzeLaunchRQ, Principal principal)
 			throws InterruptedException, ExecutionException;
 
 	/**

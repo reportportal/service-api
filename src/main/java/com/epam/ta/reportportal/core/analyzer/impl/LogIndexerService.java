@@ -181,6 +181,7 @@ public class LogIndexerService implements ILogIndexer {
 					if (checkpoint == null) {
 						checkpoint = log.getId();
 					}
+					rqLaunch.getTestItems().forEach(it -> it.setAutoAnalyzed(true));
 					rq.add(rqLaunch);
 					if (rq.size() == BATCH_SIZE || !logIterator.hasNext()) {
 						createCheckpoint(checkpoint);

@@ -22,6 +22,8 @@
 package com.epam.ta.reportportal.store.database.dao;
 
 import com.epam.ta.reportportal.store.commons.querygen.Filter;
+import org.jooq.Record;
+import org.jooq.RecordMapper;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
@@ -36,6 +38,14 @@ public interface ReportPortalRepository<T, ID extends Serializable> extends JpaR
 
 	void refresh(T t);
 
-	List<T> findByFilter(Filter filter);
+	/**
+	 * Executes query built for given filter and maps result set by given mapper
+	 *
+	 * @param filter Filter to build a query
+	 * @param mapper Result set mapper
+	 * @param <R>    Type of Results
+	 * @return List of mapped entries found
+	 */
+	<R> List<R> findByFilter(Filter filter, RecordMapper<? super Record, R> mapper);
 
 }

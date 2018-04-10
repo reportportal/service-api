@@ -106,7 +106,7 @@ public class DeleteLaunchHandler implements IDeleteLaunchHandler {
 	private void validate(Launch launch, ReportPortalUser user, String projectName) {
 		ReportPortalUser.ProjectDetails projectDetails = EntityUtils.takeProjectDetails(user, projectName);
 		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-				formattedSupplier("Target launch '{}' not under specified project '{}'", launch.getId(), projectName)
+				formattedSupplier("FilterTarget launch '{}' not under specified project '{}'", launch.getId(), projectName)
 		);
 		expect(launch, not(l -> l.getStatus().equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId())

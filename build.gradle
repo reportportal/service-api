@@ -90,7 +90,7 @@ dependencies {
         compile('com.github.reportportal:commons:3.1.0')
     }
 
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
+    compile 'org.apache.commons:commons-lang3:3.7'
 
     compile 'org.springframework.boot:spring-boot-starter-data-jpa'
     compile 'org.hibernate:hibernate-validator'
@@ -111,7 +111,7 @@ dependencies {
 //    compile 'org.springframework.cloud:spring-cloud-config-client'
     compile 'org.springframework.retry:spring-retry'
 
-    compile 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
+//    compile 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
     compile 'org.springframework.boot:spring-boot-starter-aop'
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.boot:spring-boot-starter-freemarker'

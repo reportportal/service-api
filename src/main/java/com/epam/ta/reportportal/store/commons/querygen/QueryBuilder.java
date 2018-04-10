@@ -34,7 +34,7 @@ public class QueryBuilder {
 	 */
 	private SelectQuery<? extends Record> query;
 
-	private QueryBuilder(Target target) {
+	private QueryBuilder(FilterTarget target) {
 		query = target.getQuery();
 	}
 
@@ -42,7 +42,7 @@ public class QueryBuilder {
 		this.query = query;
 	}
 
-	public static QueryBuilder newBuilder(Target target) {
+	public static QueryBuilder newBuilder(FilterTarget target) {
 		return new QueryBuilder(target);
 	}
 
@@ -108,9 +108,9 @@ public class QueryBuilder {
 		return query;
 	}
 
-	public static Function<FilterCondition, Condition> filterConverter(CriteriaMap<?> map) {
+	public static Function<FilterCondition, Condition> filterConverter(FilterTarget target) {
 		return filterCondition -> {
-			Optional<CriteriaHolder> criteriaHolder = map.getCriteriaHolderUnchecked(filterCondition.getSearchCriteria());
+			Optional<CriteriaHolder> criteriaHolder = target.getCriteriaByFilter(filterCondition.getSearchCriteria());
 			BusinessRule.expect(criteriaHolder, Preconditions.IS_PRESENT).verify(
 					ErrorType.INCORRECT_FILTER_PARAMETERS,
 					Suppliers.formattedSupplier("Filter parameter {} is not defined", filterCondition.getSearchCriteria())

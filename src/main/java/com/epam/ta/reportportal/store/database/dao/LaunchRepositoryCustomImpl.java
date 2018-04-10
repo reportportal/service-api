@@ -21,20 +21,27 @@
 
 package com.epam.ta.reportportal.store.database.dao;
 
+import com.epam.ta.reportportal.store.commons.querygen.Filter;
+import com.epam.ta.reportportal.store.commons.querygen.QueryBuilder;
 import com.epam.ta.reportportal.store.database.entity.launch.ExecutionStatistics;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.launch.LaunchFull;
 import com.epam.ta.reportportal.store.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.store.jooq.tables.JLaunch;
 import com.epam.ta.reportportal.store.jooq.tables.JTestItem;
 import com.epam.ta.reportportal.store.jooq.tables.JTestItemResults;
 import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.RecordMapper;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 import static com.epam.ta.reportportal.store.jooq.Tables.*;
-import static org.jooq.impl.DSL.*;
+import static org.jooq.impl.DSL.sum;
+import static org.jooq.impl.DSL.when;
 
 /**
  * @author Pavel Bortnik
@@ -42,12 +49,12 @@ import static org.jooq.impl.DSL.*;
 @Repository
 public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 
-	private DSLContext dsl;
+	private static final RecordMapper<? super Record, LaunchFull> LAUNCH_MAPPER = r -> new LaunchFull(r.into(Launch.class),
+			r.into(ExecutionStatistics.class)
+	);
 
 	@Autowired
-	public void setDsl(DSLContext dsl) {
-		this.dsl = dsl;
-	}
+	private DSLContext dsl;
 
 	@Override
 	public Boolean identifyStatus(Long launchId) {
@@ -64,19 +71,30 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 		JLaunch l = LAUNCH.as("l");
 		JTestItem ti = TEST_ITEM.as("ti");
 		JTestItemResults tr = TEST_ITEM_RESULTS.as("tr");
-		return dsl.select(l.ID, l.PROJECT_ID, l.USER_ID, l.NAME, l.DESCRIPTION, l.START_TIME, l.NUMBER, l.LAST_MODIFIED, l.MODE,
+		return dsl.select(l.ID,
+				l.PROJECT_ID,
+				l.USER_ID,
+				l.NAME,
+				l.DESCRIPTION,
+				l.START_TIME,
+				l.NUMBER,
+				l.LAST_MODIFIED,
+				l.MODE,
 				sum(when(tr.STATUS.eq(JStatusEnum.PASSED), 1).otherwise(0)).as("passed"),
 				sum(when(tr.STATUS.eq(JStatusEnum.FAILED), 1).otherwise(0)).as("failed"),
-				sum(when(tr.STATUS.eq(JStatusEnum.SKIPPED), 1).otherwise(0)).as("skipped"), count(tr.STATUS).as("total")
+				sum(when(tr.STATUS.eq(JStatusEnum.SKIPPED), 1).otherwise(0)).as("skipped"),
+				DSL.count(tr.STATUS).as("total")
 		)
-				.from(ti)
-				.join(tr)
+				.from(l)
+				.leftJoin(tr)
 				.on(ti.ITEM_ID.eq(tr.ITEM_ID))
-				.join(l)
-				.on(l.ID.eq(ti.LAUNCH_ID))
+				.leftJoin(ti).on(l.ID.eq(ti.LAUNCH_ID))
 				.groupBy(l.ID, l.PROJECT_ID, l.USER_ID, l.NAME, l.DESCRIPTION, l.START_TIME, l.NUMBER, l.LAST_MODIFIED, l.MODE)
-				.fetch(r -> new LaunchFull(r.into(com.epam.ta.reportportal.store.database.entity.launch.Launch.class),
-						r.into(ExecutionStatistics.class)
-				));
+				.fetch(LAUNCH_MAPPER);
+	}
+
+	public List<LaunchFull> findByFilter(Filter filter) {
+		System.out.println(QueryBuilder.newBuilder(filter).build().getSQL());
+		return dsl.fetch(QueryBuilder.newBuilder(filter).build()).map(LAUNCH_MAPPER);
 	}
 }

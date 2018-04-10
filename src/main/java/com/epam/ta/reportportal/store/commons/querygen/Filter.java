@@ -22,24 +22,22 @@ import static com.epam.ta.reportportal.store.commons.querygen.QueryBuilder.filte
  */
 public class Filter implements Serializable, Queryable {
 
-	private static CriteriaMapFactory criteriaMapFactory = CriteriaMapFactory.DEFAULT_INSTANCE_SUPPLIER.get();
-
 	private static final long serialVersionUID = 1L;
 
-	private Target target;
+	private FilterTarget target;
 
 	private Set<FilterCondition> filterConditions;
 
 	public Filter(Class<?> target, Condition condition, boolean negative, String value, String searchCriteria) {
 		Assert.notNull(target, "Filter target shouldn'e be null");
-		this.target = Target.findByClass(target);
+		this.target = FilterTarget.findByClass(target);
 		this.filterConditions = Sets.newHashSet(new FilterCondition(condition, negative, value, searchCriteria));
 	}
 
 	public Filter(Class<?> target, Set<FilterCondition> filterConditions) {
 		Assert.notNull(target, "Filter target shouldn'e be null");
 		Assert.notNull(filterConditions, "Conditions value shouldn't be null");
-		this.target = Target.findByClass(target);
+		this.target = FilterTarget.findByClass(target);
 		this.filterConditions = filterConditions;
 	}
 
@@ -52,7 +50,7 @@ public class Filter implements Serializable, Queryable {
 	}
 
 	@Deprecated
-	public Target getTarget() {
+	public FilterTarget getTarget() {
 		return target;
 	}
 
@@ -66,8 +64,7 @@ public class Filter implements Serializable, Queryable {
 
 	public SelectQuery<? extends Record> toQuery() {
 		/* Get map of defined @FilterCriteria fields */
-		CriteriaMap<?> map = criteriaMapFactory.getCriteriaMap(this.target.getClazz());
-		final Function<FilterCondition, org.jooq.Condition> transformer = filterConverter(map);
+		final Function<FilterCondition, org.jooq.Condition> transformer = filterConverter(this.target);
 		QueryBuilder query = QueryBuilder.newBuilder(this.target);
 		this.filterConditions.stream().map(transformer).forEach(query::addCondition);
 		return query.build();
@@ -151,7 +148,7 @@ public class Filter implements Serializable, Queryable {
 
 		public Filter build() {
 			Set<FilterCondition> filterConditions = this.conditions.build();
-			Preconditions.checkArgument(null != target, "Target should not be null");
+			Preconditions.checkArgument(null != target, "FilterTarget should not be null");
 			Preconditions.checkArgument(!filterConditions.isEmpty(), "Filter should contain at least one condition");
 			return new Filter(target, filterConditions);
 		}

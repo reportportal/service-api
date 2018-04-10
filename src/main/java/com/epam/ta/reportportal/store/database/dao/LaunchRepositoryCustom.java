@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.store.database.dao;
 
+import com.epam.ta.reportportal.store.commons.querygen.Filter;
 import com.epam.ta.reportportal.store.database.entity.launch.LaunchFull;
 
 import java.util.List;
@@ -33,5 +34,7 @@ public interface LaunchRepositoryCustom {
 	Boolean identifyStatus(Long launchId);
 
 	List<LaunchFull> fullLaunchWithStatistics();
+
+	List<LaunchFull> findByFilter(Filter filter);
 
 }

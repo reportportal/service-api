@@ -24,6 +24,8 @@ package com.epam.ta.reportportal.store.database.dao;
 import com.epam.ta.reportportal.store.commons.querygen.Filter;
 import com.epam.ta.reportportal.store.commons.querygen.QueryBuilder;
 import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.RecordMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
@@ -41,8 +43,12 @@ public class ReportPortalRepositoryImpl<T, ID extends Serializable> extends Simp
 
 	private final EntityManager entityManager;
 
+	private DSLContext dsl;
+
 	@Autowired
-	private DSLContext dslContext;
+	public void setDsl(DSLContext dsl) {
+		this.dsl = dsl;
+	}
 
 	public ReportPortalRepositoryImpl(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
 		super(entityInformation, entityManager);
@@ -56,7 +62,7 @@ public class ReportPortalRepositoryImpl<T, ID extends Serializable> extends Simp
 	}
 
 	@Override
-	public List<T> findByFilter(Filter filter) {
-		return dslContext.fetch(QueryBuilder.newBuilder(filter).build()).into(getDomainClass());
+	public <R> List<R> findByFilter(Filter filter, RecordMapper<? super Record, R> mapper) {
+		return dsl.fetch(QueryBuilder.newBuilder(filter).build()).map(mapper);
 	}
 }

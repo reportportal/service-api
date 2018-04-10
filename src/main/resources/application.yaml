@@ -4,7 +4,6 @@ rp:
     maxFileSize: 64MB
   analytics:
     enableByDefault: true
-
 spring:
 #  quartz:
 #    # Use the MongoDB store
@@ -34,6 +33,9 @@ spring:
       hibernate.jdbc.lob.non_contextual_creation: true
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQL95Dialect
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
   cloud:
     consul:
       host: localhost
@@ -62,7 +64,8 @@ logging:
     org.springframework.context.support: warn
 #    com.novemberain.quartz : debug
     org.springframework.security: debug
-
+#    org.jooq.tools.LoggerListener: debug
+    root: trace
 ## Consul as service registry
 ---
 #spring:

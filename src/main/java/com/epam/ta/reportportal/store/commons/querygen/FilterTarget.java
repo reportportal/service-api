@@ -10,15 +10,21 @@ import org.jooq.SelectQuery;
 import org.jooq.impl.DSL;
 
 import java.util.Arrays;
-import java.util.Set;
+import java.util.List;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.store.jooq.Tables.TEST_ITEM;
 import static com.epam.ta.reportportal.store.jooq.Tables.TEST_ITEM_RESULTS;
 import static org.jooq.impl.DSL.*;
 
-public enum Target {
+public enum FilterTarget {
 
-	LAUNCH(Launch.class) {
+	LAUNCH(Launch.class, Arrays.asList(
+			//@formatter:off
+			new CriteriaHolder("description", "l.description", String.class, false),
+			new CriteriaHolder("name", "l.name", String.class, false)
+			//@formatter:on
+	)) {
 		public SelectQuery<? extends Record> getQuery() {
 			JLaunch l = JLaunch.LAUNCH.as("l");
 			JTestItem ti = TEST_ITEM.as("ti");
@@ -39,20 +45,22 @@ public enum Target {
 					sum(when(tr.STATUS.eq(JStatusEnum.SKIPPED), 1).otherwise(0)).as("skipped"),
 					count(tr.STATUS).as("total")
 			)
-					.from(ti)
-					.join(tr)
-					.on(ti.ITEM_ID.eq(tr.ITEM_ID))
-					.join(l)
-					.on(l.ID.eq(ti.LAUNCH_ID))
+					//@formatter:off
+					.from(l)
+					.leftJoin(ti).on(l.ID.eq(ti.LAUNCH_ID))
+					.leftJoin(tr).on(ti.ITEM_ID.eq(tr.ITEM_ID))
 					.groupBy(l.ID, l.PROJECT_ID, l.USER_ID, l.NAME, l.DESCRIPTION, l.START_TIME, l.NUMBER, l.LAST_MODIFIED, l.MODE)
 					.getQuery();
+					//@formatter:on
 		}
 	};
 
 	private Class<?> clazz;
+	private List<CriteriaHolder> criterias;
 
-	Target(Class<?> clazz) {
+	FilterTarget(Class<?> clazz, List<CriteriaHolder> criterias) {
 		this.clazz = clazz;
+		this.criterias = criterias;
 	}
 
 	public abstract SelectQuery<? extends Record> getQuery();
@@ -61,10 +69,19 @@ public enum Target {
 		return clazz;
 	}
 
-	public static Target findByClass(Class<?> clazz) {
+	public List<CriteriaHolder> getCriterias() {
+		return criterias;
+	}
+
+	public Optional<CriteriaHolder> getCriteriaByFilter(String filterCriteria) {
+		return criterias.stream().filter(holder -> holder.getFilterCriteria().equals(filterCriteria)).findAny();
+	}
+
+	public static FilterTarget findByClass(Class<?> clazz) {
 		return Arrays.stream(values())
 				.filter(val -> val.clazz.equals(clazz))
 				.findAny()
 				.orElseThrow(() -> new IllegalArgumentException(String.format("No target query builder for clazz %s", clazz)));
 	}
+
 }

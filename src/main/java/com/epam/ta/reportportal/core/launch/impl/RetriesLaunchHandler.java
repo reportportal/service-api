@@ -30,9 +30,11 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.Status;
 import com.epam.ta.reportportal.database.entity.history.status.RetryObject;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -96,9 +98,13 @@ public class RetriesLaunchHandler implements IRetriesLaunchHandler {
 		));
 		TestItem lastRetry = moveRetries(retries, statisticsFacade);
 		testItemRepository.delete(retries);
-		testItemRepository.save(lastRetry);
 
+		Status savedStatus = SerializationUtils.clone(lastRetry.getStatus());
 		statisticsFacade.updateParentStatusFromStatistics(lastRetry);
+		if (null != savedStatus) {
+			lastRetry.setStatus(savedStatus);
+		}
+		testItemRepository.save(lastRetry);
 		statisticsFacade.updateLaunchFromStatistics(launchRepository.findOne(lastRetry.getLaunchRef()));
 
 	}

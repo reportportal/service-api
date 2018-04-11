@@ -34,11 +34,11 @@ import com.epam.ta.reportportal.events.TicketAttachedEvent;
 import com.epam.ta.reportportal.events.TicketPostedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import com.google.common.base.Strings;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -121,22 +121,26 @@ public class TicketActivitySubscriber {
 			Activity.FieldValues fieldValues = results.get(testItem.getId());
 
 			String newValue = issuesIdsToString(testItem.getIssue().getExternalSystemIssues(), separator);
-			if (null != newValue) {
-				fieldValues.withField(TICKET_ID).withNewValue(newValue);
-				ActivityEventType type = testItem.getIssue().isAutoAnalyzed() ? LINK_ISSUE_AA : LINK_ISSUE;
-				if (!Strings.isNullOrEmpty(fieldValues.getOldValue()) && fieldValues.getOldValue().length() > newValue.length()) {
-					type = UNLINK_ISSUE;
-				}
-				Activity activity = new ActivityBuilder().addProjectRef(event.getProject())
-						.addActionType(type)
-						.addLoggedObjectRef(testItem.getId())
-						.addObjectType(TEST_ITEM)
-						.addObjectName(testItem.getName())
-						.addUserRef(event.getPostedBy())
-						.addHistory(Collections.singletonList(fieldValues))
-						.get();
-				activities.add(activity);
+			fieldValues.withField(TICKET_ID).withNewValue(newValue);
+			ActivityEventType type = testItem.getIssue().isAutoAnalyzed() ? LINK_ISSUE_AA : LINK_ISSUE;
+
+			//no changes with tickets
+			if (Strings.isNullOrEmpty(fieldValues.getOldValue()) && newValue.isEmpty()) {
+				return;
 			}
+
+			if (!Strings.isNullOrEmpty(fieldValues.getOldValue()) && fieldValues.getOldValue().length() > newValue.length()) {
+				type = UNLINK_ISSUE;
+			}
+			Activity activity = new ActivityBuilder().addProjectRef(event.getProject())
+					.addActionType(type)
+					.addLoggedObjectRef(testItem.getId())
+					.addObjectType(TEST_ITEM)
+					.addObjectName(testItem.getName())
+					.addUserRef(event.getPostedBy())
+					.addHistory(Collections.singletonList(fieldValues))
+					.get();
+			activities.add(activity);
 		}
 		activityRepository.save(activities);
 	}
@@ -156,7 +160,7 @@ public class TicketActivitySubscriber {
 					.map(externalSystemIssue -> externalSystemIssue.getTicketId().concat(":").concat(externalSystemIssue.getUrl()))
 					.collect(Collectors.joining(separator));
 		}
-		return null;
+		return "";
 	}
 
 	private List<Activity> processTestItemIssues(String projectName, String principal, Map<IssueDefinition, TestItem> data) {

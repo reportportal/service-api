@@ -22,9 +22,9 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
-import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
-import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsCollector;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
+import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsCollector;
+import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
@@ -49,16 +49,16 @@ public class AnalyzeStrategyConfig {
 	@Autowired
 	private ILogIndexer logIndexer;
 
-	private AnalyzeItemsCollector TO_INVESTIGATE_STRATEGY = (project, launchId) -> testItemRepository.findInIssueTypeItems(
+	private AnalyzeItemsCollector TO_INVESTIGATE_COLLECTOR = (project, launchId) -> testItemRepository.findInIssueTypeItems(
 			TestItemIssueType.TO_INVESTIGATE.getLocator(), launchId);
 
-	private AnalyzeItemsCollector AUTO_ANALYZED_STRATEGY = (project, launchId) -> {
+	private AnalyzeItemsCollector AUTO_ANALYZED_COLLECTOR = (project, launchId) -> {
 		List<TestItem> itemsByAutoAnalyzedStatus = testItemRepository.findItemsByAutoAnalyzedStatus(true, launchId);
 		logIndexer.cleanIndex(project, itemsByAutoAnalyzedStatus.stream().map(TestItem::getId).collect(Collectors.toList()));
 		return itemsByAutoAnalyzedStatus;
 	};
 
-	private AnalyzeItemsCollector MANUALLY_ANALYZED_STRATEGY = (project, launchId) -> {
+	private AnalyzeItemsCollector MANUALLY_ANALYZED_COLLECTOR = (project, launchId) -> {
 		List<TestItem> itemsByAutoAnalyzedStatus = testItemRepository.findItemsByAutoAnalyzedStatus(false, launchId);
 		logIndexer.cleanIndex(project, itemsByAutoAnalyzedStatus.stream().map(TestItem::getId).collect(Collectors.toList()));
 		return itemsByAutoAnalyzedStatus;
@@ -67,9 +67,9 @@ public class AnalyzeStrategyConfig {
 	@Bean(name = "analyzerModeMapping")
 	public Map<AnalyzeItemsMode, AnalyzeItemsCollector> getAnalyzerModeMapping() {
 		Map<AnalyzeItemsMode, AnalyzeItemsCollector> mapping = new HashMap<>();
-		mapping.put(AnalyzeItemsMode.TO_INVESTIGATE, TO_INVESTIGATE_STRATEGY);
-		mapping.put(AnalyzeItemsMode.AUTO_ANALYZED, AUTO_ANALYZED_STRATEGY);
-		mapping.put(AnalyzeItemsMode.MANUALLY_ANALYZED, MANUALLY_ANALYZED_STRATEGY);
+		mapping.put(AnalyzeItemsMode.TO_INVESTIGATE, TO_INVESTIGATE_COLLECTOR);
+		mapping.put(AnalyzeItemsMode.AUTO_ANALYZED, AUTO_ANALYZED_COLLECTOR);
+		mapping.put(AnalyzeItemsMode.MANUALLY_ANALYZED, MANUALLY_ANALYZED_COLLECTOR);
 		return mapping;
 	}
 

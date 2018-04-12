@@ -39,16 +39,15 @@ import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.collect.Sets;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.trimStrings;
@@ -61,6 +60,7 @@ import static com.epam.ta.reportportal.database.entity.Status.*;
 import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.NOT_ISSUE_FLAG;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 /**
@@ -211,7 +211,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 							.stream()
 							.flatMap(Collection::stream)
 							.map(StatisticSubType::getLocator)
-							.collect(Collectors.toList())
+							.collect(toList())
 			));
 		}
 	}
@@ -228,6 +228,15 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		if (FAILED.equals(testItem.getStatus()) || SKIPPED.equals(testItem.getStatus())) {
 			if (null != providedIssue) {
 				verifyIssue(testItem.getId(), providedIssue, project.getConfiguration());
+
+				if (!CollectionUtils.isEmpty(providedIssue.getExternalSystemIssues())) {
+					verifyExternalSystemIssues(providedIssue.getExternalSystemIssues(), submitter, project.getConfiguration());
+					providedIssue.getExternalSystemIssues().forEach(it -> {
+						it.setSubmitter(submitter);
+						it.setSubmitDate(new Date().getTime());
+					});
+				}
+
 				String issueType = providedIssue.getIssueType();
 				if (!issueType.equalsIgnoreCase(NOT_ISSUE_FLAG.getValue())) {
 					TestItemIssue issue = new TestItemIssue(project.getConfiguration().getByLocator(issueType).getLocator(),
@@ -255,6 +264,15 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			}
 		}
 		return testItem;
+	}
+
+	private void verifyExternalSystemIssues(Set<Issue.ExternalSystemIssue> externalSystemIssues, String submitter,
+			Project.Configuration projectSettings) {
+		expect(externalSystemIssues.stream().map(Issue.ExternalSystemIssue::getExternalSystemId).anyMatch(Objects::isNull),
+				Predicate.isEqual(false)
+		).verify(BAD_REQUEST_ERROR, "External systemId is not specified. Choose one of included bts id: {}",
+				projectSettings.getExternalSystem()
+		);
 	}
 
 	/**

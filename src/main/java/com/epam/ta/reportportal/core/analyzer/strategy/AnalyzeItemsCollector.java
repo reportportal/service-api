@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.analyzer.strategy;
 
+import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 
 import java.util.List;
@@ -31,6 +32,6 @@ import java.util.List;
 @FunctionalInterface
 public interface AnalyzeItemsCollector {
 
-	List<TestItem> collectItems(String project, String launchId);
+	List<TestItem> collectItems(Project project, String username, String launchId);
 
 }

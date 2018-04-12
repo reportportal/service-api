@@ -26,9 +26,10 @@ import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.IIssuesAnalyzer;
 import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
-import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
+import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.launch.IUpdateLaunchHandler;
+import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -101,6 +102,9 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	private TaskExecutor taskExecutor;
 
 	@Autowired
+	private StatisticsFacadeFactory statisticsFacadeFactory;
+
+	@Autowired
 	public void setLaunchRepository(LaunchRepository launchRepository) {
 		this.launchRepository = launchRepository;
 	}
@@ -129,7 +133,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	}
 
 	@Override
-	public OperationCompletionRS startLaunchAnalyzer(String projectName, AnalyzeLaunchRQ analyzeRQ) {
+	public OperationCompletionRS startLaunchAnalyzer(String projectName, String username, AnalyzeLaunchRQ analyzeRQ) {
 		expect(analyzerService.hasAnalyzers(), Predicate.isEqual(true)).verify(
 				ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer services are deployed.");
 		AnalyzeMode analyzeMode = AnalyzeMode.fromString(analyzeRQ.getAnalyzerHistoryMode());
@@ -146,7 +150,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		Project project = projectRepository.findOne(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
-		List<TestItem> items = collectItemsByModes(projectName, launch.getId(), analyzeRQ.getAnalyzeItemsMode());
+		List<TestItem> items = collectItemsByModes(project, username, launch.getId(), analyzeRQ.getAnalyzeItemsMode());
 
 		taskExecutor.execute(() -> analyzerService.analyze(launch, items, analyzeMode));
 
@@ -162,10 +166,10 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 				.collect(toList());
 	}
 
-	private List<TestItem> collectItemsByModes(String project, String launchId, List<String> analyzeItemsMode) {
+	private List<TestItem> collectItemsByModes(Project project, String username, String launchId, List<String> analyzeItemsMode) {
 		return analyzeItemsMode.stream()
 				.map(AnalyzeItemsMode::fromString)
-				.flatMap(it -> analyzeCollectorFactory.getCollector(it).collectItems(project, launchId).stream())
+				.flatMap(it -> analyzeCollectorFactory.getCollector(it).collectItems(project, username, launchId).stream())
 				.distinct()
 				.collect(toList());
 	}

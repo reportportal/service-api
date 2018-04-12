@@ -54,7 +54,7 @@ public interface IUpdateLaunchHandler {
 	 * @param analyzeLaunchRQ analyzer rq
 	 * @return OperationCompletionRS - Response Data
 	 */
-	OperationCompletionRS startLaunchAnalyzer(String projectName, AnalyzeLaunchRQ analyzeLaunchRQ);
+	OperationCompletionRS startLaunchAnalyzer(String projectName, String username, AnalyzeLaunchRQ analyzeLaunchRQ);
 
 	List<OperationCompletionRS> updateLaunch(BulkRQ<UpdateLaunchRQ> rq, String projectName, String userName);
 }

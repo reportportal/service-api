@@ -36,6 +36,6 @@ public interface ReportPortalRepository<T, ID extends Serializable> extends JpaR
 
 	void refresh(T t);
 
-	List<T> findByFilter(Filter filter);
+	//List<T> findByFilter(Filter filter);
 
 }

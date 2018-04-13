@@ -39,12 +39,12 @@ public class ReportPortalRepositoryImpl<T, ID extends Serializable> extends Simp
 		implements ReportPortalRepository<T, ID> {
 
 	private final EntityManager entityManager;
-	private final DSLContext dslContext;
+	//private final DSLContext dslContext;
 
-	public ReportPortalRepositoryImpl(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager, DSLContext dslContext) {
+	public ReportPortalRepositoryImpl(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
 		super(entityInformation, entityManager);
 		this.entityManager = entityManager;
-		this.dslContext = dslContext;
+		//this.dslContext = dslContext;
 	}
 
 	@Override
@@ -53,8 +53,8 @@ public class ReportPortalRepositoryImpl<T, ID extends Serializable> extends Simp
 		entityManager.refresh(t);
 	}
 
-	@Override
-	public List<T> findByFilter(Filter filter) {
-		return dslContext.fetch(QueryBuilder.newBuilder(filter).build()).into(getDomainClass());
-	}
+//	@Override
+//	public List<T> findByFilter(Filter filter) {
+//		return dslContext.fetch(QueryBuilder.newBuilder(filter).build()).into(getDomainClass());
+//	}
 }

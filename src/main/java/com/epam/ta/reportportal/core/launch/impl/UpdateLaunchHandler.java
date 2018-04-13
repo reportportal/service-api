@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.launch.IUpdateLaunchHandler;
-import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
@@ -100,9 +99,6 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	@Autowired
 	@Qualifier("autoAnalyzeTaskExecutor")
 	private TaskExecutor taskExecutor;
-
-	@Autowired
-	private StatisticsFacadeFactory statisticsFacadeFactory;
 
 	@Autowired
 	public void setLaunchRepository(LaunchRepository launchRepository) {

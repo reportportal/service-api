@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 import com.epam.ta.reportportal.events.ConsulUpdateEvent;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +76,8 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	@Override
 	public List<IndexRs> index(List<IndexLaunch> rq) {
 		return analyzerInstances.get()
-				.stream().filter(SUPPORT_INDEX)
+				.stream()
+				.filter(SUPPORT_INDEX)
 				.map(instance -> index(instance, rq))
 				.filter(Optional::isPresent)
 				.map(Optional::get)
@@ -87,8 +89,10 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 		Map<String, List<AnalyzedItemRs>> result = new HashMap<>(analyzerInstances.get().size());
 		analyzerInstances.get().forEach(instance -> {
 			List<AnalyzedItemRs> analyzed = analyze(instance, rq);
-			result.put(instance.getMetadata().get(ClientUtils.ANALYZER_KEY), analyzed);
-			removeAnalyzedFromRq(rq, analyzed);
+			if (!CollectionUtils.isEmpty(analyzed)) {
+				result.put(instance.getMetadata().get(ClientUtils.ANALYZER_KEY), analyzed);
+				removeAnalyzedFromRq(rq, analyzed);
+			}
 		});
 		return result;
 	}
@@ -135,7 +139,8 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 					ImmutableMap.<String, Object>builder().put(ITEM_IDS_KEY, ids).put(INDEX_NAME_KEY, project).build()
 			);
 		} catch (Exception e) {
-			LOGGER.error("Documents deleting failed. Cannot interact with {} analyzer. Error: {}", instance.getMetadata().get(ANALYZER_KEY), e);
+			LOGGER.error(
+					"Documents deleting failed. Cannot interact with {} analyzer. Error: {}", instance.getMetadata().get(ANALYZER_KEY), e);
 		}
 	}
 

@@ -38,15 +38,21 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.*;
+import com.epam.ta.reportportal.store.commons.querygen.Filter;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
+import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -176,25 +182,25 @@ public class LaunchController {
 	public OperationCompletionRS deleteLaunch(@PathVariable String projectName, @PathVariable Long launchId, @AuthenticationPrincipal ReportPortalUser user) {
 		return deleteLaunchMessageHandler.deleteLaunch(launchId, normalizeId(projectName), user);
 	}
-//
-//	@GetMapping("/{launchId}")
-//	@Transactional
-//	@ResponseBody
-//	@ResponseStatus(OK)
-//	@ApiOperation("Get specified launch")
-//	public LaunchResource getLaunch(@PathVariable String projectName, @PathVariable Long launchId, @AuthenticationPrincipal ReportPortalUser user) {
-//		return getLaunchMessageHandler.getLaunch(launchId, user, normalizeId(projectName));
-//	}
 
-	//	
-	//	@GetMapping
-	//	@ResponseBody
-	//	@ResponseStatus(OK)
-	//	@ApiOperation("Get list of project launches by filter")
-	//	public Iterable<LaunchResource> getProjectLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
-	//			@SortFor(Launch.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-	//		return getLaunchMessageHandler.getProjectLaunches(normalizeId(projectName), filter, pageable, user);
-	//	}
+	@GetMapping("/{launchId}")
+	@Transactional
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Get specified launch")
+	public LaunchResource getLaunch(@PathVariable String projectName, @PathVariable Long launchId, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getLaunch(launchId, user.getUsername(), normalizeId(projectName));
+	}
+
+
+		@GetMapping
+		@ResponseBody
+		@ResponseStatus(OK)
+		@ApiOperation("Get list of project launches by filter")
+		public Iterable<LaunchResource> getProjectLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
+				@SortFor(Launch.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+			return getLaunchMessageHandler.getProjectLaunches(normalizeId(projectName), filter, pageable, user.getUsername());
+		}
 	//
 	//	
 	//	@RequestMapping(value = "/latest", method = GET)

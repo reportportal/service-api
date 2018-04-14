@@ -23,6 +23,8 @@ package com.epam.ta.reportportal.store.database.dao;
 
 import com.epam.ta.reportportal.store.commons.querygen.Filter;
 import com.epam.ta.reportportal.store.database.entity.launch.LaunchFull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -36,5 +38,7 @@ public interface LaunchRepositoryCustom {
 	List<LaunchFull> fullLaunchWithStatistics();
 
 	List<LaunchFull> findByFilter(Filter filter);
+
+	Page<LaunchFull> findByFilter(Filter filter, Pageable pageable);
 
 }

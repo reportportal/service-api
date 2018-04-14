@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.store.database.entity.launch.LaunchFull;
 import com.epam.ta.reportportal.store.database.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
@@ -73,5 +74,10 @@ public final class LaunchConverter {
 		//		resource.setStatistics(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
 		//		return resource;
 		return resource;
+	};
+
+	public static final Function<LaunchFull, LaunchResource> FULL_TO_RESOURCE = db -> {
+		Launch launch = db.getLaunch();
+		return TO_RESOURCE.apply(launch);
 	};
 }

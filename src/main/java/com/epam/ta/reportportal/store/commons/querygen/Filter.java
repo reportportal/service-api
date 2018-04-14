@@ -29,15 +29,17 @@ public class Filter implements Serializable, Queryable {
 	private Set<FilterCondition> filterConditions;
 
 	public Filter(Class<?> target, Condition condition, boolean negative, String value, String searchCriteria) {
-		Assert.notNull(target, "Filter target shouldn'e be null");
-		this.target = FilterTarget.findByClass(target);
-		this.filterConditions = Sets.newHashSet(new FilterCondition(condition, negative, value, searchCriteria));
+		this(FilterTarget.findByClass(target), Sets.newHashSet(new FilterCondition(condition, negative, value, searchCriteria)));
 	}
 
 	public Filter(Class<?> target, Set<FilterCondition> filterConditions) {
-		Assert.notNull(target, "Filter target shouldn'e be null");
+		this(FilterTarget.findByClass(target), filterConditions);
+	}
+
+	protected Filter(FilterTarget target, Set<FilterCondition> filterConditions) {
+		Assert.notNull(target, "Filter target shouldn't be null");
 		Assert.notNull(filterConditions, "Conditions value shouldn't be null");
-		this.target = FilterTarget.findByClass(target);
+		this.target = target;
 		this.filterConditions = filterConditions;
 	}
 
@@ -49,17 +51,18 @@ public class Filter implements Serializable, Queryable {
 
 	}
 
-	@Deprecated
-	public FilterTarget getTarget() {
+	protected final FilterTarget getTarget() {
 		return target;
 	}
 
-	public void addCondition(FilterCondition filterCondition) {
+	public Filter withCondition(FilterCondition filterCondition) {
 		this.filterConditions.add(filterCondition);
+		return this;
 	}
 
-	public void addConditions(Collection<FilterCondition> conditions) {
+	public Filter withConditions(Collection<FilterCondition> conditions) {
 		this.filterConditions.addAll(conditions);
+		return this;
 	}
 
 	public SelectQuery<? extends Record> toQuery() {
@@ -70,7 +73,7 @@ public class Filter implements Serializable, Queryable {
 		return query.build();
 	}
 
-	Set<FilterCondition> getFilterConditions() {
+	public Set<FilterCondition> getFilterConditions() {
 		return filterConditions;
 	}
 

@@ -65,7 +65,7 @@ logging:
 #    com.novemberain.quartz : debug
     org.springframework.security: debug
 #    org.jooq.tools.LoggerListener: debug
-    root: trace
+    root: warn
 ## Consul as service registry
 ---
 #spring:

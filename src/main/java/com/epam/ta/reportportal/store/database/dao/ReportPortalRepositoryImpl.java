@@ -27,8 +27,11 @@ import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.RecordMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
+import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
@@ -64,5 +67,14 @@ public class ReportPortalRepositoryImpl<T, ID extends Serializable> extends Simp
 	@Override
 	public <R> List<R> findByFilter(Filter filter, RecordMapper<? super Record, R> mapper) {
 		return dsl.fetch(QueryBuilder.newBuilder(filter).build()).map(mapper);
+	}
+
+	@Override
+	public <R> Page<R> findByFilter(Filter filter, Pageable pageable, RecordMapper<? super Record, R> mapper) {
+		return PageableExecutionUtils.getPage(
+				dsl.fetch(QueryBuilder.newBuilder(filter).with(pageable).build()).map(mapper),
+				pageable,
+				() -> dsl.fetchCount(QueryBuilder.newBuilder(filter).build())
+		);
 	}
 }

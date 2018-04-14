@@ -35,6 +35,9 @@ import org.jooq.Record;
 import org.jooq.RecordMapper;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -88,13 +91,20 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 				.from(l)
 				.leftJoin(tr)
 				.on(ti.ITEM_ID.eq(tr.ITEM_ID))
-				.leftJoin(ti).on(l.ID.eq(ti.LAUNCH_ID))
+				.leftJoin(ti)
+				.on(l.ID.eq(ti.LAUNCH_ID))
 				.groupBy(l.ID, l.PROJECT_ID, l.USER_ID, l.NAME, l.DESCRIPTION, l.START_TIME, l.NUMBER, l.LAST_MODIFIED, l.MODE)
 				.fetch(LAUNCH_MAPPER);
 	}
 
 	public List<LaunchFull> findByFilter(Filter filter) {
-		System.out.println(QueryBuilder.newBuilder(filter).build().getSQL());
 		return dsl.fetch(QueryBuilder.newBuilder(filter).build()).map(LAUNCH_MAPPER);
+	}
+
+	public Page<LaunchFull> findByFilter(Filter filter, Pageable pageable) {
+		return PageableExecutionUtils.getPage(dsl.fetch(QueryBuilder.newBuilder(filter).with(pageable).build()).map(LAUNCH_MAPPER),
+				pageable,
+				() -> dsl.fetchCount(QueryBuilder.newBuilder(filter).build())
+		);
 	}
 }

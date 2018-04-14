@@ -23,19 +23,28 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.core.launch.IGetLaunchHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.store.commons.querygen.Filter;
+import com.epam.ta.reportportal.store.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.store.database.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.store.database.entity.launch.LaunchFull;
+import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
-import com.google.common.base.Preconditions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.google.common.base.Predicates.equalTo;
 
 /**
  * Default implementation of {@link IGetLaunchHandler}
@@ -46,13 +55,10 @@ import java.util.Map;
 @Service
 public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements IGetLaunchHandler {
 
-	//private ProjectRepository projectRepository;
-	private final LaunchRepository launchRepository;
+	//	private ProjectRepository projectRepository;
 
 	@Autowired
-	public GetLaunchHandler(LaunchRepository launchRepository) {
-		this.launchRepository = Preconditions.checkNotNull(launchRepository);
-	}
+	private LaunchRepository launchRepository;
 
 	//	@Autowired
 	//	public void setProjectRepository(ProjectRepository projectRepository) {
@@ -64,16 +70,16 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 
-		//
-		//		expect(launch.get().getProjectId(), equalTo(projectName)).verify(
-		//				ErrorType.FORBIDDEN_OPERATION,
-		//				formattedSupplier("Specified launch with id '{}' not referenced to specified project '{}'", launchId, projectName));
+		expect(launch.getProjectId(), equalTo(projectName)).verify(
+				ErrorType.FORBIDDEN_OPERATION,
+				formattedSupplier("Specified launch with id '{}' not referenced to specified project '{}'", launchId, projectName)
+		);
 
-		if (launch.getMode() == LaunchModeEnum.DEBUG) {
-			//					Project project = projectRepository.findOne(projectName);
-			//					final Project.UserConfig userConfig = findUserConfigByLogin(project, userName);
-			//					expect(userConfig.getProjectRole(), not(equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
-		}
+		//		if (launch.getMode() == LaunchModeEnum.DEBUG) {
+		//								Project project = projectRepository.findOne(projectName);
+		//								final Project.UserConfig userConfig = findUserConfigByLogin(project, userName);
+		//								expect(userConfig.getProjectRole(), not(equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
+		//		}
 		return LaunchConverter.TO_RESOURCE.apply(launch);
 	}
 
@@ -86,21 +92,20 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	//		return null;
 	//	}
 
-	//
-	//	public Iterable<LaunchResource> getProjectLaunches(String projectName, Filter filter, Pageable pageable, String userName) {
-	//		/*
-	//		 * input filter shouldn't contains any "mode" related filter conditions
-	//		 * "debug mode" conditions are forbidden because user can manipulate
-	//		 * with "debug mode" input filter and see not own debug launches
-	//		 * 'default mode' conditions are forbidden because 'default mode'
-	//		 * condition will be added by server(line 66) Due to limitations of the
-	//		 * com.mongodb.BasicDBObject, user can't add a second 'mode' criteria
-	//		 */
-	//		validateModeConditions(filter);
-	//		filter = addLaunchCommonCriteria(DEFAULT, filter, projectName);
-	//		Page<Launch> launches = launchRepository.findByFilter(filter, pageable);
-	//		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
-	//	}
+	public Iterable<LaunchResource> getProjectLaunches(String projectName, Filter filter, Pageable pageable, String userName) {
+		/*
+		 * input filter shouldn't contains any "mode" related filter conditions
+		 * "debug mode" conditions are forbidden because user can manipulate
+		 * with "debug mode" input filter and see not own debug launches
+		 * 'default mode' conditions are forbidden because 'default mode'
+		 * condition will be added by server(line 66) Due to limitations of the
+		 * com.mongodb.BasicDBObject, user can't add a second 'mode' criteria
+		 */
+		//		validateModeConditions(filter);
+		//			filter = addLaunchCommonCriteria(DEFAULT, filter, projectName);
+		Page<LaunchFull> launches = launchRepository.findByFilter(ProjectFilter.of(filter, projectName), pageable);
+		return PagedResourcesAssembler.pageConverter(LaunchConverter.FULL_TO_RESOURCE).apply(launches);
+	}
 	//
 	//	/*
 	//	 * Changed logic for this method: It should return DEBUG launches for
@@ -211,14 +216,14 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 //		return data.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> countPercentage(entry.getValue(), total)));
 //	}
 //
-//	private String countPercentage(int value, int total) {
-//		if (total == 0) {
-//			return "0";
-//		}
-//		BigDecimal bigDecimal = new BigDecimal((double) value / total * 100);
-//		return bigDecimal.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString();
-//	}
-//
+	private String countPercentage(int value, int total) {
+		if (total == 0) {
+			return "0";
+		}
+		BigDecimal bigDecimal = new BigDecimal((double) value / total * 100);
+		return bigDecimal.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString();
+	}
+
 //	/**
 //	 * Validate if filter doesn't contain any "mode" related conditions.
 //	 *

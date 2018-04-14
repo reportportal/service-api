@@ -3,6 +3,7 @@ package com.epam.ta.reportportal.store.commons.querygen;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.store.jooq.tables.JLaunch;
+import com.epam.ta.reportportal.store.jooq.tables.JProject;
 import com.epam.ta.reportportal.store.jooq.tables.JTestItem;
 import com.epam.ta.reportportal.store.jooq.tables.JTestItemResults;
 import org.jooq.Record;
@@ -13,8 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.store.jooq.Tables.TEST_ITEM;
-import static com.epam.ta.reportportal.store.jooq.Tables.TEST_ITEM_RESULTS;
+import static com.epam.ta.reportportal.store.jooq.Tables.*;
 import static org.jooq.impl.DSL.*;
 
 public enum FilterTarget {
@@ -22,12 +22,14 @@ public enum FilterTarget {
 	LAUNCH(Launch.class, Arrays.asList(
 			//@formatter:off
 			new CriteriaHolder("description", "l.description", String.class, false),
-			new CriteriaHolder("name", "l.name", String.class, false)
+			new CriteriaHolder("name", "l.name", String.class, false),
+			new CriteriaHolder("project", "p.name", String.class, false)
 			//@formatter:on
 	)) {
 		public SelectQuery<? extends Record> getQuery() {
 			JLaunch l = JLaunch.LAUNCH.as("l");
 			JTestItem ti = TEST_ITEM.as("ti");
+			JProject p = PROJECT.as("p");
 			JTestItemResults tr = TEST_ITEM_RESULTS.as("tr");
 
 			return DSL.select(
@@ -49,6 +51,7 @@ public enum FilterTarget {
 					.from(l)
 					.leftJoin(ti).on(l.ID.eq(ti.LAUNCH_ID))
 					.leftJoin(tr).on(ti.ITEM_ID.eq(tr.ITEM_ID))
+					.leftJoin(p).on(l.PROJECT_ID.eq(p.ID))
 					.groupBy(l.ID, l.PROJECT_ID, l.USER_ID, l.NAME, l.DESCRIPTION, l.START_TIME, l.NUMBER, l.LAST_MODIFIED, l.MODE)
 					.getQuery();
 					//@formatter:on

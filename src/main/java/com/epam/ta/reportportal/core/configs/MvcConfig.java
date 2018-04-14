@@ -1,23 +1,23 @@
 /*
  * Copyright 2016 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+ */
 /*
  * This file is part of Report Portal.
  *
@@ -41,7 +41,10 @@ import com.epam.ta.reportportal.commons.exception.forwarding.ClientResponseForwa
 import com.epam.ta.reportportal.commons.exception.rest.DefaultErrorResolver;
 import com.epam.ta.reportportal.commons.exception.rest.ReportPortalExceptionResolver;
 import com.epam.ta.reportportal.commons.exception.rest.RestExceptionHandler;
+import com.epam.ta.reportportal.ws.resolver.ActiveUserWebArgumentResolver;
+import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.JsonViewSupportFactoryBean;
+import com.epam.ta.reportportal.ws.resolver.PagingHandlerMethodArgumentResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -52,9 +55,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.data.web.SortArgumentResolver;
+import org.springframework.data.web.SortHandlerMethodArgumentResolver;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.validation.beanvalidation.BeanValidationPostProcessor;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -104,32 +110,32 @@ public class MvcConfig implements WebMvcConfigurer {
 	//
 	//	}
 
-	//	@Bean
-	//	public SortArgumentResolver sortArgumentResolver() {
-	//		SortArgumentResolver argumentResolver = new SortArgumentResolver();
-	//		argumentResolver.setSortParameter("page.sort");
-	//		argumentResolver.setQualifierDelimiter("+");
-	//		return argumentResolver;
-	//	}
+	@Bean
+	public SortArgumentResolver sortArgumentResolver() {
+		SortHandlerMethodArgumentResolver argumentResolver = new SortHandlerMethodArgumentResolver();
+		argumentResolver.setSortParameter("page.sort");
+		argumentResolver.setQualifierDelimiter("+");
+		return argumentResolver;
+	}
 
 	@Bean
 	public JsonViewSupportFactoryBean jsonViewSupportFactoryBean() {
 		return new JsonViewSupportFactoryBean();
 	}
 
-	//	@Override
-	//	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
-	//		argumentResolvers.clear();
-	//		PagingHandlerMethodArgumentResolver pageableResolver = new PagingHandlerMethodArgumentResolver(sortArgumentResolver());
-	//		pageableResolver.setPrefix("page.");
-	//		pageableResolver.setOneIndexedParameters(true);
-	//
-	//		argumentResolvers.add(pageableResolver);
-	//
-	//		argumentResolvers.add(new ActiveUserWebArgumentResolver());
-	//		argumentResolvers.add(new FilterCriteriaResolver());
-	//		argumentResolvers.add(new PredefinedFilterCriteriaResolver());
-	//	}
+	@Override
+	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+		argumentResolvers.clear();
+		PagingHandlerMethodArgumentResolver pageableResolver = new PagingHandlerMethodArgumentResolver((SortHandlerMethodArgumentResolver) sortArgumentResolver());
+		pageableResolver.setPrefix("page.");
+		pageableResolver.setOneIndexedParameters(true);
+
+		argumentResolvers.add(pageableResolver);
+
+		argumentResolvers.add(new ActiveUserWebArgumentResolver());
+		argumentResolvers.add(new FilterCriteriaResolver());
+		//		argumentResolvers.add(new PredefinedFilterCriteriaResolver());
+	}
 
 	@Override
 	public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {

@@ -168,8 +168,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			try {
 				verifyTestItem(testItem, testItem.getItemId());
 				IssueEntity issue = testItem.getTestItemResults().getIssue();
-				issue.getTickets().addAll(existedTickets);
-				issue.getTickets().addAll(ticketsFromRq);
 				existedTickets.forEach(it -> it.getIssues().add(issue));
 				ticketsFromRq.forEach(it -> it.getIssues().add(issue));
 			} catch (Exception e) {
@@ -177,7 +175,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			}
 		});
 		expect(!errors.isEmpty(), equalTo(FALSE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
-		testItemRepository.saveAll(testItems);
+		ticketRepository.saveAll(existedTickets);
+		ticketRepository.saveAll(ticketsFromRq);
 		//eventPublisher.publishEvent(new TicketAttachedEvent(before, Lists.newArrayList(testItems), userName, projectName));
 		return stream(testItems.spliterator(), false).map(
 				testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))

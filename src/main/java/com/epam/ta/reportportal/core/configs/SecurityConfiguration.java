@@ -39,6 +39,7 @@ package com.epam.ta.reportportal.core.configs;
 import com.epam.ta.reportportal.auth.UserRoleHierarchy;
 import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
 import com.epam.ta.reportportal.auth.permissions.ProjectAuthority;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.AuthoritiesExtractor;
@@ -62,6 +63,9 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.R
 import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 import java.util.Map;
@@ -123,6 +127,20 @@ class SecurityConfiguration {
 			return new ReportPortalAuthorityExtractor();
 		}
 
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+            CorsConfiguration configuration = new CorsConfiguration();
+            configuration.setAllowedOrigins(ImmutableList.of("*"));
+            configuration.setAllowedMethods(ImmutableList.of("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH"));
+            configuration.setAllowCredentials(true);
+            configuration.setAllowedHeaders(ImmutableList.of("Authorization", "Cache-Control", "Content-Type"));
+
+            UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+            source.registerCorsConfiguration("/**", configuration);
+
+            return source;
+        }
+
 		private DefaultWebSecurityExpressionHandler webSecurityExpressionHandler() {
 			OAuth2WebSecurityExpressionHandler handler = new OAuth2WebSecurityExpressionHandler();
 			handler.setRoleHierarchy(userRoleHierarchy());
@@ -158,6 +176,8 @@ class SecurityConfiguration {
 					.anyRequest()
 					.authenticated()
 					.and()
+                    .cors()
+                    .and()
 					.csrf()
 					.disable();
 		}

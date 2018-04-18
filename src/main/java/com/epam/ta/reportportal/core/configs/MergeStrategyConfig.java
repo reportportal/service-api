@@ -36,7 +36,7 @@ public class MergeStrategyConfig {
 	private TestItemRepository testItemRepository;
 
 	@Bean
-	public Map<MergeStrategyType, MergeStrategy> mapping() {
+	public Map<MergeStrategyType, MergeStrategy> mergeTypeMapping() {
 		Map<MergeStrategyType, MergeStrategy> mapping = new HashMap<>();
 		mapping.put(MergeStrategyType.TEST, new TestMergeStrategy(testItemRepository));
 		mapping.put(MergeStrategyType.SUITE, new SuiteMergeStrategy(testItemRepository));
@@ -45,7 +45,7 @@ public class MergeStrategyConfig {
 	}
 
 	@Bean
-	public MergeStrategyFactory factory() {
-		return new MergeStrategyFactory(mapping());
+	public MergeStrategyFactory mergeStrategyFactory() {
+		return new MergeStrategyFactory(mergeTypeMapping());
 	}
 }

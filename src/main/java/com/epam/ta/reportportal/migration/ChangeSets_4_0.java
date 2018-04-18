@@ -26,6 +26,7 @@ import com.github.mongobee.changeset.ChangeSet;
 import com.google.common.collect.Lists;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -104,4 +105,40 @@ public class ChangeSets_4_0 {
 		mongoTemplate.createCollection("logIndexingCheckpoint");
 	}
 
+	@ChangeSet(order = "4.0-4", id = "v4.1-Update metadata project names to lower case", author = "pbortnik")
+	public void updateAttachmentsMetadata(MongoTemplate mongoTemplate) {
+		String collection = "fs.files";
+		Query q = query(where("metadata.project").exists(true));
+		q.fields().include("_id");
+		q.fields().include("metadata.project");
+		mongoTemplate.stream(q, DBObject.class, collection).forEachRemaining(o -> {
+			Map<String, String> metadata = (Map<String, String>) o.get("metadata");
+			String project = metadata.get("project");
+			if (null != project && !StringUtils.isAllLowerCase(project)) {
+				String inLower = project.toLowerCase();
+				Update update = new Update();
+				update.set("metadata.project", inLower);
+				mongoTemplate.updateFirst(query(where("_id").is(o.get("_id"))), update, collection);
+			}
+		});
+
+	}
+
+	@ChangeSet(order = "4.2-1", id = "v4.2-Update activities names", author = "pbortnik")
+	public void updateActivitiesNames(MongoTemplate mongoTemplate) {
+		String collection = "activity";
+		Query q = query(where("actionType").in(Lists.newArrayList("load_issue", "load_issue_aa", "attach_issue")));
+		q.fields().include(("_id"));
+		q.fields().include("actionType");
+		mongoTemplate.stream(q, DBObject.class, collection).forEachRemaining(o -> {
+			String type = (String) o.get("actionType");
+			Update u = new Update();
+			if ("load_issue".equals(type) || "attach_issue".equals(type)) {
+				u.set("actionType", "link_issue");
+			} else if ("load_issue_aa".equals(type)) {
+				u.set("actionType", "link_issue_aa");
+			}
+			mongoTemplate.updateFirst(query(where("_id").is(o.get("_id"))), u, collection);
+		});
+	}
 }

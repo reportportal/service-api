@@ -23,7 +23,6 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.database.entity.AuthType;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
-import com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType;
 import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
@@ -45,7 +44,7 @@ public class ExternalSystemConverterTest {
 		externalSystem.setId("id");
 		externalSystem.setProjectRef("project");
 		externalSystem.setProject("extProject");
-		externalSystem.setExternalSystemType(ExternalSystemType.JIRA);
+		externalSystem.setExternalSystemType("JIRA");
 		externalSystem.setAccessKey("a31aa6de3e27c11d90762cad11936727d6b0759e");
 		externalSystem.setDomain("github.com");
 		externalSystem.setExternalSystemAuth(AuthType.OAUTH);
@@ -59,7 +58,7 @@ public class ExternalSystemConverterTest {
 		Assert.assertEquals(db.getProjectRef(), resource.getProjectRef());
 		Assert.assertEquals(db.getProject(), resource.getProject());
 		Assert.assertEquals(db.getUsername(), resource.getUsername());
-		Assert.assertEquals(db.getExternalSystemType().name(), resource.getExternalSystemType());
+		Assert.assertEquals(db.getExternalSystemType(), resource.getExternalSystemType());
 		Assert.assertEquals(db.getUrl(), resource.getUrl());
 		Assert.assertEquals(db.getDomain(), resource.getDomain());
 		Assert.assertEquals(db.getAccessKey(), resource.getAccessKey());

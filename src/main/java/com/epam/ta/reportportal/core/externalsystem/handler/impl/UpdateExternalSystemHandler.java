@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.AuthType;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType;
 import com.epam.ta.reportportal.events.ExternalSystemUpdatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -38,8 +37,6 @@ import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -89,11 +86,9 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 			exist.setUrl(request.getUrl());
 		}
 		if (null != request.getExternalSystemType()) {
-			Optional<ExternalSystemType> type = ExternalSystemType.findByName(request.getExternalSystemType());
-			expect(type.isPresent(), equalTo(Boolean.TRUE)).verify(INCORRECT_EXTERNAL_SYSTEM_NAME, request.getExternalSystemType());
-			exist.setExternalSystemType(type.get());
+			exist.setExternalSystemType(request.getExternalSystemType());
 		}
-		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(exist.getExternalSystemType().name());
+		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(exist.getExternalSystemType());
 
 		if (null != request.getProject()) {
 			exist.setProject(request.getProject());

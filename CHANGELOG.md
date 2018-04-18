@@ -135,7 +135,7 @@
 
 
 ## 3.2
-##### Released: Aug XXX, 2017
+##### Released: Aug 29, 2017
 
 ### New Features
 
@@ -157,7 +157,7 @@
 
 
 ## 3.3
-##### Released: XXX XX, 2017
+##### Released: Nov 03, 2017
 
 ### New Features
 
@@ -174,7 +174,7 @@
 * EPMRPP-29701: Tag prefix should be fully matched with the searched value
 
 ## 4.0
-##### Released: XXX XX, 2017
+##### Released: Mar 01, 2018
 
 ### New Features
 
@@ -186,7 +186,7 @@
 * EPMRPP-31189 - Update script for widgets.
 * EPMRPP-31780 - Set the name of analyzer which made the changes
 * EPMRPP-33154 - [IMPORT] Better handling of importing exceptions 
-* reportportal/reportporatl#322 - Make startTestItemRQ in API 4.x case insensitive
+* reportportal/reportportal#322 - Make startTestItemRQ in API 4.x case insensitive
 
 ### Bugfixes
 
@@ -216,3 +216,10 @@
 * EPMRPP-33181 - WS: Launch statistics charts are not updated correctly with new version
 * EPMRPP-33255 - Update script for widget does not support 'Timeline' mode setting
 * EPMRPP-33492 - WS: Logs of launches from DEBUG level are get to ES during the indexing
+
+## 4.2
+##### Released: XXX XX, 2017
+
+### Bugfixes
+
+* reportportal/reportportal#380 - Unexpected total tests count

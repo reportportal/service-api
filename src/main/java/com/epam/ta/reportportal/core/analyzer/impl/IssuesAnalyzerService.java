@@ -34,7 +34,6 @@ import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.LogLevel;
-import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
@@ -103,9 +102,12 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 						.stream()
 						.flatMap(it -> updateTestItems(it.getKey(), it.getValue(), testItems, launch.getProjectRef()).stream())
 						.collect(toList());
-				saveUpdatedItems(updatedItems, launch);
+				saveUpdatedItems(updatedItems);
 				logIndexer.indexLogs(launch.getId(), updatedItems);
 			}
+			statisticsFacadeFactory.getStatisticsFacade(
+					projectRepository.findByName(launch.getProjectRef()).getConfiguration().getStatisticsCalculationStrategy())
+					.recalculateStatistics(launch);
 		}
 	}
 
@@ -192,16 +194,12 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	 * Updates issues of investigated item and recalculates
 	 * the launch's statistics
 	 *
-	 * @param items  Items for update
-	 * @param launch Launch of investigated items
+	 * @param items Items for update
 	 */
-	private void saveUpdatedItems(List<TestItem> items, Launch launch) {
+	private void saveUpdatedItems(List<TestItem> items) {
 		Map<String, TestItemIssue> forUpdate = items.stream().collect(toMap(TestItem::getId, TestItem::getIssue));
 		if (!forUpdate.isEmpty()) {
 			testItemRepository.updateItemsIssues(forUpdate);
-			Project project = projectRepository.findByName(launch.getProjectRef());
-			statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
-					.recalculateStatistics(launch);
 		}
 	}
 }

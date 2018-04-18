@@ -45,10 +45,7 @@ import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.ws.controller.ILaunchController;
 import com.epam.ta.reportportal.ws.model.*;
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
+import com.epam.ta.reportportal.ws.model.launch.*;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
@@ -291,13 +288,13 @@ public class LaunchController implements ILaunchController {
 	}
 
 	@Override
-	@RequestMapping(value = "/{launchId}/analyze", method = POST)
+	@RequestMapping(value = "/analyze", method = POST)
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Start launch auto-analyzer on demand")
-	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName, @PathVariable String launchId,
-			@RequestParam("analyze_mode") String mode, Principal principal) {
-		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), launchId, mode);
+	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName,
+			@Validated @RequestBody AnalyzeLaunchRQ analyzeLaunchRQ, Principal principal) {
+		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), principal.getName(), analyzeLaunchRQ);
 	}
 
 	@Override

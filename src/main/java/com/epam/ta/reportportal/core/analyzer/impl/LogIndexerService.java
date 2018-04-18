@@ -85,6 +85,7 @@ public class LogIndexerService implements ILogIndexer {
 	private static final String CHECKPOINT_ID = "checkpoint";
 	private static final String CHECKPOINT_LOG_ID = "logId";
 	private static final String LOG_LEVEL = "level.log_level";
+	private static final int MAX_TIMEOUT = 120000;
 
 	@Autowired
 	private AnalyzerServiceClient analyzerServiceClient;
@@ -180,6 +181,7 @@ public class LogIndexerService implements ILogIndexer {
 					if (checkpoint == null) {
 						checkpoint = log.getId();
 					}
+					rqLaunch.getTestItems().forEach(it -> it.setAutoAnalyzed(true));
 					rq.add(rqLaunch);
 					if (rq.size() == BATCH_SIZE || !logIterator.hasNext()) {
 						createCheckpoint(checkpoint);
@@ -263,7 +265,10 @@ public class LogIndexerService implements ILogIndexer {
 
 	private CloseableIterator<Log> getLogIterator(String checkpoint) {
 		Sort sort = new Sort(new Sort.Order(Sort.Direction.ASC, "_id"));
-		Query query = new Query().with(sort).addCriteria(where(LOG_LEVEL).gte(LogLevel.ERROR_INT)).noCursorTimeout();
+		Query query = new Query().with(sort)
+				.addCriteria(where(LOG_LEVEL).gte(LogLevel.ERROR_INT))
+				.noCursorTimeout()
+				.maxTimeMsec(MAX_TIMEOUT);
 
 		if (checkpoint != null) {
 			query.addCriteria(Criteria.where("_id").gte(new ObjectId(checkpoint)));

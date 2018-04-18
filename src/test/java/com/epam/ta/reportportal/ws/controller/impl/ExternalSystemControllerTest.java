@@ -33,7 +33,6 @@ import org.springframework.security.core.Authentication;
 import java.util.*;
 
 import static com.epam.ta.reportportal.database.entity.AuthType.APIKEY;
-import static com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType.RALLY;
 import static java.util.Collections.singletonList;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -49,7 +48,7 @@ public class ExternalSystemControllerTest extends BaseMvcTest {
 	public void createExternalSystemTest() throws Exception {
 		final CreateExternalSystemRQ rq = new CreateExternalSystemRQ();
 		rq.setUrl("https://rp.epam.com/");
-		rq.setExternalSystemType(RALLY.name());
+		rq.setExternalSystemType("RALLY");
 		rq.setExternalSystemAuth(APIKEY.name());
 		this.mvcMock.perform(post(PROJECT_BASE_URL + "/external-system").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)

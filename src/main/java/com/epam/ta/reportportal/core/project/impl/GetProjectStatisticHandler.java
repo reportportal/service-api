@@ -51,6 +51,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -96,6 +97,9 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 
 	@Autowired
 	private ProjectInfoWidgetDataConverter dataConverter;
+
+	private static final Predicate<ActivityEventType> ACTIVITIES_PROJECT_FILTER = it -> it == UPDATE_DEFECT || it == DELETE_DEFECT
+			|| it == LINK_ISSUE || it == LINK_ISSUE_AA || it == UNLINK_ISSUE || it == UPDATE_ITEM;
 
 	@Override
 	public Iterable<ProjectInfoResource> getAllProjectsInfo(Filter filter, Pageable pageable) {
@@ -183,7 +187,7 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 	@SuppressWarnings("serial")
 	private Map<String, List<ChartObject>> getActivities(String projectId, InfoInterval interval) {
 		String value = Arrays.stream(ActivityEventType.values())
-				.filter(it -> it == UPDATE_DEFECT || it == DELETE_DEFECT || it == ATTACH_ISSUE || it == UPDATE_ITEM)
+				.filter(ACTIVITIES_PROJECT_FILTER)
 				.map(ActivityEventType::getValue)
 				.collect(joining(","));
 		int limit = 150;

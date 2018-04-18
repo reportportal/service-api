@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.AuthType;
 import com.epam.ta.reportportal.database.entity.ExternalSystem;
 import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.item.issue.ExternalSystemType;
 import com.epam.ta.reportportal.events.ExternalSystemCreatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.ExternalSystemBuilder;
@@ -91,7 +90,7 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 		details.setUrl(createRQ.getUrl());
 		details.setProject(createRQ.getProject());
 		details.setAccessKey(createRQ.getAccessKey());
-		details.setExternalSystemType(ExternalSystemType.findByName(createRQ.getExternalSystemType()).get());
+		details.setExternalSystemType(createRQ.getExternalSystemType());
 
 		AuthType authType = AuthType.findByName(createRQ.getExternalSystemAuth());
 		expect(authType, notNull()).verify(INCORRECT_AUTHENTICATION_TYPE, createRQ.getExternalSystemAuth());

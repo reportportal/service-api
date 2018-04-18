@@ -22,13 +22,11 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.externalsystem.handler.*;
+import com.epam.ta.reportportal.core.bts.handler.*;
 import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
-import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
-import com.epam.ta.reportportal.ws.model.externalsystem.UpdateExternalSystemRQ;
+import com.epam.ta.reportportal.ws.model.externalsystem.*;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -37,6 +35,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -49,13 +49,13 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @Controller
 @RequestMapping("/{projectName}/external-system")
 //@PreAuthorize(ASSIGNED_TO_PROJECT)
-public class ExternalSystemController {
+public class BugTrackingSystemController {
 
 	@Autowired
 	private ICreateTicketHandler createTicketHandler;
-	//
-	//	@Autowired
-	//	private IGetTicketHandler getTicketHandler;
+
+	@Autowired
+	private IGetTicketHandler getTicketHandler;
 
 	@Autowired
 	private ICreateExternalSystemHandler createExternalSystemHandler;
@@ -135,49 +135,51 @@ public class ExternalSystemController {
 		return updateExternalSystemHandler.externalSystemConnect(
 				updateRQ, EntityUtils.normalizeId(projectName), systemId, reportPortalUser);
 	}
-	//
-	//
-	//	@RequestMapping(value = "/{systemId}/fields-set", method = RequestMethod.GET)
-	//	@ResponseBody
-	//	@ResponseStatus(HttpStatus.OK)
+
+	@Transactional
+	@RequestMapping(value = "/{systemId}/fields-set", method = RequestMethod.GET)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
 	//	@PreAuthorize(PROJECT_MANAGER)
-	//	@ApiOperation("Get list of fields required for posting ticket")
-	//	public List<PostFormField> getSetOfExternalSystemFields(@RequestParam(value = "issuetype") String issuetype,
-	//			@PathVariable String projectName, @PathVariable String systemId) {
-	//		return getTicketHandler.getSubmitTicketFields(issuetype, EntityUtils.normalizeId(projectName), systemId);
-	//	}
-	//
-	//
-	//	@RequestMapping(value = "/{systemId}/issue_types", method = RequestMethod.GET)
-	//	@ResponseBody
-	//	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Get list of fields required for posting ticket")
+	public List<PostFormField> getSetOfExternalSystemFields(@RequestParam(value = "issuetype") String issuetype,
+			@PathVariable String projectName, @PathVariable Long systemId, @AuthenticationPrincipal ReportPortalUser user) {
+		return getTicketHandler.getSubmitTicketFields(issuetype, EntityUtils.normalizeId(projectName), systemId, user);
+	}
+
+	@Transactional
+	@RequestMapping(value = "/{systemId}/issue_types", method = RequestMethod.GET)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
 	//	@PreAuthorize(PROJECT_MANAGER)
-	//	@ApiOperation("Get list of fields required for posting ticket")
-	//	public List<String> getAllowableIssueTypes(@PathVariable String projectName, @PathVariable String systemId) {
-	//		return getTicketHandler.getAllowableIssueTypes(EntityUtils.normalizeId(projectName), systemId);
-	//	}
+	@ApiOperation("Get list of fields required for posting ticket")
+	public List<String> getAllowableIssueTypes(@PathVariable String projectName, @PathVariable Long systemId,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getTicketHandler.getAllowableIssueTypes(EntityUtils.normalizeId(projectName), systemId, user);
+	}
+
 	//
 	//	// ===================
 	//	// TICKETS BLOCK
 	//	// ===================
 	//
-	//	@RequestMapping(method = RequestMethod.POST, value = "{systemId}/ticket")
-	//	@ResponseBody
-	//	@ResponseStatus(HttpStatus.CREATED)
-	//	@ApiOperation("Post ticket to external system")
-	//	public Ticket createIssue(@Validated @RequestBody PostTicketRQ ticketRQ, @PathVariable String projectName,
-	//			@PathVariable String systemId, @AuthenticationPrincipal ReportPortalUser reportPortalUser) {
-	//		return createTicketHandler.createIssue(ticketRQ, EntityUtils.normalizeId(projectName), systemId, principal.getName());
-	//	}
-	//
-	//
-	//	@RequestMapping(method = RequestMethod.GET, value = "/{systemId}/ticket/{ticketId}")
-	//	@ResponseBody
-	//	@ResponseStatus(HttpStatus.OK)
-	//	@ApiOperation("Get ticket from external system")
-	//	public Ticket getTicket(@PathVariable String ticketId, @PathVariable String projectName, @PathVariable String systemId,
-	//			@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
-	//		return getTicketHandler.getTicket(ticketId, EntityUtils.normalizeId(projectName), systemId);
-	//	}
+	@RequestMapping(method = RequestMethod.POST, value = "{systemId}/ticket")
+	@ResponseBody
+	@ResponseStatus(HttpStatus.CREATED)
+	@ApiOperation("Post ticket to external system")
+	public Ticket createIssue(@Validated @RequestBody PostTicketRQ ticketRQ, @PathVariable String projectName, @PathVariable Long systemId,
+			@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
+		return createTicketHandler.createIssue(ticketRQ, EntityUtils.normalizeId(projectName), systemId, reportPortalUser);
+	}
+
+	@Transactional
+	@RequestMapping(method = RequestMethod.GET, value = "/{systemId}/ticket/{ticketId}")
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Get ticket from external system")
+	public Ticket getTicket(@PathVariable String ticketId, @PathVariable String projectName, @PathVariable Long systemId,
+			@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
+		return getTicketHandler.getTicket(ticketId, EntityUtils.normalizeId(projectName), systemId, reportPortalUser);
+	}
 
 }

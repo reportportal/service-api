@@ -19,30 +19,28 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.core.externalsystem;
+package com.epam.ta.reportportal.core.bts.handler;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
+import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 
 /**
- * Contains functionality for providing external system strategy by system name.
+ * External system ticket creation handler
  *
  * @author Aliaksei_Makayed
  */
-//@Service
-public class StrategyProvider {
 
-	@Autowired
-	private ExternalSystemEurekaDelegate externalSystemStrategy;
+public interface ICreateTicketHandler {
 
 	/**
-	 * Validate external system name and provide strategy for interacting with
-	 * external system.
+	 * Post ticket to external system.
 	 *
-	 * @param externalSystemName Name of external system
-	 * @return
+	 * @param postTicketRQ Request Data
+	 * @param project      Project Name
+	 * @param systemId     ID of external system
+	 * @param user         User
+	 * @return Found Ticket
 	 */
-	public ExternalSystemStrategy getStrategy(String externalSystemName) {
-		externalSystemStrategy.checkAvailable(externalSystemName);
-		return externalSystemStrategy;
-	}
+	Ticket createIssue(PostTicketRQ postTicketRQ, String project, Long systemId, ReportPortalUser user);
 }

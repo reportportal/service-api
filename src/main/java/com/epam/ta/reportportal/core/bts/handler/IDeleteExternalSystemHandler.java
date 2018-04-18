@@ -19,29 +19,37 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.core.externalsystem.handler;
+package com.epam.ta.reportportal.core.bts.handler;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
+import com.epam.ta.reportportal.core.bts.handler.impl.DeleteExternalSystemHandler;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 /**
- * Basic interface for {@link} realization
+ * Interface for {@link DeleteExternalSystemHandler} external system handler
  *
  * @author Andrei_Ramanchuk
  * @author Pavel Bortnik
  */
-public interface ICreateExternalSystemHandler {
+public interface IDeleteExternalSystemHandler {
 
 	/**
-	 * Create {@link BugTrackingSystem} entry method
+	 * Delete method for external system entity
 	 *
-	 * @param createRQ    Request Data
+	 * @param projectName      Project Name
+	 * @param externalSystemId External System to be deleted
+	 * @param user             User
+	 * @return Operation result
+	 */
+	OperationCompletionRS deleteExternalSystem(String projectName, Long externalSystemId, ReportPortalUser user);
+
+	/**
+	 * Delete all external system assigned to specified Report Portal project
+	 *
 	 * @param projectName Project Name
 	 * @param user        User
-	 * @return Response Data
+	 * @return Operation Result
 	 */
-	EntryCreatedRS createExternalSystem(CreateExternalSystemRQ createRQ, String projectName, ReportPortalUser user);
+	OperationCompletionRS deleteAllExternalSystems(String projectName, ReportPortalUser user);
 
 }

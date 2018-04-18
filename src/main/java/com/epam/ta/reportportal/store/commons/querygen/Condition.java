@@ -81,7 +81,7 @@ public enum Condition {
 			/* Validate only strings */
 
 			this.validate(criteriaHolder, filter.getValue(), filter.isNegative(), INCORRECT_FILTER_PARAMETERS);
-			return field(filter.getSearchCriteria()).like("%" + filter.getValue() + "%s");
+			return field(criteriaHolder.getQueryCriteria()).like("%" + filter.getValue() + "%");
 		}
 
 		@Override

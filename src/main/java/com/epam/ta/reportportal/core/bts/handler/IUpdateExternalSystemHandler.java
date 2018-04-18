@@ -19,10 +19,10 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.core.externalsystem.handler;
+package com.epam.ta.reportportal.core.bts.handler;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.externalsystem.handler.impl.UpdateExternalSystemHandler;
+import com.epam.ta.reportportal.core.bts.handler.impl.UpdateExternalSystemHandler;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.UpdateExternalSystemRQ;
 

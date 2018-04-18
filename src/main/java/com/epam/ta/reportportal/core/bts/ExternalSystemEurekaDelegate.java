@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.epam.ta.reportportal.core.externalsystem;
+package com.epam.ta.reportportal.core.bts;
 
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.store.commons.Preconditions;
@@ -48,10 +48,10 @@ public class ExternalSystemEurekaDelegate implements ExternalSystemStrategy {
 	@Autowired
 	private DiscoveryClient discoveryClient;
 
-	private final RestTemplate eurekaTemplate;
+	private final RestTemplate restTemplate;
 
-	public ExternalSystemEurekaDelegate(RestTemplate eurekaTemplate) {
-		this.eurekaTemplate = eurekaTemplate;
+	public ExternalSystemEurekaDelegate(RestTemplate restTemplate) {
+		this.restTemplate = restTemplate;
 	}
 
 	void checkAvailable(String systemType) {
@@ -60,7 +60,7 @@ public class ExternalSystemEurekaDelegate implements ExternalSystemStrategy {
 
 	@Override
 	public boolean connectionTest(BugTrackingSystem system) {
-		return eurekaTemplate.postForObject(getServiceInstance(system.getBtsType()).getUri().toString() + "/check", system, YesNoRS.class,
+		return restTemplate.postForObject(getServiceInstance(system.getBtsType()).getUri().toString() + "/check", system, YesNoRS.class,
 				system.getId()
 		).getIs();
 	}
@@ -68,14 +68,14 @@ public class ExternalSystemEurekaDelegate implements ExternalSystemStrategy {
 	@Override
 	public Optional<Ticket> getTicket(String id, BugTrackingSystem system) {
 		return Optional.ofNullable(
-				eurekaTemplate.getForObject(getServiceInstance(system.getBtsType()).getUri().toString() + "/{systemId}/ticket/{id}",
+				restTemplate.getForObject(getServiceInstance(system.getBtsType()).getUri().toString() + "/{systemId}/ticket/{id}",
 						Ticket.class, system.getId(), id
 				));
 	}
 
 	@Override
 	public Ticket submitTicket(PostTicketRQ ticketRQ, BugTrackingSystem system) {
-		return eurekaTemplate.postForObject(getServiceInstance(system.getBtsType()).getUri().toString() + "/{systemId}/ticket", ticketRQ,
+		return restTemplate.postForObject(getServiceInstance(system.getBtsType()).getUri().toString() + "/{systemId}/ticket", ticketRQ,
 				Ticket.class, system.getId()
 		);
 
@@ -83,7 +83,7 @@ public class ExternalSystemEurekaDelegate implements ExternalSystemStrategy {
 
 	@Override
 	public List<PostFormField> getTicketFields(String issueType, BugTrackingSystem system) {
-		return eurekaTemplate.exchange(getServiceInstance(system.getBtsType()).getUri().toString() + "/{systemId}/ticket/{issueType}/fields",
+		return restTemplate.exchange(getServiceInstance(system.getBtsType()).getUri().toString() + "/{systemId}/ticket/{issueType}/fields",
 				HttpMethod.GET, null, new ParameterizedTypeReference<List<PostFormField>>() {
 				}, system.getId(), issueType
 		).getBody();
@@ -91,7 +91,7 @@ public class ExternalSystemEurekaDelegate implements ExternalSystemStrategy {
 
 	@Override
 	public List<String> getIssueTypes(BugTrackingSystem system) {
-		return eurekaTemplate.exchange(getServiceInstance(system.getBtsType()).getUri().toString() + "/{systemId}/ticket/types",
+		return restTemplate.exchange(getServiceInstance(system.getBtsType()).getUri().toString() + "/{systemId}/ticket/types",
 				HttpMethod.GET, null, new ParameterizedTypeReference<List<String>>() {
 				}, system.getId()
 		).getBody();

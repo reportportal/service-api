@@ -19,7 +19,7 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.core.externalsystem;
+package com.epam.ta.reportportal.core.bts;
 
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;

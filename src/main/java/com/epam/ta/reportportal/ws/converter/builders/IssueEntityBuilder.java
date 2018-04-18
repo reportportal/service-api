@@ -78,17 +78,4 @@ public class IssueEntityBuilder implements Supplier<IssueEntity> {
 		return this.issueEntity;
 	}
 
-	public IssueEntityBuilder addTickets(Set<Issue.ExternalSystemIssue> externalSystemIssues, Long userId) {
-		if (!CollectionUtils.isEmpty(externalSystemIssues)) {
-			Set<Ticket> tickets = externalSystemIssues.stream().map(it -> {
-				Ticket apply = ExternalSystemIssueConverter.TO_TICKET.apply(it);
-				apply.setSubmitterId(userId);
-				apply.setSubmitDate(LocalDateTime.now());
-				apply.getIssues().add(this.issueEntity);
-				return apply;
-			}).collect(toSet());
-			issueEntity.getTickets().addAll(tickets);
-		}
-		return this;
-	}
 }

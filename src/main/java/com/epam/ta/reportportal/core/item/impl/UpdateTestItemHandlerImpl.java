@@ -29,6 +29,8 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.dao.BugTrackingSystemRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.dao.TicketRepository;
+import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
 import com.epam.ta.reportportal.store.database.entity.bts.Ticket;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
@@ -55,15 +57,18 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import java.util.Optional;
+import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.store.commons.Predicates.*;
 import static com.epam.ta.reportportal.ws.model.ErrorType.EXTERNAL_SYSTEM_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION;
 import static java.lang.Boolean.FALSE;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static java.util.stream.StreamSupport.stream;
 
 /**
  * Default implementation of {@link UpdateTestItemHandler}
@@ -76,6 +81,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	private TestItemRepository testItemRepository;
 
 	private BugTrackingSystemRepository bugTrackingSystemRepository;
+
+	private TicketRepository ticketRepository;
 
 	private IssueTypeHandler issueTypeHandler;
 
@@ -92,6 +99,11 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	@Autowired
 	public void setBugTrackingSystemRepository(BugTrackingSystemRepository bugTrackingSystemRepository) {
 		this.bugTrackingSystemRepository = bugTrackingSystemRepository;
+	}
+
+	@Autowired
+	public void setTicketRepository(TicketRepository ticketRepository) {
+		this.ticketRepository = ticketRepository;
 	}
 
 	@Override
@@ -118,7 +130,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				IssueEntity issueEntity = new IssueEntityBuilder(testItem.getTestItemResults().getIssue()).addIssueType(issueType)
 						.addDescription(issue.getComment())
 						.addIgnoreFlag(issue.getIgnoreAnalyzer())
-						.addTickets(issue.getExternalSystemIssues(), user.getUserId())
 						.addAutoAnalyzedFlag(false)
 						.get();
 
@@ -148,29 +159,27 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	@Override
 	public List<OperationCompletionRS> linkExternalIssues(String projectName, LinkExternalIssueRQ rq, ReportPortalUser user) {
 		List<String> errors = new ArrayList<>();
-		bugTrackingSystemRepository.findById(rq.getExternalSystemId())
-				.orElseThrow(() -> new ReportPortalException(EXTERNAL_SYSTEM_NOT_FOUND, rq.getExternalSystemId()));
+
 		Iterable<TestItem> testItems = testItemRepository.findAllById(rq.getTestItemIds());
-		StreamSupport.stream(testItems.spliterator(), false).forEach(testItem -> {
+		List<Ticket> existedTickets = collectExistedTickets(rq);
+		Set<Ticket> ticketsFromRq = collectTickets(rq, user.getUserId());
+
+		testItems.forEach(testItem -> {
 			try {
 				verifyTestItem(testItem, testItem.getItemId());
 				IssueEntity issue = testItem.getTestItemResults().getIssue();
-				issue.getTickets().addAll(rq.getIssues().stream().map(it -> {
-					Ticket apply = ExternalSystemIssueConverter.TO_TICKET.apply(it);
-					apply.setSubmitterId(user.getUserId());
-					apply.setBugTrackingSystemId(rq.getExternalSystemId());
-					apply.setSubmitDate(LocalDateTime.now());
-					return apply;
-				}).collect(Collectors.toSet()));
-			} catch (BusinessRuleViolationException e) {
+				existedTickets.forEach(it -> it.getIssues().add(issue));
+				ticketsFromRq.forEach(it -> it.getIssues().add(issue));
+			} catch (Exception e) {
 				errors.add(e.getMessage());
 			}
 		});
 		expect(!errors.isEmpty(), equalTo(FALSE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
-		testItemRepository.saveAll(testItems);
+		ticketRepository.saveAll(existedTickets);
+		ticketRepository.saveAll(ticketsFromRq);
 		//eventPublisher.publishEvent(new TicketAttachedEvent(before, Lists.newArrayList(testItems), userName, projectName));
-		return StreamSupport.stream(testItems.spliterator(), false)
-				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))
+		return stream(testItems.spliterator(), false).map(
+				testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))
 				.collect(toList());
 	}
 
@@ -178,8 +187,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	public List<OperationCompletionRS> unlinkExternalIssues(String projectName, UnlinkExternalIssueRq rq, ReportPortalUser user) {
 		List<String> errors = new ArrayList<>();
 		List<TestItem> testItems = testItemRepository.findAllById(rq.getTestItemIds());
-		bugTrackingSystemRepository.findById(rq.getExternalSystemId())
-				.orElseThrow(() -> new ReportPortalException(EXTERNAL_SYSTEM_NOT_FOUND, rq.getExternalSystemId()));
 		testItems.forEach(testItem -> {
 			try {
 				verifyTestItem(testItem, testItem.getItemId());
@@ -193,6 +200,32 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		return testItems.stream()
 				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))
 				.collect(toList());
+	}
+
+	/**
+	 * Finds tickets that are existed in db and removes them from request.
+	 *
+	 * @param rq Request
+	 * @return List of existed tickets in db.
+	 */
+	private List<Ticket> collectExistedTickets(LinkExternalIssueRQ rq) {
+		List<Ticket> existedTickets = ticketRepository.findByTicketIdIn(
+				rq.getIssues().stream().map(Issue.ExternalSystemIssue::getTicketId).collect(toList()));
+		List<String> existedTicketsIds = existedTickets.stream().map(Ticket::getTicketId).collect(toList());
+		rq.getIssues().removeIf(it -> existedTicketsIds.contains(it.getTicketId()));
+		return existedTickets;
+	}
+
+	private Set<Ticket> collectTickets(LinkExternalIssueRQ rq, Long userId) {
+		return rq.getIssues().stream().map(it -> {
+			Ticket apply = ExternalSystemIssueConverter.TO_TICKET.apply(it);
+			apply.setSubmitterId(ofNullable(it.getSubmitter()).orElse(userId));
+			apply.setSubmitDate(LocalDateTime.now());
+			Optional<BugTrackingSystem> bts = bugTrackingSystemRepository.findById(it.getExternalSystemId());
+			expect(bts, isPresent()).verify(EXTERNAL_SYSTEM_NOT_FOUND, it.getExternalSystemId());
+			apply.setBugTrackingSystemId(it.getExternalSystemId());
+			return apply;
+		}).collect(toSet());
 	}
 
 	/**

@@ -108,6 +108,11 @@ public class IssueEntity implements Serializable {
 		this.ignoreAnalyzer = ignoreAnalyzer;
 	}
 
+	public void removeTicket(Ticket ticket) {
+		tickets.remove(ticket);
+		ticket.getIssues().remove(this);
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {

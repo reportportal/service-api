@@ -1,20 +1,20 @@
 /*
  * Copyright 2017 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -131,8 +131,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		Optional<Status> actualStatus = fromValue(finishExecutionRQ.getStatus());
 		Issue providedIssue = finishExecutionRQ.getIssue();
 
-		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(
-				project.getConfiguration().getStatisticsCalculationStrategy());
+		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration()
+				.getStatisticsCalculationStrategy());
 
 		/*
 		 * If test item has descendants, it's status is resolved from statistics
@@ -181,17 +181,20 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 					"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
 					testItemId
 			)).verify();
-			List<TestItem> descendants = Collections.emptyList();
-			if (testItem.hasChilds()) {
-				descendants = testItemRepository.findDescendants(testItem.getId());
-			}
-			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED,
-					formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'", testItemId,
-							IN_PROGRESS.name(), descendants
-					)
+			final List<TestItem> descendants = testItem.hasChilds() ?
+					testItemRepository.findDescendants(testItem.getId()) :
+					Collections.emptyList();
+			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED, formattedSupplier(
+					"Test item '{}' has descendants with '{}' status. All descendants '{}'",
+					() -> testItemId,
+					IN_PROGRESS::name,
+					() -> descendants.stream().map(TestItem::getName).collect(toList())
+			));
+			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
+					finishExecutionRQ.getEndTime(),
+					testItem.getStartTime(),
+					testItemId
 			);
-			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime())).verify(
-					FINISH_TIME_EARLIER_THAN_START_TIME, finishExecutionRQ.getEndTime(), testItem.getStartTime(), testItemId);
 
 			/*
 			 * If there is issue provided we have to be sure issue type is
@@ -206,7 +209,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		if (issue != null && !NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(issue.getIssueType())) {
 			expect(projectSettings.getByLocator(issue.getIssueType()), notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
 					"Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types locators are: {}",
-					issue.getIssueType(), testItemId, projectSettings.getSubTypes()
+					issue.getIssueType(),
+					testItemId,
+					projectSettings.getSubTypes()
 							.values()
 							.stream()
 							.flatMap(Collection::stream)
@@ -244,12 +249,14 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 					);
 
 					//set provided external issues if any present
-					issue.setExternalSystemIssues(
-							Optional.ofNullable(providedIssue.getExternalSystemIssues()).map(issues -> issues.stream().peek(it -> {
+					issue.setExternalSystemIssues(Optional.ofNullable(providedIssue.getExternalSystemIssues())
+							.map(issues -> issues.stream().peek(it -> {
 								//not sure if it propogates exception correctly
-								expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true)).verify(
-										EXTERNAL_SYSTEM_NOT_FOUND, it.getExternalSystemId());
-							}).map(TestItemUtils.externalIssueDtoConverter(submitter)).collect(Collectors.toSet())).orElse(null));
+								expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true)).verify(EXTERNAL_SYSTEM_NOT_FOUND,
+										it.getExternalSystemId()
+								);
+							}).map(TestItemUtils.externalIssueDtoConverter(submitter)).collect(Collectors.toSet()))
+							.orElse(null));
 					issue.setIgnoreAnalyzer(BooleanUtils.toBoolean(providedIssue.getIgnoreAnalyzer()));
 					testItem.setIssue(issue);
 				}
@@ -270,7 +277,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			Project.Configuration projectSettings) {
 		expect(externalSystemIssues.stream().map(Issue.ExternalSystemIssue::getExternalSystemId).anyMatch(Objects::isNull),
 				Predicate.isEqual(false)
-		).verify(BAD_REQUEST_ERROR, "External systemId is not specified. Choose one of included bts id: {}",
+		).verify(BAD_REQUEST_ERROR,
+				"External systemId is not specified. Choose one of included bts id: {}",
 				projectSettings.getExternalSystem()
 		);
 	}

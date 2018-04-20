@@ -38,7 +38,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JOauthRegistration extends TableImpl<JOauthRegistrationRecord> {
 
-    private static final long serialVersionUID = 310924875;
+    private static final long serialVersionUID = -178748316;
 
     /**
      * The reference instance of <code>public.oauth_registration</code>
@@ -112,11 +112,6 @@ public class JOauthRegistration extends TableImpl<JOauthRegistrationRecord> {
      * The column <code>public.oauth_registration.client_name</code>.
      */
     public final TableField<JOauthRegistrationRecord, String> CLIENT_NAME = createField("client_name", org.jooq.impl.SQLDataType.VARCHAR(128), this, "");
-
-    /**
-     * The column <code>public.oauth_registration.jwt_set_uri</code>.
-     */
-    public final TableField<JOauthRegistrationRecord, String> JWT_SET_URI = createField("jwt_set_uri", org.jooq.impl.SQLDataType.VARCHAR(256), this, "");
 
     /**
      * Create a <code>public.oauth_registration</code> table reference

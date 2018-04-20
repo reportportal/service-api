@@ -43,7 +43,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JLaunch extends TableImpl<JLaunchRecord> {
 
-    private static final long serialVersionUID = 1633200325;
+    private static final long serialVersionUID = 1527536316;
 
     /**
      * The reference instance of <code>public.launch</code>
@@ -62,6 +62,11 @@ public class JLaunch extends TableImpl<JLaunchRecord> {
      * The column <code>public.launch.id</code>.
      */
     public final TableField<JLaunchRecord, Long> ID = createField("id", org.jooq.impl.SQLDataType.BIGINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('launch_id_seq'::regclass)", org.jooq.impl.SQLDataType.BIGINT)), this, "");
+
+    /**
+     * The column <code>public.launch.uuid</code>.
+     */
+    public final TableField<JLaunchRecord, String> UUID = createField("uuid", org.jooq.impl.SQLDataType.VARCHAR.nullable(false), this, "");
 
     /**
      * The column <code>public.launch.project_id</code>.

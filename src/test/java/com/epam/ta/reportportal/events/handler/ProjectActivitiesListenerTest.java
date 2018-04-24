@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -68,17 +69,19 @@ public class ProjectActivitiesListenerTest extends BaseMvcTest {
 		projectConfiguration.setKeepLogs(KeepLogsDelay.ONE_MONTH.getValue());
 		projectConfiguration.setKeepScreenshots(KeepScreenshotsDelay.ONE_MONTH.getValue());
 		projectConfiguration.setStatisticCalculationStrategy(StatisticsCalculationStrategy.TEST_BASED.name());
-		projectConfiguration.setIsAutoAnalyzerEnabled(false);
+		AnalyzerConfig analyzerConfig = new AnalyzerConfig();
+		analyzerConfig.setIsAutoAnalyzerEnabled(false);
+		projectConfiguration.setAnalyzerConfig(analyzerConfig);
 		updateProjectRQ.setConfiguration(projectConfiguration);
 
 		this.mvcMock.perform(put("/project/project1").content(objectMapper.writeValueAsBytes(updateProjectRQ))
 				.contentType(MediaType.APPLICATION_JSON)
 				.principal(authentication())).andExpect(status().is(200));
 
-		Filter filter = new Filter(Activity.class, new HashSet<>(
-				Arrays.asList(new FilterCondition(Condition.EQUALS, false, "project1", "projectRef"),
-						new FilterCondition(Condition.EQUALS, false, "update_project", "actionType")
-				)));
+		Filter filter = new Filter(Activity.class, new HashSet<>(Arrays.asList(
+				new FilterCondition(Condition.EQUALS, false, "project1", "projectRef"),
+				new FilterCondition(Condition.EQUALS, false, "update_project", "actionType")
+		)));
 		List<Activity> activities = activityRepository.findByFilter(filter);
 		List<Activity.FieldValues> history = activities.get(0).getHistory();
 

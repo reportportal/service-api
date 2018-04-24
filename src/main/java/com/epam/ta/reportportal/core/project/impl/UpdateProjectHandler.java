@@ -26,11 +26,8 @@ import com.epam.ta.reportportal.core.project.IUpdateProjectHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
-import com.epam.ta.reportportal.database.entity.AnalyzeMode;
-import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.*;
 import com.epam.ta.reportportal.database.entity.Project.UserConfig;
-import com.epam.ta.reportportal.database.entity.ProjectRole;
-import com.epam.ta.reportportal.database.entity.ProjectSpecific;
 import com.epam.ta.reportportal.database.entity.project.*;
 import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.database.entity.user.User;
@@ -73,6 +70,7 @@ import static com.epam.ta.reportportal.database.entity.user.UserUtils.isEmailVal
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -175,13 +173,16 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			dbConfig.setProjectSpecific(ProjectSpecific.findByName(modelConfig.getProjectSpecific()).get());
 		}
 
-		if (null != modelConfig.getIsAutoAnalyzerEnabled()) {
-			dbConfig.setIsAutoAnalyzerEnabled(modelConfig.getIsAutoAnalyzerEnabled());
-		}
-
-		if (null != modelConfig.getAnalyzerMode()) {
-			dbConfig.setAnalyzerMode(AnalyzeMode.fromString(modelConfig.getAnalyzerMode()));
-		}
+		ofNullable(modelConfig.getAnalyzerConfig()).ifPresent(analyzerConfig -> {
+			ProjectAnalyzerConfig dbAnalyzerConfig = new ProjectAnalyzerConfig();
+			ofNullable(analyzerConfig.getAnalyzerMode()).ifPresent(mode -> dbAnalyzerConfig.setAnalyzerMode(AnalyzeMode.fromString(mode)));
+			ofNullable(analyzerConfig.getIsAutoAnalyzerEnabled()).ifPresent(dbAnalyzerConfig::setIsAutoAnalyzerEnabled);
+			ofNullable(analyzerConfig.getMinDocFreq()).ifPresent(dbAnalyzerConfig::setMinDocFreq);
+			ofNullable(analyzerConfig.getMinTermFreq()).ifPresent(dbAnalyzerConfig::setMinTermFreq);
+			ofNullable(analyzerConfig.getMinShouldMatch()).ifPresent(dbAnalyzerConfig::setMinShouldMatch);
+			ofNullable(analyzerConfig.getNumberOfLogLines()).ifPresent(dbAnalyzerConfig::setNumberOfLogLines);
+			dbConfig.setAnalyzerConfig(dbAnalyzerConfig);
+		});
 
 		if (null != modelConfig.getStatisticCalculationStrategy()) {
 			dbConfig.setStatisticsCalculationStrategy(fromString(modelConfig.getStatisticCalculationStrategy()).orElseThrow(
@@ -207,7 +208,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 
 		List<EmailSenderCaseDTO> cases = configUpdate.getEmailCases();
 
-		Optional.ofNullable(configUpdate.getFrom()).ifPresent(from -> {
+		ofNullable(configUpdate.getFrom()).ifPresent(from -> {
 			expect(isEmailValid(configUpdate.getFrom()), equalTo(true)).verify(BAD_REQUEST_ERROR,
 					formattedSupplier("Provided FROM value '{}' is invalid", configUpdate.getFrom())
 			);

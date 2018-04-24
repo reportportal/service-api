@@ -88,9 +88,12 @@ public class ProjectActivityHandler {
 	}
 
 	private void processAnalyzeMode(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
-		AnalyzeMode oldMode = project.getConfiguration().getAnalyzerMode();
-		if (null != configuration.getAnalyzerMode() && AnalyzeMode.fromString(configuration.getAnalyzerMode()) != oldMode) {
-			history.add(createHistoryField(ANALYZE_MODE, oldMode != null ? oldMode.getValue() : "", configuration.getAnalyzerMode()));
+		AnalyzeMode oldMode = project.getConfiguration().getAnalyzerConfig().getAnalyzerMode();
+		if (null != configuration.getAnalyzerConfig().getAnalyzerMode()
+				&& AnalyzeMode.fromString(configuration.getAnalyzerConfig().getAnalyzerMode()) != oldMode) {
+			history.add(createHistoryField(ANALYZE_MODE, oldMode != null ? oldMode.getValue() : "",
+					configuration.getAnalyzerConfig().getAnalyzerMode()
+			));
 		}
 	}
 
@@ -122,13 +125,14 @@ public class ProjectActivityHandler {
 	}
 
 	private void processAutoAnalyze(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
-		if (null != configuration.getIsAutoAnalyzerEnabled() && !configuration.getIsAutoAnalyzerEnabled()
-				.equals(project.getConfiguration().getIsAutoAnalyzerEnabled())) {
-			String oldValue = project.getConfiguration().getIsAutoAnalyzerEnabled() == null ?
+		if (null != configuration.getAnalyzerConfig().getIsAutoAnalyzerEnabled() && !configuration.getAnalyzerConfig()
+				.getIsAutoAnalyzerEnabled()
+				.equals(project.getConfiguration().getAnalyzerConfig().getIsAutoAnalyzerEnabled())) {
+			String oldValue = project.getConfiguration().getAnalyzerConfig().getIsAutoAnalyzerEnabled() == null ?
 					"" :
-					project.getConfiguration().getIsAutoAnalyzerEnabled().toString();
+					project.getConfiguration().getAnalyzerConfig().getIsAutoAnalyzerEnabled().toString();
 			Activity.FieldValues fieldValues = createHistoryField(
-					AUTO_ANALYZE, oldValue, configuration.getIsAutoAnalyzerEnabled().toString());
+					AUTO_ANALYZE, oldValue, configuration.getAnalyzerConfig().getIsAutoAnalyzerEnabled().toString());
 			history.add(fieldValues);
 		}
 	}

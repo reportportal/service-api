@@ -126,4 +126,14 @@ public class ProjectSettingsController implements IProjectSettingsController {
 	public ProjectSettingsResource getProjectSettings(@PathVariable String projectName, Principal principal) {
 		return getSettings.getProjectSettings(EntityUtils.normalizeId(projectName));
 	}
+
+	@Override
+	@DeleteMapping("/index")
+	@ResponseBody
+	@ResponseStatus(OK)
+	@PreAuthorize(PROJECT_MANAGER)
+	@ApiOperation(value = "Remove project index from elasticsearch")
+	public OperationCompletionRS removeProjectIndex(String projectName, Principal principal) {
+		return null;
+	}
 }

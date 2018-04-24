@@ -29,17 +29,19 @@ import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LogRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.LogLevel;
+import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
 import com.epam.ta.reportportal.events.TicketAttachedEvent;
+import com.epam.ta.reportportal.ws.converter.converters.AnalyzerConfigConverter;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,9 +75,6 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	private TestItemRepository testItemRepository;
 
 	@Autowired
-	private ProjectRepository projectRepository;
-
-	@Autowired
 	private StatisticsFacadeFactory statisticsFacadeFactory;
 
 	@Autowired
@@ -93,10 +92,11 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	}
 
 	@Override
-	public void analyze(Launch launch, List<TestItem> testItems, AnalyzeMode analyzeMode) {
+	public void analyze(Launch launch, Project project, List<TestItem> testItems, AnalyzeMode analyzeMode) {
 		if (launch != null) {
 			List<IndexTestItem> rqTestItems = prepareItems(testItems);
-			Map<String, List<AnalyzedItemRs>> rs = analyze(rqTestItems, launch, analyzeMode);
+			IndexLaunch rqLaunch = prepareLaunch(rqTestItems, launch, project, analyzeMode);
+			Map<String, List<AnalyzedItemRs>> rs = analyze(rqLaunch);
 			if (!MapUtils.isEmpty(rs)) {
 				List<TestItem> updatedItems = rs.entrySet()
 						.stream()
@@ -105,23 +105,33 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 				saveUpdatedItems(updatedItems);
 				logIndexer.indexLogs(launch.getId(), updatedItems);
 			}
-			statisticsFacadeFactory.getStatisticsFacade(
-					projectRepository.findByName(launch.getProjectRef()).getConfiguration().getStatisticsCalculationStrategy())
+			statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 					.recalculateStatistics(launch);
 		}
 	}
 
-	private Map<String, List<AnalyzedItemRs>> analyze(List<IndexTestItem> rqTestItems, Launch launch, AnalyzeMode analyzeMode) {
-		if (!rqTestItems.isEmpty()) {
-			IndexLaunch rqLaunch = new IndexLaunch();
-			rqLaunch.setAnalyzeMode(analyzeMode.getValue());
-			rqLaunch.setLaunchId(launch.getId());
-			rqLaunch.setLaunchName(launch.getName());
-			rqLaunch.setProject(launch.getProjectRef());
-			rqLaunch.setTestItems(rqTestItems);
-			return analyzerServiceClient.analyze(rqLaunch);
+	private Map<String, List<AnalyzedItemRs>> analyze(IndexLaunch launch) {
+		if (null != launch) {
+			return analyzerServiceClient.analyze(launch);
 		}
 		return Collections.emptyMap();
+	}
+
+	private IndexLaunch prepareLaunch(List<IndexTestItem> rqTestItems, Launch launch, Project project, AnalyzeMode analyzeMode) {
+		if (!rqTestItems.isEmpty()) {
+			IndexLaunch rqLaunch = new IndexLaunch();
+			rqLaunch.setLaunchId(launch.getId());
+			rqLaunch.setLaunchName(launch.getName());
+			rqLaunch.setProject(project.getName());
+			AnalyzerConfig analyzerConfig = AnalyzerConfigConverter.TO_RESOURCE.apply(project.getConfiguration().getAnalyzerConfig());
+			//uses provided analyze mode because it could be run with another mode from launch view
+			analyzerConfig.setAnalyzerMode(analyzeMode.getValue());
+
+			rqLaunch.setAnalyzerConfig(analyzerConfig);
+			rqLaunch.setTestItems(rqTestItems);
+			return rqLaunch;
+		}
+		return null;
 	}
 
 	/**

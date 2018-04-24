@@ -24,6 +24,7 @@ buildscript {
 plugins {
     id 'net.researchgate.release' version '2.4.1'
     id "com.jfrog.bintray" version "1.7"
+    id "com.ewerk.gradle.plugins.querydsl" version "1.0.9"
 }
 
 apply plugin: 'java'
@@ -73,6 +74,25 @@ dependencyManagement {
     }
 }
 
+sourceSets {
+    generated {
+        java.srcDir "${buildDir}/generated/src/java/"
+    }
+}
+
+compileGeneratedJava {
+    classpath = configurations.compile
+}
+compileJava {
+    source += sourceSets.generated.java
+}
+
+querydsl {
+    querydslDefault = true
+    jpa = true
+    querydslSourcesDir = "${buildDir}/generated/src/java/"
+}
+
 configurations {
     api
 }
@@ -93,6 +113,7 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.7'
 
     compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+    compile 'javax.persistence:javax.persistence-api:2.2'
     compile 'org.hibernate:hibernate-validator'
     compile 'org.postgresql:postgresql'
     compile 'org.jooq:jooq'
@@ -142,6 +163,9 @@ dependencies {
 
     api 'org.jacoco:org.jacoco.agent:0.7.7.201606060606'
 
+    compile "com.querydsl:querydsl-jpa:4.2.1"
+
+
     testCompile 'org.hamcrest:hamcrest-all:1.3'
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-all:2.0.2-beta'
@@ -153,13 +177,17 @@ dependencies {
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     testCompile 'com.bitmechanic:dumbster:1.9.0.2'
 
-    testCompile 'org.jsoup:jsoup:1.10.2'
+
+    testCompile 'com.github.database-rider:rider-spring:1.2.8'
+    testCompile 'org.dbunit:dbunit:2.5.4'
+
+    testCompile 'org.testcontainers:postgresql:1.7.1'
 
 }
 
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.6'
+    gradleVersion = '4.7'
 }
 
 //Start section for external jacoco test report

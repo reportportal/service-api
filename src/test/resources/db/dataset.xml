@@ -1,0 +1,94 @@
+<dataset>
+
+    <!--<oauth_registration id="github" client_id="f4cec43d4541283879c4" client_secret="a31aa6de3e27c11d90762cad11936727d6b0759e"-->
+                        <!--token_uri="https://github.com/login/oauth/access_token" user_info_endpoint_uri="https://api.github.com/user"-->
+                        <!--auth_grant_type="authorization_code"-->
+                        <!--client_auth_method="basic" />-->
+
+    <!--<oauth_registration_scope id="1" oauth_registration_fk="github" scope="user"/>-->
+
+
+    <project id="1" name="vasia_personal"/>
+    <project id="2" name="petia_personal"/>
+    <project id="3" name="valera_personal"/>
+
+    <project_configuration id="1" project_type="PERSONAL" interrupt_timeout="1 day" keep_logs_interval="3 month"
+                           keep_screenshots_interval="2 weeks" aa_enabled="false"/>
+    <project_configuration id="2" project_type="PERSONAL" interrupt_timeout="1 day" keep_logs_interval="3 month"
+                           keep_screenshots_interval="2 weeks" aa_enabled="false"/>
+    <project_configuration id="3" project_type="PERSONAL" interrupt_timeout="1 day" keep_logs_interval="3 month"
+                           keep_screenshots_interval="2 weeks" aa_enabled="false"/>
+
+
+    <issue_type id="1" issue_group="TO_INVESTIGATE" locator="TI001" issue_name="To Investigate" abbreviation="TI" hex_color="#ffb743"/>
+    <issue_type id="2" issue_group="AUTOMATION_BUG" locator="AB001" issue_name="Automation Bug" abbreviation="AB" hex_color="#f7d63e"/>
+    <issue_type id="3" issue_group="PRODUCT_BUG" locator="PB001" issue_name="Product Bug" abbreviation="PB" hex_color="#ec3900"/>
+    <issue_type id="4" issue_group="NO_DEFECT" locator="ND001" issue_name="No Defect" abbreviation="ND" hex_color="#777777"/>
+    <issue_type id="5" issue_group="SYSTEM_ISSUE" locator="SI001" issue_name="System Issue" abbreviation="SI" hex_color="#0274d1"/>
+
+    <issue_type id="6" issue_group="AUTOMATION_BUG" locator="AB002" issue_name="Custom Automation" abbreviation="CA" hex_color="#0276d1"/>
+
+    <issue_type_project_configuration configuration_id="1" issue_type_id="1"/>
+    <issue_type_project_configuration configuration_id="1" issue_type_id="2"/>
+    <issue_type_project_configuration configuration_id="1" issue_type_id="3"/>
+    <issue_type_project_configuration configuration_id="1" issue_type_id="4"/>
+    <issue_type_project_configuration configuration_id="1" issue_type_id="5"/>
+    <issue_type_project_configuration configuration_id="1" issue_type_id="6"/>
+
+    <issue_type_project_configuration configuration_id="2" issue_type_id="1"/>
+    <issue_type_project_configuration configuration_id="2" issue_type_id="2"/>
+    <issue_type_project_configuration configuration_id="2" issue_type_id="3"/>
+    <issue_type_project_configuration configuration_id="2" issue_type_id="4"/>
+    <issue_type_project_configuration configuration_id="2" issue_type_id="5"/>
+
+    <issue_type_project_configuration configuration_id="3" issue_type_id="1"/>
+    <issue_type_project_configuration configuration_id="3" issue_type_id="2"/>
+    <issue_type_project_configuration configuration_id="3" issue_type_id="3"/>
+    <issue_type_project_configuration configuration_id="3" issue_type_id="4"/>
+    <issue_type_project_configuration configuration_id="3" issue_type_id="5"/>
+
+
+    <users id="1" login="vasia" password="3fde6bb0541387e4ebdadf7c2ff31123" email="vasia@domain.com" role="USER"
+           type="INTERNAL" default_project_id="1" full_name="Vasia Vasia"/>
+    <users id="2" login="petia" password="3fde6bb0541387e4ebdadf7c2ff31123" email="petia@domain.com" role="USER"
+           type="INTERNAL" default_project_id="2" full_name="petia petia"/>
+    <users id="3" login="valera" password="3fde6bb0541387e4ebdadf7c2ff31123" email="valera@domain.com" role="USER"
+           type="INTERNAL" default_project_id="3" full_name="valera valera"/>
+
+
+    <project_user user_id="1" project_id="1" project_role="MEMBER"/>
+    <project_user user_id="2" project_id="2" project_role="MEMBER"/>
+    <project_user user_id="3" project_id="3" project_role="MEMBER"/>
+
+    <launch id="1" project_id="1" user_id="1" name="Test launch" description="Test description" start_time="2018-02-06 19:29:29.008608"
+            last_modified="2018-02-06 19:29:29.008608" number="1" mode="DEFAULT" status="PASSED"/>
+    <launch id="2" project_id="1" user_id="1" name="Test launch" description="Test description" start_time="2018-02-06 19:30:29.008608"
+            last_modified="2018-02-06 19:29:29.008608" number="2" mode="DEFAULT" status="PASSED"/>
+    <launch id="3" project_id="1" user_id="1" name="Test launch" description="Test description" start_time="2018-02-06 19:31:29.008608"
+            last_modified="2018-02-06 19:29:29.008608" number="3" mode="DEFAULT" status="PASSED"/>
+
+    <test_item item_id="1" name="Test Suite" type="SUITE" start_time="2018-02-06 19:29:45.008608" last_modified="2018-02-06 19:29:45.008608"
+               unique_id="unique_id_suite_1"/>
+    <test_item_structure item_id="1"/>
+
+    <test_item item_id="2" name="Test Class" type="TEST" start_time="2018-02-06 19:29:55.008608" last_modified="2018-02-06 19:29:55.008608"
+               unique_id="unique_id_test_1"/>
+    <test_item_structure item_id="2" parent_id="1" />
+
+    <test_item item_id="3" name="Test Step Passed" type="STEP" start_time="2018-02-06 19:29:56.008608" last_modified="2018-02-06 19:29:56.008608"
+               unique_id="unique_id_step_1"/>
+    <test_item_structure id="3" item_id="3" parent_id="2" />
+    <test_item_results item_id="1" status="PASSED" duration="0.35"/>
+
+    <test_item item_id="4" name="Test Step Failed" type="STEP" start_time="2018-02-06 19:29:58.008608" last_modified="2018-02-06 19:29:58.008608"
+               unique_id="unique_id_step_1"/>
+    <test_item_structure item_id="4" parent_id="2" />
+    <test_item_results item_id="4" status="FAILED" duration="0.35"/>
+    <issue issue_id="1" issue_type="1"/>
+
+
+    <server_settings id="1" key="key1" value="value1"/>
+    <server_settings id="2" key="key2" value="value2"/>
+    <server_settings id="3" key="key3" value="value3"/>
+
+</dataset>

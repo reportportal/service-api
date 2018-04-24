@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
 import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
+import com.epam.ta.reportportal.events.TicketAttachedEvent;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import org.apache.commons.lang3.SerializationUtils;
@@ -39,6 +40,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,17 +80,21 @@ public class AnalyzeCollectorConfig {
 	};
 
 	private List<TestItem> resetItems(List<TestItem> items, String projectName, String username) {
+		List<TestItem> before = new ArrayList<>(items.size());
 		logIndexer.cleanIndex(projectName, items.stream().map(TestItem::getId).collect(Collectors.toList()));
 		Map<IssueDefinition, TestItem> definitions = new HashMap<>();
 		items.forEach(it -> {
 			IssueDefinition issueDefinition = new IssueDefinition();
 			issueDefinition.setIssue(IssueConverter.TO_MODEL.apply(new TestItemIssue()));
 			issueDefinition.setId(it.getId());
-			definitions.put(issueDefinition, SerializationUtils.clone(it));
+			TestItem beforeItem = SerializationUtils.clone(it);
+			before.add(beforeItem);
+			definitions.put(issueDefinition, beforeItem);
 			it.setIssue(new TestItemIssue());
 		});
 		testItemRepository.save(items);
 		eventPublisher.publishEvent(new ItemIssueTypeDefined(definitions, username, projectName));
+		eventPublisher.publishEvent(new TicketAttachedEvent(before, items, username, projectName));
 		return items;
 	}
 

@@ -224,3 +224,4 @@
 
 * reportportal/reportportal#380 - Unexpected total tests count
 * EPMRPP-34202 - WS: Item with 'Ignore'=true should be escaped during analysis process
+* EPMRPP-34203 - WS: No activity record of unlicked issue for re-analysis.

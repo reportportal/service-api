@@ -125,7 +125,8 @@ public class TicketActivitySubscriber {
 			ActivityEventType type = testItem.getIssue().isAutoAnalyzed() ? LINK_ISSUE_AA : LINK_ISSUE;
 
 			//no changes with tickets
-			if (Strings.isNullOrEmpty(fieldValues.getOldValue()) && newValue.isEmpty()) {
+			if (Strings.isNullOrEmpty(fieldValues.getOldValue()) && newValue.isEmpty() || fieldValues.getOldValue()
+					.equalsIgnoreCase(newValue)) {
 				return;
 			}
 

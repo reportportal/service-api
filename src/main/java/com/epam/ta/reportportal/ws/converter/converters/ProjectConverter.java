@@ -65,7 +65,9 @@ public final class ProjectConverter {
 		project.getConfiguration().setKeepLogs(KeepLogsDelay.THREE_MONTHS.getValue());
 		project.getConfiguration().setKeepScreenshots(KeepScreenshotsDelay.TWO_WEEKS.getValue());
 
-		ProjectAnalyzerConfig projectAnalyzerConfig = new ProjectAnalyzerConfig();
+		ProjectAnalyzerConfig projectAnalyzerConfig = new ProjectAnalyzerConfig(ProjectAnalyzerConfig.MIN_DOC_FREQ,
+				ProjectAnalyzerConfig.MIN_TERM_FREQ, ProjectAnalyzerConfig.MIN_SHOULD_MATCH, ProjectAnalyzerConfig.NUMBER_OF_LOG_LINES
+		);
 		projectAnalyzerConfig.setIsAutoAnalyzerEnabled(false);
 		projectAnalyzerConfig.setAnalyzerMode(AnalyzeMode.BY_LAUNCH_NAME);
 
@@ -111,10 +113,13 @@ public final class ProjectConverter {
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 		// ============= External sub-types =================
-		Map<String, List<IssueSubTypeResource>> result = db.getConfiguration().getSubTypes().entrySet().stream().collect(Collectors.toMap(
-				entry -> entry.getKey().getValue(),
-				entry -> entry.getValue().stream().map(ProjectConverter.TO_SUBTYPE_RESOURCE).collect(Collectors.toList())
-		));
+		Map<String, List<IssueSubTypeResource>> result = db.getConfiguration()
+				.getSubTypes()
+				.entrySet()
+				.stream()
+				.collect(Collectors.toMap(entry -> entry.getKey().getValue(),
+						entry -> entry.getValue().stream().map(ProjectConverter.TO_SUBTYPE_RESOURCE).collect(Collectors.toList())
+				));
 		configuration.setSubTypes(result);
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

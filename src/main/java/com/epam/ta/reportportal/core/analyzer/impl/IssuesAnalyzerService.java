@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LogRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.epam.ta.reportportal.database.entity.Launch;
@@ -86,6 +87,9 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
 
+	@Autowired
+	private ProjectRepository projectRepository;
+
 	@Override
 	public boolean hasAnalyzers() {
 		return analyzerServiceClient.hasClients();
@@ -94,19 +98,24 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	@Override
 	public void analyze(Launch launch, Project project, List<TestItem> testItems, AnalyzeMode analyzeMode) {
 		if (launch != null) {
-			List<IndexTestItem> rqTestItems = prepareItems(testItems);
-			IndexLaunch rqLaunch = prepareLaunch(rqTestItems, launch, project, analyzeMode);
-			Map<String, List<AnalyzedItemRs>> rs = analyze(rqLaunch);
-			if (!MapUtils.isEmpty(rs)) {
-				List<TestItem> updatedItems = rs.entrySet()
-						.stream()
-						.flatMap(it -> updateTestItems(it.getKey(), it.getValue(), testItems, launch.getProjectRef()).stream())
-						.collect(toList());
-				saveUpdatedItems(updatedItems);
-				logIndexer.indexLogs(launch.getId(), updatedItems);
+			try {
+				projectRepository.incrementAnalyzingLaunches(project.getId(), 1);
+				List<IndexTestItem> rqTestItems = prepareItems(testItems);
+				IndexLaunch rqLaunch = prepareLaunch(rqTestItems, launch, project, analyzeMode);
+				Map<String, List<AnalyzedItemRs>> rs = analyze(rqLaunch);
+				if (!MapUtils.isEmpty(rs)) {
+					List<TestItem> updatedItems = rs.entrySet()
+							.stream()
+							.flatMap(it -> updateTestItems(it.getKey(), it.getValue(), testItems, launch.getProjectRef()).stream())
+							.collect(toList());
+					saveUpdatedItems(updatedItems);
+					logIndexer.indexLogs(launch.getId(), updatedItems);
+				}
+				statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
+						.recalculateStatistics(launch);
+			} finally {
+				projectRepository.incrementAnalyzingLaunches(project.getId(), -1);
 			}
-			statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
-					.recalculateStatistics(launch);
 		}
 	}
 

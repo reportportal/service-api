@@ -40,4 +40,11 @@ public interface IDeleteProjectHandler {
 	 * @throws ReportPortalException
 	 */
 	OperationCompletionRS deleteProject(String projectName);
+
+	/**
+	 * Delete project index
+	 *
+	 * @param projectName Project name
+	 */
+	OperationCompletionRS deleteProjectIndex(String projectName);
 }

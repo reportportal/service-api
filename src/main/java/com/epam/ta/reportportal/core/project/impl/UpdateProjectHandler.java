@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.commons.Preconditions;
+import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.project.IUpdateProjectHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserPreferenceRepository;
@@ -48,7 +49,9 @@ import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -85,6 +88,13 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 	private final UserRepository userRepository;
 	private final UserPreferenceRepository preferenceRepository;
 	private final ApplicationEventPublisher publisher;
+
+	@Autowired
+	private ILogIndexer logIndexer;
+
+	@Autowired
+	@Qualifier("autoAnalyzeTaskExecutor")
+	private TaskExecutor taskExecutor;
 
 	@Autowired
 	public UpdateProjectHandler(ProjectRepository projectRepository, UserRepository userRepository,
@@ -397,6 +407,21 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 						+ "'";
 		response.setResultMessage(msg);
 		return response;
+	}
+
+	@Override
+	public OperationCompletionRS indexProjectData(String projectName) {
+		Project project = projectRepository.findOne(projectName);
+		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
+		logIndexer.deleteIndex(projectName);
+		expect(project.getConfiguration().getAnalyzerConfig().isIndexingRunning(), equalTo(false)).verify(
+				ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
+		expect(project.getConfiguration().getAnalyzerConfig().getAnalyzingLaunches().get(), equalTo(0)).verify(
+				ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
+		project.getConfiguration().getAnalyzerConfig().setIndexingRunning(true);
+		projectRepository.save(project);
+		taskExecutor.execute(() -> logIndexer.indexProjectData(project));
+		return new OperationCompletionRS("Log indexing has been started");
 	}
 
 	void validateRecipient(Project project, String recipient) {

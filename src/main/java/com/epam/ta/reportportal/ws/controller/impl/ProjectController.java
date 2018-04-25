@@ -143,6 +143,25 @@ public class ProjectController implements IProjectController {
 	}
 
 	@Override
+	@RequestMapping(value = "/{projectName}/index", method = DELETE)
+	@ResponseBody
+	@ResponseStatus(OK)
+	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@ApiOperation(value = "Delete project index")
+	public OperationCompletionRS deleteProjectIndex(@PathVariable String projectName, Principal principal) {
+		return deleteProjectHandler.deleteProjectIndex(normalizeId(projectName));
+	}
+
+	@Override
+	@RequestMapping(value = "/{projectName}/index", method = PUT)
+	@ResponseBody
+	@ResponseStatus(OK)
+	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	public OperationCompletionRS indexProjectData(@PathVariable String projectName, Principal principal) {
+		return updateProjectHandler.indexProjectData(normalizeId(projectName));
+	}
+
+	@Override
 	@RequestMapping(value = "/{projectName}/users", method = GET)
 	@ResponseBody
 	@ResponseView(ModelViews.DefaultView.class)
@@ -214,8 +233,7 @@ public class ProjectController implements IProjectController {
 	@ApiIgnore
 	@PreAuthorize(PROJECT_MANAGER)
 	public Page<UserResource> searchForUser(@SuppressWarnings("unused") @PathVariable String projectName,
-			@RequestParam(value = "term") String term,
-			Pageable pageable) {
+			@RequestParam(value = "term") String term, Pageable pageable) {
 		return getProjectHandler.getUserNames(term, pageable);
 	}
 
@@ -285,6 +303,16 @@ public class ProjectController implements IProjectController {
 	@ApiIgnore
 	public Iterable<String> getAllProjectNames(Principal principal) {
 		return getProjectHandler.getAllProjectNames();
+	}
+
+	@Override
+	@PreAuthorize(ADMIN_ONLY)
+	@RequestMapping(value = "analyzer/status", method = RequestMethod.GET)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	@ApiIgnore
+	public Map<String, Boolean> getAnalyzerIndexingStatus(Principal principal) {
+		return getProjectHandler.getAnalyzerIndexingStatus();
 	}
 
 }

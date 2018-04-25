@@ -73,4 +73,16 @@ public class DeleteProjectHandler implements IDeleteProjectHandler {
 		}
 		return new OperationCompletionRS("Project with name = '" + projectName + "' is successfully deleted.");
 	}
+
+	@Override
+	public OperationCompletionRS deleteProjectIndex(String projectName) {
+		Project project = projectRepository.findOne(projectName);
+		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
+		expect(project.getConfiguration().getAnalyzerConfig().isIndexingRunning(), equalTo(false)).verify(
+				ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
+		expect(project.getConfiguration().getAnalyzerConfig().getAnalyzingLaunches().get(), equalTo(0)).verify(
+				ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
+		logIndexer.deleteIndex(projectName);
+		return new OperationCompletionRS("Project index with name = '" + projectName + "' is successfully deleted.");
+	}
 }

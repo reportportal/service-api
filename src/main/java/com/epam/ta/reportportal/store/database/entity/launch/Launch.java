@@ -55,6 +55,9 @@ public class Launch implements Serializable {
 	@Column(name = "id", unique = true, nullable = false, precision = 64)
 	private Long id;
 
+	@Column(name = "uuid", unique = true, nullable = false)
+	private String uuid;
+
 	@Column(name = "project_id", nullable = false, precision = 32)
 	private Long projectId;
 
@@ -110,6 +113,14 @@ public class Launch implements Serializable {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public String getUuid() {
+		return uuid;
+	}
+
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
 	}
 
 	public Long getProjectId() {

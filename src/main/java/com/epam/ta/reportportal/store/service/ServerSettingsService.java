@@ -2,9 +2,13 @@ package com.epam.ta.reportportal.store.service;
 
 import com.epam.ta.reportportal.store.database.dao.ServerSettingRepository;
 import com.epam.ta.reportportal.store.database.entity.ServerSettings;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.beans.PropertyDescriptor;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,6 +42,10 @@ public class ServerSettingsService {
 						serverSettingRepository.save(new ServerSettings(ss.getKey(), ss.getValue()));
 					}
 				});
+
+	}
+
+	public void save(Object o) {
 
 	}
 }

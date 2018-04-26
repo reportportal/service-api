@@ -68,6 +68,9 @@ public class IssuesAnalyzerServiceTest {
 	@Mock
 	private ApplicationEventPublisher eventPublisher;
 
+	@Mock
+	private AnalyzerStatusCache analyzerStatusCache;
+
 	@InjectMocks
 	private IIssuesAnalyzer issuesAnalyzer;
 
@@ -90,10 +93,14 @@ public class IssuesAnalyzerServiceTest {
 		when(logRepository.findGreaterOrEqualLevel(singletonList(testItems.getId()), LogLevel.ERROR)).thenReturn(Collections.emptyList());
 		Project project = project();
 		when(projectRepository.findByName(launch.getProjectRef())).thenReturn(project);
+		doNothing().when(analyzerStatusCache).analyzeStarted(launch.getId(), launch.getProjectRef());
+		doNothing().when(analyzerStatusCache).analyzeFinished(launch.getId());
 		StepBasedStatisticsFacade mock = mock(StepBasedStatisticsFacade.class);
 		when(statisticsFacadeFactory.getStatisticsFacade(StatisticsCalculationStrategy.STEP_BASED)).thenReturn(mock);
 		issuesAnalyzer.analyze(launch, project, singletonList(testItems), AnalyzeMode.ALL_LAUNCHES);
 		verify(logRepository, times(1)).findGreaterOrEqualLevel(singletonList(testItems.getId()), LogLevel.ERROR);
+		verify(analyzerStatusCache, times(1)).analyzeStarted(launch.getId(), project.getName());
+		verify(analyzerStatusCache, times(1)).analyzeFinished(launch.getId());
 		verifyZeroInteractions(analyzerServiceClient);
 	}
 
@@ -116,7 +123,6 @@ public class IssuesAnalyzerServiceTest {
 		verify(logRepository, times(itemsCount)).findGreaterOrEqualLevel(anyListOf(String.class), eq(LogLevel.ERROR));
 		verify(analyzerServiceClient, times(1)).analyze(any());
 		verify(testItemRepository, times(1)).updateItemsIssues(any());
-		verify(projectRepository, times(1)).findByName(launch.getProjectRef());
 		verify(statisticsFacadeFactory, times(1)).getStatisticsFacade(StatisticsCalculationStrategy.STEP_BASED);
 		verify(mock, times(1)).recalculateStatistics(launch);
 		verify(logIndexer, times(1)).indexLogs(eq(launch.getId()), anyListOf(TestItem.class));

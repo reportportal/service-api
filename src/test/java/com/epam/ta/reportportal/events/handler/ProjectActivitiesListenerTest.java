@@ -22,6 +22,7 @@ package com.epam.ta.reportportal.events.handler;
 
 import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
+import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.database.entity.project.InterruptionJobDelay;
@@ -71,6 +72,7 @@ public class ProjectActivitiesListenerTest extends BaseMvcTest {
 		projectConfiguration.setStatisticCalculationStrategy(StatisticsCalculationStrategy.TEST_BASED.name());
 		AnalyzerConfig analyzerConfig = new AnalyzerConfig();
 		analyzerConfig.setIsAutoAnalyzerEnabled(false);
+		analyzerConfig.setAnalyzerMode(AnalyzeMode.BY_LAUNCH_NAME.getValue());
 		projectConfiguration.setAnalyzerConfig(analyzerConfig);
 		updateProjectRQ.setConfiguration(projectConfiguration);
 
@@ -89,7 +91,7 @@ public class ProjectActivitiesListenerTest extends BaseMvcTest {
 		Assert.assertTrue(fields.contains(LAUNCH_INACTIVITY));
 		Assert.assertTrue(fields.contains(KEEP_LOGS));
 		Assert.assertTrue(fields.contains(KEEP_SCREENSHOTS));
-		Assert.assertTrue(fields.contains(AUTO_ANALYZE));
+		Assert.assertTrue(fields.contains(ANALYZE_MODE));
 		Assert.assertTrue(fields.contains(STATISTICS_CALCULATION_STRATEGY));
 	}
 

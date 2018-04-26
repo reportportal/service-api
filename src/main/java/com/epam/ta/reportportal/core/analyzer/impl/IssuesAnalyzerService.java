@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LogRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.epam.ta.reportportal.database.entity.Launch;
@@ -88,7 +87,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	private ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	private ProjectRepository projectRepository;
+	private AnalyzerStatusCache analyzerStatusCache;
 
 	@Override
 	public boolean hasAnalyzers() {
@@ -99,7 +98,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	public void analyze(Launch launch, Project project, List<TestItem> testItems, AnalyzeMode analyzeMode) {
 		if (launch != null) {
 			try {
-				projectRepository.incrementAnalyzingLaunches(project.getId(), 1);
+				analyzerStatusCache.analyzeStarted(launch.getId(), project.getName());
 				List<IndexTestItem> rqTestItems = prepareItems(testItems);
 				IndexLaunch rqLaunch = prepareLaunch(rqTestItems, launch, project, analyzeMode);
 				Map<String, List<AnalyzedItemRs>> rs = analyze(rqLaunch);
@@ -114,7 +113,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 				statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
 						.recalculateStatistics(launch);
 			} finally {
-				projectRepository.incrementAnalyzingLaunches(project.getId(), -1);
+				analyzerStatusCache.analyzeFinished(launch.getId());
 			}
 		}
 	}

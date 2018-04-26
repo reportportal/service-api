@@ -21,23 +21,26 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.function.Function;
 
 /**
  * @author Pavel Bortnik
  */
-public final class LaunchConverter {
+@Service
+public class LaunchConverter {
 
-	private LaunchConverter() {
-		//static only
-	}
+	@Autowired
+	private AnalyzerStatusCache analyzerStatusCache;
 
-	public static final Function<Launch, LaunchResource> TO_RESOURCE = db -> {
+	private final Function<Launch, LaunchResource> TO_RESOURCE = db -> {
 		Preconditions.checkNotNull(db);
 		LaunchResource resource = new LaunchResource();
 		resource.setLaunchId(db.getId());
@@ -50,10 +53,14 @@ public final class LaunchConverter {
 		resource.setTags(db.getTags());
 		resource.setMode(db.getMode());
 		resource.setApproximateDuration(db.getApproximateDuration());
-		resource.setIsProcessing(false);
+		resource.setIsProcessing(analyzerStatusCache.getAnalyzerStatus().asMap().containsKey(resource.getLaunchId()));
 		resource.setOwner(db.getUserRef());
 		resource.setHasRetries(BooleanUtils.isTrue(db.getHasRetries()));
 		resource.setStatistics(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
 		return resource;
 	};
+
+	public Function<Launch, LaunchResource> getLaunchConverter() {
+		return TO_RESOURCE;
+	}
 }

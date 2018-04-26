@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.project.IUpdateProjectHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserPreferenceRepository;
@@ -95,6 +96,9 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 	@Autowired
 	@Qualifier("autoAnalyzeTaskExecutor")
 	private TaskExecutor taskExecutor;
+
+	@Autowired
+	private AnalyzerStatusCache analyzerStatusCache;
 
 	@Autowired
 	public UpdateProjectHandler(ProjectRepository projectRepository, UserRepository userRepository,
@@ -413,13 +417,15 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 	public OperationCompletionRS indexProjectData(String projectName) {
 		Project project = projectRepository.findOne(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
-		logIndexer.deleteIndex(projectName);
+
 		expect(project.getConfiguration().getAnalyzerConfig().isIndexingRunning(), equalTo(false)).verify(
 				ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
-		expect(project.getConfiguration().getAnalyzerConfig().getAnalyzingLaunches().get(), equalTo(0)).verify(
+
+		expect(analyzerStatusCache.getAnalyzerStatus().asMap().containsValue(projectName), equalTo(false)).verify(
 				ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
-		project.getConfiguration().getAnalyzerConfig().setIndexingRunning(true);
-		projectRepository.save(project);
+
+		projectRepository.changeProjectIndexingStatus(projectName, true);
+		logIndexer.deleteIndex(projectName);
 		taskExecutor.execute(() -> logIndexer.indexProjectData(project));
 		return new OperationCompletionRS("Log indexing has been started");
 	}

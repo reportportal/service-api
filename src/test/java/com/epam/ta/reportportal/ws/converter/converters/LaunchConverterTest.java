@@ -21,26 +21,31 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.BaseTest;
 import com.epam.ta.reportportal.ws.converter.builders.Utils;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Pavel Bortnik
  */
-public class LaunchConverterTest {
+public class LaunchConverterTest extends BaseTest {
+
+	@Autowired
+	private LaunchConverter launchConverter;
 
 	@Test(expected = NullPointerException.class)
 	public void testNull() {
-		LaunchResource actualResource = LaunchConverter.TO_RESOURCE.apply(null);
+		LaunchResource actualResource = launchConverter.getLaunchConverter().apply(null);
 		LaunchResource expectedResource = new LaunchResource();
 		validateResources(expectedResource, actualResource);
 	}
 
 	@Test
 	public void testValues() {
-		LaunchResource actualResource = LaunchConverter.TO_RESOURCE.apply(Utils.getLaunch());
+		LaunchResource actualResource = launchConverter.getLaunchConverter().apply(Utils.getLaunch());
 		LaunchResource expectedResource = Utils.getLaunchResource();
 		validateResources(expectedResource, actualResource);
 	}

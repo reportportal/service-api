@@ -87,6 +87,7 @@ public class LogIndexerService implements ILogIndexer {
 	private static final String CHECKPOINT_ID = "checkpoint";
 	private static final String CHECKPOINT_LOG_ID = "logId";
 	private static final String LOG_LEVEL = "level.log_level";
+	private static final String TEST_ITEM_REF = "testItemRef";
 	private static final int MAX_TIMEOUT = 120000;
 
 	@Autowired
@@ -178,7 +179,7 @@ public class LogIndexerService implements ILogIndexer {
 				.collect(toList());
 
 		Query logQuery = getLogQuery(null);
-		logQuery.addCriteria(where("testItemRef").in(projectItems));
+		logQuery.addCriteria(where(TEST_ITEM_REF).in(projectItems));
 		try (CloseableIterator<Log> logIterator = mongoOperations.stream(logQuery, Log.class)) {
 			List<IndexLaunch> rq = new ArrayList<>(BATCH_SIZE);
 			while (logIterator.hasNext()) {
@@ -197,8 +198,7 @@ public class LogIndexerService implements ILogIndexer {
 				analyzerServiceClient.index(rq);
 			}
 		} finally {
-			project.getConfiguration().getAnalyzerConfig().setIndexingRunning(false);
-			projectRepository.save(project);
+			projectRepository.changeProjectIndexingStatus(project.getName(), false);
 		}
 	}
 

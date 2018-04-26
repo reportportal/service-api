@@ -42,7 +42,8 @@ import org.springframework.context.annotation.Configuration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Pavel Bortnik
@@ -63,7 +64,10 @@ public class AnalyzeCollectorConfig {
 	private ILogIndexer logIndexer;
 
 	private AnalyzeItemsCollector TO_INVESTIGATE_COLLECTOR = (project, username, launchId) -> testItemRepository.findInIssueTypeItems(
-			TestItemIssueType.TO_INVESTIGATE.getLocator(), launchId);
+			TestItemIssueType.TO_INVESTIGATE.getLocator(), launchId)
+			.stream()
+			.filter(it -> !it.getIssue().isIgnoreAnalyzer())
+			.collect(toList());
 
 	private AnalyzeItemsCollector AUTO_ANALYZED_COLLECTOR = (project, username, launchId) -> {
 		List<TestItem> itemsByAutoAnalyzedStatus = testItemRepository.findItemsByAutoAnalyzedStatus(true, launchId);
@@ -78,7 +82,7 @@ public class AnalyzeCollectorConfig {
 	};
 
 	private List<TestItem> resetItems(List<TestItem> items, String projectName, String username) {
-		logIndexer.cleanIndex(projectName, items.stream().map(TestItem::getId).collect(Collectors.toList()));
+		logIndexer.cleanIndex(projectName, items.stream().map(TestItem::getId).collect(toList()));
 		Map<IssueDefinition, TestItem> definitions = new HashMap<>();
 		items.forEach(it -> {
 			IssueDefinition issueDefinition = new IssueDefinition();

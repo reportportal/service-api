@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.project.IDeleteProjectHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
@@ -54,6 +55,9 @@ public class DeleteProjectHandler implements IDeleteProjectHandler {
 	private ILogIndexer logIndexer;
 
 	@Autowired
+	private AnalyzerStatusCache analyzerStatusCache;
+
+	@Autowired
 	public DeleteProjectHandler(ProjectRepository projectRepository) {
 		this.projectRepository = projectRepository;
 	}
@@ -80,7 +84,7 @@ public class DeleteProjectHandler implements IDeleteProjectHandler {
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 		expect(project.getConfiguration().getAnalyzerConfig().isIndexingRunning(), equalTo(false)).verify(
 				ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
-		expect(project.getConfiguration().getAnalyzerConfig().getAnalyzingLaunches().get(), equalTo(0)).verify(
+		expect(analyzerStatusCache.getAnalyzerStatus().asMap().containsValue(projectName), equalTo(false)).verify(
 				ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
 		logIndexer.deleteIndex(projectName);
 		return new OperationCompletionRS("Project index with name = '" + projectName + "' is successfully deleted.");

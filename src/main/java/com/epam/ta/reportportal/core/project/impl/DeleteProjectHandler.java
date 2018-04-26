@@ -27,10 +27,12 @@ import com.epam.ta.reportportal.core.project.IDeleteProjectHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.project.EntryType;
+import com.epam.ta.reportportal.events.ProjectIndexEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -58,6 +60,9 @@ public class DeleteProjectHandler implements IDeleteProjectHandler {
 	private AnalyzerStatusCache analyzerStatusCache;
 
 	@Autowired
+	private ApplicationEventPublisher eventPublisher;
+
+	@Autowired
 	public DeleteProjectHandler(ProjectRepository projectRepository) {
 		this.projectRepository = projectRepository;
 	}
@@ -79,7 +84,7 @@ public class DeleteProjectHandler implements IDeleteProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS deleteProjectIndex(String projectName) {
+	public OperationCompletionRS deleteProjectIndex(String projectName, String username) {
 		Project project = projectRepository.findOne(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 		expect(project.getConfiguration().getAnalyzerConfig().isIndexingRunning(), equalTo(false)).verify(
@@ -87,6 +92,7 @@ public class DeleteProjectHandler implements IDeleteProjectHandler {
 		expect(analyzerStatusCache.getAnalyzerStatus().asMap().containsValue(projectName), equalTo(false)).verify(
 				ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
 		logIndexer.deleteIndex(projectName);
+		eventPublisher.publishEvent(new ProjectIndexEvent(projectName, username, false));
 		return new OperationCompletionRS("Project index with name = '" + projectName + "' is successfully deleted.");
 	}
 }

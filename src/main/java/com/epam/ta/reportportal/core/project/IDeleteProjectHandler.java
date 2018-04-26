@@ -45,6 +45,7 @@ public interface IDeleteProjectHandler {
 	 * Delete project index
 	 *
 	 * @param projectName Project name
+	 * @param username    User name
 	 */
-	OperationCompletionRS deleteProjectIndex(String projectName);
+	OperationCompletionRS deleteProjectIndex(String projectName, String username);
 }

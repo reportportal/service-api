@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.entity.user.UserType;
 import com.epam.ta.reportportal.events.EmailConfigUpdatedEvent;
+import com.epam.ta.reportportal.events.ProjectIndexEvent;
 import com.epam.ta.reportportal.events.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.EmailConfigConverters;
@@ -416,7 +417,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS indexProjectData(String projectName) {
+	public OperationCompletionRS indexProjectData(String projectName, String username) {
 		Project project = projectRepository.findOne(projectName);
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
@@ -429,6 +430,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		projectRepository.changeProjectIndexingStatus(projectName, true);
 		logIndexer.deleteIndex(projectName);
 		taskExecutor.execute(() -> logIndexer.indexProjectData(project));
+		publisher.publishEvent(new ProjectIndexEvent(projectName, username, true));
 		return new OperationCompletionRS("Log indexing has been started");
 	}
 

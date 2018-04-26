@@ -188,6 +188,8 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		}
 
 		ofNullable(modelConfig.getAnalyzerConfig()).ifPresent(analyzerConfig -> {
+			expect(analyzerStatusCache.getAnalyzerStatus().asMap().containsKey(projectName), equalTo(false)).verify(
+					ErrorType.FORBIDDEN_OPERATION, "Project settings can not be updated until auto-analysis proceeds");
 			ProjectAnalyzerConfig dbAnalyzerConfig = new ProjectAnalyzerConfig();
 			ofNullable(analyzerConfig.getAnalyzerMode()).ifPresent(mode -> dbAnalyzerConfig.setAnalyzerMode(AnalyzeMode.fromString(mode)));
 			ofNullable(analyzerConfig.getIsAutoAnalyzerEnabled()).ifPresent(dbAnalyzerConfig::setIsAutoAnalyzerEnabled);

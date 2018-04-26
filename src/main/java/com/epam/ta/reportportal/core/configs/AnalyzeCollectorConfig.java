@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsCollector;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
-import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
@@ -44,6 +43,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -55,9 +55,6 @@ public class AnalyzeCollectorConfig {
 
 	@Autowired
 	private TestItemRepository testItemRepository;
-
-	@Autowired
-	private StatisticsFacadeFactory statisticsFacadeFactory;
 
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;

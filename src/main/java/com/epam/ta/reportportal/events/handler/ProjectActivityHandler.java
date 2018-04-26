@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.events.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,10 @@ public class ProjectActivityHandler {
 	static final String STATISTICS_CALCULATION_STRATEGY = "statisticsCalculationStrategy";
 	static final String AUTO_ANALYZE = "auto_analyze";
 	static final String ANALYZE_MODE = "analyze_mode";
+	static final String MIN_DOC_FREQ = "min_doc_freq";
+	static final String MIN_TERM_FREQ = "min_term_freq";
+	static final String MIN_SHOULD_MATCH = "min_should_match";
+	static final String NUMBER_OF_LOG_LINES = "number_of_log_lines";
 
 	private final ActivityRepository activityRepository;
 
@@ -71,7 +76,7 @@ public class ProjectActivityHandler {
 			processKeepScreenshots(history, project, configuration);
 			processLaunchInactivityTimeout(history, project, configuration);
 			processAutoAnalyze(history, project, configuration);
-			processAnalyzeMode(history, project, configuration);
+			processAnalyzerConfig(history, project, configuration.getAnalyzerConfig());
 			processStatisticsStrategy(history, project, configuration);
 		}
 
@@ -87,13 +92,30 @@ public class ProjectActivityHandler {
 		}
 	}
 
-	private void processAnalyzeMode(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
+	private void processAnalyzerConfig(List<Activity.FieldValues> history, Project project, AnalyzerConfig analyzerConfig) {
+		processAnalyzeMode(history, project, AnalyzeMode.fromString(analyzerConfig.getAnalyzerMode()));
+		processElasticParameters(
+				history, MIN_DOC_FREQ, project.getConfiguration().getAnalyzerConfig().getMinDocFreq(), analyzerConfig.getMinDocFreq());
+		processElasticParameters(
+				history, MIN_TERM_FREQ, project.getConfiguration().getAnalyzerConfig().getMinTermFreq(), analyzerConfig.getMinTermFreq());
+		processElasticParameters(history, MIN_SHOULD_MATCH, project.getConfiguration().getAnalyzerConfig().getMinShouldMatch(),
+				analyzerConfig.getMinShouldMatch()
+		);
+		processElasticParameters(history, NUMBER_OF_LOG_LINES, project.getConfiguration().getAnalyzerConfig().getNumberOfLogLines(),
+				analyzerConfig.getNumberOfLogLines()
+		);
+	}
+
+	private void processElasticParameters(List<Activity.FieldValues> history, String elasticParameterName, int oldValue, int newValue) {
+		if (oldValue != newValue) {
+			history.add(createHistoryField(elasticParameterName, String.valueOf(oldValue), String.valueOf(newValue)));
+		}
+	}
+
+	private void processAnalyzeMode(List<Activity.FieldValues> history, Project project, AnalyzeMode mode) {
 		AnalyzeMode oldMode = project.getConfiguration().getAnalyzerConfig().getAnalyzerMode();
-		if (null != configuration.getAnalyzerConfig().getAnalyzerMode()
-				&& AnalyzeMode.fromString(configuration.getAnalyzerConfig().getAnalyzerMode()) != oldMode) {
-			history.add(createHistoryField(ANALYZE_MODE, oldMode != null ? oldMode.getValue() : "",
-					configuration.getAnalyzerConfig().getAnalyzerMode()
-			));
+		if (null != mode && mode != oldMode) {
+			history.add(createHistoryField(ANALYZE_MODE, oldMode != null ? oldMode.getValue() : "", mode.getValue()));
 		}
 	}
 

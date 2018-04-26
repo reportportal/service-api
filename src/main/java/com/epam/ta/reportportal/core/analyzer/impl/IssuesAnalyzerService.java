@@ -53,6 +53,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.nullToEmpty;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -204,7 +205,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 		if (relevantItem != null && relevantItem.getIssue() != null) {
 			issue.setIssueDescription(
 					emptyToNull(nullToEmpty(issue.getIssueDescription()) + nullToEmpty(relevantItem.getIssue().getIssueDescription())));
-			issue.setExternalSystemIssues(relevantItem.getIssue().getExternalSystemIssues());
+			issue.setExternalSystemIssues(Optional.ofNullable(relevantItem.getIssue().getExternalSystemIssues()).orElse(emptySet()));
 		}
 	}
 

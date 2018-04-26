@@ -60,6 +60,7 @@ import static com.epam.ta.reportportal.database.entity.Status.*;
 import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.NOT_ISSUE_FLAG;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
@@ -131,8 +132,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		Optional<Status> actualStatus = fromValue(finishExecutionRQ.getStatus());
 		Issue providedIssue = finishExecutionRQ.getIssue();
 
-		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration()
-				.getStatisticsCalculationStrategy());
+		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(
+				project.getConfiguration().getStatisticsCalculationStrategy());
 
 		/*
 		 * If test item has descendants, it's status is resolved from statistics
@@ -184,17 +185,13 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			final List<TestItem> descendants = testItem.hasChilds() ?
 					testItemRepository.findDescendants(testItem.getId()) :
 					Collections.emptyList();
-			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED, formattedSupplier(
-					"Test item '{}' has descendants with '{}' status. All descendants '{}'",
-					() -> testItemId,
-					IN_PROGRESS::name,
-					() -> descendants.stream().map(TestItem::getName).collect(toList())
-			));
-			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
-					finishExecutionRQ.getEndTime(),
-					testItem.getStartTime(),
-					testItemId
+			expect(descendants, not(Preconditions.HAS_IN_PROGRESS_ITEMS)).verify(FINISH_ITEM_NOT_ALLOWED,
+					formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'", () -> testItemId,
+							IN_PROGRESS::name, () -> descendants.stream().map(TestItem::getName).collect(toList())
+					)
 			);
+			expect(finishExecutionRQ, Preconditions.finishSameTimeOrLater(testItem.getStartTime())).verify(
+					FINISH_TIME_EARLIER_THAN_START_TIME, finishExecutionRQ.getEndTime(), testItem.getStartTime(), testItemId);
 
 			/*
 			 * If there is issue provided we have to be sure issue type is
@@ -209,9 +206,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		if (issue != null && !NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(issue.getIssueType())) {
 			expect(projectSettings.getByLocator(issue.getIssueType()), notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
 					"Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types locators are: {}",
-					issue.getIssueType(),
-					testItemId,
-					projectSettings.getSubTypes()
+					issue.getIssueType(), testItemId, projectSettings.getSubTypes()
 							.values()
 							.stream()
 							.flatMap(Collection::stream)
@@ -235,7 +230,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				verifyIssue(testItem.getId(), providedIssue, project.getConfiguration());
 
 				if (!CollectionUtils.isEmpty(providedIssue.getExternalSystemIssues())) {
-					verifyExternalSystemIssues(providedIssue.getExternalSystemIssues(), submitter, project.getConfiguration());
+					verifyExternalSystemIssues(providedIssue.getExternalSystemIssues(), project.getConfiguration());
 					providedIssue.getExternalSystemIssues().forEach(it -> {
 						it.setSubmitter(submitter);
 						it.setSubmitDate(new Date().getTime());
@@ -249,14 +244,12 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 					);
 
 					//set provided external issues if any present
-					issue.setExternalSystemIssues(Optional.ofNullable(providedIssue.getExternalSystemIssues())
-							.map(issues -> issues.stream().peek(it -> {
+					issue.setExternalSystemIssues(
+							Optional.ofNullable(providedIssue.getExternalSystemIssues()).map(issues -> issues.stream().peek(it -> {
 								//not sure if it propogates exception correctly
-								expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true)).verify(EXTERNAL_SYSTEM_NOT_FOUND,
-										it.getExternalSystemId()
-								);
-							}).map(TestItemUtils.externalIssueDtoConverter(submitter)).collect(Collectors.toSet()))
-							.orElse(null));
+								expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true)).verify(
+										EXTERNAL_SYSTEM_NOT_FOUND, it.getExternalSystemId());
+							}).map(TestItemUtils.externalIssueDtoConverter(submitter)).collect(Collectors.toSet())).orElse(null));
 					issue.setIgnoreAnalyzer(BooleanUtils.toBoolean(providedIssue.getIgnoreAnalyzer()));
 					testItem.setIssue(issue);
 				}
@@ -273,13 +266,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		return testItem;
 	}
 
-	private void verifyExternalSystemIssues(Set<Issue.ExternalSystemIssue> externalSystemIssues, String submitter,
-			Project.Configuration projectSettings) {
+	private void verifyExternalSystemIssues(Set<Issue.ExternalSystemIssue> externalSystemIssues, Project.Configuration projectSettings) {
 		expect(externalSystemIssues.stream().map(Issue.ExternalSystemIssue::getExternalSystemId).anyMatch(Objects::isNull),
 				Predicate.isEqual(false)
 		).verify(BAD_REQUEST_ERROR,
-				"External systemId is not specified. Choose one of included bts id: {}",
-				projectSettings.getExternalSystem()
+				"External system id. Available ids: " + projectSettings.getExternalSystem().stream().collect(joining(", ", "'", "'"))
 		);
 	}
 

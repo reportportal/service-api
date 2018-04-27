@@ -6,6 +6,7 @@ import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.dbunit.dataset.xml.FlatXmlProducer;
 import org.dbunit.operation.DatabaseOperation;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
@@ -24,6 +25,7 @@ import java.sql.SQLException;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = InMemoryDbConfig.class, initializers = BaseDBTest.Initializer.class)
 @TestExecutionListeners(listeners = BaseDBTest.DatasetImportListener.class, mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
+@Ignore
 public class BaseDBTest {
 
 	@ClassRule

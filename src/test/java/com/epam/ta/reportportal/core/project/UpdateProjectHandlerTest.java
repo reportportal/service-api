@@ -88,7 +88,9 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		emailSenderCase.setSendCase("ALWAYS");
 		emailSenderCase.setRecipients(Collections.singletonList("demo@demo.com"));
 		emailConfig.setEmailCases(singletonList(emailSenderCase));
-		configuration.setAnalyzerConfig(new AnalyzerConfig());
+		AnalyzerConfig analyzerConfig = new AnalyzerConfig();
+		analyzerConfig.setAnalyzerMode(AnalyzeMode.BY_LAUNCH_NAME.getValue());
+		configuration.setAnalyzerConfig(analyzerConfig);
 
 		configuration.setEmailConfig(emailConfig);
 		updateProjectRQ.setConfiguration(configuration);

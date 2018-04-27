@@ -38,6 +38,7 @@ import java.util.List;
 import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.UPDATE_PROJECT;
 import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.PROJECT;
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.createHistoryField;
+import static java.util.Optional.ofNullable;
 
 /**
  * Saves new project activity
@@ -93,23 +94,29 @@ public class ProjectActivityHandler {
 	}
 
 	private void processAnalyzerConfig(List<Activity.FieldValues> history, Project project, AnalyzerConfig analyzerConfig) {
-		processAnalyzeMode(history, project, AnalyzeMode.fromString(analyzerConfig.getAnalyzerMode()));
-		processElasticParameters(
-				history, MIN_DOC_FREQ, project.getConfiguration().getAnalyzerConfig().getMinDocFreq(), analyzerConfig.getMinDocFreq());
-		processElasticParameters(
-				history, MIN_TERM_FREQ, project.getConfiguration().getAnalyzerConfig().getMinTermFreq(), analyzerConfig.getMinTermFreq());
-		processElasticParameters(history, MIN_SHOULD_MATCH, project.getConfiguration().getAnalyzerConfig().getMinShouldMatch(),
-				analyzerConfig.getMinShouldMatch()
-		);
-		processElasticParameters(history, NUMBER_OF_LOG_LINES, project.getConfiguration().getAnalyzerConfig().getNumberOfLogLines(),
-				analyzerConfig.getNumberOfLogLines()
-		);
+		if (analyzerConfig != null) {
+			processAnalyzeMode(history, project, AnalyzeMode.fromString(analyzerConfig.getAnalyzerMode()));
+			processElasticParameters(
+					history, MIN_DOC_FREQ, project.getConfiguration().getAnalyzerConfig().getMinDocFreq(), analyzerConfig.getMinDocFreq());
+			processElasticParameters(history, MIN_TERM_FREQ, project.getConfiguration().getAnalyzerConfig().getMinTermFreq(),
+					analyzerConfig.getMinTermFreq()
+			);
+			processElasticParameters(history, MIN_SHOULD_MATCH, project.getConfiguration().getAnalyzerConfig().getMinShouldMatch(),
+					analyzerConfig.getMinShouldMatch()
+			);
+			processElasticParameters(history, NUMBER_OF_LOG_LINES, project.getConfiguration().getAnalyzerConfig().getNumberOfLogLines(),
+					analyzerConfig.getNumberOfLogLines()
+			);
+		}
 	}
 
-	private void processElasticParameters(List<Activity.FieldValues> history, String elasticParameterName, int oldValue, int newValue) {
-		if (oldValue != newValue) {
-			history.add(createHistoryField(elasticParameterName, String.valueOf(oldValue), String.valueOf(newValue)));
-		}
+	private void processElasticParameters(List<Activity.FieldValues> history, String elasticParameterName, Integer oldValue,
+			Integer newValue) {
+		ofNullable(newValue).ifPresent(param -> {
+			if (!newValue.equals(oldValue)) {
+				history.add(createHistoryField(elasticParameterName, String.valueOf(oldValue), String.valueOf(newValue)));
+			}
+		});
 	}
 
 	private void processAnalyzeMode(List<Activity.FieldValues> history, Project project, AnalyzeMode mode) {

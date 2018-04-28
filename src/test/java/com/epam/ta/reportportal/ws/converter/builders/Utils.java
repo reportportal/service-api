@@ -75,6 +75,7 @@ public class Utils {
 
 	public static Launch getLaunch() {
 		Launch testLaunch = new Launch();
+		testLaunch.setId(BuilderTestsConstants.ID);
 		testLaunch.setDescription(BuilderTestsConstants.DESCRIPTION);
 		testLaunch.setName(BuilderTestsConstants.DESCRIPTION);
 		testLaunch.setStartTime(BuilderTestsConstants.DATE_START);
@@ -116,6 +117,7 @@ public class Utils {
 
 	public static LaunchResource getLaunchResource() {
 		LaunchResource resource = new LaunchResource();
+		resource.setLaunchId(BuilderTestsConstants.ID);
 		resource.setDescription(DESCRIPTION);
 		resource.setName(DESCRIPTION);
 		resource.setStartTime(DATE_START);

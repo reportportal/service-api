@@ -49,6 +49,7 @@ public class LaunchBuilderTest extends BaseTest {
 				.addStatus(Status.IN_PROGRESS)
 				.addUser(Utils.getUser().getId())
 				.get();
+		actualLaunch.setId(BuilderTestsConstants.ID);
 		Launch expectedLaunch = Utils.getLaunch();
 		validateLaunches(expectedLaunch, actualLaunch);
 	}

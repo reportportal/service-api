@@ -179,7 +179,8 @@ public class LaunchController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified launch by ID")
-	public OperationCompletionRS deleteLaunch(@PathVariable String projectName, @PathVariable Long launchId, @AuthenticationPrincipal ReportPortalUser user) {
+	public OperationCompletionRS deleteLaunch(@PathVariable String projectName, @PathVariable Long launchId,
+			@AuthenticationPrincipal ReportPortalUser user) {
 		return deleteLaunchMessageHandler.deleteLaunch(launchId, normalizeId(projectName), user);
 	}
 
@@ -188,19 +189,19 @@ public class LaunchController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Get specified launch")
-	public LaunchResource getLaunch(@PathVariable String projectName, @PathVariable Long launchId, @AuthenticationPrincipal ReportPortalUser user) {
+	public LaunchResource getLaunch(@PathVariable String projectName, @PathVariable Long launchId,
+			@AuthenticationPrincipal ReportPortalUser user) {
 		return getLaunchMessageHandler.getLaunch(launchId, user.getUsername(), normalizeId(projectName));
 	}
 
-
-		@GetMapping
-		@ResponseBody
-		@ResponseStatus(OK)
-		@ApiOperation("Get list of project launches by filter")
-		public Iterable<LaunchResource> getProjectLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
-				@SortFor(Launch.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-			return getLaunchMessageHandler.getProjectLaunches(normalizeId(projectName), filter, pageable, user.getUsername());
-		}
+	@GetMapping
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Get list of project launches by filter")
+	public Iterable<LaunchResource> getProjectLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
+			@SortFor(Launch.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getProjectLaunches(normalizeId(projectName), filter, pageable, user.getUsername());
+	}
 	//
 	//	
 	//	@RequestMapping(value = "/latest", method = GET)
@@ -223,89 +224,89 @@ public class LaunchController {
 	//		return getLaunchMessageHandler.getDebugLaunches(normalizeId(projectName), user, filter, pageable);
 	//	}
 
-//	@RequestMapping(value = "/tags", method = GET)
-//	@ResponseBody
-//	@ResponseStatus(OK)
-//	@ApiOperation("Get all unique tags of project launches")
-//	public List<String> getAllTags(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "tags") String value,
-//			@AuthenticationPrincipal ReportPortalUser user) {
-//		return getLaunchMessageHandler.getTags(normalizeId(projectName), value);
-//	}
+	//	@RequestMapping(value = "/tags", method = GET)
+	//	@ResponseBody
+	//	@ResponseStatus(OK)
+	//	@ApiOperation("Get all unique tags of project launches")
+	//	public List<String> getAllTags(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "tags") String value,
+	//			@AuthenticationPrincipal ReportPortalUser user) {
+	//		return getLaunchMessageHandler.getTags(normalizeId(projectName), value);
+	//	}
 
-//	@RequestMapping(value = "/owners", method = GET)
-//	@ResponseBody
-//	@ResponseStatus(OK)
-//	@ApiOperation("Get all unique owners of project launches")
-//	public List<String> getAllOwners(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "user") String value,
-//			@RequestParam(value = "mode", required = false, defaultValue = "DEFAULT") String mode, @AuthenticationPrincipal ReportPortalUser user) {
-//		return getLaunchMessageHandler.getOwners(normalizeId(projectName), value, "userRef", mode);
-//	}
-//
-//	@RequestMapping(value = "/names", method = GET)
-//	@ResponseBody
-//	@ResponseStatus(OK)
-//	@ApiOperation("Get launch names of project")
-//	public List<String> getAllLaunchNames(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "name") String value,
-//			@AuthenticationPrincipal ReportPortalUser user) {
-//		return getLaunchMessageHandler.getLaunchNames(normalizeId(projectName), value);
-//	}
-//
-//	@RequestMapping(value = "/compare", method = GET)
-//	@ResponseBody
-//	@ResponseStatus(OK)
-//	@ApiOperation("Compare launches")
-//	public Map<String, List<ChartObject>> compareLaunches(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
-//			@AuthenticationPrincipal ReportPortalUser user) {
-//		return getLaunchMessageHandler.getLaunchesComparisonInfo(normalizeId(projectName), ids);
-//	}
-//
-//	@PostMapping("/merge")
-//	@ResponseBody
-//	@ResponseStatus(OK)
-//	@ApiOperation("Merge set of specified launches in common one")
-//	public LaunchResource mergeLaunches(
-//			@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,
-//			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
-//			@AuthenticationPrincipal ReportPortalUser user) {
-//		return mergeLaunchesHandler.mergeLaunches(normalizeId(projectName), user, mergeLaunchesRQ);
-//	}
-//
-//	@RequestMapping(value = "/{launchId}/analyze", method = POST)
-//	@ResponseBody
-//	@ResponseStatus(OK)
-//	@ApiOperation("Start launch auto-analyzer on demand")
-//	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName, @PathVariable Long launchId, @AuthenticationPrincipal ReportPortalUser user) {
-//		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), launchId);
-//	}
-//
-//	@RequestMapping(value = "/status", method = GET)
-//	@ResponseBody
-//	@ResponseStatus(OK)
-//	@ApiIgnore
-//	public Map<String, String> getStatuses(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
-//		return getLaunchMessageHandler.getStatuses(normalizeId(projectName), ids);
-//	}
-//
-//	@RequestMapping(value = "/{launchId}/report", method = RequestMethod.GET)
-//	@ResponseBody
-//	@ResponseStatus(OK)
-//	@ApiOperation(value = "Export specified launch", notes = "Only following formats are supported: pdf (by default), xls, html.")
-//	public void getLaunchReport(@PathVariable String projectName, @PathVariable Long launchId,
-//			@ApiParam(allowableValues = "pdf, xls, html") @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,
-//			@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) throws IOException {
-//
-//		throw new UnsupportedOperationException();
-//		//		JasperPrint jasperPrint = getJasperHandler.getLaunchDetails(launchId, user);
-//		//
-//		//		ReportFormat format = getJasperHandler.getReportFormat(view);
-//		//		response.setContentType(format.getContentType());
-//		//		response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-//		//				String.format("attachment; filename=RP_%s_Report.%s", format.name(), format.getValue())
-//		//		);
-//		//
-//		//		getJasperHandler.writeReport(format, response.getOutputStream(), jasperPrint);
-//
-//	}
+	//	@RequestMapping(value = "/owners", method = GET)
+	//	@ResponseBody
+	//	@ResponseStatus(OK)
+	//	@ApiOperation("Get all unique owners of project launches")
+	//	public List<String> getAllOwners(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "user") String value,
+	//			@RequestParam(value = "mode", required = false, defaultValue = "DEFAULT") String mode, @AuthenticationPrincipal ReportPortalUser user) {
+	//		return getLaunchMessageHandler.getOwners(normalizeId(projectName), value, "userRef", mode);
+	//	}
+	//
+	//	@RequestMapping(value = "/names", method = GET)
+	//	@ResponseBody
+	//	@ResponseStatus(OK)
+	//	@ApiOperation("Get launch names of project")
+	//	public List<String> getAllLaunchNames(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "name") String value,
+	//			@AuthenticationPrincipal ReportPortalUser user) {
+	//		return getLaunchMessageHandler.getLaunchNames(normalizeId(projectName), value);
+	//	}
+	//
+	//	@RequestMapping(value = "/compare", method = GET)
+	//	@ResponseBody
+	//	@ResponseStatus(OK)
+	//	@ApiOperation("Compare launches")
+	//	public Map<String, List<ChartObject>> compareLaunches(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
+	//			@AuthenticationPrincipal ReportPortalUser user) {
+	//		return getLaunchMessageHandler.getLaunchesComparisonInfo(normalizeId(projectName), ids);
+	//	}
+	//
+	//	@PostMapping("/merge")
+	//	@ResponseBody
+	//	@ResponseStatus(OK)
+	//	@ApiOperation("Merge set of specified launches in common one")
+	//	public LaunchResource mergeLaunches(
+	//			@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,
+	//			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
+	//			@AuthenticationPrincipal ReportPortalUser user) {
+	//		return mergeLaunchesHandler.mergeLaunches(normalizeId(projectName), user, mergeLaunchesRQ);
+	//	}
+	//
+	//	@RequestMapping(value = "/{launchId}/analyze", method = POST)
+	//	@ResponseBody
+	//	@ResponseStatus(OK)
+	//	@ApiOperation("Start launch auto-analyzer on demand")
+	//	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName, @PathVariable Long launchId, @AuthenticationPrincipal ReportPortalUser user) {
+	//		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), launchId);
+	//	}
+	//
+	//	@RequestMapping(value = "/status", method = GET)
+	//	@ResponseBody
+	//	@ResponseStatus(OK)
+	//	@ApiIgnore
+	//	public Map<String, String> getStatuses(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
+	//		return getLaunchMessageHandler.getStatuses(normalizeId(projectName), ids);
+	//	}
+	//
+	//	@RequestMapping(value = "/{launchId}/report", method = RequestMethod.GET)
+	//	@ResponseBody
+	//	@ResponseStatus(OK)
+	//	@ApiOperation(value = "Export specified launch", notes = "Only following formats are supported: pdf (by default), xls, html.")
+	//	public void getLaunchReport(@PathVariable String projectName, @PathVariable Long launchId,
+	//			@ApiParam(allowableValues = "pdf, xls, html") @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,
+	//			@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) throws IOException {
+	//
+	//		throw new UnsupportedOperationException();
+	//		//		JasperPrint jasperPrint = getJasperHandler.getLaunchDetails(launchId, user);
+	//		//
+	//		//		ReportFormat format = getJasperHandler.getReportFormat(view);
+	//		//		response.setContentType(format.getContentType());
+	//		//		response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+	//		//				String.format("attachment; filename=RP_%s_Report.%s", format.name(), format.getValue())
+	//		//		);
+	//		//
+	//		//		getJasperHandler.writeReport(format, response.getOutputStream(), jasperPrint);
+	//
+	//	}
 
 	@DeleteMapping
 	@ResponseBody
@@ -315,14 +316,14 @@ public class LaunchController {
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return deleteLaunchMessageHandler.deleteLaunches(ids, projectName, user);
 	}
-//
-//	@RequestMapping(value = "/import", method = RequestMethod.POST)
-//	@ResponseBody
-//	@ResponseStatus(OK)
-//	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip.")
-//	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file,
-//			@AuthenticationPrincipal ReportPortalUser user) {
-//		throw new UnsupportedOperationException();
-//		//return importLaunchHandler.importLaunch(normalizeId(projectName), user, "XUNIT", file);
-//	}
+	//
+	//	@RequestMapping(value = "/import", method = RequestMethod.POST)
+	//	@ResponseBody
+	//	@ResponseStatus(OK)
+	//	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip.")
+	//	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file,
+	//			@AuthenticationPrincipal ReportPortalUser user) {
+	//		throw new UnsupportedOperationException();
+	//		//return importLaunchHandler.importLaunch(normalizeId(projectName), user, "XUNIT", file);
+	//	}
 }

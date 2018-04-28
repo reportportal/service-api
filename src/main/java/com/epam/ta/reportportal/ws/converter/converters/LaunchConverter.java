@@ -53,7 +53,7 @@ public class LaunchConverter {
 		resource.setTags(db.getTags());
 		resource.setMode(db.getMode());
 		resource.setApproximateDuration(db.getApproximateDuration());
-		resource.setIsProcessing(analyzerStatusCache.getAnalyzerStatus().asMap().containsKey(resource.getLaunchId()));
+		resource.setIsProcessing(analyzerStatusCache.getAnalyzerStatus().getIfPresent(resource.getLaunchId()) != null);
 		resource.setOwner(db.getUserRef());
 		resource.setHasRetries(BooleanUtils.isTrue(db.getHasRetries()));
 		resource.setStatistics(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));

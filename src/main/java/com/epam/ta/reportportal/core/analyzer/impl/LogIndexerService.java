@@ -198,7 +198,7 @@ public class LogIndexerService implements ILogIndexer {
 				analyzerServiceClient.index(rq);
 			}
 		} finally {
-			projectRepository.changeProjectIndexingStatus(project.getName(), false);
+			projectRepository.enableProjectIndexing(project.getName(), false);
 		}
 	}
 

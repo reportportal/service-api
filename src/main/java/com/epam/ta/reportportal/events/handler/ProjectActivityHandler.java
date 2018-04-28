@@ -113,8 +113,8 @@ public class ProjectActivityHandler {
 	private void processElasticParameters(List<Activity.FieldValues> history, String elasticParameterName, Integer oldValue,
 			Integer newValue) {
 		ofNullable(newValue).ifPresent(param -> {
-			if (!newValue.equals(oldValue)) {
-				history.add(createHistoryField(elasticParameterName, String.valueOf(oldValue), String.valueOf(newValue)));
+			if (!param.equals(oldValue)) {
+				history.add(createHistoryField(elasticParameterName, String.valueOf(oldValue), String.valueOf(param)));
 			}
 		});
 	}

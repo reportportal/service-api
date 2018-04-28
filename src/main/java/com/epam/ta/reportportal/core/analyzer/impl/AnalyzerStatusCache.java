@@ -21,34 +21,28 @@
 
 package com.epam.ta.reportportal.core.analyzer.impl;
 
+import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Contains cache of analyzing launches. Key is a launch id,
+ * value is a project name.
+ *
  * @author Pavel Bortnik
  */
 @Service
 public class AnalyzerStatusCache {
 
-	private static final int CACHE_ITEM_LIVE = 1440;
+	private static final int CACHE_ITEM_LIVE = 100;
 	private static final int MAXIMUM_SIZE = 10000;
 
-	private LoadingCache<String, String> analyzerStatus;
+	private Cache<String, String> analyzerStatus;
 
 	public AnalyzerStatusCache() {
-		analyzerStatus = CacheBuilder.newBuilder()
-				.maximumSize(MAXIMUM_SIZE)
-				.expireAfterWrite(CACHE_ITEM_LIVE, TimeUnit.MINUTES)
-				.build(new CacheLoader<String, String>() {
-					@Override
-					public String load(String key) throws Exception {
-						return null;
-					}
-				});
+		analyzerStatus = CacheBuilder.newBuilder().maximumSize(MAXIMUM_SIZE).expireAfterWrite(CACHE_ITEM_LIVE, TimeUnit.MINUTES).build();
 	}
 
 	public void analyzeStarted(String launchId, String projectName) {
@@ -59,7 +53,7 @@ public class AnalyzerStatusCache {
 		analyzerStatus.invalidate(launchId);
 	}
 
-	public LoadingCache<String, String> getAnalyzerStatus() {
+	public Cache<String, String> getAnalyzerStatus() {
 		return analyzerStatus;
 	}
 }

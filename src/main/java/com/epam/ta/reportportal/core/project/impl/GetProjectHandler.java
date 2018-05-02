@@ -48,9 +48,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * @author Andrei_Ramanchuk
@@ -138,5 +140,12 @@ public class GetProjectHandler implements IGetProjectHandler {
 	@Override
 	public List<String> getAllProjectNames() {
 		return projectRepository.findAllProjectNames();
+	}
+
+	@Override
+	public Map<String, Boolean> getAnalyzerIndexingStatus() {
+		return projectRepository.findAll()
+				.stream()
+				.collect(toMap(Project::getId, it -> it.getConfiguration().getAnalyzerConfig().isIndexingRunning()));
 	}
 }

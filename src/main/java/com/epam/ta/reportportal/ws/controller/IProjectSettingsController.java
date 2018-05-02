@@ -76,4 +76,6 @@ public interface IProjectSettingsController {
 	 */
 	ProjectSettingsResource getProjectSettings(String projectName, Principal principal);
 
+	OperationCompletionRS removeProjectIndex(String projectName, Principal principal);
+
 }

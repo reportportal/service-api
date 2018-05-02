@@ -117,7 +117,7 @@ public class LaunchFinishedEventHandler {
 		logIndexer.indexLogs(launch.getId(), testItemRepository.findTestItemWithIssues(launch.getId()));
 
 		/* If email enabled and AA disabled then send results immediately */
-		if (!BooleanUtils.toBoolean(project.getConfiguration().getIsAutoAnalyzerEnabled())) {
+		if (!BooleanUtils.toBoolean(project.getConfiguration().getAnalyzerConfig().getIsAutoAnalyzerEnabled())) {
 			emailService.ifPresent(service -> sendEmailRightNow(launch, project, service));
 			return;
 		}
@@ -125,8 +125,8 @@ public class LaunchFinishedEventHandler {
 		List<TestItem> toInvestigateItems = testItemRepository.findInIssueTypeItems(TestItemIssueType.TO_INVESTIGATE.getLocator(),
 				launch.getId()
 		);
-		analyzerService.analyze(launch, toInvestigateItems,
-				Optional.ofNullable(project.getConfiguration().getAnalyzerMode()).orElse(AnalyzeMode.BY_LAUNCH_NAME)
+		analyzerService.analyze(launch, project, toInvestigateItems,
+				Optional.ofNullable(project.getConfiguration().getAnalyzerConfig().getAnalyzerMode()).orElse(AnalyzeMode.BY_LAUNCH_NAME)
 		);
 		// Get launch with AA results
 		Launch freshLaunch = launchRepository.findOne(launch.getId());

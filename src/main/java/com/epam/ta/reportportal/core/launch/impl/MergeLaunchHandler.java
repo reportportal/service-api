@@ -96,6 +96,9 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 	private ILogIndexer logIndexer;
 
 	@Autowired
+	private LaunchConverter launchConverter;
+
+	@Autowired
 	public void setProjectRepository(ProjectRepository projectRepository) {
 		this.projectRepository = projectRepository;
 	}
@@ -170,7 +173,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
 		logIndexer.indexLogs(launch.getId(), testItemRepository.findItemsNotInIssueType(TO_INVESTIGATE.getLocator(), launch.getId()));
 
-		return LaunchConverter.TO_RESOURCE.apply(launch);
+		return launchConverter.getLaunchConverter().apply(launch);
 	}
 
 	/**

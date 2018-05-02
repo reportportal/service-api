@@ -29,10 +29,12 @@ import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.LogRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
+import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.annotations.VisibleForTesting;
@@ -85,6 +87,7 @@ public class LogIndexerService implements ILogIndexer {
 	private static final String CHECKPOINT_ID = "checkpoint";
 	private static final String CHECKPOINT_LOG_ID = "logId";
 	private static final String LOG_LEVEL = "level.log_level";
+	private static final String TEST_ITEM_REF = "testItemRef";
 	private static final int MAX_TIMEOUT = 120000;
 
 	@Autowired
@@ -98,6 +101,9 @@ public class LogIndexerService implements ILogIndexer {
 
 	@Autowired
 	private TestItemRepository testItemRepository;
+
+	@Autowired
+	private ProjectRepository projectRepository;
 
 	@Autowired
 	private LogRepository logRepository;
@@ -163,6 +169,40 @@ public class LogIndexerService implements ILogIndexer {
 	}
 
 	@Override
+	public void indexProjectData(Project project) {
+		BusinessRule.expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true))
+				.verify(ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer's clients.");
+
+		List<String> projectItems = testItemRepository.findIdsByLaunch(launchRepository.findLaunchIdsByProjectId(project.getId()))
+				.stream()
+				.map(TestItem::getId)
+				.collect(toList());
+
+		Query logQuery = getLogQuery(null);
+		logQuery.addCriteria(where(TEST_ITEM_REF).in(projectItems));
+		try (CloseableIterator<Log> logIterator = mongoOperations.stream(logQuery, Log.class)) {
+			List<IndexLaunch> rq = new ArrayList<>(BATCH_SIZE);
+			while (logIterator.hasNext()) {
+				Log log = logIterator.next();
+				IndexLaunch rqLaunch = createRqLaunch(log);
+				if (rqLaunch != null) {
+					rqLaunch.getTestItems().forEach(it -> it.setAutoAnalyzed(true));
+					rq.add(rqLaunch);
+					if (rq.size() == BATCH_SIZE || !logIterator.hasNext()) {
+						analyzerServiceClient.index(rq);
+						rq = new ArrayList<>(BATCH_SIZE);
+					}
+				}
+			}
+			if (!CollectionUtils.isEmpty(rq)) {
+				analyzerServiceClient.index(rq);
+			}
+		} finally {
+			projectRepository.enableProjectIndexing(project.getName(), false);
+		}
+	}
+
+	@Override
 	public void indexAllLogs() {
 		retrier.execute(context -> {
 			boolean hasClients = analyzerServiceClient.hasClients();
@@ -171,8 +211,8 @@ public class LogIndexerService implements ILogIndexer {
 					.verify(ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer's clients.");
 			return hasClients;
 		});
-		String checkpoint = getLastCheckpoint();
-		try (CloseableIterator<Log> logIterator = getLogIterator(checkpoint)) {
+		String checkpoint = getLastCheckpoint(mongoOperations.getCollection(CHECKPOINT_COLL));
+		try (CloseableIterator<Log> logIterator = mongoOperations.stream(getLogQuery(checkpoint), Log.class)) {
 			List<IndexLaunch> rq = new ArrayList<>(BATCH_SIZE);
 			while (logIterator.hasNext()) {
 				Log log = logIterator.next();
@@ -184,7 +224,7 @@ public class LogIndexerService implements ILogIndexer {
 					rqLaunch.getTestItems().forEach(it -> it.setAutoAnalyzed(true));
 					rq.add(rqLaunch);
 					if (rq.size() == BATCH_SIZE || !logIterator.hasNext()) {
-						createCheckpoint(checkpoint);
+						createCheckpoint(mongoOperations.getCollection(CHECKPOINT_COLL), checkpoint);
 
 						List<IndexRs> rs = analyzerServiceClient.index(rq);
 
@@ -199,8 +239,7 @@ public class LogIndexerService implements ILogIndexer {
 				analyzerServiceClient.index(rq);
 			}
 		}
-
-		getCheckpointCollection().drop();
+		mongoOperations.getCollection(CHECKPOINT_COLL).drop();
 	}
 
 	/**
@@ -263,7 +302,7 @@ public class LogIndexerService implements ILogIndexer {
 		//                rs.getItems().stream().filter(i -> i.failed()).collect(Collectors.toList());
 	}
 
-	private CloseableIterator<Log> getLogIterator(String checkpoint) {
+	private Query getLogQuery(String checkpoint) {
 		Sort sort = new Sort(new Sort.Order(Sort.Direction.ASC, "_id"));
 		Query query = new Query().with(sort)
 				.addCriteria(where(LOG_LEVEL).gte(LogLevel.ERROR_INT))
@@ -273,22 +312,17 @@ public class LogIndexerService implements ILogIndexer {
 		if (checkpoint != null) {
 			query.addCriteria(Criteria.where("_id").gte(new ObjectId(checkpoint)));
 		}
-
-		return mongoOperations.stream(query, Log.class);
+		return query;
 	}
 
-	private DBCollection getCheckpointCollection() {
-		return mongoOperations.getCollection(CHECKPOINT_COLL);
-	}
-
-	private String getLastCheckpoint() {
-		DBObject checkpoint = getCheckpointCollection().findOne(new BasicDBObject("_id", CHECKPOINT_ID));
+	private String getLastCheckpoint(DBCollection dbCollection) {
+		DBObject checkpoint = dbCollection.findOne(new BasicDBObject("_id", CHECKPOINT_ID));
 		return checkpoint == null ? null : (String) checkpoint.get(CHECKPOINT_LOG_ID);
 	}
 
-	private void createCheckpoint(String logId) {
+	private void createCheckpoint(DBCollection dbCollection, String logId) {
 		BasicDBObject checkpoint = new BasicDBObject("_id", CHECKPOINT_ID).append(CHECKPOINT_LOG_ID, logId);
-		getCheckpointCollection().save(checkpoint);
+		dbCollection.save(checkpoint);
 	}
 
 }

@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.database.fixture.SpringFixture;
 import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
 import com.epam.ta.reportportal.database.personal.PersonalProjectService;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
@@ -87,6 +88,9 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		emailSenderCase.setSendCase("ALWAYS");
 		emailSenderCase.setRecipients(Collections.singletonList("demo@demo.com"));
 		emailConfig.setEmailCases(singletonList(emailSenderCase));
+		AnalyzerConfig analyzerConfig = new AnalyzerConfig();
+		analyzerConfig.setAnalyzerMode(AnalyzeMode.BY_LAUNCH_NAME.getValue());
+		configuration.setAnalyzerConfig(analyzerConfig);
 
 		configuration.setEmailConfig(emailConfig);
 		updateProjectRQ.setConfiguration(configuration);
@@ -106,8 +110,10 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		configuration.setInterruptJobTime("1 hour");
 		configuration.setKeepScreenshots("1 week");
 		configuration.setProjectSpecific("DEFAULT");
-		configuration.setIsAutoAnalyzerEnabled(true);
-		configuration.setAnalyzerMode(AnalyzeMode.ALL_LAUNCHES.getValue());
+		AnalyzerConfig analyzerConfig = new AnalyzerConfig();
+		analyzerConfig.setIsAutoAnalyzerEnabled(true);
+		analyzerConfig.setAnalyzerMode(AnalyzeMode.ALL_LAUNCHES.getValue());
+		configuration.setAnalyzerConfig(analyzerConfig);
 		configuration.setStatisticCalculationStrategy("TEST_BASED");
 		updateProjectRQ.setConfiguration(configuration);
 
@@ -121,7 +127,7 @@ public class UpdateProjectHandlerTest extends BaseTest {
 		assertEquals(configuration.getInterruptJobTime(), dbConfig.getInterruptJobTime());
 		assertEquals(configuration.getKeepScreenshots(), dbConfig.getKeepScreenshots());
 		assertEquals(configuration.getProjectSpecific(), dbConfig.getProjectSpecific().name());
-		assertEquals(configuration.getIsAutoAnalyzerEnabled(), dbConfig.getIsAutoAnalyzerEnabled());
+		assertEquals(configuration.getAnalyzerConfig().getIsAutoAnalyzerEnabled(), dbConfig.getAnalyzerConfig().getIsAutoAnalyzerEnabled());
 		assertEquals(configuration.getStatisticCalculationStrategy(), dbConfig.getStatisticsCalculationStrategy().name());
 	}
 

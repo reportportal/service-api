@@ -591,7 +591,6 @@
                 <property name="interruptJobTime" value="1 hour"/>
                 <property name="keepLogs" value="2 weeks"/>
                 <property name="keepScreenshots" value="1 week"/>
-                <property name="isAutoAnalyzerEnabled" value="true"/>
                 <property name="projectSpecific" value="DEFAULT"/>
                 <property name="emailConfig">
                     <bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
@@ -609,6 +608,16 @@
                                 </bean>
                             </util:list>
                         </property>
+                    </bean>
+                </property>
+                <property name="analyzerConfig">
+                    <bean class="com.epam.ta.reportportal.database.entity.ProjectAnalyzerConfig">
+                        <property name="isAutoAnalyzerEnabled" value="false"/>
+                        <property name="minDocFreq" value="7"/>
+                        <property name="minTermFreq" value="1"/>
+                        <property name="minShouldMatch" value="80"/>
+                        <property name="numberOfLogLines" value="2"/>
+                        <property name="analyzerMode" value="ALL_LAUNCHES"/>
                     </bean>
                 </property>
             </bean>
@@ -712,7 +721,16 @@
                 <property name="interruptJobTime" value="1 hour"/>
                 <property name="keepLogs" value="2 weeks"/>
                 <property name="keepScreenshots" value="1 week"/>
-                <property name="isAutoAnalyzerEnabled" value="true"/>
+                <property name="analyzerConfig">
+                    <bean class="com.epam.ta.reportportal.database.entity.ProjectAnalyzerConfig">
+                        <property name="isAutoAnalyzerEnabled" value="false"/>
+                        <property name="minDocFreq" value="7"/>
+                        <property name="minTermFreq" value="1"/>
+                        <property name="minShouldMatch" value="80"/>
+                        <property name="numberOfLogLines" value="2"/>
+                        <property name="analyzerMode" value="ALL_LAUNCHES"/>
+                    </bean>
+                </property>
                 <property name="emailConfig">
                     <bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
                         <property name="emailEnabled" value="false"/>
@@ -767,7 +785,16 @@
         <property name="customer" value="test_cust"/>
         <property name="configuration">
             <bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
-                <property name="isAutoAnalyzerEnabled" value="false"/>
+                <property name="analyzerConfig">
+                    <bean class="com.epam.ta.reportportal.database.entity.ProjectAnalyzerConfig">
+                        <property name="isAutoAnalyzerEnabled" value="false"/>
+                        <property name="minDocFreq" value="7"/>
+                        <property name="minTermFreq" value="1"/>
+                        <property name="minShouldMatch" value="80"/>
+                        <property name="numberOfLogLines" value="2"/>
+                        <property name="analyzerMode" value="ALL_LAUNCHES"/>
+                    </bean>
+                </property>
                 <property name="emailConfig">
                     <bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
                         <property name="emailEnabled" value="true"/>
@@ -796,7 +823,16 @@
         <property name="customer" value="test_cust"/>
         <property name="configuration">
             <bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
-                <property name="isAutoAnalyzerEnabled" value="false"/>
+                <property name="analyzerConfig">
+                    <bean class="com.epam.ta.reportportal.database.entity.ProjectAnalyzerConfig">
+                        <property name="isAutoAnalyzerEnabled" value="false"/>
+                        <property name="minDocFreq" value="7"/>
+                        <property name="minTermFreq" value="1"/>
+                        <property name="minShouldMatch" value="80"/>
+                        <property name="numberOfLogLines" value="2"/>
+                        <property name="analyzerMode" value="ALL_LAUNCHES"/>
+                    </bean>
+                </property>
                 <property name="emailConfig">
                     <bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
                         <property name="emailEnabled" value="true"/>
@@ -825,7 +861,16 @@
         <property name="customer" value="test_cust"/>
         <property name="configuration">
             <bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
-                <property name="isAutoAnalyzerEnabled" value="false"/>
+                <property name="analyzerConfig">
+                    <bean class="com.epam.ta.reportportal.database.entity.ProjectAnalyzerConfig">
+                        <property name="isAutoAnalyzerEnabled" value="false"/>
+                        <property name="minDocFreq" value="7"/>
+                        <property name="minTermFreq" value="1"/>
+                        <property name="minShouldMatch" value="80"/>
+                        <property name="numberOfLogLines" value="2"/>
+                        <property name="analyzerMode" value="ALL_LAUNCHES"/>
+                    </bean>
+                </property>
                 <property name="emailConfig">
                     <bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
                         <property name="emailEnabled" value="true"/>
@@ -854,7 +899,16 @@
         <property name="customer" value="test_cust"/>
         <property name="configuration">
             <bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
-                <property name="isAutoAnalyzerEnabled" value="false"/>
+                <property name="analyzerConfig">
+                    <bean class="com.epam.ta.reportportal.database.entity.ProjectAnalyzerConfig">
+                        <property name="isAutoAnalyzerEnabled" value="false"/>
+                        <property name="minDocFreq" value="7"/>
+                        <property name="minTermFreq" value="1"/>
+                        <property name="minShouldMatch" value="80"/>
+                        <property name="numberOfLogLines" value="2"/>
+                        <property name="analyzerMode" value="ALL_LAUNCHES"/>
+                    </bean>
+                </property>
                 <property name="emailConfig">
                     <bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
                         <property name="emailEnabled" value="true"/>
@@ -883,7 +937,16 @@
         <property name="customer" value="test_cust"/>
         <property name="configuration">
             <bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
-                <property name="isAutoAnalyzerEnabled" value="false"/>
+                <property name="analyzerConfig">
+                    <bean class="com.epam.ta.reportportal.database.entity.ProjectAnalyzerConfig">
+                        <property name="isAutoAnalyzerEnabled" value="false"/>
+                        <property name="minDocFreq" value="7"/>
+                        <property name="minTermFreq" value="1"/>
+                        <property name="minShouldMatch" value="80"/>
+                        <property name="numberOfLogLines" value="2"/>
+                        <property name="analyzerMode" value="ALL_LAUNCHES"/>
+                    </bean>
+                </property>
                 <property name="emailConfig">
                     <bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
                         <property name="emailEnabled" value="true"/>
@@ -912,7 +975,16 @@
         <property name="customer" value="test_cust"/>
         <property name="configuration">
             <bean class="com.epam.ta.reportportal.database.entity.Project.Configuration">
-                <property name="isAutoAnalyzerEnabled" value="false"/>
+                <property name="analyzerConfig">
+                    <bean class="com.epam.ta.reportportal.database.entity.ProjectAnalyzerConfig">
+                        <property name="isAutoAnalyzerEnabled" value="false"/>
+                        <property name="minDocFreq" value="7"/>
+                        <property name="minTermFreq" value="1"/>
+                        <property name="minShouldMatch" value="80"/>
+                        <property name="numberOfLogLines" value="2"/>
+                        <property name="analyzerMode" value="ALL_LAUNCHES"/>
+                    </bean>
+                </property>
                 <property name="emailConfig">
                     <bean class="com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig">
                         <property name="emailEnabled" value="true"/>

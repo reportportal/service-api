@@ -78,4 +78,13 @@ public interface IUpdateProjectHandler {
 	 * @throws ReportPortalException
 	 */
 	OperationCompletionRS assignUsers(String projectName, String modifier, AssignUsersRQ assignUsersRQ);
+
+	/**
+	 * Index logs for specified project
+	 *
+	 * @param projectName Project name
+	 * @param user        User name
+	 * @return Operation Result
+	 */
+	OperationCompletionRS indexProjectData(String projectName, String user);
 }

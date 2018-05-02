@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.analyzer;
 
 import com.epam.ta.reportportal.database.entity.Log;
+import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 
 import java.util.List;
@@ -71,4 +72,13 @@ public interface ILogIndexer {
 	 * {@link com.epam.ta.reportportal.database.entity.LogLevel#ERROR} in repository
 	 */
 	void indexAllLogs();
+
+	/**
+	 * Index all logs with its' level greater than
+	 * {@link com.epam.ta.reportportal.database.entity.LogLevel#ERROR}
+	 * for specified project
+	 *
+	 * @param project Project
+	 */
+	void indexProjectData(Project project);
 }

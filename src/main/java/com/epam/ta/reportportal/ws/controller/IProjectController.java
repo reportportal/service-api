@@ -88,6 +88,17 @@ public interface IProjectController {
 	OperationCompletionRS deleteProject(String projectName, Principal principal);
 
 	/**
+	 * Delete project index.
+	 *
+	 * @param projectName Project name
+	 * @param principal   Principal
+	 * @return OperationCompletionRS
+	 */
+	OperationCompletionRS deleteProjectIndex(String projectName, Principal principal);
+
+	OperationCompletionRS indexProjectData(String projectName, Principal principal);
+
+	/**
 	 * Get list of {@link com.epam.ta.reportportal.ws.model.user.UserResource}
 	 * for UI page
 	 *
@@ -200,5 +211,13 @@ public interface IProjectController {
 	 * @return
 	 */
 	Iterable<String> getAllProjectNames(Principal principal);
+
+	/**
+	 * Get statuses of log indexing per project
+	 *
+	 * @param principal Principal
+	 * @return Map of results
+	 */
+	Map<String, Boolean> getAnalyzerIndexingStatus(Principal principal);
 
 }

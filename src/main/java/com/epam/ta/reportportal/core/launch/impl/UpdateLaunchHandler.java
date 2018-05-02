@@ -148,7 +148,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 
 		List<TestItem> items = collectItemsByModes(project, username, launch.getId(), analyzeRQ.getAnalyzeItemsMode());
 
-		taskExecutor.execute(() -> analyzerService.analyze(launch, items, analyzeMode));
+		taskExecutor.execute(() -> analyzerService.analyze(launch, project, items, analyzeMode));
 
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + analyzeRQ.getLaunchId() + "' started.");
 	}

@@ -21,6 +21,8 @@
 
 package com.epam.ta.reportportal.migration;
 
+import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.ProjectAnalyzerConfig;
 import com.github.mongobee.changeset.ChangeLog;
 import com.github.mongobee.changeset.ChangeSet;
 import com.google.common.collect.Lists;
@@ -48,10 +50,10 @@ public class ChangeSets_4_0 {
 	public void updateWidgets(MongoTemplate mongoTemplate) {
 		final String collection = "widget";
 		Criteria criteria = new Criteria();
-		Query query = query(criteria.orOperator(
-				where("contentOptions.type").is("line_chart").and("contentOptions.gadgetType").is("old_line_chart"),
-				where("contentOptions.type").is("trends_chart").and("contentOptions.gadgetType").is("statistic_trend")
-		));
+		Query query = query(
+				criteria.orOperator(where("contentOptions.type").is("line_chart").and("contentOptions.gadgetType").is("old_line_chart"),
+						where("contentOptions.type").is("trends_chart").and("contentOptions.gadgetType").is("statistic_trend")
+				));
 		query.fields().include("_id");
 		query.fields().include("contentOptions");
 		String[] viewMode = new String[1];
@@ -139,6 +141,19 @@ public class ChangeSets_4_0 {
 				u.set("actionType", "link_issue_aa");
 			}
 			mongoTemplate.updateFirst(query(where("_id").is(o.get("_id"))), u, collection);
+		});
+	}
+
+	@ChangeSet(order = "4.2-2", id = "v4.2-Introduce default analyzer parameters for each project", author = "pbortnik")
+	public void introduceAnalyzerParameters(MongoTemplate mongoTemplate) {
+		String collection = "project";
+		Query query = query(where("configuration").exists(true).and("configuration.analyzerConfig").exists(false));
+		mongoTemplate.stream(query, Project.class, collection).forEachRemaining(p -> {
+			ProjectAnalyzerConfig projectAnalyzerConfig = new ProjectAnalyzerConfig(ProjectAnalyzerConfig.MIN_DOC_FREQ,
+					ProjectAnalyzerConfig.MIN_TERM_FREQ, ProjectAnalyzerConfig.MIN_SHOULD_MATCH, ProjectAnalyzerConfig.NUMBER_OF_LOG_LINES
+			);
+			p.getConfiguration().setAnalyzerConfig(projectAnalyzerConfig);
+			mongoTemplate.save(p, collection);
 		});
 	}
 }

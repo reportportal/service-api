@@ -21,7 +21,6 @@
 
 package com.epam.ta.reportportal.migration;
 
-import com.epam.ta.reportportal.database.entity.ProjectAnalyzerConfig;
 import com.github.mongobee.changeset.ChangeLog;
 import com.github.mongobee.changeset.ChangeSet;
 import com.google.common.collect.Lists;

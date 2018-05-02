@@ -21,7 +21,6 @@
 
 package com.epam.ta.reportportal.migration;
 
-import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.ProjectAnalyzerConfig;
 import com.github.mongobee.changeset.ChangeLog;
 import com.github.mongobee.changeset.ChangeSet;
@@ -36,7 +35,9 @@ import org.springframework.data.mongodb.core.query.Update;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import static com.epam.ta.reportportal.database.entity.AnalyzeMode.BY_LAUNCH_NAME;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
 
@@ -50,10 +51,10 @@ public class ChangeSets_4_0 {
 	public void updateWidgets(MongoTemplate mongoTemplate) {
 		final String collection = "widget";
 		Criteria criteria = new Criteria();
-		Query query = query(
-				criteria.orOperator(where("contentOptions.type").is("line_chart").and("contentOptions.gadgetType").is("old_line_chart"),
-						where("contentOptions.type").is("trends_chart").and("contentOptions.gadgetType").is("statistic_trend")
-				));
+		Query query = query(criteria.orOperator(
+				where("contentOptions.type").is("line_chart").and("contentOptions.gadgetType").is("old_line_chart"),
+				where("contentOptions.type").is("trends_chart").and("contentOptions.gadgetType").is("statistic_trend")
+		));
 		query.fields().include("_id");
 		query.fields().include("contentOptions");
 		String[] viewMode = new String[1];
@@ -148,12 +149,24 @@ public class ChangeSets_4_0 {
 	public void introduceAnalyzerParameters(MongoTemplate mongoTemplate) {
 		String collection = "project";
 		Query query = query(where("configuration").exists(true).and("configuration.analyzerConfig").exists(false));
-		mongoTemplate.stream(query, Project.class, collection).forEachRemaining(p -> {
-			ProjectAnalyzerConfig projectAnalyzerConfig = new ProjectAnalyzerConfig(ProjectAnalyzerConfig.MIN_DOC_FREQ,
-					ProjectAnalyzerConfig.MIN_TERM_FREQ, ProjectAnalyzerConfig.MIN_SHOULD_MATCH, ProjectAnalyzerConfig.NUMBER_OF_LOG_LINES
-			);
-			p.getConfiguration().setAnalyzerConfig(projectAnalyzerConfig);
-			mongoTemplate.save(p, collection);
+		query.fields().include("_id");
+		query.fields().include("configuration");
+		mongoTemplate.stream(query, DBObject.class, collection).forEachRemaining(p -> {
+			BasicDBObject configuration = (BasicDBObject) p.get("configuration");
+			Boolean isAAEnabled = (Boolean) Optional.ofNullable(configuration.get("isAutoAnalyzerEnabled")).orElse(false);
+			String analyzerMode = (String) Optional.ofNullable(configuration.get("analyzerMode")).orElse(BY_LAUNCH_NAME.getValue());
+
+			Update update = new Update();
+			update.unset("configuration.isAutoAnalyzerEnabled");
+			update.unset("configuration.analyzerMode");
+
+			update.set("configuration.analyzerConfig.minDocFreq", ProjectAnalyzerConfig.MIN_DOC_FREQ);
+			update.set("configuration.analyzerConfig.minTermFreq", ProjectAnalyzerConfig.MIN_TERM_FREQ);
+			update.set("configuration.analyzerConfig.minShouldMatch", ProjectAnalyzerConfig.MIN_SHOULD_MATCH);
+			update.set("configuration.analyzerConfig.numberOfLogLines", ProjectAnalyzerConfig.NUMBER_OF_LOG_LINES);
+			update.set("configuration.analyzerConfig.isAutoAnalyzerEnabled", isAAEnabled);
+			update.set("configuration.analyzerConfig.analyzerMode", analyzerMode);
+			mongoTemplate.updateFirst(query(where("_id").is(p.get("_id"))), update, collection);
 		});
 	}
 }

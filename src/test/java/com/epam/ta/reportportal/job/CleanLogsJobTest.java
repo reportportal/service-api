@@ -29,9 +29,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.stream.Stream;
 
@@ -69,17 +72,14 @@ public class CleanLogsJobTest {
 		project.setName(name);
 		project.setConfiguration(configuration);
 
-		Stream<Project> sp = Stream.of(project);
-
 		Launch launch = new Launch();
 		launch.setId(name);
-		Stream<Launch> sl = Stream.of(launch);
 
 		TestItem testItem = new TestItem();
 		Stream<TestItem> st = Stream.of(testItem);
 
-		when(projectRepository.streamAllIdsAndConfiguration()).thenReturn(sp);
-		when(launchRepo.streamModifiedInRange(anyString(), any(Date.class), any(Date.class))).thenReturn(sl);
+		when(projectRepository.findAllIdsAndConfiguration(Mockito.any())).thenReturn(new PageImpl<>(Arrays.asList(project)));
+		when(launchRepo.getModifiedInRange(anyString(), any(Date.class), any(Date.class), any())).thenReturn(new PageImpl<>(Arrays.asList(launch)));
 		when(testItemRepo.streamIdsByLaunch(anyString())).thenReturn(st);
 
 		cleanLogsJob.execute(null);

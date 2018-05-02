@@ -30,12 +30,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -65,14 +67,13 @@ public class CleanScreenshotsJobTest {
 		configuration.setKeepScreenshots("1 week");
 		project.setName(name);
 		project.setConfiguration(configuration);
-		Stream<Project> sp = Stream.of(project);
 
 		GridFSDBFile grid = new GridFSDBFile();
 		grid.put("_id", name);
 		List<GridFSDBFile> list = new ArrayList<>();
 		list.add(grid);
 
-		when(projectRepository.streamAllIdsAndConfiguration()).thenReturn(sp);
+		when(projectRepository.findAllIdsAndConfiguration(Mockito.any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
 		when(gridFS.findModifiedLaterAgo(any(Duration.class), anyString())).thenReturn(list);
 
 		cleanScreenshotsJob.execute(null);

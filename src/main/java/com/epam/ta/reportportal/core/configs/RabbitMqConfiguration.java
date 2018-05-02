@@ -19,10 +19,10 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.auth.config;
+package com.epam.ta.reportportal.core.configs;
 
-import org.springframework.amqp.core.AmqpAdmin;
-import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
@@ -35,8 +35,15 @@ import org.springframework.context.annotation.Configuration;
 /**
  * @author Pavel Bortnik
  */
+@EnableRabbit
 @Configuration
 public class RabbitMqConfiguration {
+
+	public static final String EXCHANGE_KEY = "reporting-exchange-1";
+	public static final String START_REPORTING_QUEUE = "start-reporting-queue";
+	public static final String FINISH_REPORTING_QUEUE = "finish-reporting-queue";
+	public static final String START_ROUTING_KEY = "start";
+	public static final String FINISH_ROUTING_KEY = "finish";
 
 	@Bean
 	public MessageConverter jsonMessageConverter() {
@@ -45,8 +52,7 @@ public class RabbitMqConfiguration {
 
 	@Bean
 	public ConnectionFactory connectionFactory() {
-		CachingConnectionFactory connectionFactory = new CachingConnectionFactory("localhost");
-		return connectionFactory;
+		return new CachingConnectionFactory("localhost");
 	}
 
 	@Bean
@@ -56,12 +62,34 @@ public class RabbitMqConfiguration {
 
 	@Bean
 	public RabbitTemplate rabbitTemplate() {
-		return new RabbitTemplate(connectionFactory());
+		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory());
+		rabbitTemplate.setChannelTransacted(true);
+		return rabbitTemplate;
 	}
 
 	@Bean
-	public Queue myQueue1() {
-		return new Queue("queue1");
+	public DirectExchange directExchange() {
+		return new DirectExchange(EXCHANGE_KEY);
+	}
+
+	@Bean
+	public Queue startReportingQueue() {
+		return new Queue(START_REPORTING_QUEUE);
+	}
+
+	@Bean
+	public Queue finishReportingQueue() {
+		return new Queue(FINISH_REPORTING_QUEUE);
+	}
+
+	@Bean
+	public Binding startReportingBinding() {
+		return BindingBuilder.bind(startReportingQueue()).to(directExchange()).with(START_ROUTING_KEY);
+	}
+
+	@Bean
+	public Binding finishReportingBinding() {
+		return BindingBuilder.bind(finishReportingQueue()).to(directExchange()).with(FINISH_ROUTING_KEY);
 	}
 
 }

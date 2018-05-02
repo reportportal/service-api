@@ -21,20 +21,38 @@
 
 package com.epam.ta.reportportal.ws.rabbit;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
+import com.epam.ta.reportportal.core.configs.RabbitMqConfiguration;
+import com.epam.ta.reportportal.core.launch.IStartLaunchHandler;
+import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Pavel Bortnik
  */
 @Component
-public class LaunchConsumer {
+public class LaunchReporterConsumer {
 
-	@RabbitListener(queues = "queue1")
+	@Autowired
+	private DatabaseUserDetailsService userDetailsService;
+
+	@Autowired
+	private IStartLaunchHandler startLaunchHandler;
+
+	@RabbitListener(queues = RabbitMqConfiguration.START_REPORTING_QUEUE)
 	public void startLaunch(StartLaunchRQ message) {
-		System.out.println(message.getName());
-		System.out.println(message.getDescription());
+		ReportPortalUser userDetails = (ReportPortalUser) userDetailsService.loadUserByUsername(message.getUsername());
+		startLaunchHandler.startLaunch(userDetails, message.getProjectName(), message);
+	}
+
+	@RabbitListener(queues = RabbitMqConfiguration.FINISH_REPORTING_QUEUE)
+	public void finishLaunch(FinishExecutionRQ rq) {
+		System.out.println(RabbitMqConfiguration.FINISH_REPORTING_QUEUE);
+		System.out.println(rq.getEndTime());
 	}
 
 }

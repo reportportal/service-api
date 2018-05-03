@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.database.dao.*;
-import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.project.KeepLogsDelay;
 import org.quartz.Job;
@@ -33,7 +32,9 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
-import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -50,9 +51,9 @@ import static java.time.Duration.ofDays;
 @Service
 public class CleanLogsJob implements Job {
 
+	public static final int DEFAULT_THREAD_COUNT = 20;
 	private static final Duration MIN_DELAY = Duration.ofDays(KeepLogsDelay.TWO_WEEKS.getDays() - 1);
-
-	private static final Duration MAX_DELAY = Duration.ofDays(KeepLogsDelay.SIX_MONTHS.getDays() + 1);
+	public static final long JOB_EXECUTION_TIMEOUT = 1L;
 
 	@Autowired
 	private LogRepository logRepo;
@@ -72,28 +73,36 @@ public class CleanLogsJob implements Job {
 	@Override
 	//	@Scheduled(cron = "${com.ta.reportportal.job.clean.logs.cron}")
 	public void execute(JobExecutionContext context) {
-		iterateOverPages(projectRepository::findAllIdsAndConfiguration, this::processProjects);
-	}
+		ExecutorService executor = Executors.newFixedThreadPool(DEFAULT_THREAD_COUNT);
 
-	private void processProjects(List<Project> projects) {
-		projects.forEach(project -> {
-			try {
-				Duration period = ofDays(findByName(project.getConfiguration().getKeepLogs()).getDays());
-				if (!period.isZero()) {
-					activityRepository.deleteModifiedLaterAgo(project.getId(), period);
-					removeOutdatedLogs(project.getId(), period);
+		iterateOverPages(projectRepository::findAllIdsAndConfiguration, projects -> projects.forEach(project -> {
+			executor.submit(() -> {
+				try {
+					Duration period = ofDays(findByName(project.getConfiguration().getKeepLogs()).getDays());
+					if (!period.isZero()) {
+						activityRepository.deleteModifiedLaterAgo(project.getId(), period);
+						removeOutdatedLogs(project.getId(), period);
+					}
+				} catch (Exception e) {
+					//do nothing
 				}
-			} catch (Exception e) {
-				//do nothing
-			}
-		});
+			});
+
+		}));
+
+
+		executor.shutdown();
+		try {
+			executor.awaitTermination(JOB_EXECUTION_TIMEOUT, TimeUnit.DAYS);
+		} catch (InterruptedException e) {
+			throw new RuntimeException("Job Execution timeout exceeded", e);
+		}
 	}
 
 	private void removeOutdatedLogs(String projectId, Duration period) {
-		Date beginDate = Date.from(Instant.now().minusSeconds(MAX_DELAY.getSeconds()));
 		Date endDate = Date.from(Instant.now().minusSeconds(MIN_DELAY.getSeconds()));
 
-		iterateOverPages(pageable -> launchRepo.getModifiedInRange(projectId, beginDate, endDate, pageable), launches -> {
+		iterateOverPages(pageable -> launchRepo.findModifiedBefore(projectId, endDate, pageable), launches -> {
 			launches.forEach(launch -> {
 				try (Stream<TestItem> testItemStream = testItemRepo.streamIdsByLaunch(launch.getId())) {
 					logRepo.deleteByPeriodAndItemsRef(period, testItemStream.map(TestItem::getId).collect(Collectors.toList()));

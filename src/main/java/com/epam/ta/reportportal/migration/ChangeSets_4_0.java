@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.migration;
 
+import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.epam.ta.reportportal.database.entity.ProjectAnalyzerConfig;
 import com.github.mongobee.changeset.ChangeLog;
 import com.github.mongobee.changeset.ChangeSet;
@@ -154,7 +155,13 @@ public class ChangeSets_4_0 {
 		mongoTemplate.stream(query, DBObject.class, collection).forEachRemaining(p -> {
 			BasicDBObject configuration = (BasicDBObject) p.get("configuration");
 			Boolean isAAEnabled = (Boolean) Optional.ofNullable(configuration.get("isAutoAnalyzerEnabled")).orElse(false);
-			String analyzerMode = (String) Optional.ofNullable(configuration.get("analyzerMode")).orElse(BY_LAUNCH_NAME.getValue());
+
+			String analyzerMode;
+			if (configuration.get("analyzerMode") != null) {
+				analyzerMode = AnalyzeMode.valueOf((String) configuration.get("analyzerMode")).getValue();
+			} else {
+				analyzerMode = BY_LAUNCH_NAME.getValue();
+			}
 
 			Update update = new Update();
 			update.unset("configuration.isAutoAnalyzerEnabled");

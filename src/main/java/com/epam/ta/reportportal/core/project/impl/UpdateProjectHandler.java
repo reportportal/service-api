@@ -427,8 +427,10 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		expect(analyzerStatusCache.getAnalyzerStatus().asMap().containsValue(projectName), equalTo(false)).verify(
 				ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
 
-		projectRepository.enableProjectIndexing(projectName, true);
 		User user = userRepository.findOne(username);
+		expect(user, notNull()).verify(ErrorType.USER_NOT_FOUND, username);
+
+		projectRepository.enableProjectIndexing(projectName, true);
 		logIndexer.deleteIndex(projectName);
 		taskExecutor.execute(() -> logIndexer.indexProjectData(project, user));
 		publisher.publishEvent(new ProjectIndexEvent(projectName, username, true));

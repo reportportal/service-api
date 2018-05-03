@@ -46,6 +46,7 @@ public final class AnalyzerConfigConverter {
 		analyzerConfig.setMinTermFreq(projectAnalyzerConfig.getMinTermFreq());
 		analyzerConfig.setMinShouldMatch(projectAnalyzerConfig.getMinShouldMatch());
 		analyzerConfig.setNumberOfLogLines(projectAnalyzerConfig.getNumberOfLogLines());
+		analyzerConfig.setIndexingRunning(projectAnalyzerConfig.isIndexingRunning());
 		return analyzerConfig;
 	};
 }

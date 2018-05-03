@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.core.analyzer;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.user.User;
 
 import java.util.List;
 
@@ -79,6 +80,7 @@ public interface ILogIndexer {
 	 * for specified project
 	 *
 	 * @param project Project
+	 * @param user    User
 	 */
-	void indexProjectData(Project project);
+	void indexProjectData(Project project, User user);
 }

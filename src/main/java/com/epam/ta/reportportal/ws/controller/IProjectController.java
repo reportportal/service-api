@@ -88,7 +88,7 @@ public interface IProjectController {
 	OperationCompletionRS deleteProject(String projectName, Principal principal);
 
 	/**
-	 * Delete project index.
+	 * Deletes project indexed data from analyzer
 	 *
 	 * @param projectName Project name
 	 * @param principal   Principal
@@ -96,6 +96,13 @@ public interface IProjectController {
 	 */
 	OperationCompletionRS deleteProjectIndex(String projectName, Principal principal);
 
+	/**
+	 * Removes project indexed data from analyzer if it exists and do reindex.
+	 *
+	 * @param projectName Project name
+	 * @param principal   Principal
+	 * @return OperationCompletionRS
+	 */
 	OperationCompletionRS indexProjectData(String projectName, Principal principal);
 
 	/**

@@ -428,8 +428,9 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 				ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
 
 		projectRepository.enableProjectIndexing(projectName, true);
+		User user = userRepository.findOne(username);
 		logIndexer.deleteIndex(projectName);
-		taskExecutor.execute(() -> logIndexer.indexProjectData(project));
+		taskExecutor.execute(() -> logIndexer.indexProjectData(project, user));
 		publisher.publishEvent(new ProjectIndexEvent(projectName, username, true));
 		return new OperationCompletionRS("Log indexing has been started");
 	}

@@ -36,6 +36,8 @@ import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.BasicDBObject;
@@ -108,6 +110,9 @@ public class LogIndexerService implements ILogIndexer {
 	@Autowired
 	private LogRepository logRepository;
 
+	@Autowired
+	private MailServiceFactory mailServiceFactory;
+
 	private RetryTemplate retrier;
 
 	public LogIndexerService() {
@@ -169,7 +174,7 @@ public class LogIndexerService implements ILogIndexer {
 	}
 
 	@Override
-	public void indexProjectData(Project project) {
+	public void indexProjectData(Project project, User user) {
 		BusinessRule.expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true))
 				.verify(ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer's clients.");
 
@@ -200,6 +205,7 @@ public class LogIndexerService implements ILogIndexer {
 		} finally {
 			projectRepository.enableProjectIndexing(project.getName(), false);
 		}
+		mailServiceFactory.getDefaultEmailService(true).sendIndexFinishedEmail("Index generation has been finished", user.getEmail());
 	}
 
 	@Override

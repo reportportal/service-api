@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -75,22 +76,22 @@ public class CleanLogsJob implements Job {
 
 	@Override
 	public void execute(JobExecutionContext context) {
-		LOGGER.info("Cleaning outdated logs has been started");
+		LOGGER.debug("Cleaning outdated logs has been started");
 		ExecutorService executor = Executors.newFixedThreadPool(DEFAULT_THREAD_COUNT);
 
 		iterateOverPages(projectRepository::findAllIdsAndConfiguration, projects -> projects.forEach(project -> {
 			executor.submit(() -> {
 				try {
-					LOGGER.info("Cleaning outdated logs for project {} has been started", project.getId());
+					LOGGER.debug("Cleaning outdated logs for project {} has been started", project.getId());
 					Duration period = ofDays(findByName(project.getConfiguration().getKeepLogs()).getDays());
 					if (!period.isZero()) {
 						activityRepository.deleteModifiedLaterAgo(project.getId(), period);
 						removeOutdatedLogs(project.getId(), period);
 					}
 				} catch (Exception e) {
-					LOGGER.info("Cleaning outdated logs for project {} has been failed", project.getId(), e);
+					LOGGER.debug("Cleaning outdated logs for project {} has been failed", project.getId(), e);
 				}
-				LOGGER.info("Cleaning outdated logs for project {} has been finished", project.getId());
+				LOGGER.debug("Cleaning outdated logs for project {} has been finished", project.getId());
 
 			});
 
@@ -107,18 +108,19 @@ public class CleanLogsJob implements Job {
 
 	private void removeOutdatedLogs(String projectId, Duration period) {
 		Date endDate = Date.from(Instant.now().minusSeconds(MIN_DELAY.getSeconds()));
-
+		AtomicLong countPerProject = new AtomicLong(0);
 		iterateOverPages(pageable -> launchRepo.findModifiedBefore(projectId, endDate, pageable), launches -> {
 			launches.forEach(launch -> {
 				try (Stream<TestItem> testItemStream = testItemRepo.streamIdsByLaunch(launch.getId())) {
-					logRepo.deleteByPeriodAndItemsRef(period, testItemStream.map(TestItem::getId).collect(Collectors.toList()));
+					long count = logRepo.deleteByPeriodAndItemsRef(period, testItemStream.map(TestItem::getId).collect(Collectors.toList()));
+					countPerProject.addAndGet(count);
 				} catch (Exception e) {
 					//do nothing
 				}
 			});
 
 		});
-
+		LOGGER.info("Removed {} logs for project {}", countPerProject.get(), projectId);
 	}
 
 }

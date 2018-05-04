@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofDays;
@@ -61,12 +62,15 @@ public class CleanScreenshotsJob implements Job {
 		LOGGER.info("Cleaning outdated screenshots has been started");
 
 		iterateOverPages(projectRepository::findAllIdsAndConfiguration, projects -> projects.forEach(project -> {
+			AtomicLong count = new AtomicLong(0);
+
 			try {
 				LOGGER.info("Cleaning outdated screenshots for project {} has been started", project.getId());
 
 				Duration period = ofDays(KeepScreenshotsDelay.findByName(project.getConfiguration().getKeepScreenshots()).getDays());
 				if (!period.isZero()) {
 					gridFS.findModifiedLaterAgo(period, project.getId()).forEach(file -> {
+						count.incrementAndGet();
 						gridFS.deleteData(file.getId().toString());
 						/* Clear binary_content fields from log repository */
 						logRepository.removeBinaryContent(file.getId().toString());
@@ -75,7 +79,7 @@ public class CleanScreenshotsJob implements Job {
 			} catch (Exception e) {
 				LOGGER.info("Cleaning outdated screenshots for project {} has been failed", project.getId(), e);
 			}
-			LOGGER.info("Cleaning outdated screenshots for project {} has been finished", project.getId());
+			LOGGER.info("Cleaning outdated screenshots for project {} has been finished. {} deleted", project.getId(), count.get());
 		}));
 
 	}

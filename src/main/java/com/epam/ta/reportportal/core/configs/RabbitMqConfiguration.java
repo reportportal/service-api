@@ -65,6 +65,7 @@ public class RabbitMqConfiguration {
 	public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(PlatformTransactionManager transactionManager) {
 		SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
 		factory.setConnectionFactory(connectionFactory());
+		factory.setDefaultRequeueRejected(false);
 		factory.setTransactionManager(transactionManager);
 		factory.setChannelTransacted(true);
 		factory.setMessageConverter(jsonMessageConverter());

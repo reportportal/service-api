@@ -24,17 +24,22 @@ package com.epam.ta.reportportal.ws.rabbit;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.core.configs.RabbitMqConfiguration;
+import com.epam.ta.reportportal.core.launch.IFinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.IStartLaunchHandler;
+import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.listener.RabbitListenerErrorHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Pavel Bortnik
  */
 @Component
-public class LaunchReporterConsumer implements LaunchConsumer {
+public class LaunchReporterConsumer {
 
 	@Autowired
 	private DatabaseUserDetailsService userDetailsService;
@@ -42,19 +47,21 @@ public class LaunchReporterConsumer implements LaunchConsumer {
 	@Autowired
 	private IStartLaunchHandler startLaunchHandler;
 
-	@Override
+	@Autowired
+	private IFinishLaunchHandler finishLaunchHandler;
+
 	@RabbitListener(queues = RabbitMqConfiguration.START_REPORTING_QUEUE)
-	public void startLaunch(StartLaunchRQ message) {
-		ReportPortalUser userDetails = (ReportPortalUser) userDetailsService.loadUserByUsername(message.getUsername());
-		startLaunchHandler.startLaunch(userDetails, message.getProjectName(), message);
+	public void startLaunch(@Payload StartLaunchRQ rq, @Header(MessageHeaders.USERNAME) String username,
+			@Header(MessageHeaders.PROJECT_NAME) String projectName) {
+		ReportPortalUser userDetails = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
+		startLaunchHandler.startLaunch(userDetails, projectName, rq);
 	}
 
-//	@Override
-//	@Transactional
-//	@RabbitListener(queues = RabbitMqConfiguration.FINISH_REPORTING_QUEUE)
-//	public void finishLaunch(FinishExecutionRQ rq) {
-//		System.out.println(RabbitMqConfiguration.FINISH_REPORTING_QUEUE);
-//		System.out.println(rq.getEndTime());
-//	}
+	@RabbitListener(queues = RabbitMqConfiguration.FINISH_REPORTING_QUEUE)
+	public void finishLaunch(@Payload FinishExecutionRQ rq, @Header(MessageHeaders.USERNAME) String username,
+			@Header(MessageHeaders.PROJECT_NAME) String projectName, @Header(MessageHeaders.LAUNCH_ID) Long launchId) {
+		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
+		finishLaunchHandler.finishLaunch(launchId, rq, projectName, user);
+	}
 
 }

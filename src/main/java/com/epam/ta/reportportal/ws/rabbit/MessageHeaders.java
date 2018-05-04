@@ -21,18 +21,17 @@
 
 package com.epam.ta.reportportal.ws.rabbit;
 
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 /**
  * @author Pavel Bortnik
  */
-public interface LaunchConsumer {
+public final class MessageHeaders {
 
-	@Transactional(propagation = Propagation.REQUIRED)
-	void startLaunch(StartLaunchRQ rq);
+	public static final String USERNAME = "username";
+	public static final String PROJECT_NAME = "projectName";
+	public static final String LAUNCH_ID = "launchId";
 
-//	void finishLaunch(StartLaunchRQ rq);
+	private MessageHeaders() {
+		//static only
+	}
 
 }

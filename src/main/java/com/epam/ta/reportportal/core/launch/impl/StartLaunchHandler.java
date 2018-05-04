@@ -34,6 +34,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 import static com.epam.ta.reportportal.store.commons.EntityUtils.takeProjectDetails;
 
 /**
@@ -67,6 +69,7 @@ class StartLaunchHandler implements IStartLaunchHandler {
 				.addUser(user.getUserId())
 				.addTags(startLaunchRQ.getTags())
 				.get();
+		launch.setUuid(UUID.randomUUID().toString());
 		launchRepository.saveAndFlush(launch);
 		launchRepository.refresh(launch);
 		//eventPublisher.publishEvent(new LaunchStartedEvent(launch));

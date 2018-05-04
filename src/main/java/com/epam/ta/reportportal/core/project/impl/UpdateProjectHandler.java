@@ -191,7 +191,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		ofNullable(modelConfig.getAnalyzerConfig()).ifPresent(analyzerConfig -> {
 			expect(analyzerStatusCache.getAnalyzerStatus().asMap().containsValue(projectName), equalTo(false)).verify(
 					ErrorType.FORBIDDEN_OPERATION, "Project settings can not be updated until auto-analysis proceeds");
-			ProjectAnalyzerConfig dbAnalyzerConfig = new ProjectAnalyzerConfig();
+			ProjectAnalyzerConfig dbAnalyzerConfig = ofNullable(dbConfig.getAnalyzerConfig()).orElse(new ProjectAnalyzerConfig());
 			ofNullable(analyzerConfig.getAnalyzerMode()).ifPresent(mode -> dbAnalyzerConfig.setAnalyzerMode(AnalyzeMode.fromString(mode)));
 			ofNullable(analyzerConfig.getIsAutoAnalyzerEnabled()).ifPresent(dbAnalyzerConfig::setIsAutoAnalyzerEnabled);
 			ofNullable(analyzerConfig.getMinDocFreq()).ifPresent(dbAnalyzerConfig::setMinDocFreq);
@@ -427,9 +427,12 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 		expect(analyzerStatusCache.getAnalyzerStatus().asMap().containsValue(projectName), equalTo(false)).verify(
 				ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
 
+		User user = userRepository.findOne(username);
+		expect(user, notNull()).verify(ErrorType.USER_NOT_FOUND, username);
+
 		projectRepository.enableProjectIndexing(projectName, true);
 		logIndexer.deleteIndex(projectName);
-		taskExecutor.execute(() -> logIndexer.indexProjectData(project));
+		taskExecutor.execute(() -> logIndexer.indexProjectData(project, user));
 		publisher.publishEvent(new ProjectIndexEvent(projectName, username, true));
 		return new OperationCompletionRS("Log indexing has been started");
 	}

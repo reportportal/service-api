@@ -40,10 +40,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.google.common.net.UrlEscapers.urlPathSegmentEscaper;
@@ -224,6 +221,18 @@ public class EmailService extends JavaMailSenderImpl {
 
 			message.addInline("restore-password.png", emailTemplateResource("restore-password.png"));
 			attachSocialImages(message);
+		};
+		this.send(preparator);
+	}
+
+	public void sendIndexFinishedEmail(final String subject, final String recipient)  {
+		MimeMessagePreparator preparator = mimeMessage -> {
+			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+			message.setSubject(subject);
+			message.setTo(recipient);
+			setFrom(message);
+			String text = templateEngine.merge("index-finished-template.ftl", Collections.emptyMap());
+			message.setText(text, true);
 		};
 		this.send(preparator);
 	}

@@ -63,6 +63,18 @@ public class JobsConfiguration {
 		return executor;
 	}
 
+	@Bean(name = "cleanLogsTaskExecutor")
+	public TaskExecutor cleanLogsTaskExecutor() {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(20);
+		executor.setMaxPoolSize(100);
+		executor.setQueueCapacity(400);
+		executor.setAllowCoreThreadTimeOut(true);
+		executor.setThreadNamePrefix("clean-logs-task-exec");
+		executor.setRejectedExecutionHandler(new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
+		return executor;
+	}
+
 	@Bean(name = "saveBinaryDataJob")
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public SaveBinaryDataJob saveBinaryDataJob() {

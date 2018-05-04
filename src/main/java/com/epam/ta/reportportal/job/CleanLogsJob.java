@@ -26,6 +26,8 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.project.KeepLogsDelay;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -52,8 +54,9 @@ import static java.time.Duration.ofDays;
 public class CleanLogsJob implements Job {
 
 	public static final int DEFAULT_THREAD_COUNT = 20;
-	private static final Duration MIN_DELAY = Duration.ofDays(KeepLogsDelay.TWO_WEEKS.getDays() - 1);
 	public static final long JOB_EXECUTION_TIMEOUT = 1L;
+	private static final Duration MIN_DELAY = Duration.ofDays(KeepLogsDelay.TWO_WEEKS.getDays() - 1);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CleanLogsJob.class);
 
 	@Autowired
 	private LogRepository logRepo;
@@ -71,28 +74,31 @@ public class CleanLogsJob implements Job {
 	private ActivityRepository activityRepository;
 
 	@Override
-	//	@Scheduled(cron = "${com.ta.reportportal.job.clean.logs.cron}")
 	public void execute(JobExecutionContext context) {
+		LOGGER.info("Cleaning outdated logs has been started");
 		ExecutorService executor = Executors.newFixedThreadPool(DEFAULT_THREAD_COUNT);
 
 		iterateOverPages(projectRepository::findAllIdsAndConfiguration, projects -> projects.forEach(project -> {
 			executor.submit(() -> {
 				try {
+					LOGGER.info("Cleaning outdated logs for project {} has been started", project.getId());
 					Duration period = ofDays(findByName(project.getConfiguration().getKeepLogs()).getDays());
 					if (!period.isZero()) {
 						activityRepository.deleteModifiedLaterAgo(project.getId(), period);
 						removeOutdatedLogs(project.getId(), period);
 					}
 				} catch (Exception e) {
-					//do nothing
+					LOGGER.info("Cleaning outdated logs for project {} has been failed", project.getId(), e);
 				}
+				LOGGER.info("Cleaning outdated logs for project {} has been finished", project.getId());
+
 			});
 
 		}));
 
-
 		executor.shutdown();
 		try {
+			LOGGER.info("Awaiting cleaning outdated screenshot to finish");
 			executor.awaitTermination(JOB_EXECUTION_TIMEOUT, TimeUnit.DAYS);
 		} catch (InterruptedException e) {
 			throw new RuntimeException("Job Execution timeout exceeded", e);

@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.store.config;
 
 import com.epam.ta.reportportal.store.database.dao.ReportPortalRepositoryImpl;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;

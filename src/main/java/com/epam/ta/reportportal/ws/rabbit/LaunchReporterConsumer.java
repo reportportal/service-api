@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.core.configs.RabbitMqConfiguration;
 import com.epam.ta.reportportal.core.launch.IStartLaunchHandler;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +34,7 @@ import org.springframework.stereotype.Component;
  * @author Pavel Bortnik
  */
 @Component
-public class LaunchReporterConsumer {
+public class LaunchReporterConsumer implements LaunchConsumer {
 
 	@Autowired
 	private DatabaseUserDetailsService userDetailsService;
@@ -43,16 +42,19 @@ public class LaunchReporterConsumer {
 	@Autowired
 	private IStartLaunchHandler startLaunchHandler;
 
+	@Override
 	@RabbitListener(queues = RabbitMqConfiguration.START_REPORTING_QUEUE)
 	public void startLaunch(StartLaunchRQ message) {
 		ReportPortalUser userDetails = (ReportPortalUser) userDetailsService.loadUserByUsername(message.getUsername());
 		startLaunchHandler.startLaunch(userDetails, message.getProjectName(), message);
 	}
 
-	@RabbitListener(queues = RabbitMqConfiguration.FINISH_REPORTING_QUEUE)
-	public void finishLaunch(FinishExecutionRQ rq) {
-		System.out.println(RabbitMqConfiguration.FINISH_REPORTING_QUEUE);
-		System.out.println(rq.getEndTime());
-	}
+//	@Override
+//	@Transactional
+//	@RabbitListener(queues = RabbitMqConfiguration.FINISH_REPORTING_QUEUE)
+//	public void finishLaunch(FinishExecutionRQ rq) {
+//		System.out.println(RabbitMqConfiguration.FINISH_REPORTING_QUEUE);
+//		System.out.println(rq.getEndTime());
+//	}
 
 }

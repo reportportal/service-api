@@ -24,10 +24,10 @@ package com.epam.ta.reportportal.ws.rabbit;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.core.configs.RabbitMqConfiguration;
-import com.epam.ta.reportportal.core.launch.IFinishLaunchHandler;
-import com.epam.ta.reportportal.core.launch.IStartLaunchHandler;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
+import com.epam.ta.reportportal.core.item.StartTestItemHandler;
+import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
+import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
@@ -38,29 +38,36 @@ import org.springframework.stereotype.Component;
  * @author Pavel Bortnik
  */
 @Component
-public class LaunchReporterConsumer {
+public class TestReporterConsumer {
 
 	@Autowired
 	private DatabaseUserDetailsService userDetailsService;
 
 	@Autowired
-	private IStartLaunchHandler startLaunchHandler;
+	private StartTestItemHandler startTestItemHandler;
 
 	@Autowired
-	private IFinishLaunchHandler finishLaunchHandler;
+	private FinishTestItemHandler finishTestItemHandler;
 
 	@RabbitListener(queues = RabbitMqConfiguration.START_REPORTING_QUEUE)
-	public void startLaunch(@Payload StartLaunchRQ rq, @Header(MessageHeaders.USERNAME) String username,
-			@Header(MessageHeaders.PROJECT_NAME) String projectName) {
-		ReportPortalUser userDetails = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
-		startLaunchHandler.startLaunch(userDetails, projectName, rq);
+	public void startRootItem(@Header(MessageHeaders.USERNAME) String username, @Header(MessageHeaders.PROJECT_NAME) String projectName,
+			@Payload StartTestItemRQ rq) {
+		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
+		startTestItemHandler.startRootItem(user, projectName, rq);
+	}
+
+	@RabbitListener(queues = RabbitMqConfiguration.START_REPORTING_QUEUE)
+	public void startChildItem(@Header(MessageHeaders.USERNAME) String username, @Header(MessageHeaders.PROJECT_NAME) String projectName,
+			@Header(MessageHeaders.ITEM_ID) Long itemId, @Payload StartTestItemRQ rq) {
+		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
+		startTestItemHandler.startChildItem(user, projectName, rq, itemId);
 	}
 
 	@RabbitListener(queues = RabbitMqConfiguration.FINISH_REPORTING_QUEUE)
-	public void finishLaunch(@Payload FinishExecutionRQ rq, @Header(MessageHeaders.USERNAME) String username,
-			@Header(MessageHeaders.PROJECT_NAME) String projectName, @Header(MessageHeaders.LAUNCH_ID) Long launchId) {
+	public void finishTestItem(@Header(MessageHeaders.USERNAME) String username, @Header(MessageHeaders.PROJECT_NAME) String projectName,
+			@Header(MessageHeaders.ITEM_ID) Long itemId, @Payload FinishTestItemRQ rq) {
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
-		finishLaunchHandler.finishLaunch(launchId, rq, projectName, user);
+		finishTestItemHandler.finishTestItem(user, projectName, itemId, rq);
 	}
 
 }

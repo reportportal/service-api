@@ -27,6 +27,7 @@ import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFacto
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
@@ -40,11 +41,11 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 public class RabbitMqConfiguration {
 
-	public static final String EXCHANGE_KEY = "reporting-exchange-1";
-	public static final String START_REPORTING_QUEUE = "start-reporting-queue";
-	public static final String FINISH_REPORTING_QUEUE = "finish-reporting-queue";
-	public static final String START_ROUTING_KEY = "start";
-	public static final String FINISH_ROUTING_KEY = "finish";
+	public static final String START_LAUNCH_QUEUE = "start-launch";
+	public static final String FINISH_LAUNCH_QUEUE = "finish-launch";
+	public static final String START_ITEM_QUEUE = "start-parent-item";
+	public static final String START_CHILD_QUEUE = "start-child-item";
+	public static final String FINISH_ITEM_QUEUE = "finish-item";
 
 	@Bean
 	public MessageConverter jsonMessageConverter() {
@@ -75,28 +76,35 @@ public class RabbitMqConfiguration {
 	}
 
 	@Bean
-	public DirectExchange directExchange() {
-		return new DirectExchange(EXCHANGE_KEY);
+	public Queue startLaunchQueue() {
+		return new Queue(START_LAUNCH_QUEUE);
 	}
 
 	@Bean
-	public Queue startReportingQueue() {
-		return new Queue(START_REPORTING_QUEUE);
+	public Queue finishLaunchQueue() {
+		return new Queue(FINISH_LAUNCH_QUEUE);
 	}
 
 	@Bean
-	public Queue finishReportingQueue() {
-		return new Queue(FINISH_REPORTING_QUEUE);
+	public Queue startItemQueue() {
+		return new Queue(START_ITEM_QUEUE);
 	}
 
 	@Bean
-	public Binding startReportingBinding() {
-		return BindingBuilder.bind(startReportingQueue()).to(directExchange()).with(START_ROUTING_KEY);
+	public Queue startChildQueue() {
+		return new Queue(START_CHILD_QUEUE);
 	}
 
 	@Bean
-	public Binding finishReportingBinding() {
-		return BindingBuilder.bind(finishReportingQueue()).to(directExchange()).with(FINISH_ROUTING_KEY);
+	public Queue finishItemQueue() {
+		return new Queue(FINISH_ITEM_QUEUE);
+	}
+
+	@Bean
+	public RabbitTemplate amqpTemplate() {
+		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory());
+		rabbitTemplate.setMessageConverter(jsonMessageConverter());
+		return rabbitTemplate;
 	}
 
 }

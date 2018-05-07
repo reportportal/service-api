@@ -49,21 +49,21 @@ public class TestReporterConsumer {
 	@Autowired
 	private FinishTestItemHandler finishTestItemHandler;
 
-	@RabbitListener(queues = RabbitMqConfiguration.START_REPORTING_QUEUE)
+	@RabbitListener(queues = RabbitMqConfiguration.START_ITEM_QUEUE)
 	public void startRootItem(@Header(MessageHeaders.USERNAME) String username, @Header(MessageHeaders.PROJECT_NAME) String projectName,
 			@Payload StartTestItemRQ rq) {
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
 		startTestItemHandler.startRootItem(user, projectName, rq);
 	}
 
-	@RabbitListener(queues = RabbitMqConfiguration.START_REPORTING_QUEUE)
+	@RabbitListener(queues = RabbitMqConfiguration.START_CHILD_QUEUE)
 	public void startChildItem(@Header(MessageHeaders.USERNAME) String username, @Header(MessageHeaders.PROJECT_NAME) String projectName,
-			@Header(MessageHeaders.ITEM_ID) Long itemId, @Payload StartTestItemRQ rq) {
+			@Header(MessageHeaders.ITEM_ID) Long parentId, @Payload StartTestItemRQ rq) {
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
-		startTestItemHandler.startChildItem(user, projectName, rq, itemId);
+		startTestItemHandler.startChildItem(user, projectName, rq, parentId);
 	}
 
-	@RabbitListener(queues = RabbitMqConfiguration.FINISH_REPORTING_QUEUE)
+	@RabbitListener(queues = RabbitMqConfiguration.FINISH_ITEM_QUEUE)
 	public void finishTestItem(@Header(MessageHeaders.USERNAME) String username, @Header(MessageHeaders.PROJECT_NAME) String projectName,
 			@Header(MessageHeaders.ITEM_ID) Long itemId, @Payload FinishTestItemRQ rq) {
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);

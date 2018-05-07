@@ -34,7 +34,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 import java.util.Date;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -61,6 +63,7 @@ public class LaunchBuilder implements Supplier<Launch> {
 		launch.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(request.getStartTime()));
 		launch.setName(request.getName().trim());
 		launch.setStatus(StatusEnum.IN_PROGRESS);
+		launch.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
 		addDescription(request.getDescription());
 		addTags(newHashSet(trimStrings(update(request.getTags()))));
 		ofNullable(request.getMode()).ifPresent(it -> launch.setMode(LaunchModeEnum.valueOf(request.getMode().name())));

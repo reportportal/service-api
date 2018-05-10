@@ -178,33 +178,36 @@ public class LogIndexerService implements ILogIndexer {
 
 	@Override
 	public void indexProjectData(Project project, User user) {
-		BusinessRule.expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true))
-				.verify(ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer's clients.");
+		try {
+			BusinessRule.expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true))
+					.verify(ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer's clients.");
 
-		List<String> projectItems = testItemRepository.findIdsByLaunch(launchRepository.findLaunchIdsByProjectId(project.getId()))
-				.stream()
-				.map(TestItem::getId)
-				.collect(toList());
+			List<String> projectItems = testItemRepository.findIdsByLaunch(launchRepository.findLaunchIdsByProjectId(project.getId()))
+					.stream()
+					.map(TestItem::getId)
+					.collect(toList());
 
-		Query logQuery = getLogQuery(null);
-		logQuery.addCriteria(where(TEST_ITEM_REF).in(projectItems));
-		try (CloseableIterator<Log> logIterator = mongoOperations.stream(logQuery, Log.class)) {
-			List<IndexLaunch> rq = new ArrayList<>(BATCH_SIZE);
-			while (logIterator.hasNext()) {
-				Log log = logIterator.next();
-				IndexLaunch rqLaunch = createRqLaunch(log);
-				if (rqLaunch != null) {
-					rqLaunch.getTestItems().forEach(it -> it.setAutoAnalyzed(true));
-					rqLaunch.setAnalyzerConfig(AnalyzerConfigConverter.TO_RESOURCE.apply(project.getConfiguration().getAnalyzerConfig()));
-					rq.add(rqLaunch);
-					if (rq.size() == BATCH_SIZE || !logIterator.hasNext()) {
-						analyzerServiceClient.index(rq);
-						rq = new ArrayList<>(BATCH_SIZE);
+			Query logQuery = getLogQuery(null);
+			logQuery.addCriteria(where(TEST_ITEM_REF).in(projectItems));
+			try (CloseableIterator<Log> logIterator = mongoOperations.stream(logQuery, Log.class)) {
+				List<IndexLaunch> rq = new ArrayList<>(BATCH_SIZE);
+				while (logIterator.hasNext()) {
+					Log log = logIterator.next();
+					IndexLaunch rqLaunch = createRqLaunch(log);
+					if (rqLaunch != null) {
+						rqLaunch.getTestItems().forEach(it -> it.setAutoAnalyzed(true));
+						rqLaunch.setAnalyzerConfig(
+								AnalyzerConfigConverter.TO_RESOURCE.apply(project.getConfiguration().getAnalyzerConfig()));
+						rq.add(rqLaunch);
+						if (rq.size() == BATCH_SIZE || !logIterator.hasNext()) {
+							analyzerServiceClient.index(rq);
+							rq = new ArrayList<>(BATCH_SIZE);
+						}
 					}
 				}
-			}
-			if (!CollectionUtils.isEmpty(rq)) {
-				analyzerServiceClient.index(rq);
+				if (!CollectionUtils.isEmpty(rq)) {
+					analyzerServiceClient.index(rq);
+				}
 			}
 		} finally {
 			projectRepository.enableProjectIndexing(project.getName(), false);

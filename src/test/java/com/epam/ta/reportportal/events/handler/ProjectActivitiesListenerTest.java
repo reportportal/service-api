@@ -73,6 +73,11 @@ public class ProjectActivitiesListenerTest extends BaseMvcTest {
 		AnalyzerConfig analyzerConfig = new AnalyzerConfig();
 		analyzerConfig.setIsAutoAnalyzerEnabled(false);
 		analyzerConfig.setAnalyzerMode(AnalyzeMode.BY_LAUNCH_NAME.getValue());
+		analyzerConfig.setIndexingRunning(false);
+		analyzerConfig.setNumberOfLogLines(2);
+		analyzerConfig.setMinShouldMatch(80);
+		analyzerConfig.setMinTermFreq(2);
+		analyzerConfig.setMinDocFreq(7);
 		projectConfiguration.setAnalyzerConfig(analyzerConfig);
 		updateProjectRQ.setConfiguration(projectConfiguration);
 

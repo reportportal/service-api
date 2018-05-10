@@ -38,6 +38,7 @@ import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
+import com.epam.ta.reportportal.ws.converter.converters.AnalyzerConfigConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.BasicDBObject;
@@ -155,6 +156,8 @@ public class LogIndexerService implements ILogIndexer {
 				rqLaunch.setLaunchId(launchId);
 				rqLaunch.setLaunchName(launch.getName());
 				rqLaunch.setProject(launch.getProjectRef());
+				rqLaunch.setAnalyzerConfig(AnalyzerConfigConverter.TO_RESOURCE.apply(
+						projectRepository.findOne(launch.getProjectRef()).getConfiguration().getAnalyzerConfig()));
 				rqLaunch.setTestItems(rqTestItems);
 				List<IndexRs> rs = analyzerServiceClient.index(Collections.singletonList(rqLaunch));
 				retryFailed(rs);
@@ -192,6 +195,7 @@ public class LogIndexerService implements ILogIndexer {
 				IndexLaunch rqLaunch = createRqLaunch(log);
 				if (rqLaunch != null) {
 					rqLaunch.getTestItems().forEach(it -> it.setAutoAnalyzed(true));
+					rqLaunch.setAnalyzerConfig(AnalyzerConfigConverter.TO_RESOURCE.apply(project.getConfiguration().getAnalyzerConfig()));
 					rq.add(rqLaunch);
 					if (rq.size() == BATCH_SIZE || !logIterator.hasNext()) {
 						analyzerServiceClient.index(rq);

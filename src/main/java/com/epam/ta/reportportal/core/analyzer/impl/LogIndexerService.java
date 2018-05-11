@@ -41,6 +41,8 @@ import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.converters.AnalyzerConfigConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.UnmodifiableIterator;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -64,6 +66,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -189,26 +192,21 @@ public class LogIndexerService implements ILogIndexer {
 
 			Query logQuery = getLogQuery(null);
 			logQuery.addCriteria(where(TEST_ITEM_REF).in(projectItems));
+
 			try (CloseableIterator<Log> logIterator = mongoOperations.stream(logQuery, Log.class)) {
-				List<IndexLaunch> rq = new ArrayList<>(BATCH_SIZE);
-				while (logIterator.hasNext()) {
-					Log log = logIterator.next();
-					IndexLaunch rqLaunch = createRqLaunch(log);
-					if (rqLaunch != null) {
-						rqLaunch.getTestItems().forEach(it -> it.setAutoAnalyzed(true));
-						rqLaunch.setAnalyzerConfig(
-								AnalyzerConfigConverter.TO_RESOURCE.apply(project.getConfiguration().getAnalyzerConfig()));
-						rq.add(rqLaunch);
-						if (rq.size() == BATCH_SIZE || !logIterator.hasNext()) {
-							analyzerServiceClient.index(rq);
-							rq = new ArrayList<>(BATCH_SIZE);
-						}
-					}
-				}
-				if (!CollectionUtils.isEmpty(rq)) {
-					analyzerServiceClient.index(rq);
+				UnmodifiableIterator<List<Log>> partition = Iterators.partition(logIterator, BATCH_SIZE);
+				while (partition.hasNext()) {
+					List<Log> batchLogs = partition.next();
+					List<IndexLaunch> rqLaunches = batchLogs.stream().map(this::createRqLaunch).collect(toList());
+
+					rqLaunches.stream().filter(Objects::nonNull).forEach(launch -> {
+						launch.getTestItems().forEach(it -> it.setAutoAnalyzed(true));
+						launch.setAnalyzerConfig(AnalyzerConfigConverter.TO_RESOURCE.apply(project.getConfiguration().getAnalyzerConfig()));
+					});
+					analyzerServiceClient.index(rqLaunches);
 				}
 			}
+
 		} finally {
 			projectRepository.enableProjectIndexing(project.getName(), false);
 		}

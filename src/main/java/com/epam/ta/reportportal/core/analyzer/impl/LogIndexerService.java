@@ -205,12 +205,12 @@ public class LogIndexerService implements ILogIndexer {
 					});
 					analyzerServiceClient.index(rqLaunches);
 				}
+				mailServiceFactory.getDefaultEmailService(true)
+						.sendIndexFinishedEmail("Index generation has been finished", user.getEmail());
 			}
-
 		} finally {
 			projectRepository.enableProjectIndexing(project.getName(), false);
 		}
-		mailServiceFactory.getDefaultEmailService(true).sendIndexFinishedEmail("Index generation has been finished", user.getEmail());
 	}
 
 	@Override

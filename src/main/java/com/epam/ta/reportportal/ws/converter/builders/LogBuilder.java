@@ -47,16 +47,6 @@ public class LogBuilder implements Supplier<Log> {
 		return this;
 	}
 
-	public LogBuilder addFilePath(String filePath) {
-		log.setFilePath(filePath);
-		return this;
-	}
-
-	public LogBuilder addContentType(String contentType) {
-		log.setContentType(contentType);
-		return this;
-	}
-
 	public LogBuilder addTestItem(TestItem testItem) {
 		log.setTestItem(testItem);
 		return this;

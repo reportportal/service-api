@@ -1,8 +1,10 @@
 package com.epam.ta.reportportal.store.filesystem;
 
-import com.epam.ta.reportportal.store.database.BinaryData;
+import java.io.InputStream;
 
 public interface DataStore {
 
-	String save(String fileName, BinaryData binaryData);
+	String save(String fileName, InputStream inputStream);
+
+	InputStream load(String filePath);
 }

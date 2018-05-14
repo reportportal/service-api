@@ -80,12 +80,21 @@ public class CreateLogHandler implements ICreateLogHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, createLogRQ.getTestItemId()));
 		validate(testItem, createLogRQ);
 
-		String filePath = dataStore.save(file.getOriginalFilename(), new BinaryData(file));
+		//TODO implement save binary content
+		//		BinaryContent binaryContent = null;
+		//		if (null != file) {
+		//			try {
+		//				String binaryDataId = dataStorage.saveData(new BinaryData(file.getContentType(), file.getSize(), file.getInputStream()),
+		//						file.getOriginalFilename()
+		//				);
+		//				binaryContent = new BinaryContent(binaryDataId, null, file.getContentType());
+		//			} catch (IOException e) {
+		//				throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to save log");
+		//			}
+		//		}
 
 		Log log = new LogBuilder().addSaveLogRq(createLogRQ)
 				.addTestItem(testItem)
-				.addFilePath(filePath)
-				.addContentType(file.getContentType())
 				.get();
 
 		logRepository.save(log);

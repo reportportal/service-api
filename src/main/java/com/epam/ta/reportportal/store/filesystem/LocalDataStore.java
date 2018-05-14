@@ -1,7 +1,6 @@
 package com.epam.ta.reportportal.store.filesystem;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.database.BinaryData;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,9 +8,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 @Component
 public class LocalDataStore implements DataStore {
@@ -28,7 +31,7 @@ public class LocalDataStore implements DataStore {
 	}
 
 	@Override
-	public String save(String fileName, BinaryData binaryData) {
+	public String save(String fileName, InputStream inputStream) {
 
 		String result;
 
@@ -45,12 +48,27 @@ public class LocalDataStore implements DataStore {
 
 			logger.debug("Saving to: {} ", targetPath.toAbsolutePath());
 
-			Files.copy(binaryData.getInputStream(), targetPath);
+			Files.copy(inputStream, targetPath); // TODO: retry if exists ?
 		} catch (IOException e) {
 
 			logger.error("Error ", e);
 
 			throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to save log file");
+		}
+
+		return result;
+	}
+
+	@Override
+	public InputStream load(String filePath) {
+
+		InputStream result;
+		try {
+
+			result = Files.newInputStream(Paths.get(filePath));
+		} catch (IOException e) {
+
+			throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to find file");
 		}
 
 		return result;

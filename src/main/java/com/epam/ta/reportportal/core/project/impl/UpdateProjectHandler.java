@@ -168,25 +168,26 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 
 	private void processConfiguration(ProjectConfiguration modelConfig, Project.Configuration dbConfig, String projectName,
 			String principalName) {
-		if (null != modelConfig.getKeepLogs()) {
-			expect(KeepLogsDelay.findByName(modelConfig.getKeepLogs()), notNull()).verify(BAD_REQUEST_ERROR);
-			dbConfig.setKeepLogs(modelConfig.getKeepLogs());
-		}
 
-		if (null != modelConfig.getInterruptJobTime()) {
-			expect(InterruptionJobDelay.findByName(modelConfig.getInterruptJobTime()), notNull()).verify(BAD_REQUEST_ERROR);
-			dbConfig.setInterruptJobTime(modelConfig.getInterruptJobTime());
-		}
+		ofNullable(modelConfig.getKeepLogs()).ifPresent(keepLogs -> {
+			expect(KeepLogsDelay.findByName(keepLogs), notNull()).verify(BAD_REQUEST_ERROR);
+			dbConfig.setKeepLogs(keepLogs);
+		});
 
-		if (null != modelConfig.getKeepScreenshots()) {
-			expect(KeepScreenshotsDelay.findByName(modelConfig.getKeepScreenshots()), notNull()).verify(BAD_REQUEST_ERROR);
-			dbConfig.setKeepScreenshots(modelConfig.getKeepScreenshots());
-		}
+		ofNullable(modelConfig.getInterruptJobTime()).ifPresent(jobTime -> {
+			expect(InterruptionJobDelay.findByName(jobTime), notNull()).verify(BAD_REQUEST_ERROR);
+			dbConfig.setInterruptJobTime(jobTime);
+		});
 
-		if (null != modelConfig.getProjectSpecific()) {
-			expect(ProjectSpecific.findByName(modelConfig.getProjectSpecific()).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR);
-			dbConfig.setProjectSpecific(ProjectSpecific.findByName(modelConfig.getProjectSpecific()).get());
-		}
+		ofNullable(modelConfig.getKeepScreenshots()).ifPresent(keepScreens -> {
+			expect(KeepScreenshotsDelay.findByName(keepScreens), notNull()).verify(BAD_REQUEST_ERROR);
+			dbConfig.setKeepScreenshots(keepScreens);
+		});
+
+		ofNullable(modelConfig.getProjectSpecific()).ifPresent(specific -> {
+			expect(ProjectSpecific.findByName(specific).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR);
+			dbConfig.setProjectSpecific(ProjectSpecific.findByName(specific).get());
+		});
 
 		ofNullable(modelConfig.getAnalyzerConfig()).ifPresent(analyzerConfig -> {
 			expect(analyzerStatusCache.getAnalyzerStatus().asMap().containsValue(projectName), equalTo(false)).verify(
@@ -201,17 +202,13 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			dbConfig.setAnalyzerConfig(dbAnalyzerConfig);
 		});
 
-		if (null != modelConfig.getStatisticCalculationStrategy()) {
-			dbConfig.setStatisticsCalculationStrategy(fromString(modelConfig.getStatisticCalculationStrategy()).orElseThrow(
-					() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-							"Incorrect statistics calculation type: " + modelConfig.getStatisticCalculationStrategy()
-					)));
-		}
+		ofNullable(modelConfig.getStatisticCalculationStrategy()).ifPresent(strategy -> dbConfig.setStatisticsCalculationStrategy(
+				fromString(strategy).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+						"Incorrect statistics calculation type: " + strategy
+				))));
 
-		if (null != modelConfig.getEmailConfig()) {
-			updateProjectEmailConfig(projectName, principalName, modelConfig.getEmailConfig());
-		}
-
+		ofNullable(modelConfig.getEmailConfig()).ifPresent(
+				emailConfig -> updateProjectEmailConfig(projectName, principalName, modelConfig.getEmailConfig()));
 	}
 
 	@Override

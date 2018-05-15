@@ -76,7 +76,7 @@ public class ProjectActivityHandler {
 			processKeepLogs(history, project, configuration);
 			processKeepScreenshots(history, project, configuration);
 			processLaunchInactivityTimeout(history, project, configuration);
-			processAutoAnalyze(history, project, configuration);
+			ofNullable(configuration.getAnalyzerConfig()).ifPresent(analyzerConfig -> processAutoAnalyze(history, project, analyzerConfig));
 			processAnalyzerConfig(history, project, configuration.getAnalyzerConfig());
 			processStatisticsStrategy(history, project, configuration);
 		}
@@ -153,15 +153,14 @@ public class ProjectActivityHandler {
 		}
 	}
 
-	private void processAutoAnalyze(List<Activity.FieldValues> history, Project project, ProjectConfiguration configuration) {
-		if (null != configuration.getAnalyzerConfig().getIsAutoAnalyzerEnabled() && !configuration.getAnalyzerConfig()
-				.getIsAutoAnalyzerEnabled()
+	private void processAutoAnalyze(List<Activity.FieldValues> history, Project project, AnalyzerConfig analyzerConfig) {
+		if (null != analyzerConfig.getIsAutoAnalyzerEnabled() && !analyzerConfig.getIsAutoAnalyzerEnabled()
 				.equals(project.getConfiguration().getAnalyzerConfig().getIsAutoAnalyzerEnabled())) {
 			String oldValue = project.getConfiguration().getAnalyzerConfig().getIsAutoAnalyzerEnabled() == null ?
 					"" :
 					project.getConfiguration().getAnalyzerConfig().getIsAutoAnalyzerEnabled().toString();
 			Activity.FieldValues fieldValues = createHistoryField(
-					AUTO_ANALYZE, oldValue, configuration.getAnalyzerConfig().getIsAutoAnalyzerEnabled().toString());
+					AUTO_ANALYZE, oldValue, analyzerConfig.getIsAutoAnalyzerEnabled().toString());
 			history.add(fieldValues);
 		}
 	}

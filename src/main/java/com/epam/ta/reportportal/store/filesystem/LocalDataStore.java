@@ -42,7 +42,7 @@ public class LocalDataStore implements DataStore {
 
 			logger.debug("Saving to: {} ", targetPath.toAbsolutePath());
 
-			Files.copy(inputStream, targetPath); // TODO: retry if exists ?
+			Files.copy(inputStream, targetPath);
 
 			return targetPath.toString();
 		} catch (IOException e) {

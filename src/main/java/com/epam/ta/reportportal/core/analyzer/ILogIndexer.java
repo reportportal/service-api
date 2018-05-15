@@ -50,8 +50,9 @@ public interface ILogIndexer {
 	 *
 	 * @param launchId  - ID of the launch
 	 * @param testItems - list of test items, for which log indexing will be performed
+	 * @return The count of indexed test items
 	 */
-	void indexLogs(String launchId, List<TestItem> testItems);
+	Long indexLogs(String launchId, List<TestItem> testItems);
 
 	/**
 	 * Delete index of specified project

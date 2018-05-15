@@ -1,35 +1,45 @@
 package com.epam.ta.reportportal.store.filesystem.distributed;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.google.common.base.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.lokra.seaweedfs.core.FileSource;
+import org.testcontainers.containers.GenericContainer;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.function.Consumer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@Ignore("use weed.exe server -dir=\"d:/data/seaweed\" to start seaweed server")
 public class SeaweedDataStoreTest {
 
 	private static final String TEST_FILE = "test-file.txt";
 
 	private SeaweedDataStore dataStore;
 
+	@ClassRule
+	public static GenericContainer seaweedMaster = new GenericContainer("chrislusf/seaweedfs:latest").withExposedPorts(8080, 9333)
+			.withCommand("server")
+			.withCreateContainerCmdModifier(new Consumer<CreateContainerCmd>() {
+				@Override
+				public void accept(CreateContainerCmd cmd) {
+
+					cmd.withHostName("localhost");
+				}
+			});
+
 	@Before
 	public void setUp() throws Exception {
 
 		FileSource fileSource = new FileSource();
-		// SeaweedFS master server host
-		fileSource.setHost("localhost");
-		// SeaweedFS master server port
-		fileSource.setPort(9333);
-		// Startup manager and listens for the change
+		fileSource.setHost(seaweedMaster.getContainerIpAddress());
+		fileSource.setPort(seaweedMaster.getMappedPort(9333));
 		fileSource.startup();
 
 		dataStore = new SeaweedDataStore(fileSource);

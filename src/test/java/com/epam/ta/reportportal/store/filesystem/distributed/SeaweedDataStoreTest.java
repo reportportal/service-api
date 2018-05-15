@@ -11,9 +11,10 @@ import org.lokra.seaweedfs.core.FileSource;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-@Ignore
+@Ignore("use weed.exe server -dir=\"d:/data/seaweed\" to start seaweed server")
 public class SeaweedDataStoreTest {
 
 	private static final String TEST_FILE = "test-file.txt";
@@ -38,8 +39,6 @@ public class SeaweedDataStoreTest {
 	public void save_load_delete() throws Exception {
 
 		String savedFilePath = dataStore.save(TEST_FILE, new ByteArrayInputStream("test text".getBytes(Charsets.UTF_8)));
-
-		System.out.println("savedFilePath " + savedFilePath);
 
 		//		and: load it back
 		InputStream loaded = dataStore.load(savedFilePath);

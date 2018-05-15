@@ -7,4 +7,6 @@ public interface DataStore {
 	String save(String fileName, InputStream inputStream);
 
 	InputStream load(String filePath);
+
+	void delete(String filePath);
 }

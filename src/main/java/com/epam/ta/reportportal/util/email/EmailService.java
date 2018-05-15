@@ -40,11 +40,15 @@ import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Properties;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.google.common.net.UrlEscapers.urlPathSegmentEscaper;
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
 
 /**
@@ -225,13 +229,15 @@ public class EmailService extends JavaMailSenderImpl {
 		this.send(preparator);
 	}
 
-	public void sendIndexFinishedEmail(final String subject, final String recipient)  {
+	public void sendIndexFinishedEmail(final String subject, final String recipient, final Long indexedLogsCount) {
 		MimeMessagePreparator preparator = mimeMessage -> {
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
 			message.setSubject(subject);
 			message.setTo(recipient);
+			Map<String, String> email = new HashMap<>();
+			email.put("indexedLogsCount", String.valueOf(ofNullable(indexedLogsCount).orElse(0L)));
 			setFrom(message);
-			String text = templateEngine.merge("index-finished-template.ftl", Collections.emptyMap());
+			String text = templateEngine.merge("index-finished-template.ftl", email);
 			message.setText(text, true);
 		};
 		this.send(preparator);

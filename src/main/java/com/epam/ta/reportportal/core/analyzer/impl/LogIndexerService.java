@@ -115,6 +115,8 @@ public class LogIndexerService implements ILogIndexer {
 	@Autowired
 	private MailServiceFactory mailServiceFactory;
 
+	private ThreadLocal<Long> indexedLogsCount = ThreadLocal.withInitial(() -> 0L);
+
 	private RetryTemplate retrier;
 
 	public LogIndexerService() {
@@ -148,7 +150,8 @@ public class LogIndexerService implements ILogIndexer {
 	}
 
 	@Override
-	public void indexLogs(String launchId, List<TestItem> testItems) {
+	public Long indexLogs(String launchId, List<TestItem> testItems) {
+		Long indexedLogs = 0L;
 		Launch launch = launchRepository.findOne(launchId);
 		if (LAUNCH_CAN_BE_INDEXED.test(launch)) {
 			List<IndexTestItem> rqTestItems = prepareItemsForIndexing(testItems);
@@ -161,9 +164,11 @@ public class LogIndexerService implements ILogIndexer {
 						projectRepository.findOne(launch.getProjectRef()).getConfiguration().getAnalyzerConfig()));
 				rqLaunch.setTestItems(rqTestItems);
 				List<IndexRs> rs = analyzerServiceClient.index(Collections.singletonList(rqLaunch));
+				indexedLogs = rs.stream().mapToLong(i -> i.getItems().size()).sum();
 				retryFailed(rs);
 			}
 		}
+		return indexedLogs;
 	}
 
 	@Override
@@ -190,10 +195,11 @@ public class LogIndexerService implements ILogIndexer {
 
 			launchIds.forEach(id -> {
 				List<TestItem> items = testItemRepository.findItemsNotInIssueType(TO_INVESTIGATE.getLocator(), id);
-				indexLogs(id, items);
+				Long indexedItemsPerLaunch = indexLogs(id, items);
+				indexedLogsCount.set(indexedLogsCount.get() + indexedItemsPerLaunch);
 			});
-
-			mailServiceFactory.getDefaultEmailService(true).sendIndexFinishedEmail("Index generation has been finished", user.getEmail());
+			mailServiceFactory.getDefaultEmailService(true)
+					.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedLogsCount.get());
 		} finally {
 			projectRepository.enableProjectIndexing(project.getName(), false);
 		}

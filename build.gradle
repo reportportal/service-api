@@ -124,6 +124,10 @@ dependencies {
     compile 'commons-validator:commons-validator:1.6'
     compile 'org.slf4j:slf4j-api:1.7.24'
 
+//    seaweedfs
+    compile 'org.lokra.seaweedfs:seaweedfs-client:0.7.3.RELEASE'
+//    end of seaweedfs
+
     compile "ch.qos.logback:logback-classic:${logback}"
     compile 'net.coobird:thumbnailator:0.4.8'
     compile 'com.sun.mail:javax.mail'

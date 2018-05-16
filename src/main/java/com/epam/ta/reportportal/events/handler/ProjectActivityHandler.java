@@ -23,7 +23,9 @@ package com.epam.ta.reportportal.events.handler;
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.epam.ta.reportportal.database.entity.ProjectAnalyzerConfig;
 import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.events.ProjectAnalyzerConfigEvent;
 import com.epam.ta.reportportal.events.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
@@ -35,6 +37,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.UPDATE_ANALYZER;
 import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.UPDATE_PROJECT;
 import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.PROJECT;
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.createHistoryField;
@@ -67,6 +70,26 @@ public class ProjectActivityHandler {
 	}
 
 	@EventListener
+	public void onAnalyzerEvent(ProjectAnalyzerConfigEvent event) {
+		List<Activity.FieldValues> history = Lists.newArrayList();
+		ofNullable(event.getAnalyzerConfig()).ifPresent(updated -> {
+			processAnalyzerConfig(history, event.getBefore(), updated);
+			processAutoAnalyze(history, event.getBefore(), updated);
+		});
+
+		if (!history.isEmpty()) {
+			Activity activityLog = new ActivityBuilder().addProjectRef(event.getProjectRef())
+					.addObjectType(PROJECT)
+					.addObjectName(event.getProjectRef())
+					.addActionType(UPDATE_ANALYZER)
+					.addUserRef(event.getUpdatedBy())
+					.addHistory(history)
+					.get();
+			activityRepository.save(activityLog);
+		}
+	}
+
+	@EventListener
 	public void onApplicationEvent(ProjectUpdatedEvent event) {
 		Project project = event.getBefore();
 		List<Activity.FieldValues> history = Lists.newArrayList();
@@ -76,8 +99,6 @@ public class ProjectActivityHandler {
 			processKeepLogs(history, project, configuration);
 			processKeepScreenshots(history, project, configuration);
 			processLaunchInactivityTimeout(history, project, configuration);
-			ofNullable(configuration.getAnalyzerConfig()).ifPresent(analyzerConfig -> processAutoAnalyze(history, project, analyzerConfig));
-			processAnalyzerConfig(history, project, configuration.getAnalyzerConfig());
 			processStatisticsStrategy(history, project, configuration);
 		}
 
@@ -93,18 +114,16 @@ public class ProjectActivityHandler {
 		}
 	}
 
-	private void processAnalyzerConfig(List<Activity.FieldValues> history, Project project, AnalyzerConfig analyzerConfig) {
+	private void processAnalyzerConfig(List<Activity.FieldValues> history, ProjectAnalyzerConfig projectAnalyzerConfig,
+			AnalyzerConfig analyzerConfig) {
 		if (analyzerConfig != null) {
-			processAnalyzeMode(history, project, AnalyzeMode.fromString(analyzerConfig.getAnalyzerMode()));
-			processElasticParameters(
-					history, MIN_DOC_FREQ, project.getConfiguration().getAnalyzerConfig().getMinDocFreq(), analyzerConfig.getMinDocFreq());
-			processElasticParameters(history, MIN_TERM_FREQ, project.getConfiguration().getAnalyzerConfig().getMinTermFreq(),
-					analyzerConfig.getMinTermFreq()
-			);
-			processElasticParameters(history, MIN_SHOULD_MATCH, project.getConfiguration().getAnalyzerConfig().getMinShouldMatch(),
+			processAnalyzeMode(history, projectAnalyzerConfig, AnalyzeMode.fromString(analyzerConfig.getAnalyzerMode()));
+			processElasticParameters(history, MIN_DOC_FREQ, projectAnalyzerConfig.getMinDocFreq(), analyzerConfig.getMinDocFreq());
+			processElasticParameters(history, MIN_TERM_FREQ, projectAnalyzerConfig.getMinTermFreq(), analyzerConfig.getMinTermFreq());
+			processElasticParameters(history, MIN_SHOULD_MATCH, projectAnalyzerConfig.getMinShouldMatch(),
 					analyzerConfig.getMinShouldMatch()
 			);
-			processElasticParameters(history, NUMBER_OF_LOG_LINES, project.getConfiguration().getAnalyzerConfig().getNumberOfLogLines(),
+			processElasticParameters(history, NUMBER_OF_LOG_LINES, projectAnalyzerConfig.getNumberOfLogLines(),
 					analyzerConfig.getNumberOfLogLines()
 			);
 		}
@@ -119,8 +138,8 @@ public class ProjectActivityHandler {
 		});
 	}
 
-	private void processAnalyzeMode(List<Activity.FieldValues> history, Project project, AnalyzeMode mode) {
-		AnalyzeMode oldMode = project.getConfiguration().getAnalyzerConfig().getAnalyzerMode();
+	private void processAnalyzeMode(List<Activity.FieldValues> history, ProjectAnalyzerConfig projectAnalyzerConfig, AnalyzeMode mode) {
+		AnalyzeMode oldMode = projectAnalyzerConfig.getAnalyzerMode();
 		if (null != mode && mode != oldMode) {
 			history.add(createHistoryField(ANALYZE_MODE, oldMode != null ? oldMode.getValue() : "", mode.getValue()));
 		}
@@ -153,12 +172,13 @@ public class ProjectActivityHandler {
 		}
 	}
 
-	private void processAutoAnalyze(List<Activity.FieldValues> history, Project project, AnalyzerConfig analyzerConfig) {
+	private void processAutoAnalyze(List<Activity.FieldValues> history, ProjectAnalyzerConfig projectAnalyzerConfig,
+			AnalyzerConfig analyzerConfig) {
 		if (null != analyzerConfig.getIsAutoAnalyzerEnabled() && !analyzerConfig.getIsAutoAnalyzerEnabled()
-				.equals(project.getConfiguration().getAnalyzerConfig().getIsAutoAnalyzerEnabled())) {
-			String oldValue = project.getConfiguration().getAnalyzerConfig().getIsAutoAnalyzerEnabled() == null ?
+				.equals(projectAnalyzerConfig.getIsAutoAnalyzerEnabled())) {
+			String oldValue = projectAnalyzerConfig.getIsAutoAnalyzerEnabled() == null ?
 					"" :
-					project.getConfiguration().getAnalyzerConfig().getIsAutoAnalyzerEnabled().toString();
+					projectAnalyzerConfig.getIsAutoAnalyzerEnabled().toString();
 			Activity.FieldValues fieldValues = createHistoryField(
 					AUTO_ANALYZE, oldValue, analyzerConfig.getIsAutoAnalyzerEnabled().toString());
 			history.add(fieldValues);

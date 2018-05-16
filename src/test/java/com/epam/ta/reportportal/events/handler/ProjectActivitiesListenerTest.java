@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.UPDATE_ANALYZER;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.UPDATE_PROJECT;
 import static com.epam.ta.reportportal.events.handler.ProjectActivityHandler.*;
+import static java.util.stream.Collectors.toList;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -74,10 +78,8 @@ public class ProjectActivitiesListenerTest extends BaseMvcTest {
 		analyzerConfig.setIsAutoAnalyzerEnabled(false);
 		analyzerConfig.setAnalyzerMode(AnalyzeMode.BY_LAUNCH_NAME.getValue());
 		analyzerConfig.setIndexingRunning(false);
-		analyzerConfig.setNumberOfLogLines(2);
-		analyzerConfig.setMinShouldMatch(80);
+		analyzerConfig.setNumberOfLogLines(1);
 		analyzerConfig.setMinTermFreq(2);
-		analyzerConfig.setMinDocFreq(7);
 		projectConfiguration.setAnalyzerConfig(analyzerConfig);
 		updateProjectRQ.setConfiguration(projectConfiguration);
 
@@ -85,19 +87,23 @@ public class ProjectActivitiesListenerTest extends BaseMvcTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.principal(authentication())).andExpect(status().is(200));
 
-		Filter filter = new Filter(Activity.class, new HashSet<>(Arrays.asList(
-				new FilterCondition(Condition.EQUALS, false, "project1", "projectRef"),
-				new FilterCondition(Condition.EQUALS, false, "update_project", "actionType")
-		)));
+		Filter filter = new Filter(Activity.class, new HashSet<>(
+				Arrays.asList(new FilterCondition(Condition.EQUALS, false, "project1", "projectRef"),
+						new FilterCondition(Condition.IN, false, Lists.newArrayList(UPDATE_PROJECT.getValue(), UPDATE_ANALYZER.getValue())
+								.stream()
+								.collect(Collectors.joining(",")), "actionType")
+				)));
 		List<Activity> activities = activityRepository.findByFilter(filter);
-		List<Activity.FieldValues> history = activities.get(0).getHistory();
-
-		List<String> fields = history.stream().map(Activity.FieldValues::getField).collect(Collectors.toList());
+		List<String> fields = activities.stream()
+				.flatMap(it -> it.getHistory().stream())
+				.map(Activity.FieldValues::getField)
+				.collect(toList());
 		Assert.assertTrue(fields.contains(LAUNCH_INACTIVITY));
 		Assert.assertTrue(fields.contains(KEEP_LOGS));
 		Assert.assertTrue(fields.contains(KEEP_SCREENSHOTS));
-		Assert.assertTrue(fields.contains(ANALYZE_MODE));
 		Assert.assertTrue(fields.contains(STATISTICS_CALCULATION_STRATEGY));
+		Assert.assertTrue(fields.contains(NUMBER_OF_LOG_LINES));
+		Assert.assertTrue(fields.contains(MIN_TERM_FREQ));
 	}
 
 	@Override

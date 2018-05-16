@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.database.entity.user.User;
 import com.epam.ta.reportportal.database.entity.user.UserRole;
 import com.epam.ta.reportportal.database.entity.user.UserType;
 import com.epam.ta.reportportal.events.EmailConfigUpdatedEvent;
+import com.epam.ta.reportportal.events.ProjectAnalyzerConfigEvent;
 import com.epam.ta.reportportal.events.ProjectIndexEvent;
 import com.epam.ta.reportportal.events.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -193,6 +194,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			expect(analyzerStatusCache.getAnalyzerStatus().asMap().containsValue(projectName), equalTo(false)).verify(
 					ErrorType.FORBIDDEN_OPERATION, "Project settings can not be updated until auto-analysis proceeds");
 			ProjectAnalyzerConfig dbAnalyzerConfig = ofNullable(dbConfig.getAnalyzerConfig()).orElse(new ProjectAnalyzerConfig());
+			ProjectAnalyzerConfig before = SerializationUtils.clone(dbAnalyzerConfig);
 			ofNullable(analyzerConfig.getAnalyzerMode()).ifPresent(mode -> dbAnalyzerConfig.setAnalyzerMode(AnalyzeMode.fromString(mode)));
 			ofNullable(analyzerConfig.getIsAutoAnalyzerEnabled()).ifPresent(dbAnalyzerConfig::setIsAutoAnalyzerEnabled);
 			ofNullable(analyzerConfig.getMinDocFreq()).ifPresent(dbAnalyzerConfig::setMinDocFreq);
@@ -200,6 +202,7 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 			ofNullable(analyzerConfig.getMinShouldMatch()).ifPresent(dbAnalyzerConfig::setMinShouldMatch);
 			ofNullable(analyzerConfig.getNumberOfLogLines()).ifPresent(dbAnalyzerConfig::setNumberOfLogLines);
 			dbConfig.setAnalyzerConfig(dbAnalyzerConfig);
+			publisher.publishEvent(new ProjectAnalyzerConfigEvent(before, projectName, principalName, analyzerConfig));
 		});
 
 		ofNullable(modelConfig.getStatisticCalculationStrategy()).ifPresent(strategy -> dbConfig.setStatisticsCalculationStrategy(

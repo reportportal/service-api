@@ -185,9 +185,6 @@ public class LogIndexerService implements ILogIndexer {
 	@Override
 	public void indexProjectData(Project project, User user) {
 		try {
-			BusinessRule.expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true))
-					.verify(ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer's clients.");
-
 			List<String> launchIds = launchRepository.findLaunchIdsByProjectId(project.getId())
 					.stream()
 					.map(Launch::getId)

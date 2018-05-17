@@ -21,17 +21,19 @@
 
 package com.epam.ta.reportportal.store.commons;
 
-import com.epam.ta.reportportal.store.database.entity.JsonbObject;
+import com.epam.ta.reportportal.store.database.entity.JsonMap;
 import org.hibernate.usertype.UserType;
 
 /**
- * @author Pavel Bortnik
+ * Maps LinkedHashMap implementation to Postgres JSON/JSONB type
+ *
+ * @author Andrei Varabyeu
  */
-public class JsonbUserType extends JsonbType implements UserType {
+public class JsonbMapType extends JsonbType implements UserType {
 
 	@Override
-	public Class<JsonbObject> returnedClass() {
-		return JsonbObject.class;
+	public Class<JsonMap> returnedClass() {
+		return JsonMap.class;
 	}
 
 }

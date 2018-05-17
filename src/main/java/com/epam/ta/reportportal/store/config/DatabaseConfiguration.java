@@ -40,13 +40,15 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
+import java.util.Properties;
 
 /**
  * @author Pavel Bortnik
  */
 
 @EnableJpaAuditing
-@EnableJpaRepositories(basePackages = { "com.epam.ta.reportportal.store" }, repositoryBaseClass = ReportPortalRepositoryImpl.class, repositoryFactoryBeanClass = DatabaseConfiguration.RpRepoFactoryBean.class)
+@EnableJpaRepositories(basePackages = {
+		"com.epam.ta.reportportal.store" }, repositoryBaseClass = ReportPortalRepositoryImpl.class, repositoryFactoryBeanClass = DatabaseConfiguration.RpRepoFactoryBean.class)
 @EnableTransactionManagement
 public class DatabaseConfiguration {
 
@@ -68,19 +70,23 @@ public class DatabaseConfiguration {
 		factory.setJpaVendorAdapter(vendorAdapter);
 		factory.setPackagesToScan("com.epam.ta.reportportal.store");
 		factory.setDataSource(dataSource());
+
+		Properties jpaProperties = new Properties();
+		jpaProperties.setProperty("hibernate.dialect", "com.epam.ta.reportportal.store.commons.JsonbAwarePostgresDialect");
+		factory.setJpaProperties(jpaProperties);
+
 		factory.afterPropertiesSet();
 
 		return factory.getObject();
 	}
 
-//	@Bean
-//	public PlatformTransactionManager transactionManager() {
-//		JpaTransactionManager txManager = new JpaTransactionManager();
-//		txManager.setEntityManagerFactory(entityManagerFactory());
-//		txManager.setDataSource(dataSource());
-//		return txManager;
-//	}
-
+	//	@Bean
+	//	public PlatformTransactionManager transactionManager() {
+	//		JpaTransactionManager txManager = new JpaTransactionManager();
+	//		txManager.setEntityManagerFactory(entityManagerFactory());
+	//		txManager.setDataSource(dataSource());
+	//		return txManager;
+	//	}
 
 	public static class RpRepoFactoryBean<T extends Repository<S, ID>, S, ID> extends JpaRepositoryFactoryBean {
 

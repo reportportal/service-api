@@ -27,7 +27,6 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.dao.BugTrackingSystemRepository;
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
-import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystemAuth;
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystemAuthFactory;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
@@ -68,7 +67,6 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 		BugTrackingSystem bugTrackingSystem = new BugTrackingSystemBuilder().addUrl(createRQ.getUrl())
 				.addBugTrackingSystemType(createRQ.getExternalSystemType())
 				.addBugTrackingProject(createRQ.getProject())
-				.addSystemAuth(bugTrackingSystemAuthFactory.createAuthObject(new BugTrackingSystemAuth(), createRQ))
 				.addProject(projectDetails.getProjectId())
 				.get();
 

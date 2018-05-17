@@ -47,10 +47,6 @@ public final class ExternalSystemConverter {
 		resource.setProjectRef(bugTrackingSystem.getProject().getId().toString());
 		resource.setProject(bugTrackingSystem.getBtsProject());
 		resource.setExternalSystemType(bugTrackingSystem.getBtsType());
-		resource.setExternalSystemAuth(bugTrackingSystem.getAuth().getAuthType().name());
-		resource.setUsername(bugTrackingSystem.getAuth().getUsername());
-		resource.setDomain(bugTrackingSystem.getAuth().getDomain());
-		resource.setAccessKey(bugTrackingSystem.getAuth().getAccessKey());
 		resource.setFields(bugTrackingSystem.getDefectFormFields()
 				.stream()
 				.map(ExternalSystemFieldsConverter.FIELD_TO_MODEL)

@@ -21,35 +21,64 @@
 
 package com.epam.ta.reportportal.store.database.entity.widget;
 
-import com.epam.ta.reportportal.store.database.entity.JsonbObject;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-
-import java.util.List;
-import java.util.Map;
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.Set;
 
 /**
  * @author Pavel Bortnik
  */
-@JsonTypeName("widgetOption")
-public class WidgetOption extends JsonbObject {
+@Entity
+@Table(name = "widget_option")
+public class WidgetOption implements Serializable {
 
-	private Map<String, List<String>> options;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	@Column(name = "widget_id")
+	private Long widgetId;
+
+	@Column(name = "option")
+	private String widgetOption;
+
+	@ElementCollection(fetch = FetchType.EAGER)
+	@CollectionTable(name = "widget_option_value", joinColumns = @JoinColumn(name = "id"))
+	@Column(name = "value")
+	private Set<String> values;
 
 	public WidgetOption() {
 	}
 
-	@JsonCreator
-	public WidgetOption(@JsonProperty("options") Map<String, List<String>> options) {
-		this.options = options;
+	public Long getId() {
+		return id;
 	}
 
-	public Map<String, List<String>> getOptions() {
-		return options;
+	public void setId(Long id) {
+		this.id = id;
 	}
 
-	public void setOptions(Map<String, List<String>> options) {
-		this.options = options;
+	public Long getWidgetId() {
+		return widgetId;
+	}
+
+	public void setWidgetId(Long widgetId) {
+		this.widgetId = widgetId;
+	}
+
+	public String getWidgetOption() {
+		return widgetOption;
+	}
+
+	public void setWidgetOption(String widgetOption) {
+		this.widgetOption = widgetOption;
+	}
+
+	public Set<String> getValues() {
+		return values;
+	}
+
+	public void setValues(Set<String> values) {
+		this.values = values;
 	}
 }

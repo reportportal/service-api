@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
-import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystemAuth;
 import com.epam.ta.reportportal.store.database.entity.bts.DefectFormField;
 import com.epam.ta.reportportal.store.database.entity.project.Project;
 import org.apache.commons.collections.CollectionUtils;
@@ -67,11 +66,6 @@ public class BugTrackingSystemBuilder implements Supplier<BugTrackingSystem> {
 		if (!StringUtils.isEmpty(project)) {
 			bugTrackingSystem.setBtsProject(project);
 		}
-		return this;
-	}
-
-	public BugTrackingSystemBuilder addSystemAuth(BugTrackingSystemAuth auth) {
-		bugTrackingSystem.setAuth(auth);
 		return this;
 	}
 

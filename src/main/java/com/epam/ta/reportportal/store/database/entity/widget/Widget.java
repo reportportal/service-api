@@ -21,20 +21,19 @@
 
 package com.epam.ta.reportportal.store.database.entity.widget;
 
-import com.epam.ta.reportportal.store.commons.JsonbUserType;
 import com.epam.ta.reportportal.store.database.entity.project.Project;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
+import com.google.common.collect.Sets;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Pavel Bortnik
  */
 @Entity
 @Table(name = "widget", schema = "public")
-@TypeDef(name = "jsonb", typeClass = JsonbUserType.class)
 public class Widget implements Serializable {
 
 	@Id
@@ -50,9 +49,14 @@ public class Widget implements Serializable {
 	@Column(name = "items_count")
 	private int itemsCount;
 
-	@Column(name = "widget_options")
-	@Type(type = "jsonb")
-	private WidgetOption widgetOptions;
+	@ElementCollection(fetch = FetchType.EAGER)
+	@CollectionTable(name = "content_field", joinColumns = @JoinColumn(name = "id"))
+	@Column(name = "field")
+	private List<String> contentFields;
+
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+	@JoinColumn(name = "widget_id")
+	private Set<WidgetOption> widgetOptions = Sets.newHashSet();
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "project_id")
@@ -90,11 +94,19 @@ public class Widget implements Serializable {
 		this.itemsCount = itemsCount;
 	}
 
-	public WidgetOption getWidgetOptions() {
+	public List<String> getContentFields() {
+		return contentFields;
+	}
+
+	public void setContentFields(List<String> contentFields) {
+		this.contentFields = contentFields;
+	}
+
+	public Set<WidgetOption> getWidgetOptions() {
 		return widgetOptions;
 	}
 
-	public void setWidgetOptions(WidgetOption widgetOptions) {
+	public void setWidgetOptions(Set<WidgetOption> widgetOptions) {
 		this.widgetOptions = widgetOptions;
 	}
 

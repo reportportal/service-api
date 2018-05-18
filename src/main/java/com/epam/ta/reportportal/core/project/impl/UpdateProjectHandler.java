@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
+import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.project.IUpdateProjectHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
@@ -61,6 +62,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -101,6 +103,9 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 
 	@Autowired
 	private AnalyzerStatusCache analyzerStatusCache;
+
+	@Autowired
+	private AnalyzerServiceClient analyzerServiceClient;
 
 	@Autowired
 	public UpdateProjectHandler(ProjectRepository projectRepository, UserRepository userRepository,
@@ -426,6 +431,9 @@ public class UpdateProjectHandler implements IUpdateProjectHandler {
 
 		expect(analyzerStatusCache.getAnalyzerStatus().asMap().containsValue(projectName), equalTo(false)).verify(
 				ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
+
+		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(
+				ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer's clients.");
 
 		User user = userRepository.findOne(username);
 		expect(user, notNull()).verify(ErrorType.USER_NOT_FOUND, username);

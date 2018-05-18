@@ -21,8 +21,11 @@
 
 package com.epam.ta.reportportal.store.database.entity.widget;
 
+import com.epam.ta.reportportal.store.database.entity.dashboard.DashboardWidget;
 import com.epam.ta.reportportal.store.database.entity.project.Project;
 import com.google.common.collect.Sets;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -61,6 +64,10 @@ public class Widget implements Serializable {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "project_id")
 	private Project project;
+
+	@OneToMany(mappedBy = "widget", cascade = CascadeType.ALL)
+	@Fetch(value = FetchMode.JOIN)
+	private Set<DashboardWidget> dashboardWidgets = Sets.newHashSet();
 
 	public Long getId() {
 		return id;
@@ -116,5 +123,13 @@ public class Widget implements Serializable {
 
 	public void setProject(Project project) {
 		this.project = project;
+	}
+
+	public Set<DashboardWidget> getDashboardWidgets() {
+		return dashboardWidgets;
+	}
+
+	public void setDashboardWidgets(Set<DashboardWidget> dashboardWidgets) {
+		this.dashboardWidgets = dashboardWidgets;
 	}
 }

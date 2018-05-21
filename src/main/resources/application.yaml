@@ -34,7 +34,7 @@ spring:
           - urlprefix-${server.contextPath:/}
           - traefik.frontend.rule=PathPrefix:${server.contextPath:/}
           - statusPageUrlPath=${server.contextPath}${management.contextPath}/info
-          - healthCheckUrlPath=${server.contextPath}${management.contextPath}/info
+          - healthCheckUrlPath=${server.contextPath}${management.contextPath}/health
         healthCheckPath: ${server.contextPath}/admin/health
         register: true
         instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}

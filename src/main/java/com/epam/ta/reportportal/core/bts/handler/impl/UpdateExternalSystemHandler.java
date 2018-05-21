@@ -74,7 +74,6 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 				.addBugTrackingProject(request.getProject())
 				.addProject(projectDetails.getProjectId())
 				.addFields(request.getFields().stream().map(ExternalSystemFieldsConverter.FIELD_TO_DB).collect(Collectors.toSet()))
-				.addSystemAuth(bugTrackingSystemAuthFactory.createAuthObject(bugTrackingSystem.getAuth(), request))
 				.get();
 
 		//TODO probably could be handled by database
@@ -118,7 +117,6 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 
 		BugTrackingSystem details = new BugTrackingSystemBuilder().addUrl(updateRQ.getUrl())
 				.addBugTrackingProject(updateRQ.getProject())
-				.addSystemAuth(bugTrackingSystemAuthFactory.createAuthObject(bugTrackingSystem.getAuth(), updateRQ))
 				.get();
 
 		//		expect(externalSystemStrategy.connectionTest(details), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,

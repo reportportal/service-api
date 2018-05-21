@@ -19,43 +19,30 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.store.database.entity.widget;
+package com.epam.ta.reportportal.store.database.entity.dashboard;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
 import java.io.Serializable;
-import java.util.Set;
 
 /**
  * @author Pavel Bortnik
  */
-@Entity
-@Table(name = "widget_option")
-public class WidgetOption implements Serializable {
+@Embeddable
+public class DashboardWidgetId implements Serializable {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	@Column(name = "dashboard_id")
+	private Long dashboardId;
 
 	@Column(name = "widget_id")
 	private Long widgetId;
 
-	@Column(name = "option")
-	private String widgetOption;
-
-	@ElementCollection(fetch = FetchType.EAGER)
-	@CollectionTable(name = "widget_option_value", joinColumns = @JoinColumn(name = "id"))
-	@Column(name = "value")
-	private Set<String> values;
-
-	public WidgetOption() {
+	public Long getDashboardId() {
+		return dashboardId;
 	}
 
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
+	public void setDashboardId(Long dashboardId) {
+		this.dashboardId = dashboardId;
 	}
 
 	public Long getWidgetId() {
@@ -66,19 +53,27 @@ public class WidgetOption implements Serializable {
 		this.widgetId = widgetId;
 	}
 
-	public String getWidgetOption() {
-		return widgetOption;
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
+		DashboardWidgetId that = (DashboardWidgetId) o;
+
+		if (dashboardId != null ? !dashboardId.equals(that.dashboardId) : that.dashboardId != null) {
+			return false;
+		}
+		return widgetId != null ? widgetId.equals(that.widgetId) : that.widgetId == null;
 	}
 
-	public void setWidgetOption(String widgetOption) {
-		this.widgetOption = widgetOption;
-	}
-
-	public Set<String> getValues() {
-		return values;
-	}
-
-	public void setValues(Set<String> values) {
-		this.values = values;
+	@Override
+	public int hashCode() {
+		int result = dashboardId != null ? dashboardId.hashCode() : 0;
+		result = 31 * result + (widgetId != null ? widgetId.hashCode() : 0);
+		return result;
 	}
 }

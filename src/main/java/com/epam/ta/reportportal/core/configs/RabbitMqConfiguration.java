@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.configs;
 
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
@@ -41,11 +42,15 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 public class RabbitMqConfiguration {
 
+	public static final String EVENTS_EXCHANGE = "events";
+
 	public static final String START_LAUNCH_QUEUE = "start-launch";
 	public static final String FINISH_LAUNCH_QUEUE = "finish-launch";
 	public static final String START_ITEM_QUEUE = "start-parent-item";
 	public static final String START_CHILD_QUEUE = "start-child-item";
 	public static final String FINISH_ITEM_QUEUE = "finish-item";
+	public static final String EVENTS_QUEUE = "events";
+
 
 	@Bean
 	public MessageConverter jsonMessageConverter() {
@@ -101,10 +106,30 @@ public class RabbitMqConfiguration {
 	}
 
 	@Bean
+	public Queue eventsQueue() {
+		return new Queue(EVENTS_QUEUE);
+	}
+
+	@Bean
+	public FanoutExchange eventsExchange() {
+		return new FanoutExchange(EVENTS_EXCHANGE);
+	}
+
+	@Bean
+	public Binding eventsBinding() {
+		return BindingBuilder.bind(eventsQueue()).to(eventsExchange());
+	}
+
+	@Bean
 	public RabbitTemplate amqpTemplate() {
 		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory());
 		rabbitTemplate.setMessageConverter(jsonMessageConverter());
 		return rabbitTemplate;
+	}
+
+	@Bean
+	public AsyncRabbitTemplate asyncAmqpTemplate() {
+		return new AsyncRabbitTemplate(amqpTemplate());
 	}
 
 }

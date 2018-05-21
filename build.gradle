@@ -70,7 +70,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "com.github.reportportal:commons-bom:ea91a91"
+        mavenBom "com.github.reportportal:commons-bom:71b7ca8"
     }
 }
 

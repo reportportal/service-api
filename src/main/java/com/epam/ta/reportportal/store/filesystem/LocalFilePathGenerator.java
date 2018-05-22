@@ -1,11 +1,15 @@
 package com.epam.ta.reportportal.store.filesystem;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
 @Component
 public class LocalFilePathGenerator {
+
+	private static final Logger LOG = LoggerFactory.getLogger(LocalFilePathGenerator.class);
 
 	/**
 	 * Generate relative file path for new local file.
@@ -21,7 +25,7 @@ public class LocalFilePathGenerator {
 		String levelThree = uuid.substring(4, 6);
 		String tail = uuid.substring(6);
 
-		System.out.println(levelOne + levelTwo + levelThree + tail);
+		LOG.debug("File path generated: {}",  levelOne + levelTwo + levelThree + tail);
 
 		return "/" + levelOne + "/" + levelTwo + "/" + levelThree + "/" + tail;
 	}

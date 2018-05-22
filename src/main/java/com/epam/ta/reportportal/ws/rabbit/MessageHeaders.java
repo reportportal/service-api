@@ -30,6 +30,9 @@ public final class MessageHeaders {
 	public static final String PROJECT_NAME = "projectName";
 	public static final String LAUNCH_ID = "launchId";
 	public static final String ITEM_ID = "itemId";
+	public static final String LOG_ITEM_ID = "itemRef";
+	public static final String LIMIT = "limit";
+	public static final String IS_LOAD_BINARY_DATA = "isLoadBinaryData";
 
 	private MessageHeaders() {
 		//static only

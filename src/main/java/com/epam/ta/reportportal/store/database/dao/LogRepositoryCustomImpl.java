@@ -21,11 +21,17 @@
 
 package com.epam.ta.reportportal.store.database.dao;
 
+import com.epam.ta.reportportal.store.database.entity.log.Log;
+import com.epam.ta.reportportal.store.database.mappers.LogMapper;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.epam.ta.reportportal.store.jooq.Tables.LOG;
+import static com.epam.ta.reportportal.store.jooq.Tables.TEST_ITEM;
 
 /**
  * @author Pavel Bortnik
@@ -43,5 +49,22 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
 	@Override
 	public boolean hasLogs(Long itemId) {
 		return dsl.fetchExists(dsl.selectOne().from(LOG).where(LOG.ITEM_ID.eq(itemId)));
+	}
+
+	@Override
+	public List<Log> findByTestItemId(String itemId, int limit, boolean isLoadBinaryData) {
+		if (itemId == null || limit <= 0) {
+			return new ArrayList<>();
+		}
+
+		Long id = Long.valueOf(itemId);
+
+		return dsl.select()
+			      .from(LOG)
+				  .where(TEST_ITEM.ITEM_ID.eq(id))
+				  .orderBy(LOG.LOG_TIME.asc())
+				  .limit(limit)
+				  .fetch()
+				  .map(LogMapper::getLog);
 	}
 }

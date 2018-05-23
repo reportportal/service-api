@@ -66,7 +66,7 @@ class StartLaunchHandler implements IStartLaunchHandler {
 		launchRepository.saveAndFlush(launch);
 		launchRepository.refresh(launch);
 		//eventPublisher.publishEvent(new LaunchStartedEvent(launch));
-		amqpTemplate.convertAndSend(RabbitMqConfiguration.EVENTS_EXCHANGE, "", launch);
+		amqpTemplate.convertAndSend(RabbitMqConfiguration.EXCHANGE_EVENTS, launch);
 
 		return new StartLaunchRS(launch.getId(), launch.getNumber());
 	}

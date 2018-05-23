@@ -18,7 +18,7 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public void broadcast(Object o) {
-		this.amqpTemplate.convertSendAndReceive(RabbitMqConfiguration.EVENTS_EXCHANGE, "", o);
+		this.amqpTemplate.convertSendAndReceive(RabbitMqConfiguration.EXCHANGE_EVENTS, "", o);
 	}
 
 }

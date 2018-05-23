@@ -21,6 +21,8 @@
 
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.core.plugin.RabbitAwarePluginBox;
+import com.google.common.util.concurrent.Service;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
@@ -42,15 +44,28 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 public class RabbitMqConfiguration {
 
-	public static final String EVENTS_EXCHANGE = "events";
+	/**
+	 * Exchanges
+	 */
+	public static final String EXCHANGE_EVENTS = "broadcast.events";
+	public static final String EXCHANGE_PLUGINS = "plugins";
+	public static final String EXCHANGE_REPORTING = "reporting";
 
-	public static final String START_LAUNCH_QUEUE = "start-launch";
-	public static final String FINISH_LAUNCH_QUEUE = "finish-launch";
-	public static final String START_ITEM_QUEUE = "start-parent-item";
-	public static final String START_CHILD_QUEUE = "start-child-item";
-	public static final String FINISH_ITEM_QUEUE = "finish-item";
-	public static final String EVENTS_QUEUE = "events";
+	public static final String KEY_PLUGINS_PING = "broadcast.plugins-ping";
+	public static final String KEY_PLUGINS_PONG = "broadcast.plugins-pong";
 
+	/**
+	 * Queues
+	 */
+	public static final String QUEUE_START_LAUNCH = "reporting.start-launch";
+	public static final String QUEUE_FINISH_LAUNCH = "reporting.finish-launch";
+	public static final String QUEUE_START_ITEM = "reporting.start-parent-item";
+	public static final String QUEUE_FINISH_ITEM = "reporting.finish-item";
+
+	@Bean
+	public Service pluginBox() {
+		return new RabbitAwarePluginBox(amqpTemplate()).startAsync();
+	}
 
 	@Bean
 	public MessageConverter jsonMessageConverter() {
@@ -82,42 +97,77 @@ public class RabbitMqConfiguration {
 
 	@Bean
 	public Queue startLaunchQueue() {
-		return new Queue(START_LAUNCH_QUEUE);
+		return new Queue(QUEUE_START_LAUNCH);
 	}
 
 	@Bean
 	public Queue finishLaunchQueue() {
-		return new Queue(FINISH_LAUNCH_QUEUE);
+		return new Queue(QUEUE_FINISH_LAUNCH);
 	}
 
 	@Bean
 	public Queue startItemQueue() {
-		return new Queue(START_ITEM_QUEUE);
-	}
-
-	@Bean
-	public Queue startChildQueue() {
-		return new Queue(START_CHILD_QUEUE);
+		return new Queue(QUEUE_START_ITEM);
 	}
 
 	@Bean
 	public Queue finishItemQueue() {
-		return new Queue(FINISH_ITEM_QUEUE);
+		return new Queue(QUEUE_FINISH_ITEM);
 	}
 
 	@Bean
-	public Queue eventsQueue() {
-		return new Queue(EVENTS_QUEUE);
+	public Queue pluginsPongQueue() {
+		return new AnonymousQueue(new AnonymousQueue.Base64UrlNamingStrategy(KEY_PLUGINS_PONG + "."));
+	}
+
+	@Bean
+	public Queue pluginsPingQueue() {
+		return new AnonymousQueue(new AnonymousQueue.Base64UrlNamingStrategy(KEY_PLUGINS_PING + "."));
 	}
 
 	@Bean
 	public FanoutExchange eventsExchange() {
-		return new FanoutExchange(EVENTS_EXCHANGE);
+		return new FanoutExchange(EXCHANGE_EVENTS, false, false);
 	}
 
 	@Bean
-	public Binding eventsBinding() {
-		return BindingBuilder.bind(eventsQueue()).to(eventsExchange());
+	public TopicExchange pluginsExchange() {
+		return new TopicExchange(EXCHANGE_PLUGINS, false, false);
+	}
+
+	@Bean
+	public DirectExchange reportingExchange() {
+		return new DirectExchange(EXCHANGE_REPORTING, true, false);
+	}
+
+	@Bean
+	public Binding startLaunchBinding() {
+		return BindingBuilder.bind(startLaunchQueue()).to(reportingExchange()).with(QUEUE_START_LAUNCH);
+	}
+
+	@Bean
+	public Binding finishLaunchBinding() {
+		return BindingBuilder.bind(finishLaunchQueue()).to(reportingExchange()).with(QUEUE_FINISH_LAUNCH);
+	}
+
+	@Bean
+	public Binding startItemBinding() {
+		return BindingBuilder.bind(startItemQueue()).to(reportingExchange()).with(QUEUE_START_ITEM);
+	}
+
+	@Bean
+	public Binding finishItemBinding() {
+		return BindingBuilder.bind(finishItemQueue()).to(reportingExchange()).with(QUEUE_FINISH_ITEM);
+	}
+
+	@Bean
+	public Binding pluginsPongBinding() {
+		return BindingBuilder.bind(pluginsPongQueue()).to(pluginsExchange()).with(KEY_PLUGINS_PONG);
+	}
+
+	@Bean
+	public Binding pluginsPingBinding() {
+		return BindingBuilder.bind(pluginsPingQueue()).to(pluginsExchange()).with(KEY_PLUGINS_PING);
 	}
 
 	@Bean

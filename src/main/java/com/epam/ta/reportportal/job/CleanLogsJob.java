@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.job;
 import com.epam.ta.reportportal.database.dao.*;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.project.KeepLogsDelay;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -83,7 +84,9 @@ public class CleanLogsJob implements Job {
 	@Override
 	public void execute(JobExecutionContext context) {
 		LOGGER.debug("Cleaning outdated logs has been started");
-		ExecutorService executor = Executors.newFixedThreadPool(Optional.ofNullable(threadsCount).orElse(DEFAULT_THREAD_COUNT));
+		ExecutorService executor = Executors.newFixedThreadPool(Optional.ofNullable(threadsCount).orElse(DEFAULT_THREAD_COUNT),
+				new ThreadFactoryBuilder().setNameFormat("clean-logs-job-thread-%d").build()
+		);
 
 		iterateOverPages(projectRepository::findAllIdsAndConfiguration, projects -> projects.forEach(project -> {
 			executor.submit(() -> {

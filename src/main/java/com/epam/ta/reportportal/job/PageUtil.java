@@ -30,7 +30,7 @@ import java.util.function.Function;
 
 class PageUtil {
 
-	private static final int DEFAULT_PAGE_SIZE = 100;
+	private static final int DEFAULT_PAGE_SIZE = 50;
 
 	/**
 	 * Iterates over all pages found

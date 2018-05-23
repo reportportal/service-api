@@ -61,6 +61,15 @@ public class Log implements Serializable {
 	@JoinColumn(name = "item_id")
 	private TestItem testItem;
 
+	@Column(name = "file_path")
+	private String filePath;
+
+	@Column(name = "thumbnail_file_path")
+	private String thumbnailFilePath;
+
+	@Column(name = "content_type")
+	private String contentType;
+
 	public Long getId() {
 		return id;
 	}
@@ -109,6 +118,30 @@ public class Log implements Serializable {
 		this.logLevel = logLevel;
 	}
 
+	public String getFilePath() {
+		return filePath;
+	}
+
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
+	}
+
+	public String getThumbnailFilePath() {
+		return thumbnailFilePath;
+	}
+
+	public void setThumbnailFilePath(String thumbnailFilePath) {
+		this.thumbnailFilePath = thumbnailFilePath;
+	}
+
+	public String getContentType() {
+		return contentType;
+	}
+
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -119,8 +152,7 @@ public class Log implements Serializable {
 		}
 		Log log = (Log) o;
 		return Objects.equals(id, log.id) && Objects.equals(logTime, log.logTime) && Objects.equals(logMessage, log.logMessage)
-				&& Objects.equals(lastModified, log.lastModified) && Objects.equals(logLevel, log.logLevel) && Objects.equals(
-				testItem,
+				&& Objects.equals(lastModified, log.lastModified) && Objects.equals(logLevel, log.logLevel) && Objects.equals(testItem,
 				log.testItem
 		);
 	}

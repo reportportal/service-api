@@ -1,7 +1,7 @@
 package com.epam.ta.reportportal.ws.rabbit;
 
-import com.epam.ta.reportportal.store.database.entity.external.ExternalSystem;
-import com.epam.ta.reportportal.ws.handler.ExternalSystemFindOneHandler;
+import com.epam.ta.reportportal.store.database.entity.integration.Integration;
+import com.epam.ta.reportportal.ws.handler.IntegrationFindOneHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -10,14 +10,14 @@ import org.springframework.stereotype.Component;
 import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.EXTERNAL_SYSTEMS_FIND_ONE;
 
 @Component
-public class ExternalSystemRepositoryConsumer {
+public class IntegrationRepositoryConsumer {
 
 	@Autowired
-	private ExternalSystemFindOneHandler externalSystemFindOneHandler;
+	private IntegrationFindOneHandler integrationFindOneHandler;
 
 	@RabbitListener(queues = EXTERNAL_SYSTEMS_FIND_ONE)
-	public ExternalSystem findOne(@Payload String systemId) {
+	public Integration findOne(@Payload String id) {
 
-		return externalSystemFindOneHandler.findById(systemId);
+		return integrationFindOneHandler.findById(id);
 	}
 }

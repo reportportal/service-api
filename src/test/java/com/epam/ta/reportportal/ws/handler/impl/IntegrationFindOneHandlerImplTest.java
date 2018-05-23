@@ -1,7 +1,7 @@
 package com.epam.ta.reportportal.ws.handler.impl;
 
-import com.epam.ta.reportportal.store.database.dao.ExternalSystemRepository;
-import com.epam.ta.reportportal.store.database.entity.external.ExternalSystem;
+import com.epam.ta.reportportal.store.database.dao.IntegrationRepository;
+import com.epam.ta.reportportal.store.database.entity.integration.Integration;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -11,17 +11,18 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ExternalSystemFindOneHandlerImplTest {
+public class IntegrationFindOneHandlerImplTest {
 
 	@Mock
-	private ExternalSystemRepository externalSystemRepository;
+	private IntegrationRepository integrationRepository;
 
 	@InjectMocks
-	private ExternalSystemFindOneHandlerImpl externalSystemFindOneHandler;
+	private IntegrationFindOneHandlerImpl integrationFindOneHandler;
 
 	@Before
 	public void setUp() throws Exception {
@@ -36,14 +37,14 @@ public class ExternalSystemFindOneHandlerImplTest {
 		String systemId = "5";
 
 		//setup:
-		when(externalSystemRepository.findById(Long.valueOf(systemId))).thenReturn(Optional.empty());
+		when(integrationRepository.findById(Long.valueOf(systemId))).thenReturn(Optional.empty());
 
 		//when:
-		ExternalSystem response = externalSystemFindOneHandler.findById(systemId);
+		Integration response = integrationFindOneHandler.findById(systemId);
 
 		//then:
 		ArgumentCaptor<Long> idCaptor = ArgumentCaptor.forClass(Long.class);
-		verify(externalSystemRepository).findById(idCaptor.capture());
+		verify(integrationRepository).findById(idCaptor.capture());
 
 		Long capturedId = idCaptor.getValue();
 
@@ -56,21 +57,21 @@ public class ExternalSystemFindOneHandlerImplTest {
 
 		//given:
 		String systemId = "5";
-		ExternalSystem expectedSystem = new ExternalSystem();
+		Integration expectedIntegration = new Integration();
 
 		//setup:
-		when(externalSystemRepository.findById(Long.valueOf(systemId))).thenReturn(Optional.of(expectedSystem));
+		when(integrationRepository.findById(Long.valueOf(systemId))).thenReturn(Optional.of(expectedIntegration));
 
 		//when:
-		ExternalSystem response = externalSystemFindOneHandler.findById(systemId);
+		Integration response = integrationFindOneHandler.findById(systemId);
 
 		//then:
 		ArgumentCaptor<Long> idCaptor = ArgumentCaptor.forClass(Long.class);
-		verify(externalSystemRepository).findById(idCaptor.capture());
+		verify(integrationRepository).findById(idCaptor.capture());
 
 		Long capturedId = idCaptor.getValue();
 
 		assertEquals(Long.valueOf(systemId), capturedId);
-		assertEquals(expectedSystem, response);
+		assertEquals(expectedIntegration, response);
 	}
 }

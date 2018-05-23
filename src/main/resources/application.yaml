@@ -57,7 +57,7 @@ logging:
     org.springframework.data.mongodb.core.mapping: error
     org.springframework.context.support: warn
     org.springframework.data.mongodb.core.index: warn
-    com.novemberain.quartz : debug
+    com.novemberain.quartz : info
 
 ## Consul as service registry
 ---

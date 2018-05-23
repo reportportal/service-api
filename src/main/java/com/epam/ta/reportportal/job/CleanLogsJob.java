@@ -29,11 +29,13 @@ import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +56,7 @@ import static java.time.Duration.ofDays;
 @Service
 public class CleanLogsJob implements Job {
 
-	public static final int DEFAULT_THREAD_COUNT = 20;
+	public static final int DEFAULT_THREAD_COUNT = 5;
 	public static final long JOB_EXECUTION_TIMEOUT = 1L;
 	private static final Duration MIN_DELAY = Duration.ofDays(KeepLogsDelay.TWO_WEEKS.getDays() - 1);
 	private static final Logger LOGGER = LoggerFactory.getLogger(CleanLogsJob.class);
@@ -74,15 +76,19 @@ public class CleanLogsJob implements Job {
 	@Autowired
 	private ActivityRepository activityRepository;
 
+	@Autowired
+	@Value("${com.ta.reportportal.job.clean.logs.threads:5}")
+	private Integer threadsCount;
+
 	@Override
 	public void execute(JobExecutionContext context) {
 		LOGGER.debug("Cleaning outdated logs has been started");
-		ExecutorService executor = Executors.newFixedThreadPool(DEFAULT_THREAD_COUNT);
+		ExecutorService executor = Executors.newFixedThreadPool(Optional.ofNullable(threadsCount).orElse(DEFAULT_THREAD_COUNT));
 
 		iterateOverPages(projectRepository::findAllIdsAndConfiguration, projects -> projects.forEach(project -> {
 			executor.submit(() -> {
 				try {
-					LOGGER.debug("Cleaning outdated logs for project {} has been started", project.getId());
+					LOGGER.info("Cleaning outdated logs for project {} has been started", project.getId());
 					Duration period = ofDays(findByName(project.getConfiguration().getKeepLogs()).getDays());
 					if (!period.isZero()) {
 						activityRepository.deleteModifiedLaterAgo(project.getId(), period);
@@ -91,7 +97,7 @@ public class CleanLogsJob implements Job {
 				} catch (Exception e) {
 					LOGGER.debug("Cleaning outdated logs for project {} has been failed", project.getId(), e);
 				}
-				LOGGER.debug("Cleaning outdated logs for project {} has been finished", project.getId());
+				LOGGER.info("Cleaning outdated logs for project {} has been finished", project.getId());
 
 			});
 
@@ -112,7 +118,9 @@ public class CleanLogsJob implements Job {
 		iterateOverPages(pageable -> launchRepo.findModifiedBefore(projectId, endDate, pageable), launches -> {
 			launches.forEach(launch -> {
 				try (Stream<TestItem> testItemStream = testItemRepo.streamIdsByLaunch(launch.getId())) {
-					long count = logRepo.deleteByPeriodAndItemsRef(period, testItemStream.map(TestItem::getId).collect(Collectors.toList()));
+					long count = logRepo.deleteByPeriodAndItemsRef(period,
+							testItemStream.map(TestItem::getId).collect(Collectors.toList())
+					);
 					countPerProject.addAndGet(count);
 				} catch (Exception e) {
 					//do nothing

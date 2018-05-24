@@ -19,19 +19,12 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.store.commons;
+package com.epam.ta.reportportal.store.database.dao;
 
-import com.epam.ta.reportportal.store.database.entity.JsonbObject;
-import org.hibernate.usertype.UserType;
+import com.epam.ta.reportportal.store.database.entity.dashboard.Dashboard;
 
 /**
  * @author Pavel Bortnik
  */
-public class JsonbUserType extends JsonbType implements UserType {
-
-	@Override
-	public Class<JsonbObject> returnedClass() {
-		return JsonbObject.class;
-	}
-
+public interface DashboardRepository extends ReportPortalRepository<Dashboard, Long> {
 }

@@ -60,11 +60,11 @@
     <project_user user_id="2" project_id="2" project_role="MEMBER"/>
     <project_user user_id="3" project_id="3" project_role="MEMBER"/>
 
-    <launch id="1" project_id="1" user_id="1" name="Test launch" description="Test description" start_time="2018-02-06 19:29:29.008608"
+    <launch id="1" uuid="1" project_id="1" user_id="1" name="Test launch" description="Test description" start_time="2018-02-06 19:29:29.008608"
             last_modified="2018-02-06 19:29:29.008608" number="1" mode="DEFAULT" status="PASSED"/>
-    <launch id="2" project_id="1" user_id="1" name="Test launch" description="Test description" start_time="2018-02-06 19:30:29.008608"
+    <launch id="2" uuid="2" project_id="1" user_id="1" name="Test launch" description="Test description" start_time="2018-02-06 19:30:29.008608"
             last_modified="2018-02-06 19:29:29.008608" number="2" mode="DEFAULT" status="PASSED"/>
-    <launch id="3" project_id="1" user_id="1" name="Test launch" description="Test description" start_time="2018-02-06 19:31:29.008608"
+    <launch id="3" uuid="3" project_id="1" user_id="1" name="Test launch" description="Test description" start_time="2018-02-06 19:31:29.008608"
             last_modified="2018-02-06 19:29:29.008608" number="3" mode="DEFAULT" status="PASSED"/>
 
     <test_item item_id="1" name="Test Suite" type="SUITE" start_time="2018-02-06 19:29:45.008608" last_modified="2018-02-06 19:29:45.008608"

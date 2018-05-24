@@ -21,20 +21,22 @@
 
 package com.epam.ta.reportportal.store.database.entity.widget;
 
-import com.epam.ta.reportportal.store.commons.JsonbUserType;
+import com.epam.ta.reportportal.store.database.entity.dashboard.DashboardWidget;
 import com.epam.ta.reportportal.store.database.entity.project.Project;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
+import com.google.common.collect.Sets;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Pavel Bortnik
  */
 @Entity
 @Table(name = "widget", schema = "public")
-@TypeDef(name = "jsonb", typeClass = JsonbUserType.class)
 public class Widget implements Serializable {
 
 	@Id
@@ -50,13 +52,22 @@ public class Widget implements Serializable {
 	@Column(name = "items_count")
 	private int itemsCount;
 
-	@Column(name = "widget_options")
-	@Type(type = "jsonb")
-	private WidgetOption widgetOptions;
+	@ElementCollection(fetch = FetchType.EAGER)
+	@CollectionTable(name = "content_field", joinColumns = @JoinColumn(name = "id"))
+	@Column(name = "field")
+	private List<String> contentFields;
+
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+	@JoinColumn(name = "widget_id")
+	private Set<WidgetOption> widgetOptions = Sets.newHashSet();
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "project_id")
 	private Project project;
+
+	@OneToMany(mappedBy = "widget", cascade = CascadeType.ALL)
+	@Fetch(value = FetchMode.JOIN)
+	private Set<DashboardWidget> dashboardWidgets = Sets.newHashSet();
 
 	public Long getId() {
 		return id;
@@ -90,11 +101,19 @@ public class Widget implements Serializable {
 		this.itemsCount = itemsCount;
 	}
 
-	public WidgetOption getWidgetOptions() {
+	public List<String> getContentFields() {
+		return contentFields;
+	}
+
+	public void setContentFields(List<String> contentFields) {
+		this.contentFields = contentFields;
+	}
+
+	public Set<WidgetOption> getWidgetOptions() {
 		return widgetOptions;
 	}
 
-	public void setWidgetOptions(WidgetOption widgetOptions) {
+	public void setWidgetOptions(Set<WidgetOption> widgetOptions) {
 		this.widgetOptions = widgetOptions;
 	}
 
@@ -104,5 +123,13 @@ public class Widget implements Serializable {
 
 	public void setProject(Project project) {
 		this.project = project;
+	}
+
+	public Set<DashboardWidget> getDashboardWidgets() {
+		return dashboardWidgets;
+	}
+
+	public void setDashboardWidgets(Set<DashboardWidget> dashboardWidgets) {
+		this.dashboardWidgets = dashboardWidgets;
 	}
 }

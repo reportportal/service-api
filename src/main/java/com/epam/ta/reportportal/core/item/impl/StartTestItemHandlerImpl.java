@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -53,33 +54,21 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Service
 class StartTestItemHandlerImpl implements StartTestItemHandler {
 
+	@Autowired
 	private TestItemRepository testItemRepository;
 
+	@Autowired
 	private LaunchRepository launchRepository;
 
+	@Autowired
 	private LogRepository logRepository;
 
+	@Autowired
 	private UniqueIdGenerator identifierGenerator;
 
 	@Autowired
-	public void setIdentifierGenerator(UniqueIdGenerator identifierGenerator) {
-		this.identifierGenerator = identifierGenerator;
-	}
+	private RabbitTemplate rabbitTemplate;
 
-	@Autowired
-	public void setTestItemRepository(TestItemRepository testItemRepository) {
-		this.testItemRepository = testItemRepository;
-	}
-
-	@Autowired
-	public void setLaunchRepository(LaunchRepository launchRepository) {
-		this.launchRepository = launchRepository;
-	}
-
-	@Autowired
-	public void setLogRepository(LogRepository logRepository) {
-		this.logRepository = logRepository;
-	}
 
 	@Override
 	public ItemCreatedRS startRootItem(ReportPortalUser user, String projectName, StartTestItemRQ rq) {
@@ -119,7 +108,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId())
 		);
 		expect(rq.getStartTime(), Preconditions.sameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(), launch.getStartTime(), launch.getId()
+				rq.getStartTime(),
+				launch.getStartTime(),
+				launch.getId()
 		);
 	}
 
@@ -134,7 +125,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 */
 	private void validate(StartTestItemRQ rq, TestItem parent) {
 		expect(rq.getStartTime(), Preconditions.sameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(), parent.getStartTime(), parent.getItemId()
+				rq.getStartTime(),
+				parent.getStartTime(),
+				parent.getItemId()
 		);
 		expect(parent.getTestItemResults().getStatus(), Preconditions.statusIn(StatusEnum.IN_PROGRESS)).verify(START_ITEM_NOT_ALLOWED,
 				formattedSupplier("Parent Item '{}' is not in progress", parent.getItemId())

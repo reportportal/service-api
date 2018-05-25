@@ -47,11 +47,7 @@ public class RabbitMqConfiguration {
 	public static final String START_CHILD_QUEUE = "start-child-item";
 	public static final String FINISH_ITEM_QUEUE = "finish-item";
 
-	public static final String LOGS_FIND_BY_TEST_ITEM_ID_QUEUE = "logs-find-by-test-item-ref";
-	public static final String DATA_STORAGE_FETCH_DATA_QUEUE = "data-storage-fetch-data";
-	public static final String TEST_ITEMS_FIND_ONE_QUEUE = "test-items-find-one";
-	public static final String EXTERNAL_SYSTEMS_FIND_ONE = "external-system-find-one";
-	public static final String PROJECTS_FIND_BY_NAME = "project-repository-find-by-name";
+	public static final String QUERY_RQ_QUEUE = "query-rq-queue";
 
 	@Bean
 	public MessageConverter jsonMessageConverter() {
@@ -106,30 +102,10 @@ public class RabbitMqConfiguration {
 		return new Queue(FINISH_ITEM_QUEUE);
 	}
 
-    @Bean
-    public Queue logsFindByTestItemRefQueue() {
-        return new Queue(LOGS_FIND_BY_TEST_ITEM_ID_QUEUE);
-    }
-
-    @Bean
-    public Queue dataStorageFetchDataQueue() {
-        return new Queue(DATA_STORAGE_FETCH_DATA_QUEUE);
-    }
-
-    @Bean
-    public Queue testItemsFindOneQueue() {
-        return new Queue(TEST_ITEMS_FIND_ONE_QUEUE);
-    }
-
-    @Bean
-    public Queue ExternalSystemFindOne() {
-        return new Queue(EXTERNAL_SYSTEMS_FIND_ONE);
-    }
-
-    @Bean
-    public Queue ProjectsFindByName() {
-        return new Queue(PROJECTS_FIND_BY_NAME);
-    }
+	@Bean
+	public Queue queryQueue() {
+		return new Queue(QUERY_RQ_QUEUE);
+	}
 
 	@Bean
 	public RabbitTemplate amqpTemplate() {

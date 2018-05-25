@@ -24,6 +24,11 @@ import org.jooq.impl.SequenceImpl;
 public class Sequences {
 
     /**
+     * The sequence <code>public.activity_id_seq</code>
+     */
+    public static final Sequence<Long> ACTIVITY_ID_SEQ = new SequenceImpl<Long>("activity_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.BIGINT.nullable(false));
+
+    /**
      * The sequence <code>public.bug_tracking_system_id_seq</code>
      */
     public static final Sequence<Long> BUG_TRACKING_SYSTEM_ID_SEQ = new SequenceImpl<Long>("bug_tracking_system_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.BIGINT.nullable(false));
@@ -42,6 +47,16 @@ public class Sequences {
      * The sequence <code>public.defect_form_field_id_seq</code>
      */
     public static final Sequence<Long> DEFECT_FORM_FIELD_ID_SEQ = new SequenceImpl<Long>("defect_form_field_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.BIGINT.nullable(false));
+
+    /**
+     * The sequence <code>public.integration_id_seq</code>
+     */
+    public static final Sequence<Integer> INTEGRATION_ID_SEQ = new SequenceImpl<Integer>("integration_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.INTEGER.nullable(false));
+
+    /**
+     * The sequence <code>public.integration_type_id_seq</code>
+     */
+    public static final Sequence<Integer> INTEGRATION_TYPE_ID_SEQ = new SequenceImpl<Integer>("integration_type_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.INTEGER.nullable(false));
 
     /**
      * The sequence <code>public.issue_type_id_seq</code>

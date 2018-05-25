@@ -4,12 +4,14 @@
 package com.epam.ta.reportportal.store.jooq;
 
 
+import com.epam.ta.reportportal.store.jooq.tables.JActivity;
 import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystem;
-import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystemAuth;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboard;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboardWidget;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFieldAllowedValue;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFormField;
+import com.epam.ta.reportportal.store.jooq.tables.JIntegration;
+import com.epam.ta.reportportal.store.jooq.tables.JIntegrationType;
 import com.epam.ta.reportportal.store.jooq.tables.JIssue;
 import com.epam.ta.reportportal.store.jooq.tables.JIssueTicket;
 import com.epam.ta.reportportal.store.jooq.tables.JIssueType;
@@ -57,15 +59,17 @@ public class Indexes {
     // INDEX definitions
     // -------------------------------------------------------------------------
 
+    public static final Index ACTIVITY_PK = Indexes0.ACTIVITY_PK;
     public static final Index BUG_TRACKING_SYSTEM_PK = Indexes0.BUG_TRACKING_SYSTEM_PK;
     public static final Index UNIQUE_BTS = Indexes0.UNIQUE_BTS;
-    public static final Index BUG_TRACKING_SYSTEM_AUTH_PK = Indexes0.BUG_TRACKING_SYSTEM_AUTH_PK;
     public static final Index DASHBOARD_PK = Indexes0.DASHBOARD_PK;
     public static final Index UNQ_NAME_PROJECT = Indexes0.UNQ_NAME_PROJECT;
     public static final Index DASHBOARD_WIDGET_PK = Indexes0.DASHBOARD_WIDGET_PK;
     public static final Index WIDGET_ON_DASHBOARD_UNQ = Indexes0.WIDGET_ON_DASHBOARD_UNQ;
     public static final Index DEFECT_FIELD_ALLOWED_VALUE_PK = Indexes0.DEFECT_FIELD_ALLOWED_VALUE_PK;
     public static final Index DEFECT_FORM_FIELD_PK = Indexes0.DEFECT_FORM_FIELD_PK;
+    public static final Index INTEGRATION_PK = Indexes0.INTEGRATION_PK;
+    public static final Index INTEGRATION_TYPE_PK = Indexes0.INTEGRATION_TYPE_PK;
     public static final Index ISSUE_PK = Indexes0.ISSUE_PK;
     public static final Index ISSUE_TICKET_PK = Indexes0.ISSUE_TICKET_PK;
     public static final Index ISSUE_TYPE_PK = Indexes0.ISSUE_TYPE_PK;
@@ -85,6 +89,7 @@ public class Indexes {
     public static final Index PROJECT_EMAIL_CONFIGURATION_PK = Indexes0.PROJECT_EMAIL_CONFIGURATION_PK;
     public static final Index USERS_PROJECT_PK = Indexes0.USERS_PROJECT_PK;
     public static final Index SERVER_SETTINGS_ID = Indexes0.SERVER_SETTINGS_ID;
+    public static final Index SERVER_SETTINGS_KEY_KEY = Indexes0.SERVER_SETTINGS_KEY_KEY;
     public static final Index TEST_ITEM_PK = Indexes0.TEST_ITEM_PK;
     public static final Index TEST_ITEM_RESULTS_PK = Indexes0.TEST_ITEM_RESULTS_PK;
     public static final Index TEST_ITEM_STRUCTURE_PK = Indexes0.TEST_ITEM_STRUCTURE_PK;
@@ -99,15 +104,17 @@ public class Indexes {
     // -------------------------------------------------------------------------
 
     private static class Indexes0 {
+        public static Index ACTIVITY_PK = Internal.createIndex("activity_pk", JActivity.ACTIVITY, new OrderField[] { JActivity.ACTIVITY.ID }, true);
         public static Index BUG_TRACKING_SYSTEM_PK = Internal.createIndex("bug_tracking_system_pk", JBugTrackingSystem.BUG_TRACKING_SYSTEM, new OrderField[] { JBugTrackingSystem.BUG_TRACKING_SYSTEM.ID }, true);
         public static Index UNIQUE_BTS = Internal.createIndex("unique_bts", JBugTrackingSystem.BUG_TRACKING_SYSTEM, new OrderField[] { JBugTrackingSystem.BUG_TRACKING_SYSTEM.URL, JBugTrackingSystem.BUG_TRACKING_SYSTEM.TYPE, JBugTrackingSystem.BUG_TRACKING_SYSTEM.BTS_PROJECT, JBugTrackingSystem.BUG_TRACKING_SYSTEM.PROJECT_ID }, true);
-        public static Index BUG_TRACKING_SYSTEM_AUTH_PK = Internal.createIndex("bug_tracking_system_auth_pk", JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH, new OrderField[] { JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH.ID }, true);
         public static Index DASHBOARD_PK = Internal.createIndex("dashboard_pk", JDashboard.DASHBOARD, new OrderField[] { JDashboard.DASHBOARD.ID }, true);
         public static Index UNQ_NAME_PROJECT = Internal.createIndex("unq_name_project", JDashboard.DASHBOARD, new OrderField[] { JDashboard.DASHBOARD.NAME, JDashboard.DASHBOARD.PROJECT_ID }, true);
         public static Index DASHBOARD_WIDGET_PK = Internal.createIndex("dashboard_widget_pk", JDashboardWidget.DASHBOARD_WIDGET, new OrderField[] { JDashboardWidget.DASHBOARD_WIDGET.DASHBOARD_ID, JDashboardWidget.DASHBOARD_WIDGET.WIDGET_ID }, true);
         public static Index WIDGET_ON_DASHBOARD_UNQ = Internal.createIndex("widget_on_dashboard_unq", JDashboardWidget.DASHBOARD_WIDGET, new OrderField[] { JDashboardWidget.DASHBOARD_WIDGET.DASHBOARD_ID, JDashboardWidget.DASHBOARD_WIDGET.WIDGET_NAME }, true);
         public static Index DEFECT_FIELD_ALLOWED_VALUE_PK = Internal.createIndex("defect_field_allowed_value_pk", JDefectFieldAllowedValue.DEFECT_FIELD_ALLOWED_VALUE, new OrderField[] { JDefectFieldAllowedValue.DEFECT_FIELD_ALLOWED_VALUE.ID }, true);
         public static Index DEFECT_FORM_FIELD_PK = Internal.createIndex("defect_form_field_pk", JDefectFormField.DEFECT_FORM_FIELD, new OrderField[] { JDefectFormField.DEFECT_FORM_FIELD.ID }, true);
+        public static Index INTEGRATION_PK = Internal.createIndex("integration_pk", JIntegration.INTEGRATION, new OrderField[] { JIntegration.INTEGRATION.ID }, true);
+        public static Index INTEGRATION_TYPE_PK = Internal.createIndex("integration_type_pk", JIntegrationType.INTEGRATION_TYPE, new OrderField[] { JIntegrationType.INTEGRATION_TYPE.ID }, true);
         public static Index ISSUE_PK = Internal.createIndex("issue_pk", JIssue.ISSUE, new OrderField[] { JIssue.ISSUE.ISSUE_ID }, true);
         public static Index ISSUE_TICKET_PK = Internal.createIndex("issue_ticket_pk", JIssueTicket.ISSUE_TICKET, new OrderField[] { JIssueTicket.ISSUE_TICKET.ISSUE_ID, JIssueTicket.ISSUE_TICKET.TICKET_ID }, true);
         public static Index ISSUE_TYPE_PK = Internal.createIndex("issue_type_pk", JIssueType.ISSUE_TYPE, new OrderField[] { JIssueType.ISSUE_TYPE.ID }, true);
@@ -127,6 +134,7 @@ public class Indexes {
         public static Index PROJECT_EMAIL_CONFIGURATION_PK = Internal.createIndex("project_email_configuration_pk", JProjectEmailConfiguration.PROJECT_EMAIL_CONFIGURATION, new OrderField[] { JProjectEmailConfiguration.PROJECT_EMAIL_CONFIGURATION.ID }, true);
         public static Index USERS_PROJECT_PK = Internal.createIndex("users_project_pk", JProjectUser.PROJECT_USER, new OrderField[] { JProjectUser.PROJECT_USER.USER_ID, JProjectUser.PROJECT_USER.PROJECT_ID }, true);
         public static Index SERVER_SETTINGS_ID = Internal.createIndex("server_settings_id", JServerSettings.SERVER_SETTINGS, new OrderField[] { JServerSettings.SERVER_SETTINGS.ID }, true);
+        public static Index SERVER_SETTINGS_KEY_KEY = Internal.createIndex("server_settings_key_key", JServerSettings.SERVER_SETTINGS, new OrderField[] { JServerSettings.SERVER_SETTINGS.KEY }, true);
         public static Index TEST_ITEM_PK = Internal.createIndex("test_item_pk", JTestItem.TEST_ITEM, new OrderField[] { JTestItem.TEST_ITEM.ITEM_ID }, true);
         public static Index TEST_ITEM_RESULTS_PK = Internal.createIndex("test_item_results_pk", JTestItemResults.TEST_ITEM_RESULTS, new OrderField[] { JTestItemResults.TEST_ITEM_RESULTS.ITEM_ID }, true);
         public static Index TEST_ITEM_STRUCTURE_PK = Internal.createIndex("test_item_structure_pk", JTestItemStructure.TEST_ITEM_STRUCTURE, new OrderField[] { JTestItemStructure.TEST_ITEM_STRUCTURE.ITEM_ID }, true);

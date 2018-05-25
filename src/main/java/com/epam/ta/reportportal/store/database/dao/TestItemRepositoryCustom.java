@@ -32,7 +32,7 @@ import java.util.Optional;
 /**
  * @author Pavel Bortnik
  */
-public interface TestItemRepositoryCustom {
+public interface TestItemRepositoryCustom extends FilterableRepository<TestItem>{
 
 	/**
 	 * Select ids and names of down to item structure tree.

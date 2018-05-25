@@ -4,13 +4,15 @@
 package com.epam.ta.reportportal.store.jooq;
 
 
+import com.epam.ta.reportportal.store.jooq.tables.JActivity;
 import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystem;
-import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystemAuth;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboard;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboardWidget;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFieldAllowedValue;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFormField;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFormFieldValue;
+import com.epam.ta.reportportal.store.jooq.tables.JIntegration;
+import com.epam.ta.reportportal.store.jooq.tables.JIntegrationType;
 import com.epam.ta.reportportal.store.jooq.tables.JIssue;
 import com.epam.ta.reportportal.store.jooq.tables.JIssueTicket;
 import com.epam.ta.reportportal.store.jooq.tables.JIssueType;
@@ -60,7 +62,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JPublic extends SchemaImpl {
 
-    private static final long serialVersionUID = -203995119;
+    private static final long serialVersionUID = 1596991037;
 
     /**
      * The reference instance of <code>public</code>
@@ -68,14 +70,14 @@ public class JPublic extends SchemaImpl {
     public static final JPublic PUBLIC = new JPublic();
 
     /**
+     * The table <code>public.activity</code>.
+     */
+    public final JActivity ACTIVITY = com.epam.ta.reportportal.store.jooq.tables.JActivity.ACTIVITY;
+
+    /**
      * The table <code>public.bug_tracking_system</code>.
      */
     public final JBugTrackingSystem BUG_TRACKING_SYSTEM = com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystem.BUG_TRACKING_SYSTEM;
-
-    /**
-     * The table <code>public.bug_tracking_system_auth</code>.
-     */
-    public final JBugTrackingSystemAuth BUG_TRACKING_SYSTEM_AUTH = com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH;
 
     /**
      * The table <code>public.dashboard</code>.
@@ -101,6 +103,16 @@ public class JPublic extends SchemaImpl {
      * The table <code>public.defect_form_field_value</code>.
      */
     public final JDefectFormFieldValue DEFECT_FORM_FIELD_VALUE = com.epam.ta.reportportal.store.jooq.tables.JDefectFormFieldValue.DEFECT_FORM_FIELD_VALUE;
+
+    /**
+     * The table <code>public.integration</code>.
+     */
+    public final JIntegration INTEGRATION = com.epam.ta.reportportal.store.jooq.tables.JIntegration.INTEGRATION;
+
+    /**
+     * The table <code>public.integration_type</code>.
+     */
+    public final JIntegrationType INTEGRATION_TYPE = com.epam.ta.reportportal.store.jooq.tables.JIntegrationType.INTEGRATION_TYPE;
 
     /**
      * The table <code>public.issue</code>.
@@ -242,10 +254,13 @@ public class JPublic extends SchemaImpl {
 
     private final List<Sequence<?>> getSequences0() {
         return Arrays.<Sequence<?>>asList(
+            Sequences.ACTIVITY_ID_SEQ,
             Sequences.BUG_TRACKING_SYSTEM_ID_SEQ,
             Sequences.DASHBOARD_ID_SEQ,
             Sequences.DEFECT_FIELD_ALLOWED_VALUE_ID_SEQ,
             Sequences.DEFECT_FORM_FIELD_ID_SEQ,
+            Sequences.INTEGRATION_ID_SEQ,
+            Sequences.INTEGRATION_TYPE_ID_SEQ,
             Sequences.ISSUE_TYPE_ID_SEQ,
             Sequences.ITEM_TAG_ID_SEQ,
             Sequences.LAUNCH_ID_SEQ,
@@ -270,13 +285,15 @@ public class JPublic extends SchemaImpl {
 
     private final List<Table<?>> getTables0() {
         return Arrays.<Table<?>>asList(
+            JActivity.ACTIVITY,
             JBugTrackingSystem.BUG_TRACKING_SYSTEM,
-            JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH,
             JDashboard.DASHBOARD,
             JDashboardWidget.DASHBOARD_WIDGET,
             JDefectFieldAllowedValue.DEFECT_FIELD_ALLOWED_VALUE,
             JDefectFormField.DEFECT_FORM_FIELD,
             JDefectFormFieldValue.DEFECT_FORM_FIELD_VALUE,
+            JIntegration.INTEGRATION,
+            JIntegrationType.INTEGRATION_TYPE,
             JIssue.ISSUE,
             JIssueTicket.ISSUE_TICKET,
             JIssueType.ISSUE_TYPE,

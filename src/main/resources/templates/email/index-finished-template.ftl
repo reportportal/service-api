@@ -66,8 +66,10 @@
                     <td align="left">
                         <h2 style="margin-top: 13px;font-size: 20px; color: #777777;" align="center">The index has been generated successfully.</h2>
                         <p height='34' style="margin: 15px 0 0 0;font-size: 14px;color: #777777;">
-                            You can start to use Auto-Analyzer on your project.<br>
-                            ElasticSearch Index contains ${indexedLogsCount} record(s) now.
+                            You can start to use Auto-Analyzer on your project.
+                        </p>
+                        <p  height='34' style="margin: 5px 0 0 0;font-size: 14px;color: #777777;">
+                            ElasticSearch Index contains <b>${indexedLogsCount}</b> record(s) now.
                         </p>
                         <h3 style="margin:25px 0 0 0;font-size: 14px;font-weight: bold;color: #777777;">Your ReportPortal.io Team</h3>
                     </td>

@@ -52,7 +52,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
 			r.get(JLog.LOG.LOG_MESSAGE, String.class),
 			r.get(JLog.LOG.LAST_MODIFIED, LocalDateTime.class),
 			r.get(JLog.LOG.LOG_LEVEL, Integer.class),
-			r.get(JLog.LOG.ITEM_ID, TestItem.class)
+			r.into(TestItem.class)
 	);
 
 	private DSLContext dsl;

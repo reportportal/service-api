@@ -61,9 +61,8 @@ public enum FilterTarget {
 
 	INTEGRATION(Integration.class, Arrays.asList(
 
-			new CriteriaHolder("id", "i.id", Long.class, false),
-			new CriteriaHolder("project", "p.name", Long.class, false),
-			new CriteriaHolder("type", "it.name", Long.class, false)
+			new CriteriaHolder("project", "p.name", String.class, false),
+			new CriteriaHolder("type", "it.name", String.class, false)
 	)) {
 		public SelectQuery<? extends Record> getQuery() {
 			JIntegration i = JIntegration.INTEGRATION.as("i");
@@ -87,7 +86,6 @@ public enum FilterTarget {
 
 	PROJECT(Project.class, Arrays.asList(
 
-			new CriteriaHolder("id", "p.id", Long.class, false),
 			new CriteriaHolder("name", "p.name", String.class, false)
 	)){
 		public SelectQuery<? extends Record> getQuery() {
@@ -105,8 +103,7 @@ public enum FilterTarget {
 
 	LOG(Log.class, Arrays.asList(
 
-			new CriteriaHolder("id", "l.id", Long.class, false),
-			new CriteriaHolder("log_level", "l.log_level", Long.class, false)
+			new CriteriaHolder("log_message", "l.log_message", String.class, false)
 	)){
 		@Override
 		public SelectQuery<? extends Record> getQuery() {
@@ -130,8 +127,7 @@ public enum FilterTarget {
 
 	TEST_ITEM(TestItem.class, Arrays.asList(
 
-			new CriteriaHolder("item_id", "ti.item_id", Long.class, false),
-			new CriteriaHolder("name", "ti.name", Long.class, false)
+			new CriteriaHolder("name", "ti.name", String.class, false)
 	)){
 		@Override
 		public SelectQuery<? extends Record> getQuery() {

@@ -60,7 +60,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 
 	private static final RecordMapper<? super Record, TestItem> TEST_ITEM_MAPPER = r -> new TestItem(
 			r.get(JTestItem.TEST_ITEM.ITEM_ID, Long.class),
-			r.get(JTestItem.TEST_ITEM.LAUNCH_ID, Launch.class),
+			r.into(Launch.class),
 			r.get(JTestItem.TEST_ITEM.NAME, String.class),
 			r.get(JTestItem.TEST_ITEM.TYPE, TestItemTypeEnum.class),
 			r.get(JTestItem.TEST_ITEM.START_TIME, LocalDateTime.class),

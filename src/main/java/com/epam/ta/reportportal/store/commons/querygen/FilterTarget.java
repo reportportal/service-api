@@ -87,8 +87,8 @@ public enum FilterTarget {
 
 	PROJECT(Project.class, Arrays.asList(
 
-			new CriteriaHolder("id", "i.id", Long.class, false),
-			new CriteriaHolder("name", "i.name", String.class, false)
+			new CriteriaHolder("id", "p.id", Long.class, false),
+			new CriteriaHolder("name", "p.name", String.class, false)
 	)){
 		public SelectQuery<? extends Record> getQuery() {
 			JProject p = JProject.PROJECT.as("p");

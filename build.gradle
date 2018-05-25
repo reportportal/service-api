@@ -117,6 +117,7 @@ dependencies {
     compile 'org.hibernate:hibernate-validator'
     compile 'org.postgresql:postgresql'
     compile 'org.jooq:jooq'
+    compile 'org.jooq:jooq-codegen:3.10.5'
     compile 'org.jasypt:jasypt:1.9.2'
     compile("org.springframework.boot:spring-boot-starter-amqp")
 

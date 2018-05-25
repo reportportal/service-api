@@ -30,6 +30,14 @@ public class Project implements Serializable {
 	@OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY, orphanRemoval = true)
 	private Set<Integration> integrations = Sets.newHashSet();
 
+	public Project(Long id, String name) {
+		this.id = id;
+		this.name = name;
+	}
+
+	public Project() {
+	}
+
 	public static long getSerialVersionUID() {
 		return serialVersionUID;
 	}

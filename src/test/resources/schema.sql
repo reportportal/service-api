@@ -17,10 +17,16 @@ CREATE TYPE AUTH_TYPE_ENUM AS ENUM ('OAUTH', 'NTLM', 'APIKEY', 'BASIC');
 
 CREATE TYPE ACCESS_TOKEN_TYPE_ENUM AS ENUM ('OAUTH', 'NTLM', 'APIKEY', 'BASIC');
 
+CREATE TYPE ACTIVITY_ENTITY_ENUM AS ENUM ('LAUNCH', 'ITEM');
+
 CREATE TYPE TEST_ITEM_TYPE_ENUM AS ENUM ('SUITE', 'STORY', 'TEST', 'SCENARIO', 'STEP', 'BEFORE_CLASS', 'BEFORE_GROUPS', 'BEFORE_METHOD',
   'BEFORE_SUITE', 'BEFORE_TEST', 'AFTER_CLASS', 'AFTER_GROUPS', 'AFTER_METHOD', 'AFTER_SUITE', 'AFTER_TEST');
 
 CREATE TYPE ISSUE_GROUP_ENUM AS ENUM ('PRODUCT_BUG', 'AUTOMATION_BUG', 'SYSTEM_ISSUE', 'TO_INVESTIGATE', 'NO_DEFECT');
+
+CREATE TYPE INTEGRATION_AUTH_FLOW_ENUM AS ENUM ('OAUTH', 'BASIC', 'TOKEN', 'FORM');
+
+CREATE TYPE INTEGRATION_GROUP_ENUM AS ENUM ('BTS', 'NOTIFICATION');
 
 CREATE TABLE server_settings (
   id    SMALLSERIAL CONSTRAINT server_settings_id PRIMARY KEY,
@@ -155,17 +161,26 @@ CREATE TABLE defect_form_field_value (
   values VARCHAR NOT NULL
 );
 
-CREATE TABLE bug_tracking_system_auth (
-  id        BIGINT CONSTRAINT bug_tracking_system_auth_pk PRIMARY KEY REFERENCES bug_tracking_system (id) ON DELETE CASCADE,
-  auth_type AUTH_TYPE_ENUM NOT NULL,
-  username  VARCHAR,
-  password  VARCHAR,
-  domain    VARCHAR,
-  accessKey VARCHAR
-);
 -----------------------------------------------------------------------------------
 
 
+-------------------------- Dashboards and widgets -----------------------------
+CREATE TABLE integration_type (
+  id            SERIAL CONSTRAINT integration_type_pk PRIMARY KEY,
+  name          VARCHAR(128)            NOT NULL,
+  auth_flow     INTEGRATION_AUTH_FLOW_ENUM   NOT NULL,
+  creation_date TIMESTAMP DEFAULT now() NOT NULL,
+  group_type    INTEGRATION_GROUP_ENUM       NOT NULL,
+  details       JSONB
+);
+
+CREATE TABLE integration (
+  id            SERIAL CONSTRAINT integration_pk PRIMARY KEY,
+  project_id    INTEGER REFERENCES project (id) ON DELETE CASCADE,
+  type          INTEGER REFERENCES integration_type (id) ON DELETE CASCADE,
+  params        JSONB,
+  creation_date TIMESTAMP DEFAULT now() NOT NULL
+);
 -------------------------- Dashboards and widgets -----------------------------
 CREATE TABLE dashboard (
   id            SERIAL CONSTRAINT dashboard_pk PRIMARY KEY,
@@ -204,6 +219,7 @@ CREATE TABLE dashboard_widget (
 
 CREATE TABLE launch (
   id            BIGSERIAL CONSTRAINT launch_pk PRIMARY KEY,
+  uuid          VARCHAR                                                             NOT NULL,
   project_id    BIGINT REFERENCES project (id) ON DELETE CASCADE                    NOT NULL,
   user_id       BIGINT REFERENCES users (id) ON DELETE SET NULL,
   name          VARCHAR(256)                                                        NOT NULL,
@@ -214,7 +230,7 @@ CREATE TABLE launch (
   last_modified TIMESTAMP DEFAULT now()                                             NOT NULL,
   mode          LAUNCH_MODE_ENUM                                                    NOT NULL,
   status        STATUS_ENUM                                                         NOT NULL,
-  CONSTRAINT unq_name_number UNIQUE (name, number, project_id)
+  CONSTRAINT unq_name_number UNIQUE (name, number, project_id, uuid)
 );
 
 CREATE TABLE launch_tag (
@@ -224,7 +240,8 @@ CREATE TABLE launch_tag (
 );
 
 CREATE OR REPLACE FUNCTION update_last_launch_number()
-  RETURNS trigger AS '
+  RETURNS TRIGGER AS
+$BODY$
 BEGIN
   NEW.number = (SELECT number
                 FROM launch
@@ -235,7 +252,8 @@ BEGIN
     THEN 1
                ELSE NEW.number END;
   RETURN NEW;
-END; '
+END;
+$BODY$
 LANGUAGE plpgsql;
 
 
@@ -291,6 +309,15 @@ CREATE TABLE log (
   log_level     INTEGER                                                  NOT NULL
 );
 
+CREATE TABLE activity (
+  id            BIGSERIAL CONSTRAINT activity_pk PRIMARY KEY,
+  user_id       BIGINT REFERENCES users (id) ON DELETE CASCADE           NOT NULL,
+  entity        ACTIVITY_ENTITY_ENUM                                     NOT NULL,
+  action        VARCHAR(128)                                             NOT NULL,
+  details       JSONB                                                    NULL,
+  creation_date TIMESTAMP                                                NOT NULL
+);
+
 ----------------------------------------------------------------------------------------
 
 
@@ -318,3 +345,21 @@ CREATE TABLE issue_ticket (
   CONSTRAINT issue_ticket_pk PRIMARY KEY (issue_id, ticket_id)
 );
 ----------------------------------------------------------------------------------------
+
+CREATE FUNCTION check_wired_tickets()
+  RETURNS TRIGGER AS
+$BODY$
+BEGIN
+  DELETE FROM ticket
+  WHERE (SELECT count(issue_ticket.ticket_id)
+         FROM issue_ticket
+         WHERE issue_ticket.ticket_id = old.ticket_id) = 0 AND ticket.id = old.ticket_id;
+  RETURN NULL;
+END;
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER after_ticket_delete
+  AFTER DELETE
+  ON issue_ticket
+  FOR EACH ROW EXECUTE PROCEDURE check_wired_tickets();

@@ -1,11 +1,12 @@
 package com.epam.ta.reportportal.store.commons.querygen;
 
+import com.epam.ta.reportportal.store.database.entity.integration.Integration;
+import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.store.database.entity.log.Log;
+import com.epam.ta.reportportal.store.database.entity.project.Project;
 import com.epam.ta.reportportal.store.jooq.enums.JStatusEnum;
-import com.epam.ta.reportportal.store.jooq.tables.JLaunch;
-import com.epam.ta.reportportal.store.jooq.tables.JProject;
-import com.epam.ta.reportportal.store.jooq.tables.JTestItem;
-import com.epam.ta.reportportal.store.jooq.tables.JTestItemResults;
+import com.epam.ta.reportportal.store.jooq.tables.*;
 import org.jooq.Record;
 import org.jooq.SelectQuery;
 import org.jooq.impl.DSL;
@@ -28,8 +29,8 @@ public enum FilterTarget {
 	)) {
 		public SelectQuery<? extends Record> getQuery() {
 			JLaunch l = JLaunch.LAUNCH.as("l");
-			JTestItem ti = TEST_ITEM.as("ti");
-			JProject p = PROJECT.as("p");
+			JTestItem ti = JTestItem.TEST_ITEM.as("ti");
+			JProject p = JProject.PROJECT.as("p");
 			JTestItemResults tr = TEST_ITEM_RESULTS.as("tr");
 
 			return DSL.select(
@@ -55,6 +56,102 @@ public enum FilterTarget {
 					.groupBy(l.ID, l.PROJECT_ID, l.USER_ID, l.NAME, l.DESCRIPTION, l.START_TIME, l.NUMBER, l.LAST_MODIFIED, l.MODE)
 					.getQuery();
 					//@formatter:on
+		}
+	},
+
+	INTEGRATION(Integration.class, Arrays.asList(
+
+			new CriteriaHolder("id", "i.id", Long.class, false),
+			new CriteriaHolder("project", "p.name", Long.class, false),
+			new CriteriaHolder("type", "it.name", Long.class, false)
+	)) {
+		public SelectQuery<? extends Record> getQuery() {
+			JIntegration i = JIntegration.INTEGRATION.as("i");
+			JIntegrationType it = JIntegrationType.INTEGRATION_TYPE.as("it");
+			JProject p = JProject.PROJECT.as("p");
+
+			return DSL.select(
+					i.ID,
+					i.PROJECT_ID,
+					i.TYPE,
+					i.PARAMS,
+					i.CREATION_DATE
+			)
+					.from(i)
+					.leftJoin(it).on(i.TYPE.eq(it.ID))
+					.leftJoin(p).on(i.PROJECT_ID.eq(p.ID))
+					.groupBy(i.ID, i.PROJECT_ID, i.TYPE, i.PARAMS, i.CREATION_DATE)
+					.getQuery();
+		}
+	},
+
+	PROJECT(Project.class, Arrays.asList(
+
+			new CriteriaHolder("id", "i.id", Long.class, false),
+			new CriteriaHolder("name", "i.name", String.class, false)
+	)){
+		public SelectQuery<? extends Record> getQuery() {
+			JProject p = JProject.PROJECT.as("p");
+
+			return DSL.select(
+					p.ID,
+					p.NAME
+			)
+					.from(p)
+					.getQuery();
+
+		}
+	},
+
+	LOG(Log.class, Arrays.asList(
+
+			new CriteriaHolder("id", "l.id", Long.class, false),
+			new CriteriaHolder("log_level", "l.log_level", Long.class, false)
+	)){
+		@Override
+		public SelectQuery<? extends Record> getQuery() {
+			JLog l = JLog.LOG.as("l");
+			JTestItem ti = JTestItem.TEST_ITEM.as("ti");
+
+			return DSL.select(
+					l.ID,
+					l.LOG_TIME,
+					l.LOG_MESSAGE,
+					l.LAST_MODIFIED,
+					l.LOG_LEVEL,
+					l.ITEM_ID
+			)
+					.from(l)
+					.leftJoin(ti).on(l.ITEM_ID.eq(ti.ITEM_ID))
+					.groupBy(l.ID, l.LOG_TIME, l.LOG_MESSAGE, l.LAST_MODIFIED, l.LOG_LEVEL, l.ITEM_ID)
+					.getQuery();
+		}
+	},
+
+	TEST_ITEM(TestItem.class, Arrays.asList(
+
+			new CriteriaHolder("item_id", "ti.item_id", Long.class, false),
+			new CriteriaHolder("name", "ti.name", Long.class, false)
+	)){
+		@Override
+		public SelectQuery<? extends Record> getQuery() {
+			JTestItem ti = JTestItem.TEST_ITEM.as("ti");
+			JLaunch l = JLaunch.LAUNCH.as("l");
+
+			return DSL.select(
+					ti.ITEM_ID,
+					ti.LAUNCH_ID,
+					ti.NAME,
+					ti.TYPE,
+					ti.START_TIME,
+					ti.DESCRIPTION,
+					ti.LAST_MODIFIED,
+					ti.UNIQUE_ID
+			)
+					.from(ti)
+					.leftJoin(l).on(ti.LAUNCH_ID.eq(l.ID))
+					.groupBy(ti.ITEM_ID, ti.LAUNCH_ID, ti.NAME, ti.TYPE, ti.START_TIME, ti.DESCRIPTION, ti.LAST_MODIFIED, ti.UNIQUE_ID)
+					.getQuery();
 		}
 	};
 

@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * @author Pavel Bortnik
  */
-public interface LogRepositoryCustom {
+public interface LogRepositoryCustom  extends FilterableRepository<Log>{
 
 	/**
 	 * Checks if the test item has any logs.

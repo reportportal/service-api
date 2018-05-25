@@ -38,6 +38,17 @@ public class Integration implements Serializable{
 	@Column(name = "creation_date", nullable = false)
 	LocalDateTime creationDate;
 
+	public Integration(Long id, Project project, IntegrationType type, IntegrationParams params, LocalDateTime creationDate) {
+		this.id = id;
+		this.project = project;
+		this.type = type;
+		this.params = params;
+		this.creationDate = creationDate;
+	}
+
+	public Integration() {
+	}
+
 	public Long getId() {
 		return id;
 	}

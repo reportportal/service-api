@@ -98,6 +98,19 @@ public class TestItem implements Serializable {
 	public TestItem() {
 	}
 
+	public TestItem(Long itemId, Launch launch, String name, TestItemTypeEnum type, LocalDateTime startTime, String description,
+			LocalDateTime lastModified, List<Parameter> parameters, String uniqueId) {
+		this.itemId = itemId;
+		this.launch = launch;
+		this.name = name;
+		this.type = type;
+		this.startTime = startTime;
+		this.description = description;
+		this.lastModified = lastModified;
+		this.parameters = parameters;
+		this.uniqueId = uniqueId;
+	}
+
 	public TestItemStructure getTestItemStructure() {
 		return testItemStructure;
 	}

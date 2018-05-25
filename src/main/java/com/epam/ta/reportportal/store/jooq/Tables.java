@@ -4,13 +4,15 @@
 package com.epam.ta.reportportal.store.jooq;
 
 
+import com.epam.ta.reportportal.store.jooq.tables.JActivity;
 import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystem;
-import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystemAuth;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboard;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboardWidget;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFieldAllowedValue;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFormField;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFormFieldValue;
+import com.epam.ta.reportportal.store.jooq.tables.JIntegration;
+import com.epam.ta.reportportal.store.jooq.tables.JIntegrationType;
 import com.epam.ta.reportportal.store.jooq.tables.JIssue;
 import com.epam.ta.reportportal.store.jooq.tables.JIssueTicket;
 import com.epam.ta.reportportal.store.jooq.tables.JIssueType;
@@ -52,14 +54,14 @@ import javax.annotation.Generated;
 public class Tables {
 
     /**
+     * The table <code>public.activity</code>.
+     */
+    public static final JActivity ACTIVITY = com.epam.ta.reportportal.store.jooq.tables.JActivity.ACTIVITY;
+
+    /**
      * The table <code>public.bug_tracking_system</code>.
      */
     public static final JBugTrackingSystem BUG_TRACKING_SYSTEM = com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystem.BUG_TRACKING_SYSTEM;
-
-    /**
-     * The table <code>public.bug_tracking_system_auth</code>.
-     */
-    public static final JBugTrackingSystemAuth BUG_TRACKING_SYSTEM_AUTH = com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH;
 
     /**
      * The table <code>public.dashboard</code>.
@@ -85,6 +87,16 @@ public class Tables {
      * The table <code>public.defect_form_field_value</code>.
      */
     public static final JDefectFormFieldValue DEFECT_FORM_FIELD_VALUE = com.epam.ta.reportportal.store.jooq.tables.JDefectFormFieldValue.DEFECT_FORM_FIELD_VALUE;
+
+    /**
+     * The table <code>public.integration</code>.
+     */
+    public static final JIntegration INTEGRATION = com.epam.ta.reportportal.store.jooq.tables.JIntegration.INTEGRATION;
+
+    /**
+     * The table <code>public.integration_type</code>.
+     */
+    public static final JIntegrationType INTEGRATION_TYPE = com.epam.ta.reportportal.store.jooq.tables.JIntegrationType.INTEGRATION_TYPE;
 
     /**
      * The table <code>public.issue</code>.

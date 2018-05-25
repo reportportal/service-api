@@ -61,6 +61,18 @@ public class Log implements Serializable {
 	@JoinColumn(name = "item_id")
 	private TestItem testItem;
 
+	public Log(Long id, LocalDateTime logTime, String logMessage, LocalDateTime lastModified, Integer logLevel, TestItem testItem) {
+		this.id = id;
+		this.logTime = logTime;
+		this.logMessage = logMessage;
+		this.lastModified = lastModified;
+		this.logLevel = logLevel;
+		this.testItem = testItem;
+	}
+
+	public Log() {
+	}
+
 	public Long getId() {
 		return id;
 	}

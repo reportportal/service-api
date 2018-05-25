@@ -2,5 +2,7 @@ package com.epam.ta.reportportal.store.database.dao;
 
 import com.epam.ta.reportportal.store.database.entity.integration.Integration;
 
-public interface IntegrationRepository extends ReportPortalRepository<Integration, Long>, IntegrationRepositoryCustom {
+
+public interface IntegrationRepositoryCustom extends FilterableRepository<Integration>{
+
 }

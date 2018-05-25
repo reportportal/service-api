@@ -21,12 +21,18 @@
 
 package com.epam.ta.reportportal.store.database.dao;
 
+import com.epam.ta.reportportal.store.commons.querygen.Filter;
+import com.epam.ta.reportportal.store.commons.querygen.QueryBuilder;
+import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.log.Log;
 import com.epam.ta.reportportal.store.database.mappers.LogMapper;
 import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.RecordMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +44,14 @@ import static com.epam.ta.reportportal.store.jooq.Tables.TEST_ITEM;
  */
 @Repository
 public class LogRepositoryCustomImpl implements LogRepositoryCustom {
+
+	private static final RecordMapper<? super Record, Log> LOG_MAPPER = r -> new Log(r.into(Long.class),
+			r.into(LocalDateTime.class),
+			r.into(String.class),
+			r.into(LocalDateTime.class),
+			r.into(Integer.class),
+			r.into(TestItem.class)
+	);
 
 	private DSLContext dsl;
 
@@ -66,5 +80,11 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
 				  .limit(limit)
 				  .fetch()
 				  .map(LogMapper::getLog);
+	}
+
+	@Override
+	public List<Log> findByFilter(Filter filter) {
+
+		return dsl.fetch(QueryBuilder.newBuilder(filter).build()).map(LOG_MAPPER);
 	}
 }

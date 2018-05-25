@@ -2,7 +2,7 @@ package com.epam.ta.reportportal.store.database.dao;
 
 import com.epam.ta.reportportal.store.database.entity.project.Project;
 
-public interface ProjectRepository extends ReportPortalRepository<Project, Long> {
+public interface ProjectRepository extends ReportPortalRepository<Project, Long>, ProjectRepositoryCustom {
 
     Project findByName(String name);
 }

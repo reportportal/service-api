@@ -6,6 +6,7 @@ import com.epam.ta.reportportal.store.database.entity.integration.Integration;
 import com.epam.ta.reportportal.store.database.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.store.database.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.store.database.entity.project.Project;
+import com.epam.ta.reportportal.store.jooq.tables.JIntegration;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.RecordMapper;
@@ -18,11 +19,12 @@ import java.util.List;
 @Repository
 public class IntegrationRepositoryCustomImpl implements IntegrationRepositoryCustom {
 
-	private static final RecordMapper<? super Record, Integration> INTEGRATION_MAPPER = r -> new Integration(r.into(Long.class),
-			r.into(Project.class),
-			r.into(IntegrationType.class),
-			r.into(IntegrationParams.class),
-			r.into(LocalDateTime.class)
+	private static final RecordMapper<? super Record, Integration> INTEGRATION_MAPPER = r -> new Integration(
+			r.get(JIntegration.INTEGRATION.ID, Long.class),
+			r.get(JIntegration.INTEGRATION.PROJECT_ID, Project.class),
+			r.get(JIntegration.INTEGRATION.TYPE, IntegrationType.class),
+			r.get(JIntegration.INTEGRATION.PARAMS, IntegrationParams.class),
+			r.get(JIntegration.INTEGRATION.CREATION_DATE, LocalDateTime.class)
 	);
 
 	@Autowired

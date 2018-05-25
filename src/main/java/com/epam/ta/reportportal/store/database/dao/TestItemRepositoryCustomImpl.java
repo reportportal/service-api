@@ -58,15 +58,15 @@ import static org.jooq.impl.DSL.*;
 @Repository
 public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 
-	private static final RecordMapper<? super Record, TestItem> TEST_ITEM_MAPPER = r -> new TestItem(r.into(Long.class),
-			r.into(Launch.class),
-			r.into(String.class),
-			r.into(TestItemTypeEnum.class),
-			r.into(LocalDateTime.class),
-			r.into(String.class),
-			r.into(LocalDateTime.class),
-			r.into(List.class),
-			r.into(String.class)
+	private static final RecordMapper<? super Record, TestItem> TEST_ITEM_MAPPER = r -> new TestItem(
+			r.get(JTestItem.TEST_ITEM.ITEM_ID, Long.class),
+			r.get(JTestItem.TEST_ITEM.LAUNCH_ID, Launch.class),
+			r.get(JTestItem.TEST_ITEM.NAME, String.class),
+			r.get(JTestItem.TEST_ITEM.TYPE, TestItemTypeEnum.class),
+			r.get(JTestItem.TEST_ITEM.START_TIME, LocalDateTime.class),
+			r.get(JTestItem.TEST_ITEM.DESCRIPTION, String.class),
+			r.get(JTestItem.TEST_ITEM.LAST_MODIFIED, LocalDateTime.class),
+			r.get(JTestItem.TEST_ITEM.UNIQUE_ID, String.class)
 	);
 
 	private DSLContext dsl;
@@ -125,8 +125,8 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 	@Override
 	public Boolean hasItemsInStatusByParent(Long parentId, StatusEnum... statuses) {
 		List<JStatusEnum> jStatuses = Arrays.stream(statuses).map(it -> JStatusEnum.valueOf(it.name())).collect(toList());
-		return dsl.fetchExists(
-				commonTestItemDslSelect().where(TEST_ITEM_STRUCTURE.PARENT_ID.eq(parentId)).and(TEST_ITEM_RESULTS.STATUS.in(jStatuses)));
+		return dsl.fetchExists(commonTestItemDslSelect().where(TEST_ITEM_STRUCTURE.PARENT_ID.eq(parentId))
+				.and(TEST_ITEM_RESULTS.STATUS.in(jStatuses)));
 	}
 
 	@Override

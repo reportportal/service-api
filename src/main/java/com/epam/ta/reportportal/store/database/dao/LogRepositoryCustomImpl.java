@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.store.commons.querygen.QueryBuilder;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.log.Log;
 import com.epam.ta.reportportal.store.database.mappers.LogMapper;
+import com.epam.ta.reportportal.store.jooq.tables.JLog;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.RecordMapper;
@@ -45,12 +46,13 @@ import static com.epam.ta.reportportal.store.jooq.Tables.TEST_ITEM;
 @Repository
 public class LogRepositoryCustomImpl implements LogRepositoryCustom {
 
-	private static final RecordMapper<? super Record, Log> LOG_MAPPER = r -> new Log(r.into(Long.class),
-			r.into(LocalDateTime.class),
-			r.into(String.class),
-			r.into(LocalDateTime.class),
-			r.into(Integer.class),
-			r.into(TestItem.class)
+	private static final RecordMapper<? super Record, Log> LOG_MAPPER = r -> new Log(
+			r.get(JLog.LOG.ID, Long.class),
+			r.get(JLog.LOG.LOG_TIME, LocalDateTime.class),
+			r.get(JLog.LOG.LOG_MESSAGE, String.class),
+			r.get(JLog.LOG.LAST_MODIFIED, LocalDateTime.class),
+			r.get(JLog.LOG.LOG_LEVEL, Integer.class),
+			r.get(JLog.LOG.ITEM_ID, TestItem.class)
 	);
 
 	private DSLContext dsl;
@@ -74,12 +76,12 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
 		Long id = Long.valueOf(itemId);
 
 		return dsl.select()
-			      .from(LOG)
-				  .where(TEST_ITEM.ITEM_ID.eq(id))
-				  .orderBy(LOG.LOG_TIME.asc())
-				  .limit(limit)
-				  .fetch()
-				  .map(LogMapper::getLog);
+				.from(LOG)
+				.where(TEST_ITEM.ITEM_ID.eq(id))
+				.orderBy(LOG.LOG_TIME.asc())
+				.limit(limit)
+				.fetch()
+				.map(LogMapper::getLog);
 	}
 
 	@Override

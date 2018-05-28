@@ -31,7 +31,7 @@ public class LocalDataStoreTest {
 
 		fileNameGenerator = Mockito.mock(LocalFilePathGenerator.class);
 
-		localDataStore = new LocalDataStore(fileNameGenerator, ROOT_PATH);
+		localDataStore = new LocalDataStore(ROOT_PATH);
 	}
 
 	@Test

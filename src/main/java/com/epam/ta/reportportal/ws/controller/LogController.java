@@ -24,17 +24,19 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.log.ICreateLogHandler;
-import com.epam.ta.reportportal.core.log.IDeleteLogHandler;
+import com.epam.ta.reportportal.core.annotation.Regular;
+import com.epam.ta.reportportal.core.log.impl.CreateLogHandler;
+import com.epam.ta.reportportal.core.log.impl.DeleteLogHandler;
+import com.epam.ta.reportportal.core.log.impl.GetLogHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.commons.Predicates;
 import com.epam.ta.reportportal.ws.model.*;
+import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
@@ -62,23 +64,16 @@ import static org.springframework.http.HttpStatus.CREATED;
 //@PreAuthorize(ASSIGNED_TO_PROJECT)
 public class LogController {
 
-	private ICreateLogHandler createLogMessageHandler;
-	private IDeleteLogHandler deleteLogMessageHandler;
-	//private final IGetLogHandler getLogHandler;
-	private Validator validator;
+	private final CreateLogHandler createLogMessageHandler;
+	private final DeleteLogHandler deleteLogHandler;
+	private final GetLogHandler getLogHandler;
+	private final Validator validator;
 
-	@Autowired
-	public void setCreateLogMessageHandler(ICreateLogHandler createLogMessageHandler) {
+	public LogController(@Regular CreateLogHandler createLogMessageHandler, DeleteLogHandler deleteLogHandler, GetLogHandler getLogHandler,
+			Validator validator) {
 		this.createLogMessageHandler = createLogMessageHandler;
-	}
-
-	//	@Autowired
-	//	public void setDeleteLogMessageHandler(IDeleteLogHandler deleteLogMessageHandler) {
-	//		this.deleteLogMessageHandler = deleteLogMessageHandler;
-	//	}
-
-	@Autowired
-	public void setValidator(Validator validator) {
+		this.deleteLogHandler = deleteLogHandler;
+		this.getLogHandler = getLogHandler;
 		this.validator = validator;
 	}
 
@@ -88,19 +83,19 @@ public class LogController {
 	@ResponseStatus(CREATED)
 	@ApiOperation("Create log")
 	//@PreAuthorize(ALLOWED_TO_REPORT)
-	public EntryCreatedRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ, @AuthenticationPrincipal
-			ReportPortalUser user) {
+	public EntryCreatedRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
 		validateSaveRQ(createLogRQ);
 		return createLogMessageHandler.createLog(createLogRQ, null, EntityUtils.normalizeId(projectName));
 	}
 
-	@RequestMapping(method = RequestMethod.POST, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-	@Transactional
+	@RequestMapping(method = RequestMethod.POST, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE})
+//	@Transactional
 	@ResponseBody
 	// @ApiOperation("Create log (batching operation)")
 	// Specific handler should be added for springfox in case of similar POST
 	// request mappings
-	@Async
+//	@Async
 	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectName,
 			@RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs, HttpServletRequest request,
@@ -152,11 +147,12 @@ public class LogController {
 	@RequestMapping(value = "/{logId}", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ApiOperation("Delete log")
-	public OperationCompletionRS deleteLog(@PathVariable String projectName, @PathVariable String logId, @AuthenticationPrincipal ReportPortalUser user) {
-		return deleteLogMessageHandler.deleteLog(logId, EntityUtils.normalizeId(projectName), user);
+	public OperationCompletionRS deleteLog(@PathVariable String projectName, @PathVariable String logId,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return deleteLogHandler.deleteLog(logId, EntityUtils.normalizeId(projectName), user);
 	}
 
-	//	
+	//
 	//	@RequestMapping(method = RequestMethod.GET)
 	//	@ResponseBody
 	//	@ApiOperation("Get logs by filter")
@@ -166,7 +162,7 @@ public class LogController {
 	//		return getLogHandler.getLogs(testStepId, EntityUtils.normalizeId(projectName), filter, pageable);
 	//	}
 	//
-	//	
+	//
 	//	@RequestMapping(value = "/{logId}/page", method = RequestMethod.GET)
 	//	@ResponseBody
 	//	@ApiOperation("Get logs by filter")
@@ -176,13 +172,14 @@ public class LogController {
 	//				"number", getLogHandler.getPageNumber(logId, EntityUtils.normalizeId(projectName), filter, pageable)).build();
 	//	}
 	//
-	//	
-	//	@RequestMapping(value = "/{logId}", method = RequestMethod.GET)
-	//	@ResponseBody
-	//	@ApiOperation("Get log")
-	//	public LogResource getLog(@PathVariable String projectName, @PathVariable String logId, Principal principal) {
-	//		return getLogHandler.getLog(logId, EntityUtils.normalizeId(projectName));
-	//	}
+
+	@RequestMapping(value = "/{logId}", method = RequestMethod.GET)
+	@ResponseBody
+	@ApiOperation("Get log")
+	public LogResource getLog(@PathVariable String projectName, @PathVariable String logId,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getLogHandler.getLog(logId, EntityUtils.normalizeId(projectName), user);
+	}
 
 	/**
 	 * Tries to find request part or file with specified name in multipart attachments

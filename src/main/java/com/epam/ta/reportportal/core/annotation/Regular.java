@@ -16,18 +16,17 @@
  *
  */
 
-package com.epam.ta.reportportal.store.filesystem;
+package com.epam.ta.reportportal.core.annotation;
 
-import java.io.InputStream;
+import javax.inject.Qualifier;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * @author Dzianis_Shybeka
- */
-public interface DataStore {
-
-	String save(String fileName, InputStream inputStream);
-
-	InputStream load(String filePath);
-
-	void delete(String filePath);
+@Target({ElementType.FIELD, ElementType.METHOD,
+		ElementType.TYPE, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+@Qualifier
+public @interface Regular {
 }

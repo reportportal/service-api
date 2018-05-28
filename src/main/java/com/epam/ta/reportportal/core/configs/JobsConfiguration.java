@@ -1,27 +1,32 @@
 /*
  * Copyright 2017 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.job.SaveBinaryDataJob;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -33,8 +38,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  *
  * @author Andrei Varabyeu
  */
-//@Configuration
-//@ComponentScan("com.epam.ta.reportportal.job")
+@Configuration
+@ComponentScan("com.epam.ta.reportportal.job")
 public class JobsConfiguration {
 
 	@Bean
@@ -58,11 +63,11 @@ public class JobsConfiguration {
 		return executor;
 	}
 
-	//	@Bean(name = "saveBinaryDataJob")
-	//	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	//	public SaveBinaryDataJob saveBinaryDataJob() {
-	//		return new SaveBinaryDataJob();
-	//	}
+	@Bean(name = "saveBinaryDataJob")
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public SaveBinaryDataJob saveBinaryDataJob() {
+		return new SaveBinaryDataJob();
+	}
 
 	@EnableScheduling
 	public static class SchedulingConfiguration {

@@ -21,49 +21,65 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
+import com.epam.ta.reportportal.core.annotation.Regular;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.job.SaveBinaryDataJob;
+import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import com.epam.ta.reportportal.store.database.entity.log.Log;
+import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.annotation.Nonnull;
+import javax.inject.Provider;
 
 /**
- * Asynchronous implementation of {@link ICreateLogHandler}. Saves log and
+ * Asynchronous implementation of {@link CreateLogHandler}. Saves log and
  * returns response, also starts saving binary data in storage asynchronously to
- * decrease server response time
+ * decrease server response timesaveLogsTaskExecutor
  *
  * @author Andrei Varabyeu
  */
+@Regular
 @Service
-public class AsyncCreateLogHandler extends CreateLogHandler /*implements ICreateLogHandler*/ {
-	//
-	//	/**
-	//	 * We are using {@link Provider} there because we need
-	//	 * {@link SaveBinaryDataJob} with scope prototype. Since current class is in
-	//	 * singleton scope, we have to find a way to get new instance of job for new
-	//	 * execution
-	//	 */
-	//	@Autowired
-	//	private Provider<SaveBinaryDataJob> saveBinaryDataJob;
-	//
-	//	@Autowired
-	//	@Qualifier("saveLogsTaskExecutor")
-	//	private TaskExecutor taskExecutor;
-	//
-	//	@Autowired
-	//	private ILogIndexer logIndexer;
-	//
-	//	@Override
-	//	@Nonnull
-	//	public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, String projectName) {
-	//		Optional<TestItem> testItem = findTestItem(createLogRQ.getTestItemId());
-	//		validate(testItem.orElse(null), createLogRQ);
-	//
-	//		Log log = logBuilder.get().addSaveLogRQ(createLogRQ).addTestItem(testItem.get()).build();
-	//		try {
-	//			logRepository.save(log);
-	//		} catch (Exception exc) {
-	//			throw new ReportPortalException("Error while Log instance creating.", exc);
-	//		}
-	//		if (null != file) {
-	//			taskExecutor.execute(saveBinaryDataJob.get().withProject(projectName).withFile(file).withLog(log));
-	//		}
-	//		return new EntryCreatedRS(log.getId());
-	//	}
+public class AsyncCreateLogHandler extends CreateLogHandler {
+
+	/**
+	 * We are using {@link Provider} there because we need
+	 * {@link SaveBinaryDataJob} with scope prototype. Since current class is in
+	 * singleton scope, we have to find a way to get new instance of job for new
+	 * execution
+	 */
+	@Autowired
+	private Provider<SaveBinaryDataJob> saveBinaryDataJob;
+
+	@Autowired
+	@Qualifier("saveLogsTaskExecutor")
+	private TaskExecutor taskExecutor;
+
+	@Override
+	@Nonnull
+	public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, String projectName) {
+
+		TestItem testItem = testItemRepository.findById(createLogRQ.getTestItemId()).orElse(null);
+
+		validate(testItem, createLogRQ);
+
+		Log log = new LogBuilder().addSaveLogRq(createLogRQ).addTestItem(testItem).get();
+		try {
+			logRepository.save(log);
+		} catch (Exception exc) {
+			throw new ReportPortalException("Error while Log instance creating.", exc);
+		}
+		if (null != file) {
+			taskExecutor.execute(saveBinaryDataJob.get().withFile(file).withLog(log));
+		}
+
+		return new EntryCreatedRS(log.getId());
+	}
 }

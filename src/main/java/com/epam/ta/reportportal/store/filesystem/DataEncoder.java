@@ -18,36 +18,41 @@
 
 package com.epam.ta.reportportal.store.filesystem;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 /**
  * @author Dzianis_Shybeka
+ * <p>
+ * Class to encode/decode values to url compatible format
  */
 @Component
-public class LocalFilePathGenerator {
-
-	private static final Logger LOG = LoggerFactory.getLogger(LocalFilePathGenerator.class);
+public class DataEncoder {
 
 	/**
-	 * Generate relative file path for new local file.
+	 * Encode provided data.
 	 *
+	 * @param data
 	 * @return
 	 */
-	public String generate() {
+	public String encode(String data) {
 
-		String uuid = UUID.randomUUID().toString();
+		return StringUtils.isEmpty(data) ?
+				data :
+				Base64.getUrlEncoder().withoutPadding().encodeToString(data.getBytes(StandardCharsets.UTF_8));
+	}
 
-		String levelOne = uuid.substring(0, 2);
-		String levelTwo = uuid.substring(2, 4);
-		String levelThree = uuid.substring(4, 6);
-		String tail = uuid.substring(6);
+	/**
+	 * Decode provided data.
+	 *
+	 * @param data
+	 * @return
+	 */
+	public String decode(String data) {
 
-		LOG.debug("File path generated: {}",  levelOne + levelTwo + levelThree + tail);
-
-		return "/" + levelOne + "/" + levelTwo + "/" + levelThree + "/" + tail;
+		return StringUtils.isEmpty(data) ? data : new String(Base64.getUrlDecoder().decode(data), StandardCharsets.UTF_8);
 	}
 }

@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.store.commons.querygen.Filter;
 import com.epam.ta.reportportal.store.commons.querygen.QueryBuilder;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.log.Log;
-import com.epam.ta.reportportal.store.database.mappers.LogMapper;
 import com.epam.ta.reportportal.store.jooq.tables.JLog;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -81,7 +80,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
 				.orderBy(LOG.LOG_TIME.asc())
 				.limit(limit)
 				.fetch()
-				.map(LogMapper::getLog);
+				.map(LOG_MAPPER);
 	}
 
 	@Override

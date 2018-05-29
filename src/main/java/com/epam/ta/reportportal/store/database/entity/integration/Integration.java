@@ -24,19 +24,19 @@ public class Integration implements Serializable{
 
 	@ManyToOne
 	@JoinColumn(name = "project_id")
-	Project project;
+	private Project project;
 
 	@ManyToOne
 	@JoinColumn(name = "type")
-	IntegrationType type;
+	private IntegrationType type;
 
 	@Type(type = "jsonb")
 	@Column(name = "params")
-	IntegrationParams params;
+	private IntegrationParams params;
 
 	@CreatedDate
 	@Column(name = "creation_date", nullable = false)
-	LocalDateTime creationDate;
+	private LocalDateTime creationDate;
 
 	public Integration(Long id, Project project, IntegrationType type, IntegrationParams params, LocalDateTime creationDate) {
 		this.id = id;

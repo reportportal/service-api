@@ -7,6 +7,9 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 
 import java.util.Map;
 
+/**
+ * @author Yauheni_Martynau
+ */
 @JsonTypeName("details")
 public class IntegrationTypeDetails extends JsonbObject {
 

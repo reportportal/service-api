@@ -11,6 +11,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * Test for generating JOOQ entities
+ *
+ * @author Yauheni_Martynau
  */
 @Ignore
 @RunWith(SpringRunner.class)

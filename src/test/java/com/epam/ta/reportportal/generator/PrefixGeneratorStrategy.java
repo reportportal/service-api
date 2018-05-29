@@ -5,6 +5,8 @@ import org.jooq.util.Definition;
 
 /**
  * Strategy for generating JOOQ entities
+ *
+ * @author Yauheni_Martynau
  */
 public class PrefixGeneratorStrategy extends DefaultGeneratorStrategy {
 

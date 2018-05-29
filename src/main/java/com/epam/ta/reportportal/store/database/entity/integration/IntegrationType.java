@@ -14,10 +14,13 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+/**
+ * @author Yauheni_Martynau
+ */
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "integration_type", schema = "public")
 @TypeDef(name = "jsonb", typeClass = JsonbUserType.class)
+@Table(name = "integration_type", schema = "public")
 public class IntegrationType implements Serializable {
 
 	@Id

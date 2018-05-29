@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.QUERY_RQ_QUEUE;
+import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.QUEUE_QUERY_RQ;
 
 @Component
 public class QueryConsumer {
@@ -14,7 +14,7 @@ public class QueryConsumer {
 	@Autowired
 	private QueryHandler queryHandler;
 
-	@RabbitListener(queues = QUERY_RQ_QUEUE)
+	@RabbitListener(queues = QUEUE_QUERY_RQ)
 	public Object find(@Payload QueryRQ queryRQ) {
 
 		return queryHandler.find(queryRQ);

@@ -116,7 +116,10 @@ public enum FilterTarget {
 					l.LOG_MESSAGE,
 					l.LAST_MODIFIED,
 					l.LOG_LEVEL,
-					l.ITEM_ID
+					l.ITEM_ID,
+					l.FILE_PATH,
+					l.THUMBNAIL_FILE_PATH,
+					l.CONTENT_TYPE
 			)
 					.from(l)
 					.leftJoin(ti).on(l.ITEM_ID.eq(ti.ITEM_ID))

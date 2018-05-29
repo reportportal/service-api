@@ -11,10 +11,13 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+/**
+ * @author Yauheni_Martynau
+ */
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "integration", schema = "public")
 @TypeDef(name = "jsonb", typeClass = JsonbUserType.class)
+@Table(name = "integration", schema = "public")
 public class Integration implements Serializable{
 
 	@Id
@@ -89,3 +92,4 @@ public class Integration implements Serializable{
 		this.creationDate = creationDate;
 	}
 }
+

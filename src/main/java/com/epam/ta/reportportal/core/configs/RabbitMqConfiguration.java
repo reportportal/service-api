@@ -67,7 +67,7 @@ public class RabbitMqConfiguration {
 		return new RabbitAwarePluginBox(amqpTemplate()).startAsync();
 	}
 
-	public static final String QUERY_RQ_QUEUE = "query-rq-queue";
+	public static final String QUEUE_QUERY_RQ = "query-rq";
 
 	@Bean
 	public MessageConverter jsonMessageConverter() {
@@ -174,7 +174,7 @@ public class RabbitMqConfiguration {
 
 	@Bean
 	public Queue queryQueue() {
-		return new Queue(QUERY_RQ_QUEUE);
+		return new Queue(QUEUE_QUERY_RQ);
 	}
 
 	@Bean

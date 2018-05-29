@@ -14,6 +14,9 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * @author Yauheni_Martynau
+ */
 @Service
 public class QueryHandlerImpl implements QueryHandler {
 

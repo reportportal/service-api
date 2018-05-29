@@ -16,6 +16,9 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * @author Yauheni_Martynau
+ */
 @Repository
 public class IntegrationRepositoryCustomImpl implements IntegrationRepositoryCustom {
 

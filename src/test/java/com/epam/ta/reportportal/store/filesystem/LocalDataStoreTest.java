@@ -24,14 +24,14 @@ public class LocalDataStoreTest {
 
 	private LocalDataStore localDataStore;
 
-	private LocalFilePathGenerator fileNameGenerator;
+	private FilePathGenerator fileNameGenerator;
 
 	@Before
 	public void setUp() {
 
-		fileNameGenerator = Mockito.mock(LocalFilePathGenerator.class);
+		fileNameGenerator = Mockito.mock(FilePathGenerator.class);
 
-		localDataStore = new LocalDataStore(fileNameGenerator, ROOT_PATH);
+		localDataStore = new LocalDataStore(ROOT_PATH);
 	}
 
 	@Test

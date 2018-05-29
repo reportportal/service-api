@@ -24,15 +24,15 @@ package com.epam.ta.reportportal.core.log.impl;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.log.ICreateLogHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.store.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.store.commons.Preconditions;
 import com.epam.ta.reportportal.store.commons.Predicates;
-import com.epam.ta.reportportal.store.database.BinaryData;
 import com.epam.ta.reportportal.store.database.dao.LogRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.LogLevel;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.log.Log;
-import com.epam.ta.reportportal.store.filesystem.DataStore;
+import com.epam.ta.reportportal.store.service.DataStoreService;
 import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -41,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
@@ -56,7 +57,7 @@ public class CreateLogHandler implements ICreateLogHandler {
 
 	protected LogRepository logRepository;
 
-	private DataStore dataStore;
+	private DataStoreService dataStoreService;
 
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
@@ -69,35 +70,30 @@ public class CreateLogHandler implements ICreateLogHandler {
 	}
 
 	@Autowired
-	public void setDataStore(DataStore dataStore) {
-		this.dataStore = dataStore;
+	public void setDataStoreService(DataStoreService dataStoreService) {
+		this.dataStoreService = dataStoreService;
 	}
 
 	@Override
 	@Nonnull
 	public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, String project) {
+
 		TestItem testItem = testItemRepository.findById(createLogRQ.getTestItemId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, createLogRQ.getTestItemId()));
+
 		validate(testItem, createLogRQ);
 
-		//TODO implement save binary content
-		//		BinaryContent binaryContent = null;
-		//		if (null != file) {
-		//			try {
-		//				String binaryDataId = dataStorage.saveData(new BinaryData(file.getContentType(), file.getSize(), file.getInputStream()),
-		//						file.getOriginalFilename()
-		//				);
-		//				binaryContent = new BinaryContent(binaryDataId, null, file.getContentType());
-		//			} catch (IOException e) {
-		//				throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to save log");
-		//			}
-		//		}
+		Log log = new LogBuilder().addSaveLogRq(createLogRQ).addTestItem(testItem).get();
 
-		Log log = new LogBuilder().addSaveLogRq(createLogRQ)
-				.addTestItem(testItem)
-				.get();
+		Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = dataStoreService.save(project, file);
+		maybeBinaryDataMetaInfo.ifPresent(binaryDataMetaInfo -> {
+
+			log.setFilePath(maybeBinaryDataMetaInfo.get().getFileId());
+			log.setContentType(file.getContentType());
+		});
 
 		logRepository.save(log);
+
 		return new EntryCreatedRS(log.getId());
 	}
 

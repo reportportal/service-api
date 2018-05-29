@@ -137,6 +137,6 @@ public class TestItemResults implements Serializable {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(itemId, status, duration, issue, testItem);
+		return Objects.hash(itemId, status, duration, issue);
 	}
 }

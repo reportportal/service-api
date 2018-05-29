@@ -16,18 +16,21 @@
  *
  */
 
-package com.epam.ta.reportportal.store.filesystem;
+package com.epam.ta.reportportal.util;
 
-import java.io.InputStream;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
 
 /**
+ * Class to ease writing/testing of date-based logic.
+ *
  * @author Dzianis_Shybeka
  */
-public interface DataStore {
+@Component
+public class DateTimeProvider {
 
-	String save(String fileName, InputStream inputStream);
-
-	InputStream load(String filePath);
-
-	void delete(String filePath);
+	public LocalDateTime localDateTimeNow() {
+		return LocalDateTime.now();
+	}
 }

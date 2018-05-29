@@ -21,7 +21,24 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.store.commons.EntityUtils;
+import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.store.database.dao.LogRepository;
+import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.store.database.entity.log.Log;
+import com.epam.ta.reportportal.ws.converter.LogResourceAssembler;
+import com.epam.ta.reportportal.ws.model.log.LogResource;
 import org.springframework.stereotype.Service;
+
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.store.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.ta.reportportal.ws.model.ErrorType.LOG_NOT_FOUND;
 
 /**
  * Implementation of GET log operations
@@ -30,71 +47,63 @@ import org.springframework.stereotype.Service;
  * @author Andrei_Ramanchuk
  */
 @Service
-public class GetLogHandler /*implements IGetLogHandler*/ {
+public class GetLogHandler {
 
-	//	private LogRepository logRepository;
-	//
-	//	private LogResourceAssembler logResourceAssembler;
-	//
-	//	private TestItemRepository testItemRepository;
-	//
-	//	private LaunchRepository launchRepository;
-	//
-	//	@Autowired
-	//	public void setLogRepository(LogRepository logRepository) {
-	//		this.logRepository = logRepository;
-	//	}
-	//
-	//	@Autowired
-	//	public void setLogResourceAssembler(LogResourceAssembler logResourceAssembler) {
-	//		this.logResourceAssembler = logResourceAssembler;
-	//	}
-	//
-	//	@Autowired
-	//	public void setTestItemRepository(TestItemRepository testItemRepository) {
-	//		this.testItemRepository = testItemRepository;
-	//	}
-	//
-	//	@Autowired
-	//	public void setLaunchRepository(LaunchRepository launchRepository) {
-	//		this.launchRepository = launchRepository;
-	//	}
-	//
-	//	@Override
-	//	public Iterable<LogResource> getLogs(String testStepId, String project, Filter filterable, Pageable pageable) {
-	//		// DO we need filter for project here?
-	//		Page<Log> logs = logRepository.findByFilter(filterable, pageable);
-	//		return logResourceAssembler.toPagedResources(logs);
-	//	}
+	private final LogRepository logRepository;
+
+	private final LogResourceAssembler logResourceAssembler;
+
+	private final TestItemRepository testItemRepository;
+
+	private final LaunchRepository launchRepository;
+
+	public GetLogHandler(LogRepository logRepository, LogResourceAssembler logResourceAssembler, TestItemRepository testItemRepository,
+			LaunchRepository launchRepository) {
+		this.logRepository = logRepository;
+		this.logResourceAssembler = logResourceAssembler;
+		this.testItemRepository = testItemRepository;
+		this.launchRepository = launchRepository;
+	}
+
+	//		public Iterable<LogResource> getLogs(String testStepId, String project, Filter filterable, Pageable pageable) {
+	//			// DO we need filter for project here?
+	//			Page<Log> logs = logRepository.findByFilter(filterable, pageable);
+	//			return logResourceAssembler.toPagedResources(logs);
+	//		}
 	//
 	//	@Override
 	//	public long getPageNumber(String logId, String project, Filter filterable, Pageable pageable) {
 	//		return logRepository.getPageNumber(logId, filterable, pageable);
 	//	}
 	//
-	//	@Override
-	//	public LogResource getLog(String logId, String projectName) {
-	//		Log log = findAndValidate(logId, projectName);
-	//		return logResourceAssembler.toResource(log);
-	//	}
-	//
-	//	/**
-	//	 * Validate log item on existence, availability under specified project,
-	//	 * etc.
-	//	 *
-	//	 * @param id          - log ID
-	//	 * @param projectName - project name value
-	//	 * @return Log - validate Log item in accordance with specified ID
-	//	 */
-	//	private Log findAndValidate(String id, String projectName) {
-	//		Log log = logRepository.findOne(id);
-	//		expect(log, notNull()).verify(LOG_NOT_FOUND, id);
-	//
-	//		final TestItem testItem = testItemRepository.findOne(log.getTestItemRef());
-	//		String project = launchRepository.findOne(testItem.getLaunchRef()).getProjectRef();
-	//		expect(project, equalTo(projectName)).verify(FORBIDDEN_OPERATION,
-	//				formattedSupplier("Log '{}' is not under specified project '{}'", id, projectName)
-	//		);
-	//		return log;
-	//	}
+	public LogResource getLog(String logId, String projectName, ReportPortalUser user) {
+
+		Log log = findAndValidate(logId, projectName, user);
+
+		return logResourceAssembler.toResource(log);
+	}
+
+	/**
+	 * Validate log item on existence, availability under specified project,
+	 * etc.
+	 *
+	 * @param logId       - log ID
+	 * @param projectName - project name value
+	 * @return Log - validate Log item in accordance with specified ID
+	 */
+	private Log findAndValidate(String logId, String projectName, ReportPortalUser user) {
+
+		Log log = logRepository.findById(Long.valueOf(logId)).orElse(null);
+		expect(log, notNull()).verify(LOG_NOT_FOUND, logId);
+
+		final TestItem testItem = log.getTestItem();
+		Launch launch = testItem.getLaunch();
+
+		ReportPortalUser.ProjectDetails projectDetails = EntityUtils.takeProjectDetails(user, projectName);
+		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
+				formattedSupplier("Log '{}' not under specified '{}' project", logId, projectName)
+		);
+
+		return log;
+	}
 }

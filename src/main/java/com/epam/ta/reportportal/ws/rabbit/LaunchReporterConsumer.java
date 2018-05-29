@@ -49,14 +49,14 @@ public class LaunchReporterConsumer {
 	@Autowired
 	private IFinishLaunchHandler finishLaunchHandler;
 
-	@RabbitListener(queues = RabbitMqConfiguration.START_LAUNCH_QUEUE)
+	@RabbitListener(queues = RabbitMqConfiguration.QUEUE_START_LAUNCH)
 	public void startLaunch(@Payload StartLaunchRQ rq, @Header(MessageHeaders.USERNAME) String username,
 			@Header(MessageHeaders.PROJECT_NAME) String projectName) {
 		ReportPortalUser userDetails = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
 		startLaunchHandler.startLaunch(userDetails, projectName, rq);
 	}
 
-	@RabbitListener(queues = RabbitMqConfiguration.FINISH_LAUNCH_QUEUE)
+	@RabbitListener(queues = RabbitMqConfiguration.QUEUE_FINISH_LAUNCH)
 	public void finishLaunch(@Payload FinishExecutionRQ rq, @Header(MessageHeaders.USERNAME) String username,
 			@Header(MessageHeaders.PROJECT_NAME) String projectName, @Header(MessageHeaders.LAUNCH_ID) Long launchId) {
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);

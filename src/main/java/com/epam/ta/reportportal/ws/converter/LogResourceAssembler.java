@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2016 EPAM Systems
  *
  *
  * This file is part of EPAM Report Portal.
@@ -19,27 +19,23 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.store.exception;
+package com.epam.ta.reportportal.ws.converter;
 
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.store.database.entity.log.Log;
+import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
+import com.epam.ta.reportportal.ws.model.log.LogResource;
+import org.springframework.stereotype.Service;
 
 /**
- * Exceptions related to data storage
+ * Assembler for LogResources
  *
  * @author Andrei Varabyeu
  */
-// TODO add binding to this exception
-public class DataStorageException extends ReportPortalException {
+@Service
+public class LogResourceAssembler extends PagedResourcesAssembler<Log, LogResource> {
 
-	private static final long serialVersionUID = -6822780391660931103L;
-
-	public DataStorageException(String message) {
-		super(message);
-
+	@Override
+	public LogResource toResource(Log log) {
+		return LogConverter.TO_RESOURCE.apply(log);
 	}
-
-	public DataStorageException(String message, Throwable e) {
-		super(message, e);
-	}
-
 }

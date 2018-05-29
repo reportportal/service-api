@@ -240,8 +240,7 @@ CREATE TABLE launch_tag (
 );
 
 CREATE OR REPLACE FUNCTION update_last_launch_number()
-  RETURNS TRIGGER AS
-$BODY$
+  RETURNS trigger AS '
 BEGIN
   NEW.number = (SELECT number
                 FROM launch
@@ -252,8 +251,7 @@ BEGIN
     THEN 1
                ELSE NEW.number END;
   RETURN NEW;
-END;
-$BODY$
+END; '
 LANGUAGE plpgsql;
 
 
@@ -347,16 +345,14 @@ CREATE TABLE issue_ticket (
 ----------------------------------------------------------------------------------------
 
 CREATE FUNCTION check_wired_tickets()
-  RETURNS TRIGGER AS
-$BODY$
+  RETURNS TRIGGER AS '
 BEGIN
   DELETE FROM ticket
   WHERE (SELECT count(issue_ticket.ticket_id)
          FROM issue_ticket
          WHERE issue_ticket.ticket_id = old.ticket_id) = 0 AND ticket.id = old.ticket_id;
   RETURN NULL;
-END;
-$BODY$
+END; '
 LANGUAGE plpgsql;
 
 CREATE TRIGGER after_ticket_delete

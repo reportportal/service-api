@@ -21,7 +21,32 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.store.commons.EntityUtils;
+import com.epam.ta.reportportal.store.database.dao.LogRepository;
+import com.epam.ta.reportportal.store.database.dao.ProjectRepository;
+import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.store.database.entity.log.Log;
+import com.epam.ta.reportportal.store.database.entity.project.Project;
+import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
+import com.epam.ta.reportportal.store.database.entity.user.UserRole;
+import com.epam.ta.reportportal.store.service.DataStoreService;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
+
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.store.commons.Predicates.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
+import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_IS_NOT_FINISHED;
 
 /**
  * Delete Logs handler. Basic implementation of
@@ -31,92 +56,81 @@ import org.springframework.stereotype.Service;
  * @author Andrei_Ramanchuk
  */
 @Service
-public class DeleteLogHandler /*implements IDeleteLogHandler*/ {
-	//	private LogRepository logRepository;
-	//	private TestItemRepository testItemRepository;
-	//	private LaunchRepository launchRepository;
-	//	private ProjectRepository projectRepository;
-	//	private UserRepository userRepository;
-	//
-	//	@Autowired
-	//	public void setLaunchRepository(LaunchRepository launchRepository) {
-	//		this.launchRepository = launchRepository;
-	//	}
-	//
-	//	@Autowired
-	//	public void setProjectRepository(ProjectRepository projectRepository) {
-	//		this.projectRepository = projectRepository;
-	//	}
-	//
-	//	@Autowired
-	//	public void setUserRepository(UserRepository userRepository) {
-	//		this.userRepository = userRepository;
-	//	}
-	//
-	//	@Autowired
-	//	public void setTestItemRepository(TestItemRepository itemRepository) {
-	//		this.testItemRepository = itemRepository;
-	//	}
-	//
-	//	@Autowired
-	//	public void setLogRepository(LogRepository logRepository) {
-	//		this.logRepository = logRepository;
-	//	}
-	//
-	//	@Override
-	//	public OperationCompletionRS deleteLog(String logId, String projectName, String userName) {
-	//		User user = userRepository.findOne(userName);
-	//		expect(user, notNull()).verify(ErrorType.USER_NOT_FOUND, userName);
-	//
-	//		Project project = projectRepository.findOne(projectName);
-	//		expect(project, notNull()).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
-	//
-	//		Log log = validate(logId, projectName);
-	//		validateRoles(log, user, project);
-	//		try {
-	//			logRepository.delete(log);
-	//		} catch (Exception exc) {
-	//			throw new ReportPortalException("Error while Log instance deleting.", exc);
-	//		}
-	//
-	//		return new OperationCompletionRS("Log with ID = '" + logId + "' successfully deleted.");
-	//	}
-	//
-	//	/**
-	//	 * Validate specified log against parent objects and project
-	//	 *
-	//	 * @param logId       - validated log ID value
-	//	 * @param projectName - specified project name
-	//	 * @return Log
-	//	 */
-	//	private Log validate(String logId, String projectName) {
-	//		Log log = logRepository.findOne(logId);
-	//		expect(log, notNull()).verify(ErrorType.LOG_NOT_FOUND, logId);
-	//
-	//		final TestItem testItem = testItemRepository.findOne(log.getTestItemRef());
-	//		expect(testItem, not(Preconditions.IN_PROGRESS)).verify(
-	//				ErrorType.TEST_ITEM_IS_NOT_FINISHED,
-	//				formattedSupplier("Unable to delete log '{}' when test item '{}' in progress state", log.getId(), testItem.getId())
-	//		);
-	//
-	//		final String expectedProjectName = launchRepository.findOne(testItem.getLaunchRef()).getProjectRef();
-	//		expect(expectedProjectName, equalTo(projectName)).verify(
-	//				ErrorType.FORBIDDEN_OPERATION,
-	//				formattedSupplier("Log '{}' not under specified '{}' project", logId, projectName)
-	//		);
-	//
-	//		return log;
-	//	}
-	//
-	//	private void validateRoles(Log log, User user, Project project) {
-	//		final TestItem testItem = testItemRepository.findOne(log.getTestItemRef());
-	//		final Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-	//		if (user.getRole() != ADMINISTRATOR && !user.getId().equalsIgnoreCase(launch.getUserRef())) {
-	//			/*
-	//			 * Only PROJECT_MANAGER roles could delete launches
-	//			 */
-	//			UserConfig userConfig = findUserConfigByLogin(project, user.getId());
-	//			expect(userConfig, hasProjectRoles(singletonList(PROJECT_MANAGER))).verify(ACCESS_DENIED);
-	//		}
-	//	}
+public class DeleteLogHandler {
+
+	private final LogRepository logRepository;
+
+	private final DataStoreService dataStoreService;
+
+	private final ProjectRepository projectRepository;
+
+	public DeleteLogHandler(LogRepository logRepository, DataStoreService dataStoreService, ProjectRepository projectRepository) {
+		this.logRepository = logRepository;
+		this.dataStoreService = dataStoreService;
+		this.projectRepository = projectRepository;
+	}
+
+	public OperationCompletionRS deleteLog(String logId, String projectName, ReportPortalUser user) {
+
+		Project project = projectRepository.findByName(projectName).orElse(null);
+		expect(project, notNull()).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
+
+		Log log = validate(logId, user, projectName);
+
+		try {
+
+			logRepository.delete(log);
+			cleanUpLogData(log);
+		} catch (Exception exc) {
+			throw new ReportPortalException("Error while Log instance deleting.", exc);
+		}
+
+		return new OperationCompletionRS("Log with ID = '" + logId + "' successfully deleted.");
+	}
+
+	private void cleanUpLogData(Log log) {
+
+		if (StringUtils.isNotEmpty(log.getFilePath())) {
+
+			dataStoreService.delete(log.getFilePath());
+		}
+		if (StringUtils.isNotEmpty(log.getThumbnailFilePath())) {
+
+			dataStoreService.delete(log.getThumbnailFilePath());
+		}
+	}
+
+	/**
+	 * Validate specified log against parent objects and project
+	 *
+	 * @param logId       - validated log ID value
+	 * @param projectName - specified project name
+	 * @return Log
+	 */
+	private Log validate(String logId, ReportPortalUser user, String projectName) {
+
+		Log log = logRepository.findById(Long.valueOf(logId)).orElse(null);
+		expect(log, notNull()).verify(ErrorType.LOG_NOT_FOUND, logId);
+
+		final TestItem testItem = log.getTestItem();
+		expect(testItem.getTestItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(TEST_ITEM_IS_NOT_FINISHED,
+				formattedSupplier("Unable to delete log '{}' when test item '{}' in progress state", log.getId(), testItem.getItemId())
+		);
+
+		Launch launch = testItem.getLaunch();
+
+		ReportPortalUser.ProjectDetails projectDetails = EntityUtils.takeProjectDetails(user, projectName);
+		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
+				formattedSupplier("Log '{}' not under specified '{}' project", logId, projectName)
+		);
+
+		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUserId(), launch.getUserId())) {
+			/*
+			 * Only PROJECT_MANAGER roles could delete logs
+			 */
+			expect(projectDetails.getProjectRole(), equalTo(ProjectRole.PROJECT_MANAGER)).verify(ACCESS_DENIED);
+		}
+
+		return log;
+	}
 }

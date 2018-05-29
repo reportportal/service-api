@@ -70,7 +70,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "com.github.reportportal:commons-bom:ea91a91"
+        mavenBom "com.github.reportportal:commons-bom:71b7ca8"
     }
 }
 
@@ -124,6 +124,10 @@ dependencies {
     compile 'commons-fileupload:commons-fileupload:1.3.3'
     compile 'commons-validator:commons-validator:1.6'
     compile 'org.slf4j:slf4j-api:1.7.24'
+
+//    seaweedfs
+    compile 'org.lokra.seaweedfs:seaweedfs-client:0.7.3.RELEASE'
+//    end of seaweedfs
 
     compile "ch.qos.logback:logback-classic:${logback}"
     compile 'net.coobird:thumbnailator:0.4.8'

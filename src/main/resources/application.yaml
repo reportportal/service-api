@@ -32,7 +32,7 @@ spring:
     properties:
       hibernate.jdbc.lob.non_contextual_creation: true
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQL95Dialect
+        dialect: com.epam.ta.reportportal.store.commons.JsonbAwarePostgresDialect
     generate-ddl: false
     hibernate:
       ddl-auto: none
@@ -64,6 +64,9 @@ logging:
     org.springframework.context.support: warn
 #    com.novemberain.quartz : debug
     org.springframework.security: debug
+    com.epam.ta.reportportal.exception.ReportPortalException: fatal
+    org.springframework.web.bind: fatal
+    com.epam.ta.reportportal.commons.exception.rest: fatal
 #    org.jooq.tools.LoggerListener: debug
     root: warn
 ## Consul as service registry

@@ -16,23 +16,21 @@
  *
  */
 
-package com.epam.ta.reportportal.store.filesystem;
+package com.epam.ta.reportportal.util;
 
-import org.junit.Test;
+import org.springframework.stereotype.Component;
 
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import java.time.LocalDateTime;
 
-public class LocalFileNameGeneratorTest {
+/**
+ * Class to ease writing/testing of date-based logic.
+ *
+ * @author Dzianis_Shybeka
+ */
+@Component
+public class DateTimeProvider {
 
-	@Test
-	public void generate() {
-
-		String test21 = new LocalFilePathGenerator().generate();
-		String test22 = new LocalFilePathGenerator().generate();
-		assertNotEquals(test21, test22);
-
-		assertTrue(test21.matches("^/\\w{2}/\\w{2}/\\w{2}/.*$"));
-		assertTrue(test22.matches("^/\\w{2}/\\w{2}/\\w{2}/.*$"));
+	public LocalDateTime localDateTimeNow() {
+		return LocalDateTime.now();
 	}
 }

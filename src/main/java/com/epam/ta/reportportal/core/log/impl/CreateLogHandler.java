@@ -85,7 +85,7 @@ public class CreateLogHandler implements ICreateLogHandler {
 
 		Log log = new LogBuilder().addSaveLogRq(createLogRQ).addTestItem(testItem).get();
 
-		Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = dataStoreService.save(file);
+		Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = dataStoreService.save(project, file);
 		maybeBinaryDataMetaInfo.ifPresent(binaryDataMetaInfo -> {
 
 			log.setFilePath(maybeBinaryDataMetaInfo.get().getFileId());

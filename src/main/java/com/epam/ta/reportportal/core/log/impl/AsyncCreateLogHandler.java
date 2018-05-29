@@ -77,7 +77,11 @@ public class AsyncCreateLogHandler extends CreateLogHandler {
 			throw new ReportPortalException("Error while Log instance creating.", exc);
 		}
 		if (null != file) {
-			taskExecutor.execute(saveBinaryDataJob.get().withFile(file).withLog(log));
+			taskExecutor.execute(saveBinaryDataJob.get()
+					.withFile(file)
+					.withLog(log)
+					.withProjectName(projectName)
+			);
 		}
 
 		return new EntryCreatedRS(log.getId());

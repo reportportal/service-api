@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.store.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.store.database.BinaryData;
 import com.epam.ta.reportportal.store.filesystem.DataEncoder;
 import com.epam.ta.reportportal.store.filesystem.DataStore;
-import com.epam.ta.reportportal.store.filesystem.LocalFilePathGenerator;
+import com.epam.ta.reportportal.store.filesystem.FilePathGenerator;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,12 +53,12 @@ public class DataStoreService {
 
 	private final ContentTypeResolver contentTypeResolver;
 
-	private final LocalFilePathGenerator filePathGenerator;
+	private final FilePathGenerator filePathGenerator;
 
 	private final DataEncoder dataEncoder;
 
 	public DataStoreService(DataStore dataStore, Thumbnailator thumbnailator, ContentTypeResolver contentTypeResolver,
-			LocalFilePathGenerator filePathGenerator, DataEncoder dataEncoder) {
+			FilePathGenerator filePathGenerator, DataEncoder dataEncoder) {
 		this.dataStore = dataStore;
 		this.thumbnailator = thumbnailator;
 		this.contentTypeResolver = contentTypeResolver;
@@ -66,7 +66,7 @@ public class DataStoreService {
 		this.dataEncoder = dataEncoder;
 	}
 
-	public Optional<BinaryDataMetaInfo> save(MultipartFile file) {
+	public Optional<BinaryDataMetaInfo> save(String projectName, MultipartFile file) {
 
 		Optional<BinaryDataMetaInfo> maybeResult = Optional.empty();
 
@@ -75,7 +75,7 @@ public class DataStoreService {
 			BinaryData binaryData = getBinaryData(file);
 
 			String generatedFilePath = filePathGenerator.generate();
-			Path targetPath = Paths.get(generatedFilePath, file.getOriginalFilename());
+			Path targetPath = Paths.get(projectName, generatedFilePath, file.getOriginalFilename());
 
 			String thumbnailFilePath = null;
 			if (isImage(binaryData.getContentType())) {

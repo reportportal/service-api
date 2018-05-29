@@ -75,14 +75,15 @@ public class DataStoreService {
 			BinaryData binaryData = getBinaryData(file);
 
 			String generatedFilePath = filePathGenerator.generate();
-			Path targetPath = Paths.get(projectName, generatedFilePath, file.getOriginalFilename());
+			String commonPath = Paths.get(projectName, generatedFilePath).toString();
+			Path targetPath = Paths.get(commonPath, file.getOriginalFilename());
 
 			String thumbnailFilePath = null;
 			if (isImage(binaryData.getContentType())) {
 
 				try {
 
-					Path thumbnailTargetPath = Paths.get(generatedFilePath, "thumbnail-".concat(file.getName()));
+					Path thumbnailTargetPath = Paths.get(commonPath, "thumbnail-".concat(file.getName()));
 
 					InputStream thumbnailStream = thumbnailator.createThumbnail(file.getInputStream());
 

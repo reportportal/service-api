@@ -61,7 +61,7 @@ public class DatabaseConfiguration {
 	}
 
 	@Bean
-	public EntityManagerFactory entityManagerFactory() {
+	public EntityManagerFactory entityManagerFactory(@Autowired DataSource dataSource) {
 
 		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
 		vendorAdapter.setGenerateDdl(false);
@@ -69,7 +69,7 @@ public class DatabaseConfiguration {
 		LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
 		factory.setJpaVendorAdapter(vendorAdapter);
 		factory.setPackagesToScan("com.epam.ta.reportportal.store");
-		factory.setDataSource(dataSource());
+		factory.setDataSource(dataSource);
 
 		Properties jpaProperties = new Properties();
 		jpaProperties.setProperty("hibernate.dialect", "com.epam.ta.reportportal.store.commons.JsonbAwarePostgresDialect");

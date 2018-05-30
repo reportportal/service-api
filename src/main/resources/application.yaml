@@ -23,11 +23,6 @@ spring:
 #    org.quartz.jobStore.clusterCheckinInterval: "180000"
 #    org.quartz.scheduler.instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
 #    org.quartz.scheduler.instanceName: reportportal
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    username: rpuser
-    password: rppass
-    url: jdbc:postgresql://localhost:5432/reportportal
   jpa:
     properties:
       hibernate.jdbc.lob.non_contextual_creation: true
@@ -103,3 +98,9 @@ springfox:
     swagger:
       v2:
         path: /api-docs
+
+
+spring.datasource.driver-class-name: org.postgresql.Driver
+spring.datasource.username: rpuser
+spring.datasource.password: rppass
+spring.datasource.url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/reportportal}

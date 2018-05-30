@@ -42,18 +42,18 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.MultipartAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.PropertySource;
 
 /**
  * Application Entry Point
  *
  * @author Andrei Varabyeu
  */
-
-//@SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
-//@EnableAspectJAutoProxy(proxyTargetClass = true)
+@PropertySource(value = { "classpath:application.properties", "classpath:application.yaml" })
 @EnableAutoConfiguration(exclude = {
-//		need to exclude, otherwise file upload won't work
+		//		need to exclude, otherwise file upload won't work
 		MultipartAutoConfiguration.class
+
 })
 @Import({ MvcConfig.class, DatabaseConfiguration.class, JobsConfiguration.class })
 @ComponentScan("com.epam.ta.reportportal")

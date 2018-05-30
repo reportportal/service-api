@@ -33,6 +33,8 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -63,8 +65,8 @@ public class RabbitMqConfiguration {
 	public static final String QUEUE_FINISH_ITEM = "reporting.finish-item";
 
 	@Bean
-	public Service pluginBox() {
-		return new RabbitAwarePluginBox(amqpTemplate()).startAsync();
+	public Service pluginBox(@Autowired AmqpTemplate amqpTemplate) {
+		return new RabbitAwarePluginBox(amqpTemplate).startAsync();
 	}
 
 	@Bean
@@ -73,19 +75,20 @@ public class RabbitMqConfiguration {
 	}
 
 	@Bean
-	public ConnectionFactory connectionFactory() {
-		return new CachingConnectionFactory("localhost");
+	public ConnectionFactory connectionFactory(@Value("${spring.rabbitmq.host}") String host, @Value("${spring.rabbitmq.port}") Integer port) {
+		return new CachingConnectionFactory(host, port);
 	}
 
 	@Bean
-	public AmqpAdmin amqpAdmin() {
-		return new RabbitAdmin(connectionFactory());
+	public AmqpAdmin amqpAdmin(@Autowired ConnectionFactory connectionFactory) {
+		return new RabbitAdmin(connectionFactory);
 	}
 
 	@Bean
-	public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(PlatformTransactionManager transactionManager) {
+	public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(@Autowired ConnectionFactory connectionFactory,
+			PlatformTransactionManager transactionManager) {
 		SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
-		factory.setConnectionFactory(connectionFactory());
+		factory.setConnectionFactory(connectionFactory);
 		factory.setDefaultRequeueRejected(false);
 		factory.setTransactionManager(transactionManager);
 		factory.setChannelTransacted(true);
@@ -171,15 +174,15 @@ public class RabbitMqConfiguration {
 	}
 
 	@Bean
-	public RabbitTemplate amqpTemplate() {
-		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory());
+	public RabbitTemplate amqpTemplate(@Autowired ConnectionFactory connectionFactory) {
+		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
 		rabbitTemplate.setMessageConverter(jsonMessageConverter());
 		return rabbitTemplate;
 	}
 
 	@Bean
-	public AsyncRabbitTemplate asyncAmqpTemplate() {
-		return new AsyncRabbitTemplate(amqpTemplate());
+	public AsyncRabbitTemplate asyncAmqpTemplate(@Autowired RabbitTemplate rabbitTemplate) {
+		return new AsyncRabbitTemplate(rabbitTemplate);
 	}
 
 }

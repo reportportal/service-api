@@ -103,4 +103,4 @@ springfox:
 spring.datasource.driver-class-name: org.postgresql.Driver
 spring.datasource.username: rpuser
 spring.datasource.password: rppass
-spring.datasource.url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/reportportal}
+spring.datasource.url: ${rp.db.url:jdbc:postgresql://localhost:5432/reportportal}

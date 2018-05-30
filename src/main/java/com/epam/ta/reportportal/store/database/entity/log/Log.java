@@ -70,6 +70,22 @@ public class Log implements Serializable {
 	@Column(name = "content_type")
 	private String contentType;
 
+	public Log(Long id, LocalDateTime logTime, String logMessage, LocalDateTime lastModified, Integer logLevel, TestItem testItem,
+			String filePath, String thumbnailFilePath, String contentType) {
+		this.id = id;
+		this.logTime = logTime;
+		this.logMessage = logMessage;
+		this.lastModified = lastModified;
+		this.logLevel = logLevel;
+		this.testItem = testItem;
+		this.filePath = filePath;
+		this.thumbnailFilePath = thumbnailFilePath;
+		this.contentType = contentType;
+	}
+
+	public Log() {
+	}
+
 	public Long getId() {
 		return id;
 	}

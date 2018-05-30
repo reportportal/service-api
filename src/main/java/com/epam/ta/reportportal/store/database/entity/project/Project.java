@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.store.database.entity.project;
 
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
+import com.epam.ta.reportportal.store.database.entity.integration.Integration;
 import com.google.common.collect.Sets;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -26,8 +27,23 @@ public class Project implements Serializable {
 	@OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
 	private Set<BugTrackingSystem> bugTrackingSystems = Sets.newHashSet();
 
+	@OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY, orphanRemoval = true)
+	private Set<Integration> integrations = Sets.newHashSet();
+
+	public Project(Long id, String name) {
+		this.id = id;
+		this.name = name;
+	}
+
+	public Project() {
+	}
+
+	public static long getSerialVersionUID() {
+		return serialVersionUID;
+	}
+
 	public Long getId() {
-		return this.id;
+		return id;
 	}
 
 	public void setId(Long id) {
@@ -35,7 +51,7 @@ public class Project implements Serializable {
 	}
 
 	public String getName() {
-		return this.name;
+		return name;
 	}
 
 	public void setName(String name) {
@@ -48,5 +64,13 @@ public class Project implements Serializable {
 
 	public void setBugTrackingSystems(Set<BugTrackingSystem> bugTrackingSystems) {
 		this.bugTrackingSystems = bugTrackingSystems;
+	}
+
+	public Set<Integration> getIntegrations() {
+		return integrations;
+	}
+
+	public void setIntegrations(Set<Integration> integrations) {
+		this.integrations = integrations;
 	}
 }

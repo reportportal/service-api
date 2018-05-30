@@ -21,26 +21,28 @@
 
 package com.epam.ta.reportportal.store.database.dao;
 
+import com.epam.ta.reportportal.store.commons.querygen.Filter;
+import com.epam.ta.reportportal.store.commons.querygen.QueryBuilder;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.store.database.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemStructure;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.jooq.Tables;
 import com.epam.ta.reportportal.store.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.store.jooq.tables.JTestItem;
 import com.epam.ta.reportportal.store.jooq.tables.JTestItemResults;
 import com.epam.ta.reportportal.store.jooq.tables.JTestItemStructure;
-import org.jooq.DSLContext;
-import org.jooq.Field;
-import org.jooq.Record;
-import org.jooq.SelectOnConditionStep;
+import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.jooq.types.DayToSecond;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +57,17 @@ import static org.jooq.impl.DSL.*;
  */
 @Repository
 public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
+
+	private static final RecordMapper<? super Record, TestItem> TEST_ITEM_MAPPER = r -> new TestItem(
+			r.get(JTestItem.TEST_ITEM.ITEM_ID, Long.class),
+			r.into(Launch.class),
+			r.get(JTestItem.TEST_ITEM.NAME, String.class),
+			r.get(JTestItem.TEST_ITEM.TYPE, TestItemTypeEnum.class),
+			r.get(JTestItem.TEST_ITEM.START_TIME, LocalDateTime.class),
+			r.get(JTestItem.TEST_ITEM.DESCRIPTION, String.class),
+			r.get(JTestItem.TEST_ITEM.LAST_MODIFIED, LocalDateTime.class),
+			r.get(JTestItem.TEST_ITEM.UNIQUE_ID, String.class)
+	);
 
 	private DSLContext dsl;
 
@@ -112,8 +125,8 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 	@Override
 	public Boolean hasItemsInStatusByParent(Long parentId, StatusEnum... statuses) {
 		List<JStatusEnum> jStatuses = Arrays.stream(statuses).map(it -> JStatusEnum.valueOf(it.name())).collect(toList());
-		return dsl.fetchExists(
-				commonTestItemDslSelect().where(TEST_ITEM_STRUCTURE.PARENT_ID.eq(parentId)).and(TEST_ITEM_RESULTS.STATUS.in(jStatuses)));
+		return dsl.fetchExists(commonTestItemDslSelect().where(TEST_ITEM_STRUCTURE.PARENT_ID.eq(parentId))
+				.and(TEST_ITEM_RESULTS.STATUS.in(jStatuses)));
 	}
 
 	@Override
@@ -241,4 +254,9 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 		return testItem;
 	}
 
+	@Override
+	public List<TestItem> findByFilter(Filter filter) {
+
+		return dsl.fetch(QueryBuilder.newBuilder(filter).build()).map(TEST_ITEM_MAPPER);
+	}
 }

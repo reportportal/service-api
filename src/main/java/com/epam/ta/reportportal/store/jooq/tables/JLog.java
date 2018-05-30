@@ -41,7 +41,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JLog extends TableImpl<JLogRecord> {
 
-    private static final long serialVersionUID = 775221870;
+    private static final long serialVersionUID = 189088270;
 
     /**
      * The reference instance of <code>public.log</code>
@@ -85,6 +85,21 @@ public class JLog extends TableImpl<JLogRecord> {
      * The column <code>public.log.log_level</code>.
      */
     public final TableField<JLogRecord, Integer> LOG_LEVEL = createField("log_level", org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
+
+    /**
+     * The column <code>public.log.file_path</code>.
+     */
+    public final TableField<JLogRecord, String> FILE_PATH = createField("file_path", org.jooq.impl.SQLDataType.VARCHAR, this, "");
+
+    /**
+     * The column <code>public.log.thumbnail_file_path</code>.
+     */
+    public final TableField<JLogRecord, String> THUMBNAIL_FILE_PATH = createField("thumbnail_file_path", org.jooq.impl.SQLDataType.VARCHAR, this, "");
+
+    /**
+     * The column <code>public.log.content_type</code>.
+     */
+    public final TableField<JLogRecord, String> CONTENT_TYPE = createField("content_type", org.jooq.impl.SQLDataType.VARCHAR, this, "");
 
     /**
      * Create a <code>public.log</code> table reference

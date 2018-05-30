@@ -31,13 +31,11 @@ import java.util.List;
 /**
  * @author Pavel Bortnik
  */
-public interface LaunchRepositoryCustom {
+public interface LaunchRepositoryCustom extends FilterableRepository<LaunchFull>{
 
 	Boolean identifyStatus(Long launchId);
 
 	List<LaunchFull> fullLaunchWithStatistics();
-
-	List<LaunchFull> findByFilter(Filter filter);
 
 	Page<LaunchFull> findByFilter(Filter filter, Pageable pageable);
 

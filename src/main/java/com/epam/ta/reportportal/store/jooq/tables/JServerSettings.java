@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JServerSettings extends TableImpl<JServerSettingsRecord> {
 
-    private static final long serialVersionUID = 276078139;
+    private static final long serialVersionUID = 1721788848;
 
     /**
      * The reference instance of <code>public.server_settings</code>
@@ -62,7 +62,7 @@ public class JServerSettings extends TableImpl<JServerSettingsRecord> {
     /**
      * The column <code>public.server_settings.key</code>.
      */
-    public final TableField<JServerSettingsRecord, String> KEY = createField("key", org.jooq.impl.SQLDataType.VARCHAR, this, "");
+    public final TableField<JServerSettingsRecord, String> KEY = createField("key", org.jooq.impl.SQLDataType.VARCHAR.nullable(false), this, "");
 
     /**
      * The column <code>public.server_settings.value</code>.
@@ -111,7 +111,7 @@ public class JServerSettings extends TableImpl<JServerSettingsRecord> {
      */
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.SERVER_SETTINGS_ID);
+        return Arrays.<Index>asList(Indexes.SERVER_SETTINGS_ID, Indexes.SERVER_SETTINGS_KEY_KEY);
     }
 
     /**
@@ -135,7 +135,7 @@ public class JServerSettings extends TableImpl<JServerSettingsRecord> {
      */
     @Override
     public List<UniqueKey<JServerSettingsRecord>> getKeys() {
-        return Arrays.<UniqueKey<JServerSettingsRecord>>asList(Keys.SERVER_SETTINGS_ID);
+        return Arrays.<UniqueKey<JServerSettingsRecord>>asList(Keys.SERVER_SETTINGS_ID, Keys.SERVER_SETTINGS_KEY_KEY);
     }
 
     /**

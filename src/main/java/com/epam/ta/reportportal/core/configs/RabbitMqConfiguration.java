@@ -67,6 +67,8 @@ public class RabbitMqConfiguration {
 		return new RabbitAwarePluginBox(amqpTemplate()).startAsync();
 	}
 
+	public static final String QUEUE_QUERY_RQ = "query-rq";
+
 	@Bean
 	public MessageConverter jsonMessageConverter() {
 		return new Jackson2JsonMessageConverter();
@@ -168,6 +170,11 @@ public class RabbitMqConfiguration {
 	@Bean
 	public Binding pluginsPingBinding() {
 		return BindingBuilder.bind(pluginsPingQueue()).to(pluginsExchange()).with(KEY_PLUGINS_PING);
+	}
+
+	@Bean
+	public Queue queryQueue() {
+		return new Queue(QUEUE_QUERY_RQ);
 	}
 
 	@Bean

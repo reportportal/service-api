@@ -21,10 +21,13 @@
 
 package com.epam.ta.reportportal.store.database.dao;
 
+import com.epam.ta.reportportal.store.database.entity.log.Log;
+import java.util.List;
+
 /**
  * @author Pavel Bortnik
  */
-public interface LogRepositoryCustom {
+public interface LogRepositoryCustom  extends FilterableRepository<Log>{
 
 	/**
 	 * Checks if the test item has any logs.
@@ -34,4 +37,15 @@ public interface LogRepositoryCustom {
 	 */
 	boolean hasLogs(Long itemId);
 
+	/**
+	 * Load specified number of last logs for specified test item. binaryData
+	 * field will be loaded if it specified in appropriate input parameter, all
+	 * other fields will be fully loaded.
+	 *
+	 * @param itemId
+	 * @param limit
+	 * @param isLoadBinaryData
+	 * @return
+	 */
+	List<Log> findByTestItemId(String itemId, int limit, boolean isLoadBinaryData);
 }

@@ -4,13 +4,15 @@
 package com.epam.ta.reportportal.store.jooq;
 
 
+import com.epam.ta.reportportal.store.jooq.tables.JActivity;
 import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystem;
-import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystemAuth;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboard;
 import com.epam.ta.reportportal.store.jooq.tables.JDashboardWidget;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFieldAllowedValue;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFormField;
 import com.epam.ta.reportportal.store.jooq.tables.JDefectFormFieldValue;
+import com.epam.ta.reportportal.store.jooq.tables.JIntegration;
+import com.epam.ta.reportportal.store.jooq.tables.JIntegrationType;
 import com.epam.ta.reportportal.store.jooq.tables.JIssue;
 import com.epam.ta.reportportal.store.jooq.tables.JIssueTicket;
 import com.epam.ta.reportportal.store.jooq.tables.JIssueType;
@@ -34,13 +36,15 @@ import com.epam.ta.reportportal.store.jooq.tables.JTestItemStructure;
 import com.epam.ta.reportportal.store.jooq.tables.JTicket;
 import com.epam.ta.reportportal.store.jooq.tables.JUsers;
 import com.epam.ta.reportportal.store.jooq.tables.JWidget;
-import com.epam.ta.reportportal.store.jooq.tables.records.JBugTrackingSystemAuthRecord;
+import com.epam.ta.reportportal.store.jooq.tables.records.JActivityRecord;
 import com.epam.ta.reportportal.store.jooq.tables.records.JBugTrackingSystemRecord;
 import com.epam.ta.reportportal.store.jooq.tables.records.JDashboardRecord;
 import com.epam.ta.reportportal.store.jooq.tables.records.JDashboardWidgetRecord;
 import com.epam.ta.reportportal.store.jooq.tables.records.JDefectFieldAllowedValueRecord;
 import com.epam.ta.reportportal.store.jooq.tables.records.JDefectFormFieldRecord;
 import com.epam.ta.reportportal.store.jooq.tables.records.JDefectFormFieldValueRecord;
+import com.epam.ta.reportportal.store.jooq.tables.records.JIntegrationRecord;
+import com.epam.ta.reportportal.store.jooq.tables.records.JIntegrationTypeRecord;
 import com.epam.ta.reportportal.store.jooq.tables.records.JIssueRecord;
 import com.epam.ta.reportportal.store.jooq.tables.records.JIssueTicketRecord;
 import com.epam.ta.reportportal.store.jooq.tables.records.JIssueTypeProjectConfigurationRecord;
@@ -91,10 +95,13 @@ public class Keys {
     // IDENTITY definitions
     // -------------------------------------------------------------------------
 
+    public static final Identity<JActivityRecord, Long> IDENTITY_ACTIVITY = Identities0.IDENTITY_ACTIVITY;
     public static final Identity<JBugTrackingSystemRecord, Long> IDENTITY_BUG_TRACKING_SYSTEM = Identities0.IDENTITY_BUG_TRACKING_SYSTEM;
     public static final Identity<JDashboardRecord, Integer> IDENTITY_DASHBOARD = Identities0.IDENTITY_DASHBOARD;
     public static final Identity<JDefectFieldAllowedValueRecord, Long> IDENTITY_DEFECT_FIELD_ALLOWED_VALUE = Identities0.IDENTITY_DEFECT_FIELD_ALLOWED_VALUE;
     public static final Identity<JDefectFormFieldRecord, Long> IDENTITY_DEFECT_FORM_FIELD = Identities0.IDENTITY_DEFECT_FORM_FIELD;
+    public static final Identity<JIntegrationRecord, Integer> IDENTITY_INTEGRATION = Identities0.IDENTITY_INTEGRATION;
+    public static final Identity<JIntegrationTypeRecord, Integer> IDENTITY_INTEGRATION_TYPE = Identities0.IDENTITY_INTEGRATION_TYPE;
     public static final Identity<JIssueTypeRecord, Integer> IDENTITY_ISSUE_TYPE = Identities0.IDENTITY_ISSUE_TYPE;
     public static final Identity<JItemTagRecord, Integer> IDENTITY_ITEM_TAG = Identities0.IDENTITY_ITEM_TAG;
     public static final Identity<JLaunchRecord, Long> IDENTITY_LAUNCH = Identities0.IDENTITY_LAUNCH;
@@ -113,15 +120,17 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final UniqueKey<JActivityRecord> ACTIVITY_PK = UniqueKeys0.ACTIVITY_PK;
     public static final UniqueKey<JBugTrackingSystemRecord> BUG_TRACKING_SYSTEM_PK = UniqueKeys0.BUG_TRACKING_SYSTEM_PK;
     public static final UniqueKey<JBugTrackingSystemRecord> UNIQUE_BTS = UniqueKeys0.UNIQUE_BTS;
-    public static final UniqueKey<JBugTrackingSystemAuthRecord> BUG_TRACKING_SYSTEM_AUTH_PK = UniqueKeys0.BUG_TRACKING_SYSTEM_AUTH_PK;
     public static final UniqueKey<JDashboardRecord> DASHBOARD_PK = UniqueKeys0.DASHBOARD_PK;
     public static final UniqueKey<JDashboardRecord> UNQ_NAME_PROJECT = UniqueKeys0.UNQ_NAME_PROJECT;
     public static final UniqueKey<JDashboardWidgetRecord> DASHBOARD_WIDGET_PK = UniqueKeys0.DASHBOARD_WIDGET_PK;
     public static final UniqueKey<JDashboardWidgetRecord> WIDGET_ON_DASHBOARD_UNQ = UniqueKeys0.WIDGET_ON_DASHBOARD_UNQ;
     public static final UniqueKey<JDefectFieldAllowedValueRecord> DEFECT_FIELD_ALLOWED_VALUE_PK = UniqueKeys0.DEFECT_FIELD_ALLOWED_VALUE_PK;
     public static final UniqueKey<JDefectFormFieldRecord> DEFECT_FORM_FIELD_PK = UniqueKeys0.DEFECT_FORM_FIELD_PK;
+    public static final UniqueKey<JIntegrationRecord> INTEGRATION_PK = UniqueKeys0.INTEGRATION_PK;
+    public static final UniqueKey<JIntegrationTypeRecord> INTEGRATION_TYPE_PK = UniqueKeys0.INTEGRATION_TYPE_PK;
     public static final UniqueKey<JIssueRecord> ISSUE_PK = UniqueKeys0.ISSUE_PK;
     public static final UniqueKey<JIssueTicketRecord> ISSUE_TICKET_PK = UniqueKeys0.ISSUE_TICKET_PK;
     public static final UniqueKey<JIssueTypeRecord> ISSUE_TYPE_PK = UniqueKeys0.ISSUE_TYPE_PK;
@@ -141,6 +150,7 @@ public class Keys {
     public static final UniqueKey<JProjectEmailConfigurationRecord> PROJECT_EMAIL_CONFIGURATION_PK = UniqueKeys0.PROJECT_EMAIL_CONFIGURATION_PK;
     public static final UniqueKey<JProjectUserRecord> USERS_PROJECT_PK = UniqueKeys0.USERS_PROJECT_PK;
     public static final UniqueKey<JServerSettingsRecord> SERVER_SETTINGS_ID = UniqueKeys0.SERVER_SETTINGS_ID;
+    public static final UniqueKey<JServerSettingsRecord> SERVER_SETTINGS_KEY_KEY = UniqueKeys0.SERVER_SETTINGS_KEY_KEY;
     public static final UniqueKey<JTestItemRecord> TEST_ITEM_PK = UniqueKeys0.TEST_ITEM_PK;
     public static final UniqueKey<JTestItemResultsRecord> TEST_ITEM_RESULTS_PK = UniqueKeys0.TEST_ITEM_RESULTS_PK;
     public static final UniqueKey<JTestItemStructureRecord> TEST_ITEM_STRUCTURE_PK = UniqueKeys0.TEST_ITEM_STRUCTURE_PK;
@@ -154,14 +164,16 @@ public class Keys {
     // FOREIGN KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final ForeignKey<JActivityRecord, JUsersRecord> ACTIVITY__ACTIVITY_USER_ID_FKEY = ForeignKeys0.ACTIVITY__ACTIVITY_USER_ID_FKEY;
     public static final ForeignKey<JBugTrackingSystemRecord, JProjectRecord> BUG_TRACKING_SYSTEM__BUG_TRACKING_SYSTEM_PROJECT_ID_FKEY = ForeignKeys0.BUG_TRACKING_SYSTEM__BUG_TRACKING_SYSTEM_PROJECT_ID_FKEY;
-    public static final ForeignKey<JBugTrackingSystemAuthRecord, JBugTrackingSystemRecord> BUG_TRACKING_SYSTEM_AUTH__BUG_TRACKING_SYSTEM_AUTH_ID_FKEY = ForeignKeys0.BUG_TRACKING_SYSTEM_AUTH__BUG_TRACKING_SYSTEM_AUTH_ID_FKEY;
     public static final ForeignKey<JDashboardRecord, JProjectRecord> DASHBOARD__DASHBOARD_PROJECT_ID_FKEY = ForeignKeys0.DASHBOARD__DASHBOARD_PROJECT_ID_FKEY;
     public static final ForeignKey<JDashboardWidgetRecord, JDashboardRecord> DASHBOARD_WIDGET__DASHBOARD_WIDGET_DASHBOARD_ID_FKEY = ForeignKeys0.DASHBOARD_WIDGET__DASHBOARD_WIDGET_DASHBOARD_ID_FKEY;
     public static final ForeignKey<JDashboardWidgetRecord, JWidgetRecord> DASHBOARD_WIDGET__DASHBOARD_WIDGET_WIDGET_ID_FKEY = ForeignKeys0.DASHBOARD_WIDGET__DASHBOARD_WIDGET_WIDGET_ID_FKEY;
     public static final ForeignKey<JDefectFieldAllowedValueRecord, JDefectFormFieldRecord> DEFECT_FIELD_ALLOWED_VALUE__DEFECT_FIELD_ALLOWED_VALUE_DEFECT_FORM_FIELD_FKEY = ForeignKeys0.DEFECT_FIELD_ALLOWED_VALUE__DEFECT_FIELD_ALLOWED_VALUE_DEFECT_FORM_FIELD_FKEY;
     public static final ForeignKey<JDefectFormFieldRecord, JBugTrackingSystemRecord> DEFECT_FORM_FIELD__DEFECT_FORM_FIELD_BUG_TRACKING_SYSTEM_ID_FKEY = ForeignKeys0.DEFECT_FORM_FIELD__DEFECT_FORM_FIELD_BUG_TRACKING_SYSTEM_ID_FKEY;
     public static final ForeignKey<JDefectFormFieldValueRecord, JDefectFormFieldRecord> DEFECT_FORM_FIELD_VALUE__DEFECT_FORM_FIELD_VALUE_ID_FKEY = ForeignKeys0.DEFECT_FORM_FIELD_VALUE__DEFECT_FORM_FIELD_VALUE_ID_FKEY;
+    public static final ForeignKey<JIntegrationRecord, JProjectRecord> INTEGRATION__INTEGRATION_PROJECT_ID_FKEY = ForeignKeys0.INTEGRATION__INTEGRATION_PROJECT_ID_FKEY;
+    public static final ForeignKey<JIntegrationRecord, JIntegrationTypeRecord> INTEGRATION__INTEGRATION_TYPE_FKEY = ForeignKeys0.INTEGRATION__INTEGRATION_TYPE_FKEY;
     public static final ForeignKey<JIssueRecord, JTestItemResultsRecord> ISSUE__ISSUE_ISSUE_ID_FKEY = ForeignKeys0.ISSUE__ISSUE_ISSUE_ID_FKEY;
     public static final ForeignKey<JIssueRecord, JIssueTypeRecord> ISSUE__ISSUE_ISSUE_TYPE_FKEY = ForeignKeys0.ISSUE__ISSUE_ISSUE_TYPE_FKEY;
     public static final ForeignKey<JIssueTicketRecord, JIssueRecord> ISSUE_TICKET__ISSUE_TICKET_ISSUE_ID_FKEY = ForeignKeys0.ISSUE_TICKET__ISSUE_TICKET_ISSUE_ID_FKEY;
@@ -195,10 +207,13 @@ public class Keys {
     // -------------------------------------------------------------------------
 
     private static class Identities0 {
+        public static Identity<JActivityRecord, Long> IDENTITY_ACTIVITY = Internal.createIdentity(JActivity.ACTIVITY, JActivity.ACTIVITY.ID);
         public static Identity<JBugTrackingSystemRecord, Long> IDENTITY_BUG_TRACKING_SYSTEM = Internal.createIdentity(JBugTrackingSystem.BUG_TRACKING_SYSTEM, JBugTrackingSystem.BUG_TRACKING_SYSTEM.ID);
         public static Identity<JDashboardRecord, Integer> IDENTITY_DASHBOARD = Internal.createIdentity(JDashboard.DASHBOARD, JDashboard.DASHBOARD.ID);
         public static Identity<JDefectFieldAllowedValueRecord, Long> IDENTITY_DEFECT_FIELD_ALLOWED_VALUE = Internal.createIdentity(JDefectFieldAllowedValue.DEFECT_FIELD_ALLOWED_VALUE, JDefectFieldAllowedValue.DEFECT_FIELD_ALLOWED_VALUE.ID);
         public static Identity<JDefectFormFieldRecord, Long> IDENTITY_DEFECT_FORM_FIELD = Internal.createIdentity(JDefectFormField.DEFECT_FORM_FIELD, JDefectFormField.DEFECT_FORM_FIELD.ID);
+        public static Identity<JIntegrationRecord, Integer> IDENTITY_INTEGRATION = Internal.createIdentity(JIntegration.INTEGRATION, JIntegration.INTEGRATION.ID);
+        public static Identity<JIntegrationTypeRecord, Integer> IDENTITY_INTEGRATION_TYPE = Internal.createIdentity(JIntegrationType.INTEGRATION_TYPE, JIntegrationType.INTEGRATION_TYPE.ID);
         public static Identity<JIssueTypeRecord, Integer> IDENTITY_ISSUE_TYPE = Internal.createIdentity(JIssueType.ISSUE_TYPE, JIssueType.ISSUE_TYPE.ID);
         public static Identity<JItemTagRecord, Integer> IDENTITY_ITEM_TAG = Internal.createIdentity(JItemTag.ITEM_TAG, JItemTag.ITEM_TAG.ID);
         public static Identity<JLaunchRecord, Long> IDENTITY_LAUNCH = Internal.createIdentity(JLaunch.LAUNCH, JLaunch.LAUNCH.ID);
@@ -215,15 +230,17 @@ public class Keys {
     }
 
     private static class UniqueKeys0 {
+        public static final UniqueKey<JActivityRecord> ACTIVITY_PK = Internal.createUniqueKey(JActivity.ACTIVITY, "activity_pk", JActivity.ACTIVITY.ID);
         public static final UniqueKey<JBugTrackingSystemRecord> BUG_TRACKING_SYSTEM_PK = Internal.createUniqueKey(JBugTrackingSystem.BUG_TRACKING_SYSTEM, "bug_tracking_system_pk", JBugTrackingSystem.BUG_TRACKING_SYSTEM.ID);
         public static final UniqueKey<JBugTrackingSystemRecord> UNIQUE_BTS = Internal.createUniqueKey(JBugTrackingSystem.BUG_TRACKING_SYSTEM, "unique_bts", JBugTrackingSystem.BUG_TRACKING_SYSTEM.URL, JBugTrackingSystem.BUG_TRACKING_SYSTEM.TYPE, JBugTrackingSystem.BUG_TRACKING_SYSTEM.BTS_PROJECT, JBugTrackingSystem.BUG_TRACKING_SYSTEM.PROJECT_ID);
-        public static final UniqueKey<JBugTrackingSystemAuthRecord> BUG_TRACKING_SYSTEM_AUTH_PK = Internal.createUniqueKey(JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH, "bug_tracking_system_auth_pk", JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH.ID);
         public static final UniqueKey<JDashboardRecord> DASHBOARD_PK = Internal.createUniqueKey(JDashboard.DASHBOARD, "dashboard_pk", JDashboard.DASHBOARD.ID);
         public static final UniqueKey<JDashboardRecord> UNQ_NAME_PROJECT = Internal.createUniqueKey(JDashboard.DASHBOARD, "unq_name_project", JDashboard.DASHBOARD.NAME, JDashboard.DASHBOARD.PROJECT_ID);
         public static final UniqueKey<JDashboardWidgetRecord> DASHBOARD_WIDGET_PK = Internal.createUniqueKey(JDashboardWidget.DASHBOARD_WIDGET, "dashboard_widget_pk", JDashboardWidget.DASHBOARD_WIDGET.DASHBOARD_ID, JDashboardWidget.DASHBOARD_WIDGET.WIDGET_ID);
         public static final UniqueKey<JDashboardWidgetRecord> WIDGET_ON_DASHBOARD_UNQ = Internal.createUniqueKey(JDashboardWidget.DASHBOARD_WIDGET, "widget_on_dashboard_unq", JDashboardWidget.DASHBOARD_WIDGET.DASHBOARD_ID, JDashboardWidget.DASHBOARD_WIDGET.WIDGET_NAME);
         public static final UniqueKey<JDefectFieldAllowedValueRecord> DEFECT_FIELD_ALLOWED_VALUE_PK = Internal.createUniqueKey(JDefectFieldAllowedValue.DEFECT_FIELD_ALLOWED_VALUE, "defect_field_allowed_value_pk", JDefectFieldAllowedValue.DEFECT_FIELD_ALLOWED_VALUE.ID);
         public static final UniqueKey<JDefectFormFieldRecord> DEFECT_FORM_FIELD_PK = Internal.createUniqueKey(JDefectFormField.DEFECT_FORM_FIELD, "defect_form_field_pk", JDefectFormField.DEFECT_FORM_FIELD.ID);
+        public static final UniqueKey<JIntegrationRecord> INTEGRATION_PK = Internal.createUniqueKey(JIntegration.INTEGRATION, "integration_pk", JIntegration.INTEGRATION.ID);
+        public static final UniqueKey<JIntegrationTypeRecord> INTEGRATION_TYPE_PK = Internal.createUniqueKey(JIntegrationType.INTEGRATION_TYPE, "integration_type_pk", JIntegrationType.INTEGRATION_TYPE.ID);
         public static final UniqueKey<JIssueRecord> ISSUE_PK = Internal.createUniqueKey(JIssue.ISSUE, "issue_pk", JIssue.ISSUE.ISSUE_ID);
         public static final UniqueKey<JIssueTicketRecord> ISSUE_TICKET_PK = Internal.createUniqueKey(JIssueTicket.ISSUE_TICKET, "issue_ticket_pk", JIssueTicket.ISSUE_TICKET.ISSUE_ID, JIssueTicket.ISSUE_TICKET.TICKET_ID);
         public static final UniqueKey<JIssueTypeRecord> ISSUE_TYPE_PK = Internal.createUniqueKey(JIssueType.ISSUE_TYPE, "issue_type_pk", JIssueType.ISSUE_TYPE.ID);
@@ -243,6 +260,7 @@ public class Keys {
         public static final UniqueKey<JProjectEmailConfigurationRecord> PROJECT_EMAIL_CONFIGURATION_PK = Internal.createUniqueKey(JProjectEmailConfiguration.PROJECT_EMAIL_CONFIGURATION, "project_email_configuration_pk", JProjectEmailConfiguration.PROJECT_EMAIL_CONFIGURATION.ID);
         public static final UniqueKey<JProjectUserRecord> USERS_PROJECT_PK = Internal.createUniqueKey(JProjectUser.PROJECT_USER, "users_project_pk", JProjectUser.PROJECT_USER.USER_ID, JProjectUser.PROJECT_USER.PROJECT_ID);
         public static final UniqueKey<JServerSettingsRecord> SERVER_SETTINGS_ID = Internal.createUniqueKey(JServerSettings.SERVER_SETTINGS, "server_settings_id", JServerSettings.SERVER_SETTINGS.ID);
+        public static final UniqueKey<JServerSettingsRecord> SERVER_SETTINGS_KEY_KEY = Internal.createUniqueKey(JServerSettings.SERVER_SETTINGS, "server_settings_key_key", JServerSettings.SERVER_SETTINGS.KEY);
         public static final UniqueKey<JTestItemRecord> TEST_ITEM_PK = Internal.createUniqueKey(JTestItem.TEST_ITEM, "test_item_pk", JTestItem.TEST_ITEM.ITEM_ID);
         public static final UniqueKey<JTestItemResultsRecord> TEST_ITEM_RESULTS_PK = Internal.createUniqueKey(JTestItemResults.TEST_ITEM_RESULTS, "test_item_results_pk", JTestItemResults.TEST_ITEM_RESULTS.ITEM_ID);
         public static final UniqueKey<JTestItemStructureRecord> TEST_ITEM_STRUCTURE_PK = Internal.createUniqueKey(JTestItemStructure.TEST_ITEM_STRUCTURE, "test_item_structure_pk", JTestItemStructure.TEST_ITEM_STRUCTURE.ITEM_ID);
@@ -254,14 +272,16 @@ public class Keys {
     }
 
     private static class ForeignKeys0 {
+        public static final ForeignKey<JActivityRecord, JUsersRecord> ACTIVITY__ACTIVITY_USER_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.USERS_PK, JActivity.ACTIVITY, "activity__activity_user_id_fkey", JActivity.ACTIVITY.USER_ID);
         public static final ForeignKey<JBugTrackingSystemRecord, JProjectRecord> BUG_TRACKING_SYSTEM__BUG_TRACKING_SYSTEM_PROJECT_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.PROJECT_PK, JBugTrackingSystem.BUG_TRACKING_SYSTEM, "bug_tracking_system__bug_tracking_system_project_id_fkey", JBugTrackingSystem.BUG_TRACKING_SYSTEM.PROJECT_ID);
-        public static final ForeignKey<JBugTrackingSystemAuthRecord, JBugTrackingSystemRecord> BUG_TRACKING_SYSTEM_AUTH__BUG_TRACKING_SYSTEM_AUTH_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.BUG_TRACKING_SYSTEM_PK, JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH, "bug_tracking_system_auth__bug_tracking_system_auth_id_fkey", JBugTrackingSystemAuth.BUG_TRACKING_SYSTEM_AUTH.ID);
         public static final ForeignKey<JDashboardRecord, JProjectRecord> DASHBOARD__DASHBOARD_PROJECT_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.PROJECT_PK, JDashboard.DASHBOARD, "dashboard__dashboard_project_id_fkey", JDashboard.DASHBOARD.PROJECT_ID);
         public static final ForeignKey<JDashboardWidgetRecord, JDashboardRecord> DASHBOARD_WIDGET__DASHBOARD_WIDGET_DASHBOARD_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.DASHBOARD_PK, JDashboardWidget.DASHBOARD_WIDGET, "dashboard_widget__dashboard_widget_dashboard_id_fkey", JDashboardWidget.DASHBOARD_WIDGET.DASHBOARD_ID);
         public static final ForeignKey<JDashboardWidgetRecord, JWidgetRecord> DASHBOARD_WIDGET__DASHBOARD_WIDGET_WIDGET_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.WIDGET_ID, JDashboardWidget.DASHBOARD_WIDGET, "dashboard_widget__dashboard_widget_widget_id_fkey", JDashboardWidget.DASHBOARD_WIDGET.WIDGET_ID);
         public static final ForeignKey<JDefectFieldAllowedValueRecord, JDefectFormFieldRecord> DEFECT_FIELD_ALLOWED_VALUE__DEFECT_FIELD_ALLOWED_VALUE_DEFECT_FORM_FIELD_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.DEFECT_FORM_FIELD_PK, JDefectFieldAllowedValue.DEFECT_FIELD_ALLOWED_VALUE, "defect_field_allowed_value__defect_field_allowed_value_defect_form_field_fkey", JDefectFieldAllowedValue.DEFECT_FIELD_ALLOWED_VALUE.DEFECT_FORM_FIELD);
         public static final ForeignKey<JDefectFormFieldRecord, JBugTrackingSystemRecord> DEFECT_FORM_FIELD__DEFECT_FORM_FIELD_BUG_TRACKING_SYSTEM_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.BUG_TRACKING_SYSTEM_PK, JDefectFormField.DEFECT_FORM_FIELD, "defect_form_field__defect_form_field_bug_tracking_system_id_fkey", JDefectFormField.DEFECT_FORM_FIELD.BUG_TRACKING_SYSTEM_ID);
         public static final ForeignKey<JDefectFormFieldValueRecord, JDefectFormFieldRecord> DEFECT_FORM_FIELD_VALUE__DEFECT_FORM_FIELD_VALUE_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.DEFECT_FORM_FIELD_PK, JDefectFormFieldValue.DEFECT_FORM_FIELD_VALUE, "defect_form_field_value__defect_form_field_value_id_fkey", JDefectFormFieldValue.DEFECT_FORM_FIELD_VALUE.ID);
+        public static final ForeignKey<JIntegrationRecord, JProjectRecord> INTEGRATION__INTEGRATION_PROJECT_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.PROJECT_PK, JIntegration.INTEGRATION, "integration__integration_project_id_fkey", JIntegration.INTEGRATION.PROJECT_ID);
+        public static final ForeignKey<JIntegrationRecord, JIntegrationTypeRecord> INTEGRATION__INTEGRATION_TYPE_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.INTEGRATION_TYPE_PK, JIntegration.INTEGRATION, "integration__integration_type_fkey", JIntegration.INTEGRATION.TYPE);
         public static final ForeignKey<JIssueRecord, JTestItemResultsRecord> ISSUE__ISSUE_ISSUE_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.TEST_ITEM_RESULTS_PK, JIssue.ISSUE, "issue__issue_issue_id_fkey", JIssue.ISSUE.ISSUE_ID);
         public static final ForeignKey<JIssueRecord, JIssueTypeRecord> ISSUE__ISSUE_ISSUE_TYPE_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.ISSUE_TYPE_PK, JIssue.ISSUE, "issue__issue_issue_type_fkey", JIssue.ISSUE.ISSUE_TYPE);
         public static final ForeignKey<JIssueTicketRecord, JIssueRecord> ISSUE_TICKET__ISSUE_TICKET_ISSUE_ID_FKEY = Internal.createForeignKey(com.epam.ta.reportportal.store.jooq.Keys.ISSUE_PK, JIssueTicket.ISSUE_TICKET, "issue_ticket__issue_ticket_issue_id_fkey", JIssueTicket.ISSUE_TICKET.ISSUE_ID);

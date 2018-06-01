@@ -21,6 +21,8 @@
 
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.MessageBusImpl;
 import com.epam.ta.reportportal.core.plugin.RabbitAwarePluginBox;
 import com.google.common.util.concurrent.Service;
 import org.springframework.amqp.core.*;
@@ -50,26 +52,37 @@ public class RabbitMqConfiguration {
 	 * Exchanges
 	 */
 	public static final String EXCHANGE_EVENTS = "broadcast.events";
+	public static final String EXCHANGE_ACTIVITY = "direct.activity";
 	public static final String EXCHANGE_PLUGINS = "plugins";
 	public static final String EXCHANGE_REPORTING = "reporting";
 
-	public static final String KEY_PLUGINS_PING = "broadcast.plugins-ping";
-	public static final String KEY_PLUGINS_PONG = "broadcast.plugins-pong";
+	public static final String KEY_PLUGINS_PING = "broadcast.plugins.ping";
+	public static final String KEY_PLUGINS_PONG = "broadcast.plugins.pong";
+	public static final String KEY_EVENTS = "broadcast.events";
 
 	/**
 	 * Queues
 	 */
-	public static final String QUEUE_START_LAUNCH = "reporting.start-launch";
-	public static final String QUEUE_FINISH_LAUNCH = "reporting.finish-launch";
-	public static final String QUEUE_START_ITEM = "reporting.start-parent-item";
-	public static final String QUEUE_FINISH_ITEM = "reporting.finish-item";
-
-	@Bean
-	public Service pluginBox(@Autowired AmqpTemplate amqpTemplate) {
-		return new RabbitAwarePluginBox(amqpTemplate).startAsync();
-	}
+	public static final String QUEUE_ACTIVITY = "activity";
+	public static final String QUEUE_START_LAUNCH = "reporting.launch.start";
+	public static final String QUEUE_FINISH_LAUNCH = "reporting.launch.finish";
+	public static final String QUEUE_START_ITEM = "reporting.item.start";
+	public static final String QUEUE_FINISH_ITEM = "reporting.item.finish";
 
 	public static final String QUEUE_QUERY_RQ = "query-rq";
+
+	@Bean
+	public Service pluginBox(@Autowired MessageBus messageBus) {
+		Service service = new RabbitAwarePluginBox(messageBus).startAsync();
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> service.stopAsync().awaitTerminated()));
+		return service;
+	}
+
+	@Bean
+	public MessageBus messageBus(@Autowired AmqpTemplate amqpTemplate) {
+		return new MessageBusImpl(amqpTemplate);
+	}
+
 
 	@Bean
 	public MessageConverter jsonMessageConverter() {
@@ -131,6 +144,16 @@ public class RabbitMqConfiguration {
 	}
 
 	@Bean
+	public Queue eventsQueue() {
+		return new AnonymousQueue(new AnonymousQueue.Base64UrlNamingStrategy(KEY_EVENTS + "."));
+	}
+
+	@Bean
+	public Queue activityQueue() {
+		return new Queue(QUEUE_ACTIVITY);
+	}
+
+	@Bean
 	public FanoutExchange eventsExchange() {
 		return new FanoutExchange(EXCHANGE_EVENTS, false, false);
 	}
@@ -138,6 +161,11 @@ public class RabbitMqConfiguration {
 	@Bean
 	public TopicExchange pluginsExchange() {
 		return new TopicExchange(EXCHANGE_PLUGINS, false, false);
+	}
+
+	@Bean
+	public DirectExchange activityExchange() {
+		return new DirectExchange(EXCHANGE_ACTIVITY, true, false);
 	}
 
 	@Bean
@@ -168,6 +196,16 @@ public class RabbitMqConfiguration {
 	@Bean
 	public Binding pluginsPongBinding() {
 		return BindingBuilder.bind(pluginsPongQueue()).to(pluginsExchange()).with(KEY_PLUGINS_PONG);
+	}
+
+	@Bean
+	public Binding eventsQueueBinding() {
+		return BindingBuilder.bind(eventsQueue()).to(eventsExchange());
+	}
+
+	@Bean
+	public Binding eventsActivityBinding() {
+		return BindingBuilder.bind(activityExchange()).to(activityExchange()).with("*");
 	}
 
 	@Bean

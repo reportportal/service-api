@@ -1,24 +1,25 @@
 package com.epam.ta.reportportal.core.plugin;
 
 import com.epam.ta.reportportal.core.configs.RabbitMqConfiguration;
+import com.epam.ta.reportportal.core.events.MessageBus;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.AbstractScheduledService;
-import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.messaging.handler.annotation.Payload;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class RabbitAwarePluginBox extends AbstractScheduledService implements PluginBox {
 
 	private final Map<String, Plugin> plugins;
-	private final AmqpTemplate amqpTemplate;
+	private final MessageBus messageBus;
 	private static final int broadcastTimeout = 5;
 
-	public RabbitAwarePluginBox(AmqpTemplate amqpTemplate) {
-		this.amqpTemplate = amqpTemplate;
+	public RabbitAwarePluginBox(MessageBus messageBus) {
+		this.messageBus = messageBus;
 		this.plugins = new ConcurrentHashMap<>();
 	}
 
@@ -35,7 +36,7 @@ public class RabbitAwarePluginBox extends AbstractScheduledService implements Pl
 	@Override
 	protected void runOneIteration() {
 		try {
-			this.amqpTemplate.convertAndSend(RabbitMqConfiguration.EXCHANGE_PLUGINS,
+			this.messageBus.publish(RabbitMqConfiguration.EXCHANGE_PLUGINS,
 					RabbitMqConfiguration.KEY_PLUGINS_PING,
 					Collections.singletonMap("ok", UUID.randomUUID().toString())
 			);
@@ -59,9 +60,9 @@ public class RabbitAwarePluginBox extends AbstractScheduledService implements Pl
 		EXAMPLE OF RECEIVER
 	 */
 	@RabbitListener(queues = "#{ @pluginsPingQueue.name }")
-	void fulfillPluginsList2(@Payload Map<String, ?> payload) {
+	void fulfillPluginsList2(@Payload Map<String, ?> payload) throws ExecutionException, InterruptedException {
 		System.out.println("PONG2 IS THERE! " + payload);
-		this.amqpTemplate.convertAndSend(RabbitMqConfiguration.EXCHANGE_PLUGINS,
+		this.messageBus.publish(RabbitMqConfiguration.EXCHANGE_PLUGINS,
 				RabbitMqConfiguration.KEY_PLUGINS_PONG,
 				new Plugin(UUID.randomUUID().toString())
 		);

@@ -22,8 +22,6 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,14 +32,13 @@ import java.nio.file.Paths;
 /**
  * @author Dzianis_Shybeka
  */
-@Component
 public class LocalDataStore implements DataStore {
 
 	private static final Logger logger = LoggerFactory.getLogger(LocalDataStore.class);
 
 	private final String storageRootPath;
 
-	public LocalDataStore(@Value("${datastore.default.path:/data/store}") String storageRootPath) {
+	public LocalDataStore(String storageRootPath) {
 		this.storageRootPath = storageRootPath;
 	}
 

@@ -22,24 +22,19 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.core.dashboard.ICreateDashboardHandler;
+import com.epam.ta.reportportal.core.dashboard.IUpdateDashboardHandler;
 import com.epam.ta.reportportal.store.commons.EntityUtils;
-import com.epam.ta.reportportal.store.database.dao.DashboardRepository;
-import com.epam.ta.reportportal.store.database.dao.WidgetRepository;
-import com.epam.ta.reportportal.store.database.entity.dashboard.Dashboard;
-import com.epam.ta.reportportal.store.database.entity.dashboard.DashboardWidget;
-import com.epam.ta.reportportal.store.database.entity.dashboard.DashboardWidgetId;
-import com.epam.ta.reportportal.store.database.entity.project.Project;
-import com.epam.ta.reportportal.store.database.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.dashboard.AddWidgetRq;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,60 +50,47 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/{projectName}/dashboard")
 public class DashboardController {
 
-	@Autowired
-	private DashboardRepository dashboardRepository;
+	private ICreateDashboardHandler createDashboardHandler;
+
+	private IUpdateDashboardHandler updateDashboardHandler;
 
 	@Autowired
-	private WidgetRepository widgetRepository;
+	public void setCreateDashboardHandler(ICreateDashboardHandler createDashboardHandler) {
+		this.createDashboardHandler = createDashboardHandler;
+	}
 
-	@RequestMapping(method = RequestMethod.POST)
+	@Autowired
+	public void setUpdateDashboardHandler(IUpdateDashboardHandler updateDashboardHandler) {
+		this.updateDashboardHandler = updateDashboardHandler;
+	}
+
+	@Transactional
+	@PostMapping
 	@ResponseStatus(CREATED)
 	@ResponseBody
 	@ApiOperation("Create dashboard for specified project")
 	public EntryCreatedRS createDashboard(@PathVariable String projectName, @RequestBody @Validated CreateDashboardRQ createRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-
-		ReportPortalUser.ProjectDetails projectDetails = EntityUtils.takeProjectDetails(user, projectName);
-		Project project = new Project();
-		project.setId(projectDetails.getProjectId());
-
-		Dashboard dashboard = new Dashboard();
-		dashboard.setName(createRQ.getName());
-		dashboard.setDescription(createRQ.getDescription());
-		dashboard.setProjectId(projectDetails.getProjectId());
-
-		dashboardRepository.save(dashboard);
-
-		return new EntryCreatedRS(dashboard.getId());
+		return createDashboardHandler.createDashboard(EntityUtils.takeProjectDetails(user, projectName), createRQ, user);
 	}
 
+	@Transactional
+	@PostMapping
+	@ResponseStatus(CREATED)
+	@ResponseBody
+	@ApiOperation("Create dashboard for specified project")
+	public OperationCompletionRS addWidget(@PathVariable String projectName, @RequestBody @Validated AddWidgetRq addWidgetRq,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return updateDashboardHandler.addWidget(EntityUtils.takeProjectDetails(user, projectName), addWidgetRq, user);
+	}
+
+	@Transactional
 	@RequestMapping(value = "/{dashboardId}", method = RequestMethod.PUT)
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Update specified dashboard for specified project")
 	public OperationCompletionRS updateDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@RequestBody @Validated UpdateDashboardRQ updateRQ, Principal principal, @AuthenticationPrincipal ReportPortalUser user) {
-
-		Dashboard dashboard = dashboardRepository.findById(dashboardId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND));
-		Widget widget = widgetRepository.findById(Long.valueOf(updateRQ.getAddWidget().getWidgetId()))
-				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND));
-
-		DashboardWidgetId id = new DashboardWidgetId();
-		id.setWidgetId(widget.getId());
-		id.setDashboardId(dashboard.getId());
-
-		DashboardWidget dashboardWidget = new DashboardWidget();
-		dashboardWidget.setDashboard(dashboard);
-		dashboardWidget.setWidget(widget);
-		dashboardWidget.setHeigth(0);
-		dashboardWidget.setWidth(0);
-		dashboardWidget.setPositionX(0);
-		dashboardWidget.setPositionY(0);
-		dashboard.addWidget(dashboardWidget);
-		widget.getDashboardWidgets().add(dashboardWidget);
-
-		dashboardRepository.save(dashboard);
 		return new OperationCompletionRS("ok");
 	}
 

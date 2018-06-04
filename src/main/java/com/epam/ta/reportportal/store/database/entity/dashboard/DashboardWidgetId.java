@@ -37,6 +37,14 @@ public class DashboardWidgetId implements Serializable {
 	@Column(name = "widget_id")
 	private Long widgetId;
 
+	public DashboardWidgetId() {
+	}
+
+	public DashboardWidgetId(Long dashboardId, Long widgetId) {
+		this.dashboardId = dashboardId;
+		this.widgetId = widgetId;
+	}
+
 	public Long getDashboardId() {
 		return dashboardId;
 	}

@@ -20,20 +20,10 @@ import java.util.Optional;
 @Service
 public class QueryHandlerImpl implements QueryHandler {
 
-	private final ProjectRepository projectRepository;
-	private final IntegrationRepository integrationRepository;
-	private final TestItemRepository testItemRepository;
-	private final LogRepository logRepository;
-
 	private Map<String, FilterableRepository> repositories;
 
 	public QueryHandlerImpl(ProjectRepository projectRepository, IntegrationRepository integrationRepository,
 			TestItemRepository testItemRepository, LogRepository logRepository) {
-
-		this.projectRepository = projectRepository;
-		this.integrationRepository = integrationRepository;
-		this.testItemRepository = testItemRepository;
-		this.logRepository = logRepository;
 
 		repositories = ImmutableMap.<String, FilterableRepository>builder()
 				.put(Project.class.getSimpleName(), projectRepository)

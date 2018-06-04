@@ -39,4 +39,6 @@ public interface LaunchRepositoryCustom extends FilterableRepository<LaunchFull>
 
 	Page<LaunchFull> findByFilter(Filter filter, Pageable pageable);
 
+	Page<LaunchFull> findLatestLaunches(Filter filter, Pageable pageable);
+
 }

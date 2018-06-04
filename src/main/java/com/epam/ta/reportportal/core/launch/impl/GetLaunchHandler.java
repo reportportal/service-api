@@ -24,14 +24,17 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.core.launch.IGetLaunchHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.querygen.Filter;
+import com.epam.ta.reportportal.store.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.store.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.launch.LaunchFull;
+import com.epam.ta.reportportal.store.database.entity.project.Project;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -44,6 +47,9 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.store.commons.Preconditions.HAS_ANY_MODE;
+import static com.epam.ta.reportportal.store.commons.querygen.Condition.EQUALS;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_FILTER_PARAMETERS;
 import static com.google.common.base.Predicates.equalTo;
 
 /**
@@ -119,14 +125,15 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	//	}
 	//
 	//
-	//	public com.epam.ta.reportportal.ws.model.Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable) {
-	//		validateModeConditions(filter);
-	//		addLaunchCommonCriteria(DEFAULT, filter, projectName);
-	//		Page<LaunchResource> resources = launchRepository.findLatestLaunches(filter, pageable).map(LaunchConverter.TO_RESOURCE::apply);
-	//		return new com.epam.ta.reportportal.ws.model.Page<>(resources.getContent(), resources.getSize(), resources.getNumber() + 1,
-	//				resources.getTotalElements(), resources.getTotalPages()
-	//		);
-	//	}
+
+	public com.epam.ta.reportportal.ws.model.Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable) {
+		validateModeConditions(filter);
+		addLaunchCommonCriteria(Mode.DEFAULT, filter, projectName);
+		Page<LaunchResource> resources = null;//launchRepository.findLatestLaunches(filter, pageable).map(LaunchConverter.TO_RESOURCE::apply);
+		return new com.epam.ta.reportportal.ws.model.Page<>(resources.getContent(), resources.getSize(), resources.getNumber() + 1,
+				resources.getTotalElements(), resources.getTotalPages()
+		);
+	}
 
 	@Override
 	public List<String> getTags(String project, String value) {
@@ -197,19 +204,19 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		return null;
 	}
 
-//	/**
-//	 * Add to filter project and mode criteria
-//	 *
-//	 * @param filter Filter to update
-//	 * @return Updated filter
-//	 */
-//	private Filter addLaunchCommonCriteria(Mode mode, Filter filter, String projectName) {
-//		if (null != filter) {
-//			filter.addCondition(new FilterCondition(EQUALS, false, mode.toString(), Launch.MODE_CRITERIA));
-//			filter.addCondition(new FilterCondition(EQUALS, false, projectName, Project.PROJECT));
-//		}
-//		return filter;
-//	}
+	/**
+	 * Add to filter project and mode criteria
+	 *
+	 * @param filter Filter to update
+	 * @return Updated filter
+	 */
+	private Filter addLaunchCommonCriteria(Mode mode, Filter filter, String projectName) {
+		if (null != filter) {
+			filter.withCondition(new FilterCondition(EQUALS, false, mode.toString(), Launch.MODE_CRITERIA));
+			filter.withCondition(new FilterCondition(EQUALS, false, projectName, Project.PROJECT));
+		}
+		return filter;
+	}
 //
 //    private Map<String, String> computeFraction(Map<String, Integer> data) {
 //		final int total = data.values().stream().mapToInt(Integer::intValue).sum();
@@ -224,14 +231,14 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		return bigDecimal.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString();
 	}
 
-//	/**
-//	 * Validate if filter doesn't contain any "mode" related conditions.
-//	 *
-//	 * @param filter
-//	 */
-//	private void validateModeConditions(Filter filter) {
-//		expect(filter.getFilterConditions().stream().anyMatch(HAS_ANY_MODE), equalTo(false))
-//				.verify(INCORRECT_FILTER_PARAMETERS, "Filters for 'mode' aren't applicable for project's launches.");
-//	}
+	/**
+	 * Validate if filter doesn't contain any "mode" related conditions.
+	 *
+	 * @param filter
+	 */
+	private void validateModeConditions(Filter filter) {
+		expect(filter.getFilterConditions().stream().anyMatch(HAS_ANY_MODE), equalTo(false))
+				.verify(INCORRECT_FILTER_PARAMETERS, "Filters for 'mode' aren't applicable for project's launches.");
+	}
 
 }

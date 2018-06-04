@@ -89,10 +89,8 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 				DSL.count(tr.STATUS).as("total")
 		)
 				.from(l)
-				.leftJoin(tr)
-				.on(ti.ITEM_ID.eq(tr.ITEM_ID))
-				.leftJoin(ti)
-				.on(l.ID.eq(ti.LAUNCH_ID))
+				.leftJoin(tr).on(ti.ITEM_ID.eq(tr.ITEM_ID))
+				.leftJoin(ti).on(l.ID.eq(ti.LAUNCH_ID))
 				.groupBy(l.ID, l.PROJECT_ID, l.USER_ID, l.NAME, l.DESCRIPTION, l.START_TIME, l.NUMBER, l.LAST_MODIFIED, l.MODE)
 				.fetch(LAUNCH_MAPPER);
 	}
@@ -103,6 +101,16 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 
 	public Page<LaunchFull> findByFilter(Filter filter, Pageable pageable) {
 		return PageableExecutionUtils.getPage(dsl.fetch(QueryBuilder.newBuilder(filter).with(pageable).build()).map(LAUNCH_MAPPER),
+				pageable,
+				() -> dsl.fetchCount(QueryBuilder.newBuilder(filter).build())
+		);
+	}
+
+	@Override
+	public Page<LaunchFull> findLatestLaunches(Filter filter, Pageable pageable) {
+
+		return PageableExecutionUtils.getPage(
+				dsl.fetch(QueryBuilder.newBuilder(filter).with(pageable).build()).sortDesc(JLaunch.LAUNCH.NUMBER).map(LAUNCH_MAPPER),
 				pageable,
 				() -> dsl.fetchCount(QueryBuilder.newBuilder(filter).build())
 		);

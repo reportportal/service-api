@@ -56,14 +56,9 @@ public class TestItemResults implements Serializable {
 	@Column(name = "duration")
 	private Double duration;
 
-	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@OneToOne(optional = false, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@PrimaryKeyJoinColumn
 	private IssueEntity issue;
-
-	@OneToOne
-	@MapsId
-	@JoinColumn(name = "item_id")
-	private TestItem testItem;
 
 	public TestItemResults() {
 	}
@@ -100,14 +95,6 @@ public class TestItemResults implements Serializable {
 		this.duration = duration;
 	}
 
-	public TestItem getTestItem() {
-		return testItem;
-	}
-
-	public void setTestItem(TestItem testItem) {
-		this.testItem = testItem;
-	}
-
 	public IssueEntity getIssue() {
 		return issue;
 	}
@@ -119,7 +106,7 @@ public class TestItemResults implements Serializable {
 
 	@Override
 	public String toString() {
-		return "TestItemResults{" + "itemId=" + itemId + ", status=" + status + ", duration=" + duration + ", issue=" + issue + '}';
+		return "TestItemResults{" + "itemId=" + itemId + ", status=" + status + ", duration=" + duration + '}';
 	}
 
 	@Override
@@ -131,12 +118,11 @@ public class TestItemResults implements Serializable {
 			return false;
 		}
 		TestItemResults that = (TestItemResults) o;
-		return Objects.equals(itemId, that.itemId) && status == that.status && Objects.equals(duration, that.duration) && Objects.equals(
-				issue, that.issue) && Objects.equals(testItem, that.testItem);
+		return Objects.equals(itemId, that.itemId) && status == that.status && Objects.equals(duration, that.duration);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(itemId, status, duration, issue);
+		return Objects.hash(itemId, status, duration);
 	}
 }

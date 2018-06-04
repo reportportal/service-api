@@ -16,6 +16,8 @@ public class Project implements Serializable {
 
 	private static final long serialVersionUID = -263516611;
 
+	public static final String PROJECT = "project";
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", unique = true, nullable = false, precision = 64)

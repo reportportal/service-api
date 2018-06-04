@@ -22,6 +22,8 @@
 package com.epam.ta.reportportal.store.database.dao;
 
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -31,4 +33,7 @@ import java.util.List;
 public interface TestItemRepository extends ReportPortalRepository<TestItem, Long>, TestItemRepositoryCustom {
 
 	List<TestItem> findTestItemsByUniqueId(String uniqueId);
+
+	@Query("select t.id, t.name from TestItem t where t.id in (:ids)")
+	List<TestItem> findPathNames(@Param("ids") Iterable<Long> ids);
 }

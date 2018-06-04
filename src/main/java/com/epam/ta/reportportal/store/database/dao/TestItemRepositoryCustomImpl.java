@@ -69,6 +69,16 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 			r.get(JTestItem.TEST_ITEM.UNIQUE_ID, String.class)
 	);
 
+	/**
+	 * Fetching record results into Test item object.
+	 */
+	private static final RecordMapper<? super Record, TestItem> TEST_ITEM_FETCH = r -> {
+		TestItem testItem = r.into(TestItem.class);
+		testItem.setTestItemStructure(r.into(TestItemStructure.class));
+		testItem.setTestItemResults(r.into(TestItemResults.class));
+		return testItem;
+	};
+
 	private DSLContext dsl;
 
 	@Autowired
@@ -101,14 +111,14 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 	public List<TestItem> selectItemsInStatusByLaunch(Long launchId, StatusEnum... statuses) {
 		List<JStatusEnum> jStatuses = Arrays.stream(statuses).map(it -> JStatusEnum.valueOf(it.name())).collect(toList());
 		return commonTestItemDslSelect().where(TEST_ITEM.LAUNCH_ID.eq(launchId).and(TEST_ITEM_RESULTS.STATUS.in(jStatuses)))
-				.fetch(this::fetchTestItem);
+				.fetch(TEST_ITEM_FETCH);
 	}
 
 	@Override
 	public List<TestItem> selectItemsInStatusByParent(Long itemId, StatusEnum... statuses) {
 		List<JStatusEnum> jStatuses = Arrays.stream(statuses).map(it -> JStatusEnum.valueOf(it.name())).collect(toList());
 		return commonTestItemDslSelect().where(TEST_ITEM_STRUCTURE.PARENT_ID.eq(itemId).and(TEST_ITEM_RESULTS.STATUS.in(jStatuses)))
-				.fetch(this::fetchTestItem);
+				.fetch(TEST_ITEM_FETCH);
 	}
 
 	@Override
@@ -149,7 +159,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 				.where(TEST_ITEM.LAUNCH_ID.eq(launchId))
 				.and(ISSUE_TYPE.LOCATOR.eq(issueType))
 				.fetch(r -> {
-					TestItem item = fetchTestItem(r);
+					TestItem item = TEST_ITEM_FETCH.map(r);
 					item.getTestItemResults().setIssue(r.into(IssueEntity.class));
 					return item;
 				});
@@ -241,18 +251,6 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 				.on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_RESULTS.ITEM_ID));
 	}
 
-	/**
-	 * Fetching record results into Test item object.
-	 *
-	 * @param r Record
-	 * @return Test Item
-	 */
-	private TestItem fetchTestItem(Record r) {
-		TestItem testItem = r.into(TestItem.class);
-		testItem.setTestItemStructure(r.into(TestItemStructure.class));
-		testItem.setTestItemResults(r.into(TestItemResults.class));
-		return testItem;
-	}
 
 	@Override
 	public List<TestItem> findByFilter(Filter filter) {

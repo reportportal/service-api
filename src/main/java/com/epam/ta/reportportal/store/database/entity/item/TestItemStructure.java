@@ -43,11 +43,6 @@ public class TestItemStructure implements Serializable {
 	@Column(name = "retry_of", precision = 64)
 	private Long retryOf;
 
-	@OneToOne
-	@MapsId
-	@JoinColumn(name = "item_id")
-	private TestItem testItem;
-
 	public TestItemStructure() {
 	}
 
@@ -57,14 +52,6 @@ public class TestItemStructure implements Serializable {
 
 	public void setItemId(Long itemId) {
 		this.itemId = itemId;
-	}
-
-	public TestItem getTestItem() {
-		return testItem;
-	}
-
-	public void setTestItem(TestItem testItem) {
-		this.testItem = testItem;
 	}
 
 	public TestItemStructure getParent() {

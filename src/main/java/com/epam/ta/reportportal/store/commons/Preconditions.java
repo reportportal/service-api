@@ -21,9 +21,11 @@
 
 package com.epam.ta.reportportal.store.commons;
 
+import com.epam.ta.reportportal.store.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.launch.Mode;
 import org.apache.commons.lang.ArrayUtils;
 
 import java.time.LocalDateTime;
@@ -93,5 +95,12 @@ public class Preconditions {
 	 */
 	public static Predicate<ProjectRole> isLevelEnough(final ProjectRole principalRole) {
 		return principalRole::sameOrHigherThan;
+	}
+
+	public static final Predicate<FilterCondition> HAS_ANY_MODE = hasMode(null);
+
+	public static Predicate<FilterCondition> hasMode(final Mode mode) {
+		return condition -> ("mode".equalsIgnoreCase(condition.getSearchCriteria())) && (mode == null || mode.name()
+				.equalsIgnoreCase(condition.getValue()));
 	}
 }

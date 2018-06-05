@@ -40,10 +40,7 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.*;
 import com.epam.ta.reportportal.store.commons.querygen.Filter;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.BulkRQ;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
@@ -65,6 +62,7 @@ import java.util.List;
 import static com.epam.ta.reportportal.store.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 /**
@@ -202,18 +200,18 @@ public class LaunchController {
 			@SortFor(Launch.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
 		return getLaunchMessageHandler.getProjectLaunches(normalizeId(projectName), filter, pageable, user.getUsername());
 	}
+
+
+	@RequestMapping(value = "/latest", method = GET)
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Get list of latest project launches by filter")
+	public Page<LaunchResource> getLatestLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
+			@SortFor(Launch.class) Pageable pageable) {
+		return getLaunchMessageHandler.getLatestLaunches(normalizeId(projectName), filter, pageable);
+	}
+
 	//
-	//	
-	//	@RequestMapping(value = "/latest", method = GET)
-	//	@ResponseBody
-	//	@ResponseStatus(OK)
-	//	@ApiOperation("Get list of latest project launches by filter")
-	//	public Page<LaunchResource> getLatestLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
-	//			@SortFor(Launch.class) Pageable pageable) {
-	//		return getLaunchMessageHandler.getLatestLaunches(normalizeId(projectName), filter, pageable);
-	//	}
-	//
-	//	
 	//	@RequestMapping(value = "/mode", method = GET)
 	//	@ResponseBody
 	//	@ResponseStatus(OK)

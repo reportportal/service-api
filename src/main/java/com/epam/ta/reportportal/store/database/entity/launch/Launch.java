@@ -50,6 +50,8 @@ import java.util.Set;
 		@Index(name = "unq_name_number", unique = true, columnList = "name ASC, number ASC, project_id ASC") })
 public class Launch implements Serializable {
 
+	public static final String MODE_CRITERIA = "mode";
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", unique = true, nullable = false, precision = 64)

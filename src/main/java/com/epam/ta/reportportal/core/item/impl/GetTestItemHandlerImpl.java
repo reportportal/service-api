@@ -21,7 +21,21 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.core.item.GetTestItemHandler;
+import com.epam.ta.reportportal.store.commons.Predicates;
+import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.TestItemResource;
+import org.hibernate.persister.entity.Queryable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * GET operations for {@link TestItem}<br>
@@ -31,30 +45,42 @@ import org.springframework.stereotype.Service;
  * @author Aliaksei Makayed
  */
 @Service
-class GetTestItemHandlerImpl /*implements GetTestItemHandler*/ {
-	//	private final TestItemRepository testItemRepository;
-	//	private final TestItemResourceAssembler itemAssembler;
-	//
-	//	@Autowired
-	//	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, TestItemResourceAssembler itemAssembler) {
-	//		this.testItemRepository = testItemRepository;
-	//		this.itemAssembler = itemAssembler;
-	//	}
-	//
-	//	/*
-	//	 * (non-Javadoc)
-	//	 *
-	//	 * @see
-	//	 * com.epam.ta.reportportal.core.item.GetTestItemHandler#getTestItem(java
-	//	 * .lang.String)
-	//	 */
-	//	@Override
-	//	public TestItemResource getTestItem(String testItemId) {
-	//		TestItem testItem = testItemRepository.findOne(testItemId);
-	//		BusinessRule.expect(testItem, Predicates.notNull()).verify(ErrorType.TEST_ITEM_NOT_FOUND, testItemId);
-	//		return itemAssembler.toResource(testItem);
-	//	}
-	//
+class GetTestItemHandlerImpl implements GetTestItemHandler {
+
+	private final TestItemRepository testItemRepository;
+	private final TestItemResourceAssembler itemAssembler;
+
+	@Autowired
+	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, TestItemResourceAssembler itemAssembler) {
+		this.testItemRepository = testItemRepository;
+		this.itemAssembler = itemAssembler;
+	}
+
+	@Override
+	public TestItemResource getTestItem(String testItemId) {
+
+		Optional<TestItem> maybeTestItem = testItemRepository.findById(Long.valueOf(testItemId));
+
+		BusinessRule.expect(maybeTestItem, Predicates.isPresent()).verify(ErrorType.TEST_ITEM_NOT_FOUND, testItemId);
+
+		return itemAssembler.toResource(maybeTestItem.get());
+	}
+
+	@Override
+	public Iterable<TestItemResource> getTestItems(Queryable filterable, Pageable pageable) {
+		return null;
+	}
+
+	@Override
+	public List<String> getTags(String launchId, String value) {
+		return null;
+	}
+
+	@Override
+	public List<TestItemResource> getTestItems(String[] ids) {
+		return null;
+	}
+
 	//	/*
 	//	 * (non-Javadoc)
 	//	 *

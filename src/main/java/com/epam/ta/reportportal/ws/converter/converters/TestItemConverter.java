@@ -21,6 +21,22 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.store.commons.EntityUtils;
+import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import com.epam.ta.reportportal.store.database.entity.item.TestItemTag;
+import com.epam.ta.reportportal.ws.model.TestItemResource;
+import com.epam.ta.reportportal.ws.model.issue.Issue;
+import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Date;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
  * Converts internal DB model to DTO
  *
@@ -31,33 +47,67 @@ public final class TestItemConverter {
 	private TestItemConverter() {
 		//static only
 	}
-	//
-	//	public static final Function<TestItem, TestItemResource> TO_RESOURCE = item -> {
-	//		Preconditions.checkNotNull(item);
-	//		TestItemResource resource = new TestItemResource();
-	//		resource.setDescription(item.getItemDescription());
-	//		resource.setUniqueId(item.getUniqueId());
-	//		resource.setTags(item.getTags());
-	//		resource.setEndTime(item.getEndTime());
-	//		resource.setItemId(item.getId());
-	//		if (null != item.getParameters()) {
-	//			resource.setParameters(item.getParameters().stream().map(ParametersConverter.TO_RESOURCE).collect(Collectors.toList()));
-	//		}
-	//		resource.setIssue(IssueConverter.TO_MODEL.apply(item.getIssue()));
-	//		resource.setName(item.getName());
-	//		resource.setStartTime(item.getStartTime());
-	//		resource.setStatus(item.getStatus() != null ? item.getStatus().toString() : null);
-	//		resource.setType(item.getType() != null ? item.getType().name() : null);
-	//		resource.setParent(item.getParent());
-	//		resource.setHasChilds(item.hasChilds());
-	//		resource.setLaunchId(item.getLaunchRef());
-	//		resource.setStatistics(StatisticsConverter.TO_RESOURCE.apply(item.getStatistics()));
-	//
-	//		Optional.ofNullable(item.getRetries())
-	//				.map(items -> items.stream().map(TestItemConverter.TO_RESOURCE)
-	//						.sorted(comparing(TestItemResource::getStartTime))
-	//						.collect(Collectors.toList()))
-	//				.ifPresent(resource::setRetries);
-	//		return resource;
-	//	};
+
+	public static final Function<TestItem, TestItemResource> TO_RESOURCE = item -> {
+
+		Preconditions.checkNotNull(item);
+
+		TestItemResource resource = new TestItemResource();
+		resource.setItemId(String.valueOf(item.getItemId()));
+		resource.setDescription(item.getDescription());
+		resource.setUniqueId(item.getUniqueId());
+		resource.setTags(getTags(item));
+		resource.setEndTime(getEndTime(item));
+		if (null != item.getParameters()) {
+			resource.setParameters(item.getParameters().stream().map(ParametersConverter.TO_RESOURCE).collect(Collectors.toList()));
+		}
+		resource.setIssue(getIssue(item));
+		resource.setName(item.getName());
+		resource.setStartTime(EntityUtils.TO_DATE.apply(item.getStartTime()));
+		resource.setStatus(getStatus(item));
+		resource.setType(item.getType() != null ? item.getType().name() : null);
+
+		resource.setParent(getParent(item));
+		resource.setLaunchId(getLaunchId(item));
+
+		return resource;
+	};
+
+	private static String getParent(TestItem item) {
+
+		return Optional.ofNullable(item.getTestItemStructure())
+				.map(testItemStructure -> testItemStructure.getParent() == null ?
+						"" :
+						Objects.toString(testItemStructure.getParent().getItemId(), StringUtils.EMPTY))
+				.orElse(StringUtils.EMPTY);
+	}
+
+	private static Issue getIssue(TestItem item) {
+
+		return Optional.ofNullable(item.getTestItemResults())
+				.map(results -> IssueConverter.TO_MODEL.apply(results.getIssue()))
+				.orElse(null);
+	}
+
+	private static String getLaunchId(TestItem item) {
+		return Optional.ofNullable(item.getLaunch()).map(launch -> launch.getId().toString()).orElse(null);
+	}
+
+	private static String getStatus(TestItem item) {
+
+		return Optional.ofNullable(item.getTestItemResults()).map(results -> results.getStatus().toString()).orElse(null);
+	}
+
+	private static Date getEndTime(TestItem item) {
+		return Optional.ofNullable(item.getTestItemResults())
+				.flatMap(results -> Optional.ofNullable(results.getEndTime()))
+				.map(EntityUtils.TO_DATE)
+				.orElse(null);
+	}
+
+	private static Set<String> getTags(TestItem item) {
+		return Optional.ofNullable(item.getTags())
+				.map(tags -> tags.stream().map(TestItemTag::getValue).collect(Collectors.toSet()))
+				.orElse(Sets.newHashSet());
+	}
 }

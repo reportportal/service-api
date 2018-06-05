@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.store.commons.querygen.Filter;
+import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.springframework.data.domain.Pageable;
@@ -127,5 +128,5 @@ public interface IGetLaunchHandler {
 	 */
 	Map<String, String> getStatuses(String projectName, Long[] ids);
 
-	//	Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable);
+	Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable);
 }

@@ -27,10 +27,7 @@ import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
@@ -115,16 +112,17 @@ public class TestItemController {
 		return finishTestItemHandler.finishTestItem(user, projectName, testItemId, finishExecutionRQ);
 	}
 
-	//	@GetMapping("/{testItemId}")
-	//	@ResponseBody
-	//	@ResponseStatus(OK)
-	//	@ApiOperation("Find test item by ID")
-	//	public TestItem getTestItem(@PathVariable String projectName, @PathVariable String testItemId,
-	//			@AuthenticationPrincipal ReportPortalUser user) {
-	//		//testItemRepository.selectPathNames(11L);
-	//		//return getTestItemHandler.getTestItem(testItemId);
-	//		return testItemRepository.findById(3l).orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "3"));
-	//	}
+	@GetMapping("/{testItemId}")
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Find test item by ID")
+	public TestItemResource getTestItem(@PathVariable String projectName, @PathVariable String testItemId,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		//testItemRepository.selectPathNames(11L);
+		//return getTestItemHandler.getTestItem(testItemId);
+		//		return testItemRepository.findById(3l).orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "3"));
+		return null;
+	}
 
 	//
 	//	@GetMapping

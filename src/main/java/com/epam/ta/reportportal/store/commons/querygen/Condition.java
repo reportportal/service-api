@@ -1,12 +1,14 @@
 package com.epam.ta.reportportal.store.commons.querygen;
 
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.google.common.collect.Lists;
 import org.jooq.Operator;
 import org.jooq.impl.DSL;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -35,7 +37,7 @@ public enum Condition {
 		@Override
 		public org.jooq.Condition toCondition(FilterCondition filter, CriteriaHolder criteriaHolder) {
 			this.validate(criteriaHolder, filter.getValue(), filter.isNegative(), INCORRECT_FILTER_PARAMETERS);
-			return field(criteriaHolder.getQueryCriteria()).eq(filter.getValue());
+			return field(criteriaHolder.getQueryCriteria()).eq(this.castValue(criteriaHolder, filter.getValue(), INCORRECT_FILTER_PARAMETERS));
 		}
 
 		@Override
@@ -485,15 +487,15 @@ public enum Condition {
 	 * @param value          Value to be casted
 	 * @return Casted value
 	 */
-	public Object[] castArray(CriteriaHolder criteriaHolder, String value, ErrorType errorType) {
+	public Iterable<Object> castArray(CriteriaHolder criteriaHolder, String value, ErrorType errorType) {
 		String[] values = value.split(VALUES_SEPARATOR);
-		Object[] castedValues = new Object[values.length];
+		List<Object> castedValues = Lists.newArrayList();
 		if (!String.class.equals(criteriaHolder.getDataType())) {
 			for (int index = 0; index < values.length; index++) {
-				castedValues[index] = criteriaHolder.castValue(values[index].trim(), errorType);
+				castedValues.set(index, criteriaHolder.castValue(values[index].trim(), errorType));
 			}
 		} else {
-			castedValues = values;
+			castedValues = Lists.newArrayList(values);
 		}
 		return castedValues;
 	}

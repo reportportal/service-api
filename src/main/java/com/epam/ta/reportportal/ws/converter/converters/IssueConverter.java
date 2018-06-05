@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.base.Preconditions;
+import org.jooq.tools.StringUtils;
 
 import java.util.function.Function;
 
@@ -36,11 +37,14 @@ public final class IssueConverter {
 		//static only
 	}
 
+	/**
+	 * Converts issue from model to db
+	 */
 	public static final Function<Issue, IssueEntity> TO_ISSUE = from -> {
 		IssueEntity issue = new IssueEntity();
+		issue.setIssueDescription(from.getComment());
 		issue.setAutoAnalyzed(from.getAutoAnalyzed());
 		issue.setIgnoreAnalyzer(from.getIgnoreAnalyzer());
-		issue.setIssueDescription(from.getComment());
 		return issue;
 	};
 
@@ -50,7 +54,7 @@ public final class IssueConverter {
 	public static final Function<IssueEntity, Issue> TO_MODEL = issueEntity -> {
 		Preconditions.checkNotNull(issueEntity);
 		Issue issue = new Issue();
-		issue.setIssueType(issueEntity.getIssueType().getLocator());
+		issue.setIssueType(issueEntity.getIssueType() == null ? StringUtils.EMPTY : issueEntity.getIssueType().getLocator());
 		issue.setAutoAnalyzed(issueEntity.getAutoAnalyzed());
 		issue.setIgnoreAnalyzer(issueEntity.getIgnoreAnalyzer());
 		issue.setComment(issueEntity.getIssueDescription());

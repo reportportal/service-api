@@ -63,6 +63,10 @@ public class UserFilter implements Serializable {
 	@JoinColumn(name = "filter_id")
 	private Set<FilterCondition> filterCondition = Sets.newHashSet();
 
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+	@JoinColumn(name = "filter_id")
+	private Set<FilterSort> filterSorts = Sets.newLinkedHashSet();
+
 	@ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(name = "widget_filter", joinColumns = @JoinColumn(name = "filter_id"), inverseJoinColumns = @JoinColumn(name = "widget_id"))
 	private Set<Widget> widgets = Sets.newHashSet();
@@ -113,6 +117,14 @@ public class UserFilter implements Serializable {
 
 	public void setFilterCondition(Set<FilterCondition> filterCondition) {
 		this.filterCondition = filterCondition;
+	}
+
+	public Set<FilterSort> getFilterSorts() {
+		return filterSorts;
+	}
+
+	public void setFilterSorts(Set<FilterSort> filterSorts) {
+		this.filterSorts = filterSorts;
 	}
 
 	public Set<Widget> getWidgets() {

@@ -50,7 +50,7 @@ public class FilterCondition implements Serializable {
 	/**
 	 * API Model Search Criteria
 	 */
-	@Column(name = "search_criteria")
+	@Column(name = "field")
 	private String searchCriteria;
 
 	/**
@@ -58,6 +58,14 @@ public class FilterCondition implements Serializable {
 	 */
 	@Column(name = "negative")
 	private boolean negative;
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
 
 	public Condition getCondition() {
 		return condition;

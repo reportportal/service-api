@@ -136,4 +136,12 @@ public class Widget implements Serializable {
 	public void setDashboardWidgets(Set<DashboardWidget> dashboardWidgets) {
 		this.dashboardWidgets = dashboardWidgets;
 	}
+
+	public Set<UserFilter> getFilters() {
+		return filters;
+	}
+
+	public void setFilters(Set<UserFilter> filters) {
+		this.filters = filters;
+	}
 }

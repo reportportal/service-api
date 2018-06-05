@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.querygen.Condition;
 import com.epam.ta.reportportal.store.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.store.database.dao.UserFilterRepository;
+import com.epam.ta.reportportal.store.database.entity.filter.FilterSort;
 import com.epam.ta.reportportal.store.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.store.database.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
@@ -70,6 +71,13 @@ public class CreateUserFilterHandlerImpl implements ICreateUserFilterHandler {
 								.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, entity.getCondition())))
 						.build())
 				.collect(toList());
+
+		createFilterRQ.getSelectionParameters().getOrders().forEach(order -> {
+			FilterSort filterSort = new FilterSort();
+			filterSort.setField(order.getSortingColumnName());
+			filterSort.setAscending(order.getIsAsc());
+			userFilter.getFilterSorts().add(filterSort);
+		});
 
 		userFilter.getFilterCondition().addAll(conditions);
 

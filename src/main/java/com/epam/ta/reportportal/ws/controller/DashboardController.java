@@ -23,12 +23,14 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.dashboard.ICreateDashboardHandler;
+import com.epam.ta.reportportal.core.dashboard.IGetDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.IUpdateDashboardHandler;
 import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.dashboard.AddWidgetRq;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
+import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +56,8 @@ public class DashboardController {
 
 	private IUpdateDashboardHandler updateDashboardHandler;
 
+	private IGetDashboardHandler getDashboardHandler;
+
 	@Autowired
 	public void setCreateDashboardHandler(ICreateDashboardHandler createDashboardHandler) {
 		this.createDashboardHandler = createDashboardHandler;
@@ -62,6 +66,11 @@ public class DashboardController {
 	@Autowired
 	public void setUpdateDashboardHandler(IUpdateDashboardHandler updateDashboardHandler) {
 		this.updateDashboardHandler = updateDashboardHandler;
+	}
+
+	@Autowired
+	public void setGetHandler(IGetDashboardHandler getDashboardHandler) {
+		this.getDashboardHandler = getDashboardHandler;
 	}
 
 	@Transactional
@@ -79,9 +88,9 @@ public class DashboardController {
 	@ResponseStatus(CREATED)
 	@ResponseBody
 	@ApiOperation("Create dashboard for specified project")
-	public OperationCompletionRS addWidget(@PathVariable String projectName, @RequestBody @Validated AddWidgetRq addWidgetRq,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateDashboardHandler.addWidget(EntityUtils.takeProjectDetails(user, projectName), addWidgetRq, user);
+	public OperationCompletionRS addWidget(@PathVariable String projectName, @PathVariable Long dashboardId,
+			@RequestBody @Validated AddWidgetRq addWidgetRq, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateDashboardHandler.addWidget(dashboardId, EntityUtils.takeProjectDetails(user, projectName), addWidgetRq, user);
 	}
 
 	@Transactional
@@ -92,6 +101,15 @@ public class DashboardController {
 	public OperationCompletionRS updateDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@RequestBody @Validated UpdateDashboardRQ updateRQ, Principal principal, @AuthenticationPrincipal ReportPortalUser user) {
 		return new OperationCompletionRS("ok");
+	}
+
+	@RequestMapping(value = "/{dashboardId}", method = RequestMethod.GET)
+	@ResponseStatus(OK)
+	@ResponseBody
+	@ApiOperation("Get specified dashboard by ID for specified project")
+	public DashboardResource getDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getDashboardHandler.getDashboard(dashboardId, EntityUtils.takeProjectDetails(user, projectName), user);
 	}
 
 }

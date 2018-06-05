@@ -36,13 +36,16 @@ public class DashboardWidget implements Serializable {
 	@EmbeddedId
 	private DashboardWidgetId id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	@MapsId("dashboard_id")
 	private Dashboard dashboard;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	@MapsId("widget_id")
 	private Widget widget;
+
+	@Column(name = "widget_name")
+	private String widgetName;
 
 	@Column(name = "widget_width")
 	private int width;
@@ -78,6 +81,14 @@ public class DashboardWidget implements Serializable {
 
 	public void setWidget(Widget widget) {
 		this.widget = widget;
+	}
+
+	public String getWidgetName() {
+		return widgetName;
+	}
+
+	public void setWidgetName(String widgetName) {
+		this.widgetName = widgetName;
 	}
 
 	public int getWidth() {

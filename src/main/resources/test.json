@@ -1,38 +1,13 @@
 {
-  "elements": [
-    {
-      "name": "New_filter",
-      "entities": [
-        {
-          "filtering_field": "number",
-          "condition": "lte",
-          "value": "999"
-        },
-        {
-          "filtering_field": "name",
-          "condition": "ne",
-          "value": "cuc"
-        },
-        {
-          "filtering_field": "statistics$executions$skipped",
-          "condition": "gte",
-          "value": "2"
-        }
-      ],
-      "share": "",
-      "selection_parameters": {
-        "orders": [
-          {
-            "is_asc": false,
-            "sorting_column": "statistics$executions$passed"
-          },
-          {
-            "is_asc": false,
-            "sorting_column": "number"
-          }
-        ]
-      },
-      "type": "launch"
+  "add_widget": {
+    "widgetId": 1,
+    "widgetPosition": {
+      "position_x": 0,
+      "position_y": 0
+    },
+    "widgetSize": {
+      "width": 12,
+      "height": 7
     }
-  ]
+  }
 }

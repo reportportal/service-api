@@ -28,8 +28,8 @@ import com.epam.ta.reportportal.store.database.dao.DashboardRepository;
 import com.epam.ta.reportportal.store.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.store.database.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.store.database.entity.dashboard.DashboardWidget;
-import com.epam.ta.reportportal.store.database.entity.dashboard.DashboardWidgetId;
 import com.epam.ta.reportportal.store.database.entity.widget.Widget;
+import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.dashboard.AddWidgetRq;
@@ -57,6 +57,11 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 		this.dashboardRepository = dashboardRepository;
 	}
 
+	@Autowired
+	public void setWidgetRepository(WidgetRepository widgetRepository) {
+		this.widgetRepository = widgetRepository;
+	}
+
 	@Override
 	public OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails, UpdateDashboardRQ rq, Long dashboardId,
 			ReportPortalUser user) {
@@ -66,8 +71,7 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 
 		Optional.ofNullable(rq.getWidgets()).ifPresent(widgets -> {
 			for (DashboardWidget dashboardWidget : dashboard.getDashboardWidgets()) {
-				widgets.stream()
-						.filter(updWidget -> Objects.equals(dashboardWidget.getWidget().getId(), updWidget.getWidgetId()))
+				widgets.stream().filter(updWidget -> Objects.equals(dashboardWidget.getId().getWidgetId(), updWidget.getWidgetId()))
 						.forEach(updWidget -> {
 							ofNullable(updWidget.getWidgetPosition()).ifPresent(position -> {
 								dashboardWidget.setPositionX(position.getX());
@@ -85,20 +89,18 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 	}
 
 	@Override
-	public OperationCompletionRS addWidget(ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq, ReportPortalUser user) {
+	public OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq,
+			ReportPortalUser user) {
 
-		Dashboard dashboard = dashboardRepository.findById(rq.getDashboardId())
+		Dashboard dashboard = dashboardRepository.findById(dashboardId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND));
 
-		Widget widget = widgetRepository.findById(rq.getWidgetId())
+		Widget widget = widgetRepository.findById(rq.getObjectModel().getWidgetId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND));
 
-		DashboardWidget dashboardWidget = new DashboardWidget();
-		dashboardWidget.setId(new DashboardWidgetId(dashboard.getId(), widget.getId()));
+		DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getObjectModel(), dashboard, widget);
 
 		dashboard.addWidget(dashboardWidget);
-		widget.getDashboardWidgets().add(dashboardWidget);
-
 		dashboardRepository.save(dashboard);
 
 		return new OperationCompletionRS("ok");

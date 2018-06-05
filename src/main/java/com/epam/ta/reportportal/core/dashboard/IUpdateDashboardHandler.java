@@ -43,7 +43,8 @@ public interface IUpdateDashboardHandler {
 	OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails, UpdateDashboardRQ rq, Long dashboardId,
 			ReportPortalUser user);
 
-	OperationCompletionRS addWidget(ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq, ReportPortalUser user);
+	OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq,
+			ReportPortalUser user);
 
 	OperationCompletionRS removeWidget(Long widgetId, Long dashboardId);
 

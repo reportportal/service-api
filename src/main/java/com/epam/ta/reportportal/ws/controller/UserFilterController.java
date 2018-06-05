@@ -21,13 +21,19 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
-import com.epam.ta.reportportal.core.filter.IDeleteUserFilterHandler;
-import com.epam.ta.reportportal.core.filter.IGetUserFilterHandler;
-import com.epam.ta.reportportal.core.filter.IUpdateUserFilterHandler;
+import com.epam.ta.reportportal.store.commons.EntityUtils;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author Pavel Bortnik
@@ -40,23 +46,24 @@ public class UserFilterController {
 	@Autowired
 	private ICreateUserFilterHandler createFilterHandler;
 
-	@Autowired
-	private IGetUserFilterHandler getFilterHandler;
+	//	@Autowired
+	//	private IGetUserFilterHandler getFilterHandler;
+	//
+	//	@Autowired
+	//	private IDeleteUserFilterHandler deleteFilterHandler;
+	//
+	//	@Autowired
+	//	private IUpdateUserFilterHandler updateUserFilterHandler;
 
-	@Autowired
-	private IDeleteUserFilterHandler deleteFilterHandler;
-
-	@Autowired
-	private IUpdateUserFilterHandler updateUserFilterHandler;
-
-	//	@RequestMapping(method = RequestMethod.POST)
-	//	@ResponseBody
-	//	@ResponseStatus(HttpStatus.CREATED)
-	//	@ApiOperation("Create user filter")
-	//	public List<EntryCreatedRS> createFilter(@PathVariable String projectName,
-	//			@RequestBody @Validated CollectionsRQ<CreateUserFilterRQ> createFilterRQ, Principal principal) {
-	//		return createFilterHandler.createFilter(principal.getName(), normalizeId(projectName), createFilterRQ);
-	//	}
+	@Transactional
+	@RequestMapping(method = RequestMethod.POST)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.CREATED)
+	@ApiOperation("Create user filter")
+	public EntryCreatedRS createFilter(@PathVariable String projectName, @RequestBody @Validated CreateUserFilterRQ createFilterRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return createFilterHandler.createFilter(createFilterRQ, EntityUtils.takeProjectDetails(user, projectName), user);
+	}
 	//
 	//	@RequestMapping(value = "/{filterId}", method = RequestMethod.GET)
 	//	@ResponseBody

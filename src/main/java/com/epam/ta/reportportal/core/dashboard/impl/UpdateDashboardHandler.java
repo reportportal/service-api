@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.dashboard.AddWidgetRq;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -44,6 +45,7 @@ import static java.util.Optional.ofNullable;
 /**
  * @author Pavel Bortnik
  */
+@Service
 public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 
 	private DashboardRepository dashboardRepository;

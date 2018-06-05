@@ -19,26 +19,12 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.core.filter;
+package com.epam.ta.reportportal.store.database.dao;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
+import com.epam.ta.reportportal.store.database.entity.filter.UserFilter;
 
 /**
- * Create filter handler
- *
- * @author Aliaksei_Makayed
+ * @author Pavel Bortnik
  */
-public interface ICreateUserFilterHandler {
-
-	/**
-	 * Creates new filter
-	 *
-	 * @param createFilterRQ
-	 * @param projectDetails
-	 * @param user
-	 * @return EntryCreatedRS
-	 */
-	EntryCreatedRS createFilter(CreateUserFilterRQ createFilterRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+public interface UserFilterRepository extends ReportPortalRepository<UserFilter, Long> {
 }

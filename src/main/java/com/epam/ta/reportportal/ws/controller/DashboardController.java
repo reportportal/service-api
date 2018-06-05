@@ -75,7 +75,7 @@ public class DashboardController {
 	}
 
 	@Transactional
-	@PostMapping
+	@PostMapping("/add")
 	@ResponseStatus(CREATED)
 	@ResponseBody
 	@ApiOperation("Create dashboard for specified project")

@@ -29,10 +29,12 @@ import com.epam.ta.reportportal.store.database.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Pavel Bortnik
  */
+@Service
 public class CreateDashboardHandler implements ICreateDashboardHandler {
 
 	private DashboardRepository dashboardRepository;

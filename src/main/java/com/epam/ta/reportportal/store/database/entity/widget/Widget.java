@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.store.database.entity.widget;
 
 import com.epam.ta.reportportal.store.database.entity.dashboard.DashboardWidget;
+import com.epam.ta.reportportal.store.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.store.database.entity.project.Project;
 import com.google.common.collect.Sets;
 import org.hibernate.annotations.Fetch;
@@ -56,6 +57,9 @@ public class Widget implements Serializable {
 	@CollectionTable(name = "content_field", joinColumns = @JoinColumn(name = "id"))
 	@Column(name = "field")
 	private List<String> contentFields;
+
+	@ManyToMany(mappedBy = "widgets")
+	private Set<UserFilter> filters = Sets.newHashSet();
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
 	@JoinColumn(name = "widget_id")

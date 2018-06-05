@@ -3,6 +3,7 @@ package com.epam.ta.reportportal.store.database.entity.integration;
 import com.epam.ta.reportportal.store.commons.JsonbUserType;
 import com.epam.ta.reportportal.store.database.entity.enums.IntegrationAuthFlowEnum;
 import com.epam.ta.reportportal.store.database.entity.enums.IntegrationGroupEnum;
+import com.epam.ta.reportportal.store.database.entity.enums.PostgreSQLEnumType;
 import com.google.common.collect.Sets;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -20,6 +21,7 @@ import java.util.Set;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @TypeDef(name = "jsonb", typeClass = JsonbUserType.class)
+@TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
 @Table(name = "integration_type", schema = "public")
 public class IntegrationType implements Serializable {
 

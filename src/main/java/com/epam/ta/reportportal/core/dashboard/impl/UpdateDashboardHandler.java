@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.store.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.store.database.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.store.database.entity.dashboard.DashboardWidget;
 import com.epam.ta.reportportal.store.database.entity.widget.Widget;
+import com.epam.ta.reportportal.ws.converter.builders.DashboardBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -37,10 +38,9 @@ import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
-import java.util.Optional;
+import java.util.function.Predicate;
 
-import static java.util.Optional.ofNullable;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 /**
  * @author Pavel Bortnik
@@ -69,23 +69,10 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 		Dashboard dashboard = dashboardRepository.findById(dashboardId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND));
 
-		Optional.ofNullable(rq.getWidgets()).ifPresent(widgets -> {
-			for (DashboardWidget dashboardWidget : dashboard.getDashboardWidgets()) {
-				widgets.stream().filter(updWidget -> Objects.equals(dashboardWidget.getId().getWidgetId(), updWidget.getWidgetId()))
-						.forEach(updWidget -> {
-							ofNullable(updWidget.getWidgetPosition()).ifPresent(position -> {
-								dashboardWidget.setPositionX(position.getX());
-								dashboardWidget.setPositionY(position.getY());
-							});
-							ofNullable(updWidget.getWidgetSize()).ifPresent(size -> {
-								dashboardWidget.setWidth(size.getWidth());
-								dashboardWidget.setHeight(size.getHeight());
-							});
-						});
-			}
-		});
+		dashboard = new DashboardBuilder(dashboard).addUpdateRq(rq).get();
 		dashboardRepository.save(dashboard);
-		return new OperationCompletionRS("ok");
+
+		return new OperationCompletionRS("Dashboard with ID = '" + dashboard.getId() + "' successfully updated");
 	}
 
 	@Override
@@ -103,12 +90,30 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 		dashboard.addWidget(dashboardWidget);
 		dashboardRepository.save(dashboard);
 
-		return new OperationCompletionRS("ok");
+		return new OperationCompletionRS(
+				"Widget with ID = '" + widget.getId() + "' was successfully added to the dashboard with ID = '" + dashboard.getId() + "'");
 
 	}
 
 	@Override
-	public OperationCompletionRS removeWidget(Long widgetId, Long dashboardId) {
-		return null;
+	public OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, ReportPortalUser.ProjectDetails projectDetails) {
+
+		Dashboard dashboard = dashboardRepository.findById(dashboardId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND));
+
+		Widget widget = widgetRepository.findById(widgetId).orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND));
+
+		boolean isRemoved = dashboard.getDashboardWidgets()
+				.removeIf(dashboardWidget -> widget.getId().equals(dashboardWidget.getId().getWidgetId()));
+		expect(isRemoved, Predicate.isEqual(true)).verify(ErrorType.WIDGET_NOT_FOUND_IN_DASHBOARD, widgetId);
+
+		widget.getDashboardWidgets().removeIf(dashboardWidget -> dashboard.getId().equals(dashboardWidget.getId().getDashboardId()));
+
+		dashboardRepository.save(dashboard);
+
+		return new OperationCompletionRS(
+				"Widget with ID = '" + widget.getId() + "' was successfully removed to the dashboard with ID = '" + dashboard.getId()
+						+ "'");
 	}
+
 }

@@ -43,9 +43,26 @@ public interface IUpdateDashboardHandler {
 	OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails, UpdateDashboardRQ rq, Long dashboardId,
 			ReportPortalUser user);
 
+	/**
+	 * Add a new widget to the specified dashboard
+	 *
+	 * @param dashboardId    Dashboard id
+	 * @param projectDetails Project details
+	 * @param rq             Widget details
+	 * @param user           User
+	 * @return OperationCompletionRS
+	 */
 	OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq,
 			ReportPortalUser user);
 
-	OperationCompletionRS removeWidget(Long widgetId, Long dashboardId);
+	/**
+	 * Removes a specified widget from the specified dashboard
+	 *
+	 * @param widgetId       Widget id
+	 * @param dashboardId    Dashboard id
+	 * @param projectDetails Project details
+	 * @return OperationCompletionRS
+	 */
+	OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, ReportPortalUser.ProjectDetails projectDetails);
 
 }

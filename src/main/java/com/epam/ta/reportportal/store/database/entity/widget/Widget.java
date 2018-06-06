@@ -69,7 +69,7 @@ public class Widget implements Serializable {
 	@JoinColumn(name = "project_id")
 	private Project project;
 
-	@OneToMany(mappedBy = "widget", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "widget", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Fetch(value = FetchMode.JOIN)
 	private Set<DashboardWidget> dashboardWidgets = Sets.newHashSet();
 

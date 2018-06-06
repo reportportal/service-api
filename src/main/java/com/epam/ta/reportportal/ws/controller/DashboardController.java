@@ -87,10 +87,20 @@ public class DashboardController {
 	@PutMapping("/{dashboardId}/add")
 	@ResponseStatus(CREATED)
 	@ResponseBody
-	@ApiOperation("Create dashboard for specified project")
+	@ApiOperation("Add widget to specified dashboard")
 	public OperationCompletionRS addWidget(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@RequestBody @Validated AddWidgetRq addWidgetRq, @AuthenticationPrincipal ReportPortalUser user) {
 		return updateDashboardHandler.addWidget(dashboardId, EntityUtils.takeProjectDetails(user, projectName), addWidgetRq, user);
+	}
+
+	@Transactional
+	@DeleteMapping("/{dashboardId}/{widgetId}")
+	@ResponseStatus(OK)
+	@ResponseBody
+	@ApiOperation("Remove widget from specified dashboard")
+	public OperationCompletionRS removeWidget(@PathVariable String projectName, @PathVariable Long dashboardId, @PathVariable Long widgetId,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return updateDashboardHandler.removeWidget(widgetId, dashboardId, EntityUtils.takeProjectDetails(user, projectName));
 	}
 
 	@Transactional

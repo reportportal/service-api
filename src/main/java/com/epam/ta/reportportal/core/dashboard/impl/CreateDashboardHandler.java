@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.dashboard.ICreateDashboardHandler;
 import com.epam.ta.reportportal.store.database.dao.DashboardRepository;
 import com.epam.ta.reportportal.store.database.entity.dashboard.Dashboard;
-import com.epam.ta.reportportal.store.database.entity.project.Project;
+import com.epam.ta.reportportal.ws.converter.builders.DashboardBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,17 +46,8 @@ public class CreateDashboardHandler implements ICreateDashboardHandler {
 
 	@Override
 	public EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails, CreateDashboardRQ rq, ReportPortalUser user) {
-
-		Project project = new Project();
-		project.setId(projectDetails.getProjectId());
-
-		Dashboard dashboard = new Dashboard();
-		dashboard.setName(rq.getName());
-		dashboard.setDescription(rq.getDescription());
-		dashboard.setProjectId(projectDetails.getProjectId());
-
+		Dashboard dashboard = new DashboardBuilder().addDashboardRq(rq).addProject(projectDetails.getProjectId()).get();
 		dashboardRepository.save(dashboard);
-
 		return new EntryCreatedRS(dashboard.getId());
 	}
 }

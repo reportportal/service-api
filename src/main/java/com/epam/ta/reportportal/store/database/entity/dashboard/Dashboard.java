@@ -57,7 +57,7 @@ public class Dashboard implements Serializable {
 	@Column(name = "creation_date")
 	private LocalDateTime creationDate;
 
-	@OneToMany(mappedBy = "dashboard", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "dashboard", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Fetch(value = FetchMode.JOIN)
 	private Set<DashboardWidget> widgets = Sets.newHashSet();
 

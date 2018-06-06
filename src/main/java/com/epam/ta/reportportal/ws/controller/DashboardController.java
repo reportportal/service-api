@@ -40,8 +40,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
-
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -109,8 +107,8 @@ public class DashboardController {
 	@ResponseStatus(OK)
 	@ApiOperation("Update specified dashboard for specified project")
 	public OperationCompletionRS updateDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
-			@RequestBody @Validated UpdateDashboardRQ updateRQ, Principal principal, @AuthenticationPrincipal ReportPortalUser user) {
-		return new OperationCompletionRS("ok");
+			@RequestBody @Validated UpdateDashboardRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateDashboardHandler.updateDashboard(EntityUtils.takeProjectDetails(user, projectName), updateRQ, dashboardId, user);
 	}
 
 	@RequestMapping(value = "/{dashboardId}", method = RequestMethod.GET)

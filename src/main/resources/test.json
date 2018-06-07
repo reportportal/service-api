@@ -1,13 +1,32 @@
 {
-  "add_widget": {
-    "widgetId": 1,
-    "widgetPosition": {
-      "position_x": 0,
-      "position_y": 0
-    },
-    "widgetSize": {
-      "width": 12,
-      "height": 7
+  "filter_id": "3",
+  "name": "sfd",
+  "share": false,
+  "content_parameters": {
+    "type": "combine_pie_chart",
+    "gadget": "launch_statistics",
+    "metadata_fields": [
+      "name",
+      "number",
+      "start_time"
+    ],
+    "itemsCount": 1,
+    "content_fields": [
+      "statistics$executions$total",
+      "statistics$executions$passed",
+      "statistics$executions$failed",
+      "statistics$executions$skipped",
+      "statistics$defects$product_bug$PB001",
+      "statistics$defects$product_bug$pb_tol6t8hpi1x2",
+      "statistics$defects$automation_bug$AB001",
+      "statistics$defects$system_issue$SI001",
+      "statistics$defects$no_defect$ND001",
+      "statistics$defects$to_investigate$TI001"
+    ],
+    "widgetOptions": {
+      "filterName": [
+        "DEMO_FILTER#attach12"
+      ]
     }
   }
 }

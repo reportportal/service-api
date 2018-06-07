@@ -48,18 +48,22 @@ public class WidgetBuilder implements Supplier<Widget> {
 		this.widget = widget;
 	}
 
-	public WidgetBuilder addWidgetRq(WidgetRQ createWidget) {
-		widget.setName(createWidget.getName());
-		widget.setWidgetOptions(createWidget.getContentParameters().getWidgetOptions().entrySet().stream().map(entry -> {
+	public WidgetBuilder addWidgetRq(WidgetRQ widgetRQ) {
+		widget.setName(widgetRQ.getName());
+
+		widget.getWidgetOptions().clear();
+		widget.getWidgetOptions().addAll(widgetRQ.getContentParameters().getWidgetOptions().entrySet().stream().map(entry -> {
 			WidgetOption option = new WidgetOption();
 			option.setWidgetOption(entry.getKey());
 			option.setValues(Sets.newHashSet(entry.getValue()));
 			return option;
 		}).collect(toSet()));
 
-		widget.setWidgetType(createWidget.getContentParameters().getType());
-		widget.setItemsCount(createWidget.getContentParameters().getItemsCount());
-		widget.setContentFields(createWidget.getContentParameters().getContentFields());
+		widget.setWidgetType(widgetRQ.getContentParameters().getType());
+		widget.setItemsCount(widgetRQ.getContentParameters().getItemsCount());
+
+		widget.getContentFields().clear();
+		widget.getContentFields().addAll(widgetRQ.getContentParameters().getContentFields());
 		return this;
 	}
 

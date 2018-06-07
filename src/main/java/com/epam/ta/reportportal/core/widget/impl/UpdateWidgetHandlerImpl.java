@@ -22,15 +22,15 @@
 package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.widget.ICreateWidgetHandler;
+import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.store.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.store.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.store.database.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  * @author Pavel Bortnik
  */
 @Service
-public class CreateWidgetHandlerImpl implements ICreateWidgetHandler {
+public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
 
 	private WidgetRepository widgetRepository;
 
@@ -54,22 +54,28 @@ public class CreateWidgetHandlerImpl implements ICreateWidgetHandler {
 	}
 
 	@Autowired
-	public void setUserFilterRepository(UserFilterRepository filterRepository) {
+	public void setFilterRepository(UserFilterRepository filterRepository) {
 		this.filterRepository = filterRepository;
 	}
 
 	@Override
-	public EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
 
-		List<UserFilter> userFilters = createWidgetRQ.getFilterIds()
+		Widget widget = widgetRepository.findById(widgetId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND, widgetId));
+
+		List<UserFilter> userFilters = updateRQ.getFilterIds()
 				.stream()
 				.map(id -> filterRepository.findById(id).orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, id)))
 				.collect(Collectors.toList());
 
-		Widget widget = new WidgetBuilder().addWidgetRq(createWidgetRQ).addProject(projectDetails.getProjectId()).addFilters(userFilters)
-				.get();
+		widget.getFilters().clear();
+
+		widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilters(userFilters).get();
+
 		widgetRepository.save(widget);
 
-		return new EntryCreatedRS(widget.getId());
+		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
 	}
 }

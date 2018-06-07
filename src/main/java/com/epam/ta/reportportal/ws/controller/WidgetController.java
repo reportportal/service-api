@@ -56,6 +56,11 @@ public class WidgetController {
 		this.createWidgetHandler = createWidgetHandler;
 	}
 
+	@Autowired
+	public void setUpdateWidgetHandler(IUpdateWidgetHandler updateWidgetHandler) {
+		this.updateWidgetHandler = updateWidgetHandler;
+	}
+
 	@Transactional
 	@PostMapping
 	@ResponseBody

@@ -23,17 +23,22 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.widget.ICreateWidgetHandler;
-import com.epam.ta.reportportal.store.commons.EntityUtils;
+import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
+import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 /**
  * @author Pavel Bortnik
@@ -43,6 +48,8 @@ import static org.springframework.http.HttpStatus.OK;
 public class WidgetController {
 
 	private ICreateWidgetHandler createWidgetHandler;
+
+	private IUpdateWidgetHandler updateWidgetHandler;
 
 	@Autowired
 	public void setCreateWidgetHandler(ICreateWidgetHandler createWidgetHandler) {
@@ -56,7 +63,16 @@ public class WidgetController {
 	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS createWidget(@RequestBody WidgetRQ createWidget, @AuthenticationPrincipal ReportPortalUser user,
 			@PathVariable String projectName) {
-		return createWidgetHandler.createWidget(createWidget, EntityUtils.takeProjectDetails(user, projectName), user);
+		return createWidgetHandler.createWidget(createWidget, ProjectUtils.extractProjectDetails(user, projectName), user);
+	}
+
+	@RequestMapping(value = "/{widgetId}", method = PUT)
+	@ResponseStatus(OK)
+	@ResponseBody
+	@ApiOperation("Update specified widget")
+	public OperationCompletionRS updateWidget(@PathVariable String projectName, @PathVariable Long widgetId,
+			@RequestBody @Validated WidgetRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateWidgetHandler.updateWidget(widgetId, updateRQ, ProjectUtils.extractProjectDetails(user, projectName), user);
 	}
 
 	@GetMapping("/{widgetId}")

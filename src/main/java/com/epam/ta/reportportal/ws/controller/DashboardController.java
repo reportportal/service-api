@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.dashboard.ICreateDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.IGetDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.IUpdateDashboardHandler;
-import com.epam.ta.reportportal.store.commons.EntityUtils;
+import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.dashboard.AddWidgetRq;
@@ -78,7 +78,7 @@ public class DashboardController {
 	@ApiOperation("Create dashboard for specified project")
 	public EntryCreatedRS createDashboard(@PathVariable String projectName, @RequestBody @Validated CreateDashboardRQ createRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return createDashboardHandler.createDashboard(EntityUtils.takeProjectDetails(user, projectName), createRQ, user);
+		return createDashboardHandler.createDashboard(ProjectUtils.extractProjectDetails(user, projectName), createRQ, user);
 	}
 
 	@Transactional
@@ -88,7 +88,7 @@ public class DashboardController {
 	@ApiOperation("Add widget to specified dashboard")
 	public OperationCompletionRS addWidget(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@RequestBody @Validated AddWidgetRq addWidgetRq, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateDashboardHandler.addWidget(dashboardId, EntityUtils.takeProjectDetails(user, projectName), addWidgetRq, user);
+		return updateDashboardHandler.addWidget(dashboardId, ProjectUtils.extractProjectDetails(user, projectName), addWidgetRq, user);
 	}
 
 	@Transactional
@@ -98,7 +98,7 @@ public class DashboardController {
 	@ApiOperation("Remove widget from specified dashboard")
 	public OperationCompletionRS removeWidget(@PathVariable String projectName, @PathVariable Long dashboardId, @PathVariable Long widgetId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateDashboardHandler.removeWidget(widgetId, dashboardId, EntityUtils.takeProjectDetails(user, projectName));
+		return updateDashboardHandler.removeWidget(widgetId, dashboardId, ProjectUtils.extractProjectDetails(user, projectName));
 	}
 
 	@Transactional
@@ -108,7 +108,7 @@ public class DashboardController {
 	@ApiOperation("Update specified dashboard for specified project")
 	public OperationCompletionRS updateDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@RequestBody @Validated UpdateDashboardRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateDashboardHandler.updateDashboard(EntityUtils.takeProjectDetails(user, projectName), updateRQ, dashboardId, user);
+		return updateDashboardHandler.updateDashboard(ProjectUtils.extractProjectDetails(user, projectName), updateRQ, dashboardId, user);
 	}
 
 	@RequestMapping(value = "/{dashboardId}", method = RequestMethod.GET)
@@ -117,7 +117,7 @@ public class DashboardController {
 	@ApiOperation("Get specified dashboard by ID for specified project")
 	public DashboardResource getDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getDashboardHandler.getDashboard(dashboardId, EntityUtils.takeProjectDetails(user, projectName), user);
+		return getDashboardHandler.getDashboard(dashboardId, ProjectUtils.extractProjectDetails(user, projectName), user);
 	}
 
 }

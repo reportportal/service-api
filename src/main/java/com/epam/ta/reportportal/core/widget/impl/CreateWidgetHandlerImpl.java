@@ -35,6 +35,9 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * @author Pavel Bortnik
  */
@@ -57,11 +60,12 @@ public class CreateWidgetHandlerImpl implements ICreateWidgetHandler {
 
 	@Override
 	public EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		UserFilter userFilter = filterRepository.findById(createWidgetRQ.getFilterId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND));
+		List<UserFilter> userFilters = createWidgetRQ.getFilterIds()
+				.stream()
+				.map(id -> filterRepository.findById(id).orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, id)))
+				.collect(Collectors.toList());
 		Widget widget = new WidgetBuilder().addWidgetRq(createWidgetRQ)
-				.addProject(projectDetails.getProjectId())
-				.addFilter(userFilter)
+				.addProject(projectDetails.getProjectId()).addFilters(userFilters)
 				.get();
 		widgetRepository.save(widget);
 		return new EntryCreatedRS(widget.getId());

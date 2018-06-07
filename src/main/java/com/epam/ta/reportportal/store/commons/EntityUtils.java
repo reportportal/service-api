@@ -21,15 +21,11 @@
 
 package com.epam.ta.reportportal.store.commons;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.base.Preconditions;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
-import java.util.Optional;
 import java.util.function.Function;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -67,11 +63,6 @@ public class EntityUtils {
 
 	public static String normalizeId(String id) {
 		return Preconditions.checkNotNull(id, "Provided value shouldn't be null").toLowerCase();
-	}
-
-	public static ReportPortalUser.ProjectDetails takeProjectDetails(ReportPortalUser user, String projectName) {
-		return Optional.ofNullable(user.getProjectDetails().get(projectName))
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 	}
 
 	/**

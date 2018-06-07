@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationExceptio
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.dao.BugTrackingSystemRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.dao.TicketRepository;
@@ -39,6 +38,7 @@ import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
 import com.epam.ta.reportportal.store.database.entity.user.UserRole;
+import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemIssueConverter;
@@ -125,7 +125,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 				Issue issue = issueDefinition.getIssue();
 				IssueType issueType = issueTypeHandler.defineIssueType(
-						testItem.getItemId(), EntityUtils.takeProjectDetails(user, projectName).getProjectId(), issue.getIssueType());
+						testItem.getItemId(), ProjectUtils.extractProjectDetails(user, projectName).getProjectId(), issue.getIssueType());
 
 				IssueEntity issueEntity = new IssueEntityBuilder(testItem.getTestItemResults().getIssue()).addIssueType(issueType)
 						.addDescription(issue.getComment())
@@ -236,7 +236,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @param testItem    Test Item
 	 */
 	private void validate(String projectName, ReportPortalUser user, TestItem testItem) {
-		ReportPortalUser.ProjectDetails projectDetails = EntityUtils.takeProjectDetails(user, projectName);
+		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		Launch launch = testItem.getLaunch();
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(

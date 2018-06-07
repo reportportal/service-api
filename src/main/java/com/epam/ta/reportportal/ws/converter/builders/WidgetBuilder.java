@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.store.database.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.google.common.collect.Sets;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import static java.util.stream.Collectors.toSet;
@@ -72,6 +73,12 @@ public class WidgetBuilder implements Supplier<Widget> {
 	public WidgetBuilder addFilter(UserFilter userFilter) {
 		widget.getFilters().add(userFilter);
 		userFilter.getWidgets().add(widget);
+		return this;
+	}
+
+	public WidgetBuilder addFilters(List<UserFilter> userFilters) {
+		widget.getFilters().addAll(userFilters);
+		userFilters.forEach(userFilter -> userFilter.getWidgets().add(widget));
 		return this;
 	}
 

@@ -23,7 +23,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
-import com.epam.ta.reportportal.store.commons.EntityUtils;
+import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import io.swagger.annotations.ApiOperation;
@@ -62,7 +62,7 @@ public class UserFilterController {
 	@ApiOperation("Create user filter")
 	public EntryCreatedRS createFilter(@PathVariable String projectName, @RequestBody @Validated CreateUserFilterRQ createFilterRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return createFilterHandler.createFilter(createFilterRQ, EntityUtils.takeProjectDetails(user, projectName), user);
+		return createFilterHandler.createFilter(createFilterRQ, ProjectUtils.extractProjectDetails(user, projectName), user);
 	}
 	//
 	//	@RequestMapping(value = "/{filterId}", method = RequestMethod.GET)

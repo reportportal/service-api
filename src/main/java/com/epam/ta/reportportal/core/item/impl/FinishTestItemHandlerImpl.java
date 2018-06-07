@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
@@ -98,7 +99,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		verifyTestItem(user, testItem, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()), hasChildren);
 
 		TestItemResults testItemResults = processItemResults(
-				EntityUtils.takeProjectDetails(user, projectName).getProjectId(), testItem, finishExecutionRQ, hasChildren);
+				ProjectUtils.extractProjectDetails(user, projectName).getProjectId(), testItem, finishExecutionRQ, hasChildren);
 
 		testItem = new TestItemBuilder(testItem).addDescription(finishExecutionRQ.getDescription())
 				.addTags(finishExecutionRQ.getTags())

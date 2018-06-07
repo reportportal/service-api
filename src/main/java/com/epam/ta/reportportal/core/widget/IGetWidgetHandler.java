@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.core.widget;
 
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
@@ -40,13 +40,12 @@ public interface IGetWidgetHandler {
 	/**
 	 * Get widget by id
 	 *
-	 * @param widgetId
-	 * @param userName
-	 * @param project
+	 * @param widgetId       Widget id
+	 * @param projectDetails Project details
+	 * @param user           User
 	 * @return WidgetResource
-	 * @throws ReportPortalException
 	 */
-	WidgetResource getWidget(String widgetId, String userName, String project);
+	WidgetResource getWidget(Long widgetId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
 	 * Get names of shared widgets for specified used(only shared not owned)

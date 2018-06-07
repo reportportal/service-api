@@ -30,7 +30,7 @@ import com.epam.ta.reportportal.store.database.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.Order;
-import com.epam.ta.reportportal.ws.model.filter.UserFilterEntity;
+import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
 
 import java.util.List;
 import java.util.Set;
@@ -68,7 +68,7 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 	 * @param conditions Conditions from rq
 	 * @return UserFilterBuilder
 	 */
-	public UserFilterBuilder addFilterConditions(Set<UserFilterEntity> conditions) {
+	public UserFilterBuilder addFilterConditions(Set<UserFilterCondition> conditions) {
 		userFilter.getFilterCondition()
 				.addAll(conditions.stream()
 						.map(entity -> FilterCondition.builder()

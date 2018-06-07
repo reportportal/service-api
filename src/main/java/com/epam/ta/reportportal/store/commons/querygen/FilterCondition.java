@@ -25,6 +25,9 @@ public class FilterCondition implements Serializable {
 	@Column(name = "id", unique = true, nullable = false, precision = 64)
 	private Long id;
 
+	public FilterCondition() {
+	}
+
 	public FilterCondition(Condition condition, boolean negative, String value, String searchCriteria) {
 		super();
 		this.condition = condition;

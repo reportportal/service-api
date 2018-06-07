@@ -23,11 +23,13 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.widget.ICreateWidgetHandler;
+import com.epam.ta.reportportal.core.widget.IGetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -51,6 +53,8 @@ public class WidgetController {
 
 	private IUpdateWidgetHandler updateWidgetHandler;
 
+	private IGetWidgetHandler getWidgetHandler;
+
 	@Autowired
 	public void setCreateWidgetHandler(ICreateWidgetHandler createWidgetHandler) {
 		this.createWidgetHandler = createWidgetHandler;
@@ -59,6 +63,11 @@ public class WidgetController {
 	@Autowired
 	public void setUpdateWidgetHandler(IUpdateWidgetHandler updateWidgetHandler) {
 		this.updateWidgetHandler = updateWidgetHandler;
+	}
+
+	@Autowired
+	public void setGetWidgetHandler(IGetWidgetHandler getWidgetHandler) {
+		this.getWidgetHandler = getWidgetHandler;
 	}
 
 	@Transactional
@@ -71,6 +80,7 @@ public class WidgetController {
 		return createWidgetHandler.createWidget(createWidget, ProjectUtils.extractProjectDetails(user, projectName), user);
 	}
 
+	@Transactional
 	@RequestMapping(value = "/{widgetId}", method = PUT)
 	@ResponseStatus(OK)
 	@ResponseBody
@@ -80,12 +90,14 @@ public class WidgetController {
 		return updateWidgetHandler.updateWidget(widgetId, updateRQ, ProjectUtils.extractProjectDetails(user, projectName), user);
 	}
 
-	@GetMapping("/{widgetId}")
 	@Transactional
+	@GetMapping("/{widgetId}")
 	@ResponseBody
 	@ResponseStatus(OK)
-	public String getWidgetById(@PathVariable Long widgetId, @AuthenticationPrincipal ReportPortalUser user) {
-		return "ok";
+	@ApiOperation("Get widget by ID")
+	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getWidgetHandler.getWidget(widgetId, ProjectUtils.extractProjectDetails(user, projectName), user);
 	}
 
 }

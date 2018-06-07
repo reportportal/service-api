@@ -23,9 +23,11 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
+import com.epam.ta.reportportal.core.filter.IGetUserFilterHandler;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
+import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -43,17 +45,25 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/{projectName}/filter")
 public class UserFilterController {
 
-	@Autowired
 	private ICreateUserFilterHandler createFilterHandler;
 
-	//	@Autowired
-	//	private IGetUserFilterHandler getFilterHandler;
+	private IGetUserFilterHandler getFilterHandler;
 	//
 	//	@Autowired
 	//	private IDeleteUserFilterHandler deleteFilterHandler;
 	//
 	//	@Autowired
 	//	private IUpdateUserFilterHandler updateUserFilterHandler;
+
+	@Autowired
+	public void setCreateFilterHandler(ICreateUserFilterHandler createFilterHandler) {
+		this.createFilterHandler = createFilterHandler;
+	}
+
+	@Autowired
+	public void setGetFilterHandler(IGetUserFilterHandler getFilterHandler) {
+		this.getFilterHandler = getFilterHandler;
+	}
 
 	@Transactional
 	@RequestMapping(method = RequestMethod.POST)
@@ -64,14 +74,17 @@ public class UserFilterController {
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return createFilterHandler.createFilter(createFilterRQ, ProjectUtils.extractProjectDetails(user, projectName), user);
 	}
-	//
-	//	@RequestMapping(value = "/{filterId}", method = RequestMethod.GET)
-	//	@ResponseBody
-	//	@ResponseStatus(HttpStatus.OK)
-	//	@ApiOperation("Get specified user filter by id")
-	//	public UserFilterResource getFilter(@PathVariable String projectName, @PathVariable String filterId, Principal principal) {
-	//		return getFilterHandler.getFilter(principal.getName(), filterId, normalizeId(projectName));
-	//	}
+
+	@Transactional(readOnly = true)
+	@RequestMapping(value = "/{filterId}", method = RequestMethod.GET)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Get specified user filter by id")
+	public UserFilterResource getFilter(@PathVariable String projectName, @PathVariable Long filterId,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getFilterHandler.getFilter(filterId, ProjectUtils.extractProjectDetails(user, projectName), user);
+	}
+
 	//
 	//	@RequestMapping(method = RequestMethod.GET)
 	//	@ResponseBody

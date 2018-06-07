@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.filter;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
 
@@ -36,12 +37,12 @@ public interface IGetUserFilterHandler {
 	/**
 	 * Get {@link UserFilterResource} by id
 	 *
-	 * @param userName    User name
-	 * @param filterId    Filter ID
-	 * @param projectName Project Name
+	 * @param filterId       Filter id
+	 * @param projectDetails Project Details
+	 * @param user           User
 	 * @return {@link UserFilterResource}
 	 */
-	UserFilterResource getFilter(String userName, String filterId, String projectName);
+	UserFilterResource getFilter(Long filterId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	//	/**
 	//	 * Get all {@link UserFilterResource} objects

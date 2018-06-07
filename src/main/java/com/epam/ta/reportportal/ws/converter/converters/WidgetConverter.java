@@ -25,11 +25,17 @@ import com.epam.ta.reportportal.store.database.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.store.database.entity.dashboard.DashboardWidget;
 import com.epam.ta.reportportal.store.database.entity.dashboard.DashboardWidgetId;
 import com.epam.ta.reportportal.store.database.entity.widget.Widget;
+import com.epam.ta.reportportal.store.database.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.ws.model.Position;
 import com.epam.ta.reportportal.ws.model.Size;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
+import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
+import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 
 import java.util.function.Function;
+
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * @author Pavel Bortnik
@@ -44,11 +50,26 @@ public class WidgetConverter {
 		return objectModel;
 	};
 
+	public static final Function<Widget, WidgetResource> TO_WIDGET_RESOURCE = widget -> {
+		WidgetResource widgetResource = new WidgetResource();
+		widgetResource.setWidgetId(widget.getId());
+		widgetResource.setName(widget.getName());
+		widgetResource.setDescription(widget.getDescription());
+		widgetResource.setAppliedFilters(widget.getFilters().stream().map(UserFilterConverter.TO_FILTER_RESOURCE).collect(toList()));
+		ContentParameters contentParameters = new ContentParameters();
+		contentParameters.setContentFields(widget.getContentFields());
+		contentParameters.setWidgetOptions(
+				widget.getWidgetOptions().stream().collect(toMap(WidgetOption::getWidgetOption, WidgetOption::getValues)));
+		widgetResource.setContentParameters(contentParameters);
+		return widgetResource;
+	};
+
 	/**
 	 * Creates many-to-many object representation of dashboards and widgets
 	 *
-	 * @param model       Widget model object
-	 * @param dashboardId Dashboard id
+	 * @param model     Widget model object
+	 * @param dashboard Dashboard
+	 * @param widget    Widget
 	 * @return many-to-many object representation
 	 */
 	public static DashboardWidget toDashboardWidget(DashboardResource.WidgetObjectModel model, Dashboard dashboard, Widget widget) {

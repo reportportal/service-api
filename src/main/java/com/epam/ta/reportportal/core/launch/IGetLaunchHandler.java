@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.store.commons.querygen.Filter;
+import com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.springframework.data.domain.Pageable;
@@ -46,7 +47,8 @@ public interface IGetLaunchHandler {
 	 * @param user           User
 	 * @return
 	 */
-	LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	Map<TestItemIssueType, Map<String, Integer>> getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user);
 
 	//	/**
 	//	 * Get Launch resource by specified Name (for Jenkins Plugin)

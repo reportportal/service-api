@@ -24,13 +24,12 @@ package com.epam.ta.reportportal.store.database.dao;
 import com.epam.ta.reportportal.store.commons.querygen.Filter;
 import com.epam.ta.reportportal.store.commons.querygen.QueryBuilder;
 import com.epam.ta.reportportal.store.database.entity.launch.ExecutionStatistics;
+import com.epam.ta.reportportal.store.database.entity.launch.IssueStatistics;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.launch.LaunchFull;
 import com.epam.ta.reportportal.store.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.store.jooq.enums.JTestItemTypeEnum;
-import com.epam.ta.reportportal.store.jooq.tables.JLaunch;
-import com.epam.ta.reportportal.store.jooq.tables.JTestItem;
-import com.epam.ta.reportportal.store.jooq.tables.JTestItemResults;
+import com.epam.ta.reportportal.store.jooq.tables.*;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.RecordMapper;
@@ -44,8 +43,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 import static com.epam.ta.reportportal.store.jooq.Tables.*;
-import static org.jooq.impl.DSL.sum;
-import static org.jooq.impl.DSL.when;
+import static org.jooq.impl.DSL.*;
 
 /**
  * @author Pavel Bortnik
@@ -81,10 +79,33 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 				sum(when(tr.STATUS.eq(JStatusEnum.SKIPPED), 1).otherwise(0)).as("skipped"), DSL.count(tr.STATUS).as("total")
 		)
 				.from(l)
-				.leftJoin(ti)
-				.on(l.ID.eq(ti.LAUNCH_ID)).leftJoin(tr).on(ti.ITEM_ID.eq(tr.ITEM_ID)).where(ti.TYPE.eq(JTestItemTypeEnum.STEP))
+				.leftJoin(ti).on(l.ID.eq(ti.LAUNCH_ID)).leftJoin(tr).on(ti.ITEM_ID.eq(tr.ITEM_ID)).where(ti.TYPE.eq(JTestItemTypeEnum.STEP))
 				.groupBy(l.ID, l.PROJECT_ID, l.USER_ID, l.NAME, l.DESCRIPTION, l.START_TIME, l.NUMBER, l.LAST_MODIFIED, l.MODE)
 				.fetch(LAUNCH_MAPPER);
+	}
+
+	@Override
+	public List<IssueStatistics> countIssueStatistics(Long launchId) {
+		JLaunch l = LAUNCH.as("l");
+		JTestItem ti = TEST_ITEM.as("ti");
+		JTestItemResults tr = TEST_ITEM_RESULTS.as("tr");
+		JIssue i = ISSUE.as("i");
+		JIssueType it = ISSUE_TYPE.as("it");
+
+		return dsl.select(it.ISSUE_GROUP, it.LOCATOR, count(it.LOCATOR).as("total"))
+				.from(l)
+				.join(ti)
+				.on(l.ID.eq(ti.LAUNCH_ID))
+				.join(tr)
+				.on(ti.ITEM_ID.eq(tr.ITEM_ID))
+				.join(i)
+				.on(tr.ITEM_ID.eq(i.ISSUE_ID))
+				.join(it)
+				.on(i.ISSUE_TYPE.eq(it.ID))
+				.where(l.ID.eq(launchId))
+				.groupBy(it.ISSUE_GROUP, it.LOCATOR)
+				.fetchInto(IssueStatistics.class);
+
 	}
 
 	public List<LaunchFull> findByFilter(Filter filter) {

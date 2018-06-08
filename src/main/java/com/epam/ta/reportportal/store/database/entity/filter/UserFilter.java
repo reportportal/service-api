@@ -21,12 +21,8 @@
 
 package com.epam.ta.reportportal.store.database.entity.filter;
 
-import com.epam.ta.reportportal.store.commons.JsonbUserType;
 import com.epam.ta.reportportal.store.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.store.database.entity.project.Project;
-import com.epam.ta.reportportal.store.database.entity.widget.Widget;
 import com.google.common.collect.Sets;
-import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -37,27 +33,8 @@ import java.util.Set;
  */
 
 @Entity
-@TypeDef(name = "jsonb", typeClass = JsonbUserType.class)
-@Table(name = "filter", schema = "public")
-public class UserFilter implements Serializable {
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id", unique = true, nullable = false, precision = 64)
-	private Long id;
-
-	@Column(name = "name")
-	private String name;
-
-	@ManyToOne
-	@JoinColumn(name = "project_id")
-	private Project project;
-
-	@Column(name = "target")
-	private String targetClass;
-
-	@Column(name = "description")
-	private String description;
+@Table(name = "user_filter", schema = "public")
+public class UserFilter extends Filter implements Serializable {
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
 	@JoinColumn(name = "filter_id")
@@ -66,50 +43,6 @@ public class UserFilter implements Serializable {
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
 	@JoinColumn(name = "filter_id")
 	private Set<FilterSort> filterSorts = Sets.newLinkedHashSet();
-
-	@ManyToMany(cascade = CascadeType.ALL)
-	@JoinTable(name = "widget_filter", joinColumns = @JoinColumn(name = "filter_id"), inverseJoinColumns = @JoinColumn(name = "widget_id"))
-	private Set<Widget> widgets = Sets.newHashSet();
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public Project getProject() {
-		return project;
-	}
-
-	public void setProject(Project project) {
-		this.project = project;
-	}
-
-	public String getTargetClass() {
-		return targetClass;
-	}
-
-	public void setTargetClass(String targetClass) {
-		this.targetClass = targetClass;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
 
 	public Set<FilterCondition> getFilterCondition() {
 		return filterCondition;
@@ -127,11 +60,4 @@ public class UserFilter implements Serializable {
 		this.filterSorts = filterSorts;
 	}
 
-	public Set<Widget> getWidgets() {
-		return widgets;
-	}
-
-	public void setWidgets(Set<Widget> widgets) {
-		this.widgets = widgets;
-	}
 }

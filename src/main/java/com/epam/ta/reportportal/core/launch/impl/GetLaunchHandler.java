@@ -27,6 +27,8 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.querygen.Filter;
 import com.epam.ta.reportportal.store.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType;
+import com.epam.ta.reportportal.store.database.entity.launch.IssueStatistics;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.launch.LaunchFull;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -42,6 +44,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
@@ -67,7 +70,8 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	//	}
 
 	@Override
-	public LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	public Map<TestItemIssueType, Map<String, Integer>> getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 
@@ -81,7 +85,14 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		//								final Project.UserConfig userConfig = findUserConfigByLogin(project, userName);
 		//								expect(userConfig.getProjectRole(), not(equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
 		//		}
-		return LaunchConverter.TO_RESOURCE.apply(launch);
+		LaunchResource resource = LaunchConverter.TO_RESOURCE.apply(launch);
+
+		List<IssueStatistics> issueStatistics = launchRepository.countIssueStatistics(launchId);
+		Map<TestItemIssueType, Map<String, Integer>> result = issueStatistics.stream()
+				.collect(Collectors.groupingBy(IssueStatistics::getIssueGroup,
+						Collectors.toMap(IssueStatistics::getLocator, IssueStatistics::getTotal)
+				));
+		return result;
 	}
 
 	//

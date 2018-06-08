@@ -19,27 +19,47 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.store.database.dao;
+package com.epam.ta.reportportal.store.database.entity.launch;
 
-import com.epam.ta.reportportal.store.commons.querygen.Filter;
-import com.epam.ta.reportportal.store.database.entity.launch.IssueStatistics;
-import com.epam.ta.reportportal.store.database.entity.launch.LaunchFull;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType;
 
-import java.util.List;
+import javax.persistence.Column;
 
 /**
  * @author Pavel Bortnik
  */
-public interface LaunchRepositoryCustom extends FilterableRepository<LaunchFull>{
+public class IssueStatistics {
 
-	Boolean identifyStatus(Long launchId);
+	@Column(name = "issue_group")
+	private TestItemIssueType issueGroup;
 
-	List<LaunchFull> fullLaunchWithStatistics();
+	@Column(name = "locator")
+	private String locator;
 
-	List<IssueStatistics> countIssueStatistics(Long launchId);
+	@Column(name = "total")
+	private int total;
 
-	Page<LaunchFull> findByFilter(Filter filter, Pageable pageable);
+	public TestItemIssueType getIssueGroup() {
+		return issueGroup;
+	}
 
+	public void setIssueGroup(TestItemIssueType issueGroup) {
+		this.issueGroup = issueGroup;
+	}
+
+	public String getLocator() {
+		return locator;
+	}
+
+	public void setLocator(String locator) {
+		this.locator = locator;
+	}
+
+	public int getTotal() {
+		return total;
+	}
+
+	public void setTotal(int total) {
+		this.total = total;
+	}
 }

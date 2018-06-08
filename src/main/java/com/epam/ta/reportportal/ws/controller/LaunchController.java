@@ -39,7 +39,9 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.*;
 import com.epam.ta.reportportal.store.commons.querygen.Filter;
+import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.store.database.entity.launch.LaunchFull;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
@@ -184,14 +186,18 @@ public class LaunchController {
 		return deleteLaunchMessageHandler.deleteLaunch(launchId, normalizeId(projectName), user);
 	}
 
+	@Autowired
+	private LaunchRepository launchRepository;
+
 	@GetMapping("/{launchId}")
 	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Get specified launch")
-	public LaunchResource getLaunch(@PathVariable String projectName, @PathVariable Long launchId,
+	public List<LaunchFull> getLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getLaunch(launchId, user.getUsername(), normalizeId(projectName));
+		return launchRepository.fullLaunchWithStatistics();
+		//return getLaunchMessageHandler.getLaunch(launchId, ProjectUtils.extractProjectDetails(user, projectName), user);
 	}
 
 	@GetMapping

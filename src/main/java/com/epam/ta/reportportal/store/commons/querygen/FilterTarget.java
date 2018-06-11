@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.store.jooq.Tables.*;
+import static com.epam.ta.reportportal.store.jooq.Tables.TEST_ITEM_RESULTS;
 import static org.jooq.impl.DSL.*;
 
 public enum FilterTarget {
@@ -136,6 +136,7 @@ public enum FilterTarget {
 		public SelectQuery<? extends Record> getQuery() {
 			JTestItem ti = JTestItem.TEST_ITEM.as("ti");
 			JLaunch l = JLaunch.LAUNCH.as("l");
+			JParameter p = JParameter.PARAMETER.as("p");
 
 			return DSL.select(
 					ti.ITEM_ID,
@@ -147,9 +148,13 @@ public enum FilterTarget {
 					ti.LAST_MODIFIED,
 					ti.UNIQUE_ID
 			)
+					.select(
+							p.KEY,
+							p.VALUE
+					)
 					.from(ti)
 					.leftJoin(l).on(ti.LAUNCH_ID.eq(l.ID))
-					.groupBy(ti.ITEM_ID, ti.LAUNCH_ID, ti.NAME, ti.TYPE, ti.START_TIME, ti.DESCRIPTION, ti.LAST_MODIFIED, ti.UNIQUE_ID)
+					.leftJoin(p).on(ti.ITEM_ID.eq(p.ITEM_ID))
 					.getQuery();
 		}
 	};

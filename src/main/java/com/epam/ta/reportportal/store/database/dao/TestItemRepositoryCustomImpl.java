@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.store.commons.querygen.Filter;
 import com.epam.ta.reportportal.store.commons.querygen.QueryBuilder;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.enums.TestItemTypeEnum;
+import com.epam.ta.reportportal.store.database.entity.item.Parameter;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemStructure;
@@ -36,6 +37,7 @@ import com.epam.ta.reportportal.store.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.store.jooq.tables.JTestItem;
 import com.epam.ta.reportportal.store.jooq.tables.JTestItemResults;
 import com.epam.ta.reportportal.store.jooq.tables.JTestItemStructure;
+import com.google.common.collect.Lists;
 import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.jooq.types.DayToSecond;
@@ -257,6 +259,11 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 	@Override
 	public List<TestItem> findByFilter(Filter filter) {
 
-		return dsl.fetch(QueryBuilder.newBuilder(filter).build()).map(TEST_ITEM_MAPPER);
+		Map<TestItem, List<Parameter>> testItemListMap = dsl.fetch(QueryBuilder.newBuilder(filter).build())
+				.intoGroups(TEST_ITEM_MAPPER, Parameter.class);
+
+		testItemListMap.forEach(TestItem::setParameters);
+
+		return Lists.newArrayList(testItemListMap.keySet());
 	}
 }

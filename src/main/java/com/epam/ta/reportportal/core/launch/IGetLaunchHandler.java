@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.store.commons.querygen.Filter;
+import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.springframework.data.domain.Pageable;
@@ -69,26 +70,15 @@ public interface IGetLaunchHandler {
 	 * @return Response Data
 	 */
 	Iterable<LaunchResource> getProjectLaunches(String projectName, Filter filter, Pageable pageable, String userName);
-	//
-	//	/**
-	//	 * Get debug launches
-	//	 *
-	//	 * @param projectName Project Name
-	//	 * @param userName    Name of User
-	//	 * @param filter      Filter data
-	//	 * @param pageable    Page details
-	//	 * @return Response Data
-	//	 */
-	//	Iterable<LaunchResource> getDebugLaunches(String projectName, String userName, Filter filter, Pageable pageable);
 
 	/**
 	 * Get specified launch tags (auto-complete functionality)
 	 *
-	 * @param project Project Name
+	 * @param projectName Project Name
 	 * @param value   Tag prefix to be searched
 	 * @return List of found tags
 	 */
-	List<String> getTags(String project, String value);
+	List<String> getTags(String projectName, String value);
 
 	/**
 	 * Get launch names of specified project (auto-complete functionality)
@@ -104,11 +94,10 @@ public interface IGetLaunchHandler {
 	 *
 	 * @param project Project Name
 	 * @param value   Owner name prefix
-	 * @param field   Field
 	 * @param mode    Mode
 	 * @return Response Data
 	 */
-	List<String> getOwners(String project, String value, String field, String mode);
+	List<String> getOwners(String project, String value, String mode);
 
 	/**
 	 * Get launches comparison info
@@ -128,5 +117,24 @@ public interface IGetLaunchHandler {
 	 */
 	Map<String, String> getStatuses(String projectName, Long[] ids);
 
-	//	Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable);
+	/**
+	 * Get latest launches
+	 *
+	 * @param projectName Project Name
+	 * @param filter      Filter data
+	 * @param pageable    Page details
+	 * @return Response Data
+	 */
+	Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable);
+
+	/**
+	 * Get debug launches
+	 *
+	 * @param projectName Project Name
+	 * @param filter      Filter data
+	 * @param pageable    Page details
+	 * @param user        User
+	 * @return Response Data
+	 */
+	Iterable<LaunchResource> getDebugLaunches(String projectName, ReportPortalUser user, Filter filter, Pageable pageable);
 }

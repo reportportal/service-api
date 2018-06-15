@@ -43,9 +43,9 @@ public interface LaunchRepositoryCustom extends FilterableRepository<LaunchFull>
 
 	Page<LaunchFull> findLatest(Filter filter, Pageable pageable);
 
-	List<String> getLaunchNames(String projectName, String value, LaunchModeEnum mode);
+	List<String> getLaunchNames(Long projectId, String value, LaunchModeEnum mode);
 
-	List<String> getOwnerNames(String projectName, String value, String mode);
+	List<String> getOwnerNames(Long projectId, String value, String mode);
 
-	Map<String, String> getStatuses(String projectName, Long[] ids);
+	Map<String, String> getStatuses(Long projectId, Long[] ids);
 }

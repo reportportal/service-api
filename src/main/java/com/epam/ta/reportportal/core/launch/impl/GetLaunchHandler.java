@@ -28,8 +28,10 @@ import com.epam.ta.reportportal.store.commons.querygen.Filter;
 import com.epam.ta.reportportal.store.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.dao.LaunchTagRepository;
+import com.epam.ta.reportportal.store.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.store.database.entity.launch.LaunchFull;
+import com.epam.ta.reportportal.store.database.entity.project.Project;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -41,6 +43,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
@@ -59,11 +62,13 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 
 	private final LaunchRepository launchRepository;
 	private final LaunchTagRepository launchTagRepository;
+	private final ProjectRepository projectRepository;
 
-	public GetLaunchHandler(LaunchRepository launchRepository, LaunchTagRepository launchTagRepository) {
+	public GetLaunchHandler(LaunchRepository launchRepository, LaunchTagRepository launchTagRepository, ProjectRepository projectRepository) {
 
 		this.launchRepository = launchRepository;
 		this.launchTagRepository = launchTagRepository;
+		this.projectRepository = projectRepository;
 	}
 
 	@Override
@@ -83,44 +88,52 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	//		return null;
 	//	}
 
-	public Iterable<LaunchResource> getProjectLaunches(String projectName, Filter filter, Pageable pageable, String userName) {
+	public Iterable<LaunchResource> getProjectLaunches(ReportPortalUser.ProjectDetails projectDetails, Filter filter,
+			Pageable pageable, String userName) {
 
-		Page<LaunchFull> launches = launchRepository.findByFilter(ProjectFilter.of(filter, projectName), pageable);
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, projectDetails.getProjectId()));
+
+		Page<LaunchFull> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getName()), pageable);
 
 		return PagedResourcesAssembler.pageConverter(LaunchConverter.FULL_TO_RESOURCE).apply(launches);
 	}
 
-	public com.epam.ta.reportportal.ws.model.Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable) {
+	public com.epam.ta.reportportal.ws.model.Page<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails,
+			Filter filter, Pageable pageable) {
 
-		Page<LaunchFull> launches = launchRepository.findByFilter(ProjectFilter.of(filter, projectName), pageable);
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, projectDetails.getProjectId()));
+
+		Page<LaunchFull> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getName()), pageable);
 
 		return PagedResourcesAssembler.pageConverter(LaunchConverter.FULL_TO_RESOURCE).apply(launches);
 	}
 
 	@Override
-	public List<String> getTags(String projectName, String value) {
+	public List<String> getTags(ReportPortalUser.ProjectDetails projectDetails, String value) {
 
-		return launchTagRepository.getTags(projectName, value);
+		return launchTagRepository.getTags(projectDetails.getProjectId(), value);
 	}
 
 	@Override
-	public List<String> getLaunchNames(String project, String value) {
+	public List<String> getLaunchNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
 
 		expect(value.length() > 2, equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
 				formattedSupplier("Length of the launch name string '{}' is less than 3 symbols", value)
 		);
 
-		return launchRepository.getLaunchNames(project, value, LaunchModeEnum.DEBUG);
+		return launchRepository.getLaunchNames(projectDetails.getProjectId(), value, LaunchModeEnum.DEBUG);
 	}
 
 	@Override
-	public List<String> getOwners(String project, String value, String mode) {
+	public List<String> getOwners(ReportPortalUser.ProjectDetails projectDetails, String value, String mode) {
 
 		expect(value.length() > 2, equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
 				formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
 		);
 
-		return launchRepository.getOwnerNames(project, value, mode);
+		return launchRepository.getOwnerNames(projectDetails.getProjectId(), value, mode);
 	}
 
 	@Override
@@ -162,9 +175,9 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	}
 
 	@Override
-	public Map<String, String> getStatuses(String projectName, Long[] ids) {
+	public Map<String, String> getStatuses(ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {
 
-		return launchRepository.getStatuses(projectName, ids);
+		return launchRepository.getStatuses(projectDetails.getProjectId(), ids);
 	}
 
 //    private Map<String, String> computeFraction(Map<String, Integer> data) {

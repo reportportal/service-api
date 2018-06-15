@@ -26,7 +26,7 @@ public class LaunchTagRepositoryCustomImpl implements LaunchTagRepositoryCustom 
 	}
 
 	@Override
-	public List<String> getTags(String projectName, String value) {
+	public List<String> getTags(Long projectId, String value) {
 
 		JLaunch l = LAUNCH.as("l");
 		JProject p = PROJECT.as("p");
@@ -36,7 +36,8 @@ public class LaunchTagRepositoryCustomImpl implements LaunchTagRepositoryCustom 
 				.from(lt)
 				.leftJoin(l).on(lt.LAUNCH_ID.eq(l.ID))
 				.leftJoin(p).on(l.PROJECT_ID.eq(p.ID))
-				.where(p.NAME.like("%" + value + "%"))
+				.where(p.ID.eq(projectId))
+				.and(p.NAME.like("%" + value + "%"))
 				.fetch(LAUNCH_TAG.VALUE);
 	}
 }

@@ -207,8 +207,8 @@ public class LaunchController {
 	@ApiOperation("Get list of project launches by filter")
 	public Iterable<LaunchResource> getProjectLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
 			@SortFor(Launch.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		ProjectUtils.extractProjectDetails(user, projectName);
-		return getLaunchMessageHandler.getProjectLaunches(projectName, filter, pageable, user.getUsername());
+		return getLaunchMessageHandler.getProjectLaunches(ProjectUtils.extractProjectDetails(user, projectName),
+				filter, pageable, user.getUsername());
 	}
 
 	@RequestMapping(value = "/latest", method = GET)
@@ -217,8 +217,7 @@ public class LaunchController {
 	@ApiOperation("Get list of latest project launches by filter")
 	public Page<LaunchResource> getLatestLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
 			@SortFor(Launch.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		ProjectUtils.extractProjectDetails(user, projectName);
-		return getLaunchMessageHandler.getLatestLaunches(projectName, filter, pageable);
+		return getLaunchMessageHandler.getLatestLaunches(ProjectUtils.extractProjectDetails(user, projectName), filter, pageable);
 	}
 
 	@RequestMapping(value = "/tags", method = GET)
@@ -227,8 +226,7 @@ public class LaunchController {
 	@ApiOperation("Get all unique tags of project launches")
 	public List<String> getAllTags(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "tags") String value,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		ProjectUtils.extractProjectDetails(user, projectName);
-		return getLaunchMessageHandler.getTags(projectName, value);
+		return getLaunchMessageHandler.getTags(ProjectUtils.extractProjectDetails(user, projectName), value);
 	}
 
 	@RequestMapping(value = "/owners", method = GET)
@@ -238,8 +236,7 @@ public class LaunchController {
 	public List<String> getAllOwners(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "user") String value,
 			@RequestParam(value = "mode", required = false, defaultValue = "DEFAULT") String mode,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		ProjectUtils.extractProjectDetails(user, projectName);
-		return getLaunchMessageHandler.getOwners(projectName, value, mode);
+		return getLaunchMessageHandler.getOwners(ProjectUtils.extractProjectDetails(user, projectName), value, mode);
 	}
 
 	@RequestMapping(value = "/names", method = GET)
@@ -248,8 +245,7 @@ public class LaunchController {
 	@ApiOperation("Get launch names of project")
 	public List<String> getAllLaunchNames(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "name") String value,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		ProjectUtils.extractProjectDetails(user, projectName);
-		return getLaunchMessageHandler.getLaunchNames(projectName, value);
+		return getLaunchMessageHandler.getLaunchNames(ProjectUtils.extractProjectDetails(user, projectName), value);
 	}
 
 	//	@RequestMapping(value = "/compare", method = GET)
@@ -287,8 +283,7 @@ public class LaunchController {
 	@ApiIgnore
 	public Map<String, String> getStatuses(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		ProjectUtils.extractProjectDetails(user, projectName);
-		return getLaunchMessageHandler.getStatuses(projectName, ids);
+		return getLaunchMessageHandler.getStatuses(ProjectUtils.extractProjectDetails(user, projectName), ids);
 	}
 	//
 	//	@RequestMapping(value = "/{launchId}/report", method = RequestMethod.GET)

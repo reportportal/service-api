@@ -62,41 +62,42 @@ public interface IGetLaunchHandler {
 	/**
 	 * Get list of Launch resources for specified project
 	 *
-	 * @param projectName Project Name
+	 * @param projectDetails Project Details
 	 * @param filter      Filter data
 	 * @param pageable    Page details
 	 * @param userName    Name of User
 	 * @return Response Data
 	 */
-	Iterable<LaunchResource> getProjectLaunches(String projectName, Filter filter, Pageable pageable, String userName);
+	Iterable<LaunchResource> getProjectLaunches(ReportPortalUser.ProjectDetails projectDetails,
+			Filter filter, Pageable pageable, String userName);
 
 	/**
 	 * Get specified launch tags (auto-complete functionality)
 	 *
-	 * @param projectName Project Name
+	 * @param projectDetails Project Details
 	 * @param value   Tag prefix to be searched
 	 * @return List of found tags
 	 */
-	List<String> getTags(String projectName, String value);
+	List<String> getTags(ReportPortalUser.ProjectDetails projectDetails, String value);
 
 	/**
 	 * Get launch names of specified project (auto-complete functionality)
 	 *
-	 * @param project Project Name
+	 * @param projectDetails Project Details
 	 * @param value   Launch name prefix
 	 * @return List of found launches
 	 */
-	List<String> getLaunchNames(String project, String value);
+	List<String> getLaunchNames(ReportPortalUser.ProjectDetails projectDetails, String value);
 
 	/**
 	 * Get unique owners of launches in specified mode
 	 *
-	 * @param project Project Name
+	 * @param projectDetails Project Details
 	 * @param value   Owner name prefix
 	 * @param mode    Mode
 	 * @return Response Data
 	 */
-	List<String> getOwners(String project, String value, String mode);
+	List<String> getOwners(ReportPortalUser.ProjectDetails projectDetails, String value, String mode);
 
 	/**
 	 * Get launches comparison info
@@ -110,19 +111,19 @@ public interface IGetLaunchHandler {
 	/**
 	 * Get statuses of specified launches
 	 *
-	 * @param projectName Project Name
+	 * @param projectDetails Project Details
 	 * @param ids         Launch IDs
 	 * @return Response Data
 	 */
-	Map<String, String> getStatuses(String projectName, Long[] ids);
+	Map<String, String> getStatuses(ReportPortalUser.ProjectDetails projectDetails, Long[] ids);
 
 	/**
 	 * Get latest launches
 	 *
-	 * @param projectName Project Name
+	 * @param projectDetails Project Details
 	 * @param filter      Filter data
 	 * @param pageable    Page details
 	 * @return Response Data
 	 */
-	Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable);
+	Page<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable);
 }

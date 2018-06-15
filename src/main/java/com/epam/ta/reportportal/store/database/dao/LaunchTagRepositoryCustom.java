@@ -7,5 +7,5 @@ import java.util.List;
  */
 public interface LaunchTagRepositoryCustom {
 
-	List<String> getTags(String projectName, String value);
+	List<String> getTags(Long projectId, String value);
 }

@@ -126,7 +126,7 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 	}
 
 	@Override
-	public List<String> getLaunchNames(String projectName, String value, LaunchModeEnum mode) {
+	public List<String> getLaunchNames(Long projectId, String value, LaunchModeEnum mode) {
 
 		JLaunch l = LAUNCH.as("l");
 		JProject p = PROJECT.as("p");
@@ -134,13 +134,13 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 		return dsl.select()
 				.from(l)
 				.leftJoin(p).on(l.PROJECT_ID.eq(p.ID))
-				.where(p.NAME.eq(projectName))
+				.where(p.ID.eq(projectId))
 				.and(l.NAME.like(value))
 				.fetch(l.NAME);
 	}
 
 	@Override
-	public List<String> getOwnerNames(String projectName, String value, String mode) {
+	public List<String> getOwnerNames(Long projectId, String value, String mode) {
 
 		JLaunch l = LAUNCH.as("l");
 		JProject p = PROJECT.as("p");
@@ -150,14 +150,14 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 				.from(l)
 				.leftJoin(p).on(l.PROJECT_ID.eq(p.ID))
 				.leftJoin(u).on(l.USER_ID.eq(u.ID))
-				.where(p.NAME.eq(projectName))
+				.where(p.ID.eq(projectId))
 				.and(u.FULL_NAME.like("%" + value + "%"))
 				.and(l.MODE.eq(JLaunchModeEnum.valueOf(mode)))
 				.fetch(u.FULL_NAME);
 	}
 
 	@Override
-	public Map<String, String> getStatuses(String projectName, Long[] ids) {
+	public Map<String, String> getStatuses(Long projectId, Long[] ids) {
 
 		JLaunch l = LAUNCH.as("l");
 		JProject p = PROJECT.as("p");
@@ -166,7 +166,7 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 				.from(l)
 				.leftJoin(p)
 				.on(l.PROJECT_ID.eq(p.ID))
-				.where(p.NAME.eq(projectName))
+				.where(p.ID.eq(projectId))
 				.and(l.ID.in(ids))
 				.fetch(LAUNCH_MAPPER)
 				.stream()

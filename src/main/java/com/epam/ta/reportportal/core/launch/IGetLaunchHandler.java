@@ -44,10 +44,9 @@ public interface IGetLaunchHandler {
 	 *
 	 * @param launchId       Launch id
 	 * @param projectDetails Project Details
-	 * @param user           User
 	 * @return
 	 */
-	LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails);
 
 	//	/**
 	//	 * Get Launch resource by specified Name (for Jenkins Plugin)
@@ -126,15 +125,4 @@ public interface IGetLaunchHandler {
 	 * @return Response Data
 	 */
 	Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable);
-
-	/**
-	 * Get debug launches
-	 *
-	 * @param projectName Project Name
-	 * @param filter      Filter data
-	 * @param pageable    Page details
-	 * @param user        User
-	 * @return Response Data
-	 */
-	Iterable<LaunchResource> getDebugLaunches(String projectName, ReportPortalUser user, Filter filter, Pageable pageable);
 }

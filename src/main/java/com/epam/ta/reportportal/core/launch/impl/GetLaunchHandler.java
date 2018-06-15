@@ -25,12 +25,10 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.IGetLaunchHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.querygen.Filter;
-import com.epam.ta.reportportal.store.commons.querygen.LaunchFilter;
 import com.epam.ta.reportportal.store.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.dao.LaunchTagRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.LaunchModeEnum;
-import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.launch.LaunchFull;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
@@ -41,12 +39,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_FILTER_PARAMETERS;
 import static com.google.common.base.Predicates.equalTo;
 
@@ -69,20 +67,11 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	}
 
 	@Override
-	public LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Launch launch = launchRepository.findById(launchId)
+	public LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails) {
+
+		return launchRepository.findById(launchId)
+				.map(TO_RESOURCE)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-
-		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ErrorType.FORBIDDEN_OPERATION,
-				formattedSupplier("Specified launch with id '{}' not referenced to specified project '{}'", launchId, projectDetails)
-		);
-
-		//		if (launch.getMode() == LaunchModeEnum.DEBUG) {
-		//								Project project = projectRepository.findOne(projectName);
-		//								final Project.UserConfig userConfig = findUserConfigByLogin(project, userName);
-		//								expect(userConfig.getProjectRole(), not(equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
-		//		}
-		return LaunchConverter.TO_RESOURCE.apply(launch);
 	}
 
 	//
@@ -95,23 +84,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	//	}
 
 	public Iterable<LaunchResource> getProjectLaunches(String projectName, Filter filter, Pageable pageable, String userName) {
-		/*
-		 * input filter shouldn't contains any "mode" related filter conditions
-		 * "debug mode" conditions are forbidden because user can manipulate
-		 * with "debug mode" input filter and see not own debug launches
-		 * 'default mode' conditions are forbidden because 'default mode'
-		 * condition will be added by server(line 66) Due to limitations of the
-		 * com.mongodb.BasicDBObject, user can't add a second 'mode' criteria
-		 */
-		filter = LaunchFilter.of(filter, LaunchModeEnum.DEFAULT);
-		Page<LaunchFull> launches = launchRepository.findByFilter(ProjectFilter.of(filter, projectName), pageable);
 
-		return PagedResourcesAssembler.pageConverter(LaunchConverter.FULL_TO_RESOURCE).apply(launches);
-	}
-
-	public Iterable<LaunchResource> getDebugLaunches(String projectName, ReportPortalUser user, Filter filter, Pageable pageable) {
-
-		filter = LaunchFilter.of(filter, LaunchModeEnum.DEBUG);
 		Page<LaunchFull> launches = launchRepository.findByFilter(ProjectFilter.of(filter, projectName), pageable);
 
 		return PagedResourcesAssembler.pageConverter(LaunchConverter.FULL_TO_RESOURCE).apply(launches);
@@ -119,7 +92,6 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 
 	public com.epam.ta.reportportal.ws.model.Page<LaunchResource> getLatestLaunches(String projectName, Filter filter, Pageable pageable) {
 
-		filter = LaunchFilter.of(filter, LaunchModeEnum.DEFAULT);
 		Page<LaunchFull> launches = launchRepository.findByFilter(ProjectFilter.of(filter, projectName), pageable);
 
 		return PagedResourcesAssembler.pageConverter(LaunchConverter.FULL_TO_RESOURCE).apply(launches);
@@ -200,13 +172,13 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 //		return data.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> countPercentage(entry.getValue(), total)));
 //	}
 //
-	private String countPercentage(int value, int total) {
-		if (total == 0) {
-			return "0";
-		}
-		BigDecimal bigDecimal = new BigDecimal((double) value / total * 100);
-		return bigDecimal.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString();
-	}
+//	private String countPercentage(int value, int total) {
+//		if (total == 0) {
+//			return "0";
+//		}
+//		BigDecimal bigDecimal = new BigDecimal((double) value / total * 100);
+//		return bigDecimal.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString();
+//	}
 
 //	/**
 //	 * Validate if filter doesn't contain any "mode" related conditions.

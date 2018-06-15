@@ -21,8 +21,7 @@
 
 package com.epam.ta.reportportal.store.database.dao;
 
-import com.epam.ta.reportportal.store.commons.querygen.Filter;
-import com.epam.ta.reportportal.store.commons.querygen.QueryBuilder;
+import com.epam.ta.reportportal.store.commons.querygen.*;
 import com.epam.ta.reportportal.store.database.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.launch.ExecutionStatistics;
@@ -32,9 +31,11 @@ import com.epam.ta.reportportal.store.jooq.enums.JLaunchModeEnum;
 import com.epam.ta.reportportal.store.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.store.jooq.enums.JTestItemTypeEnum;
 import com.epam.ta.reportportal.store.jooq.tables.*;
+import com.google.common.collect.Lists;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.RecordMapper;
+import org.jooq.SelectQuery;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -45,6 +46,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.store.jooq.Tables.*;
@@ -116,6 +118,14 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 	}
 
 	@Override
+	public Page<LaunchFull> findLatest(Filter filter, Pageable pageable) {
+
+		List<LaunchFull> launches = dsl.fetch(QueryBuilder.newBuilder(filter).with(pageable).build()).map(LAUNCH_FULL_MAPPER);
+
+		return PageableExecutionUtils.getPage(getLatest(launches), pageable, () -> dsl.fetchCount(QueryBuilder.newBuilder(filter).build()));
+	}
+
+	@Override
 	public List<String> getLaunchNames(String projectName, String value, LaunchModeEnum mode) {
 
 		JLaunch l = LAUNCH.as("l");
@@ -162,5 +172,30 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 				.stream()
 				.collect(Collectors.toMap(launch -> String.valueOf(launch.getId()),
 										  launch -> launch.getStatus().toString()));
+	}
+
+	private List<LaunchFull> getLatest(List<LaunchFull> fullLaunches) {
+
+		List<LaunchFull> latestLaunches = Lists.newArrayList();
+
+		fullLaunches.forEach(full -> {
+			AtomicBoolean added = new AtomicBoolean(false);
+
+			latestLaunches.forEach(latest -> {
+				if (latest.getLaunch().getName().equals(full.getLaunch().getName())) {
+
+					if(latest.getLaunch().getNumber() < full.getLaunch().getNumber()) {
+						latestLaunches.set(latestLaunches.indexOf(latest), full);
+						added.set(true);
+					}
+				}
+			});
+
+			if(!added.get()) {
+				latestLaunches.add(full);
+			}
+		});
+
+		return latestLaunches;
 	}
 }

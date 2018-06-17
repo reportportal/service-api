@@ -23,14 +23,20 @@ package com.epam.ta.reportportal.core.widget.content;
 
 import com.epam.ta.reportportal.database.StatisticsDocumentHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.database.dao.aggregation.GroupingOperation;
 import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.mongodb.DBObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,20 +50,55 @@ import static com.epam.ta.reportportal.core.widget.content.WidgetContentProvider
 @Service
 public class GroupingContentLoader implements IContentLoadingStrategy {
 
+	private static final String GROUPING_LAUNCHES = "grouping_launches";
+	private static final String GROUPING_BY = "grouping_by";
+
 	@Autowired
 	private LaunchRepository launchRepository;
 
 	@Override
-	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity,
-			List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> widgetOptions) {
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> widgetOptions) {
 
-		StatisticsDocumentHandler handler = new StatisticsDocumentHandler(
-				contentFields.stream().map(TO_UI_STYLE).collect(Collectors.toList()), metaDataFields);
-		List<DBObject> by = launchRepository.findLatestGroupedBy(filter, sorting, contentFields, widgetOptions.get("groupingBy").get(0));
-		by.forEach(handler::processDocument);
-		List<ChartObject> result = handler.getResult();
+		GroupingOption groupingOption = GroupingOption.getByValue(widgetOptions.get(GROUPING_LAUNCHES).get(0));
+		GroupingOperation.GroupingPeriod groupingBy = GroupingOperation.GroupingPeriod.getByValue(widgetOptions.get(GROUPING_BY).get(0));
 
-		return ImmutableMap.<String, List<ChartObject>>builder().put(RESULT, result).build();
+		StatisticsDocumentHandler handler = new StatisticsDocumentHandler(contentFields.stream()
+				.map(TO_UI_STYLE)
+				.collect(Collectors.toList()), metaDataFields);
 
+		List<DBObject> aggregationResults = Lists.newArrayList();
+		switch (groupingOption) {
+			case ALL:
+				aggregationResults = launchRepository.findGroupedBy(filter, contentFields, groupingBy);
+				break;
+			case LATEST:
+				aggregationResults = launchRepository.findLatestGroupedBy(filter, contentFields, groupingBy);
+				break;
+		}
+		if (aggregationResults.isEmpty()) {
+			return Collections.emptyMap();
+		}
+		aggregationResults.forEach(handler::processDocument);
+		return ImmutableMap.<String, List<ChartObject>>builder().put(RESULT, handler.getResult()).build();
+	}
+
+	private enum GroupingOption {
+		ALL("all"),
+		LATEST("latest");
+
+		private String value;
+
+		GroupingOption(String value) {
+			this.value = value;
+		}
+
+		private static GroupingOption getByValue(String value) {
+			return Arrays.stream(values())
+					.filter(it -> it.value.equalsIgnoreCase(value))
+					.findFirst()
+					.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+							"Grouping widget option " + value + " is unsupported."
+					));
+		}
 	}
 }

@@ -75,7 +75,7 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 		//expect(externalSystemStrategy.connectionTest(externalSystem), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, projectName);
 
 		bugTrackingSystemRepository.save(bugTrackingSystem);
-		//eventPublisher.publishEvent(new ExternalSystemCreatedEvent(createOne, username));
+		//eventPublisher.publishEvent(new IntegrationCreatedEvent(createOne, username));
 		return new EntryCreatedRS(bugTrackingSystem.getId());
 	}
 

@@ -1,5 +1,7 @@
 package com.epam.ta.reportportal.store;
 
+import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
+import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
 import com.epam.ta.reportportal.store.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.store.database.entity.Activity;
 import com.epam.ta.reportportal.store.database.entity.JsonMap;
@@ -21,7 +23,7 @@ public class ActivityRepositoryTest extends BaseDBTest {
 		Activity activity = new Activity();
 		activity.setAction("some action");
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(JsonMap.ofMap(ImmutableMap.<String, String>builder().put("key", "value").build()));
+		activity.setDetails(new LaunchFinishedEvent.LaunchActivityDetails(100L));
 		activity.setEntity(Activity.Entity.ITEM);
 		activity.setUserId(1L);
 

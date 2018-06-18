@@ -20,39 +20,36 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-
-import java.util.List;
-
 /**
  * @author Andrei Varabyeu
  */
 public class SharingModifiedEvent {
 
-	private final String user;
-	private final String project;
-	private final boolean share;
-	private final List<? extends Shareable> items;
-
-	public SharingModifiedEvent(List<? extends Shareable> items, String user, String project, boolean share) {
-		this.user = user;
-		this.project = project;
-		this.share = share;
-		this.items = items;
-	}
-
-	public String getUser() {
-		return user;
-	}
-
-	public String getProject() {
-		return project;
-	}
-
-	public boolean isShare() {
-		return share;
-	}
-
-	public List<? extends Shareable> getItems() {
-		return items;
-	}
+//	private final String user;
+	//	private final String project;
+	//	private final boolean share;
+	//	private final List<? extends Shareable> items;
+	//
+	//	public SharingModifiedEvent(List<? extends Shareable> items, String user, String project, boolean share) {
+	//		this.user = user;
+	//		this.project = project;
+	//		this.share = share;
+	//		this.items = items;
+	//	}
+	//
+	//	public String getUser() {
+	//		return user;
+	//	}
+	//
+	//	public String getProject() {
+	//		return project;
+	//	}
+	//
+	//	public boolean isShare() {
+	//		return share;
+	//	}
+	//
+	//	public List<? extends Shareable> getItems() {
+//		return items;
+//	}
 }

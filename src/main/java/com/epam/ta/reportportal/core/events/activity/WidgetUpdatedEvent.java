@@ -20,7 +20,7 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.database.entity.widget.Widget;
+import com.epam.ta.reportportal.store.database.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 
 /**

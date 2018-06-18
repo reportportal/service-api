@@ -21,21 +21,21 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.database.entity.filter.UserFilter;
+//import com.epam.ta.reportportal.database.entity.filter.UserFilter;
 
 /**
  * @author Pavel Bortnik
  */
-public class FilterUpdatedEvent extends AroundEvent<UserFilter> {
+public class FilterUpdatedEvent {//extends AroundEvent<UserFilter> {
 
-	private final String updatedBy;
-
-	public FilterUpdatedEvent(UserFilter before, UserFilter after, String updatedBy) {
-		super(before, after);
-		this.updatedBy = updatedBy;
-	}
-
-	public String getUpdatedBy() {
-		return updatedBy;
-	}
+	//	private final String updatedBy;
+	//
+	//	public FilterUpdatedEvent(UserFilter before, UserFilter after, String updatedBy) {
+	//		super(before, after);
+	//		this.updatedBy = updatedBy;
+	//	}
+	//
+	//	public String getUpdatedBy() {
+	//		return updatedBy;
+	//	}
 }

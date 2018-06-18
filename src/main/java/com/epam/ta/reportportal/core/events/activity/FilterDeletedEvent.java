@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.database.entity.filter.UserFilter;
+import com.epam.ta.reportportal.store.database.entity.filter.UserFilter;
 
 /**
  * @author pavel_bortnik

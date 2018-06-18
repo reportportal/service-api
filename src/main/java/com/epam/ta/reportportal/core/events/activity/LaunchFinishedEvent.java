@@ -20,23 +20,24 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.store.database.entity.Activity;
+import com.epam.ta.reportportal.store.database.entity.JsonbObject;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
-import com.epam.ta.reportportal.store.database.entity.project.Project;
 import com.google.common.base.Preconditions;
+
+import java.time.LocalDateTime;
 
 /**
  * Lifecycle events.
  *
  * @author Andrei Varabyeu
  */
-public class LaunchFinishedEvent {
+public class LaunchFinishedEvent implements ActivityEvent {
 
 	private final Launch launch;
-	private final Project project;
 
-	public LaunchFinishedEvent(Launch launch, Project project) {
-
-		this.project = Preconditions.checkNotNull(project, "Project should not be null");
+	public LaunchFinishedEvent(Launch launch) {
 		this.launch = Preconditions.checkNotNull(launch, "Should not be null");
 	}
 
@@ -44,7 +45,33 @@ public class LaunchFinishedEvent {
 		return launch;
 	}
 
-	public Project getProject() {
-		return project;
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setUserId(this.launch.getUserId());
+		activity.setEntity(Activity.Entity.LAUNCH);
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setDetails(new LaunchActivityDetails(launch.getId()));
+		return activity;
+	}
+
+	public static class LaunchActivityDetails extends JsonbObject {
+		private Long launchId;
+
+		public LaunchActivityDetails() {
+
+		}
+
+		public LaunchActivityDetails(Long launchId) {
+			this.launchId = launchId;
+		}
+
+		public Long getLaunchId() {
+			return launchId;
+		}
+
+		public void setLaunchId(Long launchId) {
+			this.launchId = launchId;
+		}
 	}
 }

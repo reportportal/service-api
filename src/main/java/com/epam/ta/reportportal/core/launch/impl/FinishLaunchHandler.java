@@ -1,20 +1,20 @@
 /*
  * Copyright 2018 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -22,6 +22,9 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.LaunchFinishForcedEvent;
+import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.launch.IFinishLaunchHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.Preconditions;
@@ -38,7 +41,6 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,25 +73,15 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 	private static final String LAUNCH_STOP_DESCRIPTION = " stopped";
 	private static final String LAUNCH_STOP_TAG = "stopped";
 
-	private LaunchRepository launchRepository;
-
-	private TestItemRepository testItemRepository;
-
-	private ApplicationEventPublisher eventPublisher;
+	private final LaunchRepository launchRepository;
+	private final TestItemRepository testItemRepository;
+	private final MessageBus messageBus;
 
 	@Autowired
-	public void setLaunchRepository(LaunchRepository launchRepository) {
+	public FinishLaunchHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository, MessageBus messageBus) {
 		this.launchRepository = launchRepository;
-	}
-
-	@Autowired
-	public void setTestItemRepository(TestItemRepository testItemRepository) {
 		this.testItemRepository = testItemRepository;
-	}
-
-	@Autowired
-	public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
-		this.eventPublisher = eventPublisher;
+		this.messageBus = messageBus;
 	}
 
 	@Override
@@ -116,6 +108,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		}
 		launch.setStatus(statusEnum.orElse(fromStatistics));
 		launchRepository.save(launch);
+		messageBus.publishActivity(new LaunchFinishedEvent(launch));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully finished.");
 	}
 
@@ -139,7 +132,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 		launchRepository.save(launch);
 		testItemRepository.interruptInProgressItems(launchId);
 
-		//		eventPublisher.publishEvent(new LaunchFinishForcedEvent(launch, userName));
+		messageBus.publishActivity(new LaunchFinishForcedEvent(launch, user.getUserId()));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully stopped.");
 	}
 
@@ -157,15 +150,19 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 				formattedSupplier("Launch '{}' already finished with status '{}'", launch.getId(), launch.getStatus())
 		);
 
-		expect(finishExecutionRQ.getEndTime(), Preconditions.sameTimeOrLater(launch.getStartTime())).verify(
-				FINISH_TIME_EARLIER_THAN_START_TIME, finishExecutionRQ.getEndTime(), launch.getStartTime(), launch.getId());
+		expect(finishExecutionRQ.getEndTime(), Preconditions.sameTimeOrLater(launch.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
+				finishExecutionRQ.getEndTime(),
+				launch.getStartTime(),
+				launch.getId()
+		);
 
 		List<TestItem> items = testItemRepository.selectItemsInStatusByLaunch(launch.getId(), IN_PROGRESS);
-		expect(items.isEmpty(), equalTo(true)).verify(FINISH_LAUNCH_NOT_ALLOWED,
-				formattedSupplier("Launch '{}' has items '[{}]' with '{}' status", launch.getId().toString(),
-						items.stream().map(it -> it.getItemId().toString()).collect(Collectors.joining(",")), IN_PROGRESS.name()
-				)
-		);
+		expect(items.isEmpty(), equalTo(true)).verify(FINISH_LAUNCH_NOT_ALLOWED, formattedSupplier(
+				"Launch '{}' has items '[{}]' with '{}' status",
+				launch.getId().toString(),
+				items.stream().map(it -> it.getItemId().toString()).collect(Collectors.joining(",")),
+				IN_PROGRESS.name()
+		));
 	}
 
 	private void validateRoles(Launch launch, ReportPortalUser user, String projectName) {
@@ -186,11 +183,11 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 			expect(launch.getStatus(), statusIn(IN_PROGRESS, PASSED)).verify(INCORRECT_FINISH_STATUS,
 					formattedSupplier("Cannot finish launch '{}' with current status '{}' as 'PASSED'", launch.getId(), launch.getStatus())
 			);
-			expect(fromStatisticsStatus, statusIn(IN_PROGRESS, PASSED)).verify(INCORRECT_FINISH_STATUS,
-					formattedSupplier("Cannot finish launch '{}' with calculated automatically status '{}' as 'PASSED'", launch.getId(),
-							fromStatisticsStatus
-					)
-			);
+			expect(fromStatisticsStatus, statusIn(IN_PROGRESS, PASSED)).verify(INCORRECT_FINISH_STATUS, formattedSupplier(
+					"Cannot finish launch '{}' with calculated automatically status '{}' as 'PASSED'",
+					launch.getId(),
+					fromStatisticsStatus
+			));
 		}
 	}
 }

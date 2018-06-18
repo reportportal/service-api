@@ -21,48 +21,45 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.database.entity.ProjectAnalyzerConfig;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-
 /**
  * @author Pavel Bortnik
  */
-public class ProjectAnalyzerConfigEvent extends BeforeEvent<ProjectAnalyzerConfig> {
+public class ProjectAnalyzerConfigEvent {//extends BeforeEvent<ProjectAnalyzerConfig> {
 
-	private String projectRef;
-
-	private String updatedBy;
-
-	private AnalyzerConfig analyzerConfig;
-
-	public ProjectAnalyzerConfigEvent(ProjectAnalyzerConfig before, String projectRef, String updatedBy, AnalyzerConfig analyzerConfig) {
-		super(before);
-		this.projectRef = projectRef;
-		this.updatedBy = updatedBy;
-		this.analyzerConfig = analyzerConfig;
-	}
-
-	public String getUpdatedBy() {
-		return updatedBy;
-	}
-
-	public void setUpdatedBy(String updatedBy) {
-		this.updatedBy = updatedBy;
-	}
-
-	public AnalyzerConfig getAnalyzerConfig() {
-		return analyzerConfig;
-	}
-
-	public void setAnalyzerConfig(AnalyzerConfig analyzerConfig) {
-		this.analyzerConfig = analyzerConfig;
-	}
-
-	public String getProjectRef() {
-		return projectRef;
-	}
-
-	public void setProjectRef(String projectRef) {
-		this.projectRef = projectRef;
-	}
+//	private String projectRef;
+	//
+	//	private String updatedBy;
+	//
+	//	private AnalyzerConfig analyzerConfig;
+	//
+	//	public ProjectAnalyzerConfigEvent(ProjectAnalyzerConfig before, String projectRef, String updatedBy, AnalyzerConfig analyzerConfig) {
+	//		super(before);
+	//		this.projectRef = projectRef;
+	//		this.updatedBy = updatedBy;
+	//		this.analyzerConfig = analyzerConfig;
+	//	}
+	//
+	//	public String getUpdatedBy() {
+	//		return updatedBy;
+	//	}
+	//
+	//	public void setUpdatedBy(String updatedBy) {
+	//		this.updatedBy = updatedBy;
+	//	}
+	//
+	//	public AnalyzerConfig getAnalyzerConfig() {
+	//		return analyzerConfig;
+	//	}
+	//
+	//	public void setAnalyzerConfig(AnalyzerConfig analyzerConfig) {
+	//		this.analyzerConfig = analyzerConfig;
+	//	}
+	//
+	//	public String getProjectRef() {
+	//		return projectRef;
+	//	}
+	//
+	//	public void setProjectRef(String projectRef) {
+	//		this.projectRef = projectRef;
+	//	}
 }

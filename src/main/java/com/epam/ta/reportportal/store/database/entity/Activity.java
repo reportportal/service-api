@@ -37,7 +37,7 @@ public class Activity {
 
 	@Column(name = "details")
 	@Type(type = "jsonb")
-	private JsonMap details;
+	private JsonbObject details;
 
 	@Column(name = "creation_date")
 	private LocalDateTime createdAt;
@@ -74,11 +74,11 @@ public class Activity {
 		this.action = action;
 	}
 
-	public JsonMap getDetails() {
+	public JsonbObject getDetails() {
 		return details;
 	}
 
-	public void setDetails(JsonMap details) {
+	public void setDetails(JsonbObject details) {
 		this.details = details;
 	}
 

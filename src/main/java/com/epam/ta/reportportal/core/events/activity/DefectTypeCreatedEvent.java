@@ -20,32 +20,30 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
-
 /**
  * @author Andrei Varabyeu
  */
 public class DefectTypeCreatedEvent {
 
-	private final String project;
-	private final String user;
-	private final StatisticSubType statisticSubType;
-
-	public DefectTypeCreatedEvent(String project, String user, StatisticSubType statisticSubType) {
-		this.project = project;
-		this.user = user;
-		this.statisticSubType = statisticSubType;
-	}
-
-	public String getProject() {
-		return project;
-	}
-
-	public String getUser() {
-		return user;
-	}
-
-	public StatisticSubType getStatisticSubType() {
-		return statisticSubType;
-	}
+//	private final String project;
+	//	private final String user;
+	//	private final Sta statisticSubType;
+	//
+	//	public DefectTypeCreatedEvent(String project, String user, StatisticSubType statisticSubType) {
+	//		this.project = project;
+	//		this.user = user;
+	//		this.statisticSubType = statisticSubType;
+	//	}
+	//
+	//	public String getProject() {
+	//		return project;
+	//	}
+	//
+	//	public String getUser() {
+	//		return user;
+	//	}
+	//
+	//	public StatisticSubType getStatisticSubType() {
+	//		return statisticSubType;
+	//	}
 }

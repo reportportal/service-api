@@ -36,19 +36,22 @@ public class DashboardWidget implements Serializable {
 	@EmbeddedId
 	private DashboardWidgetId id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	@MapsId("dashboard_id")
 	private Dashboard dashboard;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	@MapsId("widget_id")
 	private Widget widget;
+
+	@Column(name = "widget_name")
+	private String widgetName;
 
 	@Column(name = "widget_width")
 	private int width;
 
-	@Column(name = "widget_heigth")
-	private int heigth;
+	@Column(name = "widget_height")
+	private int height;
 
 	@Column(name = "widget_position_x")
 	private int positionX;
@@ -80,6 +83,14 @@ public class DashboardWidget implements Serializable {
 		this.widget = widget;
 	}
 
+	public String getWidgetName() {
+		return widgetName;
+	}
+
+	public void setWidgetName(String widgetName) {
+		this.widgetName = widgetName;
+	}
+
 	public int getWidth() {
 		return width;
 	}
@@ -88,12 +99,12 @@ public class DashboardWidget implements Serializable {
 		this.width = width;
 	}
 
-	public int getHeigth() {
-		return heigth;
+	public int getHeight() {
+		return height;
 	}
 
-	public void setHeigth(int heigth) {
-		this.heigth = heigth;
+	public void setHeight(int height) {
+		this.height = height;
 	}
 
 	public int getPositionX() {
@@ -110,5 +121,24 @@ public class DashboardWidget implements Serializable {
 
 	public void setPositionY(int positionY) {
 		this.positionY = positionY;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
+		DashboardWidget that = (DashboardWidget) o;
+
+		return id != null ? id.equals(that.id) : that.id == null;
+	}
+
+	@Override
+	public int hashCode() {
+		return id != null ? id.hashCode() : 0;
 	}
 }

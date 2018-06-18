@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.store.database.entity.launch.ExecutionStatistics
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.launch.LaunchFull;
 import com.epam.ta.reportportal.store.jooq.enums.JStatusEnum;
+import com.epam.ta.reportportal.store.jooq.enums.JTestItemTypeEnum;
 import com.epam.ta.reportportal.store.jooq.tables.JLaunch;
 import com.epam.ta.reportportal.store.jooq.tables.JTestItem;
 import com.epam.ta.reportportal.store.jooq.tables.JTestItemResults;
@@ -74,25 +75,14 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 		JLaunch l = LAUNCH.as("l");
 		JTestItem ti = TEST_ITEM.as("ti");
 		JTestItemResults tr = TEST_ITEM_RESULTS.as("tr");
-		return dsl.select(l.ID,
-				l.PROJECT_ID,
-				l.USER_ID,
-				l.NAME,
-				l.DESCRIPTION,
-				l.START_TIME,
-				l.NUMBER,
-				l.LAST_MODIFIED,
-				l.MODE,
+		return dsl.select(l.ID, l.PROJECT_ID, l.USER_ID, l.NAME, l.DESCRIPTION, l.START_TIME, l.NUMBER, l.LAST_MODIFIED, l.MODE,
 				sum(when(tr.STATUS.eq(JStatusEnum.PASSED), 1).otherwise(0)).as("passed"),
 				sum(when(tr.STATUS.eq(JStatusEnum.FAILED), 1).otherwise(0)).as("failed"),
-				sum(when(tr.STATUS.eq(JStatusEnum.SKIPPED), 1).otherwise(0)).as("skipped"),
-				DSL.count(tr.STATUS).as("total")
+				sum(when(tr.STATUS.eq(JStatusEnum.SKIPPED), 1).otherwise(0)).as("skipped"), DSL.count(tr.STATUS).as("total")
 		)
 				.from(l)
-				.leftJoin(tr)
-				.on(ti.ITEM_ID.eq(tr.ITEM_ID))
 				.leftJoin(ti)
-				.on(l.ID.eq(ti.LAUNCH_ID))
+				.on(l.ID.eq(ti.LAUNCH_ID)).leftJoin(tr).on(ti.ITEM_ID.eq(tr.ITEM_ID)).where(ti.TYPE.eq(JTestItemTypeEnum.STEP))
 				.groupBy(l.ID, l.PROJECT_ID, l.USER_ID, l.NAME, l.DESCRIPTION, l.START_TIME, l.NUMBER, l.LAST_MODIFIED, l.MODE)
 				.fetch(LAUNCH_MAPPER);
 	}
@@ -103,8 +93,7 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 
 	public Page<LaunchFull> findByFilter(Filter filter, Pageable pageable) {
 		return PageableExecutionUtils.getPage(dsl.fetch(QueryBuilder.newBuilder(filter).with(pageable).build()).map(LAUNCH_MAPPER),
-				pageable,
-				() -> dsl.fetchCount(QueryBuilder.newBuilder(filter).build())
+				pageable, () -> dsl.fetchCount(QueryBuilder.newBuilder(filter).build())
 		);
 	}
 }

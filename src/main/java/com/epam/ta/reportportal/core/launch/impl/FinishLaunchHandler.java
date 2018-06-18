@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.user.UserRole;
+import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -49,7 +50,6 @@ import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.store.commons.EntityUtils.takeProjectDetails;
 import static com.epam.ta.reportportal.store.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.store.commons.Predicates.not;
@@ -169,7 +169,7 @@ public class FinishLaunchHandler implements IFinishLaunchHandler {
 	}
 
 	private void validateRoles(Launch launch, ReportPortalUser user, String projectName) {
-		ReportPortalUser.ProjectDetails projectDetails = takeProjectDetails(user, projectName);
+		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(launch.getUserId(), user.getUserId())) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
 			expect(projectDetails.getProjectRole(), equalTo(PROJECT_MANAGER)).verify(ACCESS_DENIED);

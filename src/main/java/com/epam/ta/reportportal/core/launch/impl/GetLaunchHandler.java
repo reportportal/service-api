@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.IGetLaunchHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.querygen.Filter;
@@ -66,13 +67,13 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	//	}
 
 	@Override
-	public LaunchResource getLaunch(Long launchId, String userName, String projectName) {
+	public LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 
-		expect(launch.getProjectId(), equalTo(projectName)).verify(
+		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
 				ErrorType.FORBIDDEN_OPERATION,
-				formattedSupplier("Specified launch with id '{}' not referenced to specified project '{}'", launchId, projectName)
+				formattedSupplier("Specified launch with id '{}' not referenced to specified project '{}'", launchId, projectDetails)
 		);
 
 		//		if (launch.getMode() == LaunchModeEnum.DEBUG) {

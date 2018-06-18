@@ -24,9 +24,9 @@ package com.epam.ta.reportportal.core.bts.handler.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.IDeleteExternalSystemHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.dao.BugTrackingSystemRepository;
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
+import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +54,7 @@ public class DeleteExternalSystemHandler implements IDeleteExternalSystemHandler
 
 	@Override
 	public synchronized OperationCompletionRS deleteExternalSystem(String projectName, Long id, ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = EntityUtils.takeProjectDetails(user, projectName);
+		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 
 		BugTrackingSystem bugTrackingSystem = bugTrackingSystemRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(EXTERNAL_SYSTEM_NOT_FOUND, id));
@@ -67,7 +67,7 @@ public class DeleteExternalSystemHandler implements IDeleteExternalSystemHandler
 
 	@Override
 	public synchronized OperationCompletionRS deleteAllExternalSystems(String projectName, ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = EntityUtils.takeProjectDetails(user, projectName);
+		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		List<BugTrackingSystem> btsSystems = bugTrackingSystemRepository.findAllByProjectId(projectDetails.getProjectId());
 		if (!CollectionUtils.isEmpty(btsSystems)) {
 			bugTrackingSystemRepository.deleteAll(btsSystems);

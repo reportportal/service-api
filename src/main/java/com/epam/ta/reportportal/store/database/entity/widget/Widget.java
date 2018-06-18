@@ -22,7 +22,9 @@
 package com.epam.ta.reportportal.store.database.entity.widget;
 
 import com.epam.ta.reportportal.store.database.entity.dashboard.DashboardWidget;
+import com.epam.ta.reportportal.store.database.entity.filter.UserFilter;
 import com.epam.ta.reportportal.store.database.entity.project.Project;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -46,6 +48,9 @@ public class Widget implements Serializable {
 	@Column(name = "name")
 	private String name;
 
+	@Column(name = "description")
+	private String description;
+
 	@Column(name = "widget_type")
 	private String widgetType;
 
@@ -55,7 +60,10 @@ public class Widget implements Serializable {
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name = "content_field", joinColumns = @JoinColumn(name = "id"))
 	@Column(name = "field")
-	private List<String> contentFields;
+	private List<String> contentFields = Lists.newArrayList();
+
+	@ManyToMany(mappedBy = "widgets")
+	private Set<UserFilter> filters = Sets.newHashSet();
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
 	@JoinColumn(name = "widget_id")
@@ -65,7 +73,7 @@ public class Widget implements Serializable {
 	@JoinColumn(name = "project_id")
 	private Project project;
 
-	@OneToMany(mappedBy = "widget", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "widget", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Fetch(value = FetchMode.JOIN)
 	private Set<DashboardWidget> dashboardWidgets = Sets.newHashSet();
 
@@ -83,6 +91,14 @@ public class Widget implements Serializable {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 	public String getWidgetType() {
@@ -131,5 +147,13 @@ public class Widget implements Serializable {
 
 	public void setDashboardWidgets(Set<DashboardWidget> dashboardWidgets) {
 		this.dashboardWidgets = dashboardWidgets;
+	}
+
+	public Set<UserFilter> getFilters() {
+		return filters;
+	}
+
+	public void setFilters(Set<UserFilter> filters) {
+		this.filters = filters;
 	}
 }

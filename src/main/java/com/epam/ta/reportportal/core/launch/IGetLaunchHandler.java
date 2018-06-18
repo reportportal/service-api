@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.launch;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.store.commons.querygen.Filter;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
@@ -40,12 +41,12 @@ public interface IGetLaunchHandler {
 	/**
 	 * Get Launch resource by specified ID
 	 *
-	 * @param launchId    ID of launch
-	 * @param userName    Login
-	 * @param projectName Project Name
+	 * @param launchId       Launch id
+	 * @param projectDetails Project Details
+	 * @param user           User
 	 * @return
 	 */
-	LaunchResource getLaunch(Long launchId, String userName, String projectName);
+	LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	//	/**
 	//	 * Get Launch resource by specified Name (for Jenkins Plugin)

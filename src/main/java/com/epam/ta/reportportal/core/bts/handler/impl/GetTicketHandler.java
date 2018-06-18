@@ -24,9 +24,9 @@ package com.epam.ta.reportportal.core.bts.handler.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.IGetTicketHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.commons.EntityUtils;
 import com.epam.ta.reportportal.store.database.dao.BugTrackingSystemRepository;
 import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
+import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 import org.apache.commons.collections.CollectionUtils;
@@ -59,7 +59,7 @@ public class GetTicketHandler implements IGetTicketHandler {
 
 	@Override
 	public Ticket getTicket(String ticketId, String projectName, Long systemId, ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = EntityUtils.takeProjectDetails(user, projectName);
+		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		List<BugTrackingSystem> btsList = externalSystemRepository.findAllByProjectId(projectDetails.getProjectId());
 		expect(btsList, not(CollectionUtils::isEmpty)).verify(PROJECT_NOT_CONFIGURED, projectName);
 		BugTrackingSystem bugTrackingSystem = btsList.stream()
@@ -74,7 +74,7 @@ public class GetTicketHandler implements IGetTicketHandler {
 
 	@Override
 	public List<PostFormField> getSubmitTicketFields(String ticketType, String projectName, Long systemId, ReportPortalUser user) {
-		EntityUtils.takeProjectDetails(user, projectName);
+		ProjectUtils.extractProjectDetails(user, projectName);
 		BugTrackingSystem system = validateExternalSystem(systemId);
 		//		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType());
 		//		return externalSystemStrategy.getTicketFields(ticketType, system);
@@ -84,7 +84,7 @@ public class GetTicketHandler implements IGetTicketHandler {
 
 	@Override
 	public List<String> getAllowableIssueTypes(String projectName, Long systemId, ReportPortalUser user) {
-		EntityUtils.takeProjectDetails(user, projectName);
+		ProjectUtils.extractProjectDetails(user, projectName);
 		BugTrackingSystem system = validateExternalSystem(systemId);
 		//		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType());
 		//		return externalSystemStrategy.getIssueTypes(system);

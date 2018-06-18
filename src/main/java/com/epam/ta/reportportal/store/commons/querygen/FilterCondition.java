@@ -1,7 +1,11 @@
 package com.epam.ta.reportportal.store.commons.querygen;
 
+import com.epam.ta.reportportal.store.database.entity.enums.PostgreSQLEnumType;
 import com.google.common.base.Preconditions;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 
+import javax.persistence.*;
 import java.io.Serializable;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -9,9 +13,20 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Filter condition class for filters specifics
  */
+@Entity
+@Table(name = "filter_condition", schema = "public")
+@TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
 public class FilterCondition implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id", unique = true, nullable = false, precision = 64)
+	private Long id;
+
+	public FilterCondition() {
+	}
 
 	public FilterCondition(Condition condition, boolean negative, String value, String searchCriteria) {
 		super();
@@ -24,22 +39,36 @@ public class FilterCondition implements Serializable {
 	/**
 	 * Filter Condition
 	 */
+	@Enumerated(EnumType.STRING)
+	@Type(type = "pqsql_enum")
+	@Column(name = "condition")
 	private Condition condition;
 
 	/**
 	 * Value to be filtered
 	 */
+	@Column(name = "value")
 	private String value;
 
 	/**
 	 * API Model Search Criteria
 	 */
+	@Column(name = "field")
 	private String searchCriteria;
 
 	/**
 	 * Whether this is 'NOT' filter
 	 */
+	@Column(name = "negative")
 	private boolean negative;
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
 
 	public Condition getCondition() {
 		return condition;

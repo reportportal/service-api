@@ -22,25 +22,25 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.store.commons.EntityUtils;
-import com.epam.ta.reportportal.store.database.dao.WidgetRepository;
-import com.epam.ta.reportportal.store.database.entity.project.Project;
-import com.epam.ta.reportportal.store.database.entity.widget.Widget;
-import com.epam.ta.reportportal.store.database.entity.widget.WidgetOption;
+import com.epam.ta.reportportal.core.widget.ICreateWidgetHandler;
+import com.epam.ta.reportportal.core.widget.IGetWidgetHandler;
+import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
+import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
-import com.google.common.collect.Sets;
+import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Set;
-
-import static java.util.stream.Collectors.toSet;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 /**
  * @author Pavel Bortnik
@@ -49,49 +49,55 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/{projectName}/widget")
 public class WidgetController {
 
-	@Autowired
-	private WidgetRepository widgetRepository;
+	private ICreateWidgetHandler createWidgetHandler;
 
-	@PostMapping
+	private IUpdateWidgetHandler updateWidgetHandler;
+
+	private IGetWidgetHandler getWidgetHandler;
+
+	@Autowired
+	public void setCreateWidgetHandler(ICreateWidgetHandler createWidgetHandler) {
+		this.createWidgetHandler = createWidgetHandler;
+	}
+
+	@Autowired
+	public void setUpdateWidgetHandler(IUpdateWidgetHandler updateWidgetHandler) {
+		this.updateWidgetHandler = updateWidgetHandler;
+	}
+
+	@Autowired
+	public void setGetWidgetHandler(IGetWidgetHandler getWidgetHandler) {
+		this.getWidgetHandler = getWidgetHandler;
+	}
+
 	@Transactional
+	@PostMapping
 	@ResponseBody
 	@ResponseStatus(CREATED)
 	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS createWidget(@RequestBody WidgetRQ createWidget, @AuthenticationPrincipal ReportPortalUser user,
 			@PathVariable String projectName) {
-
-		ReportPortalUser.ProjectDetails projectDetails = EntityUtils.takeProjectDetails(user, projectName);
-		Project project = new Project();
-		project.setId(projectDetails.getProjectId());
-
-		Set<WidgetOption> widgetOptions = createWidget.getContentParameters().getWidgetOptions().entrySet().stream().map(entry -> {
-			WidgetOption option = new WidgetOption();
-			option.setWidgetOption(entry.getKey());
-			option.setValues(Sets.newHashSet(entry.getValue()));
-			return option;
-		}).collect(toSet());
-
-		Widget widget = new Widget();
-		widget.setName(createWidget.getName());
-		widget.setProject(project);
-		widget.setWidgetOptions(widgetOptions);
-		widget.setWidgetType(createWidget.getContentParameters().getType());
-		widget.setItemsCount(createWidget.getContentParameters().getItemsCount());
-		widget.setContentFields(createWidget.getContentParameters().getContentFields());
-
-		Widget save = widgetRepository.save(widget);
-
-		return new EntryCreatedRS(save.getId());
-
+		return createWidgetHandler.createWidget(createWidget, ProjectUtils.extractProjectDetails(user, projectName), user);
 	}
 
-	@GetMapping("/{widgetId}")
 	@Transactional
+	@RequestMapping(value = "/{widgetId}", method = PUT)
+	@ResponseStatus(OK)
+	@ResponseBody
+	@ApiOperation("Update specified widget")
+	public OperationCompletionRS updateWidget(@PathVariable String projectName, @PathVariable Long widgetId,
+			@RequestBody @Validated WidgetRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateWidgetHandler.updateWidget(widgetId, updateRQ, ProjectUtils.extractProjectDetails(user, projectName), user);
+	}
+
+	@Transactional
+	@GetMapping("/{widgetId}")
 	@ResponseBody
 	@ResponseStatus(OK)
-	public String getWidgetById(@PathVariable Long widgetId, @AuthenticationPrincipal ReportPortalUser user) {
-		Widget one = widgetRepository.getOne(widgetId);
-		return "ok";
+	@ApiOperation("Get widget by ID")
+	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getWidgetHandler.getWidget(widgetId, ProjectUtils.extractProjectDetails(user, projectName), user);
 	}
 
 }

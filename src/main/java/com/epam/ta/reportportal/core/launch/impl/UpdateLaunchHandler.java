@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
 import com.epam.ta.reportportal.store.database.entity.user.UserRole;
+import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -40,7 +41,6 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.store.commons.EntityUtils.takeProjectDetails;
 import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.store.database.entity.project.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
@@ -145,7 +145,7 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 	//	}
 
 	private void validate(Launch launch, ReportPortalUser user, String projectName, Mode mode) {
-		ReportPortalUser.ProjectDetails projectDetails = takeProjectDetails(user, projectName);
+		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		if (projectDetails.getProjectRole() == ProjectRole.CUSTOMER && null != mode) {
 			expect(mode, equalTo(Mode.DEFAULT)).verify(ACCESS_DENIED);
 		}

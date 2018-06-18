@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.core.launch.IStartLaunchHandler;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
+import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
@@ -34,8 +35,6 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import static com.epam.ta.reportportal.store.commons.EntityUtils.takeProjectDetails;
 
 /**
  * Default implementation of {@link IStartLaunchHandler}
@@ -72,7 +71,7 @@ class StartLaunchHandler implements IStartLaunchHandler {
 	}
 
 	private void validateRoles(ReportPortalUser user, String projectName, StartLaunchRQ startLaunchRQ) {
-		ReportPortalUser.ProjectDetails projectDetails = takeProjectDetails(user, projectName);
+		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		if (startLaunchRQ.getMode() == Mode.DEBUG) {
 			if (projectDetails.getProjectRole() == ProjectRole.CUSTOMER) {
 				startLaunchRQ.setMode(Mode.DEFAULT);

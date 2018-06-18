@@ -57,22 +57,23 @@ public class GroupingContentLoader implements IContentLoadingStrategy {
 	private LaunchRepository launchRepository;
 
 	@Override
-	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity, List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> widgetOptions) {
+	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity,
+			List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> widgetOptions) {
 
 		GroupingOption groupingOption = GroupingOption.getByValue(widgetOptions.get(GROUPING_LAUNCHES).get(0));
 		GroupingOperation.GroupingPeriod groupingBy = GroupingOperation.GroupingPeriod.getByValue(widgetOptions.get(GROUPING_BY).get(0));
 
-		StatisticsDocumentHandler handler = new StatisticsDocumentHandler(contentFields.stream()
-				.map(TO_UI_STYLE)
-				.collect(Collectors.toList()), metaDataFields);
+		List<String> fieldsForHandling = contentFields.stream().map(TO_UI_STYLE).collect(Collectors.toList());
+		fieldsForHandling.add("start_time");
+		StatisticsDocumentHandler handler = new StatisticsDocumentHandler(fieldsForHandling, metaDataFields);
 
 		List<DBObject> aggregationResults = Lists.newArrayList();
 		switch (groupingOption) {
 			case ALL:
-				aggregationResults = launchRepository.findGroupedBy(filter, contentFields, groupingBy);
+				aggregationResults = launchRepository.findGroupedBy(filter, contentFields, groupingBy, quantity);
 				break;
 			case LATEST:
-				aggregationResults = launchRepository.findLatestGroupedBy(filter, contentFields, groupingBy);
+				aggregationResults = launchRepository.findLatestGroupedBy(filter, contentFields, groupingBy, quantity);
 				break;
 		}
 		if (aggregationResults.isEmpty()) {

@@ -39,13 +39,9 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.*;
 import com.epam.ta.reportportal.store.commons.querygen.Filter;
-import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
-import com.epam.ta.reportportal.store.database.entity.launch.LaunchFull;
-import com.epam.ta.reportportal.ws.model.BulkRQ;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.util.ProjectUtils;
+import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
@@ -60,13 +56,15 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 
-import static com.epam.ta.reportportal.store.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 /**
@@ -120,7 +118,8 @@ public class LaunchController {
 			@ApiParam(value = "Name of project launch starts under", required = true) @PathVariable String projectName,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
 			@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
-		return createLaunchMessageHandler.startLaunch(reportPortalUser, normalizeId(projectName), startLaunchRQ);
+		ProjectUtils.extractProjectDetails(reportPortalUser, projectName);
+		return createLaunchMessageHandler.startLaunch(reportPortalUser, projectName, startLaunchRQ);
 	}
 
 	@RequestMapping(value = "/{launchId}/finish", method = PUT)
@@ -132,7 +131,8 @@ public class LaunchController {
 	public OperationCompletionRS finishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
 			HttpServletRequest request) {
-		return finishLaunchMessageHandler.finishLaunch(launchId, finishLaunchRQ, normalizeId(projectName), user);
+		ProjectUtils.extractProjectDetails(user, projectName);
+		return finishLaunchMessageHandler.finishLaunch(launchId, finishLaunchRQ, projectName, user);
 	}
 
 	@PutMapping("/{launchId}/stop")
@@ -142,7 +142,8 @@ public class LaunchController {
 	@ApiOperation("Force finish launch for specified project")
 	public OperationCompletionRS forceFinishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@RequestBody @Validated FinishExecutionRQ finishExecutionRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return finishLaunchMessageHandler.stopLaunch(launchId, finishExecutionRQ, normalizeId(projectName), user);
+		ProjectUtils.extractProjectDetails(user, projectName);
+		return finishLaunchMessageHandler.stopLaunch(launchId, finishExecutionRQ, projectName, user);
 	}
 
 	@PutMapping("/stop")
@@ -151,7 +152,8 @@ public class LaunchController {
 	@ApiOperation("Force finish launch")
 	public List<OperationCompletionRS> bulkForceFinish(@PathVariable String projectName,
 			@RequestBody @Validated BulkRQ<FinishExecutionRQ> rq, @AuthenticationPrincipal ReportPortalUser user) {
-		return finishLaunchMessageHandler.stopLaunch(rq, normalizeId(projectName), user);
+		ProjectUtils.extractProjectDetails(user, projectName);
+		return finishLaunchMessageHandler.stopLaunch(rq, projectName, user);
 	}
 
 	@PutMapping("/{launchId}/update")
@@ -162,7 +164,8 @@ public class LaunchController {
 	@ApiOperation("Updates launch for specified project")
 	public OperationCompletionRS updateLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@RequestBody @Validated UpdateLaunchRQ updateLaunchRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateLaunchHandler.updateLaunch(launchId, normalizeId(projectName), user, updateLaunchRQ);
+		ProjectUtils.extractProjectDetails(user, projectName);
+		return updateLaunchHandler.updateLaunch(launchId, projectName, user, updateLaunchRQ);
 	}
 
 	@PutMapping("/update")
@@ -173,7 +176,8 @@ public class LaunchController {
 	@ApiOperation("Updates launches for specified project")
 	public List<OperationCompletionRS> updateLaunches(@PathVariable String projectName, @RequestBody @Validated BulkRQ<UpdateLaunchRQ> rq,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateLaunchHandler.updateLaunch(rq, normalizeId(projectName), user);
+		ProjectUtils.extractProjectDetails(user, projectName);
+		return updateLaunchHandler.updateLaunch(rq, projectName, user);
 	}
 
 	@DeleteMapping("/{launchId}")
@@ -183,21 +187,18 @@ public class LaunchController {
 	@ApiOperation("Delete specified launch by ID")
 	public OperationCompletionRS deleteLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteLaunchMessageHandler.deleteLaunch(launchId, normalizeId(projectName), user);
+		ProjectUtils.extractProjectDetails(user, projectName);
+		return deleteLaunchMessageHandler.deleteLaunch(launchId, projectName, user);
 	}
-
-	@Autowired
-	private LaunchRepository launchRepository;
 
 	@GetMapping("/{launchId}")
 	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Get specified launch")
-	public List<LaunchFull> getLaunch(@PathVariable String projectName, @PathVariable Long launchId,
+	public LaunchResource getLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return launchRepository.fullLaunchWithStatistics();
-		//return getLaunchMessageHandler.getLaunch(launchId, ProjectUtils.extractProjectDetails(user, projectName), user);
+		return getLaunchMessageHandler.getLaunch(launchId, ProjectUtils.extractProjectDetails(user, projectName));
 	}
 
 	@GetMapping
@@ -206,57 +207,47 @@ public class LaunchController {
 	@ApiOperation("Get list of project launches by filter")
 	public Iterable<LaunchResource> getProjectLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
 			@SortFor(Launch.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getProjectLaunches(normalizeId(projectName), filter, pageable, user.getUsername());
+		return getLaunchMessageHandler.getProjectLaunches(ProjectUtils.extractProjectDetails(user, projectName),
+				filter, pageable, user.getUsername());
 	}
-	//
-	//	
-	//	@RequestMapping(value = "/latest", method = GET)
-	//	@ResponseBody
-	//	@ResponseStatus(OK)
-	//	@ApiOperation("Get list of latest project launches by filter")
-	//	public Page<LaunchResource> getLatestLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
-	//			@SortFor(Launch.class) Pageable pageable) {
-	//		return getLaunchMessageHandler.getLatestLaunches(normalizeId(projectName), filter, pageable);
-	//	}
-	//
-	//	
-	//	@RequestMapping(value = "/mode", method = GET)
-	//	@ResponseBody
-	//	@ResponseStatus(OK)
-	//	//@PreAuthorize(NOT_CUSTOMER)
-	//	@ApiOperation("Get launches of specified project from DEBUG mode")
-	//	public Iterable<LaunchResource> getDebugLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
-	//			@SortFor(Launch.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-	//		return getLaunchMessageHandler.getDebugLaunches(normalizeId(projectName), user, filter, pageable);
-	//	}
 
-	//	@RequestMapping(value = "/tags", method = GET)
-	//	@ResponseBody
-	//	@ResponseStatus(OK)
-	//	@ApiOperation("Get all unique tags of project launches")
-	//	public List<String> getAllTags(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "tags") String value,
-	//			@AuthenticationPrincipal ReportPortalUser user) {
-	//		return getLaunchMessageHandler.getTags(normalizeId(projectName), value);
-	//	}
+	@RequestMapping(value = "/latest", method = GET)
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Get list of latest project launches by filter")
+	public Page<LaunchResource> getLatestLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
+			@SortFor(Launch.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getLatestLaunches(ProjectUtils.extractProjectDetails(user, projectName), filter, pageable);
+	}
 
-	//	@RequestMapping(value = "/owners", method = GET)
-	//	@ResponseBody
-	//	@ResponseStatus(OK)
-	//	@ApiOperation("Get all unique owners of project launches")
-	//	public List<String> getAllOwners(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "user") String value,
-	//			@RequestParam(value = "mode", required = false, defaultValue = "DEFAULT") String mode, @AuthenticationPrincipal ReportPortalUser user) {
-	//		return getLaunchMessageHandler.getOwners(normalizeId(projectName), value, "userRef", mode);
-	//	}
-	//
-	//	@RequestMapping(value = "/names", method = GET)
-	//	@ResponseBody
-	//	@ResponseStatus(OK)
-	//	@ApiOperation("Get launch names of project")
-	//	public List<String> getAllLaunchNames(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "name") String value,
-	//			@AuthenticationPrincipal ReportPortalUser user) {
-	//		return getLaunchMessageHandler.getLaunchNames(normalizeId(projectName), value);
-	//	}
-	//
+	@RequestMapping(value = "/tags", method = GET)
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Get all unique tags of project launches")
+	public List<String> getAllTags(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "tags") String value,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getTags(ProjectUtils.extractProjectDetails(user, projectName), value);
+	}
+
+	@RequestMapping(value = "/owners", method = GET)
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Get all unique owners of project launches")
+	public List<String> getAllOwners(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "user") String value,
+			@RequestParam(value = "mode", required = false, defaultValue = "DEFAULT") String mode,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getOwners(ProjectUtils.extractProjectDetails(user, projectName), value, mode);
+	}
+
+	@RequestMapping(value = "/names", method = GET)
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Get launch names of project")
+	public List<String> getAllLaunchNames(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "name") String value,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getLaunchNames(ProjectUtils.extractProjectDetails(user, projectName), value);
+	}
+
 	//	@RequestMapping(value = "/compare", method = GET)
 	//	@ResponseBody
 	//	@ResponseStatus(OK)
@@ -265,6 +256,7 @@ public class LaunchController {
 	//			@AuthenticationPrincipal ReportPortalUser user) {
 	//		return getLaunchMessageHandler.getLaunchesComparisonInfo(normalizeId(projectName), ids);
 	//	}
+
 	//
 	//	@PostMapping("/merge")
 	//	@ResponseBody
@@ -285,13 +277,14 @@ public class LaunchController {
 	//		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), launchId);
 	//	}
 	//
-	//	@RequestMapping(value = "/status", method = GET)
-	//	@ResponseBody
-	//	@ResponseStatus(OK)
-	//	@ApiIgnore
-	//	public Map<String, String> getStatuses(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
-	//		return getLaunchMessageHandler.getStatuses(normalizeId(projectName), ids);
-	//	}
+	@RequestMapping(value = "/status", method = GET)
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiIgnore
+	public Map<String, String> getStatuses(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getStatuses(ProjectUtils.extractProjectDetails(user, projectName), ids);
+	}
 	//
 	//	@RequestMapping(value = "/{launchId}/report", method = RequestMethod.GET)
 	//	@ResponseBody

@@ -107,6 +107,25 @@ public class Launch implements Serializable {
 		this.tags.addAll(tags);
 	}
 
+	public Launch(Long id, String uuid, Long projectId, Long userId, String name, String description, LocalDateTime startTime,
+			LocalDateTime endTime, Long number, LocalDateTime lastModified, LaunchModeEnum mode, StatusEnum status) {
+		this.id = id;
+		this.uuid = uuid;
+		this.projectId = projectId;
+		this.userId = userId;
+		this.name = name;
+		this.description = description;
+		this.startTime = startTime;
+		this.endTime = endTime;
+		this.number = number;
+		this.lastModified = lastModified;
+		this.mode = mode;
+		this.status = status;
+	}
+
+	public Launch() {
+	}
+
 	public Long getId() {
 		return id;
 	}

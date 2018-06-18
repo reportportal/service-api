@@ -23,7 +23,6 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.configs.RabbitMqConfiguration;
-import com.epam.ta.reportportal.core.launch.IStartLaunchHandler;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
@@ -37,12 +36,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * Default implementation of {@link IStartLaunchHandler}
+ * Default implementation of {@link com.epam.ta.reportportal.core.launch.StartLaunchHandler}
  *
  * @author Andrei Varabyeu
  */
 @Service
-class StartLaunchHandler implements IStartLaunchHandler {
+class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLaunchHandler {
 
 	private final LaunchRepository launchRepository;
 	private final AmqpTemplate amqpTemplate;

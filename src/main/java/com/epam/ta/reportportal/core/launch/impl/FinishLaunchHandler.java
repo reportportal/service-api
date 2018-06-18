@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishForcedEvent;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
-import com.epam.ta.reportportal.core.launch.IFinishLaunchHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.Preconditions;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
@@ -62,13 +61,13 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Default implementation of {@link IFinishLaunchHandler}
+ * Default implementation of {@link com.epam.ta.reportportal.core.launch.FinishLaunchHandler}
  *
  * @author Pave Bortnik
  */
 @Service
 @Transactional
-public class FinishLaunchHandler implements IFinishLaunchHandler {
+public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch.FinishLaunchHandler {
 
 	private static final String LAUNCH_STOP_DESCRIPTION = " stopped";
 	private static final String LAUNCH_STOP_TAG = "stopped";

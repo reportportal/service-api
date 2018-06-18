@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
  * @author Pavel Bortnik
  */
 
-public interface IDeleteLaunchHandler {
+public interface DeleteLaunchHandler {
 
 	/**
 	 * Delete {@link com.epam.ta.reportportal.store.database.entity.launch.Launch} instance

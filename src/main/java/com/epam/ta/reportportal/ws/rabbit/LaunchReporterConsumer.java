@@ -24,8 +24,8 @@ package com.epam.ta.reportportal.ws.rabbit;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.core.configs.RabbitMqConfiguration;
-import com.epam.ta.reportportal.core.launch.IFinishLaunchHandler;
-import com.epam.ta.reportportal.core.launch.IStartLaunchHandler;
+import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
+import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -44,10 +44,10 @@ public class LaunchReporterConsumer {
 	private DatabaseUserDetailsService userDetailsService;
 
 	@Autowired
-	private IStartLaunchHandler startLaunchHandler;
+	private StartLaunchHandler startLaunchHandler;
 
 	@Autowired
-	private IFinishLaunchHandler finishLaunchHandler;
+	private FinishLaunchHandler finishLaunchHandler;
 
 	@RabbitListener(queues = RabbitMqConfiguration.QUEUE_START_LAUNCH)
 	public void startLaunch(@Payload StartLaunchRQ rq, @Header(MessageHeaders.USERNAME) String username,

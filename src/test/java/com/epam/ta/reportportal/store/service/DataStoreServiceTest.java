@@ -30,6 +30,7 @@ import org.mockito.Mockito;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
@@ -72,7 +73,7 @@ public class DataStoreServiceTest {
 		//  given:
 		MultipartFile file = Mockito.mock(MultipartFile.class);
 
-		//		and: setups
+		//  and: setups
 		when(file.getInputStream()).thenThrow(new IOException());
 
 		//  when:
@@ -88,7 +89,7 @@ public class DataStoreServiceTest {
 		MultipartFile file = Mockito.mock(MultipartFile.class);
 		String projectName = "asdasd";
 
-		//		and: setups
+		//  and: setups
 		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes());
 		when(file.getInputStream()).thenReturn(fileInputStream);
 		String fileName = "file.test";
@@ -97,10 +98,10 @@ public class DataStoreServiceTest {
 		String resolvedContentType = "resolved-type";
 		when(contentTypeResolver.detectContentType(fileInputStream)).thenReturn(resolvedContentType);
 
-		String generatedFilePath = "\\test\\path";
+		String generatedFilePath = File.separator + "test" + File.separator + "path";
 		when(filePathGenerator.generate()).thenReturn(generatedFilePath);
 
-		String expectedFilePath = projectName + generatedFilePath + "\\" + fileName;
+		String expectedFilePath = projectName + generatedFilePath + File.separator + fileName;
 		when(dataStore.save(expectedFilePath, fileInputStream)).thenReturn(expectedFilePath);
 
 		String fileId = "expected-encoded-file-id";
@@ -121,17 +122,17 @@ public class DataStoreServiceTest {
 		MultipartFile file = Mockito.mock(MultipartFile.class);
 		String projectName = "asdasd";
 
-		//		and: setups
+		//  and: setups
 		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes());
 		when(file.getInputStream()).thenReturn(fileInputStream);
 		when(file.getContentType()).thenReturn("test-content-type");
 		String fileName = "file.test";
 		when(file.getOriginalFilename()).thenReturn(fileName);
 
-		String generatedFilePath = "\\test\\path2";
+		String generatedFilePath = File.separator + "test" + File.separator + "path2";
 		when(filePathGenerator.generate()).thenReturn(generatedFilePath);
 
-		String expectedFilePath = projectName + generatedFilePath + "\\" + fileName;
+		String expectedFilePath = projectName + generatedFilePath + File.separator + fileName;
 		when(dataStore.save(expectedFilePath, fileInputStream)).thenReturn(expectedFilePath);
 
 		String fileId = "expected-encoded-file-id2";
@@ -145,7 +146,7 @@ public class DataStoreServiceTest {
 		assertEquals(fileId, maybeResult.get().getFileId());
 		assertNull(maybeResult.get().getThumbnailFileId());
 
-		//		and:
+		//  and:
 		verifyZeroInteractions(contentTypeResolver);
 	}
 
@@ -155,7 +156,7 @@ public class DataStoreServiceTest {
 		MultipartFile file = Mockito.mock(MultipartFile.class);
 		String projectName = "asdasd";
 
-		//		and: setups
+		//  and: setups
 		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes());
 		ByteArrayInputStream thumbnailFileInputStream = new ByteArrayInputStream("thumbnail-test".getBytes());
 		when(file.getInputStream()).thenReturn(fileInputStream);
@@ -164,20 +165,20 @@ public class DataStoreServiceTest {
 		when(file.getOriginalFilename()).thenReturn(fileName);
 		when(file.getName()).thenReturn(fileName);
 
-		String generatedFilePath = "\\test\\path2";
+		String generatedFilePath = File.separator + "test" + File.separator + "path2";
 		when(filePathGenerator.generate()).thenReturn(generatedFilePath);
 
 		when(thumbnailator.createThumbnail(file.getInputStream())).thenReturn(thumbnailFileInputStream);
 
-		//		save thumbnail file
-		String expectedThumbnailFilePath = projectName + generatedFilePath + "\\thumbnail-" + fileName;
+		//  save thumbnail file
+		String expectedThumbnailFilePath = projectName + generatedFilePath + File.separator + "thumbnail-" + fileName;
 		when(dataStore.save(expectedThumbnailFilePath, thumbnailFileInputStream)).thenReturn(expectedThumbnailFilePath);
 
 		String thumbnailFileId = "thumbnail-encoded-file-id2";
 		when(dataEncoder.encode(expectedThumbnailFilePath)).thenReturn(thumbnailFileId);
 
-		//		save original file
-		String expectedFilePath = projectName + generatedFilePath + "\\" + fileName;
+		//  save original file
+		String expectedFilePath = projectName + generatedFilePath + File.separator + fileName;
 		when(dataStore.save(expectedFilePath, fileInputStream)).thenReturn(expectedFilePath);
 
 		String fileId = "expected-encoded-file-id2";
@@ -191,7 +192,7 @@ public class DataStoreServiceTest {
 		assertEquals(fileId, maybeResult.get().getFileId());
 		assertEquals(thumbnailFileId, maybeResult.get().getThumbnailFileId());
 
-		//		and:
+		//  and:
 		verifyZeroInteractions(contentTypeResolver);
 	}
 
@@ -201,7 +202,7 @@ public class DataStoreServiceTest {
 		MultipartFile file = Mockito.mock(MultipartFile.class);
 		String projectName = "asdasd";
 
-		//		and: setups
+		//  and: setups
 		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes());
 		when(file.getInputStream()).thenReturn(fileInputStream);
 		when(file.getContentType()).thenReturn("image/png");
@@ -209,13 +210,13 @@ public class DataStoreServiceTest {
 		when(file.getOriginalFilename()).thenReturn(fileName);
 		when(file.getName()).thenReturn(fileName);
 
-		String generatedFilePath = "\\test\\path2";
+		String generatedFilePath = File.separator + "test" + File.separator + "path2";
 		when(filePathGenerator.generate()).thenReturn(generatedFilePath);
 
 		when(thumbnailator.createThumbnail(file.getInputStream())).thenThrow(IOException.class);
 
-		//		save original file
-		String expectedFilePath = projectName + generatedFilePath + "\\" + fileName;
+		//  save original file
+		String expectedFilePath = projectName + generatedFilePath + File.separator + fileName;
 		when(dataStore.save(expectedFilePath, fileInputStream)).thenReturn(expectedFilePath);
 
 		String fileId = "expected-encoded-file-id2";
@@ -229,7 +230,7 @@ public class DataStoreServiceTest {
 		assertEquals(fileId, maybeResult.get().getFileId());
 		assertNull(maybeResult.get().getThumbnailFileId());
 
-		//		and:
+		//  and:
 		verifyZeroInteractions(contentTypeResolver);
 		verify(dataStore, times(1)).save(anyString(), any(InputStream.class));
 	}
@@ -240,8 +241,8 @@ public class DataStoreServiceTest {
 		String fileId = "test-file.id";
 		InputStream expectedFile = new ByteArrayInputStream("test-content".getBytes());
 
-		//		and: setups
-		String expectedFilePath = "/file/path.test";
+		//  and: setups
+		String expectedFilePath = File.separator + "file" + File.separator + "path.test";
 		when(dataEncoder.decode(fileId)).thenReturn(expectedFilePath);
 
 		when(dataStore.load(expectedFilePath)).thenReturn(expectedFile);
@@ -258,8 +259,8 @@ public class DataStoreServiceTest {
 		//  given:
 		String fileId = "test-file.id";
 
-		//		and: setups
-		String expectedFilePath = "/file/path.test";
+		//  and: setups
+		String expectedFilePath = File.separator + "file" + File.separator + "path.test";
 		when(dataEncoder.decode(fileId)).thenReturn(expectedFilePath);
 
 		//  when:

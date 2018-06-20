@@ -1,11 +1,13 @@
 package com.epam.ta.reportportal.store;
 
 import com.epam.ta.reportportal.store.database.dao.ServerSettingRepository;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Ignore
 @ImportDataset("classpath:db/dataset.xml")
 public class ServerSettingsRepositoryTest extends BaseDBTest {
 

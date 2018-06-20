@@ -49,14 +49,11 @@ public class SeaweedDataStore implements DataStore {
 
 		FileTemplate fileTemplate = new FileTemplate(fileSource.getConnection());
 		try {
-
 			FileHandleStatus fileHandleStatus = fileTemplate.saveFileByStream(fileName, inputStream);
 
 			return fileHandleStatus.getFileId();
 		} catch (IOException e) {
-
 			logger.error("Unable to save log file ", e);
-
 			throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to save log file");
 		}
 	}
@@ -68,12 +65,9 @@ public class SeaweedDataStore implements DataStore {
 		try {
 
 			StreamResponse fileHandleStatus = fileTemplate.getFileStream(filePath);
-
 			return fileHandleStatus.getInputStream();
 		} catch (IOException e) {
-
 			logger.error("Unable to find file ", e);
-
 			throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to find file");
 		}
 	}
@@ -86,9 +80,7 @@ public class SeaweedDataStore implements DataStore {
 
 			fileTemplate.deleteFile(filePath);
 		} catch (IOException e) {
-
 			logger.error("Unable to delete file ", e);
-
 			throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to delete file");
 		}
 	}

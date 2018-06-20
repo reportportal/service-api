@@ -25,9 +25,9 @@ spring:
 #    org.quartz.scheduler.instanceName: reportportal
   jpa:
     properties:
-      hibernate.jdbc.lob.non_contextual_creation: true
       hibernate:
         dialect: com.epam.ta.reportportal.store.commons.JsonbAwarePostgresDialect
+        jdbc.lob.non_contextual_creation: true
     generate-ddl: false
     hibernate:
       ddl-auto: none

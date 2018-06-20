@@ -19,6 +19,7 @@
 package com.epam.ta.reportportal.store.filesystem;
 
 import com.epam.ta.reportportal.util.DateTimeProvider;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -57,7 +58,7 @@ public class FilePathGeneratorTest {
 		//		then:
 		assertNotEquals(test21, test22);
 
-		assertTrue(test21.matches("^/" + date.getDayOfYear() + "/\\w{2}/\\w{2}/\\w{2}/.*$"));
-		assertTrue(test22.matches("^/" + date.getDayOfYear() + "/\\w{2}/\\w{2}/\\w{2}/.*$"));
+		Assertions.assertThat(test21).matches("^" + date.getDayOfYear() + "/\\w{2}/\\w{2}/\\w{2}/.*$");
+		Assertions.assertThat(test22).matches("^" + date.getDayOfYear() + "/\\w{2}/\\w{2}/\\w{2}/.*$");
 	}
 }

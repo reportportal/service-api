@@ -37,7 +37,7 @@ import java.util.Map;
  * @author Andrei_Kliashchonak
  * @author Andrei Varabyeu
  */
-public interface IGetLaunchHandler {
+public interface GetLaunchHandler {
 
 	/**
 	 * Get Launch resource by specified ID

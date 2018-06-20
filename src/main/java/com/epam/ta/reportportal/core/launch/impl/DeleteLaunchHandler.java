@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.launch.IDeleteLaunchHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
@@ -47,14 +46,14 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Arrays.asList;
 
 /**
- * Default implementation of {@link IDeleteLaunchHandler}
+ * Default implementation of {@link com.epam.ta.reportportal.core.launch.DeleteLaunchHandler}
  *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
  * @author Pavel Bortnik
  */
 @Service
-public class DeleteLaunchHandler implements IDeleteLaunchHandler {
+public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch.DeleteLaunchHandler {
 
 	private ApplicationEventPublisher eventPublisher;
 

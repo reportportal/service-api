@@ -84,26 +84,28 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 //@PreAuthorize(ASSIGNED_TO_PROJECT)
 public class LaunchController {
 
-	@Autowired
-	private IStartLaunchHandler createLaunchMessageHandler;
-
-	@Autowired
-	private IFinishLaunchHandler finishLaunchMessageHandler;
-
-	@Autowired
-	private IDeleteLaunchHandler deleteLaunchMessageHandler;
-
-	@Autowired
-	private IGetLaunchHandler getLaunchMessageHandler;
-
-	@Autowired
-	private IUpdateLaunchHandler updateLaunchHandler;
+	private final StartLaunchHandler createLaunchMessageHandler;
+	private final FinishLaunchHandler finishLaunchMessageHandler;
+	private final DeleteLaunchHandler deleteLaunchMessageHandler;
+	private final GetLaunchHandler getLaunchMessageHandler;
+	private final UpdateLaunchHandler updateLaunchHandler;
+	private final MergeLaunchHandler mergeLaunchesHandler;
 
 	//	@Autowired
 	//	private IGetJasperReportHandler getJasperHandler;
 
+
 	@Autowired
-	private IMergeLaunchHandler mergeLaunchesHandler;
+	public LaunchController(StartLaunchHandler createLaunchMessageHandler, FinishLaunchHandler finishLaunchMessageHandler,
+			DeleteLaunchHandler deleteLaunchMessageHandler, GetLaunchHandler getLaunchMessageHandler,
+			UpdateLaunchHandler updateLaunchHandler, MergeLaunchHandler mergeLaunchesHandler) {
+		this.createLaunchMessageHandler = createLaunchMessageHandler;
+		this.finishLaunchMessageHandler = finishLaunchMessageHandler;
+		this.deleteLaunchMessageHandler = deleteLaunchMessageHandler;
+		this.getLaunchMessageHandler = getLaunchMessageHandler;
+		this.updateLaunchHandler = updateLaunchHandler;
+		this.mergeLaunchesHandler = mergeLaunchesHandler;
+	}
 
 	//	@Autowired
 	//	private ImportLaunchHandler importLaunchHandler;

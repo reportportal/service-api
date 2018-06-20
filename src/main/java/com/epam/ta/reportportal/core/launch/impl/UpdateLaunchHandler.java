@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.launch.IUpdateLaunchHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
@@ -48,13 +47,13 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Default implementation of {@link IUpdateLaunchHandler}
+ * Default implementation of {@link com.epam.ta.reportportal.core.launch.UpdateLaunchHandler}
  *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
  */
 @Service
-public class UpdateLaunchHandler implements IUpdateLaunchHandler {
+public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch.UpdateLaunchHandler {
 
 	private LaunchRepository launchRepository;
 

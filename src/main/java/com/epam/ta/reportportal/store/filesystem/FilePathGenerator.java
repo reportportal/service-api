@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Paths;
 import java.util.UUID;
 
 /**
@@ -55,9 +56,9 @@ public class FilePathGenerator {
 		String levelThree = uuid.substring(4, 6);
 		String tail = uuid.substring(6);
 
-		String result = "/" + dayOfYear + "/" + levelOne + "/" + levelTwo + "/" + levelThree + "/" + tail;
+		String result = Paths.get(String.valueOf(dayOfYear), levelOne, levelTwo, levelThree, tail).toString();
 
-		LOG.debug("File path generated: {}",  result);
+		LOG.debug("File path generated: {}", result);
 
 		return result;
 	}

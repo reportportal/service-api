@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.core.item.impl.TestItemUniqueIdGenerator;
-import com.epam.ta.reportportal.core.launch.IMergeLaunchHandler;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
@@ -36,7 +35,7 @@ import org.springframework.stereotype.Service;
  * @author Pavel_Bortnik
  */
 @Service
-public class MergeLaunchHandler implements IMergeLaunchHandler {
+public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.MergeLaunchHandler {
 
 	private TestItemRepository testItemRepository;
 

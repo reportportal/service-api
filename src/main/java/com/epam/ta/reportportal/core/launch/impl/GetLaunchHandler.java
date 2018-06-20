@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.launch.IGetLaunchHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.commons.querygen.Filter;
 import com.epam.ta.reportportal.store.commons.querygen.ProjectFilter;
@@ -43,7 +42,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
@@ -52,13 +50,13 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_FILTER_PARAM
 import static com.google.common.base.Predicates.equalTo;
 
 /**
- * Default implementation of {@link IGetLaunchHandler}
+ * Default implementation of {@link com.epam.ta.reportportal.core.launch.GetLaunchHandler}
  *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
  */
 @Service
-public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements IGetLaunchHandler {
+public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements com.epam.ta.reportportal.core.launch.GetLaunchHandler {
 
 	private final LaunchRepository launchRepository;
 	private final LaunchTagRepository launchTagRepository;

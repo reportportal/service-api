@@ -15,6 +15,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.TestExecutionListener;
 import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.xml.sax.InputSource;
@@ -22,7 +23,7 @@ import org.xml.sax.InputSource;
 import java.io.IOException;
 import java.sql.SQLException;
 
-@RunWith(SpringRunner.class)
+@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = InMemoryDbConfig.class, initializers = BaseDBTest.Initializer.class)
 @TestExecutionListeners(listeners = BaseDBTest.DatasetImportListener.class, mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
 @Ignore

@@ -35,7 +35,7 @@ import java.util.List;
  * @author Andrei_Kliashchonak
  */
 
-public interface IFinishLaunchHandler {
+public interface FinishLaunchHandler {
 
 	/**
 	 * Updates {@link Launch} instance

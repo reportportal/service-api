@@ -35,7 +35,7 @@ import java.util.List;
  * @author Andrei_Ramanchuk
  * @author Pavel Bortnik
  */
-public interface IUpdateLaunchHandler {
+public interface UpdateLaunchHandler {
 
 	/**
 	 * Update specified by id launch.

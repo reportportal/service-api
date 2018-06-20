@@ -22,34 +22,23 @@
 package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 
 /**
- * Delete Launch request handler
+ * Start Launch operation handler
  *
- * @author Andrei_Kliashchonak
- * @author Pavel Bortnik
+ * @author Andrei Varabyeu
  */
-
-public interface IDeleteLaunchHandler {
-
-	/**
-	 * Delete {@link com.epam.ta.reportportal.store.database.entity.launch.Launch} instance
-	 *
-	 * @param launchId    ID of launch
-	 * @param projectName Project Name
-	 * @param user        User
-	 * @return OperationCompletionRS
-	 */
-	OperationCompletionRS deleteLaunch(Long launchId, String projectName, ReportPortalUser user);
+public interface StartLaunchHandler {
 
 	/**
-	 * Bul launches delete.
+	 * Creates new launch for specified project
 	 *
-	 * @param ids         Launch ids
-	 * @param projectName Project name
-	 * @param user        User
-	 * @return OperationCompletionRS
+	 * @param user          ReportPortal user
+	 * @param project       Project name
+	 * @param startLaunchRQ Request Data
+	 * @return StartLaunchRS
 	 */
-	OperationCompletionRS deleteLaunches(Long[] ids, String projectName, ReportPortalUser user);
+	StartLaunchRS startLaunch(ReportPortalUser user, String project, StartLaunchRQ startLaunchRQ);
 }

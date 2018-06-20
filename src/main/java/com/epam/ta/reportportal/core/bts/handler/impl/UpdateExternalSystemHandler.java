@@ -102,7 +102,7 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 
 		bugTrackingSystemRepository.save(bugTrackingSystem);
 
-		//eventPublisher.publishEvent(new ExternalSystemUpdatedEvent(exist, principalName));
+		//eventPublisher.publishEvent(new IntegrationUpdatedEvent(exist, principalName));
 		return new OperationCompletionRS("ExternalSystem with ID = '" + id + "' is successfully updated.");
 	}
 

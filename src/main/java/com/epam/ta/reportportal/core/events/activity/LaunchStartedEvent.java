@@ -18,19 +18,22 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
+package com.epam.ta.reportportal.core.events.activity;
 
-package com.epam.ta.reportportal.core.launch;
-
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 
 /**
- * Merge launches handler in common one
- *
- * @author Pavel_Bortnik
+ * @author Andrei Varabyeu
  */
-public interface IMergeLaunchHandler {
+public class LaunchStartedEvent {
 
-	LaunchResource mergeLaunches(String projectName, String userName, MergeLaunchesRQ mergeLaunchesRQ);
+	private final Launch launch;
 
+	public LaunchStartedEvent(Launch launch) {
+		this.launch = launch;
+	}
+
+	public Launch getLaunch() {
+		return launch;
+	}
 }

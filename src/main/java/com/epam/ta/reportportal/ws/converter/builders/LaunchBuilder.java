@@ -1,20 +1,20 @@
 /*
  * Copyright 2016 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -40,11 +40,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.store.commons.EntityUtils.trimStrings;
-import static com.epam.ta.reportportal.store.commons.EntityUtils.update;
-import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.StreamSupport.stream;
 
 public class LaunchBuilder implements Supplier<Launch> {
 
@@ -65,7 +61,7 @@ public class LaunchBuilder implements Supplier<Launch> {
 		launch.setStatus(StatusEnum.IN_PROGRESS);
 		launch.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
 		addDescription(request.getDescription());
-		addTags(newHashSet(trimStrings(update(request.getTags()))));
+		addTags(request.getTags());
 		ofNullable(request.getMode()).ifPresent(it -> launch.setMode(LaunchModeEnum.valueOf(request.getMode().name())));
 		return this;
 	}
@@ -94,8 +90,11 @@ public class LaunchBuilder implements Supplier<Launch> {
 	}
 
 	public LaunchBuilder addTags(Set<String> tags) {
-		ofNullable(tags).ifPresent(it -> launch.setTags(
-				stream((trimStrings(update(it)).spliterator()), false).map(LaunchTag::new).collect(Collectors.toSet())));
+		ofNullable(tags).ifPresent(it -> launch.setTags(it.stream()
+				.filter(EntityUtils.NOT_EMPTY)
+				.map(EntityUtils.REPLACE_SEPARATOR)
+				.map(LaunchTag::new)
+				.collect(Collectors.toSet())));
 		return this;
 	}
 

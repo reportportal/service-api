@@ -27,10 +27,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.StreamSupport.stream;
 
 /**
  * Some useful utils for working with entities<br>
@@ -39,6 +38,9 @@ import static java.util.stream.StreamSupport.stream;
  * @author Andrei Varabyeu
  */
 public class EntityUtils {
+
+	private static final String OLD_SEPARATOR = ",";
+	private static final String NEW_SEPARATOR = "_";
 
 	private EntityUtils() {
 
@@ -55,6 +57,17 @@ public class EntityUtils {
 	};
 
 	/**
+	 * Remove leading and trailing spaces from list of string
+	 */
+	public static final Function<String, String> TRIM_FUNCTION = String::trim;
+	public static final Predicate<String> NOT_EMPTY = s -> !isNullOrEmpty(s);
+
+	/**
+	 * Convert declined symbols on allowed for WS and UI
+	 */
+	public static final Function<String, String> REPLACE_SEPARATOR = s -> s.replace(OLD_SEPARATOR, NEW_SEPARATOR);
+
+	/**
 	 * Normalize any ID for database ID fields, for example
 	 *
 	 * @param id ID to normalize
@@ -65,26 +78,4 @@ public class EntityUtils {
 		return Preconditions.checkNotNull(id, "Provided value shouldn't be null").toLowerCase();
 	}
 
-	/**
-	 * Remove leading and trailing spaces from list of string
-	 *
-	 * @param strings Strings to trim
-	 * @return String
-	 */
-	public static Iterable<String> trimStrings(Iterable<String> strings) {
-		Preconditions.checkNotNull(strings, "List of strings shouldn't be null");
-		return stream(strings.spliterator(), false).filter(string -> !isNullOrEmpty(string)).map(String::trim).collect(toList());
-	}
-
-	/**
-	 * Convert declined symbols on allowed for WS and UI
-	 *
-	 * @param input Input to be escaped
-	 * @return Updated input
-	 */
-	public static Iterable<String> update(Iterable<String> input) {
-		final String oldSeparator = ",";
-		final String newSeparator = "_";
-		return stream(input.spliterator(), false).map(string -> string.replace(oldSeparator, newSeparator)).collect(toList());
-	}
 }

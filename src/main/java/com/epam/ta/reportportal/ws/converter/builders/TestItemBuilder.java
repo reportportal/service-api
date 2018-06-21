@@ -1,20 +1,20 @@
 /*
  * Copyright 2016 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -40,11 +40,8 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.store.commons.EntityUtils.trimStrings;
-import static com.epam.ta.reportportal.store.commons.EntityUtils.update;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.StreamSupport.stream;
 
 public class TestItemBuilder implements Supplier<TestItem> {
 
@@ -101,8 +98,11 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	}
 
 	public TestItemBuilder addTags(Set<String> tags) {
-		ofNullable(tags).ifPresent(it -> testItem.setTags(
-				stream((trimStrings(update(it)).spliterator()), false).map(TestItemTag::new).collect(Collectors.toSet())));
+		ofNullable(tags).ifPresent(it -> testItem.setTags(it.stream()
+				.filter(EntityUtils.NOT_EMPTY)
+				.map(EntityUtils.REPLACE_SEPARATOR)
+				.map(TestItemTag::new)
+				.collect(Collectors.toSet())));
 		return this;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
@@ -21,11 +21,11 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
+import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.database.StatisticsDocumentHandler;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.aggregation.GroupingOperation;
 import com.epam.ta.reportportal.database.search.Filter;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.ImmutableMap;
@@ -35,12 +35,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader.RESULT;
 import static com.epam.ta.reportportal.core.widget.content.WidgetContentProvider.TO_UI_STYLE;
 
@@ -60,20 +58,33 @@ public class GroupingContentLoader implements IContentLoadingStrategy {
 	public Map<String, List<ChartObject>> loadContent(String projectName, Filter filter, Sort sorting, int quantity,
 			List<String> contentFields, List<String> metaDataFields, Map<String, List<String>> widgetOptions) {
 
-		GroupingOption groupingOption = GroupingOption.getByValue(widgetOptions.get(GROUPING_LAUNCHES).get(0));
-		GroupingOperation.GroupingPeriod groupingBy = GroupingOperation.GroupingPeriod.getByValue(widgetOptions.get(GROUPING_BY).get(0));
+		Optional<GroupingOption> groupingOption = GroupingOption.getByValue(widgetOptions.get(GROUPING_LAUNCHES).get(0));
+		Optional<GroupingOperation.GroupingPeriod> groupingBy = GroupingOperation.GroupingPeriod.getByValue(
+				widgetOptions.get(GROUPING_BY).get(0));
+
+		expect(groupingOption, Predicates.isPresent()).verify(ErrorType.INCORRECT_REQUEST,
+				"Incorrect grouping option. Supported are: " + Arrays.stream(GroupingOption.values())
+						.map(GroupingOption::getValue)
+						.collect(Collectors.joining(","))
+		);
+
+		expect(groupingBy, Predicates.isPresent()).verify(ErrorType.INCORRECT_REQUEST, "Incorrect grouping period. Supported are: " + Arrays
+				.stream(GroupingOperation.GroupingPeriod.values())
+				.map(GroupingOperation.GroupingPeriod::getValue)
+				.collect(Collectors.joining(",")));
 
 		List<String> fieldsForHandling = contentFields.stream().map(TO_UI_STYLE).collect(Collectors.toList());
 		fieldsForHandling.add("start_time");
+
 		StatisticsDocumentHandler handler = new StatisticsDocumentHandler(fieldsForHandling, metaDataFields);
 
 		List<DBObject> aggregationResults = Lists.newArrayList();
-		switch (groupingOption) {
+		switch (groupingOption.get()) {
 			case ALL:
-				aggregationResults = launchRepository.findGroupedBy(filter, contentFields, groupingBy, quantity);
+				aggregationResults = launchRepository.findGroupedBy(filter, contentFields, groupingBy.get(), quantity);
 				break;
 			case LATEST:
-				aggregationResults = launchRepository.findLatestGroupedBy(filter, contentFields, groupingBy, quantity);
+				aggregationResults = launchRepository.findLatestGroupedBy(filter, contentFields, groupingBy.get(), quantity);
 				break;
 		}
 		if (aggregationResults.isEmpty()) {
@@ -93,13 +104,12 @@ public class GroupingContentLoader implements IContentLoadingStrategy {
 			this.value = value;
 		}
 
-		private static GroupingOption getByValue(String value) {
-			return Arrays.stream(values())
-					.filter(it -> it.value.equalsIgnoreCase(value))
-					.findFirst()
-					.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
-							"Grouping widget option " + value + " is unsupported."
-					));
+		private static Optional<GroupingOption> getByValue(String value) {
+			return Arrays.stream(values()).filter(it -> it.value.equalsIgnoreCase(value)).findFirst();
+		}
+
+		public String getValue() {
+			return value;
 		}
 	}
 }

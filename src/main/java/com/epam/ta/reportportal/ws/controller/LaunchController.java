@@ -51,6 +51,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,6 +63,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -115,7 +118,7 @@ public class LaunchController {
 	@ResponseBody
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
-	//@PreAuthorize(ALLOWED_TO_REPORT)
+//	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS startLaunch(
 			@ApiParam(value = "Name of project launch starts under", required = true) @PathVariable String projectName,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
@@ -128,7 +131,7 @@ public class LaunchController {
 	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
-	//@PreAuthorize(ALLOWED_TO_REPORT)
+	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ApiOperation("Finish launch for specified project")
 	public OperationCompletionRS finishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
@@ -162,7 +165,7 @@ public class LaunchController {
 	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
-	//@PreAuthorize(ASSIGNED_TO_PROJECT)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Updates launch for specified project")
 	public OperationCompletionRS updateLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@RequestBody @Validated UpdateLaunchRQ updateLaunchRQ, @AuthenticationPrincipal ReportPortalUser user) {
@@ -210,7 +213,10 @@ public class LaunchController {
 	public Iterable<LaunchResource> getProjectLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
 			@SortFor(Launch.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
 		return getLaunchMessageHandler.getProjectLaunches(ProjectUtils.extractProjectDetails(user, projectName),
-				filter, pageable, user.getUsername());
+				filter,
+				pageable,
+				user.getUsername()
+		);
 	}
 
 	@RequestMapping(value = "/latest", method = GET)

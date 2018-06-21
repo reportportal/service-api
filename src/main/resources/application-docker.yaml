@@ -1,34 +1,8 @@
 server:
   port: 8080
 
-eureka:
-  instance:
-    hostname: ${HOSTNAME:api}
-  client:
-    serviceUrl:
-      defaultZone: http://registry:8761/eureka/
-
-security:
-  oauth2:
-    resource:
-      loadBalanced: true
-
 rp:
-  uat:
-    serviceUrl: http://uat:8080
-  analyzer:
-    url: http://analyzer:8080
-  mongo:
-    uri: mongodb://mongodb:27017
-    dbName: reportportal
-
-spring:
-  redis:
-    host: redis
-    port: 6379
-  cloud:
-    consul:
-      host: registry
-      discovery:
-        hostname: ${HOSTNAME:api}
-        prefer-ip-address: false
+  db:
+    url: jdbc:postgresql://postgresql:5432/reportportal?user=rpuser&password=rppass
+  amqp:
+    url: amqp://guest:guest@rabbitmq:5672

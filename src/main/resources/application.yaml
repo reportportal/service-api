@@ -1,10 +1,9 @@
-rp:
-  upload:
-    maxUploadSize: 128MB
-    maxFileSize: 64MB
-  analytics:
-    enableByDefault: true
+info:
+  build:
+    version: ${rp.api.version:4.0}
 spring:
+  application:
+    name: api
 #  quartz:
 #    # Use the MongoDB store
 #    org.quartz.jobStore.class: com.novemberain.quartz.mongodb.MongoDBJobStore
@@ -23,6 +22,10 @@ spring:
 #    org.quartz.jobStore.clusterCheckinInterval: "180000"
 #    org.quartz.scheduler.instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
 #    org.quartz.scheduler.instanceName: reportportal
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${rp.db.url}
   jpa:
     properties:
       hibernate:
@@ -31,67 +34,20 @@ spring:
     generate-ddl: false
     hibernate:
       ddl-auto: none
-  cloud:
-    consul:
-      host: localhost
-      port: 8500
-      discovery:
-        tags:
-          - urlprefix-${server.servlet.context-path:/}
-          - traefik.frontend.rule=PathPrefix:${server.servlet.context-path:/}
-          - statusPageUrlPath=${server.servlet.context-path}${management.contextPath}/info
-          - healthCheckUrlPath=${server.servlet.context-path}${management.contextPath}/info
-        healthCheckPath: ${server.servlet.context-path}/admin/health
-        register: false
-        instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
-        health-check-critical-timeout: 30s
-      enabled: false
-#eureka:
-#  instance:
-#    hostname: ${HOSTNAME:localhost}
-#    status-page-url-path: ${server.servlet.context-path}${management.contextPath}/info
-#    health-check-url-path: ${server.servlet.context-path}${management.contextPath}/health
-#  client:
-#    register-with-eureka: false
-#    enabled: false
+
+  rabbitmq:
+    addresses: ${rp.amqp.addresses}
 logging:
   level:
-    org.springframework.context.support: warn
+#    org.springframework.context.support: warn
 #    com.novemberain.quartz : debug
     org.springframework.security: debug
-    com.epam.ta.reportportal.exception.ReportPortalException: fatal
+#    com.epam.ta.reportportal.exception.ReportPortalException: fatal
     org.springframework.web.bind: fatal
-    com.epam.ta.reportportal.commons.exception.rest: fatal
+#    com.epam.ta.reportportal.commons.exception.rest: fatal
 #    org.jooq.tools.LoggerListener: debug
-    root: warn
-## Consul as service registry
----
-#spring:
-#  profiles: consul
-#  cloud:
-#    consul:
-#      enabled: true
-#      discovery:
-#        register: true
-#eureka:
-#  client:
-#    register-with-eureka: false
-#    enabled: false
+    root: info
 
-## Eureka as service registry
----
-#spring:
-#  profiles: eureka
-#  cloud:
-#    consul:
-#      enabled: false
-#      discovery:
-#        register: false
-#eureka:
-#  client:
-#    register-with-eureka: true
-#    enabled: true
----
 
 springfox:
   documentation:
@@ -100,7 +56,15 @@ springfox:
         path: /api-docs
 
 
-spring.datasource.driver-class-name: org.postgresql.Driver
-spring.datasource.username: rpuser
-spring.datasource.password: rppass
-spring.datasource.url: ${rp.db.url:jdbc:postgresql://localhost:5432/reportportal}
+#### Custom ReportPortal Properties ######
+##########################################
+rp:
+  amqp:
+    addresses: amqp://guest:guest@rabbitmq:5672
+  db:
+    url: jdbc:postgresql://postgresql:5432/reportportal?user=rpuser&password=rppass
+  upload:
+    maxUploadSize: 128MB
+    maxFileSize: 64MB
+  analytics:
+    enableByDefault: true

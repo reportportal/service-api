@@ -21,8 +21,14 @@
 
 package com.epam.ta.reportportal.core.bts;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
+import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
+import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
+import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Contains functionality for providing external system strategy by system name.
@@ -33,9 +39,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class StrategyProvider {
 
-	@Autowired
-	private ExternalSystemEurekaDelegate externalSystemStrategy;
-
 	/**
 	 * Validate external system name and provide strategy for interacting with
 	 * external system.
@@ -44,7 +47,33 @@ public class StrategyProvider {
 	 * @return
 	 */
 	public ExternalSystemStrategy getStrategy(String externalSystemName) {
-		externalSystemStrategy.checkAvailable(externalSystemName);
-		return externalSystemStrategy;
+		return new ExternalSystemStrategy() {
+			@Override
+			public boolean connectionTest(BugTrackingSystem system) {
+				return false;
+			}
+
+			@Override
+			public Optional<Ticket> getTicket(String id, BugTrackingSystem system) {
+				return Optional.empty();
+			}
+
+			@Override
+			public Ticket submitTicket(PostTicketRQ ticketRQ, BugTrackingSystem system) {
+				return null;
+			}
+
+			@Override
+			public List<PostFormField> getTicketFields(String issueType, BugTrackingSystem system) {
+				return null;
+			}
+
+			@Override
+			public List<String> getIssueTypes(BugTrackingSystem system) {
+				return null;
+			}
+		};
+		//		externalSystemStrategy.checkAvailable(externalSystemName);
+		//		return externalSystemStrategy;
 	}
 }

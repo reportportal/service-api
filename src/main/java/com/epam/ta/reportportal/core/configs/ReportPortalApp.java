@@ -38,25 +38,19 @@ package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.store.config.DatabaseConfiguration;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.servlet.MultipartAutoConfiguration;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.PropertySource;
 
 /**
  * Application Entry Point
  *
  * @author Andrei Varabyeu
  */
-@PropertySource(value = { "classpath:application.properties", "classpath:application.yaml" })
-@EnableAutoConfiguration(exclude = {
-		//		need to exclude, otherwise file upload won't work
-		MultipartAutoConfiguration.class
-
-})
-@Import({ MvcConfig.class, DatabaseConfiguration.class, JobsConfiguration.class })
-@ComponentScan("com.epam.ta.reportportal")
+@SpringBootApplication(scanBasePackages = { "com.epam.ta.reportportal" }, exclude = MultipartAutoConfiguration.class)
+@Configuration
+@Import({ DatabaseConfiguration.class })
 public class ReportPortalApp {
 
 	public static void main(String[] args) {

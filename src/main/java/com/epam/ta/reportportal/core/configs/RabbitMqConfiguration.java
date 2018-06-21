@@ -41,6 +41,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import java.net.URI;
+
 /**
  * @author Pavel Bortnik
  */
@@ -90,8 +92,8 @@ public class RabbitMqConfiguration {
 	}
 
 	@Bean
-	public ConnectionFactory connectionFactory(@Value("${spring.rabbitmq.host}") String host, @Value("${spring.rabbitmq.port}") Integer port) {
-		return new CachingConnectionFactory(host, port);
+	public ConnectionFactory connectionFactory(@Value("${rp.amqp.url}") URI addresses) {
+		return new CachingConnectionFactory(addresses);
 	}
 
 	@Bean

@@ -24,7 +24,6 @@ package com.epam.ta.reportportal.store.config;
 import com.epam.ta.reportportal.store.database.dao.ReportPortalRepositoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -51,14 +50,6 @@ import java.util.Properties;
 		"com.epam.ta.reportportal.store" }, repositoryBaseClass = ReportPortalRepositoryImpl.class, repositoryFactoryBeanClass = DatabaseConfiguration.RpRepoFactoryBean.class)
 @EnableTransactionManagement
 public class DatabaseConfiguration {
-
-	@Autowired
-	private DataSourceProperties properties;
-
-	@Bean
-	public DataSource dataSource() {
-		return properties.initializeDataSourceBuilder().build();
-	}
 
 	@Bean
 	public EntityManagerFactory entityManagerFactory(@Autowired DataSource dataSource) {

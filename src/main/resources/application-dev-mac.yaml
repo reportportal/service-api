@@ -1,13 +1,6 @@
 spring:
-  cloud:
-    consul:
-      discovery:
-        hostname: docker.for.mac.localhost
-      host: localhost
 rp:
-  mongo:
-    uri: mongodb://localhost:27017
-  uat:
-    serviceUrl: http://localhost:8080/uat
-  analyzer:
-    url: http://localhost:8080/analyzer
+  db:
+    url: jdbc:postgresql://localhost:5432/reportportal?user=rpuser&password=rppass
+  amqp:
+    url: amqp://guest:guest@localhost:5672

@@ -23,6 +23,8 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.configs.RabbitMqConfiguration;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
@@ -44,12 +46,12 @@ import org.springframework.stereotype.Service;
 class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLaunchHandler {
 
 	private final LaunchRepository launchRepository;
-	private final AmqpTemplate amqpTemplate;
+	private final MessageBus messageBus;
 
 	@Autowired
-	public StartLaunchHandler(LaunchRepository launchRepository, AmqpTemplate amqpTemplate) {
+	public StartLaunchHandler(LaunchRepository launchRepository, MessageBus messageBus) {
 		this.launchRepository = launchRepository;
-		this.amqpTemplate = amqpTemplate;
+		this.messageBus = messageBus;
 	}
 
 	@Override
@@ -64,7 +66,8 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 		launchRepository.saveAndFlush(launch);
 		launchRepository.refresh(launch);
 		//eventPublisher.publishEvent(new LaunchStartedEvent(launch));
-		amqpTemplate.convertAndSend(RabbitMqConfiguration.EXCHANGE_EVENTS, launch);
+
+		messageBus.publishActivity(new LaunchStartedEvent(launch));
 
 		return new StartLaunchRS(launch.getId(), launch.getNumber());
 	}

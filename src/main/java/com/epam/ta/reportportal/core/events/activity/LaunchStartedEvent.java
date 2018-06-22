@@ -20,14 +20,22 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.store.database.entity.Activity;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+
+import java.time.LocalDateTime;
 
 /**
  * @author Andrei Varabyeu
  */
-public class LaunchStartedEvent {
+public class LaunchStartedEvent implements ActivityEvent {
 
-	private final Launch launch;
+	private Launch launch;
+
+	public LaunchStartedEvent() {
+
+	}
 
 	public LaunchStartedEvent(Launch launch) {
 		this.launch = launch;
@@ -35,5 +43,16 @@ public class LaunchStartedEvent {
 
 	public Launch getLaunch() {
 		return launch;
+	}
+
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setUserId(this.launch.getUserId());
+		activity.setEntity(Activity.Entity.LAUNCH);
+		activity.setAction(ActivityAction.START_LAUNCH.getValue());
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setDetails(new LaunchFinishedEvent.LaunchActivityDetails(launch.getId()));
+		return activity;
 	}
 }

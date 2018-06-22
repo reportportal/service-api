@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.core.configs;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.MessageBusImpl;
 import com.epam.ta.reportportal.core.plugin.RabbitAwarePluginBox;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Service;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
@@ -73,6 +74,9 @@ public class RabbitMqConfiguration {
 
 	public static final String QUEUE_QUERY_RQ = "query-rq";
 
+	@Autowired
+	private ObjectMapper objectMapper;
+
 	@Bean
 	public Service pluginBox(@Autowired MessageBus messageBus) {
 		Service service = new RabbitAwarePluginBox(messageBus).startAsync();
@@ -88,7 +92,7 @@ public class RabbitMqConfiguration {
 
 	@Bean
 	public MessageConverter jsonMessageConverter() {
-		return new Jackson2JsonMessageConverter();
+		return new Jackson2JsonMessageConverter(objectMapper);
 	}
 
 	@Bean
@@ -207,7 +211,7 @@ public class RabbitMqConfiguration {
 
 	@Bean
 	public Binding eventsActivityBinding() {
-		return BindingBuilder.bind(activityExchange()).to(activityExchange()).with("*");
+		return BindingBuilder.bind(activityQueue()).to(activityExchange()).with(QUEUE_ACTIVITY);
 	}
 
 	@Bean

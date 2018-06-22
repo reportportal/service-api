@@ -1,6 +1,6 @@
 info:
   build:
-    version: ${rp.api.version:4.0}
+    version: ${rp.api.version:5.0}
 spring:
   application:
     name: api

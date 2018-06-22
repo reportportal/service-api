@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.configs.RabbitMqConfiguration;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
@@ -33,7 +32,6 @@ import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
-import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -65,7 +63,6 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 				.get();
 		launchRepository.saveAndFlush(launch);
 		launchRepository.refresh(launch);
-		//eventPublisher.publishEvent(new LaunchStartedEvent(launch));
 
 		messageBus.publishActivity(new LaunchStartedEvent(launch));
 

@@ -33,7 +33,7 @@ public class LaunchStartedEvent implements ActivityEvent {
 
 	private Launch launch;
 
-	public LaunchStartedEvent() {
+	LaunchStartedEvent() {
 
 	}
 

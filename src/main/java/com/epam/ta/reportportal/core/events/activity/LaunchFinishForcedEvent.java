@@ -31,12 +31,16 @@ import java.time.LocalDateTime;
  */
 public class LaunchFinishForcedEvent implements ActivityEvent {
 
-	private final Launch launch;
-	private final Long forcedBy;
+	private Launch launch;
+	private Long forcedBy;
 
 	public LaunchFinishForcedEvent(Launch launch, Long forcedBy) {
 		this.launch = launch;
 		this.forcedBy = forcedBy;
+	}
+
+	LaunchFinishForcedEvent() {
+
 	}
 
 	public Launch getLaunch() {
@@ -50,7 +54,7 @@ public class LaunchFinishForcedEvent implements ActivityEvent {
 	@Override
 	public Activity toActivity() {
 		Activity activity = new Activity();
-//		activity.setAction();
+		//		activity.setAction();
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setEntity(Activity.Entity.LAUNCH);
 		activity.setUserId(forcedBy);

@@ -30,6 +30,8 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 
 import java.util.Objects;
 
+import static java.util.Optional.ofNullable;
+
 /**
  * Base logic for project-related permissions. Validates project exists and
  * there is provided in {@link Authentication} user assigned to this project
@@ -51,6 +53,11 @@ abstract class BaseProjectPermission implements Permission {
 		OAuth2Authentication oauth = (OAuth2Authentication) authentication;
 		ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
 		BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
+
+		BusinessRule.expect(
+				ofNullable(rpUser.getProjectDetails()).map(d -> d.containsKey(projectName.toString())).orElse(false),
+				it -> it.equals(true)
+		).verify(ErrorType.ACCESS_DENIED);
 
 		ProjectRole role = rpUser.getProjectDetails().get(projectName.toString()).getProjectRole();
 		return checkAllowed(rpUser, projectName.toString(), role);

@@ -19,25 +19,13 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.core.widget.content.filter;
-
-import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
-import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.store.database.entity.widget.Widget;
-import org.springframework.stereotype.Service;
-
-import java.util.Map;
+package com.epam.ta.reportportal.core.widget.util;
 
 /**
  * @author Pavel Bortnik
  */
-@Service
-public class ActivityFilterStrategy implements BuildFilterStrategy {
+public class WidgetOptionsUtil {
 
-	@Override
-	public Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, ReportPortalUser.ProjectDetails projectDetails,
-			Widget widget) {
-		return null;
-	}
+	public static final String LAUNCH_NAME_FIELD = "launchNameFilter";
+
 }

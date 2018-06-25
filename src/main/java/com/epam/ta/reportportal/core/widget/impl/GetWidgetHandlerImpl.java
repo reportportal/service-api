@@ -81,7 +81,8 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 						"Unsupported widget type {}" + widget.getWidgetType()
 				));
 
-		Map<String, ?> content = buildFilterStrategy.get(widgetType).buildFilterAndLoadContent(loadContentStrategy.get(widgetType), widget);
+		Map<String, ?> content = buildFilterStrategy.get(widgetType)
+				.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget);
 		WidgetResource resource = WidgetConverter.TO_WIDGET_RESOURCE.apply(widget);
 		resource.setContent(content);
 		return resource;

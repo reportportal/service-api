@@ -21,7 +21,8 @@
 
 package com.epam.ta.reportportal.store.database.dao;
 
-import com.epam.ta.reportportal.store.commons.querygen.*;
+import com.epam.ta.reportportal.store.commons.querygen.Filter;
+import com.epam.ta.reportportal.store.commons.querygen.QueryBuilder;
 import com.epam.ta.reportportal.store.database.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.launch.ExecutionStatistics;
@@ -35,7 +36,6 @@ import com.google.common.collect.Lists;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.RecordMapper;
-import org.jooq.SelectQuery;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -64,16 +64,11 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 	);
 
 	private static final RecordMapper<? super Record, Launch> LAUNCH_MAPPER = r -> new Launch(r.get(JLaunch.LAUNCH.ID, Long.class),
-			r.get(JLaunch.LAUNCH.UUID, String.class),
-			r.get(JLaunch.LAUNCH.PROJECT_ID, Long.class),
-			r.get(JLaunch.LAUNCH.USER_ID, Long.class),
-			r.get(JLaunch.LAUNCH.NAME, String.class),
-			r.get(JLaunch.LAUNCH.DESCRIPTION, String.class),
-			r.get(JLaunch.LAUNCH.START_TIME, LocalDateTime.class),
-			r.get(JLaunch.LAUNCH.END_TIME, LocalDateTime.class),
-			r.get(JLaunch.LAUNCH.NUMBER, Long.class),
-			r.get(JLaunch.LAUNCH.LAST_MODIFIED, LocalDateTime.class),
-			r.get(JLaunch.LAUNCH.MODE, LaunchModeEnum.class),
+			r.get(JLaunch.LAUNCH.UUID, String.class), r.get(JLaunch.LAUNCH.PROJECT_ID, Long.class),
+			r.get(JLaunch.LAUNCH.USER_ID, Long.class), r.get(JLaunch.LAUNCH.NAME, String.class),
+			r.get(JLaunch.LAUNCH.DESCRIPTION, String.class), r.get(JLaunch.LAUNCH.START_TIME, LocalDateTime.class),
+			r.get(JLaunch.LAUNCH.END_TIME, LocalDateTime.class), r.get(JLaunch.LAUNCH.NUMBER, Long.class),
+			r.get(JLaunch.LAUNCH.LAST_MODIFIED, LocalDateTime.class), r.get(JLaunch.LAUNCH.MODE, LaunchModeEnum.class),
 			r.get(JLaunch.LAUNCH.STATUS, StatusEnum.class)
 	);
 
@@ -101,8 +96,7 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 				sum(when(tr.STATUS.eq(JStatusEnum.SKIPPED), 1).otherwise(0)).as("skipped"), DSL.count(tr.STATUS).as("total")
 		)
 				.from(l)
-				.leftJoin(ti)
-				.on(l.ID.eq(ti.LAUNCH_ID)).leftJoin(tr).on(ti.ITEM_ID.eq(tr.ITEM_ID)).where(ti.TYPE.eq(JTestItemTypeEnum.STEP))
+				.leftJoin(ti).on(l.ID.eq(ti.LAUNCH_ID)).leftJoin(tr).on(ti.ITEM_ID.eq(tr.ITEM_ID)).where(ti.TYPE.eq(JTestItemTypeEnum.STEP))
 				.groupBy(l.ID, l.PROJECT_ID, l.USER_ID, l.NAME, l.DESCRIPTION, l.START_TIME, l.NUMBER, l.LAST_MODIFIED, l.MODE)
 				.fetch(LAUNCH_FULL_MAPPER);
 	}
@@ -131,12 +125,7 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 		JLaunch l = LAUNCH.as("l");
 		JProject p = PROJECT.as("p");
 
-		return dsl.select()
-				.from(l)
-				.leftJoin(p).on(l.PROJECT_ID.eq(p.ID))
-				.where(p.ID.eq(projectId))
-				.and(l.NAME.like(value))
-				.fetch(l.NAME);
+		return dsl.select().from(l).leftJoin(p).on(l.PROJECT_ID.eq(p.ID)).where(p.ID.eq(projectId)).and(l.NAME.like(value)).fetch(l.NAME);
 	}
 
 	@Override
@@ -147,9 +136,7 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 		JUsers u = USERS.as("u");
 
 		return dsl.selectDistinct()
-				.from(l)
-				.leftJoin(p).on(l.PROJECT_ID.eq(p.ID))
-				.leftJoin(u).on(l.USER_ID.eq(u.ID))
+				.from(l).leftJoin(p).on(l.PROJECT_ID.eq(p.ID)).leftJoin(u).on(l.USER_ID.eq(u.ID))
 				.where(p.ID.eq(projectId))
 				.and(u.FULL_NAME.like("%" + value + "%"))
 				.and(l.MODE.eq(JLaunchModeEnum.valueOf(mode)))
@@ -169,9 +156,18 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 				.where(p.ID.eq(projectId))
 				.and(l.ID.in(ids))
 				.fetch(LAUNCH_MAPPER)
-				.stream()
-				.collect(Collectors.toMap(launch -> String.valueOf(launch.getId()),
-										  launch -> launch.getStatus().toString()));
+				.stream().collect(Collectors.toMap(launch -> String.valueOf(launch.getId()), launch -> launch.getStatus().toString()));
+	}
+
+	@Override
+	public Launch findLatestByName(String launchName) {
+		return dsl.select()
+				.distinctOn(LAUNCH.NAME)
+				.from(LAUNCH)
+				.where(LAUNCH.NAME.eq(launchName))
+				.orderBy(LAUNCH.NAME, LAUNCH.NUMBER.desc())
+				.fetchOne()
+				.into(Launch.class);
 	}
 
 	private List<LaunchFull> getLatest(List<LaunchFull> fullLaunches) {
@@ -184,14 +180,14 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 			latestLaunches.forEach(latest -> {
 				if (latest.getLaunch().getName().equals(full.getLaunch().getName())) {
 
-					if(latest.getLaunch().getNumber() < full.getLaunch().getNumber()) {
+					if (latest.getLaunch().getNumber() < full.getLaunch().getNumber()) {
 						latestLaunches.set(latestLaunches.indexOf(latest), full);
 						added.set(true);
 					}
 				}
 			});
 
-			if(!added.get()) {
+			if (!added.get()) {
 				latestLaunches.add(full);
 			}
 		});

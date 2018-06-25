@@ -21,9 +21,16 @@
 
 package com.epam.ta.reportportal.core.widget.content.filter;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.util.WidgetOptionsUtil;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.widget.Widget;
+import com.epam.ta.reportportal.store.database.entity.widget.WidgetOption;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -34,8 +41,27 @@ import java.util.Map;
 @Service
 public class PassingRateFilterStrategy implements BuildFilterStrategy {
 
+	private LaunchRepository launchRepository;
+
 	@Override
-	public Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, Widget widget) {
+	public Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, ReportPortalUser.ProjectDetails projectDetails,
+			Widget widget) {
+
+		WidgetOption launchNameOption = widget.getWidgetOptions()
+				.stream()
+				.filter(it -> WidgetOptionsUtil.LAUNCH_NAME_FIELD.equals(it.getWidgetOption()))
+				.findFirst()
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Incorrect widget options"));
+
+		String launchName = launchNameOption.getValues()
+				.stream()
+				.findFirst()
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
+						"Incorrect widget option. Name shouldn't be empty"
+				));
+
+		Launch latestByName = launchRepository.findLatestByName(launchName);
+
 		return null;
 	}
 }

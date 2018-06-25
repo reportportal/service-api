@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.widget.content.filter;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.store.database.entity.widget.Widget;
@@ -35,7 +36,8 @@ import java.util.Map;
 public class GeneralFilterStrategy implements BuildFilterStrategy {
 
 	@Override
-	public Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, Widget widget) {
+	public Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, ReportPortalUser.ProjectDetails projectDetails,
+			Widget widget) {
 
 		//TODO: Build predefined filter
 

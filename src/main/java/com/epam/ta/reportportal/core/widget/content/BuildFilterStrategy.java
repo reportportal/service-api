@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.store.database.entity.widget.Widget;
 
 import java.util.Map;
@@ -38,6 +39,7 @@ public interface BuildFilterStrategy {
 	 *
 	 * @return
 	 */
-	Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, Widget widget);
+	Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, ReportPortalUser.ProjectDetails projectDetails,
+			Widget widget);
 
 }

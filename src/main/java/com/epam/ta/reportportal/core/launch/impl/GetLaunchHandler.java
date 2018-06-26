@@ -29,7 +29,7 @@ import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.dao.LaunchTagRepository;
 import com.epam.ta.reportportal.store.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.LaunchModeEnum;
-import com.epam.ta.reportportal.store.database.entity.launch.LaunchFull;
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.project.Project;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
@@ -62,7 +62,8 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	private final LaunchTagRepository launchTagRepository;
 	private final ProjectRepository projectRepository;
 
-	public GetLaunchHandler(LaunchRepository launchRepository, LaunchTagRepository launchTagRepository, ProjectRepository projectRepository) {
+	public GetLaunchHandler(LaunchRepository launchRepository, LaunchTagRepository launchTagRepository,
+			ProjectRepository projectRepository) {
 
 		this.launchRepository = launchRepository;
 		this.launchTagRepository = launchTagRepository;
@@ -86,15 +87,15 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	//		return null;
 	//	}
 
-	public Iterable<LaunchResource> getProjectLaunches(ReportPortalUser.ProjectDetails projectDetails, Filter filter,
-			Pageable pageable, String userName) {
+	public Iterable<LaunchResource> getProjectLaunches(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable,
+			String userName) {
 
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, projectDetails.getProjectId()));
 
-		Page<LaunchFull> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getName()), pageable);
+		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getName()), pageable);
 
-		return PagedResourcesAssembler.pageConverter(LaunchConverter.FULL_TO_RESOURCE).apply(launches);
+		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
 	}
 
 	public com.epam.ta.reportportal.ws.model.Page<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails,
@@ -103,9 +104,9 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, projectDetails.getProjectId()));
 
-		Page<LaunchFull> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getName()), pageable);
+		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getName()), pageable);
 
-		return PagedResourcesAssembler.pageConverter(LaunchConverter.FULL_TO_RESOURCE).apply(launches);
+		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
 	}
 
 	@Override

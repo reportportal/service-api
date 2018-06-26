@@ -3,16 +3,14 @@
 */
 package com.epam.ta.reportportal.store.jooq.tables.records;
 
-
 import com.epam.ta.reportportal.store.jooq.tables.JDashboardWidget;
-
-import javax.annotation.Generated;
-
 import org.jooq.Field;
 import org.jooq.Record2;
 import org.jooq.Record7;
 import org.jooq.Row7;
 import org.jooq.impl.UpdatableRecordImpl;
+
+import javax.annotation.Generated;
 
 
 /**
@@ -28,7 +26,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JDashboardWidgetRecord extends UpdatableRecordImpl<JDashboardWidgetRecord> implements Record7<Integer, Integer, String, Integer, Integer, Integer, Integer> {
 
-    private static final long serialVersionUID = -316790538;
+	private static final long serialVersionUID = -1271381114;
 
     /**
      * Setter for <code>public.dashboard_widget.dashboard_id</code>.
@@ -73,31 +71,31 @@ public class JDashboardWidgetRecord extends UpdatableRecordImpl<JDashboardWidget
     }
 
     /**
-     * Setter for <code>public.dashboard_widget.wdiget_width</code>.
-     */
-    public void setWdigetWidth(Integer value) {
-        set(3, value);
+	 * Setter for <code>public.dashboard_widget.widget_width</code>.
+	 */
+	public void setWidgetWidth(Integer value) {
+		set(3, value);
     }
 
     /**
-     * Getter for <code>public.dashboard_widget.wdiget_width</code>.
-     */
-    public Integer getWdigetWidth() {
-        return (Integer) get(3);
+	 * Getter for <code>public.dashboard_widget.widget_width</code>.
+	 */
+	public Integer getWidgetWidth() {
+		return (Integer) get(3);
     }
 
     /**
-     * Setter for <code>public.dashboard_widget.widget_heigth</code>.
-     */
-    public void setWidgetHeigth(Integer value) {
-        set(4, value);
+	 * Setter for <code>public.dashboard_widget.widget_height</code>.
+	 */
+	public void setWidgetHeight(Integer value) {
+		set(4, value);
     }
 
     /**
-     * Getter for <code>public.dashboard_widget.widget_heigth</code>.
-     */
-    public Integer getWidgetHeigth() {
-        return (Integer) get(4);
+	 * Getter for <code>public.dashboard_widget.widget_height</code>.
+	 */
+	public Integer getWidgetHeight() {
+		return (Integer) get(4);
     }
 
     /**
@@ -189,16 +187,16 @@ public class JDashboardWidgetRecord extends UpdatableRecordImpl<JDashboardWidget
      */
     @Override
     public Field<Integer> field4() {
-        return JDashboardWidget.DASHBOARD_WIDGET.WDIGET_WIDTH;
-    }
+		return JDashboardWidget.DASHBOARD_WIDGET.WIDGET_WIDTH;
+	}
 
     /**
      * {@inheritDoc}
      */
     @Override
     public Field<Integer> field5() {
-        return JDashboardWidget.DASHBOARD_WIDGET.WIDGET_HEIGTH;
-    }
+		return JDashboardWidget.DASHBOARD_WIDGET.WIDGET_HEIGHT;
+	}
 
     /**
      * {@inheritDoc}
@@ -245,16 +243,16 @@ public class JDashboardWidgetRecord extends UpdatableRecordImpl<JDashboardWidget
      */
     @Override
     public Integer component4() {
-        return getWdigetWidth();
-    }
+		return getWidgetWidth();
+	}
 
     /**
      * {@inheritDoc}
      */
     @Override
     public Integer component5() {
-        return getWidgetHeigth();
-    }
+		return getWidgetHeight();
+	}
 
     /**
      * {@inheritDoc}
@@ -301,16 +299,16 @@ public class JDashboardWidgetRecord extends UpdatableRecordImpl<JDashboardWidget
      */
     @Override
     public Integer value4() {
-        return getWdigetWidth();
-    }
+		return getWidgetWidth();
+	}
 
     /**
      * {@inheritDoc}
      */
     @Override
     public Integer value5() {
-        return getWidgetHeigth();
-    }
+		return getWidgetHeight();
+	}
 
     /**
      * {@inheritDoc}
@@ -360,8 +358,8 @@ public class JDashboardWidgetRecord extends UpdatableRecordImpl<JDashboardWidget
      */
     @Override
     public JDashboardWidgetRecord value4(Integer value) {
-        setWdigetWidth(value);
-        return this;
+		setWidgetWidth(value);
+		return this;
     }
 
     /**
@@ -369,8 +367,8 @@ public class JDashboardWidgetRecord extends UpdatableRecordImpl<JDashboardWidget
      */
     @Override
     public JDashboardWidgetRecord value5(Integer value) {
-        setWidgetHeigth(value);
-        return this;
+		setWidgetHeight(value);
+		return this;
     }
 
     /**
@@ -420,15 +418,16 @@ public class JDashboardWidgetRecord extends UpdatableRecordImpl<JDashboardWidget
     /**
      * Create a detached, initialised JDashboardWidgetRecord
      */
-    public JDashboardWidgetRecord(Integer dashboardId, Integer widgetId, String widgetName, Integer wdigetWidth, Integer widgetHeigth, Integer widgetPositionX, Integer widgetPositionY) {
-        super(JDashboardWidget.DASHBOARD_WIDGET);
+	public JDashboardWidgetRecord(Integer dashboardId, Integer widgetId, String widgetName, Integer widgetWidth, Integer widgetHeight,
+			Integer widgetPositionX, Integer widgetPositionY) {
+		super(JDashboardWidget.DASHBOARD_WIDGET);
 
         set(0, dashboardId);
         set(1, widgetId);
         set(2, widgetName);
-        set(3, wdigetWidth);
-        set(4, widgetHeigth);
-        set(5, widgetPositionX);
+		set(3, widgetWidth);
+		set(4, widgetHeight);
+		set(5, widgetPositionX);
         set(6, widgetPositionY);
     }
 }

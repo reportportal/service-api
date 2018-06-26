@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.store.commons.Preconditions;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.store.database.entity.item.ExecutionStatistics;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
@@ -39,18 +40,20 @@ import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
+import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.store.database.entity.enums.StatusEnum.*;
-import static com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType.NOT_ISSUE_FLAG;
-import static com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType.TO_INVESTIGATE;
+import static com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
+import static com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -126,6 +129,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 		if (actualStatus.isPresent() && !hasChildren) {
 			testItemResults.setStatus(actualStatus.get());
+			testItemResults.setExecutionStatistics(getStatisticsByStatus(actualStatus.get()));
 		} else {
 			testItemResults.setStatus(testItemRepository.identifyStatus(testItem.getItemId()));
 		}
@@ -149,6 +153,18 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		}
 		testItemResults.setEndTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()));
 		return testItemResults;
+	}
+
+	private Set<ExecutionStatistics> getStatisticsByStatus(StatusEnum statusEnum) {
+		ExecutionStatistics status = new ExecutionStatistics();
+		status.setStatus(statusEnum.name());
+		status.setCounter(1);
+
+		ExecutionStatistics total = new ExecutionStatistics();
+		total.setStatus("TOTAL");
+		total.setCounter(1);
+
+		return Sets.newHashSet(status, total);
 	}
 
 	/**

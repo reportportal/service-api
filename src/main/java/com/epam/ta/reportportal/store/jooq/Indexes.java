@@ -3,43 +3,12 @@
 */
 package com.epam.ta.reportportal.store.jooq;
 
-
-import com.epam.ta.reportportal.store.jooq.tables.JActivity;
-import com.epam.ta.reportportal.store.jooq.tables.JBugTrackingSystem;
-import com.epam.ta.reportportal.store.jooq.tables.JDashboard;
-import com.epam.ta.reportportal.store.jooq.tables.JDashboardWidget;
-import com.epam.ta.reportportal.store.jooq.tables.JDefectFieldAllowedValue;
-import com.epam.ta.reportportal.store.jooq.tables.JDefectFormField;
-import com.epam.ta.reportportal.store.jooq.tables.JIntegration;
-import com.epam.ta.reportportal.store.jooq.tables.JIntegrationType;
-import com.epam.ta.reportportal.store.jooq.tables.JIssue;
-import com.epam.ta.reportportal.store.jooq.tables.JIssueTicket;
-import com.epam.ta.reportportal.store.jooq.tables.JIssueType;
-import com.epam.ta.reportportal.store.jooq.tables.JIssueTypeProjectConfiguration;
-import com.epam.ta.reportportal.store.jooq.tables.JItemTag;
-import com.epam.ta.reportportal.store.jooq.tables.JLaunch;
-import com.epam.ta.reportportal.store.jooq.tables.JLaunchTag;
-import com.epam.ta.reportportal.store.jooq.tables.JLog;
-import com.epam.ta.reportportal.store.jooq.tables.JOauthAccessToken;
-import com.epam.ta.reportportal.store.jooq.tables.JOauthRegistration;
-import com.epam.ta.reportportal.store.jooq.tables.JOauthRegistrationScope;
-import com.epam.ta.reportportal.store.jooq.tables.JProject;
-import com.epam.ta.reportportal.store.jooq.tables.JProjectConfiguration;
-import com.epam.ta.reportportal.store.jooq.tables.JProjectEmailConfiguration;
-import com.epam.ta.reportportal.store.jooq.tables.JProjectUser;
-import com.epam.ta.reportportal.store.jooq.tables.JServerSettings;
-import com.epam.ta.reportportal.store.jooq.tables.JTestItem;
-import com.epam.ta.reportportal.store.jooq.tables.JTestItemResults;
-import com.epam.ta.reportportal.store.jooq.tables.JTestItemStructure;
-import com.epam.ta.reportportal.store.jooq.tables.JTicket;
-import com.epam.ta.reportportal.store.jooq.tables.JUsers;
-import com.epam.ta.reportportal.store.jooq.tables.JWidget;
-
-import javax.annotation.Generated;
-
+import com.epam.ta.reportportal.store.jooq.tables.*;
 import org.jooq.Index;
 import org.jooq.OrderField;
 import org.jooq.impl.Internal;
+
+import javax.annotation.Generated;
 
 
 /**
@@ -68,10 +37,17 @@ public class Indexes {
     public static final Index WIDGET_ON_DASHBOARD_UNQ = Indexes0.WIDGET_ON_DASHBOARD_UNQ;
     public static final Index DEFECT_FIELD_ALLOWED_VALUE_PK = Indexes0.DEFECT_FIELD_ALLOWED_VALUE_PK;
     public static final Index DEFECT_FORM_FIELD_PK = Indexes0.DEFECT_FORM_FIELD_PK;
-    public static final Index INTEGRATION_PK = Indexes0.INTEGRATION_PK;
+	public static final Index PK_EXECUTION_STATISTICS = Indexes0.PK_EXECUTION_STATISTICS;
+	public static final Index FILTER_PK = Indexes0.FILTER_PK;
+	public static final Index FILTER_CONDITION_PK = Indexes0.FILTER_CONDITION_PK;
+	public static final Index FILTER_SORT_PK = Indexes0.FILTER_SORT_PK;
+	public static final Index INTEGRATION_PK = Indexes0.INTEGRATION_PK;
     public static final Index INTEGRATION_TYPE_PK = Indexes0.INTEGRATION_TYPE_PK;
-    public static final Index ISSUE_PK = Indexes0.ISSUE_PK;
-    public static final Index ISSUE_TICKET_PK = Indexes0.ISSUE_TICKET_PK;
+	public static final Index ISSUE_ISSUE_TYPE_KEY = Indexes0.ISSUE_ISSUE_TYPE_KEY;
+	public static final Index ISSUE_PK = Indexes0.ISSUE_PK;
+	public static final Index ISSUE_GROUP_PK = Indexes0.ISSUE_GROUP_PK;
+	public static final Index PK_ISSUE_STATISTICS = Indexes0.PK_ISSUE_STATISTICS;
+	public static final Index ISSUE_TICKET_PK = Indexes0.ISSUE_TICKET_PK;
     public static final Index ISSUE_TYPE_PK = Indexes0.ISSUE_TYPE_PK;
     public static final Index ISSUE_TYPE_PROJECT_CONFIGURATION_PK = Indexes0.ISSUE_TYPE_PROJECT_CONFIGURATION_PK;
     public static final Index ITEM_TAG_PK = Indexes0.ITEM_TAG_PK;
@@ -95,9 +71,12 @@ public class Indexes {
     public static final Index TEST_ITEM_STRUCTURE_PK = Indexes0.TEST_ITEM_STRUCTURE_PK;
     public static final Index TICKET_PK = Indexes0.TICKET_PK;
     public static final Index TICKET_TICKET_ID_KEY = Indexes0.TICKET_TICKET_ID_KEY;
-    public static final Index USERS_LOGIN_KEY = Indexes0.USERS_LOGIN_KEY;
+	public static final Index USER_FILTER_PK = Indexes0.USER_FILTER_PK;
+	public static final Index USERS_LOGIN_KEY = Indexes0.USERS_LOGIN_KEY;
     public static final Index USERS_PK = Indexes0.USERS_PK;
     public static final Index WIDGET_ID = Indexes0.WIDGET_ID;
+	public static final Index WIDGET_FILTER_PO = Indexes0.WIDGET_FILTER_PO;
+	public static final Index WIDGET_OPTION_PK = Indexes0.WIDGET_OPTION_PK;
 
     // -------------------------------------------------------------------------
     // [#1459] distribute members to avoid static initialisers > 64kb
@@ -113,10 +92,25 @@ public class Indexes {
         public static Index WIDGET_ON_DASHBOARD_UNQ = Internal.createIndex("widget_on_dashboard_unq", JDashboardWidget.DASHBOARD_WIDGET, new OrderField[] { JDashboardWidget.DASHBOARD_WIDGET.DASHBOARD_ID, JDashboardWidget.DASHBOARD_WIDGET.WIDGET_NAME }, true);
         public static Index DEFECT_FIELD_ALLOWED_VALUE_PK = Internal.createIndex("defect_field_allowed_value_pk", JDefectFieldAllowedValue.DEFECT_FIELD_ALLOWED_VALUE, new OrderField[] { JDefectFieldAllowedValue.DEFECT_FIELD_ALLOWED_VALUE.ID }, true);
         public static Index DEFECT_FORM_FIELD_PK = Internal.createIndex("defect_form_field_pk", JDefectFormField.DEFECT_FORM_FIELD, new OrderField[] { JDefectFormField.DEFECT_FORM_FIELD.ID }, true);
-        public static Index INTEGRATION_PK = Internal.createIndex("integration_pk", JIntegration.INTEGRATION, new OrderField[] { JIntegration.INTEGRATION.ID }, true);
+		public static Index PK_EXECUTION_STATISTICS = Internal.createIndex(
+				"pk_execution_statistics", JExecutionStatistics.EXECUTION_STATISTICS,
+				new OrderField[] { JExecutionStatistics.EXECUTION_STATISTICS.ID }, true
+		);
+		public static Index FILTER_PK = Internal.createIndex("filter_pk", JFilter.FILTER, new OrderField[] { JFilter.FILTER.ID }, true);
+		public static Index FILTER_CONDITION_PK = Internal.createIndex(
+				"filter_condition_pk", JFilterCondition.FILTER_CONDITION, new OrderField[] { JFilterCondition.FILTER_CONDITION.ID }, true);
+		public static Index FILTER_SORT_PK = Internal.createIndex(
+				"filter_sort_pk", JFilterSort.FILTER_SORT, new OrderField[] { JFilterSort.FILTER_SORT.ID }, true);
+		public static Index INTEGRATION_PK = Internal.createIndex("integration_pk", JIntegration.INTEGRATION, new OrderField[] { JIntegration.INTEGRATION.ID }, true);
         public static Index INTEGRATION_TYPE_PK = Internal.createIndex("integration_type_pk", JIntegrationType.INTEGRATION_TYPE, new OrderField[] { JIntegrationType.INTEGRATION_TYPE.ID }, true);
-        public static Index ISSUE_PK = Internal.createIndex("issue_pk", JIssue.ISSUE, new OrderField[] { JIssue.ISSUE.ISSUE_ID }, true);
-        public static Index ISSUE_TICKET_PK = Internal.createIndex("issue_ticket_pk", JIssueTicket.ISSUE_TICKET, new OrderField[] { JIssueTicket.ISSUE_TICKET.ISSUE_ID, JIssueTicket.ISSUE_TICKET.TICKET_ID }, true);
+		public static Index ISSUE_ISSUE_TYPE_KEY = Internal.createIndex(
+				"issue_issue_type_key", JIssue.ISSUE, new OrderField[] { JIssue.ISSUE.ISSUE_TYPE }, true);
+		public static Index ISSUE_PK = Internal.createIndex("issue_pk", JIssue.ISSUE, new OrderField[] { JIssue.ISSUE.ISSUE_ID }, true);
+		public static Index ISSUE_GROUP_PK = Internal.createIndex(
+				"issue_group_pk", JIssueGroup.ISSUE_GROUP, new OrderField[] { JIssueGroup.ISSUE_GROUP.ISSUE_GROUP_ID }, true);
+		public static Index PK_ISSUE_STATISTICS = Internal.createIndex(
+				"pk_issue_statistics", JIssueStatistics.ISSUE_STATISTICS, new OrderField[] { JIssueStatistics.ISSUE_STATISTICS.ID }, true);
+		public static Index ISSUE_TICKET_PK = Internal.createIndex("issue_ticket_pk", JIssueTicket.ISSUE_TICKET, new OrderField[] { JIssueTicket.ISSUE_TICKET.ISSUE_ID, JIssueTicket.ISSUE_TICKET.TICKET_ID }, true);
         public static Index ISSUE_TYPE_PK = Internal.createIndex("issue_type_pk", JIssueType.ISSUE_TYPE, new OrderField[] { JIssueType.ISSUE_TYPE.ID }, true);
         public static Index ISSUE_TYPE_PROJECT_CONFIGURATION_PK = Internal.createIndex("issue_type_project_configuration_pk", JIssueTypeProjectConfiguration.ISSUE_TYPE_PROJECT_CONFIGURATION, new OrderField[] { JIssueTypeProjectConfiguration.ISSUE_TYPE_PROJECT_CONFIGURATION.CONFIGURATION_ID, JIssueTypeProjectConfiguration.ISSUE_TYPE_PROJECT_CONFIGURATION.ISSUE_TYPE_ID }, true);
         public static Index ITEM_TAG_PK = Internal.createIndex("item_tag_pk", JItemTag.ITEM_TAG, new OrderField[] { JItemTag.ITEM_TAG.ID }, true);
@@ -140,8 +134,16 @@ public class Indexes {
         public static Index TEST_ITEM_STRUCTURE_PK = Internal.createIndex("test_item_structure_pk", JTestItemStructure.TEST_ITEM_STRUCTURE, new OrderField[] { JTestItemStructure.TEST_ITEM_STRUCTURE.ITEM_ID }, true);
         public static Index TICKET_PK = Internal.createIndex("ticket_pk", JTicket.TICKET, new OrderField[] { JTicket.TICKET.ID }, true);
         public static Index TICKET_TICKET_ID_KEY = Internal.createIndex("ticket_ticket_id_key", JTicket.TICKET, new OrderField[] { JTicket.TICKET.TICKET_ID }, true);
-        public static Index USERS_LOGIN_KEY = Internal.createIndex("users_login_key", JUsers.USERS, new OrderField[] { JUsers.USERS.LOGIN }, true);
+		public static Index USER_FILTER_PK = Internal.createIndex(
+				"user_filter_pk", JUserFilter.USER_FILTER, new OrderField[] { JUserFilter.USER_FILTER.ID }, true);
+		public static Index USERS_LOGIN_KEY = Internal.createIndex("users_login_key", JUsers.USERS, new OrderField[] { JUsers.USERS.LOGIN }, true);
         public static Index USERS_PK = Internal.createIndex("users_pk", JUsers.USERS, new OrderField[] { JUsers.USERS.ID }, true);
         public static Index WIDGET_ID = Internal.createIndex("widget_id", JWidget.WIDGET, new OrderField[] { JWidget.WIDGET.ID }, true);
-    }
+		public static Index WIDGET_FILTER_PO = Internal.createIndex(
+				"widget_filter_po", JWidgetFilter.WIDGET_FILTER,
+				new OrderField[] { JWidgetFilter.WIDGET_FILTER.WIDGET_ID, JWidgetFilter.WIDGET_FILTER.FILTER_ID }, true
+		);
+		public static Index WIDGET_OPTION_PK = Internal.createIndex(
+				"widget_option_pk", JWidgetOption.WIDGET_OPTION, new OrderField[] { JWidgetOption.WIDGET_OPTION.ID }, true);
+	}
 }

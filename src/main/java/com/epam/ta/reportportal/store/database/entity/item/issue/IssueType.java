@@ -22,13 +22,10 @@
 package com.epam.ta.reportportal.store.database.entity.item.issue;
 
 import com.epam.ta.reportportal.store.database.entity.enums.PostgreSQLEnumType;
-import com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType;
-import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * @author Pavel Bortnik
@@ -43,10 +40,9 @@ public class IssueType implements Serializable {
 	@Column(name = "id", unique = true, nullable = false, precision = 32)
 	private Integer id;
 
-	@Column(name = "issue_group", nullable = false)
-	@Enumerated(EnumType.STRING)
-	@Type(type = "pqsql_enum")
-	private TestItemIssueType testItemIssueType;
+	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@JoinColumn(name = "issue_group_id")
+	private IssueGroup issueGroup;
 
 	@Column(name = "locator", length = 64)
 	private String locator;
@@ -71,12 +67,12 @@ public class IssueType implements Serializable {
 		this.id = id;
 	}
 
-	public TestItemIssueType getTestItemIssueType() {
-		return testItemIssueType;
+	public IssueGroup getIssueGroup() {
+		return issueGroup;
 	}
 
-	public void setTestItemIssueType(TestItemIssueType testItemIssueType) {
-		this.testItemIssueType = testItemIssueType;
+	public void setIssueGroup(IssueGroup issueGroup) {
+		this.issueGroup = issueGroup;
 	}
 
 	public String getLocator() {
@@ -111,29 +107,4 @@ public class IssueType implements Serializable {
 		this.hexColor = hexColor;
 	}
 
-	@Override
-	public String toString() {
-		return "IssueType{" + "id=" + id + ", testItemIssueType=" + testItemIssueType + ", locator='" + locator + '\'' + ", longName='"
-				+ longName + '\'' + ", shortName='" + shortName + '\'' + ", hexColor='" + hexColor + '\'' + '}';
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		IssueType issueType = (IssueType) o;
-		return Objects.equals(id, issueType.id) && testItemIssueType == issueType.testItemIssueType && Objects.equals(
-				locator, issueType.locator) && Objects.equals(longName, issueType.longName) && Objects.equals(
-				shortName, issueType.shortName) && Objects.equals(
-				hexColor, issueType.hexColor);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(id, testItemIssueType, locator, longName, shortName, hexColor);
-	}
 }

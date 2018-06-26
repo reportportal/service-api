@@ -30,7 +30,7 @@ import org.hibernate.annotations.TypeDef;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author Pavel Bortnik
@@ -60,6 +60,10 @@ public class TestItemResults implements Serializable {
 	@PrimaryKeyJoinColumn
 	private IssueEntity issue;
 
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinColumn(name = "item_id")
+	private Set<ExecutionStatistics> executionStatistics;
+
 	@OneToOne
 	@MapsId
 	@JoinColumn(name = "item_id")
@@ -82,6 +86,14 @@ public class TestItemResults implements Serializable {
 
 	public void setStatus(StatusEnum status) {
 		this.status = status;
+	}
+
+	public Set<ExecutionStatistics> getExecutionStatistics() {
+		return executionStatistics;
+	}
+
+	public void setExecutionStatistics(Set<ExecutionStatistics> executionStatistics) {
+		this.executionStatistics = executionStatistics;
 	}
 
 	public LocalDateTime getEndTime() {
@@ -115,28 +127,5 @@ public class TestItemResults implements Serializable {
 	public void setIssue(IssueEntity issue) {
 		issue.setIssueId(this.itemId);
 		this.issue = issue;
-	}
-
-	@Override
-	public String toString() {
-		return "TestItemResults{" + "itemId=" + itemId + ", status=" + status + ", duration=" + duration + ", issue=" + issue + '}';
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		TestItemResults that = (TestItemResults) o;
-		return Objects.equals(itemId, that.itemId) && status == that.status && Objects.equals(duration, that.duration) && Objects.equals(
-				issue, that.issue) && Objects.equals(testItem, that.testItem);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(itemId, status, duration, issue);
 	}
 }

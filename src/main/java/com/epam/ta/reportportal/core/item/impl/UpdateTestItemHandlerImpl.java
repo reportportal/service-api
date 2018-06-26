@@ -272,6 +272,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @throws BusinessRuleViolationException when business rule violation
 	 */
 	private void verifyTestItem(TestItem item, Long id) throws BusinessRuleViolationException {
+		// TODO possible npe
 		expect(item.getTestItemResults().getStatus(), not(equalTo(StatusEnum.PASSED)),
 				Suppliers.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
 						StatusEnum.PASSED.name()

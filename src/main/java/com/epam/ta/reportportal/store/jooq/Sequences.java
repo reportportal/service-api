@@ -3,11 +3,10 @@
 */
 package com.epam.ta.reportportal.store.jooq;
 
-
-import javax.annotation.Generated;
-
 import org.jooq.Sequence;
 import org.jooq.impl.SequenceImpl;
+
+import javax.annotation.Generated;
 
 
 /**
@@ -48,6 +47,30 @@ public class Sequences {
      */
     public static final Sequence<Long> DEFECT_FORM_FIELD_ID_SEQ = new SequenceImpl<Long>("defect_form_field_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.BIGINT.nullable(false));
 
+	/**
+	 * The sequence <code>public.execution_statistics_id_seq</code>
+	 */
+	public static final Sequence<Long> EXECUTION_STATISTICS_ID_SEQ = new SequenceImpl<Long>(
+			"execution_statistics_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.BIGINT.nullable(false));
+
+	/**
+	 * The sequence <code>public.filter_condition_id_seq</code>
+	 */
+	public static final Sequence<Long> FILTER_CONDITION_ID_SEQ = new SequenceImpl<Long>(
+			"filter_condition_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.BIGINT.nullable(false));
+
+	/**
+	 * The sequence <code>public.filter_id_seq</code>
+	 */
+	public static final Sequence<Long> FILTER_ID_SEQ = new SequenceImpl<Long>(
+			"filter_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.BIGINT.nullable(false));
+
+	/**
+	 * The sequence <code>public.filter_sort_id_seq</code>
+	 */
+	public static final Sequence<Long> FILTER_SORT_ID_SEQ = new SequenceImpl<Long>(
+			"filter_sort_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.BIGINT.nullable(false));
+
     /**
      * The sequence <code>public.integration_id_seq</code>
      */
@@ -58,10 +81,23 @@ public class Sequences {
      */
     public static final Sequence<Integer> INTEGRATION_TYPE_ID_SEQ = new SequenceImpl<Integer>("integration_type_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.INTEGER.nullable(false));
 
+	/**
+	 * The sequence <code>public.issue_group_issue_group_id_seq</code>
+	 */
+	public static final Sequence<Short> ISSUE_GROUP_ISSUE_GROUP_ID_SEQ = new SequenceImpl<Short>(
+			"issue_group_issue_group_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.SMALLINT.nullable(false));
+
+	/**
+	 * The sequence <code>public.issue_statistics_id_seq</code>
+	 */
+	public static final Sequence<Long> ISSUE_STATISTICS_ID_SEQ = new SequenceImpl<Long>(
+			"issue_statistics_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.BIGINT.nullable(false));
+
     /**
      * The sequence <code>public.issue_type_id_seq</code>
      */
-    public static final Sequence<Integer> ISSUE_TYPE_ID_SEQ = new SequenceImpl<Integer>("issue_type_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.INTEGER.nullable(false));
+	public static final Sequence<Long> ISSUE_TYPE_ID_SEQ = new SequenceImpl<Long>(
+			"issue_type_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.BIGINT.nullable(false));
 
     /**
      * The sequence <code>public.item_tag_id_seq</code>
@@ -121,5 +157,12 @@ public class Sequences {
     /**
      * The sequence <code>public.widget_id_seq</code>
      */
-    public static final Sequence<Integer> WIDGET_ID_SEQ = new SequenceImpl<Integer>("widget_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.INTEGER.nullable(false));
+	public static final Sequence<Long> WIDGET_ID_SEQ = new SequenceImpl<Long>(
+			"widget_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.BIGINT.nullable(false));
+
+	/**
+	 * The sequence <code>public.widget_option_id_seq</code>
+	 */
+	public static final Sequence<Long> WIDGET_OPTION_ID_SEQ = new SequenceImpl<Long>(
+			"widget_option_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.BIGINT.nullable(false));
 }

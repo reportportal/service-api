@@ -61,13 +61,9 @@ import static org.jooq.impl.DSL.*;
 public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 
 	private static final RecordMapper<? super Record, TestItem> TEST_ITEM_MAPPER = r -> new TestItem(
-			r.get(JTestItem.TEST_ITEM.ITEM_ID, Long.class),
-			r.into(Launch.class),
-			r.get(JTestItem.TEST_ITEM.NAME, String.class),
-			r.get(JTestItem.TEST_ITEM.TYPE, TestItemTypeEnum.class),
-			r.get(JTestItem.TEST_ITEM.START_TIME, LocalDateTime.class),
-			r.get(JTestItem.TEST_ITEM.DESCRIPTION, String.class),
-			r.get(JTestItem.TEST_ITEM.LAST_MODIFIED, LocalDateTime.class),
+			r.get(JTestItem.TEST_ITEM.ITEM_ID, Long.class), r.into(Launch.class), r.get(JTestItem.TEST_ITEM.NAME, String.class),
+			r.get(JTestItem.TEST_ITEM.TYPE, TestItemTypeEnum.class), r.get(JTestItem.TEST_ITEM.START_TIME, LocalDateTime.class),
+			r.get(JTestItem.TEST_ITEM.DESCRIPTION, String.class), r.get(JTestItem.TEST_ITEM.LAST_MODIFIED, LocalDateTime.class),
 			r.get(JTestItem.TEST_ITEM.UNIQUE_ID, String.class)
 	);
 
@@ -137,8 +133,8 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 	@Override
 	public Boolean hasItemsInStatusByParent(Long parentId, StatusEnum... statuses) {
 		List<JStatusEnum> jStatuses = Arrays.stream(statuses).map(it -> JStatusEnum.valueOf(it.name())).collect(toList());
-		return dsl.fetchExists(commonTestItemDslSelect().where(TEST_ITEM_STRUCTURE.PARENT_ID.eq(parentId))
-				.and(TEST_ITEM_RESULTS.STATUS.in(jStatuses)));
+		return dsl.fetchExists(
+				commonTestItemDslSelect().where(TEST_ITEM_STRUCTURE.PARENT_ID.eq(parentId)).and(TEST_ITEM_RESULTS.STATUS.in(jStatuses)));
 	}
 
 	@Override
@@ -220,7 +216,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 	@Override
 	public Optional<IssueType> selectIssueTypeByLocator(Long projectId, String locator) {
 		return Optional.ofNullable(dsl.select()
-				.from(ISSUE_TYPE)
+				.from(ISSUE_TYPE).join(ISSUE_GROUP).on(ISSUE_TYPE.ISSUE_GROUP_ID.eq(ISSUE_GROUP.ISSUE_GROUP_ID))
 				.join(ISSUE_TYPE_PROJECT_CONFIGURATION)
 				.on(ISSUE_TYPE.ID.eq(ISSUE_TYPE_PROJECT_CONFIGURATION.ISSUE_TYPE_ID))
 				.where(ISSUE_TYPE_PROJECT_CONFIGURATION.CONFIGURATION_ID.eq(projectId))
@@ -252,7 +248,6 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 				.join(TEST_ITEM_RESULTS)
 				.on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_RESULTS.ITEM_ID));
 	}
-
 
 	@Override
 	public List<TestItem> findByFilter(Filter filter) {

@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.database.dao.LogRepository;
 import com.epam.ta.reportportal.store.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.log.Log;
@@ -43,7 +42,8 @@ import java.util.Objects;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.store.commons.Predicates.*;
+import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.store.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -111,7 +111,8 @@ public class DeleteLogHandler {
 		expect(log, notNull()).verify(ErrorType.LOG_NOT_FOUND, logId);
 
 		final TestItem testItem = log.getTestItem();
-		expect(testItem.getTestItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(TEST_ITEM_IS_NOT_FINISHED,
+		expect(testItem.getTestItemResults().getExecutionStatistics(), notNull()).verify(
+				TEST_ITEM_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete log '{}' when test item '{}' in progress state", log.getId(), testItem.getItemId())
 		);
 

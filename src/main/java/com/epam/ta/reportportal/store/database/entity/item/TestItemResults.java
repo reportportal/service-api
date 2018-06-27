@@ -64,6 +64,10 @@ public class TestItemResults implements Serializable {
 	@JoinColumn(name = "item_id")
 	private Set<ExecutionStatistics> executionStatistics;
 
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinColumn(name = "item_id")
+	private Set<IssueStatistics> issueStatistics;
+
 	@OneToOne
 	@MapsId
 	@JoinColumn(name = "item_id")
@@ -94,6 +98,14 @@ public class TestItemResults implements Serializable {
 
 	public void setExecutionStatistics(Set<ExecutionStatistics> executionStatistics) {
 		this.executionStatistics = executionStatistics;
+	}
+
+	public Set<IssueStatistics> getIssueStatistics() {
+		return issueStatistics;
+	}
+
+	public void setIssueStatistics(Set<IssueStatistics> issueStatistics) {
+		this.issueStatistics = issueStatistics;
 	}
 
 	public LocalDateTime getEndTime() {

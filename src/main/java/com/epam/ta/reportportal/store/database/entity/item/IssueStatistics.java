@@ -19,10 +19,9 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.store.database.entity.item.issue;
+package com.epam.ta.reportportal.store.database.entity.item;
 
-import com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueGroup;
-import org.hibernate.annotations.Type;
+import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -31,32 +30,41 @@ import java.io.Serializable;
  * @author Pavel Bortnik
  */
 @Entity
-@Table(name = "issue_group", schema = "public")
-public class IssueGroup implements Serializable {
+@Table(name = "issue_statistics", schema = "public")
+public class IssueStatistics implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "issue_group_id")
-	private Integer id;
+	private Long id;
 
-	@Column(name = "issue_group")
-	@Enumerated(EnumType.STRING)
-	@Type(type = "pqsql_enum")
-	private TestItemIssueGroup testItemIssueGroup;
+	@Column(name = "counter")
+	private Integer counter;
 
-	public Integer getId() {
+	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@JoinColumn(name = "issue_type_id")
+	private IssueType issueType;
+
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(Integer id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 
-	public TestItemIssueGroup getTestItemIssueGroup() {
-		return testItemIssueGroup;
+	public Integer getCounter() {
+		return counter;
 	}
 
-	public void setTestItemIssueGroup(TestItemIssueGroup testItemIssueGroup) {
-		this.testItemIssueGroup = testItemIssueGroup;
+	public void setCounter(Integer counter) {
+		this.counter = counter;
+	}
+
+	public IssueType getIssueType() {
+		return issueType;
+	}
+
+	public void setIssueType(IssueType issueType) {
+		this.issueType = issueType;
 	}
 }

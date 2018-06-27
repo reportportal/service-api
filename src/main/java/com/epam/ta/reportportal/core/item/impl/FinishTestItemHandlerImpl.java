@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.ExecutionStatistics;
+import com.epam.ta.reportportal.store.database.entity.item.IssueStatistics;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
@@ -46,7 +47,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
@@ -129,7 +129,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 		if (actualStatus.isPresent() && !hasChildren) {
 			testItemResults.setStatus(actualStatus.get());
-			testItemResults.setExecutionStatistics(getStatisticsByStatus(actualStatus.get()));
+			updateExecutionStatistics(testItemResults, actualStatus.get());
 		} else {
 			testItemResults.setStatus(testItemRepository.identifyStatus(testItem.getItemId()));
 		}
@@ -142,29 +142,32 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 					IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, locator);
 					IssueEntity issue = IssueConverter.TO_ISSUE.apply(providedIssue);
 					issue.setIssueType(issueType);
-					testItemResults.setIssue(issue);
+					updateIssueStatistics(testItemResults, issue);
 				}
 			} else {
 				IssueType toInvestigate = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, TO_INVESTIGATE.getLocator());
 				IssueEntity issue = new IssueEntity();
 				issue.setIssueType(toInvestigate);
-				testItemResults.setIssue(issue);
+				updateIssueStatistics(testItemResults, issue);
 			}
 		}
 		testItemResults.setEndTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()));
 		return testItemResults;
 	}
 
-	private Set<ExecutionStatistics> getStatisticsByStatus(StatusEnum statusEnum) {
-		ExecutionStatistics status = new ExecutionStatistics();
-		status.setStatus(statusEnum.name());
-		status.setCounter(1);
+	private void updateIssueStatistics(TestItemResults testItemResults, IssueEntity issue) {
+		testItemResults.setIssue(issue);
+		IssueStatistics issueStatistics = new IssueStatistics();
+		issueStatistics.setIssueType(issue.getIssueType());
+		issueStatistics.setCounter(1);
+		testItemResults.setIssueStatistics(Sets.newHashSet(issueStatistics));
+	}
 
-		ExecutionStatistics total = new ExecutionStatistics();
-		total.setStatus("TOTAL");
-		total.setCounter(1);
-
-		return Sets.newHashSet(status, total);
+	private void updateExecutionStatistics(TestItemResults testItemResults, StatusEnum statusEnum) {
+		ExecutionStatistics executionStatistics = new ExecutionStatistics();
+		executionStatistics.setStatus(statusEnum.name());
+		executionStatistics.setCounter(1);
+		testItemResults.setExecutionStatistics(Sets.newHashSet(executionStatistics));
 	}
 
 	/**

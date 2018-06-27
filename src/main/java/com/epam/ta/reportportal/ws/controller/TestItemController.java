@@ -26,11 +26,11 @@ import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
+import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
@@ -68,9 +68,6 @@ public class TestItemController {
 	private FinishTestItemHandler finishTestItemHandler;
 
 	@Autowired
-	private TestItemRepository testItemRepository;
-
-	@Autowired
 	private UpdateTestItemHandler updateTestItemHandler;
 
 	//	@Autowired
@@ -91,6 +88,20 @@ public class TestItemController {
 	public EntryCreatedRS startRootItem(@PathVariable String projectName, @RequestBody @Validated StartTestItemRQ startTestItemRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return startTestItemHandler.startRootItem(user, projectName, startTestItemRQ);
+	}
+
+	@Autowired
+	private TestItemRepository testItemRepository;
+
+	@GetMapping("/{itemId}")
+	@Transactional
+	@ResponseBody
+	@ResponseStatus(OK)
+	public TestItemResource getTestItem(@PathVariable String projectName, @PathVariable Long itemId,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		TestItem testItem = testItemRepository.findById(itemId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
+		return TestItemConverter.TO_RESOURCE.apply(testItem);
 	}
 
 	@PostMapping("/{parentItem}")

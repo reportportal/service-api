@@ -40,7 +40,7 @@ public class IssueType implements Serializable {
 	@Column(name = "id", unique = true, nullable = false, precision = 32)
 	private Integer id;
 
-	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	@JoinColumn(name = "issue_group_id")
 	private IssueGroup issueGroup;
 

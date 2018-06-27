@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemStructure;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
+import com.epam.ta.reportportal.store.database.entity.item.issue.IssueGroup;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.jooq.Tables;
@@ -66,6 +67,12 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 			r.get(JTestItem.TEST_ITEM.DESCRIPTION, String.class), r.get(JTestItem.TEST_ITEM.LAST_MODIFIED, LocalDateTime.class),
 			r.get(JTestItem.TEST_ITEM.UNIQUE_ID, String.class)
 	);
+
+	private static final RecordMapper<? super Record, IssueType> ISSUE_TYPE_MAPPER = r -> {
+		IssueType type = r.into(IssueType.class);
+		type.setIssueGroup(r.into(IssueGroup.class));
+		return type;
+	};
 
 	/**
 	 * Fetching record results into Test item object.
@@ -195,8 +202,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 				.join(ISSUE_TYPE_PROJECT_CONFIGURATION)
 				.on(PROJECT_CONFIGURATION.ID.eq(ISSUE_TYPE_PROJECT_CONFIGURATION.CONFIGURATION_ID))
 				.join(Tables.ISSUE_TYPE)
-				.on(ISSUE_TYPE_PROJECT_CONFIGURATION.ISSUE_TYPE_ID.eq(Tables.ISSUE_TYPE.ID))
-				.fetchInto(IssueType.class);
+				.on(ISSUE_TYPE_PROJECT_CONFIGURATION.ISSUE_TYPE_ID.eq(Tables.ISSUE_TYPE.ID)).fetch(ISSUE_TYPE_MAPPER);
 	}
 
 	@Override
@@ -216,12 +222,14 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 	@Override
 	public Optional<IssueType> selectIssueTypeByLocator(Long projectId, String locator) {
 		return Optional.ofNullable(dsl.select()
-				.from(ISSUE_TYPE).join(ISSUE_GROUP).on(ISSUE_TYPE.ISSUE_GROUP_ID.eq(ISSUE_GROUP.ISSUE_GROUP_ID))
+				.from(ISSUE_TYPE)
+				.join(ISSUE_GROUP)
+				.on(ISSUE_TYPE.ISSUE_GROUP_ID.eq(ISSUE_GROUP.ISSUE_GROUP_ID))
 				.join(ISSUE_TYPE_PROJECT_CONFIGURATION)
 				.on(ISSUE_TYPE.ID.eq(ISSUE_TYPE_PROJECT_CONFIGURATION.ISSUE_TYPE_ID))
 				.where(ISSUE_TYPE_PROJECT_CONFIGURATION.CONFIGURATION_ID.eq(projectId))
 				.and(ISSUE_TYPE.LOCATOR.eq(locator))
-				.fetchOneInto(IssueType.class));
+				.fetchOne(ISSUE_TYPE_MAPPER));
 	}
 
 	/**

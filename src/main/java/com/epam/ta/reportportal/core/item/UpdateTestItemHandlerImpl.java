@@ -125,8 +125,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				verifyTestItem(testItem, issueDefinition.getId());
 				TestItem before = SerializationUtils.clone(testItem);
 
-				//if item is updated then it is no longer auto analyzed
-				issueDefinition.getIssue().setAutoAnalyzed(false);
 				eventData.put(issueDefinition, testItem);
 
 				final Launch launch = launchRepository.findOne(testItem.getLaunchRef());

@@ -24,12 +24,14 @@ package com.epam.ta.reportportal.core.user.impl;
 import com.epam.ta.reportportal.auth.UatClient;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.user.IDeleteUserHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.database.personal.PersonalProjectService;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -57,6 +59,9 @@ public class DeleteUserHandler implements IDeleteUserHandler {
 	@Autowired
 	private UatClient uatClient;
 
+	@Autowired
+    private ILogIndexer logIndexer;
+
 	@Override
 	public OperationCompletionRS deleteUser(String userId, String principal) {
 		User user = userRepository.findOne(userId);
@@ -78,6 +83,8 @@ public class DeleteUserHandler implements IDeleteUserHandler {
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while deleting user", exp);
 		}
+
+		logIndexer.deleteIndex(user.getLogin().toLowerCase()+PersonalProjectService.PERSONAL_PROJECT_POSTFIX.toLowerCase());
 
 		return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
 	}

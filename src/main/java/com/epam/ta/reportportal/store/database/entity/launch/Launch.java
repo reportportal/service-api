@@ -25,6 +25,8 @@ import com.epam.ta.reportportal.store.commons.querygen.FilterCriteria;
 import com.epam.ta.reportportal.store.database.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.store.database.entity.enums.PostgreSQLEnumType;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.store.database.entity.item.ExecutionStatistics;
+import com.epam.ta.reportportal.store.database.entity.item.IssueStatistics;
 import com.google.common.collect.Sets;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -98,6 +100,14 @@ public class Launch implements Serializable {
 	@JoinColumn(name = "launch_id")
 	private Set<LaunchTag> tags = Sets.newHashSet();
 
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinColumn(name = "launch_id")
+	private Set<ExecutionStatistics> executionStatistics;
+
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinColumn(name = "launch_id")
+	private Set<IssueStatistics> issueStatistics;
+
 	public Set<LaunchTag> getTags() {
 		return tags;
 	}
@@ -148,6 +158,22 @@ public class Launch implements Serializable {
 
 	public void setProjectId(Long projectId) {
 		this.projectId = projectId;
+	}
+
+	public Set<ExecutionStatistics> getExecutionStatistics() {
+		return executionStatistics;
+	}
+
+	public void setExecutionStatistics(Set<ExecutionStatistics> executionStatistics) {
+		this.executionStatistics = executionStatistics;
+	}
+
+	public Set<IssueStatistics> getIssueStatistics() {
+		return issueStatistics;
+	}
+
+	public void setIssueStatistics(Set<IssueStatistics> issueStatistics) {
+		this.issueStatistics = issueStatistics;
 	}
 
 	public Long getUserId() {

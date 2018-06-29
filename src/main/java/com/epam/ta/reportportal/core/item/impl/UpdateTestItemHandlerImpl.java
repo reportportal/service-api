@@ -132,8 +132,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						.addIgnoreFlag(issue.getIgnoreAnalyzer())
 						.addAutoAnalyzedFlag(false)
 						.get();
-
 				testItem.getTestItemResults().setIssue(issueEntity);
+				testItem.getTestItemResults().getIssueStatistics().forEach(it -> it.setIssueType(issueType));
 
 				//TODO EXTERNAL SYSTEM LOGIC, ANALYZER LOGIC
 				testItemRepository.save(testItem);

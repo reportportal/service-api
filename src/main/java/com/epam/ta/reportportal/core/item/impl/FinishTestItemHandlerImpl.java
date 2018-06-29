@@ -165,8 +165,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private void updateExecutionStatistics(TestItemResults testItemResults, StatusEnum statusEnum) {
 		ExecutionStatistics executionStatistics = new ExecutionStatistics();
-		executionStatistics.setStatus(statusEnum.name());
+		executionStatistics.setStatus(statusEnum.getExecutionCounterField());
 		executionStatistics.setCounter(1);
+		executionStatistics.setPositive(statusEnum.isPositive());
 		testItemResults.setExecutionStatistics(Sets.newHashSet(executionStatistics));
 	}
 

@@ -25,11 +25,8 @@ import com.epam.ta.reportportal.store.database.entity.item.ExecutionStatistics;
 import com.epam.ta.reportportal.store.database.entity.item.IssueStatistics;
 import com.epam.ta.reportportal.ws.model.statistics.Statistics;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -43,18 +40,12 @@ public final class StatisticsConverter {
 
 	public static final BiFunction<Set<IssueStatistics>, Set<ExecutionStatistics>, Statistics> TO_RESOURCE = (issue, execution) -> {
 		Statistics statistics = new Statistics();
-		statistics.setDefects(issue.stream()
-				.collect(Collectors.toMap(it -> it.getIssueType().getIssueGroup().getTestItemIssueGroup().getValue(),
-						StatisticsConverter.TO_ISSUE
-				)));
+		statistics.setDefects(issue.stream().filter(it -> it.getCounter() > 0).collect(Collectors.groupingBy(
+				it -> it.getIssueType().getIssueGroup().getTestItemIssueGroup().getValue(),
+				Collectors.groupingBy(it -> it.getIssueType().getLocator(), Collectors.summingInt(IssueStatistics::getCounter))
+		)));
 		statistics.setExecutions(
 				execution.stream().collect(Collectors.toMap(ExecutionStatistics::getStatus, ExecutionStatistics::getCounter)));
 		return statistics;
-	};
-
-	public static final Function<IssueStatistics, Map<String, Integer>> TO_ISSUE = i -> {
-		Map<String, Integer> res = new HashMap<>(1);
-		res.put(i.getIssueType().getLocator(), i.getCounter());
-		return res;
 	};
 }

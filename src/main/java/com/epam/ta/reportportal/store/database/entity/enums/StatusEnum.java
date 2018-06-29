@@ -21,36 +21,40 @@
 
 package com.epam.ta.reportportal.store.database.entity.enums;
 
-
 import java.util.Arrays;
 import java.util.Optional;
 
 public enum StatusEnum {
 
 	//@formatter:off
-	IN_PROGRESS(""),
-	PASSED("passed"),
-	FAILED("failed"),
-	STOPPED("stopped"), //status for manually stopped launches
-	SKIPPED("skipped"),
-	INTERRUPTED("failed"),
-	RESETED("reseted"), //status for items with deleted descendants
-	CANCELLED("cancelled"); //soupUI specific status
+	IN_PROGRESS("", false),
+	PASSED("passed", true),
+	FAILED("failed", false),
+	STOPPED("stopped", false), //status for manually stopped launches
+	SKIPPED("skipped", false),
+	INTERRUPTED("failed", false),
+	//RESETED("reseted"), //status for items with deleted descendants
+	CANCELLED("cancelled", false); //soupUI specific status
 	//@formatter:on
 
 	private final String executionCounterField;
 
-	StatusEnum(String executionCounterField) {
+	private final boolean positive;
+
+	StatusEnum(String executionCounterField, boolean isPositive) {
 		this.executionCounterField = executionCounterField;
+		this.positive = isPositive;
 	}
 
 	public static Optional<StatusEnum> fromValue(String value) {
 		return Arrays.stream(StatusEnum.values()).filter(status -> status.name().equalsIgnoreCase(value)).findAny();
 	}
 
-	//	@Override
-	//	public String awareStatisticsField() {
-	//		return executionCounterField;
-	//	}
+	public String getExecutionCounterField() {
+		return executionCounterField;
+	}
 
+	public boolean isPositive() {
+		return positive;
+	}
 }

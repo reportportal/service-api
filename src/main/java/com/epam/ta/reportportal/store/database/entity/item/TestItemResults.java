@@ -60,11 +60,11 @@ public class TestItemResults implements Serializable {
 	@PrimaryKeyJoinColumn
 	private IssueEntity issue;
 
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	@JoinColumn(name = "item_id")
+	@OneToMany(fetch = FetchType.LAZY)
+	@JoinColumn(name = "item_id", insertable = false, updatable = false)
 	private Set<ExecutionStatistics> executionStatistics;
 
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToMany(fetch = FetchType.LAZY)
 	@JoinColumn(name = "item_id")
 	private Set<IssueStatistics> issueStatistics;
 

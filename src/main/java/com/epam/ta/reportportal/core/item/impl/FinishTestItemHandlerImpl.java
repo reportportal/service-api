@@ -28,8 +28,6 @@ import com.epam.ta.reportportal.store.commons.Preconditions;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.store.database.entity.item.ExecutionStatistics;
-import com.epam.ta.reportportal.store.database.entity.item.IssueStatistics;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
@@ -41,7 +39,6 @@ import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
-import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -129,7 +126,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 		if (actualStatus.isPresent() && !hasChildren) {
 			testItemResults.setStatus(actualStatus.get());
-			updateExecutionStatistics(testItemResults, actualStatus.get());
 		} else {
 			testItemResults.setStatus(testItemRepository.identifyStatus(testItem.getItemId()));
 		}
@@ -142,33 +138,15 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 					IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, locator);
 					IssueEntity issue = IssueConverter.TO_ISSUE.apply(providedIssue);
 					issue.setIssueType(issueType);
-					updateIssueStatistics(testItemResults, issue);
 				}
 			} else {
 				IssueType toInvestigate = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, TO_INVESTIGATE.getLocator());
 				IssueEntity issue = new IssueEntity();
 				issue.setIssueType(toInvestigate);
-				updateIssueStatistics(testItemResults, issue);
 			}
 		}
 		testItemResults.setEndTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()));
 		return testItemResults;
-	}
-
-	private void updateIssueStatistics(TestItemResults testItemResults, IssueEntity issue) {
-		testItemResults.setIssue(issue);
-		IssueStatistics issueStatistics = new IssueStatistics();
-		issueStatistics.setIssueType(issue.getIssueType());
-		issueStatistics.setCounter(1);
-		testItemResults.setIssueStatistics(Sets.newHashSet(issueStatistics));
-	}
-
-	private void updateExecutionStatistics(TestItemResults testItemResults, StatusEnum statusEnum) {
-		ExecutionStatistics executionStatistics = new ExecutionStatistics();
-		executionStatistics.setStatus(statusEnum.getExecutionCounterField());
-		executionStatistics.setCounter(1);
-		executionStatistics.setPositive(statusEnum.isPositive());
-		testItemResults.setExecutionStatistics(Sets.newHashSet(executionStatistics));
 	}
 
 	/**

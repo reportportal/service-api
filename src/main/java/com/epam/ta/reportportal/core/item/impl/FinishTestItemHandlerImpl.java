@@ -120,7 +120,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @return TestItemResults object
 	 */
 	private TestItemResults processItemResults(Long projectId, TestItem testItem, FinishTestItemRQ finishExecutionRQ, boolean hasChildren) {
-		TestItemResults testItemResults = Optional.ofNullable(testItem.getTestItemResults()).orElse(new TestItemResults());
+		TestItemResults testItemResults = Optional.ofNullable(testItem.getItemStructure().getItemResults()).orElse(new TestItemResults());
 		Optional<StatusEnum> actualStatus = fromValue(finishExecutionRQ.getStatus());
 		Issue providedIssue = finishExecutionRQ.getIssue();
 
@@ -163,7 +163,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		Launch launch = Optional.ofNullable(testItem.getLaunch()).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
 		expect(user.getUserId(), equalTo(launch.getUserId())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not launch owner.");
 
-		expect(testItem.getTestItemResults().getStatus(), Preconditions.statusIn(IN_PROGRESS)).verify(
+		expect(testItem.getItemStructure().getItemResults().getStatus(), Preconditions.statusIn(IN_PROGRESS)).verify(
 				REPORTING_ITEM_ALREADY_FINISHED, testItem.getItemId());
 
 		List<TestItem> items = testItemRepository.selectItemsInStatusByParent(testItem.getItemId(), IN_PROGRESS);

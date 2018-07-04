@@ -56,7 +56,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 
 	public TestItemBuilder(TestItem testItem) {
 		this.testItem = testItem;
-		this.structure = testItem.getTestItemStructure();
+		this.structure = testItem.getItemStructure();
 	}
 
 	public TestItemBuilder addStartItemRequest(StartTestItemRQ rq) {
@@ -64,9 +64,9 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		testItem.setName(rq.getName().trim());
 		testItem.setUniqueId(rq.getUniqueId());
 
-		TestItemResults testItemResults = ofNullable(testItem.getTestItemResults()).orElse(new TestItemResults());
+		TestItemResults testItemResults = ofNullable(testItem.getItemStructure().getItemResults()).orElse(new TestItemResults());
 		testItemResults.setStatus(StatusEnum.IN_PROGRESS);
-		testItem.setTestItemResults(testItemResults);
+		testItem.getItemStructure().setItemResults(testItemResults);
 
 		addDescription(rq.getDescription());
 		addTags(rq.getTags());
@@ -108,17 +108,17 @@ public class TestItemBuilder implements Supplier<TestItem> {
 
 	public TestItemBuilder addTestItemResults(TestItemResults testItemResults) {
 		checkNotNull(testItemResults, "Provided value shouldn't be null");
-		testItem.setTestItemResults(testItemResults);
+		testItem.getItemStructure().setItemResults(testItemResults);
 		addDuration(testItemResults.getEndTime());
 		return this;
 	}
 
 	public TestItemBuilder addDuration(LocalDateTime endTime) {
 		checkNotNull(endTime, "Provided value shouldn't be null");
-		checkNotNull(testItem.getTestItemResults(), "Test item results shouldn't be null");
+		checkNotNull(testItem.getItemStructure().getItemResults(), "Test item results shouldn't be null");
 
 		//converts to seconds
-		testItem.getTestItemResults().setDuration(ChronoUnit.MILLIS.between(testItem.getStartTime(), endTime) / 1000d);
+		testItem.getItemStructure().getItemResults().setDuration(ChronoUnit.MILLIS.between(testItem.getStartTime(), endTime) / 1000d);
 		return this;
 	}
 
@@ -136,7 +136,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 
 	@Override
 	public TestItem get() {
-		testItem.setTestItemStructure(structure);
+		testItem.setItemStructure(structure);
 		return this.testItem;
 	}
 

@@ -37,12 +37,11 @@ import java.util.Set;
  */
 @Entity
 @TypeDef(name = "pqsql_enum", typeClass = PostgreSQLEnumType.class)
-@Table(name = "test_item_results", schema = "public", indexes = {
-		@Index(name = "test_item_results_pk", unique = true, columnList = "item_id ASC") })
+@Table(name = "test_item_results", schema = "public")
 public class TestItemResults implements Serializable {
 
 	@Id
-	@Column(name = "item_id", unique = true, nullable = false, precision = 64)
+	@Column(name = "result_id", unique = true, nullable = false, precision = 64)
 	private Long itemId;
 
 	@Column(name = "status", nullable = false)
@@ -60,6 +59,9 @@ public class TestItemResults implements Serializable {
 	@PrimaryKeyJoinColumn
 	private IssueEntity issue;
 
+	@OneToOne(cascade = CascadeType.ALL)
+	private TestItemStructure itemStructure;
+
 	@OneToMany(fetch = FetchType.LAZY)
 	@JoinColumn(name = "item_id", insertable = false, updatable = false)
 	private Set<ExecutionStatistics> executionStatistics;
@@ -67,11 +69,6 @@ public class TestItemResults implements Serializable {
 	@OneToMany(fetch = FetchType.LAZY)
 	@JoinColumn(name = "item_id")
 	private Set<IssueStatistics> issueStatistics;
-
-	@OneToOne
-	@MapsId
-	@JoinColumn(name = "item_id")
-	private TestItem testItem;
 
 	public TestItemResults() {
 	}
@@ -124,14 +121,6 @@ public class TestItemResults implements Serializable {
 		this.duration = duration;
 	}
 
-	public TestItem getTestItem() {
-		return testItem;
-	}
-
-	public void setTestItem(TestItem testItem) {
-		this.testItem = testItem;
-	}
-
 	public IssueEntity getIssue() {
 		return issue;
 	}
@@ -139,5 +128,13 @@ public class TestItemResults implements Serializable {
 	public void setIssue(IssueEntity issue) {
 		issue.setIssueId(this.itemId);
 		this.issue = issue;
+	}
+
+	public TestItemStructure getItemStructure() {
+		return itemStructure;
+	}
+
+	public void setItemStructure(TestItemStructure itemStructure) {
+		this.itemStructure = itemStructure;
 	}
 }

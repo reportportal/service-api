@@ -82,7 +82,8 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	}
 
 	private void validate(TestItem testItem, ReportPortalUser user, String projectName) {
-		expect(testItem.getTestItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(TEST_ITEM_IS_NOT_FINISHED,
+		expect(testItem.getItemStructure().getItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(
+				TEST_ITEM_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId())
 		);
 		Launch launch = testItem.getLaunch();

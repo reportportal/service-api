@@ -111,7 +111,8 @@ public class DeleteLogHandler {
 		expect(log, notNull()).verify(ErrorType.LOG_NOT_FOUND, logId);
 
 		final TestItem testItem = log.getTestItem();
-		expect(testItem.getTestItemResults().getExecutionStatistics(), notNull()).verify(
+
+		expect(testItem.getItemStructure().getItemResults().getExecutionStatistics(), notNull()).verify(
 				TEST_ITEM_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete log '{}' when test item '{}' in progress state", log.getId(), testItem.getItemId())
 		);

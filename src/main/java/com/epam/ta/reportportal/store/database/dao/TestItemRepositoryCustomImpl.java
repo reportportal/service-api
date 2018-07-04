@@ -27,8 +27,6 @@ import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.store.database.entity.item.Parameter;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
-import com.epam.ta.reportportal.store.database.entity.item.TestItemResults;
-import com.epam.ta.reportportal.store.database.entity.item.TestItemStructure;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueGroup;
 import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
@@ -79,8 +77,8 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 	 */
 	private static final RecordMapper<? super Record, TestItem> TEST_ITEM_FETCH = r -> {
 		TestItem testItem = r.into(TestItem.class);
-		testItem.setTestItemStructure(r.into(TestItemStructure.class));
-		testItem.setTestItemResults(r.into(TestItemResults.class));
+		//		testItem.setTestItemStructure(r.into(TestItemStructure.class));
+		//		testItem.setTestItemResults(r.into(TestItemResults.class));
 		return testItem;
 	};
 
@@ -165,7 +163,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 				.and(ISSUE_TYPE.LOCATOR.eq(issueType))
 				.fetch(r -> {
 					TestItem item = TEST_ITEM_FETCH.map(r);
-					item.getTestItemResults().setIssue(r.into(IssueEntity.class));
+					item.getItemStructure().getItemResults().setIssue(r.into(IssueEntity.class));
 					return item;
 				});
 	}

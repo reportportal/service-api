@@ -35,7 +35,6 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -89,11 +88,8 @@ public class TestItem implements Serializable {
 	@JoinColumn(name = "item_id")
 	private Set<Log> logs = Sets.newHashSet();
 
-	@OneToOne(mappedBy = "testItem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private TestItemStructure testItemStructure;
-
-	@OneToOne(mappedBy = "testItem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private TestItemResults testItemResults;
+	@OneToOne(cascade = CascadeType.ALL)
+	private TestItemStructure itemStructure;
 
 	public TestItem() {
 	}
@@ -108,24 +104,6 @@ public class TestItem implements Serializable {
 		this.description = description;
 		this.lastModified = lastModified;
 		this.uniqueId = uniqueId;
-	}
-
-	public TestItemStructure getTestItemStructure() {
-		return testItemStructure;
-	}
-
-	public void setTestItemStructure(TestItemStructure testItemStructure) {
-		this.testItemStructure = testItemStructure;
-		testItemStructure.setTestItem(this);
-	}
-
-	public TestItemResults getTestItemResults() {
-		return testItemResults;
-	}
-
-	public void setTestItemResults(TestItemResults testItemResults) {
-		this.testItemResults = testItemResults;
-		testItemResults.setTestItem(this);
 	}
 
 	public Set<TestItemTag> getTags() {
@@ -222,31 +200,11 @@ public class TestItem implements Serializable {
 		this.uniqueId = uniqueId;
 	}
 
-	@Override
-	public String toString() {
-		return "TestItem{" + "itemId=" + itemId + ", name='" + name + '\'' + ", type=" + type + ", startTime=" + startTime
-				+ ", description='" + description + '\'' + ", lastModified=" + lastModified + ", uniqueId='" + uniqueId + '\'' + ", tags="
-				+ tags + ", testItemStructure=" + testItemStructure + ", testItemResults=" + testItemResults + '}';
+	public TestItemStructure getItemStructure() {
+		return itemStructure;
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		TestItem testItem = (TestItem) o;
-		return Objects.equals(itemId, testItem.itemId) && Objects.equals(name, testItem.name) && type == testItem.type && Objects.equals(
-				startTime, testItem.startTime) && Objects.equals(description, testItem.description) && Objects.equals(
-				lastModified, testItem.lastModified) && Objects.equals(uniqueId, testItem.uniqueId) && Objects.equals(tags, testItem.tags)
-				&& Objects.equals(
-				testItemStructure, testItem.testItemStructure) && Objects.equals(testItemResults, testItem.testItemResults);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(itemId, name, type, startTime, description, lastModified, uniqueId, tags, testItemStructure, testItemResults);
+	public void setItemStructure(TestItemStructure itemStructure) {
+		this.itemStructure = itemStructure;
 	}
 }

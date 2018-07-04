@@ -22,6 +22,8 @@
 package com.epam.ta.reportportal.store.database.dao;
 
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -31,4 +33,7 @@ import java.util.List;
 public interface TestItemRepository extends ReportPortalRepository<TestItem, Long>, TestItemRepositoryCustom {
 
 	List<TestItem> findTestItemsByUniqueId(String uniqueId);
+
+	@Query(value = "DELETE FROM test_item WHERE test_item.item_id = :itemId", nativeQuery = true)
+	void deleteTestItem(@Param(value = "itemId") Long itemId);
 }

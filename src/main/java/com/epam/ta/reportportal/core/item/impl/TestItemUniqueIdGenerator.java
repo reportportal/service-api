@@ -72,10 +72,9 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 		Long projectId = launch.getProjectId();
 		String launchName = launch.getName();
 		List<String> pathNames = new ArrayList<>();
-		Optional.ofNullable(testItem.getItemStructure().getParent()).ifPresent(it -> {
-			pathNames.addAll(
-					testItemRepository.selectPathNames(it.getItemId()).entrySet().stream().map(Map.Entry::getValue).collect(toList()));
-		});
+		Optional.ofNullable(testItem.getItemStructure().getParent())
+				.ifPresent(it -> pathNames.addAll(
+						testItemRepository.selectPathNames(it.getItemId()).entrySet().stream().map(Map.Entry::getValue).collect(toList())));
 		String itemName = testItem.getName();
 		StringJoiner joiner = new StringJoiner(";");
 		joiner.add(projectId.toString()).add(launchName);

@@ -242,7 +242,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 */
 	private void validate(String projectName, ReportPortalUser user, TestItem testItem) {
 		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
-		Launch launch = testItem.getLaunch();
+		Launch launch = testItem.getItemStructure().getLaunch();
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
 					ErrorType.ACCESS_DENIED, "Launch is not under the specified project.");

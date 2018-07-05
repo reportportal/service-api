@@ -75,28 +75,28 @@ public class JDashboardWidgetRecord extends UpdatableRecordImpl<JDashboardWidget
 	 */
 	public void setWidgetWidth(Integer value) {
 		set(3, value);
-    }
+	}
 
     /**
 	 * Getter for <code>public.dashboard_widget.widget_width</code>.
 	 */
 	public Integer getWidgetWidth() {
 		return (Integer) get(3);
-    }
+	}
 
     /**
 	 * Setter for <code>public.dashboard_widget.widget_height</code>.
 	 */
 	public void setWidgetHeight(Integer value) {
 		set(4, value);
-    }
+	}
 
     /**
 	 * Getter for <code>public.dashboard_widget.widget_height</code>.
 	 */
 	public Integer getWidgetHeight() {
 		return (Integer) get(4);
-    }
+	}
 
     /**
      * Setter for <code>public.dashboard_widget.widget_position_x</code>.
@@ -360,7 +360,7 @@ public class JDashboardWidgetRecord extends UpdatableRecordImpl<JDashboardWidget
     public JDashboardWidgetRecord value4(Integer value) {
 		setWidgetWidth(value);
 		return this;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -369,7 +369,7 @@ public class JDashboardWidgetRecord extends UpdatableRecordImpl<JDashboardWidget
     public JDashboardWidgetRecord value5(Integer value) {
 		setWidgetHeight(value);
 		return this;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -428,6 +428,6 @@ public class JDashboardWidgetRecord extends UpdatableRecordImpl<JDashboardWidget
 		set(3, widgetWidth);
 		set(4, widgetHeight);
 		set(5, widgetPositionX);
-        set(6, widgetPositionY);
+		set(6, widgetPositionY);
     }
 }

@@ -23,7 +23,6 @@ package com.epam.ta.reportportal.store.database.entity.item;
 
 import com.epam.ta.reportportal.store.database.entity.enums.PostgreSQLEnumType;
 import com.epam.ta.reportportal.store.database.entity.enums.TestItemTypeEnum;
-import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.log.Log;
 import com.google.common.collect.Sets;
 import org.hibernate.annotations.Type;
@@ -43,17 +42,13 @@ import java.util.Set;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
-@Table(name = "test_item", schema = "public", indexes = { @Index(name = "test_item_pk", unique = true, columnList = "item_id ASC") })
+@Table(name = "test_item", schema = "public")
 public class TestItem implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "item_id", unique = true, nullable = false, precision = 64)
+	@Column(name = "item_id")
 	private Long itemId;
-
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "launch_id")
-	private Launch launch;
 
 	@Column(name = "name", length = 256)
 	private String name;
@@ -88,16 +83,17 @@ public class TestItem implements Serializable {
 	@JoinColumn(name = "item_id")
 	private Set<Log> logs = Sets.newHashSet();
 
-	@OneToOne(cascade = CascadeType.ALL)
+	@OneToOne(fetch = FetchType.LAZY)
+	@MapsId
+	@JoinColumn(name = "item_id")
 	private TestItemStructure itemStructure;
 
 	public TestItem() {
 	}
 
-	public TestItem(Long itemId, Launch launch, String name, TestItemTypeEnum type, LocalDateTime startTime, String description,
+	public TestItem(Long itemId, String name, TestItemTypeEnum type, LocalDateTime startTime, String description,
 			LocalDateTime lastModified, String uniqueId) {
 		this.itemId = itemId;
-		this.launch = launch;
 		this.name = name;
 		this.type = type;
 		this.startTime = startTime;
@@ -134,14 +130,6 @@ public class TestItem implements Serializable {
 
 	public void setItemId(Long itemId) {
 		this.itemId = itemId;
-	}
-
-	public Launch getLaunch() {
-		return launch;
-	}
-
-	public void setLaunch(Launch launch) {
-		this.launch = launch;
 	}
 
 	public String getName() {

@@ -29,7 +29,7 @@ import java.util.List;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JIssue extends TableImpl<JIssueRecord> {
 
-	private static final long serialVersionUID = -1919757441;
+	private static final long serialVersionUID = 1627886220;
 
     /**
      * The reference instance of <code>public.issue</code>
@@ -52,8 +52,7 @@ public class JIssue extends TableImpl<JIssueRecord> {
     /**
      * The column <code>public.issue.issue_type</code>.
      */
-	public final TableField<JIssueRecord, Long> ISSUE_TYPE = createField(
-			"issue_type", org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
+	public final TableField<JIssueRecord, Long> ISSUE_TYPE = createField("issue_type", org.jooq.impl.SQLDataType.BIGINT, this, "");
 
     /**
      * The column <code>public.issue.issue_description</code>.
@@ -112,7 +111,7 @@ public class JIssue extends TableImpl<JIssueRecord> {
      */
     @Override
     public List<Index> getIndexes() {
-		return Arrays.<Index>asList(Indexes.ISSUE_ISSUE_TYPE_KEY, Indexes.ISSUE_PK);
+		return Arrays.<Index>asList(Indexes.ISSUE_PK);
 	}
 
     /**
@@ -128,7 +127,7 @@ public class JIssue extends TableImpl<JIssueRecord> {
      */
     @Override
     public List<UniqueKey<JIssueRecord>> getKeys() {
-		return Arrays.<UniqueKey<JIssueRecord>>asList(Keys.ISSUE_PK, Keys.ISSUE_ISSUE_TYPE_KEY);
+		return Arrays.<UniqueKey<JIssueRecord>>asList(Keys.ISSUE_PK);
 	}
 
     /**

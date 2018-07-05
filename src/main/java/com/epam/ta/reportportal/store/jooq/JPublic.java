@@ -28,7 +28,7 @@ import java.util.List;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JPublic extends SchemaImpl {
 
-	private static final long serialVersionUID = 567195980;
+	private static final long serialVersionUID = -1838837894;
 
     /**
      * The reference instance of <code>public</code>
@@ -278,21 +278,17 @@ public class JPublic extends SchemaImpl {
             Sequences.ACTIVITY_ID_SEQ,
             Sequences.BUG_TRACKING_SYSTEM_ID_SEQ,
             Sequences.DASHBOARD_ID_SEQ,
-            Sequences.DEFECT_FIELD_ALLOWED_VALUE_ID_SEQ,
-            Sequences.DEFECT_FORM_FIELD_ID_SEQ, Sequences.EXECUTION_STATISTICS_ID_SEQ, Sequences.FILTER_CONDITION_ID_SEQ,
-				Sequences.FILTER_ID_SEQ, Sequences.FILTER_SORT_ID_SEQ, Sequences.INTEGRATION_ID_SEQ,
-            Sequences.INTEGRATION_TYPE_ID_SEQ, Sequences.ISSUE_GROUP_ISSUE_GROUP_ID_SEQ, Sequences.ISSUE_STATISTICS_ID_SEQ, Sequences.ISSUE_TYPE_ID_SEQ,
-            Sequences.ITEM_TAG_ID_SEQ,
+            Sequences.DEFECT_FIELD_ALLOWED_VALUE_ID_SEQ, Sequences.DEFECT_FORM_FIELD_ID_SEQ, Sequences.EXECUTION_STATISTICS_ID_SEQ,
+				Sequences.FILTER_CONDITION_ID_SEQ, Sequences.FILTER_ID_SEQ, Sequences.FILTER_SORT_ID_SEQ, Sequences.INTEGRATION_ID_SEQ,
+				Sequences.INTEGRATION_TYPE_ID_SEQ, Sequences.ISSUE_GROUP_ISSUE_GROUP_ID_SEQ, Sequences.ISSUE_STATISTICS_ID_SEQ,
+				Sequences.ISSUE_TYPE_ID_SEQ, Sequences.ITEM_TAG_ID_SEQ,
             Sequences.LAUNCH_ID_SEQ,
             Sequences.LAUNCH_TAG_ID_SEQ,
             Sequences.LOG_ID_SEQ,
             Sequences.OAUTH_REGISTRATION_SCOPE_ID_SEQ,
             Sequences.PROJECT_EMAIL_CONFIGURATION_ID_SEQ,
             Sequences.PROJECT_ID_SEQ,
-            Sequences.SERVER_SETTINGS_ID_SEQ,
-            Sequences.TEST_ITEM_ITEM_ID_SEQ,
-            Sequences.TICKET_ID_SEQ,
-            Sequences.USERS_ID_SEQ, Sequences.WIDGET_ID_SEQ, Sequences.WIDGET_OPTION_ID_SEQ
+            Sequences.SERVER_SETTINGS_ID_SEQ, Sequences.TEST_ITEM_STRUCTURE_STRUCTURE_ID_SEQ, Sequences.TICKET_ID_SEQ, Sequences.USERS_ID_SEQ, Sequences.WIDGET_ID_SEQ, Sequences.WIDGET_OPTION_ID_SEQ
 		);
 	}
 
@@ -305,16 +301,11 @@ public class JPublic extends SchemaImpl {
 
     private final List<Table<?>> getTables0() {
         return Arrays.<Table<?>>asList(
-            JActivity.ACTIVITY,
-            JBugTrackingSystem.BUG_TRACKING_SYSTEM, JContentField.CONTENT_FIELD, JDashboard.DASHBOARD,
-            JDashboardWidget.DASHBOARD_WIDGET,
+            JActivity.ACTIVITY, JBugTrackingSystem.BUG_TRACKING_SYSTEM, JContentField.CONTENT_FIELD, JDashboard.DASHBOARD, JDashboardWidget.DASHBOARD_WIDGET,
             JDefectFieldAllowedValue.DEFECT_FIELD_ALLOWED_VALUE,
-            JDefectFormField.DEFECT_FORM_FIELD,
-            JDefectFormFieldValue.DEFECT_FORM_FIELD_VALUE, JExecutionStatistics.EXECUTION_STATISTICS, JFilter.FILTER,
-				JFilterCondition.FILTER_CONDITION, JFilterSort.FILTER_SORT, JIntegration.INTEGRATION,
-            JIntegrationType.INTEGRATION_TYPE,
-            JIssue.ISSUE, JIssueGroup.ISSUE_GROUP, JIssueStatistics.ISSUE_STATISTICS, JIssueTicket.ISSUE_TICKET,
-            JIssueType.ISSUE_TYPE,
+            JDefectFormField.DEFECT_FORM_FIELD, JDefectFormFieldValue.DEFECT_FORM_FIELD_VALUE, JExecutionStatistics.EXECUTION_STATISTICS,
+				JFilter.FILTER, JFilterCondition.FILTER_CONDITION, JFilterSort.FILTER_SORT, JIntegration.INTEGRATION, JIntegrationType.INTEGRATION_TYPE, JIssue.ISSUE, JIssueGroup.ISSUE_GROUP, JIssueStatistics.ISSUE_STATISTICS,
+				JIssueTicket.ISSUE_TICKET, JIssueType.ISSUE_TYPE,
             JIssueTypeProjectConfiguration.ISSUE_TYPE_PROJECT_CONFIGURATION,
             JItemTag.ITEM_TAG,
             JLaunch.LAUNCH,
@@ -331,8 +322,8 @@ public class JPublic extends SchemaImpl {
             JServerSettings.SERVER_SETTINGS,
             JTestItem.TEST_ITEM,
             JTestItemResults.TEST_ITEM_RESULTS,
-            JTestItemStructure.TEST_ITEM_STRUCTURE,
-            JTicket.TICKET, JUserFilter.USER_FILTER, JUsers.USERS, JWidget.WIDGET, JWidgetFilter.WIDGET_FILTER, JWidgetOption.WIDGET_OPTION, JWidgetOptionValue.WIDGET_OPTION_VALUE
+            JTestItemStructure.TEST_ITEM_STRUCTURE, JTicket.TICKET, JUserFilter.USER_FILTER, JUsers.USERS, JWidget.WIDGET,
+				JWidgetFilter.WIDGET_FILTER, JWidgetOption.WIDGET_OPTION, JWidgetOptionValue.WIDGET_OPTION_VALUE
 		);
 	}
 }

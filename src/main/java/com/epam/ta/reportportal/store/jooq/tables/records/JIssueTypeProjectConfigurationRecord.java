@@ -47,7 +47,7 @@ public class JIssueTypeProjectConfigurationRecord extends UpdatableRecordImpl<JI
      */
 	public void setIssueTypeId(Long value) {
 		set(1, value);
-    }
+	}
 
     /**
      * Getter for <code>public.issue_type_project_configuration.issue_type_id</code>.
@@ -66,7 +66,7 @@ public class JIssueTypeProjectConfigurationRecord extends UpdatableRecordImpl<JI
     @Override
 	public Record2<Long, Long> key() {
 		return (Record2) super.key();
-    }
+	}
 
     // -------------------------------------------------------------------------
     // Record2 type implementation
@@ -78,7 +78,7 @@ public class JIssueTypeProjectConfigurationRecord extends UpdatableRecordImpl<JI
     @Override
 	public Row2<Long, Long> fieldsRow() {
 		return (Row2) super.fieldsRow();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -86,7 +86,7 @@ public class JIssueTypeProjectConfigurationRecord extends UpdatableRecordImpl<JI
     @Override
 	public Row2<Long, Long> valuesRow() {
 		return (Row2) super.valuesRow();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -102,7 +102,7 @@ public class JIssueTypeProjectConfigurationRecord extends UpdatableRecordImpl<JI
     @Override
 	public Field<Long> field2() {
 		return JIssueTypeProjectConfiguration.ISSUE_TYPE_PROJECT_CONFIGURATION.ISSUE_TYPE_ID;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -118,7 +118,7 @@ public class JIssueTypeProjectConfigurationRecord extends UpdatableRecordImpl<JI
     @Override
 	public Long component2() {
 		return getIssueTypeId();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -134,7 +134,7 @@ public class JIssueTypeProjectConfigurationRecord extends UpdatableRecordImpl<JI
     @Override
 	public Long value2() {
 		return getIssueTypeId();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -151,7 +151,7 @@ public class JIssueTypeProjectConfigurationRecord extends UpdatableRecordImpl<JI
     @Override
 	public JIssueTypeProjectConfigurationRecord value2(Long value) {
 		setIssueTypeId(value);
-        return this;
+		return this;
     }
 
     /**
@@ -160,7 +160,7 @@ public class JIssueTypeProjectConfigurationRecord extends UpdatableRecordImpl<JI
     @Override
 	public JIssueTypeProjectConfigurationRecord values(Long value1, Long value2) {
 		value1(value1);
-        value2(value2);
+		value2(value2);
         return this;
     }
 

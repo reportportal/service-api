@@ -27,8 +27,9 @@ import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import com.epam.ta.reportportal.store.database.dao.TestItemStructureRepository;
+import com.epam.ta.reportportal.store.database.entity.item.TestItemStructure;
+import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -90,7 +91,7 @@ public class TestItemController {
 	}
 
 	@Autowired
-	private TestItemRepository testItemRepository;
+	private TestItemStructureRepository itemStructure;
 
 	@GetMapping("/{itemId}")
 	@Transactional
@@ -98,9 +99,9 @@ public class TestItemController {
 	@ResponseStatus(OK)
 	public TestItemResource getTestItem(@PathVariable String projectName, @PathVariable Long itemId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		TestItem testItem = testItemRepository.findById(itemId)
+		TestItemStructure testItem = itemStructure.findById(itemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
-		return null;
+		return TestItemConverter.TO_RESOURCE.apply(testItem);
 	}
 
 	@PostMapping("/{parentItem}")

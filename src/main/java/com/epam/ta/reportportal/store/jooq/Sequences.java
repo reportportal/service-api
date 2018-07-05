@@ -140,9 +140,10 @@ public class Sequences {
     public static final Sequence<Short> SERVER_SETTINGS_ID_SEQ = new SequenceImpl<Short>("server_settings_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.SMALLINT.nullable(false));
 
     /**
-     * The sequence <code>public.test_item_item_id_seq</code>
-     */
-    public static final Sequence<Long> TEST_ITEM_ITEM_ID_SEQ = new SequenceImpl<Long>("test_item_item_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.BIGINT.nullable(false));
+	 * The sequence <code>public.test_item_structure_structure_id_seq</code>
+	 */
+	public static final Sequence<Long> TEST_ITEM_STRUCTURE_STRUCTURE_ID_SEQ = new SequenceImpl<Long>(
+			"test_item_structure_structure_id_seq", JPublic.PUBLIC, org.jooq.impl.SQLDataType.BIGINT.nullable(false));
 
     /**
      * The sequence <code>public.ticket_id_seq</code>

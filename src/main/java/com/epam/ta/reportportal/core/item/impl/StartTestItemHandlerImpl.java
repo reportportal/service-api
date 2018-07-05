@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.store.commons.Preconditions;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.dao.LogRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.dao.TestItemStructureRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
@@ -58,6 +59,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	private TestItemRepository testItemRepository;
 
 	@Autowired
+	private TestItemStructureRepository structureRepository;
+
+	@Autowired
 	private LaunchRepository launchRepository;
 
 	@Autowired
@@ -78,7 +82,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
-		testItemRepository.save(item);
+		structureRepository.save(item.getItemStructure());
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
 
@@ -96,7 +100,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
 		//TODO retries
-		testItemRepository.save(item);
+		structureRepository.save(item.getItemStructure());
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
 

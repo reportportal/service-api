@@ -34,7 +34,7 @@ public class JIssueTypeRecord extends UpdatableRecordImpl<JIssueTypeRecord>
      */
 	public void setId(Long value) {
 		set(0, value);
-    }
+	}
 
     /**
      * Getter for <code>public.issue_type.id</code>.
@@ -48,7 +48,7 @@ public class JIssueTypeRecord extends UpdatableRecordImpl<JIssueTypeRecord>
 	 */
 	public void setIssueGroupId(Short value) {
 		set(1, value);
-    }
+	}
 
     /**
 	 * Getter for <code>public.issue_type.issue_group_id</code>.
@@ -123,7 +123,7 @@ public class JIssueTypeRecord extends UpdatableRecordImpl<JIssueTypeRecord>
     @Override
 	public Record1<Long> key() {
 		return (Record1) super.key();
-    }
+	}
 
     // -------------------------------------------------------------------------
     // Record6 type implementation
@@ -135,7 +135,7 @@ public class JIssueTypeRecord extends UpdatableRecordImpl<JIssueTypeRecord>
     @Override
 	public Row6<Long, Short, String, String, String, String> fieldsRow() {
 		return (Row6) super.fieldsRow();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -143,7 +143,7 @@ public class JIssueTypeRecord extends UpdatableRecordImpl<JIssueTypeRecord>
     @Override
 	public Row6<Long, Short, String, String, String, String> valuesRow() {
 		return (Row6) super.valuesRow();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -151,7 +151,7 @@ public class JIssueTypeRecord extends UpdatableRecordImpl<JIssueTypeRecord>
     @Override
 	public Field<Long> field1() {
 		return JIssueType.ISSUE_TYPE.ID;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -199,7 +199,7 @@ public class JIssueTypeRecord extends UpdatableRecordImpl<JIssueTypeRecord>
     @Override
 	public Long component1() {
 		return getId();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -247,7 +247,7 @@ public class JIssueTypeRecord extends UpdatableRecordImpl<JIssueTypeRecord>
     @Override
 	public Long value1() {
 		return getId();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -295,7 +295,7 @@ public class JIssueTypeRecord extends UpdatableRecordImpl<JIssueTypeRecord>
     @Override
 	public JIssueTypeRecord value1(Long value) {
 		setId(value);
-        return this;
+		return this;
     }
 
     /**
@@ -305,7 +305,7 @@ public class JIssueTypeRecord extends UpdatableRecordImpl<JIssueTypeRecord>
 	public JIssueTypeRecord value2(Short value) {
 		setIssueGroupId(value);
 		return this;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -349,7 +349,7 @@ public class JIssueTypeRecord extends UpdatableRecordImpl<JIssueTypeRecord>
     @Override
 	public JIssueTypeRecord values(Long value1, Short value2, String value3, String value4, String value5, String value6) {
 		value1(value1);
-        value2(value2);
+		value2(value2);
         value3(value3);
         value4(value4);
         value5(value5);
@@ -377,7 +377,7 @@ public class JIssueTypeRecord extends UpdatableRecordImpl<JIssueTypeRecord>
         set(0, id);
 		set(1, issueGroupId);
 		set(2, locator);
-        set(3, issueName);
+		set(3, issueName);
         set(4, abbreviation);
         set(5, hexColor);
     }

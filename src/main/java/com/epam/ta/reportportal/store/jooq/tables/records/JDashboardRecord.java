@@ -162,7 +162,7 @@ public class JDashboardRecord extends UpdatableRecordImpl<JDashboardRecord>
 	@Override
 	public Field<Integer> field4() {
 		return JDashboard.DASHBOARD.PROJECT_ID;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -170,7 +170,7 @@ public class JDashboardRecord extends UpdatableRecordImpl<JDashboardRecord>
     @Override
 	public Field<Timestamp> field5() {
 		return JDashboard.DASHBOARD.CREATION_DATE;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -202,7 +202,7 @@ public class JDashboardRecord extends UpdatableRecordImpl<JDashboardRecord>
 	@Override
 	public Integer component4() {
 		return getProjectId();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -210,7 +210,7 @@ public class JDashboardRecord extends UpdatableRecordImpl<JDashboardRecord>
     @Override
 	public Timestamp component5() {
 		return getCreationDate();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -242,7 +242,7 @@ public class JDashboardRecord extends UpdatableRecordImpl<JDashboardRecord>
 	@Override
 	public Integer value4() {
 		return getProjectId();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -250,7 +250,7 @@ public class JDashboardRecord extends UpdatableRecordImpl<JDashboardRecord>
     @Override
 	public Timestamp value5() {
 		return getCreationDate();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -285,7 +285,7 @@ public class JDashboardRecord extends UpdatableRecordImpl<JDashboardRecord>
 	@Override
 	public JDashboardRecord value4(Integer value) {
 		setProjectId(value);
-        return this;
+		return this;
     }
 
     /**
@@ -294,7 +294,7 @@ public class JDashboardRecord extends UpdatableRecordImpl<JDashboardRecord>
     @Override
 	public JDashboardRecord value5(Timestamp value) {
 		setCreationDate(value);
-        return this;
+		return this;
     }
 
     /**
@@ -303,12 +303,12 @@ public class JDashboardRecord extends UpdatableRecordImpl<JDashboardRecord>
     @Override
 	public JDashboardRecord values(Integer value1, String value2, String value3, Integer value4, Timestamp value5) {
 		value1(value1);
-        value2(value2);
+		value2(value2);
         value3(value3);
         value4(value4);
 		value5(value5);
 		return this;
-    }
+	}
 
     // -------------------------------------------------------------------------
     // Constructors

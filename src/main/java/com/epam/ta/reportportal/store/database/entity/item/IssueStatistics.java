@@ -40,7 +40,7 @@ public class IssueStatistics implements Serializable {
 	@Column(name = "counter")
 	private Integer counter;
 
-	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "issue_type_id")
 	private IssueType issueType;
 

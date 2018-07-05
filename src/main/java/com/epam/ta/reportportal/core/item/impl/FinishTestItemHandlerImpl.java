@@ -131,19 +131,21 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		}
 
 		if (Preconditions.statusIn(FAILED, SKIPPED).test(testItemResults.getStatus()) && !hasChildren) {
+			IssueEntity issueEntity = null;
 			if (null != providedIssue) {
 				//in provided issue should be locator id or NOT_ISSUE value
 				String locator = providedIssue.getIssueType();
 				if (!NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(locator)) {
 					IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, locator);
-					IssueEntity issue = IssueConverter.TO_ISSUE.apply(providedIssue);
-					issue.setIssueType(issueType);
+					issueEntity = IssueConverter.TO_ISSUE.apply(providedIssue);
+					issueEntity.setIssueType(issueType);
 				}
 			} else {
 				IssueType toInvestigate = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, TO_INVESTIGATE.getLocator());
-				IssueEntity issue = new IssueEntity();
-				issue.setIssueType(toInvestigate);
+				issueEntity = new IssueEntity();
+				issueEntity.setIssueType(toInvestigate);
 			}
+			testItemResults.setIssue(issueEntity);
 		}
 		testItemResults.setEndTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()));
 		return testItemResults;
@@ -160,7 +162,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 */
 	private void verifyTestItem(ReportPortalUser user, TestItem testItem, FinishTestItemRQ finishExecutionRQ,
 			Optional<StatusEnum> actualStatus, boolean hasChildren) {
-		Launch launch = Optional.ofNullable(testItem.getLaunch()).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
+		Launch launch = Optional.ofNullable(testItem.getItemStructure().getLaunch())
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
 		expect(user.getUserId(), equalTo(launch.getUserId())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not launch owner.");
 
 		expect(testItem.getItemStructure().getItemResults().getStatus(), Preconditions.statusIn(IN_PROGRESS)).verify(

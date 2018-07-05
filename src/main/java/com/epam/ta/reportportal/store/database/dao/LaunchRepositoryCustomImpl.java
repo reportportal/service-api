@@ -68,10 +68,10 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 	@Override
 	public Boolean identifyStatus(Long launchId) {
 		return dsl.fetchExists(dsl.selectOne()
-				.from(TEST_ITEM)
+				.from(TEST_ITEM_STRUCTURE)
 				.join(TEST_ITEM_RESULTS)
-				.on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_RESULTS.ITEM_ID))
-				.where(TEST_ITEM.LAUNCH_ID.eq(launchId)
+				.on(TEST_ITEM_STRUCTURE.STRUCTURE_ID.eq(TEST_ITEM_RESULTS.RESULT_ID))
+				.where(TEST_ITEM_STRUCTURE.LAUNCH_ID.eq(launchId)
 						.and(TEST_ITEM_RESULTS.STATUS.eq(JStatusEnum.FAILED).or(TEST_ITEM_RESULTS.STATUS.eq(JStatusEnum.SKIPPED)))));
 	}
 

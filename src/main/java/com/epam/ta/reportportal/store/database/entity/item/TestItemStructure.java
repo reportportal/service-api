@@ -21,6 +21,8 @@
 
 package com.epam.ta.reportportal.store.database.entity.item;
 
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+
 import javax.persistence.*;
 import java.io.Serializable;
 
@@ -32,17 +34,22 @@ import java.io.Serializable;
 public class TestItemStructure implements Serializable {
 
 	@Id
-	@Column(name = "structure_id", unique = true, nullable = false)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "structure_id")
 	private Long itemId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "launch_id")
+	private Launch launch;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "parent_id")
 	private TestItemStructure parent;
 
-	@OneToOne(mappedBy = "itemStructure")
+	@OneToOne(cascade = CascadeType.ALL, mappedBy = "itemStructure")
 	private TestItem testItem;
 
-	@OneToOne(mappedBy = "itemStructure")
+	@OneToOne(cascade = CascadeType.ALL, mappedBy = "itemStructure")
 	private TestItemResults itemResults;
 
 	@Column(name = "retry_of", precision = 64)
@@ -89,5 +96,13 @@ public class TestItemStructure implements Serializable {
 
 	public void setItemResults(TestItemResults itemResults) {
 		this.itemResults = itemResults;
+	}
+
+	public Launch getLaunch() {
+		return launch;
+	}
+
+	public void setLaunch(Launch launch) {
+		this.launch = launch;
 	}
 }

@@ -117,7 +117,7 @@ public class DeleteLogHandler {
 				formattedSupplier("Unable to delete log '{}' when test item '{}' in progress state", log.getId(), testItem.getItemId())
 		);
 
-		Launch launch = testItem.getLaunch();
+		Launch launch = testItem.getItemStructure().getLaunch();
 
 		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,

@@ -101,11 +101,11 @@ public class Launch implements Serializable {
 	private Set<LaunchTag> tags = Sets.newHashSet();
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	@JoinColumn(name = "launch_id")
+	@JoinColumn(name = "launch_id", insertable = false, updatable = false)
 	private Set<ExecutionStatistics> executionStatistics;
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	@JoinColumn(name = "launch_id")
+	@JoinColumn(name = "launch_id", insertable = false, updatable = false)
 	private Set<IssueStatistics> issueStatistics;
 
 	public Set<LaunchTag> getTags() {

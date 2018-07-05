@@ -33,7 +33,7 @@ public class JWidgetRecord extends UpdatableRecordImpl<JWidgetRecord> implements
      */
 	public void setId(Long value) {
 		set(0, value);
-    }
+	}
 
     /**
      * Getter for <code>public.widget.id</code>.
@@ -122,7 +122,7 @@ public class JWidgetRecord extends UpdatableRecordImpl<JWidgetRecord> implements
     @Override
 	public Record1<Long> key() {
 		return (Record1) super.key();
-    }
+	}
 
     // -------------------------------------------------------------------------
 	// Record6 type implementation
@@ -150,7 +150,7 @@ public class JWidgetRecord extends UpdatableRecordImpl<JWidgetRecord> implements
     @Override
 	public Field<Long> field1() {
 		return JWidget.WIDGET.ID;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -190,7 +190,7 @@ public class JWidgetRecord extends UpdatableRecordImpl<JWidgetRecord> implements
 	@Override
 	public Field<Long> field6() {
 		return JWidget.WIDGET.PROJECT_ID;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -198,7 +198,7 @@ public class JWidgetRecord extends UpdatableRecordImpl<JWidgetRecord> implements
     @Override
 	public Long component1() {
 		return getId();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -238,7 +238,7 @@ public class JWidgetRecord extends UpdatableRecordImpl<JWidgetRecord> implements
 	@Override
 	public Long component6() {
 		return getProjectId();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -246,7 +246,7 @@ public class JWidgetRecord extends UpdatableRecordImpl<JWidgetRecord> implements
     @Override
 	public Long value1() {
 		return getId();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -286,7 +286,7 @@ public class JWidgetRecord extends UpdatableRecordImpl<JWidgetRecord> implements
 	@Override
 	public Long value6() {
 		return getProjectId();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -294,7 +294,7 @@ public class JWidgetRecord extends UpdatableRecordImpl<JWidgetRecord> implements
     @Override
 	public JWidgetRecord value1(Long value) {
 		setId(value);
-        return this;
+		return this;
     }
 
     /**
@@ -339,7 +339,7 @@ public class JWidgetRecord extends UpdatableRecordImpl<JWidgetRecord> implements
 	@Override
 	public JWidgetRecord value6(Long value) {
 		setProjectId(value);
-        return this;
+		return this;
     }
 
     /**
@@ -348,13 +348,13 @@ public class JWidgetRecord extends UpdatableRecordImpl<JWidgetRecord> implements
     @Override
 	public JWidgetRecord values(Long value1, String value2, String value3, String value4, Short value5, Long value6) {
 		value1(value1);
-        value2(value2);
+		value2(value2);
         value3(value3);
 		value4(value4);
 		value5(value5);
 		value6(value6);
 		return this;
-    }
+	}
 
     // -------------------------------------------------------------------------
     // Constructors

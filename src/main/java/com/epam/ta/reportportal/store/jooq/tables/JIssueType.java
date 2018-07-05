@@ -130,7 +130,7 @@ public class JIssueType extends TableImpl<JIssueTypeRecord> {
     @Override
 	public Identity<JIssueTypeRecord, Long> getIdentity() {
 		return Keys.IDENTITY_ISSUE_TYPE;
-    }
+	}
 
     /**
      * {@inheritDoc}

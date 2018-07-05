@@ -1,32 +1,33 @@
 {
-  "filter_id": "3",
-  "name": "sfd",
-  "share": false,
-  "content_parameters": {
-    "type": "combine_pie_chart",
-    "gadget": "launch_statistics",
-    "metadata_fields": [
-      "name",
-      "number",
-      "start_time"
-    ],
-    "itemsCount": 1,
-    "content_fields": [
-      "statistics$executions$total",
-      "statistics$executions$passed",
-      "statistics$executions$failed",
-      "statistics$executions$skipped",
-      "statistics$defects$product_bug$PB001",
-      "statistics$defects$product_bug$pb_tol6t8hpi1x2",
-      "statistics$defects$automation_bug$AB001",
-      "statistics$defects$system_issue$SI001",
-      "statistics$defects$no_defect$ND001",
-      "statistics$defects$to_investigate$TI001"
-    ],
-    "widgetOptions": {
-      "filterName": [
-        "DEMO_FILTER#attach12"
-      ]
+  "elements": [
+    {
+      "name": "Test Filter over call",
+      "entities": [
+        {
+          "filtering_field": "name",
+          "condition": "cnt",
+          "value": "Test"
+        },
+        {
+          "filtering_field": "start_time",
+          "condition": "btw",
+          "value": "0;1439;+5.5"
+        }
+      ],
+      "share": "",
+      "selection_parameters": {
+        "orders": [
+          {
+            "is_asc": false,
+            "sorting_column": "start_time"
+          },
+          {
+            "is_asc": false,
+            "sorting_column": "number"
+          }
+        ]
+      },
+      "type": "launch"
     }
-  }
+  ]
 }

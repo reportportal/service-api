@@ -130,7 +130,7 @@ public class JWidget extends TableImpl<JWidgetRecord> {
     @Override
 	public Identity<JWidgetRecord, Long> getIdentity() {
 		return Keys.IDENTITY_WIDGET;
-    }
+	}
 
     /**
      * {@inheritDoc}

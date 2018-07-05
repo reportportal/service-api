@@ -25,8 +25,10 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.dao.TestItemStructureRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import com.epam.ta.reportportal.store.database.entity.item.TestItemStructure;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
 import com.epam.ta.reportportal.store.database.entity.user.UserRole;
@@ -58,6 +60,8 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 	private TestItemRepository testItemRepository;
 
+	private TestItemStructureRepository structureRepository;
+
 	// TODO ANALYZER
 	//	@Autowired
 	//	private ILogIndexer logIndexer;
@@ -67,12 +71,17 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		this.testItemRepository = testItemRepository;
 	}
 
+	@Autowired
+	public void setStructureRepository(TestItemStructureRepository structureRepository) {
+		this.structureRepository = structureRepository;
+	}
+
 	@Override
 	public OperationCompletionRS deleteTestItem(Long itemId, String projectName, ReportPortalUser reportPortalUser) {
-		TestItem item = testItemRepository.findById(itemId)
+		TestItemStructure item = structureRepository.findById(itemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
-		validate(item, reportPortalUser, projectName);
-		testItemRepository.delete(item);
+		validate(item.getTestItem(), reportPortalUser, projectName);
+		structureRepository.delete(item);
 		return new OperationCompletionRS("Test Item with ID = '" + itemId + "' has been successfully deleted.");
 	}
 
@@ -83,10 +92,8 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 	private void validate(TestItem testItem, ReportPortalUser user, String projectName) {
 		expect(testItem.getItemStructure().getItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(
-				TEST_ITEM_IS_NOT_FINISHED,
-				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId())
-		);
-		Launch launch = testItem.getLaunch();
+				TEST_ITEM_IS_NOT_FINISHED, formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId()));
+		Launch launch = testItem.getItemStructure().getLaunch();
 		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state", testItem.getItemId(),
 						launch.getId()

@@ -5,7 +5,7 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.database.entity.enums.LogLevel;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType;
+import com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
@@ -111,8 +111,8 @@ public class CriteriaHolder {
 					.orElseThrow(() -> new ReportPortalException(errorType,
 							Suppliers.formattedSupplier("Cannot convert '{}' to valid 'Status'", oneValue)
 					));
-		} else if (TestItemIssueType.class.isAssignableFrom(getDataType())) {
-			castedValue = TestItemIssueType.validate(oneValue);
+		} else if (TestItemIssueGroup.class.isAssignableFrom(getDataType())) {
+			castedValue = TestItemIssueGroup.validate(oneValue);
 			BusinessRule.expect(castedValue, Objects::nonNull)
 					.verify(errorType, Suppliers.formattedSupplier("Cannot convert '{}' to valid 'Issue Type'", oneValue));
 		} else if (Collection.class.isAssignableFrom(getDataType())) {

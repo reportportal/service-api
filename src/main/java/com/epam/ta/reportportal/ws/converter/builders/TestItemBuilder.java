@@ -56,17 +56,20 @@ public class TestItemBuilder implements Supplier<TestItem> {
 
 	public TestItemBuilder(TestItem testItem) {
 		this.testItem = testItem;
-		this.structure = testItem.getTestItemStructure();
+		this.structure = testItem.getItemStructure();
 	}
 
 	public TestItemBuilder addStartItemRequest(StartTestItemRQ rq) {
+
 		testItem.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(rq.getStartTime()));
 		testItem.setName(rq.getName().trim());
 		testItem.setUniqueId(rq.getUniqueId());
 
-		TestItemResults testItemResults = ofNullable(testItem.getTestItemResults()).orElse(new TestItemResults());
+		TestItemResults testItemResults = new TestItemResults();
 		testItemResults.setStatus(StatusEnum.IN_PROGRESS);
-		testItem.setTestItemResults(testItemResults);
+
+		structure.setItemResults(testItemResults);
+		testItemResults.setItemStructure(structure);
 
 		addDescription(rq.getDescription());
 		addTags(rq.getTags());
@@ -76,7 +79,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	}
 
 	public TestItemBuilder addLaunch(Launch launch) {
-		testItem.setLaunch(launch);
+		structure.setLaunch(launch);
 		return this;
 	}
 
@@ -108,17 +111,17 @@ public class TestItemBuilder implements Supplier<TestItem> {
 
 	public TestItemBuilder addTestItemResults(TestItemResults testItemResults) {
 		checkNotNull(testItemResults, "Provided value shouldn't be null");
-		testItem.setTestItemResults(testItemResults);
+		structure.setItemResults(testItemResults);
 		addDuration(testItemResults.getEndTime());
 		return this;
 	}
 
 	public TestItemBuilder addDuration(LocalDateTime endTime) {
 		checkNotNull(endTime, "Provided value shouldn't be null");
-		checkNotNull(testItem.getTestItemResults(), "Test item results shouldn't be null");
+		checkNotNull(structure.getItemResults(), "Test item results shouldn't be null");
 
 		//converts to seconds
-		testItem.getTestItemResults().setDuration(ChronoUnit.MILLIS.between(testItem.getStartTime(), endTime) / 1000d);
+		structure.getItemResults().setDuration(ChronoUnit.MILLIS.between(testItem.getStartTime(), endTime) / 1000d);
 		return this;
 	}
 
@@ -136,7 +139,8 @@ public class TestItemBuilder implements Supplier<TestItem> {
 
 	@Override
 	public TestItem get() {
-		testItem.setTestItemStructure(structure);
+		structure.setTestItem(testItem);
+		testItem.setItemStructure(structure);
 		return this.testItem;
 	}
 

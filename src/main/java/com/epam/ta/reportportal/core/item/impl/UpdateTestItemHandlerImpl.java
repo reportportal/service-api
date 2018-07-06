@@ -127,13 +127,14 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				IssueType issueType = issueTypeHandler.defineIssueType(
 						testItem.getItemId(), ProjectUtils.extractProjectDetails(user, projectName).getProjectId(), issue.getIssueType());
 
-				IssueEntity issueEntity = new IssueEntityBuilder(testItem.getTestItemResults().getIssue()).addIssueType(issueType)
+				IssueEntity issueEntity = new IssueEntityBuilder(testItem.getItemStructure().getItemResults().getIssue()).addIssueType(
+						issueType)
 						.addDescription(issue.getComment())
 						.addIgnoreFlag(issue.getIgnoreAnalyzer())
 						.addAutoAnalyzedFlag(false)
 						.get();
-
-				testItem.getTestItemResults().setIssue(issueEntity);
+				testItem.getItemStructure().getItemResults().setIssue(issueEntity);
+				testItem.getItemStructure().getItemResults().getIssueStatistics().forEach(it -> it.setIssueType(issueType));
 
 				//TODO EXTERNAL SYSTEM LOGIC, ANALYZER LOGIC
 				testItemRepository.save(testItem);
@@ -167,7 +168,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		testItems.forEach(testItem -> {
 			try {
 				verifyTestItem(testItem, testItem.getItemId());
-				IssueEntity issue = testItem.getTestItemResults().getIssue();
+				IssueEntity issue = testItem.getItemStructure().getItemResults().getIssue();
 				existedTickets.forEach(it -> it.getIssues().add(issue));
 				ticketsFromRq.forEach(it -> it.getIssues().add(issue));
 			} catch (Exception e) {
@@ -190,7 +191,11 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		testItems.forEach(testItem -> {
 			try {
 				verifyTestItem(testItem, testItem.getItemId());
-				testItem.getTestItemResults().getIssue().getTickets().removeIf(it -> rq.getIssueIds().contains(it.getTicketId()));
+				testItem.getItemStructure()
+						.getItemResults()
+						.getIssue()
+						.getTickets()
+						.removeIf(it -> rq.getIssueIds().contains(it.getTicketId()));
 			} catch (BusinessRuleViolationException e) {
 				errors.add(e.getMessage());
 			}
@@ -237,7 +242,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 */
 	private void validate(String projectName, ReportPortalUser user, TestItem testItem) {
 		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
-		Launch launch = testItem.getLaunch();
+		Launch launch = testItem.getItemStructure().getLaunch();
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
 					ErrorType.ACCESS_DENIED, "Launch is not under the specified project.");
@@ -272,7 +277,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @throws BusinessRuleViolationException when business rule violation
 	 */
 	private void verifyTestItem(TestItem item, Long id) throws BusinessRuleViolationException {
-		expect(item.getTestItemResults().getStatus(), not(equalTo(StatusEnum.PASSED)),
+		// TODO possible npe
+		expect(item.getItemStructure().getItemResults().getStatus(), not(equalTo(StatusEnum.PASSED)),
 				Suppliers.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
 						StatusEnum.PASSED.name()
 				)
@@ -281,12 +287,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				testItemRepository.hasChildren(item.getItemId()), equalTo(false), Suppliers.formattedSupplier(
 						"It is not allowed to udpate issue type for items with descendants. Test item '{}' has descendants.", id)).verify();
 
-		expect(
-				item.getTestItemResults().getIssue(), notNull(), Suppliers.formattedSupplier(
+		expect(item.getItemStructure().getItemResults().getIssue(), notNull(), Suppliers.formattedSupplier(
 						"Cannot update issue type for test item '{}', cause there is no info about actual issue type value.", id)).verify();
 
-		expect(
-				item.getTestItemResults().getIssue().getIssueType(), notNull(), Suppliers.formattedSupplier(
+		expect(item.getItemStructure().getItemResults().getIssue().getIssueType(), notNull(), Suppliers.formattedSupplier(
 						"Cannot update issue type for test item {}, cause it's actual issue type value is not provided.", id)).verify();
 	}
 

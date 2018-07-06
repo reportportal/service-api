@@ -97,7 +97,7 @@ public class GetLogHandler {
 		expect(log, notNull()).verify(LOG_NOT_FOUND, logId);
 
 		final TestItem testItem = log.getTestItem();
-		Launch launch = testItem.getLaunch();
+		Launch launch = testItem.getItemStructure().getLaunch();
 
 		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,

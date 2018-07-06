@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 /**
@@ -81,6 +82,16 @@ public class WidgetController {
 	}
 
 	@Transactional
+	@RequestMapping(value = "/{widgetId}", method = GET)
+	@ResponseStatus(OK)
+	@ResponseBody
+	@ApiOperation("Get widget by ID")
+	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getWidgetHandler.getWidget(widgetId, ProjectUtils.extractProjectDetails(user, projectName), user);
+	}
+
+	@Transactional
 	@RequestMapping(value = "/{widgetId}", method = PUT)
 	@ResponseStatus(OK)
 	@ResponseBody
@@ -88,16 +99,6 @@ public class WidgetController {
 	public OperationCompletionRS updateWidget(@PathVariable String projectName, @PathVariable Long widgetId,
 			@RequestBody @Validated WidgetRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
 		return updateWidgetHandler.updateWidget(widgetId, updateRQ, ProjectUtils.extractProjectDetails(user, projectName), user);
-	}
-
-	@Transactional
-	@GetMapping("/{widgetId}")
-	@ResponseBody
-	@ResponseStatus(OK)
-	@ApiOperation("Get widget by ID")
-	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidget(widgetId, ProjectUtils.extractProjectDetails(user, projectName), user);
 	}
 
 }

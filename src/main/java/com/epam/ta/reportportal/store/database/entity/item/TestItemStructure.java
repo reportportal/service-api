@@ -21,6 +21,8 @@
 
 package com.epam.ta.reportportal.store.database.entity.item;
 
+import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+
 import javax.persistence.*;
 import java.io.Serializable;
 
@@ -28,25 +30,30 @@ import java.io.Serializable;
  * @author Pavel Bortnik
  */
 @Entity
-@Table(name = "test_item_structure", schema = "public", indexes = {
-		@Index(name = "test_item_structure_pk", unique = true, columnList = "item_id ASC") })
+@Table(name = "test_item_structure", schema = "public")
 public class TestItemStructure implements Serializable {
 
 	@Id
-	@Column(name = "item_id", unique = true, nullable = false)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "structure_id")
 	private Long itemId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "launch_id")
+	private Launch launch;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "parent_id")
 	private TestItemStructure parent;
 
+	@OneToOne(cascade = CascadeType.ALL, mappedBy = "itemStructure")
+	private TestItem testItem;
+
+	@OneToOne(cascade = CascadeType.ALL, mappedBy = "itemStructure")
+	private TestItemResults itemResults;
+
 	@Column(name = "retry_of", precision = 64)
 	private Long retryOf;
-
-	@OneToOne
-	@MapsId
-	@JoinColumn(name = "item_id")
-	private TestItem testItem;
 
 	public TestItemStructure() {
 	}
@@ -57,14 +64,6 @@ public class TestItemStructure implements Serializable {
 
 	public void setItemId(Long itemId) {
 		this.itemId = itemId;
-	}
-
-	public TestItem getTestItem() {
-		return testItem;
-	}
-
-	public void setTestItem(TestItem testItem) {
-		this.testItem = testItem;
 	}
 
 	public TestItemStructure getParent() {
@@ -83,4 +82,27 @@ public class TestItemStructure implements Serializable {
 		this.retryOf = retryOf;
 	}
 
+	public TestItem getTestItem() {
+		return testItem;
+	}
+
+	public void setTestItem(TestItem testItem) {
+		this.testItem = testItem;
+	}
+
+	public TestItemResults getItemResults() {
+		return itemResults;
+	}
+
+	public void setItemResults(TestItemResults itemResults) {
+		this.itemResults = itemResults;
+	}
+
+	public Launch getLaunch() {
+		return launch;
+	}
+
+	public void setLaunch(Launch launch) {
+		this.launch = launch;
+	}
 }

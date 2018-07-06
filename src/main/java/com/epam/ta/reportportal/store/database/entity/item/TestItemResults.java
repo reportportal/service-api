@@ -30,19 +30,18 @@ import org.hibernate.annotations.TypeDef;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author Pavel Bortnik
  */
 @Entity
 @TypeDef(name = "pqsql_enum", typeClass = PostgreSQLEnumType.class)
-@Table(name = "test_item_results", schema = "public", indexes = {
-		@Index(name = "test_item_results_pk", unique = true, columnList = "item_id ASC") })
+@Table(name = "test_item_results", schema = "public")
 public class TestItemResults implements Serializable {
 
 	@Id
-	@Column(name = "item_id", unique = true, nullable = false, precision = 64)
+	@Column(name = "result_id", unique = true, nullable = false, precision = 64)
 	private Long itemId;
 
 	@Column(name = "status", nullable = false)
@@ -57,13 +56,22 @@ public class TestItemResults implements Serializable {
 	private Double duration;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	@PrimaryKeyJoinColumn
+	@MapsId
+	@JoinColumn(name = "result_id")
 	private IssueEntity issue;
 
-	@OneToOne
+	@OneToOne(cascade = CascadeType.ALL)
 	@MapsId
-	@JoinColumn(name = "item_id")
-	private TestItem testItem;
+	@JoinColumn(name = "result_id")
+	private TestItemStructure itemStructure;
+
+	@OneToMany(fetch = FetchType.LAZY)
+	@JoinColumn(name = "item_id", insertable = false, updatable = false)
+	private Set<ExecutionStatistics> executionStatistics;
+
+	@OneToMany(fetch = FetchType.LAZY)
+	@JoinColumn(name = "item_id", insertable = false, updatable = false)
+	private Set<IssueStatistics> issueStatistics;
 
 	public TestItemResults() {
 	}
@@ -84,6 +92,22 @@ public class TestItemResults implements Serializable {
 		this.status = status;
 	}
 
+	public Set<ExecutionStatistics> getExecutionStatistics() {
+		return executionStatistics;
+	}
+
+	public void setExecutionStatistics(Set<ExecutionStatistics> executionStatistics) {
+		this.executionStatistics = executionStatistics;
+	}
+
+	public Set<IssueStatistics> getIssueStatistics() {
+		return issueStatistics;
+	}
+
+	public void setIssueStatistics(Set<IssueStatistics> issueStatistics) {
+		this.issueStatistics = issueStatistics;
+	}
+
 	public LocalDateTime getEndTime() {
 		return endTime;
 	}
@@ -100,14 +124,6 @@ public class TestItemResults implements Serializable {
 		this.duration = duration;
 	}
 
-	public TestItem getTestItem() {
-		return testItem;
-	}
-
-	public void setTestItem(TestItem testItem) {
-		this.testItem = testItem;
-	}
-
 	public IssueEntity getIssue() {
 		return issue;
 	}
@@ -117,26 +133,11 @@ public class TestItemResults implements Serializable {
 		this.issue = issue;
 	}
 
-	@Override
-	public String toString() {
-		return "TestItemResults{" + "itemId=" + itemId + ", status=" + status + ", duration=" + duration + ", issue=" + issue + '}';
+	public TestItemStructure getItemStructure() {
+		return itemStructure;
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		TestItemResults that = (TestItemResults) o;
-		return Objects.equals(itemId, that.itemId) && status == that.status && Objects.equals(duration, that.duration) && Objects.equals(
-				issue, that.issue) && Objects.equals(testItem, that.testItem);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(itemId, status, duration, issue);
+	public void setItemStructure(TestItemStructure itemStructure) {
+		this.itemStructure = itemStructure;
 	}
 }

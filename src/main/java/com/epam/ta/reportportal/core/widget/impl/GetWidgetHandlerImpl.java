@@ -23,15 +23,19 @@ package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.widget.IGetWidgetHandler;
+import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
+import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.database.dao.WidgetRepository;
 import com.epam.ta.reportportal.store.database.entity.widget.Widget;
+import com.epam.ta.reportportal.store.database.entity.widget.WidgetType;
 import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +50,22 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 
 	private WidgetRepository widgetRepository;
 
+	private Map<WidgetType, BuildFilterStrategy> buildFilterStrategy;
+
+	private Map<WidgetType, LoadContentStrategy> loadContentStrategy;
+
+	@Autowired
+	@Qualifier("buildFilterStrategy")
+	public void setBuildFilterStrategy(Map<WidgetType, BuildFilterStrategy> buildFilterStrategy) {
+		this.buildFilterStrategy = buildFilterStrategy;
+	}
+
+	@Autowired
+	@Qualifier("contentLoader")
+	public void setLoadContentStrategy(Map<WidgetType, LoadContentStrategy> loadContentStrategy) {
+		this.loadContentStrategy = loadContentStrategy;
+	}
+
 	@Autowired
 	public void setWidgetRepository(WidgetRepository widgetRepository) {
 		this.widgetRepository = widgetRepository;
@@ -55,7 +75,17 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 	public WidgetResource getWidget(Long widgetId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Widget widget = widgetRepository.findById(widgetId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND, widgetId));
-		return WidgetConverter.TO_WIDGET_RESOURCE.apply(widget);
+
+		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+						"Unsupported widget type {}" + widget.getWidgetType()
+				));
+
+		Map<String, ?> content = buildFilterStrategy.get(widgetType)
+				.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget);
+		WidgetResource resource = WidgetConverter.TO_WIDGET_RESOURCE.apply(widget);
+		resource.setContent(content);
+		return resource;
 	}
 
 	@Override

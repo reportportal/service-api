@@ -3,28 +3,17 @@
 */
 package com.epam.ta.reportportal.store.jooq.tables;
 
-
 import com.epam.ta.reportportal.store.jooq.Indexes;
 import com.epam.ta.reportportal.store.jooq.JPublic;
 import com.epam.ta.reportportal.store.jooq.Keys;
 import com.epam.ta.reportportal.store.jooq.tables.records.JWidgetRecord;
-
-import java.util.Arrays;
-import java.util.List;
-
-import javax.annotation.Generated;
-
-import org.jooq.Field;
-import org.jooq.ForeignKey;
-import org.jooq.Identity;
-import org.jooq.Index;
-import org.jooq.Name;
-import org.jooq.Schema;
-import org.jooq.Table;
-import org.jooq.TableField;
-import org.jooq.UniqueKey;
+import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
+
+import javax.annotation.Generated;
+import java.util.Arrays;
+import java.util.List;
 
 
 /**
@@ -40,7 +29,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JWidget extends TableImpl<JWidgetRecord> {
 
-    private static final long serialVersionUID = 1137058850;
+	private static final long serialVersionUID = -1064590137;
 
     /**
      * The reference instance of <code>public.widget</code>
@@ -58,12 +47,32 @@ public class JWidget extends TableImpl<JWidgetRecord> {
     /**
      * The column <code>public.widget.id</code>.
      */
-    public final TableField<JWidgetRecord, Integer> ID = createField("id", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('widget_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+	public final TableField<JWidgetRecord, Long> ID = createField(
+			"id", org.jooq.impl.SQLDataType.BIGINT.nullable(false)
+					.defaultValue(org.jooq.impl.DSL.field("nextval('widget_id_seq'::regclass)", org.jooq.impl.SQLDataType.BIGINT)), this,
+			""
+	);
 
     /**
      * The column <code>public.widget.name</code>.
      */
     public final TableField<JWidgetRecord, String> NAME = createField("name", org.jooq.impl.SQLDataType.VARCHAR.nullable(false), this, "");
+
+	/**
+	 * The column <code>public.widget.description</code>.
+	 */
+	public final TableField<JWidgetRecord, String> DESCRIPTION = createField("description", org.jooq.impl.SQLDataType.VARCHAR, this, "");
+
+	/**
+	 * The column <code>public.widget.widget_type</code>.
+	 */
+	public final TableField<JWidgetRecord, String> WIDGET_TYPE = createField(
+			"widget_type", org.jooq.impl.SQLDataType.VARCHAR.nullable(false), this, "");
+
+	/**
+	 * The column <code>public.widget.items_count</code>.
+	 */
+	public final TableField<JWidgetRecord, Short> ITEMS_COUNT = createField("items_count", org.jooq.impl.SQLDataType.SMALLINT, this, "");
 
     /**
      * The column <code>public.widget.project_id</code>.
@@ -119,9 +128,9 @@ public class JWidget extends TableImpl<JWidgetRecord> {
      * {@inheritDoc}
      */
     @Override
-    public Identity<JWidgetRecord, Integer> getIdentity() {
-        return Keys.IDENTITY_WIDGET;
-    }
+	public Identity<JWidgetRecord, Long> getIdentity() {
+		return Keys.IDENTITY_WIDGET;
+	}
 
     /**
      * {@inheritDoc}

@@ -21,6 +21,15 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.store.commons.EntityUtils;
+import com.epam.ta.reportportal.store.database.entity.item.TestItemStructure;
+import com.epam.ta.reportportal.store.database.entity.item.TestItemTag;
+import com.epam.ta.reportportal.ws.model.TestItemResource;
+
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 /**
  * Converts internal DB model to DTO
  *
@@ -31,33 +40,29 @@ public final class TestItemConverter {
 	private TestItemConverter() {
 		//static only
 	}
-	//
-	//	public static final Function<TestItem, TestItemResource> TO_RESOURCE = item -> {
-	//		Preconditions.checkNotNull(item);
-	//		TestItemResource resource = new TestItemResource();
-	//		resource.setDescription(item.getItemDescription());
-	//		resource.setUniqueId(item.getUniqueId());
-	//		resource.setTags(item.getTags());
-	//		resource.setEndTime(item.getEndTime());
-	//		resource.setItemId(item.getId());
-	//		if (null != item.getParameters()) {
-	//			resource.setParameters(item.getParameters().stream().map(ParametersConverter.TO_RESOURCE).collect(Collectors.toList()));
-	//		}
-	//		resource.setIssue(IssueConverter.TO_MODEL.apply(item.getIssue()));
-	//		resource.setName(item.getName());
-	//		resource.setStartTime(item.getStartTime());
-	//		resource.setStatus(item.getStatus() != null ? item.getStatus().toString() : null);
-	//		resource.setType(item.getType() != null ? item.getType().name() : null);
-	//		resource.setParent(item.getParent());
-	//		resource.setHasChilds(item.hasChilds());
-	//		resource.setLaunchId(item.getLaunchRef());
-	//		resource.setStatistics(StatisticsConverter.TO_RESOURCE.apply(item.getStatistics()));
-	//
-	//		Optional.ofNullable(item.getRetries())
-	//				.map(items -> items.stream().map(TestItemConverter.TO_RESOURCE)
-	//						.sorted(comparing(TestItemResource::getStartTime))
-	//						.collect(Collectors.toList()))
-	//				.ifPresent(resource::setRetries);
-	//		return resource;
-	//	};
+
+	public static final Function<TestItemStructure, TestItemResource> TO_RESOURCE = item -> {
+		TestItemResource resource = new TestItemResource();
+		resource.setDescription(item.getTestItem().getDescription());
+		resource.setUniqueId(item.getTestItem().getUniqueId());
+		resource.setTags(item.getTestItem().getTags().stream().map(TestItemTag::getValue).collect(Collectors.toSet()));
+		resource.setEndTime(EntityUtils.TO_DATE.apply(item.getItemResults().getEndTime()));
+		resource.setItemId(String.valueOf(item.getItemId()));
+		if (null != item.getTestItem().getParameters()) {
+			resource.setParameters(
+					item.getTestItem().getParameters().stream().map(ParametersConverter.TO_RESOURCE).collect(Collectors.toList()));
+		}
+		Optional.ofNullable(item.getItemResults().getIssue()).ifPresent(i -> resource.setIssue(IssueConverter.TO_MODEL.apply(i)));
+		resource.setName(item.getTestItem().getName());
+		resource.setStartTime(EntityUtils.TO_DATE.apply(item.getTestItem().getStartTime()));
+		resource.setStatus(item.getItemResults().getStatus() != null ? item.getItemResults().getStatus().toString() : null);
+		resource.setType(item.getTestItem().getType() != null ? item.getTestItem().getType().name() : null);
+		resource.setParent("parent");
+		resource.setHasChilds(false);
+		resource.setLaunchId("launch");
+		resource.setStatistics(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults().getIssueStatistics(),
+				item.getItemResults().getExecutionStatistics()
+		));
+		return resource;
+	};
 }

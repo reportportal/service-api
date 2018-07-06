@@ -35,7 +35,11 @@ import java.time.LocalDateTime;
  */
 public class LaunchFinishedEvent implements ActivityEvent {
 
-	private final Launch launch;
+	private Launch launch;
+
+	LaunchFinishedEvent() {
+
+	}
 
 	public LaunchFinishedEvent(Launch launch) {
 		this.launch = Preconditions.checkNotNull(launch, "Should not be null");

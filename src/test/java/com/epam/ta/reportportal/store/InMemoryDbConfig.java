@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 
+import javax.inject.Provider;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -27,11 +28,11 @@ import java.sql.Types;
 public class InMemoryDbConfig {
 
 	@Autowired
-	private DataSource dataSource;
+	private Provider<DataSource> dataSource;
 
 	@Bean
 	public DatabaseConnection dbunitConnection() throws SQLException, DatabaseUnitException {
-		DatabaseConnection connection = new DatabaseConnection(dataSource.getConnection());
+		DatabaseConnection connection = new DatabaseConnection(dataSource.get().getConnection());
 		connection.getConfig().setProperty(DatabaseConfig.PROPERTY_DATATYPE_FACTORY, new PostgresqlDataTypeFactory() {
 			@Override
 			public boolean isEnumType(String sqlTypeName) {

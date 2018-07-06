@@ -84,7 +84,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
  */
 @Controller
 @RequestMapping("/{projectName}/launch")
-//@PreAuthorize(ASSIGNED_TO_PROJECT)
+@PreAuthorize(ASSIGNED_TO_PROJECT)
 public class LaunchController {
 
 	private final StartLaunchHandler createLaunchMessageHandler;
@@ -96,7 +96,6 @@ public class LaunchController {
 
 	//	@Autowired
 	//	private IGetJasperReportHandler getJasperHandler;
-
 
 	@Autowired
 	public LaunchController(StartLaunchHandler createLaunchMessageHandler, FinishLaunchHandler finishLaunchMessageHandler,
@@ -118,7 +117,7 @@ public class LaunchController {
 	@ResponseBody
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
-//	@PreAuthorize(ALLOWED_TO_REPORT)
+	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS startLaunch(
 			@ApiParam(value = "Name of project launch starts under", required = true) @PathVariable String projectName,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
@@ -176,7 +175,7 @@ public class LaunchController {
 	@PutMapping("/update")
 	@Transactional
 	@ResponseBody
-	//@PreAuthorize(ASSIGNED_TO_PROJECT)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ResponseStatus(OK)
 	@ApiOperation("Updates launches for specified project")
 	public List<OperationCompletionRS> updateLaunches(@PathVariable String projectName, @RequestBody @Validated BulkRQ<UpdateLaunchRQ> rq,

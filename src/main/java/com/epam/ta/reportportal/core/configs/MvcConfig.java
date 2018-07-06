@@ -115,15 +115,14 @@ public class MvcConfig implements WebMvcConfigurer {
 	//	}
 
 	@Bean
-	public Thumbnailator thumbnailator(){
+	public Thumbnailator thumbnailator() {
 		return new ThumbnailatorImpl();
 	}
 
 	@Bean
-	public ContentTypeResolver contentTypeResolver(){
+	public ContentTypeResolver contentTypeResolver() {
 		return new TikaContentTypeResolver();
 	}
-
 
 	@Bean
 	public SortArgumentResolver sortArgumentResolver() {

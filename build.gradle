@@ -16,7 +16,7 @@ buildscript {
     dependencies {
         classpath "io.spring.gradle:dependency-management-plugin:1.0.2.RELEASE"
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-        classpath 'com.bmuschko:gradle-docker-plugin:3.0.12'
+//        classpath 'com.bmuschko:gradle-docker-plugin:3.0.12'
     }
 }
 
@@ -33,7 +33,7 @@ apply plugin: "io.spring.dependency-management"
 apply plugin: 'jacoco'
 
 apply from: 'build-quality.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-docker.gradle'
+//apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-docker.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
 
@@ -106,8 +106,8 @@ dependencies {
     } else {
         //compile('com.github.reportportal:commons-dao:4.0.0')
         compile 'com.github.reportportal:commons-rules:spb2-SNAPSHOT'
-        compile 'com.github.reportportal:commons-model:fe48b60'
-        compile('com.github.reportportal:commons:526633e')
+        compile 'com.github.reportportal:commons-model:e1b39f7'
+        compile('com.github.reportportal:commons:71d4aca')
     }
 
 
@@ -191,7 +191,7 @@ dependencies {
     testCompile 'com.github.database-rider:rider-spring:1.2.8'
     testCompile 'org.dbunit:dbunit:2.5.4'
 
-    testCompile 'org.testcontainers:postgresql:1.7.3'
+    testCompile 'org.testcontainers:postgresql:1.8.0'
 
 }
 
@@ -222,6 +222,20 @@ jar.dependsOn copyJacocoAgentToLibs
 //End section for external jacoco test report
 
 build.dependsOn jacocoTestReport
+
+task resolveDependencies() {
+    doLast {
+        project.rootProject.allprojects.each { subProject ->
+            subProject.buildscript.configurations.each { configuration ->
+                if (configuration.isCanBeResolved()) configuration.resolve()
+            }
+            subProject.configurations.each { configuration ->
+                if (configuration.isCanBeResolved()) configuration.resolve()
+            }
+        }
+    }
+}
+
 test {
 //    testLogging.showStandardStreams = true
 

@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
@@ -118,7 +119,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	@Override
 	public List<String> getLaunchNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
 
-		expect(value.length() > 2, equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
+		expect(value.length() > 2, it -> Objects.equals(it, true)).verify(INCORRECT_FILTER_PARAMETERS,
 				formattedSupplier("Length of the launch name string '{}' is less than 3 symbols", value)
 		);
 

@@ -1,4 +1,16 @@
-FROM openjdk:8-jre
+FROM openjdk:8-jdk-alpine as builder
+
+COPY gradle/ ./gradle
+COPY gradlew .
+RUN ./gradlew wrapper
+
+COPY build-quality.gradle build.gradle gradlew settings.gradle ./
+RUN ./gradlew resolveDependencies
+
+COPY . ./
+RUN ./gradlew build
+
+FROM openjdk:8-jre-slim
 
 LABEL maintainer="Andrei Varabyeu <andrei_varabyeu@epam.com>"
 LABEL version="@version@"

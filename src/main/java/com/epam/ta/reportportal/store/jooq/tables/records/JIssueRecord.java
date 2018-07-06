@@ -266,7 +266,7 @@ public class JIssueRecord extends UpdatableRecordImpl<JIssueRecord> implements R
 	public JIssueRecord value2(Long value) {
 		setIssueType(value);
 		return this;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -302,7 +302,7 @@ public class JIssueRecord extends UpdatableRecordImpl<JIssueRecord> implements R
 	public JIssueRecord values(Long value1, Long value2, String value3, Boolean value4, Boolean value5) {
 		value1(value1);
 		value2(value2);
-        value3(value3);
+		value3(value3);
         value4(value4);
         value5(value5);
         return this;

@@ -429,5 +429,5 @@ public class JDashboardWidgetRecord extends UpdatableRecordImpl<JDashboardWidget
 		set(4, widgetHeight);
 		set(5, widgetPositionX);
 		set(6, widgetPositionY);
-    }
+	}
 }

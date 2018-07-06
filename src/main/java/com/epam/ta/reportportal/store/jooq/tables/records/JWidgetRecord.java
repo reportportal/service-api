@@ -295,7 +295,7 @@ public class JWidgetRecord extends UpdatableRecordImpl<JWidgetRecord> implements
 	public JWidgetRecord value1(Long value) {
 		setId(value);
 		return this;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -340,7 +340,7 @@ public class JWidgetRecord extends UpdatableRecordImpl<JWidgetRecord> implements
 	public JWidgetRecord value6(Long value) {
 		setProjectId(value);
 		return this;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -349,7 +349,7 @@ public class JWidgetRecord extends UpdatableRecordImpl<JWidgetRecord> implements
 	public JWidgetRecord values(Long value1, String value2, String value3, String value4, Short value5, Long value6) {
 		value1(value1);
 		value2(value2);
-        value3(value3);
+		value3(value3);
 		value4(value4);
 		value5(value5);
 		value6(value6);

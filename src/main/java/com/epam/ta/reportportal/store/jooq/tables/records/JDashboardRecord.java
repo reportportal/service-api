@@ -3,6 +3,7 @@
 */
 package com.epam.ta.reportportal.store.jooq.tables.records;
 
+
 import com.epam.ta.reportportal.store.jooq.tables.JDashboard;
 import org.jooq.Field;
 import org.jooq.Record1;
@@ -286,7 +287,7 @@ public class JDashboardRecord extends UpdatableRecordImpl<JDashboardRecord>
 	public JDashboardRecord value4(Integer value) {
 		setProjectId(value);
 		return this;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -295,7 +296,7 @@ public class JDashboardRecord extends UpdatableRecordImpl<JDashboardRecord>
 	public JDashboardRecord value5(Timestamp value) {
 		setCreationDate(value);
 		return this;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -304,7 +305,7 @@ public class JDashboardRecord extends UpdatableRecordImpl<JDashboardRecord>
 	public JDashboardRecord values(Integer value1, String value2, String value3, Integer value4, Timestamp value5) {
 		value1(value1);
 		value2(value2);
-        value3(value3);
+		value3(value3);
         value4(value4);
 		value5(value5);
 		return this;

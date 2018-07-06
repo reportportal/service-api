@@ -35,14 +35,14 @@ public class JTestItemResultsRecord extends UpdatableRecordImpl<JTestItemResults
 	 */
 	public void setResultId(Long value) {
 		set(0, value);
-    }
+	}
 
     /**
 	 * Getter for <code>public.test_item_results.result_id</code>.
 	 */
 	public Long getResultId() {
 		return (Long) get(0);
-    }
+	}
 
     /**
      * Setter for <code>public.test_item_results.status</code>.
@@ -221,7 +221,7 @@ public class JTestItemResultsRecord extends UpdatableRecordImpl<JTestItemResults
     public JTestItemResultsRecord value1(Long value) {
 		setResultId(value);
 		return this;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -281,7 +281,7 @@ public class JTestItemResultsRecord extends UpdatableRecordImpl<JTestItemResults
 
 		set(0, resultId);
 		set(1, status);
-        set(2, endTime);
+		set(2, endTime);
         set(3, duration);
     }
 }

@@ -33,14 +33,14 @@ public class JTestItemStructureRecord extends UpdatableRecordImpl<JTestItemStruc
 	 */
 	public void setStructureId(Long value) {
 		set(0, value);
-    }
+	}
 
     /**
 	 * Getter for <code>public.test_item_structure.structure_id</code>.
 	 */
 	public Long getStructureId() {
 		return (Long) get(0);
-    }
+	}
 
     /**
      * Setter for <code>public.test_item_structure.parent_id</code>.
@@ -219,7 +219,7 @@ public class JTestItemStructureRecord extends UpdatableRecordImpl<JTestItemStruc
     public JTestItemStructureRecord value1(Long value) {
 		setStructureId(value);
 		return this;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -254,11 +254,11 @@ public class JTestItemStructureRecord extends UpdatableRecordImpl<JTestItemStruc
 	@Override
 	public JTestItemStructureRecord values(Long value1, Long value2, Long value3, Long value4) {
 		value1(value1);
-        value2(value2);
+		value2(value2);
         value3(value3);
 		value4(value4);
 		return this;
-    }
+	}
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -279,7 +279,7 @@ public class JTestItemStructureRecord extends UpdatableRecordImpl<JTestItemStruc
 
 		set(0, structureId);
 		set(1, parentId);
-        set(2, retryOf);
+		set(2, retryOf);
 		set(3, launchId);
 	}
 }

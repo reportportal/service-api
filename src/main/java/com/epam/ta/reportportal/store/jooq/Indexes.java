@@ -52,7 +52,7 @@ public class Indexes {
 	public static final Index UNIQUE_ISSUE_LAUNCH = Indexes0.UNIQUE_ISSUE_LAUNCH;
 	public static final Index ISSUE_TICKET_PK = Indexes0.ISSUE_TICKET_PK;
 	public static final Index ISSUE_TYPE_PK = Indexes0.ISSUE_TYPE_PK;
-    public static final Index ISSUE_TYPE_PROJECT_CONFIGURATION_PK = Indexes0.ISSUE_TYPE_PROJECT_CONFIGURATION_PK;
+	public static final Index ISSUE_TYPE_PROJECT_CONFIGURATION_PK = Indexes0.ISSUE_TYPE_PROJECT_CONFIGURATION_PK;
     public static final Index ITEM_TAG_PK = Indexes0.ITEM_TAG_PK;
     public static final Index LAUNCH_PK = Indexes0.LAUNCH_PK;
     public static final Index UNQ_NAME_NUMBER = Indexes0.UNQ_NAME_NUMBER;
@@ -77,7 +77,7 @@ public class Indexes {
 	public static final Index USER_FILTER_PK = Indexes0.USER_FILTER_PK;
 	public static final Index USERS_LOGIN_KEY = Indexes0.USERS_LOGIN_KEY;
 	public static final Index USERS_PK = Indexes0.USERS_PK;
-    public static final Index WIDGET_ID = Indexes0.WIDGET_ID;
+	public static final Index WIDGET_ID = Indexes0.WIDGET_ID;
 	public static final Index WIDGET_FILTER_PO = Indexes0.WIDGET_FILTER_PO;
 	public static final Index WIDGET_OPTION_PK = Indexes0.WIDGET_OPTION_PK;
 
@@ -116,7 +116,8 @@ public class Indexes {
 				"filter_sort_pk", JFilterSort.FILTER_SORT, new OrderField[] { JFilterSort.FILTER_SORT.ID }, true);
 		public static Index INTEGRATION_PK = Internal.createIndex(
 				"integration_pk", JIntegration.INTEGRATION, new OrderField[] { JIntegration.INTEGRATION.ID }, true);
-		public static Index INTEGRATION_TYPE_PK = Internal.createIndex("integration_type_pk", JIntegrationType.INTEGRATION_TYPE, new OrderField[] { JIntegrationType.INTEGRATION_TYPE.ID }, true);
+		public static Index INTEGRATION_TYPE_PK = Internal.createIndex(
+				"integration_type_pk", JIntegrationType.INTEGRATION_TYPE, new OrderField[] { JIntegrationType.INTEGRATION_TYPE.ID }, true);
 		public static Index ISSUE_PK = Internal.createIndex("issue_pk", JIssue.ISSUE, new OrderField[] { JIssue.ISSUE.ISSUE_ID }, true);
 		public static Index ISSUE_GROUP_PK = Internal.createIndex(
 				"issue_group_pk", JIssueGroup.ISSUE_GROUP, new OrderField[] { JIssueGroup.ISSUE_GROUP.ISSUE_GROUP_ID }, true);
@@ -134,8 +135,9 @@ public class Indexes {
 				"issue_ticket_pk", JIssueTicket.ISSUE_TICKET,
 				new OrderField[] { JIssueTicket.ISSUE_TICKET.ISSUE_ID, JIssueTicket.ISSUE_TICKET.TICKET_ID }, true
 		);
-		public static Index ISSUE_TYPE_PK = Internal.createIndex("issue_type_pk", JIssueType.ISSUE_TYPE, new OrderField[] { JIssueType.ISSUE_TYPE.ID }, true);
-        public static Index ISSUE_TYPE_PROJECT_CONFIGURATION_PK = Internal.createIndex("issue_type_project_configuration_pk", JIssueTypeProjectConfiguration.ISSUE_TYPE_PROJECT_CONFIGURATION, new OrderField[] { JIssueTypeProjectConfiguration.ISSUE_TYPE_PROJECT_CONFIGURATION.CONFIGURATION_ID, JIssueTypeProjectConfiguration.ISSUE_TYPE_PROJECT_CONFIGURATION.ISSUE_TYPE_ID }, true);
+		public static Index ISSUE_TYPE_PK = Internal.createIndex(
+				"issue_type_pk", JIssueType.ISSUE_TYPE, new OrderField[] { JIssueType.ISSUE_TYPE.ID }, true);
+		public static Index ISSUE_TYPE_PROJECT_CONFIGURATION_PK = Internal.createIndex("issue_type_project_configuration_pk", JIssueTypeProjectConfiguration.ISSUE_TYPE_PROJECT_CONFIGURATION, new OrderField[] { JIssueTypeProjectConfiguration.ISSUE_TYPE_PROJECT_CONFIGURATION.CONFIGURATION_ID, JIssueTypeProjectConfiguration.ISSUE_TYPE_PROJECT_CONFIGURATION.ISSUE_TYPE_ID }, true);
         public static Index ITEM_TAG_PK = Internal.createIndex("item_tag_pk", JItemTag.ITEM_TAG, new OrderField[] { JItemTag.ITEM_TAG.ID }, true);
         public static Index LAUNCH_PK = Internal.createIndex("launch_pk", JLaunch.LAUNCH, new OrderField[] { JLaunch.LAUNCH.ID }, true);
         public static Index UNQ_NAME_NUMBER = Internal.createIndex("unq_name_number", JLaunch.LAUNCH, new OrderField[] { JLaunch.LAUNCH.NAME, JLaunch.LAUNCH.NUMBER, JLaunch.LAUNCH.PROJECT_ID, JLaunch.LAUNCH.UUID }, true);
@@ -162,13 +164,13 @@ public class Indexes {
 				new OrderField[] { JTestItemStructure.TEST_ITEM_STRUCTURE.STRUCTURE_ID }, true
 		);
 		public static Index TICKET_PK = Internal.createIndex("ticket_pk", JTicket.TICKET, new OrderField[] { JTicket.TICKET.ID }, true);
-        public static Index TICKET_TICKET_ID_KEY = Internal.createIndex("ticket_ticket_id_key", JTicket.TICKET, new OrderField[] { JTicket.TICKET.TICKET_ID }, true);
+		public static Index TICKET_TICKET_ID_KEY = Internal.createIndex("ticket_ticket_id_key", JTicket.TICKET, new OrderField[] { JTicket.TICKET.TICKET_ID }, true);
 		public static Index USER_FILTER_PK = Internal.createIndex(
 				"user_filter_pk", JUserFilter.USER_FILTER, new OrderField[] { JUserFilter.USER_FILTER.ID }, true);
 		public static Index USERS_LOGIN_KEY = Internal.createIndex(
 				"users_login_key", JUsers.USERS, new OrderField[] { JUsers.USERS.LOGIN }, true);
 		public static Index USERS_PK = Internal.createIndex("users_pk", JUsers.USERS, new OrderField[] { JUsers.USERS.ID }, true);
-        public static Index WIDGET_ID = Internal.createIndex("widget_id", JWidget.WIDGET, new OrderField[] { JWidget.WIDGET.ID }, true);
+		public static Index WIDGET_ID = Internal.createIndex("widget_id", JWidget.WIDGET, new OrderField[] { JWidget.WIDGET.ID }, true);
 		public static Index WIDGET_FILTER_PO = Internal.createIndex(
 				"widget_filter_po", JWidgetFilter.WIDGET_FILTER,
 				new OrderField[] { JWidgetFilter.WIDGET_FILTER.WIDGET_ID, JWidgetFilter.WIDGET_FILTER.FILTER_ID }, true

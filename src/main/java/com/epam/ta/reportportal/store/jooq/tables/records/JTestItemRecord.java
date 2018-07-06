@@ -175,7 +175,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public Field<String> field2() {
 		return JTestItem.TEST_ITEM.NAME;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -183,7 +183,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public Field<JTestItemTypeEnum> field3() {
 		return JTestItem.TEST_ITEM.TYPE;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -191,7 +191,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public Field<Timestamp> field4() {
 		return JTestItem.TEST_ITEM.START_TIME;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -199,7 +199,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public Field<String> field5() {
 		return JTestItem.TEST_ITEM.DESCRIPTION;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -207,7 +207,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public Field<Timestamp> field6() {
 		return JTestItem.TEST_ITEM.LAST_MODIFIED;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -215,7 +215,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public Field<String> field7() {
 		return JTestItem.TEST_ITEM.UNIQUE_ID;
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -231,7 +231,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public String component2() {
 		return getName();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -239,7 +239,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public JTestItemTypeEnum component3() {
 		return getType();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -247,7 +247,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public Timestamp component4() {
 		return getStartTime();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -255,7 +255,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public String component5() {
 		return getDescription();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -263,7 +263,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public Timestamp component6() {
 		return getLastModified();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -271,7 +271,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public String component7() {
 		return getUniqueId();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -287,7 +287,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public String value2() {
 		return getName();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -295,7 +295,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public JTestItemTypeEnum value3() {
 		return getType();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -303,7 +303,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public Timestamp value4() {
 		return getStartTime();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -311,7 +311,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public String value5() {
 		return getDescription();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -319,7 +319,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public Timestamp value6() {
 		return getLastModified();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -327,7 +327,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public String value7() {
 		return getUniqueId();
-    }
+	}
 
     /**
      * {@inheritDoc}
@@ -344,7 +344,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public JTestItemRecord value2(String value) {
 		setName(value);
-        return this;
+		return this;
     }
 
     /**
@@ -353,7 +353,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public JTestItemRecord value3(JTestItemTypeEnum value) {
 		setType(value);
-        return this;
+		return this;
     }
 
     /**
@@ -362,7 +362,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public JTestItemRecord value4(Timestamp value) {
 		setStartTime(value);
-        return this;
+		return this;
     }
 
     /**
@@ -371,7 +371,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public JTestItemRecord value5(String value) {
 		setDescription(value);
-        return this;
+		return this;
     }
 
     /**
@@ -380,7 +380,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public JTestItemRecord value6(Timestamp value) {
 		setLastModified(value);
-        return this;
+		return this;
     }
 
     /**
@@ -389,7 +389,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
     @Override
 	public JTestItemRecord value7(String value) {
 		setUniqueId(value);
-        return this;
+		return this;
     }
 
     /**
@@ -399,7 +399,7 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord>
 	public JTestItemRecord values(Long value1, String value2, JTestItemTypeEnum value3, Timestamp value4, String value5, Timestamp value6,
 			String value7) {
 		value1(value1);
-        value2(value2);
+		value2(value2);
         value3(value3);
         value4(value4);
         value5(value5);

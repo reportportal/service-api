@@ -6,14 +6,14 @@ node {
 
         stage('Checkout') {
             checkout scm
-            sh 'git checkout master'
+            sh 'git checkout ps-migrations'
             sh 'git pull'
         }
 
         stage('Build') {
             docker.withServer("$DOCKER_HOST") {
                         stage('Build Docker Image') {
-                            sh 'docker build -t service-api-5'
+                            sh 'docker build -t service-api-5 .'
                         }
 
                         stage('Deploy container') {

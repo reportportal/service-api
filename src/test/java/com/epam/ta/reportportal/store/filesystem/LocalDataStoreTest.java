@@ -1,6 +1,8 @@
 package com.epam.ta.reportportal.store.filesystem;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.filesystem.FilePathGenerator;
+import com.epam.ta.reportportal.filesystem.LocalDataStore;
 import com.google.common.base.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;

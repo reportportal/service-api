@@ -21,8 +21,8 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.store.database.entity.item.ExecutionStatistics;
-import com.epam.ta.reportportal.store.database.entity.item.IssueStatistics;
+import com.epam.ta.reportportal.entity.item.ExecutionStatistics;
+import com.epam.ta.reportportal.entity.item.IssueStatistics;
 import com.epam.ta.reportportal.ws.model.statistics.Statistics;
 
 import java.util.Set;

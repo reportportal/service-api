@@ -26,10 +26,10 @@ import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionsUtil;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.store.database.entity.launch.Launch;
-import com.epam.ta.reportportal.store.database.entity.widget.Widget;
-import com.epam.ta.reportportal.store.database.entity.widget.WidgetOption;
+import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.stereotype.Service;
 

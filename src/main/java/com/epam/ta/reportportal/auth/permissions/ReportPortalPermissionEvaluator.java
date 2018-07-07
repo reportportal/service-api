@@ -22,7 +22,7 @@
 package com.epam.ta.reportportal.auth.permissions;
 
 import com.epam.ta.reportportal.exception.PermissionNotDefinedException;
-import com.epam.ta.reportportal.store.database.entity.user.UserRole;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.google.common.base.Preconditions;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;

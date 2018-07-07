@@ -18,6 +18,7 @@
 
 package com.epam.ta.reportportal.store.filesystem;
 
+import com.epam.ta.reportportal.filesystem.DataEncoder;
 import org.junit.Before;
 import org.junit.Test;
 

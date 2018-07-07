@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.ws.resolver;
 
-import com.epam.ta.reportportal.store.database.entity.enums.UserRoleEnum;
+import com.epam.ta.reportportal.entity.enums.UserRoleEnum;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.support.WebArgumentResolver;

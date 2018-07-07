@@ -34,7 +34,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 public interface DeleteLaunchHandler {
 
 	/**
-	 * Delete {@link com.epam.ta.reportportal.store.database.entity.launch.Launch} instance
+	 * Delete {@link com.epam.ta.reportportal.entity.launch.Launch} instance
 	 *
 	 * @param launchId    ID of launch
 	 * @param projectName Project Name

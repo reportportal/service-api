@@ -1,5 +1,7 @@
 package com.epam.ta.reportportal.store.service;
 
+import com.epam.ta.reportportal.service.PersistedProperty;
+import com.epam.ta.reportportal.service.PersistedPropertyUtils;
 import org.junit.Test;
 
 import java.time.Instant;

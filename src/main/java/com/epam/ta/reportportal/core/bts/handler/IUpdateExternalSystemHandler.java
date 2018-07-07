@@ -35,7 +35,7 @@ import com.epam.ta.reportportal.ws.model.externalsystem.UpdateExternalSystemRQ;
 public interface IUpdateExternalSystemHandler {
 
 	/**
-	 * Update method for {@link com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem} entity
+	 * Update method for {@link com.epam.ta.reportportal.entity.bts.BugTrackingSystem} entity
 	 *
 	 * @param request     Request Data
 	 * @param projectName Project Name

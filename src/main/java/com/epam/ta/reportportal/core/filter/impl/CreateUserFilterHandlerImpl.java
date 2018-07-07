@@ -23,8 +23,8 @@ package com.epam.ta.reportportal.core.filter.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
-import com.epam.ta.reportportal.store.database.dao.UserFilterRepository;
-import com.epam.ta.reportportal.store.database.entity.filter.UserFilter;
+import com.epam.ta.reportportal.dao.UserFilterRepository;
+import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;

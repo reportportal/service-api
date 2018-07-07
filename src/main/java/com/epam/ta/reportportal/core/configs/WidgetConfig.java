@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.content.filter.*;
 import com.epam.ta.reportportal.core.widget.content.loader.*;
-import com.epam.ta.reportportal.store.database.entity.widget.WidgetType;
+import com.epam.ta.reportportal.entity.widget.WidgetType;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;

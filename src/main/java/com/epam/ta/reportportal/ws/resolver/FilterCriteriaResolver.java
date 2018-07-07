@@ -1,10 +1,10 @@
 package com.epam.ta.reportportal.ws.resolver;
 
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.store.commons.Predicates;
-import com.epam.ta.reportportal.store.commons.querygen.Condition;
-import com.epam.ta.reportportal.store.commons.querygen.Filter;
-import com.epam.ta.reportportal.store.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.commons.Predicates;
+import com.epam.ta.reportportal.commons.querygen.Condition;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.MethodParameter;

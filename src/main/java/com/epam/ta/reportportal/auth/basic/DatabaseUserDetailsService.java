@@ -22,8 +22,8 @@ package com.epam.ta.reportportal.auth.basic;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.util.AuthUtils;
-import com.epam.ta.reportportal.store.database.dao.UserRepository;
-import com.epam.ta.reportportal.store.database.entity.user.User;
+import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

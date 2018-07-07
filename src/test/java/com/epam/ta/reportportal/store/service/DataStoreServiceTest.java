@@ -20,10 +20,11 @@ package com.epam.ta.reportportal.store.service;
 
 import com.epam.reportportal.commons.ContentTypeResolver;
 import com.epam.reportportal.commons.Thumbnailator;
-import com.epam.ta.reportportal.store.commons.BinaryDataMetaInfo;
-import com.epam.ta.reportportal.store.filesystem.DataEncoder;
-import com.epam.ta.reportportal.store.filesystem.DataStore;
-import com.epam.ta.reportportal.store.filesystem.FilePathGenerator;
+import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
+import com.epam.ta.reportportal.filesystem.DataEncoder;
+import com.epam.ta.reportportal.filesystem.DataStore;
+import com.epam.ta.reportportal.filesystem.FilePathGenerator;
+import com.epam.ta.reportportal.service.DataStoreService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;

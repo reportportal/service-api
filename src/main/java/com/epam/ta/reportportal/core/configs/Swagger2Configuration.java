@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.store.database.entity.enums.UserRoleEnum;
+import com.epam.ta.reportportal.entity.enums.UserRoleEnum;
 import com.fasterxml.classmate.ResolvedType;
 import com.fasterxml.classmate.TypeResolver;
 import org.springframework.beans.factory.annotation.Autowired;

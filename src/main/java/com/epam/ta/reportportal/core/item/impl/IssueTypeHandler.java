@@ -22,8 +22,8 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.store.database.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

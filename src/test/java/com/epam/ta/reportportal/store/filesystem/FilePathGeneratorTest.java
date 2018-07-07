@@ -18,6 +18,7 @@
 
 package com.epam.ta.reportportal.store.filesystem;
 
+import com.epam.ta.reportportal.filesystem.FilePathGenerator;
 import com.epam.ta.reportportal.util.DateTimeProvider;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -27,7 +28,6 @@ import org.mockito.Mockito;
 import java.time.LocalDateTime;
 
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class FilePathGeneratorTest {

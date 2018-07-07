@@ -21,8 +21,8 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.epam.ta.reportportal.store.database.entity.dashboard.Dashboard;
-import com.epam.ta.reportportal.store.database.entity.dashboard.DashboardWidget;
+import com.epam.ta.reportportal.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 

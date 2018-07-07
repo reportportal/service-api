@@ -20,7 +20,7 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.item.TestItem;
 
 import java.util.List;
 

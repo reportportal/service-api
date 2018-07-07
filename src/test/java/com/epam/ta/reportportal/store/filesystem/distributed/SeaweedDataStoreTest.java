@@ -19,6 +19,7 @@
 package com.epam.ta.reportportal.store.filesystem.distributed;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.filesystem.distributed.SeaweedDataStore;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.model.PortBinding;
 import com.google.common.base.Charsets;

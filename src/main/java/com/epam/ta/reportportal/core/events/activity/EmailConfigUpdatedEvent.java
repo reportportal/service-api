@@ -20,7 +20,7 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.store.database.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 
 /**

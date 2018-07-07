@@ -23,14 +23,14 @@ package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.database.dao.LogRepository;
-import com.epam.ta.reportportal.store.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.store.database.entity.item.TestItem;
-import com.epam.ta.reportportal.store.database.entity.launch.Launch;
-import com.epam.ta.reportportal.store.database.entity.log.Log;
-import com.epam.ta.reportportal.store.database.entity.project.Project;
-import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
-import com.epam.ta.reportportal.store.database.entity.user.UserRole;
+import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.store.service.DataStoreService;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -42,8 +42,8 @@ import java.util.Objects;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.store.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**

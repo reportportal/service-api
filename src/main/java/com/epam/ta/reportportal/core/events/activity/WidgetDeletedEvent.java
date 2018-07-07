@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.store.database.entity.widget.Widget;
+import com.epam.ta.reportportal.entity.widget.Widget;
 
 /**
  * @author pavel_bortnik

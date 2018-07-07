@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.ws.rabbit;
 
-import com.epam.ta.reportportal.store.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 
 /**
  * @author Yauheni_Martynau

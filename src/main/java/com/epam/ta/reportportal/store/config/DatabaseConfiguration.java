@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.store.config;
 
-import com.epam.ta.reportportal.store.database.dao.ReportPortalRepositoryImpl;
+import com.epam.ta.reportportal.dao.ReportPortalRepositoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
@@ -68,11 +68,11 @@ public class DatabaseConfiguration {
 
 		LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
 		factory.setJpaVendorAdapter(vendorAdapter);
-		factory.setPackagesToScan("com.epam.ta.reportportal.store");
+		factory.setPackagesToScan("com.epam.ta.reportportal.entity", "com.epam.ta.reportportal.commons");
 		factory.setDataSource(dataSource());
 
 		Properties jpaProperties = new Properties();
-		jpaProperties.setProperty("hibernate.dialect", "com.epam.ta.reportportal.store.commons.JsonbAwarePostgresDialect");
+		jpaProperties.setProperty("hibernate.dialect", "com.epam.ta.reportportal.commons.JsonbAwarePostgresDialect");
 		factory.setJpaProperties(jpaProperties);
 
 		factory.afterPropertiesSet();

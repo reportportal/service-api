@@ -20,7 +20,7 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.store.database.entity.user.User;
+import com.epam.ta.reportportal.entity.user.User;
 
 /**
  * @author Andrei Varabyeu

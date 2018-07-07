@@ -21,11 +21,11 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.store.database.entity.dashboard.Dashboard;
-import com.epam.ta.reportportal.store.database.entity.dashboard.DashboardWidget;
-import com.epam.ta.reportportal.store.database.entity.dashboard.DashboardWidgetId;
-import com.epam.ta.reportportal.store.database.entity.widget.Widget;
-import com.epam.ta.reportportal.store.database.entity.widget.WidgetOption;
+import com.epam.ta.reportportal.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
+import com.epam.ta.reportportal.entity.dashboard.DashboardWidgetId;
+import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.ws.model.Position;
 import com.epam.ta.reportportal.ws.model.Size;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;

@@ -21,9 +21,9 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.store.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.store.database.entity.filter.FilterSort;
-import com.epam.ta.reportportal.store.database.entity.filter.UserFilter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.entity.filter.FilterSort;
+import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.model.filter.Order;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;

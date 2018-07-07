@@ -20,9 +20,9 @@
  */
 package com.epam.ta.reportportal.info;
 
-import com.epam.ta.reportportal.store.database.entity.enums.ActivityEventType;
-import com.epam.ta.reportportal.store.database.entity.enums.ActivityObjectType;
-import com.epam.ta.reportportal.store.database.entity.enums.KeepLogsDelay;
+import com.epam.ta.reportportal.entity.enums.ActivityEventType;
+import com.epam.ta.reportportal.entity.enums.ActivityObjectType;
+import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.boot.actuate.info.MapInfoContributor;
 import org.springframework.stereotype.Component;

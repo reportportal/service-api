@@ -21,10 +21,10 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.epam.ta.reportportal.store.database.entity.filter.UserFilter;
-import com.epam.ta.reportportal.store.database.entity.project.Project;
-import com.epam.ta.reportportal.store.database.entity.widget.Widget;
-import com.epam.ta.reportportal.store.database.entity.widget.WidgetOption;
+import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.google.common.collect.Sets;
 

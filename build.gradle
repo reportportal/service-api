@@ -240,7 +240,7 @@ task resolveDependencies() {
 }
 
 bootJar {
-    archiveName = "${baseName}-${appendix}.${extension}"
+    archiveName = "${baseName}.${extension}"
 }
 
 test {

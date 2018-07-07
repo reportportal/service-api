@@ -225,9 +225,7 @@ jar.dependsOn gitInfo
 
 build.dependsOn jacocoTestReport
 
-jar {
-   archiveName="${baseName}-${appendix}-${classifier}.${extension}"
-}
+
 task resolveDependencies() {
     doLast {
         project.rootProject.allprojects.each { subProject ->
@@ -239,6 +237,10 @@ task resolveDependencies() {
             }
         }
     }
+}
+
+bootJar {
+    archiveName = "${baseName}-${appendix}.${extension}"
 }
 
 test {

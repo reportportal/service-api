@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.store.database.entity.filter.UserFilter;
+import com.epam.ta.reportportal.entity.filter.UserFilter;
 
 import java.util.List;
 

@@ -22,7 +22,7 @@
 package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;

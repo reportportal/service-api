@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.events;
 
-import com.epam.ta.reportportal.store.database.entity.Activity;
+import com.epam.ta.reportportal.entity.Activity;
 
 import java.io.Serializable;
 

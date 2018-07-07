@@ -21,9 +21,9 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.store.commons.EntityUtils;
-import com.epam.ta.reportportal.store.database.entity.item.TestItemStructure;
-import com.epam.ta.reportportal.store.database.entity.item.TestItemTag;
+import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.entity.item.TestItemStructure;
+import com.epam.ta.reportportal.entity.item.TestItemTag;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 
 import java.util.Optional;

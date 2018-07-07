@@ -23,8 +23,8 @@ package com.epam.ta.reportportal.core.dashboard.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.dashboard.ICreateDashboardHandler;
-import com.epam.ta.reportportal.store.database.dao.DashboardRepository;
-import com.epam.ta.reportportal.store.database.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.dao.DashboardRepository;
+import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.ws.converter.builders.DashboardBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;

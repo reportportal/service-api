@@ -38,8 +38,8 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.*;
-import com.epam.ta.reportportal.store.commons.querygen.Filter;
-import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
@@ -72,7 +72,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 /**
  * Controller implementation for
- * {@link com.epam.ta.reportportal.store.database.entity.launch.Launch} entity
+ * {@link com.epam.ta.reportportal.entity.launch.Launch} entity
  * <p>
  * Note: please use EntityUtils for forced lower case for user names and project
  * names

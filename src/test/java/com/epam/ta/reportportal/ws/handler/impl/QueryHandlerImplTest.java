@@ -1,14 +1,14 @@
 package com.epam.ta.reportportal.ws.handler.impl;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.commons.querygen.Filter;
-import com.epam.ta.reportportal.store.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.store.database.dao.IntegrationRepository;
-import com.epam.ta.reportportal.store.database.dao.LogRepository;
-import com.epam.ta.reportportal.store.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.store.database.entity.launch.Launch;
-import com.epam.ta.reportportal.store.database.entity.log.Log;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.dao.IntegrationRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.rabbit.QueryRQ;
 import org.assertj.core.util.Lists;
 import org.junit.Test;

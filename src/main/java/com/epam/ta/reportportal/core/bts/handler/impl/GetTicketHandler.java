@@ -24,8 +24,8 @@ package com.epam.ta.reportportal.core.bts.handler.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.IGetTicketHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.database.dao.BugTrackingSystemRepository;
-import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
+import com.epam.ta.reportportal.dao.BugTrackingSystemRepository;
+import com.epam.ta.reportportal.entity.bts.BugTrackingSystem;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.store.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.ws.model.ErrorType.EXTERNAL_SYSTEM_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_CONFIGURED;
 

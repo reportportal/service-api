@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.store.database.entity.bts.Ticket;
+import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.base.Preconditions;
 

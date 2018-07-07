@@ -1,7 +1,7 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.store.commons.EntityUtils;
-import com.epam.ta.reportportal.store.database.entity.log.Log;
+import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;

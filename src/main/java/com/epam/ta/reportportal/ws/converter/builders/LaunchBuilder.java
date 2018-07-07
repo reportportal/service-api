@@ -22,11 +22,11 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.commons.EntityUtils;
-import com.epam.ta.reportportal.store.database.entity.enums.LaunchModeEnum;
-import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.store.database.entity.launch.Launch;
-import com.epam.ta.reportportal.store.database.entity.launch.LaunchTag;
+import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;

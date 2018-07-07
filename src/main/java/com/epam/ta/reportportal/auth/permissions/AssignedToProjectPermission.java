@@ -23,8 +23,8 @@ package com.epam.ta.reportportal.auth.permissions;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.store.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;

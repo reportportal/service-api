@@ -21,8 +21,8 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.store.database.entity.Activity;
-import com.epam.ta.reportportal.store.database.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.launch.Launch;
 
 import java.time.LocalDateTime;
 

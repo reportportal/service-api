@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
+import com.epam.ta.reportportal.entity.bts.BugTrackingSystem;
 import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
 import com.google.common.base.Preconditions;
 

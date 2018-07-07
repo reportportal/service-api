@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.store.database.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 
 import java.util.function.Function;

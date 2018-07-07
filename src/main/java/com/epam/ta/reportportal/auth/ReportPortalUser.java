@@ -1,7 +1,7 @@
 package com.epam.ta.reportportal.auth;
 
-import com.epam.ta.reportportal.store.database.entity.project.ProjectRole;
-import com.epam.ta.reportportal.store.database.entity.user.UserRole;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 

@@ -1,7 +1,7 @@
 package com.epam.ta.reportportal.ws.rabbit;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.store.database.dao.ActivityRepository;
+import com.epam.ta.reportportal.dao.ActivityRepository;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;

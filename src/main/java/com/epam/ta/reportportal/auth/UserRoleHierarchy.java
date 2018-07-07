@@ -21,8 +21,7 @@
 
 package com.epam.ta.reportportal.auth;
 
-import com.epam.ta.reportportal.store.database.entity.user.UserRole;
-import com.epam.ta.reportportal.store.jooq.enums.JUserRoleEnum;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

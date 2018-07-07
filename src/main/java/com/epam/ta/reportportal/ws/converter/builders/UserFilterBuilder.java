@@ -22,11 +22,11 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.commons.querygen.Condition;
-import com.epam.ta.reportportal.store.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.store.database.entity.filter.FilterSort;
-import com.epam.ta.reportportal.store.database.entity.filter.UserFilter;
-import com.epam.ta.reportportal.store.database.entity.project.Project;
+import com.epam.ta.reportportal.commons.querygen.Condition;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.entity.filter.FilterSort;
+import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.Order;

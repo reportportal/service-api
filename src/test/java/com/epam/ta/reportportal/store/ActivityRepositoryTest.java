@@ -2,9 +2,9 @@ package com.epam.ta.reportportal.store;
 
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
-import com.epam.ta.reportportal.store.database.dao.ActivityRepository;
-import com.epam.ta.reportportal.store.database.entity.Activity;
-import com.epam.ta.reportportal.store.database.entity.JsonMap;
+import com.epam.ta.reportportal.dao.ActivityRepository;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.JsonMap;
 import org.assertj.core.api.Assertions;
 import org.junit.Ignore;
 import org.junit.Test;

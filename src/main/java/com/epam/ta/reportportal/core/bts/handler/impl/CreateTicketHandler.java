@@ -24,10 +24,10 @@ package com.epam.ta.reportportal.core.bts.handler.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.ICreateTicketHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.database.dao.BugTrackingSystemRepository;
-import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
-import com.epam.ta.reportportal.store.database.entity.item.TestItem;
+import com.epam.ta.reportportal.dao.BugTrackingSystemRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.bts.BugTrackingSystem;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
@@ -38,7 +38,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.store.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**

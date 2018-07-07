@@ -21,8 +21,8 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.store.database.entity.bts.DefectFieldAllowedValue;
-import com.epam.ta.reportportal.store.database.entity.bts.DefectFormField;
+import com.epam.ta.reportportal.entity.bts.DefectFieldAllowedValue;
+import com.epam.ta.reportportal.entity.bts.DefectFormField;
 import com.epam.ta.reportportal.ws.model.externalsystem.AllowedValue;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
 import com.google.common.base.Preconditions;

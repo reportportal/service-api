@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.core.bts;
 
-import com.epam.ta.reportportal.store.database.entity.bts.BugTrackingSystem;
+import com.epam.ta.reportportal.entity.bts.BugTrackingSystem;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;

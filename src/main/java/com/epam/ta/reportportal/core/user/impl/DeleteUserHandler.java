@@ -31,7 +31,6 @@ import com.epam.ta.reportportal.database.dao.UserRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.database.personal.PersonalProjectService;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -40,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Delete user handler
@@ -84,7 +84,8 @@ public class DeleteUserHandler implements IDeleteUserHandler {
 			throw new ReportPortalException("Error while deleting user", exp);
 		}
 
-		logIndexer.deleteIndex(user.getLogin().toLowerCase() + PersonalProjectService.PERSONAL_PROJECT_POSTFIX.toLowerCase());
+		Optional<String> personalProjectName = projectRepository.findPersonalProjectName(user.getLogin());
+		personalProjectName.ifPresent(s -> logIndexer.deleteIndex(s));
 
 		return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
 	}

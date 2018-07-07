@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.store.commons.Preconditions;
 import com.epam.ta.reportportal.store.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.store.database.dao.LogRepository;
 import com.epam.ta.reportportal.store.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.store.database.dao.TestItemStructureRepository;
 import com.epam.ta.reportportal.store.database.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.store.database.entity.item.TestItem;
 import com.epam.ta.reportportal.store.database.entity.launch.Launch;
@@ -58,6 +59,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	private TestItemRepository testItemRepository;
 
 	@Autowired
+	private TestItemStructureRepository structureRepository;
+
+	@Autowired
 	private LaunchRepository launchRepository;
 
 	@Autowired
@@ -69,7 +73,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	@Autowired
 	private RabbitTemplate rabbitTemplate;
 
-
 	@Override
 	public ItemCreatedRS startRootItem(ReportPortalUser user, String projectName, StartTestItemRQ rq) {
 		Launch launch = launchRepository.findById(rq.getLaunchId())
@@ -79,7 +82,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
-		testItemRepository.save(item);
+		structureRepository.save(item.getItemStructure());
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
 
@@ -92,12 +95,12 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		validateProject(user, projectName);
 		validate(rq, parentItem);
 
-		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addLaunch(launch).addParent(parentItem.getTestItemStructure()).get();
+		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addLaunch(launch).addParent(parentItem.getItemStructure()).get();
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
 		//TODO retries
-		testItemRepository.save(item);
+		structureRepository.save(item.getItemStructure());
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
 
@@ -108,9 +111,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId())
 		);
 		expect(rq.getStartTime(), Preconditions.sameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(),
-				launch.getStartTime(),
-				launch.getId()
+				rq.getStartTime(), launch.getStartTime(), launch.getId()
 		);
 	}
 
@@ -125,13 +126,10 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 */
 	private void validate(StartTestItemRQ rq, TestItem parent) {
 		expect(rq.getStartTime(), Preconditions.sameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(),
-				parent.getStartTime(),
-				parent.getItemId()
+				rq.getStartTime(), parent.getStartTime(), parent.getItemId()
 		);
-		expect(parent.getTestItemResults().getStatus(), Preconditions.statusIn(StatusEnum.IN_PROGRESS)).verify(START_ITEM_NOT_ALLOWED,
-				formattedSupplier("Parent Item '{}' is not in progress", parent.getItemId())
-		);
+		expect(parent.getItemStructure().getItemResults().getStatus(), Preconditions.statusIn(StatusEnum.IN_PROGRESS)).verify(
+				START_ITEM_NOT_ALLOWED, formattedSupplier("Parent Item '{}' is not in progress", parent.getItemId()));
 		expect(logRepository.hasLogs(parent.getItemId()), equalTo(false)).verify(START_ITEM_NOT_ALLOWED,
 				formattedSupplier("Parent Item '{}' already has log items", parent.getItemId())
 		);

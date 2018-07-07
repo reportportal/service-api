@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  * @author Dzianis Shlychkou
  * @author Andrei_Ramanchuk
  */
-public enum TestItemIssueType /*implements StatisticsAwareness*/ {
+public enum TestItemIssueGroup /*implements StatisticsAwareness*/ {
 
 	NOT_ISSUE_FLAG("NOT_ISSUE", "notIssue", ""),
 
@@ -54,7 +54,7 @@ public enum TestItemIssueType /*implements StatisticsAwareness*/ {
 
 	private final String locator;
 
-	TestItemIssueType(String value, String executionCounterField, String locator) {
+	TestItemIssueGroup(String value, String executionCounterField, String locator) {
 		this.value = value;
 		this.issueCounterField = executionCounterField;
 		this.locator = locator;
@@ -74,12 +74,12 @@ public enum TestItemIssueType /*implements StatisticsAwareness*/ {
 	 * @param value - string representation of desired TestItemIssueType value
 	 * @return TestItemIssueType value
 	 */
-	public static TestItemIssueType fromValue(String value) {
-		return Arrays.stream(TestItemIssueType.values()).filter(type -> type.getValue().equalsIgnoreCase(value)).findAny().orElse(null);
+	public static TestItemIssueGroup fromValue(String value) {
+		return Arrays.stream(TestItemIssueGroup.values()).filter(type -> type.getValue().equalsIgnoreCase(value)).findAny().orElse(null);
 	}
 
-	public static TestItemIssueType validate(String value) {
-		return Arrays.stream(TestItemIssueType.values())
+	public static TestItemIssueGroup validate(String value) {
+		return Arrays.stream(TestItemIssueGroup.values())
 				.filter(type -> type.getValue().replace(" ", "_").equalsIgnoreCase(value))
 				.findAny()
 				.orElse(null);
@@ -98,6 +98,6 @@ public enum TestItemIssueType /*implements StatisticsAwareness*/ {
 	//	}
 
 	public static List<String> validValues() {
-		return Arrays.stream(TestItemIssueType.values()).map(TestItemIssueType::getValue).collect(Collectors.toList());
+		return Arrays.stream(TestItemIssueGroup.values()).map(TestItemIssueGroup::getValue).collect(Collectors.toList());
 	}
 }

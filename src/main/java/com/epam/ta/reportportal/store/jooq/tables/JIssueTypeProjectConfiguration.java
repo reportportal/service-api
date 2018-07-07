@@ -3,27 +3,17 @@
 */
 package com.epam.ta.reportportal.store.jooq.tables;
 
-
 import com.epam.ta.reportportal.store.jooq.Indexes;
 import com.epam.ta.reportportal.store.jooq.JPublic;
 import com.epam.ta.reportportal.store.jooq.Keys;
 import com.epam.ta.reportportal.store.jooq.tables.records.JIssueTypeProjectConfigurationRecord;
-
-import java.util.Arrays;
-import java.util.List;
-
-import javax.annotation.Generated;
-
-import org.jooq.Field;
-import org.jooq.ForeignKey;
-import org.jooq.Index;
-import org.jooq.Name;
-import org.jooq.Schema;
-import org.jooq.Table;
-import org.jooq.TableField;
-import org.jooq.UniqueKey;
+import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
+
+import javax.annotation.Generated;
+import java.util.Arrays;
+import java.util.List;
 
 
 /**
@@ -39,7 +29,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JIssueTypeProjectConfiguration extends TableImpl<JIssueTypeProjectConfigurationRecord> {
 
-    private static final long serialVersionUID = 1786878314;
+	private static final long serialVersionUID = 1553829767;
 
     /**
      * The reference instance of <code>public.issue_type_project_configuration</code>
@@ -62,7 +52,8 @@ public class JIssueTypeProjectConfiguration extends TableImpl<JIssueTypeProjectC
     /**
      * The column <code>public.issue_type_project_configuration.issue_type_id</code>.
      */
-    public final TableField<JIssueTypeProjectConfigurationRecord, Integer> ISSUE_TYPE_ID = createField("issue_type_id", org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
+	public final TableField<JIssueTypeProjectConfigurationRecord, Long> ISSUE_TYPE_ID = createField(
+			"issue_type_id", org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * Create a <code>public.issue_type_project_configuration</code> table reference

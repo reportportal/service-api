@@ -49,8 +49,8 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.store.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.store.database.entity.enums.StatusEnum.*;
-import static com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType.NOT_ISSUE_FLAG;
-import static com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueType.TO_INVESTIGATE;
+import static com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
+import static com.epam.ta.reportportal.store.database.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -120,7 +120,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @return TestItemResults object
 	 */
 	private TestItemResults processItemResults(Long projectId, TestItem testItem, FinishTestItemRQ finishExecutionRQ, boolean hasChildren) {
-		TestItemResults testItemResults = Optional.ofNullable(testItem.getTestItemResults()).orElse(new TestItemResults());
+		TestItemResults testItemResults = Optional.ofNullable(testItem.getItemStructure().getItemResults()).orElse(new TestItemResults());
 		Optional<StatusEnum> actualStatus = fromValue(finishExecutionRQ.getStatus());
 		Issue providedIssue = finishExecutionRQ.getIssue();
 
@@ -131,21 +131,21 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		}
 
 		if (Preconditions.statusIn(FAILED, SKIPPED).test(testItemResults.getStatus()) && !hasChildren) {
+			IssueEntity issueEntity = null;
 			if (null != providedIssue) {
 				//in provided issue should be locator id or NOT_ISSUE value
 				String locator = providedIssue.getIssueType();
 				if (!NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(locator)) {
 					IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, locator);
-					IssueEntity issue = IssueConverter.TO_ISSUE.apply(providedIssue);
-					issue.setIssueType(issueType);
-					testItemResults.setIssue(issue);
+					issueEntity = IssueConverter.TO_ISSUE.apply(providedIssue);
+					issueEntity.setIssueType(issueType);
 				}
 			} else {
 				IssueType toInvestigate = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, TO_INVESTIGATE.getLocator());
-				IssueEntity issue = new IssueEntity();
-				issue.setIssueType(toInvestigate);
-				testItemResults.setIssue(issue);
+				issueEntity = new IssueEntity();
+				issueEntity.setIssueType(toInvestigate);
 			}
+			testItemResults.setIssue(issueEntity);
 		}
 		testItemResults.setEndTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()));
 		return testItemResults;
@@ -162,10 +162,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 */
 	private void verifyTestItem(ReportPortalUser user, TestItem testItem, FinishTestItemRQ finishExecutionRQ,
 			Optional<StatusEnum> actualStatus, boolean hasChildren) {
-		Launch launch = Optional.ofNullable(testItem.getLaunch()).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
+		Launch launch = Optional.ofNullable(testItem.getItemStructure().getLaunch())
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
 		expect(user.getUserId(), equalTo(launch.getUserId())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not launch owner.");
 
-		expect(testItem.getTestItemResults().getStatus(), Preconditions.statusIn(IN_PROGRESS)).verify(
+		expect(testItem.getItemStructure().getItemResults().getStatus(), Preconditions.statusIn(IN_PROGRESS)).verify(
 				REPORTING_ITEM_ALREADY_FINISHED, testItem.getItemId());
 
 		List<TestItem> items = testItemRepository.selectItemsInStatusByParent(testItem.getItemId(), IN_PROGRESS);

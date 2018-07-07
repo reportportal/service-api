@@ -23,7 +23,6 @@ package com.epam.ta.reportportal.store.database.entity.item;
 
 import com.epam.ta.reportportal.store.database.entity.enums.PostgreSQLEnumType;
 import com.epam.ta.reportportal.store.database.entity.enums.TestItemTypeEnum;
-import com.epam.ta.reportportal.store.database.entity.launch.Launch;
 import com.epam.ta.reportportal.store.database.entity.log.Log;
 import com.google.common.collect.Sets;
 import org.hibernate.annotations.Type;
@@ -35,7 +34,6 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -44,17 +42,13 @@ import java.util.Set;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
-@Table(name = "test_item", schema = "public", indexes = { @Index(name = "test_item_pk", unique = true, columnList = "item_id ASC") })
+@Table(name = "test_item", schema = "public")
 public class TestItem implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "item_id", unique = true, nullable = false, precision = 64)
+	@Column(name = "item_id")
 	private Long itemId;
-
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "launch_id")
-	private Launch launch;
 
 	@Column(name = "name", length = 256)
 	private String name;
@@ -89,43 +83,23 @@ public class TestItem implements Serializable {
 	@JoinColumn(name = "item_id")
 	private Set<Log> logs = Sets.newHashSet();
 
-	@OneToOne(mappedBy = "testItem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private TestItemStructure testItemStructure;
-
-	@OneToOne(mappedBy = "testItem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private TestItemResults testItemResults;
+	@OneToOne(fetch = FetchType.LAZY)
+	@MapsId
+	@JoinColumn(name = "item_id")
+	private TestItemStructure itemStructure;
 
 	public TestItem() {
 	}
 
-	public TestItem(Long itemId, Launch launch, String name, TestItemTypeEnum type, LocalDateTime startTime, String description,
+	public TestItem(Long itemId, String name, TestItemTypeEnum type, LocalDateTime startTime, String description,
 			LocalDateTime lastModified, String uniqueId) {
 		this.itemId = itemId;
-		this.launch = launch;
 		this.name = name;
 		this.type = type;
 		this.startTime = startTime;
 		this.description = description;
 		this.lastModified = lastModified;
 		this.uniqueId = uniqueId;
-	}
-
-	public TestItemStructure getTestItemStructure() {
-		return testItemStructure;
-	}
-
-	public void setTestItemStructure(TestItemStructure testItemStructure) {
-		this.testItemStructure = testItemStructure;
-		testItemStructure.setTestItem(this);
-	}
-
-	public TestItemResults getTestItemResults() {
-		return testItemResults;
-	}
-
-	public void setTestItemResults(TestItemResults testItemResults) {
-		this.testItemResults = testItemResults;
-		testItemResults.setTestItem(this);
 	}
 
 	public Set<TestItemTag> getTags() {
@@ -156,14 +130,6 @@ public class TestItem implements Serializable {
 
 	public void setItemId(Long itemId) {
 		this.itemId = itemId;
-	}
-
-	public Launch getLaunch() {
-		return launch;
-	}
-
-	public void setLaunch(Launch launch) {
-		this.launch = launch;
 	}
 
 	public String getName() {
@@ -222,31 +188,11 @@ public class TestItem implements Serializable {
 		this.uniqueId = uniqueId;
 	}
 
-	@Override
-	public String toString() {
-		return "TestItem{" + "itemId=" + itemId + ", name='" + name + '\'' + ", type=" + type + ", startTime=" + startTime
-				+ ", description='" + description + '\'' + ", lastModified=" + lastModified + ", uniqueId='" + uniqueId + '\'' + ", tags="
-				+ tags + ", testItemStructure=" + testItemStructure + ", testItemResults=" + testItemResults + '}';
+	public TestItemStructure getItemStructure() {
+		return itemStructure;
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		TestItem testItem = (TestItem) o;
-		return Objects.equals(itemId, testItem.itemId) && Objects.equals(name, testItem.name) && type == testItem.type && Objects.equals(
-				startTime, testItem.startTime) && Objects.equals(description, testItem.description) && Objects.equals(
-				lastModified, testItem.lastModified) && Objects.equals(uniqueId, testItem.uniqueId) && Objects.equals(tags, testItem.tags)
-				&& Objects.equals(
-				testItemStructure, testItem.testItemStructure) && Objects.equals(testItemResults, testItem.testItemResults);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(itemId, name, type, startTime, description, lastModified, uniqueId, tags, testItemStructure, testItemResults);
+	public void setItemStructure(TestItemStructure itemStructure) {
+		this.itemStructure = itemStructure;
 	}
 }

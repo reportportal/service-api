@@ -21,6 +21,14 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.store.database.entity.item.ExecutionStatistics;
+import com.epam.ta.reportportal.store.database.entity.item.IssueStatistics;
+import com.epam.ta.reportportal.ws.model.statistics.Statistics;
+
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+
 /**
  * @author Pavel Bortnik
  */
@@ -30,29 +38,14 @@ public final class StatisticsConverter {
 		//static only
 	}
 
-	//	public static final Function<Statistics, com.epam.ta.reportportal.ws.model.statistics.Statistics> TO_RESOURCE = statistics -> {
-	//		com.epam.ta.reportportal.ws.model.statistics.Statistics statisticsCounters = new com.epam.ta.reportportal.ws.model.statistics.Statistics();
-	//		if (statistics != null) {
-	//			ExecutionCounter executionCounter = statistics.getExecutionCounter();
-	//			if (executionCounter != null) {
-	//				com.epam.ta.reportportal.ws.model.statistics.ExecutionCounter execution = new com.epam.ta.reportportal.ws.model.statistics.ExecutionCounter();
-	//				execution.setTotal(executionCounter.getTotal().toString());
-	//				execution.setPassed(executionCounter.getPassed().toString());
-	//				execution.setFailed(executionCounter.getFailed().toString());
-	//				execution.setSkipped(executionCounter.getSkipped().toString());
-	//				statisticsCounters.setExecutions(execution);
-	//			}
-	//			IssueCounter issueCounter = statistics.getIssueCounter();
-	//			if (issueCounter != null) {
-	//				com.epam.ta.reportportal.ws.model.statistics.IssueCounter issues = new com.epam.ta.reportportal.ws.model.statistics.IssueCounter();
-	//				issues.setProductBug(issueCounter.getProductBug());
-	//				issues.setSystemIssue(issueCounter.getSystemIssue());
-	//				issues.setAutomationBug(issueCounter.getAutomationBug());
-	//				issues.setToInvestigate(issueCounter.getToInvestigate());
-	//				issues.setNoDefect(issueCounter.getNoDefect());
-	//				statisticsCounters.setDefects(issues);
-	//			}
-	//		}
-	//		return statisticsCounters;
-	//	};
+	public static final BiFunction<Set<IssueStatistics>, Set<ExecutionStatistics>, Statistics> TO_RESOURCE = (issue, execution) -> {
+		Statistics statistics = new Statistics();
+		statistics.setDefects(issue.stream().filter(it -> it.getCounter() > 0).collect(Collectors.groupingBy(
+				it -> it.getIssueType().getIssueGroup().getTestItemIssueGroup().getValue(),
+				Collectors.groupingBy(it -> it.getIssueType().getLocator(), Collectors.summingInt(IssueStatistics::getCounter))
+		)));
+		statistics.setExecutions(
+				execution.stream().collect(Collectors.toMap(ExecutionStatistics::getStatus, ExecutionStatistics::getCounter)));
+		return statistics;
+	};
 }

@@ -3,27 +3,17 @@
 */
 package com.epam.ta.reportportal.store.jooq.tables;
 
-
 import com.epam.ta.reportportal.store.jooq.Indexes;
 import com.epam.ta.reportportal.store.jooq.JPublic;
 import com.epam.ta.reportportal.store.jooq.Keys;
 import com.epam.ta.reportportal.store.jooq.tables.records.JTestItemStructureRecord;
-
-import java.util.Arrays;
-import java.util.List;
-
-import javax.annotation.Generated;
-
-import org.jooq.Field;
-import org.jooq.ForeignKey;
-import org.jooq.Index;
-import org.jooq.Name;
-import org.jooq.Schema;
-import org.jooq.Table;
-import org.jooq.TableField;
-import org.jooq.UniqueKey;
+import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
+
+import javax.annotation.Generated;
+import java.util.Arrays;
+import java.util.List;
 
 
 /**
@@ -39,7 +29,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JTestItemStructure extends TableImpl<JTestItemStructureRecord> {
 
-    private static final long serialVersionUID = -296083114;
+	private static final long serialVersionUID = 604697425;
 
     /**
      * The reference instance of <code>public.test_item_structure</code>
@@ -55,9 +45,13 @@ public class JTestItemStructure extends TableImpl<JTestItemStructureRecord> {
     }
 
     /**
-     * The column <code>public.test_item_structure.item_id</code>.
-     */
-    public final TableField<JTestItemStructureRecord, Long> ITEM_ID = createField("item_id", org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
+	 * The column <code>public.test_item_structure.structure_id</code>.
+	 */
+	public final TableField<JTestItemStructureRecord, Long> STRUCTURE_ID = createField(
+			"structure_id", org.jooq.impl.SQLDataType.BIGINT.nullable(false)
+					.defaultValue(org.jooq.impl.DSL.field("nextval('test_item_structure_structure_id_seq'::regclass)",
+							org.jooq.impl.SQLDataType.BIGINT
+					)), this, "");
 
     /**
      * The column <code>public.test_item_structure.parent_id</code>.
@@ -68,6 +62,12 @@ public class JTestItemStructure extends TableImpl<JTestItemStructureRecord> {
      * The column <code>public.test_item_structure.retry_of</code>.
      */
     public final TableField<JTestItemStructureRecord, Long> RETRY_OF = createField("retry_of", org.jooq.impl.SQLDataType.BIGINT, this, "");
+
+	/**
+	 * The column <code>public.test_item_structure.launch_id</code>.
+	 */
+	public final TableField<JTestItemStructureRecord, Long> LAUNCH_ID = createField(
+			"launch_id", org.jooq.impl.SQLDataType.BIGINT, this, "");
 
     /**
      * Create a <code>public.test_item_structure</code> table reference
@@ -114,6 +114,14 @@ public class JTestItemStructure extends TableImpl<JTestItemStructureRecord> {
         return Arrays.<Index>asList(Indexes.TEST_ITEM_STRUCTURE_PK);
     }
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Identity<JTestItemStructureRecord, Long> getIdentity() {
+		return Keys.IDENTITY_TEST_ITEM_STRUCTURE;
+	}
+
     /**
      * {@inheritDoc}
      */
@@ -135,8 +143,11 @@ public class JTestItemStructure extends TableImpl<JTestItemStructureRecord> {
      */
     @Override
     public List<ForeignKey<JTestItemStructureRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<JTestItemStructureRecord, ?>>asList(Keys.TEST_ITEM_STRUCTURE__TEST_ITEM_STRUCTURE_ITEM_ID_FKEY, Keys.TEST_ITEM_STRUCTURE__TEST_ITEM_STRUCTURE_PARENT_ID_FKEY, Keys.TEST_ITEM_STRUCTURE__TEST_ITEM_STRUCTURE_RETRY_OF_FKEY);
-    }
+		return Arrays.<ForeignKey<JTestItemStructureRecord, ?>>asList(
+				Keys.TEST_ITEM_STRUCTURE__TEST_ITEM_STRUCTURE_PARENT_ID_FKEY, Keys.TEST_ITEM_STRUCTURE__TEST_ITEM_STRUCTURE_RETRY_OF_FKEY,
+				Keys.TEST_ITEM_STRUCTURE__TEST_ITEM_STRUCTURE_LAUNCH_ID_FKEY
+		);
+	}
 
     /**
      * {@inheritDoc}

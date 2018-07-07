@@ -3,29 +3,18 @@
 */
 package com.epam.ta.reportportal.store.jooq.tables;
 
-
 import com.epam.ta.reportportal.store.jooq.Indexes;
 import com.epam.ta.reportportal.store.jooq.JPublic;
 import com.epam.ta.reportportal.store.jooq.Keys;
 import com.epam.ta.reportportal.store.jooq.tables.records.JDashboardRecord;
+import org.jooq.*;
+import org.jooq.impl.DSL;
+import org.jooq.impl.TableImpl;
 
+import javax.annotation.Generated;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
-
-import javax.annotation.Generated;
-
-import org.jooq.Field;
-import org.jooq.ForeignKey;
-import org.jooq.Identity;
-import org.jooq.Index;
-import org.jooq.Name;
-import org.jooq.Schema;
-import org.jooq.Table;
-import org.jooq.TableField;
-import org.jooq.UniqueKey;
-import org.jooq.impl.DSL;
-import org.jooq.impl.TableImpl;
 
 
 /**
@@ -41,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JDashboard extends TableImpl<JDashboardRecord> {
 
-    private static final long serialVersionUID = 1585233093;
+	private static final long serialVersionUID = -1858123974;
 
     /**
      * The reference instance of <code>public.dashboard</code>
@@ -65,6 +54,11 @@ public class JDashboard extends TableImpl<JDashboardRecord> {
      * The column <code>public.dashboard.name</code>.
      */
     public final TableField<JDashboardRecord, String> NAME = createField("name", org.jooq.impl.SQLDataType.VARCHAR.nullable(false), this, "");
+
+	/**
+	 * The column <code>public.dashboard.description</code>.
+	 */
+	public final TableField<JDashboardRecord, String> DESCRIPTION = createField("description", org.jooq.impl.SQLDataType.VARCHAR, this, "");
 
     /**
      * The column <code>public.dashboard.project_id</code>.

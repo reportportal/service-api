@@ -3,19 +3,16 @@
 */
 package com.epam.ta.reportportal.store.jooq.tables.records;
 
-
 import com.epam.ta.reportportal.store.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.store.jooq.tables.JTestItemResults;
-
-import java.sql.Timestamp;
-
-import javax.annotation.Generated;
-
 import org.jooq.Field;
 import org.jooq.Record1;
 import org.jooq.Record4;
 import org.jooq.Row4;
 import org.jooq.impl.UpdatableRecordImpl;
+
+import javax.annotation.Generated;
+import java.sql.Timestamp;
 
 
 /**
@@ -31,21 +28,21 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class JTestItemResultsRecord extends UpdatableRecordImpl<JTestItemResultsRecord> implements Record4<Long, JStatusEnum, Timestamp, Double> {
 
-    private static final long serialVersionUID = 467341312;
+	private static final long serialVersionUID = 1438422144;
 
     /**
-     * Setter for <code>public.test_item_results.item_id</code>.
-     */
-    public void setItemId(Long value) {
-        set(0, value);
-    }
+	 * Setter for <code>public.test_item_results.result_id</code>.
+	 */
+	public void setResultId(Long value) {
+		set(0, value);
+	}
 
     /**
-     * Getter for <code>public.test_item_results.item_id</code>.
-     */
-    public Long getItemId() {
-        return (Long) get(0);
-    }
+	 * Getter for <code>public.test_item_results.result_id</code>.
+	 */
+	public Long getResultId() {
+		return (Long) get(0);
+	}
 
     /**
      * Setter for <code>public.test_item_results.status</code>.
@@ -126,8 +123,8 @@ public class JTestItemResultsRecord extends UpdatableRecordImpl<JTestItemResults
      */
     @Override
     public Field<Long> field1() {
-        return JTestItemResults.TEST_ITEM_RESULTS.ITEM_ID;
-    }
+		return JTestItemResults.TEST_ITEM_RESULTS.RESULT_ID;
+	}
 
     /**
      * {@inheritDoc}
@@ -158,8 +155,8 @@ public class JTestItemResultsRecord extends UpdatableRecordImpl<JTestItemResults
      */
     @Override
     public Long component1() {
-        return getItemId();
-    }
+		return getResultId();
+	}
 
     /**
      * {@inheritDoc}
@@ -190,8 +187,8 @@ public class JTestItemResultsRecord extends UpdatableRecordImpl<JTestItemResults
      */
     @Override
     public Long value1() {
-        return getItemId();
-    }
+		return getResultId();
+	}
 
     /**
      * {@inheritDoc}
@@ -222,9 +219,9 @@ public class JTestItemResultsRecord extends UpdatableRecordImpl<JTestItemResults
      */
     @Override
     public JTestItemResultsRecord value1(Long value) {
-        setItemId(value);
-        return this;
-    }
+		setResultId(value);
+		return this;
+	}
 
     /**
      * {@inheritDoc}
@@ -279,12 +276,12 @@ public class JTestItemResultsRecord extends UpdatableRecordImpl<JTestItemResults
     /**
      * Create a detached, initialised JTestItemResultsRecord
      */
-    public JTestItemResultsRecord(Long itemId, JStatusEnum status, Timestamp endTime, Double duration) {
-        super(JTestItemResults.TEST_ITEM_RESULTS);
+	public JTestItemResultsRecord(Long resultId, JStatusEnum status, Timestamp endTime, Double duration) {
+		super(JTestItemResults.TEST_ITEM_RESULTS);
 
-        set(0, itemId);
-        set(1, status);
-        set(2, endTime);
+		set(0, resultId);
+		set(1, status);
+		set(2, endTime);
         set(3, duration);
     }
 }

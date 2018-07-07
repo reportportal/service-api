@@ -33,9 +33,10 @@ apply plugin: "io.spring.dependency-management"
 apply plugin: 'jacoco'
 
 apply from: 'build-quality.gradle'
-//apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-docker.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-docker.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
+
+//apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -133,7 +134,7 @@ dependencies {
     compile 'org.lokra.seaweedfs:seaweedfs-client:0.7.3.RELEASE'
 //    end of seaweedfs
 
-    compile "ch.qos.logback:logback-classic:${logback}"
+    compile "ch.qos.logback:logback-classic"
     compile 'net.coobird:thumbnailator:0.4.8'
     compile 'com.sun.mail:javax.mail'
     compile group: 'org.aspectj', name: 'aspectjweaver', version: '1.8.9'
@@ -219,10 +220,14 @@ task copyJacocoAgentToLibs(type: Copy) {
 }
 
 jar.dependsOn copyJacocoAgentToLibs
+jar.dependsOn gitInfo
 //End section for external jacoco test report
 
 build.dependsOn jacocoTestReport
 
+jar {
+   archiveName="${baseName}-${appendix}-${classifier}.${extension}"
+}
 task resolveDependencies() {
     doLast {
         project.rootProject.allprojects.each { subProject ->

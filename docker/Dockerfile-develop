@@ -1,11 +1,13 @@
 FROM openjdk:8-jdk-alpine as builder
 
+RUN apk add --no-cache ca-certificates git
+
 COPY gradle/ ./gradle
 COPY gradlew .
 RUN ./gradlew wrapper
 
-COPY build-quality.gradle build.gradle gradlew settings.gradle ./
-RUN ./gradlew resolveDependencies
+COPY build-quality.gradle build-info.gradle release-service.gradle build.gradle gradlew settings.gradle ./
+RUN ./gradlew resolveDependencies --stacktrace
 
 COPY . ./
 RUN ./gradlew build
@@ -33,5 +35,4 @@ RUN sh -c 'touch /app.jar'
 
 EXPOSE 8080
 
-ENTRYPOINT ["/start.sh"]
-
+ENTRYPOINT /start.sh

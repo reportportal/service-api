@@ -6,6 +6,7 @@ import com.epam.ta.reportportal.store.database.dao.ActivityRepository;
 import com.epam.ta.reportportal.store.database.entity.Activity;
 import com.epam.ta.reportportal.store.database.entity.JsonMap;
 import org.assertj.core.api.Assertions;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
@@ -13,6 +14,7 @@ import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 import java.time.LocalDateTime;
 
 @ImportDataset("classpath:db/dataset.xml")
+@Ignore
 public class ActivityRepositoryTest extends BaseDBTest {
 
 	@Autowired

@@ -6,7 +6,7 @@ COPY gradle/ ./gradle
 COPY gradlew .
 RUN ./gradlew wrapper
 
-COPY build-quality.gradle build-info.gradle release-service.gradle build.gradle gradlew settings.gradle ./
+COPY build-quality.gradle build.gradle gradlew settings.gradle ./
 RUN ./gradlew resolveDependencies --stacktrace
 
 COPY . ./

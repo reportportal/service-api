@@ -36,7 +36,7 @@ spring:
       ddl-auto: none
 
   rabbitmq:
-    addresses: ${rp.amqp.uri}
+    addresses: ${rp.amqp.addresses}
 logging:
   level:
 #    org.springframework.context.support: warn

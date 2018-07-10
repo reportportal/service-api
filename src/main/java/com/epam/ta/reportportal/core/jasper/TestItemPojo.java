@@ -122,6 +122,14 @@ public class TestItemPojo {
 	public Integer getToInvestigate() {return toInvestigate;}
 	//@formatter:on
 
+	public String getDuration() {
+		return duration;
+	}
+
+	public void setDuration(String duration) {
+		this.duration = duration;
+	}
+
 	@Override
 	public String toString() {
 		return "TestItemPojo [type=" + type + ", name=" + name + ", status=" + status + ", total=" + total + ", passed=" + passed

@@ -32,7 +32,7 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
-import com.epam.ta.reportportal.store.service.DataStoreService;
+import com.epam.ta.reportportal.service.DataStoreService;
 import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;

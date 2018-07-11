@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.entity.enums.UserRoleEnum;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.fasterxml.classmate.ResolvedType;
 import com.fasterxml.classmate.TypeResolver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,7 +99,7 @@ public class Swagger2Configuration {
                 //.ignoredParameterTypes(Principal.class, Filter.class, Pageable.class)
                 .pathProvider(rpPathProvider())
                 .useDefaultResponseMessages(false)
-				.ignoredParameterTypes(UserRoleEnum.class)
+				.ignoredParameterTypes(UserRole.class)
                 /* remove default endpoints from listing */
                 .select().apis(not(or(
                         basePackage("org.springframework.boot"),

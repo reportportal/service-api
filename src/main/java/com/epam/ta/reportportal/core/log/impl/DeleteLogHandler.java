@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.store.service.DataStoreService;
+import com.epam.ta.reportportal.service.DataStoreService;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;

@@ -18,9 +18,9 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.BinaryData;
-import com.epam.ta.reportportal.service.DataStoreService;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.store.service.DataStoreService;
 import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;

@@ -3,7 +3,7 @@ package com.epam.ta.reportportal.job;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.entity.log.Log;
-import com.epam.ta.reportportal.service.DataStoreService;
+import com.epam.ta.reportportal.store.service.DataStoreService;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

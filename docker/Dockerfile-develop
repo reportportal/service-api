@@ -2,6 +2,8 @@ FROM openjdk:8-jdk-alpine as builder
 
 RUN apk add --no-cache ca-certificates git
 
+WORKDIR /usr/src/reportportal
+
 COPY gradle/ ./gradle
 COPY gradlew .
 RUN ./gradlew wrapper
@@ -30,7 +32,8 @@ exec java $JAVA_OPTS -jar $JAVA_APP' > /start.sh && chmod +x /start.sh"
 
 VOLUME /tmp
 
-ADD service-api.jar app.jar
+COPY --from=builder /usr/src/reportportal/build/libs/service-api.jar ./app.jar
+
 RUN sh -c 'touch /app.jar'
 
 EXPOSE 8080

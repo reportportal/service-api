@@ -250,6 +250,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 								expect(externalSystemRepository.exists(it.getExternalSystemId()), equalTo(true)).verify(
 										EXTERNAL_SYSTEM_NOT_FOUND, it.getExternalSystemId());
 							}).map(TestItemUtils.externalIssueDtoConverter(submitter)).collect(Collectors.toSet())).orElse(null));
+					issue.setAutoAnalyzed(BooleanUtils.toBoolean(providedIssue.getAutoAnalyzed()));
 					issue.setIgnoreAnalyzer(BooleanUtils.toBoolean(providedIssue.getIgnoreAnalyzer()));
 					testItem.setIssue(issue);
 				}

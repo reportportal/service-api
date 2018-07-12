@@ -21,9 +21,7 @@
 
 package com.epam.ta.reportportal.core.widget.content.loader;
 
-import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
@@ -58,15 +56,7 @@ public class OverallStatisticsContentLoader implements LoadContentStrategy {
 		UserFilter userFilter = filterRepository.findById(widget.getFilters().iterator().next().getId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND));
 
-		Filter filter = Filter.builder()
-				.withTarget(Launch.class)
-				.withCondition(FilterCondition.builder()
-						.withSearchCriteria("name")
-						.withCondition(Condition.CONTAINS)
-						.withValue("launch")
-						.withNegative(false)
-						.build())
-				.build();
+		Filter filter = new Filter(Launch.class, userFilter.getFilterCondition());
 
 		List<StatisticsContent> contents = widgetContentRepository.overallStatisticsContent(filter);
 

@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Pavel Bortnik
@@ -57,8 +58,12 @@ public class OverallStatisticsContentLoader implements LoadContentStrategy {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND));
 
 		Filter filter = new Filter(Launch.class, userFilter.getFilterCondition());
+		Map<String, List<String>> contentFields = widget.getContentFields()
+				.stream()
+				.map(it -> it.split("\\$"))
+				.collect(Collectors.groupingBy(it -> it[0], Collectors.mapping(it -> it[1].toUpperCase(), Collectors.toList())));
 
-		List<StatisticsContent> contents = widgetContentRepository.overallStatisticsContent(filter);
+		List<StatisticsContent> contents = widgetContentRepository.overallStatisticsContent(filter, contentFields);
 
 		Map<String, List<StatisticsContent>> result = new HashMap<>();
 		result.put("result", contents);

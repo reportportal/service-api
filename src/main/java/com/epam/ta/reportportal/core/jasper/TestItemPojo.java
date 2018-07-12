@@ -1,20 +1,20 @@
 /*
  * Copyright 2016 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -36,10 +36,13 @@
  */
 package com.epam.ta.reportportal.core.jasper;
 
+import com.epam.ta.reportportal.core.imprt.impl.DateUtils;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
+
+import java.time.Duration;
 
 /**
  * Jasper Reports collection {@link TestItem} POJO
@@ -50,6 +53,7 @@ public class TestItemPojo {
 	private String type;
 	private String name;
 	private String status;
+	private String duration;
 	private Integer total;
 	private Integer passed;
 	private Integer failed;
@@ -75,6 +79,7 @@ public class TestItemPojo {
 		}
 		this.name = input.getName() + description + issueDescription;
 		this.status = input.getStatus().name();
+		this.duration = Duration.between(DateUtils.fromDate(input.getStartTime()), DateUtils.fromDate(input.getEndTime())).toString();
 
 		ExecutionCounter exec = input.getStatistics().getExecutionCounter();
 		this.total = exec.getTotal();
@@ -116,6 +121,14 @@ public class TestItemPojo {
 	public void setToInvestigate(Integer value) {this.toInvestigate = value;}
 	public Integer getToInvestigate() {return toInvestigate;}
 	//@formatter:on
+
+	public String getDuration() {
+		return duration;
+	}
+
+	public void setDuration(String duration) {
+		this.duration = duration;
+	}
 
 	@Override
 	public String toString() {

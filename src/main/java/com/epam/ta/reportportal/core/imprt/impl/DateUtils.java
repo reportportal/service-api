@@ -20,6 +20,7 @@
  */
 package com.epam.ta.reportportal.core.imprt.impl;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -36,6 +37,13 @@ public final class DateUtils {
 	public static Date toDate(LocalDateTime startTime) {
 		if (null != startTime) {
 			return Date.from(startTime.atZone(ZoneId.systemDefault()).toInstant());
+		}
+		return null;
+	}
+
+	public static LocalDateTime fromDate(Date date) {
+		if (null != date) {
+			return Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
 		}
 		return null;
 	}

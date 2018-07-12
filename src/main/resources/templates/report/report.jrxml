@@ -47,6 +47,7 @@
         <field name="name" class="java.lang.String">
             <fieldDescription><![CDATA[]]></fieldDescription>
         </field>
+        <field name="duration" class="java.lang.String"/>
         <field name="status" class="java.lang.String"/>
         <field name="total" class="java.lang.Integer"/>
         <field name="passed" class="java.lang.Integer"/>

@@ -1,20 +1,20 @@
 /*
  * Copyright 2016 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.core.user.impl;
 import com.epam.ta.reportportal.auth.UatClient;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.user.IDeleteUserHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.UserRepository;
@@ -38,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Delete user handler
@@ -56,6 +58,9 @@ public class DeleteUserHandler implements IDeleteUserHandler {
 
 	@Autowired
 	private UatClient uatClient;
+
+	@Autowired
+	private ILogIndexer logIndexer;
 
 	@Override
 	public OperationCompletionRS deleteUser(String userId, String principal) {
@@ -78,6 +83,9 @@ public class DeleteUserHandler implements IDeleteUserHandler {
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while deleting user", exp);
 		}
+
+		Optional<String> personalProjectName = projectRepository.findPersonalProjectName(user.getLogin());
+		personalProjectName.ifPresent(s -> logIndexer.deleteIndex(s));
 
 		return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
 	}

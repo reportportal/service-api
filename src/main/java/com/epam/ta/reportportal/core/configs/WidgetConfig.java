@@ -75,17 +75,17 @@ public class WidgetConfig implements ApplicationContextAware {
 	@Bean("buildFilterStrategy")
 	public Map<WidgetType, BuildFilterStrategy> buildFilterStrategyMapping() {
 		Map<WidgetType, BuildFilterStrategy> mapping = new HashMap<>();
-		mapping.put(WidgetType.OLD_LINE_CHART, applicationContext.getBean(GeneralFilterStrategy.class));
-		mapping.put(WidgetType.INVESTIGATED_TREND, applicationContext.getBean(GeneralFilterStrategy.class));
-		mapping.put(WidgetType.STATISTIC_TREND, applicationContext.getBean(GeneralFilterStrategy.class));
-		mapping.put(WidgetType.LAUNCH_STATISTICS, applicationContext.getBean(GeneralFilterStrategy.class));
-		mapping.put(WidgetType.OVERALL_STATISTICS, applicationContext.getBean(GeneralFilterStrategy.class));
-		mapping.put(WidgetType.CASES_TREND, applicationContext.getBean(GeneralFilterStrategy.class));
-		mapping.put(WidgetType.NOT_PASSED, applicationContext.getBean(GeneralFilterStrategy.class));
-		mapping.put(WidgetType.BUG_TREND, applicationContext.getBean(GeneralFilterStrategy.class));
-		mapping.put(WidgetType.LAUNCHES_TABLE, applicationContext.getBean(GeneralFilterStrategy.class));
-		mapping.put(WidgetType.PASSING_RATE_SUMMARY, applicationContext.getBean(GeneralFilterStrategy.class));
-		mapping.put(WidgetType.CUMULATIVE, applicationContext.getBean(GeneralFilterStrategy.class));
+		mapping.put(WidgetType.OLD_LINE_CHART, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
+		mapping.put(WidgetType.INVESTIGATED_TREND, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
+		mapping.put(WidgetType.STATISTIC_TREND, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
+		mapping.put(WidgetType.LAUNCH_STATISTICS, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
+		mapping.put(WidgetType.OVERALL_STATISTICS, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
+		mapping.put(WidgetType.CASES_TREND, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
+		mapping.put(WidgetType.NOT_PASSED, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
+		mapping.put(WidgetType.BUG_TREND, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
+		mapping.put(WidgetType.LAUNCHES_TABLE, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
+		mapping.put(WidgetType.PASSING_RATE_SUMMARY, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
+		mapping.put(WidgetType.CUMULATIVE, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
 
 		mapping.put(WidgetType.UNIQUE_BUG_TABLE, applicationContext.getBean(UniqueBugFilterStrategy.class));
 		mapping.put(WidgetType.ACTIVITY, applicationContext.getBean(ActivityFilterStrategy.class));

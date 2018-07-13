@@ -19,28 +19,27 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.core.widget.content.filter;
+package com.epam.ta.reportportal.core.widget.content;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
-import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.entity.widget.Widget;
-import org.springframework.stereotype.Service;
-
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+
+import static java.util.stream.Collectors.*;
 
 /**
  * @author Pavel Bortnik
  */
-@Service
-public class GeneralFilterStrategy implements BuildFilterStrategy {
+public final class WidgetContentUtils {
 
-	@Override
-	public Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, ReportPortalUser.ProjectDetails projectDetails,
-			Widget widget) {
+	private static final String SPLITTING_REGEX = "\\$";
 
-		//TODO: Build predefined filter
-
-		return loadContentStrategy.loadContent(widget);
+	private WidgetContentUtils() {
+		//static only
 	}
+
+	public static final Function<List<String>, Map<String, List<String>>> GROUP_CONTENT_FIELDS = contentFields -> contentFields.stream()
+			.map(it -> it.split(SPLITTING_REGEX))
+			.collect(groupingBy(it -> it[0], mapping(it -> it[1].toUpperCase(), toList())));
+
 }

@@ -21,9 +21,12 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.entity.widget.WidgetOption;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Strategy definition interface for loading widget content.
@@ -32,6 +35,9 @@ import java.util.Map;
  */
 public interface LoadContentStrategy {
 
-	Map<String, ?> loadContent(Widget widget);
+	String RESULT = "result";
+	String LATEST_OPTION = "latest";
+
+	Map<String, ?> loadContent(List<String> contentFields, Set<Filter> filters, Set<WidgetOption> widgetOptions);
 
 }

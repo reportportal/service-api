@@ -23,21 +23,21 @@ package com.epam.ta.reportportal.core.widget.content.loader;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
-import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.entity.widget.content.StatisticsContent;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.core.widget.content.WidgetContentUtils.GROUP_CONTENT_FIELDS;
 
 /**
  * @author Pavel Bortnik
@@ -46,27 +46,18 @@ import java.util.stream.Collectors;
 public class OverallStatisticsContentLoader implements LoadContentStrategy {
 
 	@Autowired
-	private UserFilterRepository filterRepository;
-
-	@Autowired
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(Widget widget) {
-
-		UserFilter userFilter = filterRepository.findById(widget.getFilters().iterator().next().getId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND));
-
-		Filter filter = new Filter(Launch.class, userFilter.getFilterCondition());
-		Map<String, List<String>> contentFields = widget.getContentFields()
-				.stream()
-				.map(it -> it.split("\\$"))
-				.collect(Collectors.groupingBy(it -> it[0], Collectors.mapping(it -> it[1].toUpperCase(), Collectors.toList())));
-
-		List<StatisticsContent> contents = widgetContentRepository.overallStatisticsContent(filter, contentFields);
-
+	public Map<String, ?> loadContent(List<String> contentFields, Set<Filter> filters, Set<WidgetOption> widgetOptions) {
+		boolean latestMode = widgetOptions.stream().anyMatch(it -> it.getWidgetOption().equalsIgnoreCase(LATEST_OPTION));
+		List<StatisticsContent> content = widgetContentRepository.overallStatisticsContent(
+				COMBINE_FILTERS.apply(filters), GROUP_CONTENT_FIELDS.apply(contentFields), latestMode);
 		Map<String, List<StatisticsContent>> result = new HashMap<>();
-		result.put("result", contents);
+		result.put(RESULT, content);
 		return result;
 	}
+
+	private static final Function<Set<Filter>, Filter> COMBINE_FILTERS = filters -> new Filter(
+			Launch.class, filters.stream().flatMap(it -> it.getFilterConditions().stream()).collect(Collectors.toSet()));
 }

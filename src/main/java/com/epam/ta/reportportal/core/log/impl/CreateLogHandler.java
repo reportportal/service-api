@@ -21,17 +21,17 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
-import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.log.ICreateLogHandler;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.Predicates;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.log.ICreateLogHandler;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.service.DataStoreService;
 import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;

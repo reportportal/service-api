@@ -5,9 +5,11 @@ spring:
         hostname: docker.for.win.localhost
       host: localhost
 rp:
-  mongo:
-    uri: mongodb://localhost:27017
   uat:
     serviceUrl: http://localhost:8080/uat
   analyzer:
     url: http://localhost:8080/analyzer
+  db:
+    url: jdbc:postgresql://localhost:5432/reportportal?user=postgres&password=root
+  amqp:
+    url: amqp://guest:guest@localhost:5672

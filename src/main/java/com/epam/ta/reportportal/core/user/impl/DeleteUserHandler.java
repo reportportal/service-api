@@ -77,6 +77,8 @@ public class DeleteUserHandler implements IDeleteUserHandler {
 			throw new ReportPortalException("Error while updating projects", exp);
 		}
 
+		Optional<String> personalProjectName = projectRepository.findPersonalProjectName(user.getLogin());
+
 		try {
 			uatClient.revokeUserTokens(userId);
 			userRepository.delete(user);
@@ -84,7 +86,6 @@ public class DeleteUserHandler implements IDeleteUserHandler {
 			throw new ReportPortalException("Error while deleting user", exp);
 		}
 
-		Optional<String> personalProjectName = projectRepository.findPersonalProjectName(user.getLogin());
 		personalProjectName.ifPresent(s -> logIndexer.deleteIndex(s));
 
 		return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");

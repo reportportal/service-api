@@ -32,9 +32,9 @@ public final class LogConverter {
 		if (isBinaryDataExists(model)) {
 
 			LogResource.BinaryContent binaryContent = new LogResource.BinaryContent();
-			binaryContent.setBinaryDataId(model.getFilePath());
+			binaryContent.setBinaryDataId(model.getAttachment());
 			binaryContent.setContentType(model.getContentType());
-			binaryContent.setThumbnailId(model.getThumbnailFilePath());
+			binaryContent.setThumbnailId(model.getAttachmentThumbnail());
 			resource.setBinaryContent(binaryContent);
 		}
 
@@ -51,8 +51,8 @@ public final class LogConverter {
 
 	private static boolean isBinaryDataExists(Log log) {
 
-		return StringUtils.isNotEmpty(log.getContentType()) || StringUtils.isNotEmpty(log.getThumbnailFilePath()) || StringUtils.isNotEmpty(
-				log.getFilePath());
+		return StringUtils.isNotEmpty(log.getContentType()) || StringUtils.isNotEmpty(log.getAttachmentThumbnail())
+				|| StringUtils.isNotEmpty(log.getAttachment());
 	}
 
 }

@@ -19,9 +19,9 @@
 package com.epam.ta.reportportal.store.config;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.filesystem.DataStore;
-import com.epam.ta.reportportal.store.filesystem.LocalDataStore;
-import com.epam.ta.reportportal.store.filesystem.distributed.SeaweedDataStore;
+import com.epam.ta.reportportal.filesystem.DataStore;
+import com.epam.ta.reportportal.filesystem.LocalDataStore;
+import com.epam.ta.reportportal.filesystem.distributed.SeaweedDataStore;
 import org.lokra.seaweedfs.core.FileSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

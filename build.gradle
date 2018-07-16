@@ -24,7 +24,6 @@ buildscript {
 plugins {
     id 'net.researchgate.release' version '2.4.1'
     id "com.jfrog.bintray" version "1.7"
-    id "com.ewerk.gradle.plugins.querydsl" version "1.0.9"
 }
 
 apply plugin: 'java'
@@ -88,11 +87,6 @@ compileJava {
     source += sourceSets.generated.java
 }
 
-querydsl {
-    querydslDefault = true
-    jpa = true
-    querydslSourcesDir = "${buildDir}/generated/src/java/"
-}
 
 configurations {
     api
@@ -105,7 +99,7 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile('com.github.reportportal:commons-dao:e58b3d6')
+        compile('com.github.reportportal:commons-dao:f634d31')
         compile 'com.github.reportportal:commons-rules:spb2-SNAPSHOT'
         compile 'com.github.reportportal:commons-model:3f17a8d'
         compile('com.github.reportportal:commons:71d4aca')
@@ -173,8 +167,6 @@ dependencies {
     compile 'com.google.guava:guava'
 
     api 'org.jacoco:org.jacoco.agent:0.7.7.201606060606'
-
-    compile "com.querydsl:querydsl-jpa:4.2.1"
 
 
     testCompile 'org.hamcrest:hamcrest-all:1.3'

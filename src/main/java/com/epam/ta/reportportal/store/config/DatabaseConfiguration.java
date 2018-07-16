@@ -48,7 +48,7 @@ import java.util.Properties;
 
 @EnableJpaAuditing
 @EnableJpaRepositories(basePackages = {
-		"com.epam.ta.reportportal.store" }, repositoryBaseClass = ReportPortalRepositoryImpl.class, repositoryFactoryBeanClass = DatabaseConfiguration.RpRepoFactoryBean.class)
+		"com.epam.ta.reportportal.dao" }, repositoryBaseClass = ReportPortalRepositoryImpl.class, repositoryFactoryBeanClass = DatabaseConfiguration.RpRepoFactoryBean.class)
 @EnableTransactionManagement
 public class DatabaseConfiguration {
 

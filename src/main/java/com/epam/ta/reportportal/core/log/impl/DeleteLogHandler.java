@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -31,6 +30,7 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.service.DataStoreService;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -40,10 +40,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -88,13 +88,13 @@ public class DeleteLogHandler {
 
 	private void cleanUpLogData(Log log) {
 
-		if (StringUtils.isNotEmpty(log.getFilePath())) {
+		if (StringUtils.isNotEmpty(log.getAttachment())) {
 
-			dataStoreService.delete(log.getFilePath());
+			dataStoreService.delete(log.getAttachment());
 		}
-		if (StringUtils.isNotEmpty(log.getThumbnailFilePath())) {
+		if (StringUtils.isNotEmpty(log.getAttachmentThumbnail())) {
 
-			dataStoreService.delete(log.getThumbnailFilePath());
+			dataStoreService.delete(log.getAttachmentThumbnail());
 		}
 	}
 

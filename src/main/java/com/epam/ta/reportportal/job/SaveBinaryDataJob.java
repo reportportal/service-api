@@ -50,8 +50,8 @@ public class SaveBinaryDataJob implements Runnable {
 		maybeBinaryDataMetaInfo.ifPresent(binaryDataMetaInfo -> {
 
 			log.setContentType(file.getContentType());
-			log.setFilePath(binaryDataMetaInfo.getFileId());
-			log.setThumbnailFilePath(binaryDataMetaInfo.getThumbnailFileId());
+			log.setAttachment(binaryDataMetaInfo.getFileId());
+			log.setAttachmentThumbnail(binaryDataMetaInfo.getThumbnailFileId());
 
 			try {
 

@@ -32,7 +32,7 @@ exec java $JAVA_OPTS -jar $JAVA_APP' > /start.sh && chmod +x /start.sh"
 
 VOLUME /tmp
 
-COPY --from=builder /usr/src/reportportal/build/libs/service-api.jar ./app
+COPY --from=builder /usr/src/reportportal/build/libs/service-api.jar ./app.jar
 
 RUN sh -c 'touch /app.jar'
 

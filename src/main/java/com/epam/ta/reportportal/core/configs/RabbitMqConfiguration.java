@@ -96,7 +96,7 @@ public class RabbitMqConfiguration {
 	}
 
 	@Bean
-	public ConnectionFactory connectionFactory(@Value("${rp.amqp.url}") URI addresses) {
+	public ConnectionFactory connectionFactory(@Value("${rp.amqp.addresses}") URI addresses) {
 		return new CachingConnectionFactory(addresses);
 	}
 

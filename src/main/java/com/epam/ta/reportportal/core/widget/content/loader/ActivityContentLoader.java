@@ -21,11 +21,14 @@
 
 package com.epam.ta.reportportal.core.widget.content.loader;
 
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Pavel Bortnik
@@ -34,7 +37,7 @@ import java.util.Map;
 public class ActivityContentLoader implements LoadContentStrategy {
 
 	@Override
-	public Map<String, ?> loadContent(Widget widget) {
+	public Map<String, ?> loadContent(List<String> contentFields, Set<Filter> filters, Set<WidgetOption> widgetOptions) {
 		return null;
 	}
 }

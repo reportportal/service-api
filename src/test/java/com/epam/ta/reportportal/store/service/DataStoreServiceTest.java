@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.filesystem.FilePathGenerator;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -59,11 +58,11 @@ public class DataStoreServiceTest {
 	@Before
 	public void setUp() throws Exception {
 
-		dataStore = Mockito.mock(DataStore.class);
-		thumbnailator = Mockito.mock(Thumbnailator.class);
-		contentTypeResolver = Mockito.mock(ContentTypeResolver.class);
-		filePathGenerator = Mockito.mock(FilePathGenerator.class);
-		dataEncoder = Mockito.mock(DataEncoder.class);
+		dataStore = mock(DataStore.class);
+		thumbnailator = mock(Thumbnailator.class);
+		contentTypeResolver = mock(ContentTypeResolver.class);
+		filePathGenerator = mock(FilePathGenerator.class);
+		dataEncoder = mock(DataEncoder.class);
 
 		dataStoreService = new DataStoreService(dataStore, thumbnailator, contentTypeResolver, filePathGenerator, dataEncoder);
 	}
@@ -71,7 +70,7 @@ public class DataStoreServiceTest {
 	@Test
 	public void save_empty_on_file_io_error() throws Exception {
 		//  given:
-		MultipartFile file = Mockito.mock(MultipartFile.class);
+		MultipartFile file = mock(MultipartFile.class);
 
 		//  and: setups
 		when(file.getInputStream()).thenThrow(new IOException());
@@ -86,7 +85,7 @@ public class DataStoreServiceTest {
 	@Test
 	public void save_use_type_resolver() throws Exception {
 		//  given:
-		MultipartFile file = Mockito.mock(MultipartFile.class);
+		MultipartFile file = mock(MultipartFile.class);
 		String projectName = "asdasd";
 
 		//  and: setups
@@ -119,7 +118,7 @@ public class DataStoreServiceTest {
 	@Test
 	public void save_does_not_use_type_resolver() throws Exception {
 		//  given:
-		MultipartFile file = Mockito.mock(MultipartFile.class);
+		MultipartFile file = mock(MultipartFile.class);
 		String projectName = "asdasd";
 
 		//  and: setups
@@ -153,7 +152,7 @@ public class DataStoreServiceTest {
 	@Test
 	public void save_does_not_use_type_resolver_with_thumbnail() throws Exception {
 		//  given:
-		MultipartFile file = Mockito.mock(MultipartFile.class);
+		MultipartFile file = mock(MultipartFile.class);
 		String projectName = "asdasd";
 
 		//  and: setups
@@ -199,7 +198,7 @@ public class DataStoreServiceTest {
 	@Test
 	public void save_with_fail_on_thumbnail() throws Exception {
 		//  given:
-		MultipartFile file = Mockito.mock(MultipartFile.class);
+		MultipartFile file = mock(MultipartFile.class);
 		String projectName = "asdasd";
 
 		//  and: setups

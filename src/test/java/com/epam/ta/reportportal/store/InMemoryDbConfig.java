@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.store;
 
-import com.epam.ta.reportportal.store.config.DatabaseConfiguration;
+import com.epam.ta.reportportal.config.DatabaseConfiguration;
 import org.dbunit.DatabaseUnitException;
 import org.dbunit.database.DatabaseConfig;
 import org.dbunit.database.DatabaseConnection;

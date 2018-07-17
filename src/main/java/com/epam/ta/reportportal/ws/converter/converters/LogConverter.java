@@ -6,6 +6,7 @@ import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Optional;
 import java.util.function.Function;
 
 import static java.util.Optional.ofNullable;

@@ -36,7 +36,6 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.store.config.DatabaseConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.servlet.MultipartAutoConfiguration;
@@ -50,7 +49,7 @@ import org.springframework.context.annotation.Import;
  */
 @SpringBootApplication(scanBasePackages = { "com.epam.ta.reportportal" }, exclude = MultipartAutoConfiguration.class)
 @Configuration
-@Import({ DatabaseConfiguration.class })
+@Import({ com.epam.ta.reportportal.config.DatabaseConfiguration.class })
 public class ReportPortalApp {
 
 	public static void main(String[] args) {

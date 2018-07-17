@@ -36,7 +36,8 @@ public class RabbitAwarePluginBox extends AbstractScheduledService implements Pl
 	@Override
 	protected void runOneIteration() {
 		try {
-			this.messageBus.publish(RabbitMqConfiguration.EXCHANGE_PLUGINS,
+			this.messageBus.publish(
+					RabbitMqConfiguration.EXCHANGE_PLUGINS,
 					RabbitMqConfiguration.KEY_PLUGINS_PING,
 					Collections.singletonMap("ok", UUID.randomUUID().toString())
 			);
@@ -62,9 +63,10 @@ public class RabbitAwarePluginBox extends AbstractScheduledService implements Pl
 	@RabbitListener(queues = "#{ @pluginsPingQueue.name }")
 	void fulfillPluginsList2(@Payload Map<String, ?> payload) throws ExecutionException, InterruptedException {
 		//System.out.println("PONG2 IS THERE! " + payload);
-		this.messageBus.publish(RabbitMqConfiguration.EXCHANGE_PLUGINS,
+		this.messageBus.publish(
+				RabbitMqConfiguration.EXCHANGE_PLUGINS,
 				RabbitMqConfiguration.KEY_PLUGINS_PONG,
-				new Plugin(UUID.randomUUID().toString())
+				new Plugin(UUID.randomUUID().toString(), "bts")
 		);
 	}
 

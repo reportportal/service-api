@@ -88,13 +88,13 @@ public class DeleteLogHandler {
 
 	private void cleanUpLogData(Log log) {
 
-		if (StringUtils.isNotEmpty(log.getFilePath())) {
+		if (StringUtils.isNotEmpty(log.getAttachment())) {
 
-			dataStoreService.delete(log.getFilePath());
+			dataStoreService.delete(log.getAttachment());
 		}
-		if (StringUtils.isNotEmpty(log.getThumbnailFilePath())) {
+		if (StringUtils.isNotEmpty(log.getAttachmentThumbnail())) {
 
-			dataStoreService.delete(log.getThumbnailFilePath());
+			dataStoreService.delete(log.getAttachmentThumbnail());
 		}
 	}
 
@@ -112,8 +112,7 @@ public class DeleteLogHandler {
 
 		final TestItem testItem = log.getTestItem();
 
-		expect(testItem.getItemStructure().getItemResults().getExecutionStatistics(), notNull()).verify(
-				TEST_ITEM_IS_NOT_FINISHED,
+		expect(testItem.getItemStructure().getItemResults().getExecutionStatistics(), notNull()).verify(TEST_ITEM_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete log '{}' when test item '{}' in progress state", log.getId(), testItem.getItemId())
 		);
 

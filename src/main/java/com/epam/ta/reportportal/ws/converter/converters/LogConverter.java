@@ -6,8 +6,10 @@ import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.Optional;
 import java.util.function.Function;
+
+import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
 /**
  * Converts internal DB model to DTO
@@ -26,33 +28,26 @@ public final class LogConverter {
 
 		LogResource resource = new LogResource();
 		resource.setIdLog(String.valueOf(model.getId()));
-		resource.setMessage(Optional.ofNullable(model.getLogMessage()).orElse("NULL"));
+		resource.setMessage(ofNullable(model.getLogMessage()).orElse("NULL"));
 		resource.setLogTime(EntityUtils.TO_DATE.apply(model.getLogTime()));
 
 		if (isBinaryDataExists(model)) {
 
 			LogResource.BinaryContent binaryContent = new LogResource.BinaryContent();
-			binaryContent.setBinaryDataId(model.getFilePath());
+			binaryContent.setBinaryDataId(model.getAttachment());
 			binaryContent.setContentType(model.getContentType());
-			binaryContent.setThumbnailId(model.getThumbnailFilePath());
+			binaryContent.setThumbnailId(model.getAttachmentThumbnail());
 			resource.setBinaryContent(binaryContent);
 		}
 
-		Optional.ofNullable(model.getTestItem()).ifPresent(testItem -> {
-
-			resource.setTestItem(String.valueOf(testItem.getItemId()));
-		});
-
-		Optional.ofNullable(model.getLogLevel()).ifPresent(level -> {
-			resource.setLevel(level.toString());
-		});
+		ofNullable(model.getTestItem()).ifPresent(testItem -> resource.setTestItem(String.valueOf(testItem.getItemId())));
+		ofNullable(model.getLogLevel()).ifPresent(level -> resource.setLevel(level.toString()));
 		return resource;
 	};
 
 	private static boolean isBinaryDataExists(Log log) {
-
-		return StringUtils.isNotEmpty(log.getContentType()) || StringUtils.isNotEmpty(log.getThumbnailFilePath()) || StringUtils.isNotEmpty(
-				log.getFilePath());
+		return isNotEmpty(log.getContentType()) || isNotEmpty(log.getAttachmentThumbnail())
+				|| isNotEmpty(log.getAttachment());
 	}
 
 }

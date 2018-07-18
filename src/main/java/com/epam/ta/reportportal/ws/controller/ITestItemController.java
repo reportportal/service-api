@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.database.search.Filter;
-import com.epam.ta.reportportal.database.search.Queryable;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -85,7 +84,7 @@ public interface ITestItemController {
 	 * @param principal
 	 * @return Iterable<TestItemResource>
 	 */
-	Iterable<TestItemResource> getTestItems(String projectName, Filter filter, Queryable predefinedFilter, Pageable pageble,
+	Iterable<TestItemResource> getTestItems(String projectName, List<String> launchIds, Filter filter, Pageable pageble,
 			Principal principal);
 
 	/**

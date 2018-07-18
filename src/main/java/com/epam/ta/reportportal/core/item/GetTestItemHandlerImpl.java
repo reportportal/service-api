@@ -25,11 +25,7 @@ import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.search.CompositeFilter;
-import com.epam.ta.reportportal.database.search.Condition;
-import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.Queryable;
 import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -39,7 +35,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 
 /**
  * GET operations for {@link TestItem}<br>
@@ -83,18 +82,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	 * .lang.String, java.util.Set, org.springframework.data.domain.Pageable)
 	 */
 	@Override
-	public Iterable<TestItemResource> getTestItems(Queryable filterable, Pageable pageable, String projectName) {
-		/*
-		 * If request came without filter at launchRef's, than should be created a new filter with
-		 * launch ids of specified project.
-		 */
-		if (filterable.toCriteria().stream().noneMatch(it -> it.getKey().equalsIgnoreCase("launchRef"))) {
-			String launchIds = launchRepository.findLaunchIdsByProjectId(projectName)
-					.stream()
-					.map(Launch::getId)
-					.collect(Collectors.joining(","));
-			filterable = new CompositeFilter(filterable, new Filter(TestItem.class, Condition.IN, false, launchIds, "launch"));
-		}
+	public Iterable<TestItemResource> getTestItems(Queryable filterable, Pageable pageable, List<String> launchIds, String projectName) {
+		validate(launchIds, projectName);
 		return itemAssembler.toPagedResources(testItemRepository.findByFilter(filterable, pageable));
 	}
 
@@ -107,5 +96,19 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	public List<TestItemResource> getTestItems(String[] ids) {
 		Iterable<TestItem> testItems = testItemRepository.findAll(Arrays.asList(ids));
 		return itemAssembler.toResources(testItems);
+	}
+
+	/**
+	 * Validate launch reference to specified project ID
+	 *
+	 * @param launchIds   - validating launch ID
+	 * @param projectName - specified project name
+	 * @return Launch - validated launch object if not BusinessRule exceptions
+	 */
+	private void validate(List<String> launchIds, String projectName) {
+		launchRepository.find(launchIds).forEach(l -> expect(l.getProjectRef(), equalTo(projectName)).verify(
+				ErrorType.FORBIDDEN_OPERATION,
+				formattedSupplier("Specified launch with id '{}' not referenced to specified project '{}'", l.getId(), projectName)
+		));
 	}
 }

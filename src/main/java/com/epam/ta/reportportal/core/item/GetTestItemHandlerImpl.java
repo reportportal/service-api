@@ -23,18 +23,23 @@ package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.search.CompositeFilter;
+import com.epam.ta.reportportal.database.search.Condition;
+import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.Queryable;
 import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * GET operations for {@link TestItem}<br>
@@ -45,22 +50,24 @@ import java.util.List;
  */
 @Service
 class GetTestItemHandlerImpl implements GetTestItemHandler {
+	private final LaunchRepository launchRepository;
 	private final TestItemRepository testItemRepository;
 	private final TestItemResourceAssembler itemAssembler;
 
-	@Autowired
-	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, TestItemResourceAssembler itemAssembler) {
+	public GetTestItemHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository,
+			TestItemResourceAssembler itemAssembler) {
+		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.itemAssembler = itemAssembler;
 	}
 
 	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.epam.ta.reportportal.core.item.GetTestItemHandler#getTestItem(java
-	 * .lang.String)
-	 */
+		 * (non-Javadoc)
+		 *
+		 * @see
+		 * com.epam.ta.reportportal.core.item.GetTestItemHandler#getTestItem(java
+		 * .lang.String)
+		 */
 	@Override
 	public TestItemResource getTestItem(String testItemId) {
 		TestItem testItem = testItemRepository.findOne(testItemId);
@@ -76,7 +83,18 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	 * .lang.String, java.util.Set, org.springframework.data.domain.Pageable)
 	 */
 	@Override
-	public Iterable<TestItemResource> getTestItems(Queryable filterable, Pageable pageable) {
+	public Iterable<TestItemResource> getTestItems(Queryable filterable, Pageable pageable, String projectName) {
+		/*
+		 * If request came without filter at launchRef's, than should be created a new filter with
+		 * launch ids of specified project.
+		 */
+		if (filterable.toCriteria().stream().noneMatch(it -> it.getKey().equalsIgnoreCase("launchRef"))) {
+			String launchIds = launchRepository.findLaunchIdsByProjectId(projectName)
+					.stream()
+					.map(Launch::getId)
+					.collect(Collectors.joining(","));
+			filterable = new CompositeFilter(filterable, new Filter(TestItem.class, Condition.IN, false, launchIds, "launch"));
+		}
 		return itemAssembler.toPagedResources(testItemRepository.findByFilter(filterable, pageable));
 	}
 

@@ -136,7 +136,7 @@ public class TestItemController implements ITestItemController {
 	@ApiOperation("Find test items by specified filter")
 	public Iterable<TestItemResource> getTestItems(@PathVariable String projectName, @FilterFor(TestItem.class) Filter filter,
 			@FilterFor(TestItem.class) Queryable predefinedFilter, @SortFor(TestItem.class) Pageable pageable, Principal principal) {
-		return getTestItemHandler.getTestItems(new CompositeFilter(filter, predefinedFilter), pageable);
+		return getTestItemHandler.getTestItems(new CompositeFilter(filter, predefinedFilter), pageable, projectName);
 	}
 
 	@DeleteMapping("/{item}")

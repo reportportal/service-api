@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.search.Queryable;
 import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
@@ -37,6 +38,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 
@@ -82,8 +84,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	 * .lang.String, java.util.Set, org.springframework.data.domain.Pageable)
 	 */
 	@Override
-	public Iterable<TestItemResource> getTestItems(Queryable filterable, Pageable pageable, List<String> launchIds, String projectName) {
-		validate(launchIds, projectName);
+	public Iterable<TestItemResource> getTestItems(Queryable filterable, Pageable pageable, String launchId, String projectName) {
+		validate(launchId, projectName);
 		return itemAssembler.toPagedResources(testItemRepository.findByFilter(filterable, pageable));
 	}
 
@@ -101,14 +103,15 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	/**
 	 * Validate launch reference to specified project ID
 	 *
-	 * @param launchIds   - validating launch ID
+	 * @param launchId    - validating launch ID
 	 * @param projectName - specified project name
-	 * @return Launch - validated launch object if not BusinessRule exceptions
 	 */
-	private void validate(List<String> launchIds, String projectName) {
-		launchRepository.find(launchIds).forEach(l -> expect(l.getProjectRef(), equalTo(projectName)).verify(
+	private void validate(String launchId, String projectName) {
+		Launch launch = launchRepository.findOne(launchId);
+		expect(launch, notNull()).verify(ErrorType.LAUNCH_NOT_FOUND, launchId);
+		expect(launch.getProjectRef(), equalTo(projectName)).verify(
 				ErrorType.FORBIDDEN_OPERATION,
-				formattedSupplier("Specified launch with id '{}' not referenced to specified project '{}'", l.getId(), projectName)
-		));
+				formattedSupplier("Specified launch with id '{}' not referenced to specified project '{}'", launch.getId(), projectName)
+		);
 	}
 }

@@ -133,9 +133,9 @@ public class TestItemController implements ITestItemController {
 	@ResponseStatus(OK)
 	@ApiOperation("Find test items by specified filter")
 	public Iterable<TestItemResource> getTestItems(@PathVariable String projectName,
-			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + "in." + TestItem.LAUNCH_CRITERIA) List<String> launchIds,
+			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ + TestItem.LAUNCH_CRITERIA) String launchId,
 			@FilterFor(TestItem.class) Filter filter, @SortFor(TestItem.class) Pageable pageable, Principal principal) {
-		return getTestItemHandler.getTestItems(filter, pageable, launchIds, projectName);
+		return getTestItemHandler.getTestItems(filter, pageable, launchId, projectName);
 	}
 
 	@DeleteMapping("/{item}")

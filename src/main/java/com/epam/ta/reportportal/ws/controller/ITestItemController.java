@@ -84,8 +84,7 @@ public interface ITestItemController {
 	 * @param principal
 	 * @return Iterable<TestItemResource>
 	 */
-	Iterable<TestItemResource> getTestItems(String projectName, List<String> launchIds, Filter filter, Pageable pageble,
-			Principal principal);
+	Iterable<TestItemResource> getTestItems(String projectName, String launchId, Filter filter, Pageable pageble, Principal principal);
 
 	/**
 	 * Deletes Test Item

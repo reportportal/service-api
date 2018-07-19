@@ -88,12 +88,6 @@ compileJava {
     source += sourceSets.generated.java
 }
 
-querydsl {
-    querydslDefault = true
-    jpa = true
-    querydslSourcesDir = "${buildDir}/generated/src/java/"
-}
-
 configurations {
     api
 }
@@ -105,7 +99,7 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile('com.github.reportportal:commons-dao:cd2cb9c')
+        compile('com.github.reportportal:commons-dao:eb9f47d')
         compile 'com.github.reportportal:commons-rules:spb2-SNAPSHOT'
         compile 'com.github.reportportal:commons-model:3f17a8d'
         compile('com.github.reportportal:commons:71d4aca')
@@ -226,18 +220,18 @@ jar.dependsOn gitInfo
 build.dependsOn jacocoTestReport
 
 
-task resolveDependencies() {
-    doLast {
-        project.rootProject.allprojects.each { subProject ->
-            subProject.buildscript.configurations.each { configuration ->
-                if (configuration.isCanBeResolved()) configuration.resolve()
-            }
-            subProject.configurations.each { configuration ->
-                if (configuration.isCanBeResolved()) configuration.resolve()
-            }
-        }
-    }
-}
+//task resolveDependencies() {
+//    doLast {
+//        project.rootProject.allprojects.each { subProject ->
+//            subProject.buildscript.configurations.each { configuration ->
+//                if (configuration.isCanBeResolved()) configuration.resolve()
+//            }
+//            subProject.configurations.each { configuration ->
+//                if (configuration.isCanBeResolved()) configuration.resolve()
+//            }
+//        }
+//    }
+//}
 
 bootJar {
     archiveName = "${baseName}.${extension}"

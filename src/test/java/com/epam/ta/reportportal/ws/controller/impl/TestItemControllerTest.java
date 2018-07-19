@@ -110,12 +110,7 @@ public class TestItemControllerTest extends BaseMvcTest {
 
 	@Test
 	public void getTestItemsPositive() throws Exception {
-		this.mvcMock.perform(get(PROJECT_BASE_URL + "/item").principal(authentication())).andExpect(status().is(200));
-	}
-
-	@Test
-	public void getTestItemsPredefined() throws Exception {
-		this.mvcMock.perform(get(PROJECT_BASE_URL + "/item?predefined_filter=collapsed").principal(authentication()))
+		this.mvcMock.perform(get(PROJECT_BASE_URL + "/item?filter.eq.launch=51824cc1553de743b3e5aa2c").principal(authentication()))
 				.andExpect(status().is(200));
 	}
 

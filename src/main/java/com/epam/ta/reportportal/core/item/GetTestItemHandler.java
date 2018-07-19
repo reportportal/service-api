@@ -48,9 +48,10 @@ public interface GetTestItemHandler {
 	 *
 	 * @param filterable
 	 * @param pageable
+	 * @param projectName
 	 * @return
 	 */
-	Iterable<TestItemResource> getTestItems(Queryable filterable, Pageable pageable);
+	Iterable<TestItemResource> getTestItems(Queryable filterable, Pageable pageable, String launchId, String projectName);
 
 	/**
 	 * Get specified tags

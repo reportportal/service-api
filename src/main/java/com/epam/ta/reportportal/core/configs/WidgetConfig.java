@@ -95,6 +95,7 @@ public class WidgetConfig implements ApplicationContextAware {
 		mapping.put(GadgetTypes.CUMULATIVE, applicationContext.getBean(GeneralFilterStrategy.class));
 		mapping.put(GadgetTypes.FLAKY_TEST_CASES, applicationContext.getBean(FlakyTestCasesStrategy.class));
 		mapping.put(GadgetTypes.GROUPING, applicationContext.getBean(GeneralFilterStrategy.class));
+		mapping.put(GadgetTypes.MOST_TIME_CONSUMING, applicationContext.getBean(MostTimeConsumingFilterStrategy.class));
 		return mapping;
 	}
 

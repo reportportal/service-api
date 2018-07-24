@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader.RESULT;
 
@@ -75,6 +76,12 @@ public class MostTimeConsumingFilterStrategy extends LastLaunchFilterStrategy {
 
 	private Filter createFilter(String lastId, ContentOptions contentOptions) {
 		Set<FilterCondition> filterConditions = new HashSet<>();
+		filterConditions.add(new FilterCondition(
+				Condition.IN,
+				false,
+				contentOptions.getContentFields().stream().map(String::toUpperCase).collect(Collectors.joining(",")),
+				TestItem.STATUS
+		));
 		filterConditions.add(new FilterCondition(Condition.EQUALS, false, lastId, TestItem.LAUNCH_CRITERIA));
 		filterConditions.add(new FilterCondition(Condition.EQUALS, false, "false", "has_childs"));
 

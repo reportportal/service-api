@@ -166,6 +166,8 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	 */
 	private List<TestItem> updateTestItems(String analyzerInstance, List<AnalyzedItemRs> rs, List<TestItem> testItems, String project) {
 		final Map<IssueDefinition, TestItem> forEvents = new HashMap<>();
+		final Map<String, String> relevantItemIdMap = new HashMap<>();
+
 		List<TestItem> beforeUpdate = new ArrayList<>(rs.size());
 		List<TestItem> updatedItems = rs.stream().map(analyzed -> {
 			Optional<TestItem> toUpdate = testItems.stream().filter(item -> item.getId().equals(analyzed.getItemId())).findAny();
@@ -178,11 +180,12 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 				ofNullable(analyzed.getRelevantItemId()).ifPresent(relevantItemId -> fromRelevantItem(issue, relevantItemId));
 				IssueDefinition issueDefinition = createIssueDefinition(testItem.getId(), issue);
 				forEvents.put(issueDefinition, SerializationUtils.clone(testItem));
+				relevantItemIdMap.put(testItem.getId(), analyzed.getRelevantItemId());
 				testItem.setIssue(issue);
 			});
 			return toUpdate;
 		}).filter(Optional::isPresent).map(Optional::get).collect(toList());
-		eventPublisher.publishEvent(new ItemIssueTypeDefined(forEvents, analyzerInstance, project));
+		eventPublisher.publishEvent(new ItemIssueTypeDefined(forEvents, analyzerInstance, project, relevantItemIdMap));
 		eventPublisher.publishEvent(new TicketAttachedEvent(beforeUpdate, updatedItems, analyzerInstance, project));
 		return updatedItems;
 	}
@@ -203,8 +206,8 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	private void fromRelevantItem(TestItemIssue issue, String relevantItemId) {
 		TestItem relevantItem = testItemRepository.findOne(relevantItemId);
 		if (relevantItem != null && relevantItem.getIssue() != null) {
-			issue.setIssueDescription(
-					emptyToNull(nullToEmpty(issue.getIssueDescription()) + nullToEmpty(relevantItem.getIssue().getIssueDescription())));
+			issue.setIssueDescription(emptyToNull(
+					nullToEmpty(issue.getIssueDescription()) + nullToEmpty(relevantItem.getIssue().getIssueDescription())));
 			issue.setExternalSystemIssues(Optional.ofNullable(relevantItem.getIssue().getExternalSystemIssues()).orElse(emptySet()));
 		}
 	}

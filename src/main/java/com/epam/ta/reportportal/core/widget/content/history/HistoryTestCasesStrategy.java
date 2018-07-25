@@ -22,11 +22,9 @@
 package com.epam.ta.reportportal.core.widget.content.history;
 
 import com.epam.ta.reportportal.core.item.history.ITestItemsHistoryService;
-import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,15 +37,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
  * @author Pavel Bortnik
  */
 @Service
-public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
-
-	private static final String LAUNCH_NAME_FIELD = "launchNameFilter";
-
-	private static final String LAST_FOUND_LAUNCH = "lastLaunch";
-
-	static final int RESULTED_MAP_SIZE = 2;
-
-	static final int ITEMS_COUNT_VALUE = 20;
+public abstract class HistoryTestCasesStrategy extends LastLaunchFilterStrategy {
 
 	@Autowired
 	protected LaunchRepository launchRepository;
@@ -56,19 +46,14 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 	private ITestItemsHistoryService historyServiceStrategy;
 
 	List<Launch> getLaunchHistory(ContentOptions contentOptions, String projectName) {
-		/*
-		 * Return false response for absent filtering launch name parameter
-		 */
-		if (contentOptions.getWidgetOptions() == null || contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD) == null) {
+
+		Optional<Launch> lastLaunch = getLastLaunch(contentOptions, projectName);
+
+		if (!lastLaunch.isPresent()) {
 			return Collections.emptyList();
 		}
-		Optional<Launch> lastLaunchForProject = launchRepository.findLastLaunch(projectName,
-				contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD).get(0), Mode.DEFAULT.name()
-		);
-		if (!lastLaunchForProject.isPresent()) {
-			return Collections.emptyList();
-		}
-		List<Launch> launchHistory = historyServiceStrategy.loadLaunches(contentOptions.getItemsCount(), lastLaunchForProject.get().getId(),
+
+		List<Launch> launchHistory = historyServiceStrategy.loadLaunches(contentOptions.getItemsCount(), lastLaunch.get().getId(),
 				projectName, false
 		);
 		if (launchHistory.isEmpty()) {

@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.history.LastLaunchFilterStrategy;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
@@ -30,11 +31,13 @@ import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContentLoader.RESULT;
@@ -79,7 +82,7 @@ public class MostTimeConsumingFilterStrategy extends LastLaunchFilterStrategy {
 		filterConditions.add(new FilterCondition(
 				Condition.IN,
 				false,
-				contentOptions.getContentFields().stream().map(String::toUpperCase).collect(Collectors.joining(",")),
+				getCriteria(contentOptions).stream().map(String::toUpperCase).collect(Collectors.joining(",")),
 				TestItem.STATUS
 		));
 		filterConditions.add(new FilterCondition(Condition.EQUALS, false, lastId, TestItem.LAUNCH_CRITERIA));
@@ -90,5 +93,17 @@ public class MostTimeConsumingFilterStrategy extends LastLaunchFilterStrategy {
 		}
 
 		return new Filter(TestItem.class, filterConditions);
+	}
+
+	private List<String> getCriteria(ContentOptions contentOptions) {
+		List<String> criteria = Optional.ofNullable(contentOptions.getContentFields())
+				.orElse(Collections.emptyList())
+				.stream()
+				.map(it -> it.split("\\$"))
+				.map(split -> split[split.length - 1].toUpperCase())
+				.collect(Collectors.toList());
+		BusinessRule.expect(criteria.isEmpty(), Predicate.isEqual(false))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Incorrect list of content fields.");
+		return criteria;
 	}
 }

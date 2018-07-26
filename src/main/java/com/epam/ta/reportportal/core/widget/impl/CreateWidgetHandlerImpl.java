@@ -58,8 +58,11 @@ public class CreateWidgetHandlerImpl implements ICreateWidgetHandler {
 	@Override
 	public EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 
-		UserFilter userFilter = filterRepository.findById(createWidgetRQ.getFilterId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, createWidgetRQ.getFilterId()));
+		UserFilter userFilter = null;
+		if (createWidgetRQ.getFilterId() != null) {
+			userFilter = filterRepository.findById(createWidgetRQ.getFilterId())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, createWidgetRQ.getFilterId()));
+		}
 
 		Widget widget = new WidgetBuilder().addWidgetRq(createWidgetRQ)
 				.addProject(projectDetails.getProjectId())

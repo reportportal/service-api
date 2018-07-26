@@ -60,8 +60,11 @@ public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
 			ReportPortalUser user) {
 		Widget widget = widgetRepository.findById(widgetId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND, widgetId));
-		UserFilter userFilter = filterRepository.findById(updateRQ.getFilterId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, updateRQ.getFilterId()));
+		UserFilter userFilter = null;
+		if (updateRQ.getFilterId() != null) {
+			userFilter = filterRepository.findById(updateRQ.getFilterId())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, updateRQ.getFilterId()));
+		}
 		widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilter(userFilter).get();
 		widgetRepository.save(widget);
 		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");

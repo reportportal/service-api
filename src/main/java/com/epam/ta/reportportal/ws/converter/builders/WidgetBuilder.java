@@ -75,14 +75,7 @@ public class WidgetBuilder implements Supplier<Widget> {
 	}
 
 	public WidgetBuilder addFilter(UserFilter userFilter) {
-		widget.getFilters().add(userFilter);
-		userFilter.getWidgets().add(widget);
-		return this;
-	}
-
-	public WidgetBuilder addFilters(List<UserFilter> userFilters) {
-		widget.getFilters().addAll(userFilters);
-		userFilters.forEach(userFilter -> userFilter.getWidgets().add(widget));
+		widget.setFilter(userFilter);
 		return this;
 	}
 

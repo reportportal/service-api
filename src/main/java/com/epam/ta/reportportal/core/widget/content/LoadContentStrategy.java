@@ -38,6 +38,6 @@ public interface LoadContentStrategy {
 	String RESULT = "result";
 	String LATEST_OPTION = "latest";
 
-	Map<String, ?> loadContent(List<String> contentFields, Set<Filter> filters, Set<WidgetOption> widgetOptions);
+	Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions);
 
 }

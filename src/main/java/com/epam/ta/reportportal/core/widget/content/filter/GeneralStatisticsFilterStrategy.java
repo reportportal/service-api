@@ -28,17 +28,15 @@ import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.widget.Widget;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
+import com.google.common.collect.Sets;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Pavel Bortnik
@@ -49,23 +47,19 @@ public class GeneralStatisticsFilterStrategy implements BuildFilterStrategy {
 	@Override
 	public Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, ReportPortalUser.ProjectDetails projectDetails,
 			Widget widget) {
-		Set<Filter> filters = widget.getFilters().stream().map(it -> {
-			try {
-				return new Filter(Class.forName(it.getTargetClass()), it.getFilterCondition());
-			} catch (ClassNotFoundException e) {
-				throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, e.getMessage());
-			}
-		}).collect(Collectors.toSet());
-
-		getDefaultFilter(Launch.class, projectDetails.getProjectId());
-		return loadContentStrategy.loadContent(widget.getContentFields(), filters, widget.getWidgetOptions());
+		UserFilter userFilter = widget.getFilter();
+		Filter filter = new Filter(userFilter.getTargetClass(), userFilter.getFilterCondition());
+		filter = updateWithDefaultConditions(filter, projectDetails.getProjectId());
+		return loadContentStrategy.loadContent(widget.getContentFields(), filter, widget.getWidgetOptions());
 	}
 
-	private Filter getDefaultFilter(Class target, Long projectId) {
-		Set<FilterCondition> basicConditions = new HashSet<>();
-		basicConditions.add(new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), "l.project_id"));
-		basicConditions.add(new FilterCondition(Condition.NOT_EQUALS, false, StatusEnum.IN_PROGRESS.name(), "l.status"));
-		basicConditions.add(new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.toString(), "l.mode"));
-		return new Filter(target, basicConditions);
+	private Filter updateWithDefaultConditions(Filter filter, Long projectId) {
+		Set<FilterCondition> defaultConditions = Sets.newHashSet(
+				new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), "l.project_id"),
+				new FilterCondition(Condition.NOT_EQUALS, false, StatusEnum.IN_PROGRESS.name(), "l.status"),
+				new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.toString(), "l.mode")
+		);
+		filter.withConditions(defaultConditions);
+		return filter;
 	}
 }

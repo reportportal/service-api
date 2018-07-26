@@ -37,7 +37,7 @@ import java.util.Set;
 public class LaunchesDurationContentLoader implements LoadContentStrategy {
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Set<Filter> filters, Set<WidgetOption> widgetOptions) {
+	public Map<String, ?> loadContent(List<String> contentFields, Filter filters, Set<WidgetOption> widgetOptions) {
 		return null;
 	}
 }

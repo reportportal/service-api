@@ -23,20 +23,17 @@ package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Pavel Bortnik
@@ -61,21 +58,12 @@ public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
 	@Override
 	public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-
 		Widget widget = widgetRepository.findById(widgetId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND, widgetId));
-
-		List<UserFilter> userFilters = updateRQ.getFilterIds()
-				.stream()
-				.map(id -> filterRepository.findById(id).orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, id)))
-				.collect(Collectors.toList());
-
-		widget.getFilters().clear();
-
-		widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilters(userFilters).get();
-
+		UserFilter userFilter = filterRepository.findById(updateRQ.getFilterId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, updateRQ.getFilterId()));
+		widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilter(userFilter).get();
 		widgetRepository.save(widget);
-
 		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
 	}
 }

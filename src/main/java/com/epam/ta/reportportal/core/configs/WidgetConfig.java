@@ -54,8 +54,8 @@ public class WidgetConfig implements ApplicationContextAware {
 	@Bean("contentLoader")
 	public Map<WidgetType, LoadContentStrategy> contentLoadingMapping() {
 		Map<WidgetType, LoadContentStrategy> mapping = new HashMap<>();
-//		mapping.put(WidgetType.OVERALL_STATISTICS, applicationContext.getBean(OverallStatisticsContentLoader.class));
-//		mapping.put(WidgetType.PASSING_RATE_SUMMARY, applicationContext.getBean(OverallStatisticsContentLoader.class));
+		mapping.put(WidgetType.OVERALL_STATISTICS, applicationContext.getBean(OverallStatisticsContentLoader.class));
+		//		mapping.put(WidgetType.PASSING_RATE_SUMMARY, applicationContext.getBean(OverallStatisticsContentLoader.class));
 		mapping.put(WidgetType.OLD_LINE_CHART, applicationContext.getBean(LineChartContentLoader.class));
 		mapping.put(WidgetType.INVESTIGATED_TREND, applicationContext.getBean(ChartInvestigatedContentLoader.class));
 		mapping.put(WidgetType.STATISTIC_TREND, applicationContext.getBean(LineChartContentLoader.class));

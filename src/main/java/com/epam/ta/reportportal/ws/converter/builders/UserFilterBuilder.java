@@ -21,12 +21,13 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.entity.filter.FilterSort;
+import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.Order;
@@ -56,7 +57,7 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 	public UserFilterBuilder addCreateRq(CreateUserFilterRQ rq) {
 		userFilter.setName(rq.getName());
 		userFilter.setDescription(rq.getDescription());
-		userFilter.setTargetClass(rq.getObjectType());
+		userFilter.setTargetClass(ObjectType.getTypeByName(rq.getName()));
 		addFilterConditions(rq.getEntities());
 		addSelectionParameters(rq.getOrders());
 		return this;

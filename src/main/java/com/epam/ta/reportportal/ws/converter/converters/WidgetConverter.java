@@ -55,7 +55,7 @@ public class WidgetConverter {
 		widgetResource.setWidgetId(widget.getId());
 		widgetResource.setName(widget.getName());
 		widgetResource.setDescription(widget.getDescription());
-		widgetResource.setAppliedFilters(widget.getFilters().stream().map(UserFilterConverter.TO_FILTER_RESOURCE).collect(toList()));
+		widgetResource.setAppliedFilters(UserFilterConverter.TO_FILTER_RESOURCE.apply(widget.getFilter()));
 		ContentParameters contentParameters = new ContentParameters();
 		contentParameters.setContentFields(widget.getContentFields());
 		contentParameters.setWidgetOptions(

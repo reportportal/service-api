@@ -47,9 +47,11 @@ public final class UserFilterConverter {
 		userFilterResource.setFilterId(filter.getId());
 		userFilterResource.setName(filter.getName());
 		userFilterResource.setDescription(filter.getDescription());
-		userFilterResource.setObjectType(filter.getTargetClass());
-		userFilterResource.setConditions(
-				filter.getFilterCondition().stream().map(UserFilterConverter.TO_FILTER_CONDITION).collect(toSet()));
+		userFilterResource.setObjectType(filter.getTargetClass().getSimpleName());
+		userFilterResource.setConditions(filter.getFilterCondition()
+				.stream()
+				.map(UserFilterConverter.TO_FILTER_CONDITION)
+				.collect(toSet()));
 		userFilterResource.setOrders(filter.getFilterSorts().stream().map(UserFilterConverter.TO_FILTER_ORDER).collect(toList()));
 		return userFilterResource;
 	};

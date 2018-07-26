@@ -23,20 +23,17 @@ package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.widget.ICreateWidgetHandler;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Pavel Bortnik
@@ -61,12 +58,12 @@ public class CreateWidgetHandlerImpl implements ICreateWidgetHandler {
 	@Override
 	public EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 
-		List<UserFilter> userFilters = createWidgetRQ.getFilterIds()
-				.stream()
-				.map(id -> filterRepository.findById(id).orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, id)))
-				.collect(Collectors.toList());
+		UserFilter userFilter = filterRepository.findById(createWidgetRQ.getFilterId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, createWidgetRQ.getFilterId()));
 
-		Widget widget = new WidgetBuilder().addWidgetRq(createWidgetRQ).addProject(projectDetails.getProjectId()).addFilters(userFilters)
+		Widget widget = new WidgetBuilder().addWidgetRq(createWidgetRQ)
+				.addProject(projectDetails.getProjectId())
+				.addFilter(userFilter)
 				.get();
 		widgetRepository.save(widget);
 

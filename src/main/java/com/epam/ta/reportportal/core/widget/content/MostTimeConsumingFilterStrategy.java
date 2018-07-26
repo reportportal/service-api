@@ -96,14 +96,12 @@ public class MostTimeConsumingFilterStrategy extends LastLaunchFilterStrategy {
 	}
 
 	private List<String> getCriteria(ContentOptions contentOptions) {
-		List<String> criteria = new ArrayList<>();
-		if (null != contentOptions.getContentFields()) {
-			criteria = contentOptions.getContentFields().stream().map(it -> {
-				String[] split = it.split("\\$");
-				String statusCriteria = split[split.length - 1];
-				return statusCriteria.toUpperCase();
-			}).collect(Collectors.toList());
-		}
+		List<String> criteria = Optional.ofNullable(contentOptions.getContentFields())
+				.orElse(Collections.emptyList())
+				.stream()
+				.map(it -> it.split("\\$"))
+				.map(split -> split[split.length - 1].toUpperCase())
+				.collect(Collectors.toList());
 		BusinessRule.expect(criteria.isEmpty(), Predicate.isEqual(false))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Incorrect list of content fields.");
 		return criteria;

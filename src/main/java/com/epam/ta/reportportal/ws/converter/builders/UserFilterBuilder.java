@@ -57,7 +57,7 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 	public UserFilterBuilder addCreateRq(CreateUserFilterRQ rq) {
 		userFilter.setName(rq.getName());
 		userFilter.setDescription(rq.getDescription());
-		userFilter.setTargetClass(ObjectType.getTypeByName(rq.getName()));
+		userFilter.setTargetClass(ObjectType.getTypeByName(rq.getObjectType()));
 		addFilterConditions(rq.getEntities());
 		addSelectionParameters(rq.getOrders());
 		return this;

@@ -32,10 +32,10 @@ import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.entity.widget.content.MostFailedContent;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,10 +83,9 @@ public class MostFailedContentLoader implements LoadContentStrategy {
 		} else {
 			content = widgetContentRepository.mostFailedByDefectCriteria(options.get(LAUNCH_NAME_FIELD).get(0), fields.get(DEFECTS).get(0));
 		}
-		Map<String, Object> res = new HashMap<>(2);
-		res.put(LATEST_OPTION, LaunchConverter.TO_RESOURCE.apply(latestByName));
-		res.put(RESULT, content);
-		return res;
+		return ImmutableMap.<String, Object>builder().put(LATEST_OPTION, LaunchConverter.TO_RESOURCE.apply(latestByName))
+				.put(RESULT, content)
+				.build();
 	}
 
 	/**

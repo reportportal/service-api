@@ -68,6 +68,7 @@ public class WidgetConfig implements ApplicationContextAware {
 		mapping.put(WidgetType.LAUNCHES_COMPARISON_CHART, applicationContext.getBean(LaunchesComparisonContentLoader.class));
 		mapping.put(WidgetType.LAUNCHES_DURATION_CHART, applicationContext.getBean(LaunchesDurationContentLoader.class));
 		mapping.put(WidgetType.LAUNCHES_TABLE, applicationContext.getBean(LaunchesTableContentLoader.class));
+		mapping.put(WidgetType.MOST_FAILED_TEST_CASES, applicationContext.getBean(MostFailedContentLoader.class));
 		mapping.put(WidgetType.CUMULATIVE, applicationContext.getBean(CumulativeChartContentLoader.class));
 		return mapping;
 	}
@@ -91,7 +92,7 @@ public class WidgetConfig implements ApplicationContextAware {
 		mapping.put(WidgetType.ACTIVITY, applicationContext.getBean(ActivityFilterStrategy.class));
 		mapping.put(WidgetType.LAUNCHES_COMPARISON_CHART, applicationContext.getBean(CompareLaunchesFilterStrategy.class));
 		mapping.put(WidgetType.LAUNCHES_DURATION_CHART, applicationContext.getBean(CompareLaunchesFilterStrategy.class));
-		//mapping.put(WidgetType.MOST_FAILED_TEST_CASES, applicationContext.getBean(MostFailedTestCasesFilterStrategy.class));
+		mapping.put(WidgetType.MOST_FAILED_TEST_CASES, applicationContext.getBean(MostFailedFilterStrategy.class));
 		mapping.put(WidgetType.PASSING_RATE_PER_LAUNCH, applicationContext.getBean(PassingRateFilterStrategy.class));
 		//mapping.put(WidgetType.FLAKY_TEST_CASES, applicationContext.getBean(FlakyTestCasesStrategy.class));
 		return mapping;

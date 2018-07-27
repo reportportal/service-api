@@ -34,7 +34,6 @@ import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.collect.Sets;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 

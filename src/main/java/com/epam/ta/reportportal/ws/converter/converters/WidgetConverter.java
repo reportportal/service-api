@@ -32,9 +32,9 @@ import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 
+import java.util.Optional;
 import java.util.function.Function;
 
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 /**
@@ -55,11 +55,13 @@ public class WidgetConverter {
 		widgetResource.setWidgetId(widget.getId());
 		widgetResource.setName(widget.getName());
 		widgetResource.setDescription(widget.getDescription());
-		widgetResource.setAppliedFilters(UserFilterConverter.TO_FILTER_RESOURCE.apply(widget.getFilter()));
+		Optional.ofNullable(widget.getFilter())
+				.ifPresent(filter -> widgetResource.setAppliedFilters(UserFilterConverter.TO_FILTER_RESOURCE.apply(filter)));
 		ContentParameters contentParameters = new ContentParameters();
 		contentParameters.setContentFields(widget.getContentFields());
-		contentParameters.setWidgetOptions(
-				widget.getWidgetOptions().stream().collect(toMap(WidgetOption::getWidgetOption, WidgetOption::getValues)));
+		contentParameters.setWidgetOptions(widget.getWidgetOptions()
+				.stream()
+				.collect(toMap(WidgetOption::getWidgetOption, WidgetOption::getValues)));
 		widgetResource.setContentParameters(contentParameters);
 		return widgetResource;
 	};

@@ -37,6 +37,9 @@ public interface LoadContentStrategy {
 
 	String RESULT = "result";
 	String LATEST_OPTION = "latest";
+	String DEFECTS = "defects";
+	String EXECUTIONS = "executions";
+	String LAUNCH_NAME_FIELD = "launch_name_filter";
 
 	Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions);
 

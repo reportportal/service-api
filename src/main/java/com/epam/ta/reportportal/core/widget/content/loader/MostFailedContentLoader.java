@@ -1,145 +1,115 @@
+/*
+ * Copyright 2018 EPAM Systems
+ *
+ *
+ * This file is part of EPAM Report Portal.
+ * https://github.com/reportportal/service-api
+ *
+ * Report Portal is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Report Portal is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.epam.ta.reportportal.core.widget.content.loader;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.core.widget.content.MostFailedObject;
+import com.epam.ta.reportportal.core.widget.content.WidgetContentUtils;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.WidgetOption;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum;
+import com.epam.ta.reportportal.entity.widget.content.MostFailedContent;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.jooq.Tables.*;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
 
+/**
+ * Content loader for {@link com.epam.ta.reportportal.entity.widget.WidgetType#MOST_FAILED_TEST_CASES}
+ *
+ * @author Pavel Bortnik
+ */
 @Service
 public class MostFailedContentLoader implements LoadContentStrategy {
 
-	private static final String LAUNCH_NAME_FIELD = "launch_name_filter";
-	private static final String EXECUTION_CRITERIA = "execution_criteria";
-	private static final String ISSUE_CRITERIA = "issue_criteria";
-
-	@Autowired
 	private LaunchRepository launchRepository;
 
-	private TestItemRepository testItemRepository;
+	private WidgetContentRepository widgetContentRepository;
 
 	@Autowired
-	private DSLContext dslContext;
+	public void setLaunchRepository(LaunchRepository launchRepository) {
+		this.launchRepository = launchRepository;
+	}
+
+	@Autowired
+	public void setWidgetContentRepository(WidgetContentRepository widgetContentRepository) {
+		this.widgetContentRepository = widgetContentRepository;
+	}
 
 	@Override
 	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions) {
-		Map<String, Set<String>> options = validateWidgetOptions(widgetOptions);
+		Map<String, List<String>> fields = WidgetContentUtils.GROUP_CONTENT_FIELDS.apply(contentFields);
+		validateContentFields(fields);
+
+		Map<String, List<String>> options = WidgetContentUtils.GROUP_WIDGET_OPTIONS.apply(widgetOptions);
+		validateWidgetOptions(options);
+
 		Launch latestByName = launchRepository.findLatestByName(options.get(LAUNCH_NAME_FIELD).iterator().next());
 
-		List<MostFailedObject> content;
-
-		if (options.containsKey(EXECUTION_CRITERIA)) {
-			content = loadByExecutionCriteria(options.get(LAUNCH_NAME_FIELD).iterator().next(),
-					options.get(EXECUTION_CRITERIA).iterator().next()
+		List<MostFailedContent> content;
+		if (fields.containsKey(EXECUTIONS)) {
+			content = widgetContentRepository.mostFailedByExecutionCriteria(options.get(LAUNCH_NAME_FIELD).get(0),
+					fields.get(EXECUTIONS).get(0)
 			);
 		} else {
-			content = loadByIssueCriteria(options.get(LAUNCH_NAME_FIELD).iterator().next(), options.get(ISSUE_CRITERIA).iterator().next());
+			content = widgetContentRepository.mostFailedByDefectCriteria(options.get(LAUNCH_NAME_FIELD).get(0), fields.get(DEFECTS).get(0));
 		}
 		Map<String, Object> res = new HashMap<>(2);
-		res.put("latestLaunch", LaunchConverter.TO_RESOURCE.apply(latestByName));
+		res.put(LATEST_OPTION, LaunchConverter.TO_RESOURCE.apply(latestByName));
 		res.put(RESULT, content);
 		return res;
 	}
 
-	private List<MostFailedObject> loadByIssueCriteria(String launchName, String criteria) {
-		return dslContext.with("history")
-				.as(dslContext.select(TEST_ITEM.UNIQUE_ID,
-						TEST_ITEM.NAME,
-						DSL.arrayAgg(DSL.when(ISSUE_GROUP.ISSUE_GROUP_.eq(DSL.cast(criteria.toUpperCase(), ISSUE_GROUP.ISSUE_GROUP_)),
-								"true"
-						)
-								.otherwise("false"))
-								.orderBy(LAUNCH.NAME.asc())
-								.as("status_history"),
-						DSL.sum(DSL.when(ISSUE_GROUP.ISSUE_GROUP_.eq(DSL.cast(criteria.toUpperCase(), ISSUE_GROUP.ISSUE_GROUP_)), 1)
-								.otherwise(0))
-								.as("criteria"),
-						DSL.count(TEST_ITEM_RESULTS.RESULT_ID).as("total")
-				)
-						.from(LAUNCH)
-						.join(TEST_ITEM_STRUCTURE)
-						.on(LAUNCH.ID.eq(TEST_ITEM_STRUCTURE.LAUNCH_ID))
-						.join(TEST_ITEM_RESULTS)
-						.on(TEST_ITEM_STRUCTURE.STRUCTURE_ID.eq(TEST_ITEM_RESULTS.RESULT_ID))
-						.join(TEST_ITEM)
-						.on(TEST_ITEM_STRUCTURE.STRUCTURE_ID.eq(TEST_ITEM.ITEM_ID))
-						.leftJoin(ISSUE)
-						.on(TEST_ITEM_RESULTS.RESULT_ID.eq(ISSUE.ISSUE_ID))
-						.leftJoin(ISSUE_TYPE)
-						.on(ISSUE.ISSUE_TYPE.eq(ISSUE_TYPE.ID))
-						.leftJoin(ISSUE_GROUP)
-						.on(ISSUE_TYPE.ISSUE_GROUP_ID.eq(ISSUE_GROUP.ISSUE_GROUP_ID))
-						.where(TEST_ITEM.TYPE.eq(JTestItemTypeEnum.STEP))
-						.and(LAUNCH.NAME.eq(launchName))
-						.groupBy(TEST_ITEM.UNIQUE_ID, TEST_ITEM.NAME))
-				.select()
-				.from(DSL.table(DSL.name("history")))
-				.orderBy(DSL.field(DSL.name("criteria")).desc(), DSL.field(DSL.name("total")).asc())
-				.fetchInto(MostFailedObject.class);
-	}
-
-	private List<MostFailedObject> loadByExecutionCriteria(String launchName, String criteria) {
-
-		return dslContext.with("history")
-				.as(dslContext.select(TEST_ITEM.UNIQUE_ID,
-						TEST_ITEM.NAME,
-						DSL.arrayAgg(DSL.when(TEST_ITEM_RESULTS.STATUS.eq(DSL.cast(criteria.toUpperCase(), TEST_ITEM_RESULTS.STATUS)),
-								"true"
-						)
-								.otherwise("false"))
-								.orderBy(LAUNCH.NAME.asc())
-								.as("status_history"),
-						DSL.sum(DSL.when(TEST_ITEM_RESULTS.STATUS.eq(DSL.cast(criteria.toUpperCase(), TEST_ITEM_RESULTS.STATUS)), 1)
-								.otherwise(0))
-								.as("criteria"),
-						DSL.count(TEST_ITEM_RESULTS.STATUS).as("total")
-				)
-						.from(LAUNCH)
-						.join(TEST_ITEM_STRUCTURE)
-						.on(LAUNCH.ID.eq(TEST_ITEM_STRUCTURE.LAUNCH_ID))
-						.join(TEST_ITEM_RESULTS)
-						.on(TEST_ITEM_STRUCTURE.STRUCTURE_ID.eq(TEST_ITEM_RESULTS.RESULT_ID))
-						.join(TEST_ITEM)
-						.on(TEST_ITEM_STRUCTURE.STRUCTURE_ID.eq(TEST_ITEM.ITEM_ID))
-						.where(TEST_ITEM.TYPE.eq(JTestItemTypeEnum.STEP))
-						.and(LAUNCH.NAME.eq(launchName))
-						.groupBy(TEST_ITEM.UNIQUE_ID, TEST_ITEM.NAME))
-				.select()
-				.from(DSL.table(DSL.name("history")))
-				.orderBy(DSL.field(DSL.name("criteria")).desc(), DSL.field(DSL.name("total")).asc())
-				.fetchInto(MostFailedObject.class);
-	}
-
-	private Map<String, Set<String>> validateWidgetOptions(Set<WidgetOption> widgetOptions) {
-		Map<String, Set<String>> res = Optional.ofNullable(widgetOptions)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT))
-				.stream()
-				.collect(Collectors.toMap(WidgetOption::getWidgetOption, WidgetOption::getValues));
-
-		BusinessRule.expect(res.containsKey(LAUNCH_NAME_FIELD), Predicate.isEqual(true))
+	/**
+	 * Validate provided widget options. For current widget should be specified launch name.
+	 *
+	 * @param widgetOptions Set of stored widget options.
+	 */
+	private void validateWidgetOptions(Map<String, List<String>> widgetOptions) {
+		BusinessRule.expect(widgetOptions, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should not be null.");
+		BusinessRule.expect(widgetOptions.containsKey(LAUNCH_NAME_FIELD), Predicate.isEqual(true))
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LAUNCH_NAME_FIELD + " should be specified for widget.");
+	}
 
-		BusinessRule.expect(res.containsKey(EXECUTION_CRITERIA) ^ res.containsKey(ISSUE_CRITERIA), Predicate.isEqual(true))
-				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
-						"One of widget options " + EXECUTION_CRITERIA + ", " + ISSUE_CRITERIA + " should be specified for widget."
-				);
-		return res;
+	/**
+	 * Validate provided content fields. For current widget it should be only one field specified in content fields.
+	 * Example is 'executions$failed', so widget would be created by 'failed' criteria.
+	 *
+	 * @param contentFields List of provided content.
+	 * @return Map of grouped content fields by first part. Expected only one value.
+	 */
+	private void validateContentFields(Map<String, List<String>> contentFields) {
+		BusinessRule.expect(contentFields, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be null.");
+		BusinessRule.expect(contentFields.size(), Predicate.isEqual(1))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Only one content field could be specified.");
 	}
 }

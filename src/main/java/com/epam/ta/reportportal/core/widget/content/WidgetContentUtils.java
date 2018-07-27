@@ -21,9 +21,17 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
+import com.epam.ta.reportportal.entity.widget.WidgetOption;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.google.common.collect.Lists;
+
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.*;
 
@@ -38,8 +46,17 @@ public final class WidgetContentUtils {
 		//static only
 	}
 
-	public static final Function<List<String>, Map<String, List<String>>> GROUP_CONTENT_FIELDS = contentFields -> contentFields.stream()
+	public static final Function<List<String>, Map<String, List<String>>> GROUP_CONTENT_FIELDS = contentFields -> Optional.ofNullable(
+			contentFields)
+			.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Content fields shouldn't be null"))
+			.stream()
 			.map(it -> it.split(SPLITTING_REGEX))
 			.collect(groupingBy(it -> it[0], mapping(it -> it[1].toUpperCase(), toList())));
+
+	public static final Function<Set<WidgetOption>, Map<String, List<String>>> GROUP_WIDGET_OPTIONS = widgetOptions -> Optional.ofNullable(
+			widgetOptions)
+			.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Widget options shouldn't be null"))
+			.stream()
+			.collect(Collectors.toMap(WidgetOption::getWidgetOption, v -> Lists.newArrayList(v.getValues())));
 
 }

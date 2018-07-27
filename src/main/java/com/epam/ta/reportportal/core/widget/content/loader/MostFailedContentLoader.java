@@ -66,7 +66,7 @@ public class MostFailedContentLoader implements LoadContentStrategy {
 	}
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions) {
+	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
 		Map<String, List<String>> fields = WidgetContentUtils.GROUP_CONTENT_FIELDS.apply(contentFields);
 		validateContentFields(fields);
 
@@ -78,10 +78,15 @@ public class MostFailedContentLoader implements LoadContentStrategy {
 		List<MostFailedContent> content;
 		if (fields.containsKey(EXECUTIONS)) {
 			content = widgetContentRepository.mostFailedByExecutionCriteria(options.get(LAUNCH_NAME_FIELD).get(0),
-					fields.get(EXECUTIONS).get(0)
+					fields.get(EXECUTIONS).get(0),
+					limit
 			);
 		} else {
-			content = widgetContentRepository.mostFailedByDefectCriteria(options.get(LAUNCH_NAME_FIELD).get(0), fields.get(DEFECTS).get(0));
+			content = widgetContentRepository.mostFailedByDefectCriteria(
+					options.get(LAUNCH_NAME_FIELD).get(0),
+					fields.get(DEFECTS).get(0),
+					limit
+			);
 		}
 		return ImmutableMap.<String, Object>builder().put(LATEST_OPTION, LaunchConverter.TO_RESOURCE.apply(latestByName))
 				.put(RESULT, content)

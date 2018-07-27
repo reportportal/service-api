@@ -14,6 +14,6 @@ public class MostFailedFilterStrategy implements BuildFilterStrategy {
 	@Override
 	public Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, ReportPortalUser.ProjectDetails projectDetails,
 			Widget widget) {
-		return loadContentStrategy.loadContent(widget.getContentFields(), null, widget.getWidgetOptions());
+		return loadContentStrategy.loadContent(widget.getContentFields(), null, widget.getWidgetOptions(), widget.getItemsCount());
 	}
 }

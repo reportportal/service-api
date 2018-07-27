@@ -49,12 +49,13 @@ public class OverallStatisticsContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions) {
+	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
 		boolean latestMode = widgetOptions.stream().anyMatch(it -> it.getWidgetOption().equalsIgnoreCase(LATEST_OPTION));
 		List<StatisticsContent> content = widgetContentRepository.overallStatisticsContent(
 				filter,
 				GROUP_CONTENT_FIELDS.apply(contentFields),
-				latestMode
+				latestMode,
+				limit
 		);
 		Map<String, List<StatisticsContent>> result = new HashMap<>();
 		result.put(RESULT, content);

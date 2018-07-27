@@ -49,7 +49,7 @@ public class GeneralStatisticsFilterStrategy implements BuildFilterStrategy {
 		UserFilter userFilter = widget.getFilter();
 		Filter filter = new Filter(userFilter.getTargetClass(), userFilter.getFilterCondition());
 		filter = updateWithDefaultConditions(filter, projectDetails.getProjectId());
-		return loadContentStrategy.loadContent(widget.getContentFields(), filter, widget.getWidgetOptions());
+		return loadContentStrategy.loadContent(widget.getContentFields(), filter, widget.getWidgetOptions(), widget.getItemsCount());
 	}
 
 	private Filter updateWithDefaultConditions(Filter filter, Long projectId) {

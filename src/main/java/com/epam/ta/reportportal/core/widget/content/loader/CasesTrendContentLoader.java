@@ -37,7 +37,7 @@ import java.util.Set;
 public class CasesTrendContentLoader implements LoadContentStrategy {
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions) {
+	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
 		return null;
 	}
 }

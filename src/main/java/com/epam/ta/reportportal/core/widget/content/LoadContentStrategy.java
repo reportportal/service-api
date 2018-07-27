@@ -41,6 +41,6 @@ public interface LoadContentStrategy {
 	String EXECUTIONS = "executions";
 	String LAUNCH_NAME_FIELD = "launch_name_filter";
 
-	Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions);
+	Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit);
 
 }

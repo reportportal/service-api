@@ -54,9 +54,9 @@ public class GeneralStatisticsFilterStrategy implements BuildFilterStrategy {
 
 	private Filter updateWithDefaultConditions(Filter filter, Long projectId) {
 		Set<FilterCondition> defaultConditions = Sets.newHashSet(
-				new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), "l.project_id"),
-				new FilterCondition(Condition.NOT_EQUALS, false, StatusEnum.IN_PROGRESS.name(), "l.status"),
-				new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.toString(), "l.mode")
+				new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), "project_id")
+				//new FilterCondition(Condition.NOT_EQUALS, false, StatusEnum.IN_PROGRESS.name(), "status")
+				//new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.toString(), "mode")
 		);
 		filter.withConditions(defaultConditions);
 		return filter;

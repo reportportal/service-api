@@ -46,6 +46,7 @@ import java.util.stream.StreamSupport;
 
 import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
 import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.TEST_ITEM;
+import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.EMPTY_FIELD;
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.createHistoryField;
 
 /**
@@ -58,6 +59,7 @@ public class TicketActivitySubscriber {
 	public static final String ISSUE_TYPE = "issueType";
 	public static final String IGNORE_ANALYZER = "ignoreAnalyzer";
 	public static final String COMMENT = "comment";
+	private static final String RELEVANT_ITEM = "relevantItem";
 
 	private final ActivityRepository activityRepository;
 
@@ -150,8 +152,16 @@ public class TicketActivitySubscriber {
 	public void onIssueTypeDefined(ItemIssueTypeDefined itemIssueTypeDefined) {
 		Map<IssueDefinition, TestItem> data = itemIssueTypeDefined.getBefore();
 		List<Activity> activities = processTestItemIssues(itemIssueTypeDefined.getProject(), itemIssueTypeDefined.getPostedBy(), data);
+		processAnalyzedItems(activities, itemIssueTypeDefined.getRelevantItemMap());
 		if (!activities.isEmpty()) {
 			activityRepository.save(activities);
+		}
+	}
+
+	private void processAnalyzedItems(List<Activity> activities, Map<String, String> relevantItemMap) {
+		if (relevantItemMap != null) {
+			activities.forEach(a -> a.getHistory()
+					.add(createHistoryField(RELEVANT_ITEM, EMPTY_FIELD, relevantItemMap.get(a.getLoggedObjectRef()))));
 		}
 	}
 
@@ -201,7 +211,8 @@ public class TicketActivitySubscriber {
 				history.add(fieldValues);
 			}
 			if (oldIgnoreAnalyzer != issueDefinition.getIssue().getIgnoreAnalyzer()) {
-				Activity.FieldValues field = createHistoryField(IGNORE_ANALYZER, String.valueOf(oldIgnoreAnalyzer),
+				Activity.FieldValues field = createHistoryField(IGNORE_ANALYZER,
+						String.valueOf(oldIgnoreAnalyzer),
 						String.valueOf(issueDefinition.getIssue().getIgnoreAnalyzer())
 				);
 				history.add(field);

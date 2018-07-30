@@ -37,6 +37,7 @@ public interface BuildFilterStrategy {
 	int RESULTED_MAP_SIZE = 2;
 	int ITEMS_COUNT_VALUE = 20;
 	String LAUNCH_NAME_FIELD = "launchNameFilter";
+	String INCLUDE_METHODS = "include_methods";
 
 	/**
 	 * Get widget content with predefined filter in accordance with used

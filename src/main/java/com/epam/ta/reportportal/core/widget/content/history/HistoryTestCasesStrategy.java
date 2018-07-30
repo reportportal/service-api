@@ -24,12 +24,18 @@ package com.epam.ta.reportportal.core.widget.content.history;
 import com.epam.ta.reportportal.core.item.history.ITestItemsHistoryService;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
+import com.epam.ta.reportportal.database.search.Condition;
+import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.database.search.FilterCondition;
+import com.epam.ta.reportportal.database.search.Queryable;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -53,8 +59,10 @@ public abstract class HistoryTestCasesStrategy extends LastLaunchFilterStrategy 
 			return Collections.emptyList();
 		}
 
-		List<Launch> launchHistory = historyServiceStrategy.loadLaunches(contentOptions.getItemsCount(), lastLaunch.get().getId(),
-				projectName, false
+		List<Launch> launchHistory = historyServiceStrategy.loadLaunches(contentOptions.getItemsCount(),
+				lastLaunch.get().getId(),
+				projectName,
+				false
 		);
 		if (launchHistory.isEmpty()) {
 			return Collections.emptyList();
@@ -71,6 +79,22 @@ public abstract class HistoryTestCasesStrategy extends LastLaunchFilterStrategy 
 			lastLaunch.setId(last.getId());
 			result.put(LAST_FOUND_LAUNCH, Collections.singletonList(lastLaunch));
 		}
+	}
+
+	Queryable buildHistoryFilter(ContentOptions contentOptions, List<Launch> launches) {
+		Set<FilterCondition> filterConditions = new HashSet<>();
+
+		filterConditions.add(new FilterCondition(Condition.IN,
+				false,
+				launches.stream().map(Launch::getId).collect(Collectors.joining(",")),
+				TestItem.LAUNCH_CRITERIA
+		));
+		filterConditions.add(new FilterCondition(Condition.EQUALS, false, "false", "has_childs"));
+
+		if (!contentOptions.getWidgetOptions().containsKey(INCLUDE_METHODS)) {
+			filterConditions.add(new FilterCondition(Condition.EQUALS, false, "STEP", "type"));
+		}
+		return new Filter(TestItem.class, filterConditions);
 	}
 
 	String countPercentage(int amount, int total) {
@@ -138,8 +162,9 @@ public abstract class HistoryTestCasesStrategy extends LastLaunchFilterStrategy 
 				return false;
 			}
 			HistoryObject that = (HistoryObject) o;
-			return total == that.total && Objects.equals(uniqueId, that.uniqueId) && Objects.equals(name, that.name) && Objects.equals(
-					lastTime, that.lastTime) && Objects.equals(percentage, that.percentage);
+			return total == that.total && Objects.equals(uniqueId, that.uniqueId) && Objects.equals(name, that.name) && Objects.equals(lastTime,
+					that.lastTime
+			) && Objects.equals(percentage, that.percentage);
 		}
 
 		@Override

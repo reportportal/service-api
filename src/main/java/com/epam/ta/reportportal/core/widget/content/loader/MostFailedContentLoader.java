@@ -82,13 +82,12 @@ public class MostFailedContentLoader implements LoadContentStrategy {
 					limit
 			);
 		} else {
-			content = widgetContentRepository.mostFailedByDefectCriteria(
-					options.get(LAUNCH_NAME_FIELD).get(0),
+			content = widgetContentRepository.mostFailedByDefectCriteria(options.get(LAUNCH_NAME_FIELD).get(0),
 					fields.get(DEFECTS).get(0),
 					limit
 			);
 		}
-		return ImmutableMap.<String, Object>builder().put(LATEST_OPTION, LaunchConverter.TO_RESOURCE.apply(latestByName))
+		return ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, LaunchConverter.TO_RESOURCE.apply(latestByName))
 				.put(RESULT, content)
 				.build();
 	}

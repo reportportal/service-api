@@ -102,6 +102,13 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 		return new OperationCompletionRS("All selected launches have been successfully deleted");
 	}
 
+	/**
+	 * TODO document this
+	 *
+	 * @param launch
+	 * @param user
+	 * @param projectName
+	 */
 	private void validate(Launch launch, ReportPortalUser user, String projectName) {
 		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,

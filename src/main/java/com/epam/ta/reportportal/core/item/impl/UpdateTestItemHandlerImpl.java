@@ -220,6 +220,13 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		return existedTickets;
 	}
 
+	/**
+	 * TODO document this
+	 *
+	 * @param rq
+	 * @param userId
+	 * @return
+	 */
 	private Set<Ticket> collectTickets(LinkExternalIssueRQ rq, Long userId) {
 		return rq.getIssues().stream().map(it -> {
 			Ticket apply = ExternalSystemIssueConverter.TO_TICKET.apply(it);

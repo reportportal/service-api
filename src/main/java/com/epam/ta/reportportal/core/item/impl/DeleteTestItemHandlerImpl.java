@@ -90,6 +90,13 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		return Stream.of(ids).map(it -> deleteTestItem(it, project, reportPortalUser)).collect(toList());
 	}
 
+	/**
+	 * TODO document this
+	 *
+	 * @param testItem
+	 * @param user
+	 * @param projectName
+	 */
 	private void validate(TestItem testItem, ReportPortalUser user, String projectName) {
 		expect(testItem.getItemStructure().getItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(
 				TEST_ITEM_IS_NOT_FINISHED, formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId()));

@@ -69,6 +69,13 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 		return new StartLaunchRS(launch.getId(), launch.getNumber());
 	}
 
+	/**
+	 * TODO document this
+	 *
+	 * @param user
+	 * @param projectName
+	 * @param startLaunchRQ
+	 */
 	private void validateRoles(ReportPortalUser user, String projectName, StartLaunchRQ startLaunchRQ) {
 		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		if (startLaunchRQ.getMode() == Mode.DEBUG) {

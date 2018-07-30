@@ -148,6 +148,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	/**
 	 * Validation procedure for specified test item
+	 * TODO document this
 	 *
 	 * @param user              Report portal user
 	 * @param testItem          Test item

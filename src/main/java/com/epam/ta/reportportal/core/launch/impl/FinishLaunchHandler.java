@@ -146,6 +146,12 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 				.collect(toList());
 	}
 
+	/**
+	 * TODO document this
+	 *
+	 * @param launch
+	 * @param finishExecutionRQ
+	 */
 	private void validate(Launch launch, FinishExecutionRQ finishExecutionRQ) {
 		expect(launch.getStatus(), equalTo(IN_PROGRESS)).verify(FINISH_LAUNCH_NOT_ALLOWED,
 				formattedSupplier("Launch '{}' already finished with status '{}'", launch.getId(), launch.getStatus())
@@ -158,6 +164,13 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 		);
 	}
 
+	/**
+	 * TODO dociment this
+	 *
+	 * @param launch
+	 * @param user
+	 * @param projectName
+	 */
 	private void validateRoles(Launch launch, ReportPortalUser user, String projectName) {
 		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(launch.getUserId(), user.getUserId())) {
@@ -166,6 +179,13 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 		}
 	}
 
+	/**
+	 * TODO document this
+	 *
+	 * @param launch
+	 * @param providedStatus
+	 * @param fromStatisticsStatus
+	 */
 	private void validateProvidedStatus(Launch launch, StatusEnum providedStatus, StatusEnum fromStatisticsStatus) {
 		/* Validate provided status */
 		expect(providedStatus, not(statusIn(IN_PROGRESS, SKIPPED))).verify(INCORRECT_FINISH_STATUS,

@@ -104,6 +104,14 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
 
+	/**
+	 * TODO document this
+	 *
+	 * @param user
+	 * @param projectName
+	 * @param rq
+	 * @param launch
+	 */
 	private void validate(ReportPortalUser user, String projectName, StartTestItemRQ rq, Launch launch) {
 		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		expect(projectDetails.getProjectId(), equalTo(launch.getProjectId())).verify(ACCESS_DENIED);

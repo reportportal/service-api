@@ -21,11 +21,9 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
-import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -33,6 +31,7 @@ import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
@@ -42,12 +41,11 @@ import com.epam.ta.reportportal.ws.model.issue.Issue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
@@ -61,18 +59,11 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Service
 class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
-	private LaunchRepository launchRepository;
-
 	private TestItemRepository testItemRepository;
 
 	private IssueTypeHandler issueTypeHandler;
 
 	//	private ExternalSystemRepository externalSystemRepository;
-
-	@Autowired
-	public void setLaunchRepository(LaunchRepository launchRepository) {
-		this.launchRepository = launchRepository;
-	}
 
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
@@ -99,7 +90,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		verifyTestItem(user, testItem, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()), hasChildren);
 
 		TestItemResults testItemResults = processItemResults(
-				ProjectUtils.extractProjectDetails(user, projectName).getProjectId(), testItem, finishExecutionRQ, hasChildren);
+				ProjectUtils.extractProjectDetails(user, projectName).getProjectId(),
+				testItem,
+				finishExecutionRQ,
+				hasChildren
+		);
 
 		testItem = new TestItemBuilder(testItem).addDescription(finishExecutionRQ.getDescription())
 				.addTags(finishExecutionRQ.getTags())
@@ -164,23 +159,21 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			Optional<StatusEnum> actualStatus, boolean hasChildren) {
 		Launch launch = Optional.ofNullable(testItem.getItemStructure().getLaunch())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
-		expect(user.getUserId(), equalTo(launch.getUserId())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not launch owner.");
+		expect(user.getUserId(), equalTo(launch.getUserId())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
 
-		expect(testItem.getItemStructure().getItemResults().getStatus(), Preconditions.statusIn(IN_PROGRESS)).verify(
-				REPORTING_ITEM_ALREADY_FINISHED, testItem.getItemId());
-
-		List<TestItem> items = testItemRepository.selectItemsInStatusByParent(testItem.getItemId(), IN_PROGRESS);
-		expect(items.isEmpty(), equalTo(true)).verify(FINISH_ITEM_NOT_ALLOWED,
-				formattedSupplier("Test item '{}' has descendants with '{}' status. All descendants '{}'", testItem.getItemId(),
-						IN_PROGRESS.name(), items
-				)
+		expect(testItem.getItemStructure().getItemResults().getStatus(), Preconditions.statusIn(IN_PROGRESS)).verify(REPORTING_ITEM_ALREADY_FINISHED,
+				testItem.getItemId()
 		);
+
 		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
 				"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
 				testItem.getItemId()
 		));
 
-		expect(finishExecutionRQ.getEndTime(), Preconditions.sameTimeOrLater(testItem.getStartTime())).verify(
-				FINISH_TIME_EARLIER_THAN_START_TIME, finishExecutionRQ.getEndTime(), testItem.getStartTime(), testItem.getItemId());
+		expect(finishExecutionRQ.getEndTime(), Preconditions.sameTimeOrLater(testItem.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
+				finishExecutionRQ.getEndTime(),
+				testItem.getStartTime(),
+				testItem.getItemId()
+		);
 	}
 }

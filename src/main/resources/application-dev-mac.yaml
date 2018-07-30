@@ -6,7 +6,7 @@ spring:
       host: localhost
 rp:
   mongo:
-    uri: mongodb://localhost:27017
+    uri: mongodb://dev.epm-rpp.projects.epam.com:27017
   uat:
     serviceUrl: http://localhost:8080/uat
   analyzer:

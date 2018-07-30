@@ -24,18 +24,15 @@ package com.epam.ta.reportportal.core.widget.content.loader;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
-import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.entity.widget.content.StatisticsContent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.widget.content.WidgetContentUtils.GROUP_CONTENT_FIELDS;
 
@@ -51,14 +48,11 @@ public class OverallStatisticsContentLoader implements LoadContentStrategy {
 	@Override
 	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
 		boolean latestMode = widgetOptions.stream().anyMatch(it -> it.getWidgetOption().equalsIgnoreCase(LATEST_OPTION));
-		List<StatisticsContent> content = widgetContentRepository.overallStatisticsContent(
-				filter,
+		List<StatisticsContent> content = widgetContentRepository.overallStatisticsContent(filter,
 				GROUP_CONTENT_FIELDS.apply(contentFields),
 				latestMode,
 				limit
 		);
-		Map<String, List<StatisticsContent>> result = new HashMap<>();
-		result.put(RESULT, content);
-		return result;
+		return Collections.singletonMap(RESULT, content);
 	}
 }

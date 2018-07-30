@@ -47,16 +47,16 @@ public class GeneralStatisticsFilterStrategy implements BuildFilterStrategy {
 	public Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, ReportPortalUser.ProjectDetails projectDetails,
 			Widget widget) {
 		UserFilter userFilter = widget.getFilter();
-		Filter filter = new Filter(userFilter.getTargetClass(), userFilter.getFilterCondition());
+		Filter filter = new Filter(userFilter.getTargetClass(), Sets.newHashSet(userFilter.getFilterCondition()));
 		filter = updateWithDefaultConditions(filter, projectDetails.getProjectId());
 		return loadContentStrategy.loadContent(widget.getContentFields(), filter, widget.getWidgetOptions(), widget.getItemsCount());
 	}
 
 	private Filter updateWithDefaultConditions(Filter filter, Long projectId) {
 		Set<FilterCondition> defaultConditions = Sets.newHashSet(
-				new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), "project_id")
-				//new FilterCondition(Condition.NOT_EQUALS, false, StatusEnum.IN_PROGRESS.name(), "status")
-				//new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.toString(), "mode")
+				new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), "project_id"),
+				new FilterCondition(Condition.NOT_EQUALS, false, StatusEnum.IN_PROGRESS.name(), "status"),
+				new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.toString(), "mode")
 		);
 		filter.withConditions(defaultConditions);
 		return filter;

@@ -94,7 +94,7 @@ public class AnalyzeCollectorConfig {
 			it.setIssue(new TestItemIssue());
 		});
 		testItemRepository.save(items);
-		eventPublisher.publishEvent(new ItemIssueTypeDefined(definitions, username, projectName));
+		eventPublisher.publishEvent(new ItemIssueTypeDefined(definitions, username, projectName, null));
 		eventPublisher.publishEvent(new TicketAttachedEvent(before, items, username, projectName));
 		return items;
 	}

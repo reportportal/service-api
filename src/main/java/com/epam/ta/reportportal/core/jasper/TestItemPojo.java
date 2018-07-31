@@ -41,6 +41,7 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
+import com.epam.ta.reportportal.util.DurationFormatUtils;
 
 import java.time.Duration;
 
@@ -79,7 +80,9 @@ public class TestItemPojo {
 		}
 		this.name = input.getName() + description + issueDescription;
 		this.status = input.getStatus().name();
-		this.duration = Duration.between(DateUtils.fromDate(input.getStartTime()), DateUtils.fromDate(input.getEndTime())).toString();
+		this.duration = DurationFormatUtils.formatDuration(Duration.between(DateUtils.fromDate(input.getStartTime()),
+				DateUtils.fromDate(input.getEndTime())
+		).toNanos());
 
 		ExecutionCounter exec = input.getStatistics().getExecutionCounter();
 		this.total = exec.getTotal();
@@ -96,31 +99,102 @@ public class TestItemPojo {
 	}
 
 	// @formatter:off
-	public void setType(String value) {this.type = value;}
-	public String getType() {return type;}
-	public void setName(String value) {this.name = value;}
-	public String getName() {return name;}
-	public void setStatus(String value) {this.status = value;}
-	public String getStatus() {return status;}
-	public void setTotal(Integer value) {this.total = value;}
-	public Integer getTotal() {return total;}
-	public void setPased(Integer value) {this.passed = value;}
-	public Integer getPassed() {return passed;}
-	public void setFailed(Integer value) {this.failed = value;}
-	public Integer getFailed() {return failed;}
-	public void setSkipped(Integer value) {this.skipped = value;}
-	public Integer getSkipped() {return skipped;}
-	public void setAutomationBug(Integer value) {this.automationBug = value;}
-	public Integer getAutomationBug() {return automationBug;}
-	public void setProductBug(Integer value) {this.productBug = value;}
-	public Integer getProductBug() {return productBug;}
-	public void setSystemIssue(Integer value) {this.systemIssue = value;}
-	public Integer getSystemIssue() {return systemIssue;}
-	public void setNoDefect(Integer value) {this.noDefect = value;}
-	public Integer getNoDefect() {return noDefect;}
-	public void setToInvestigate(Integer value) {this.toInvestigate = value;}
-	public Integer getToInvestigate() {return toInvestigate;}
-	//@formatter:on
+    public void setType(String value) {
+        this.type = value;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setName(String value) {
+        this.name = value;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setStatus(String value) {
+        this.status = value;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setTotal(Integer value) {
+        this.total = value;
+    }
+
+    public Integer getTotal() {
+        return total;
+    }
+
+    public void setPased(Integer value) {
+        this.passed = value;
+    }
+
+    public Integer getPassed() {
+        return passed;
+    }
+
+    public void setFailed(Integer value) {
+        this.failed = value;
+    }
+
+    public Integer getFailed() {
+        return failed;
+    }
+
+    public void setSkipped(Integer value) {
+        this.skipped = value;
+    }
+
+    public Integer getSkipped() {
+        return skipped;
+    }
+
+    public void setAutomationBug(Integer value) {
+        this.automationBug = value;
+    }
+
+    public Integer getAutomationBug() {
+        return automationBug;
+    }
+
+    public void setProductBug(Integer value) {
+        this.productBug = value;
+    }
+
+    public Integer getProductBug() {
+        return productBug;
+    }
+
+    public void setSystemIssue(Integer value) {
+        this.systemIssue = value;
+    }
+
+    public Integer getSystemIssue() {
+        return systemIssue;
+    }
+
+    public void setNoDefect(Integer value) {
+        this.noDefect = value;
+    }
+
+    public Integer getNoDefect() {
+        return noDefect;
+    }
+
+    public void setToInvestigate(Integer value) {
+        this.toInvestigate = value;
+    }
+
+    public Integer getToInvestigate() {
+        return toInvestigate;
+    }
+    //@formatter:on
 
 	public String getDuration() {
 		return duration;

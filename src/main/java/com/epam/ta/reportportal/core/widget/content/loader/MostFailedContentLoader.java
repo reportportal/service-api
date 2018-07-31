@@ -73,7 +73,7 @@ public class MostFailedContentLoader implements LoadContentStrategy {
 		Map<String, List<String>> options = WidgetContentUtils.GROUP_WIDGET_OPTIONS.apply(widgetOptions);
 		validateWidgetOptions(options);
 
-		Launch latestByName = launchRepository.findLatestByName(options.get(LAUNCH_NAME_FIELD).iterator().next());
+		Launch latestByName = launchRepository.findLatestByNameAndFilter(options.get(LAUNCH_NAME_FIELD).iterator().next(), filter);
 
 		List<MostFailedContent> content;
 		if (fields.containsKey(EXECUTIONS)) {

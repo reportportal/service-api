@@ -23,12 +23,20 @@ package com.epam.ta.reportportal.core.widget.content.loader;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.content.WidgetContentUtils;
+import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.WidgetContentRepository;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.WidgetOption;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static com.epam.ta.reportportal.core.widget.content.WidgetContentUtils.GROUP_CONTENT_FIELDS;
+import static java.util.Collections.singletonMap;
 
 /**
  * @author Pavel Bortnik
@@ -36,8 +44,24 @@ import java.util.Set;
 @Service
 public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 
+	@Autowired
+	private LaunchRepository launchRepository;
+
+	@Autowired
+	private WidgetContentRepository widgetContentRepository;
+
 	@Override
 	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
-		return null;
+
+		Map<String, List<String>> options = WidgetContentUtils.GROUP_WIDGET_OPTIONS.apply(widgetOptions);
+
+		Launch lastLaunch = launchRepository.findLatestByNameAndFilter(options.get(LAUNCH_NAME_FIELD).iterator().next(), filter);
+
+		Map<Integer, Map<String, Double>> result = widgetContentRepository.launchesComparisonStatistics(filter,
+				GROUP_CONTENT_FIELDS.apply(contentFields),
+				lastLaunch.getNumber(),
+				lastLaunch.getNumber() - 1
+		);
+		return singletonMap(RESULT, result);
 	}
 }

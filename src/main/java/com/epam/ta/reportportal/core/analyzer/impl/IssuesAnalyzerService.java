@@ -42,6 +42,7 @@ import com.epam.ta.reportportal.ws.converter.converters.AnalyzerConfigConverter;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -166,7 +167,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	 */
 	private List<TestItem> updateTestItems(String analyzerInstance, List<AnalyzedItemRs> rs, List<TestItem> testItems, String project) {
 		final Map<IssueDefinition, TestItem> forEvents = new HashMap<>();
-		final Map<String, String> relevantItemIdMap = new HashMap<>();
+		final Map<String, TestItem> relevantItemIdMap = new HashMap<>();
 
 		List<TestItem> beforeUpdate = new ArrayList<>(rs.size());
 		List<TestItem> updatedItems = rs.stream().map(analyzed -> {
@@ -180,13 +181,16 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 				ofNullable(analyzed.getRelevantItemId()).ifPresent(relevantItemId -> fromRelevantItem(issue, relevantItemId));
 				IssueDefinition issueDefinition = createIssueDefinition(testItem.getId(), issue);
 				forEvents.put(issueDefinition, SerializationUtils.clone(testItem));
-				relevantItemIdMap.put(testItem.getId(), analyzed.getRelevantItemId());
+				relevantItemIdMap.put(
+						testItem.getId(),
+						testItemRepository.findById(analyzed.getRelevantItemId(), Lists.newArrayList("_id", "path", "launchRef"))
+				);
 				testItem.setIssue(issue);
 			});
 			return toUpdate;
 		}).filter(Optional::isPresent).map(Optional::get).collect(toList());
 		eventPublisher.publishEvent(new ItemIssueTypeDefined(forEvents, analyzerInstance, project, relevantItemIdMap));
-		eventPublisher.publishEvent(new TicketAttachedEvent(beforeUpdate, updatedItems, analyzerInstance, project));
+		eventPublisher.publishEvent(new TicketAttachedEvent(beforeUpdate, updatedItems, analyzerInstance, project, relevantItemIdMap));
 		return updatedItems;
 	}
 

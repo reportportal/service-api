@@ -63,10 +63,9 @@ public class AnalyzeCollectorConfig {
 	private ILogIndexer logIndexer;
 
 	private AnalyzeItemsCollector TO_INVESTIGATE_COLLECTOR = (project, username, launchId) -> testItemRepository.findInIssueTypeItems(
-			TestItemIssueType.TO_INVESTIGATE.getLocator(), launchId)
-			.stream()
-			.filter(it -> !it.getIssue().isIgnoreAnalyzer())
-			.collect(toList());
+			TestItemIssueType.TO_INVESTIGATE.getLocator(),
+			launchId
+	).stream().filter(it -> !it.getIssue().isIgnoreAnalyzer()).collect(toList());
 
 	private AnalyzeItemsCollector AUTO_ANALYZED_COLLECTOR = (project, username, launchId) -> {
 		List<TestItem> itemsByAutoAnalyzedStatus = testItemRepository.findItemsByAutoAnalyzedStatus(true, launchId);
@@ -95,7 +94,7 @@ public class AnalyzeCollectorConfig {
 		});
 		testItemRepository.save(items);
 		eventPublisher.publishEvent(new ItemIssueTypeDefined(definitions, username, projectName, null));
-		eventPublisher.publishEvent(new TicketAttachedEvent(before, items, username, projectName));
+		eventPublisher.publishEvent(new TicketAttachedEvent(before, items, username, projectName, null));
 		return items;
 	}
 

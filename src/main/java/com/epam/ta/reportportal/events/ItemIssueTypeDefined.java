@@ -32,10 +32,11 @@ public class ItemIssueTypeDefined {
 
 	private final String postedBy;
 	private final Map<IssueDefinition, TestItem> before;
-	private final Map<String, String> relevantItemMap;
+	private final Map<String, TestItem> relevantItemMap;
 	private final String project;
 
-	public ItemIssueTypeDefined(Map<IssueDefinition, TestItem> before, String postedBy, String project, Map<String, String> relevantItemMap) {
+	public ItemIssueTypeDefined(Map<IssueDefinition, TestItem> before, String postedBy, String project,
+			Map<String, TestItem> relevantItemMap) {
 		this.postedBy = postedBy;
 		this.before = before;
 		this.project = project;
@@ -54,7 +55,7 @@ public class ItemIssueTypeDefined {
 		return project;
 	}
 
-	public Map<String, String> getRelevantItemMap() {
+	public Map<String, TestItem> getRelevantItemMap() {
 		return relevantItemMap;
 	}
 }

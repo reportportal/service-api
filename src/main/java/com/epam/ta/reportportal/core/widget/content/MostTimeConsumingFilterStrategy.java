@@ -48,8 +48,6 @@ import static com.epam.ta.reportportal.core.widget.content.StatisticBasedContent
 @Service
 public class MostTimeConsumingFilterStrategy extends LastLaunchFilterStrategy {
 
-	private final static String INCLUDE_METHODS = "include_methods";
-
 	private TestItemRepository testItemRepository;
 
 	@Autowired

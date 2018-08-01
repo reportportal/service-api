@@ -44,7 +44,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -150,7 +153,7 @@ public class TicketActivitySubscriber {
 					.addObjectType(TEST_ITEM)
 					.addObjectName(testItem.getName())
 					.addUserRef(event.getPostedBy())
-					.addHistory(Collections.singletonList(fieldValues))
+					.addHistory(Lists.newArrayList(fieldValues))
 					.get();
 			activities.add(activity);
 		}

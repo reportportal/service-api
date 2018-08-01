@@ -26,7 +26,8 @@ import com.epam.ta.reportportal.database.dao.UserFilterRepository;
 import com.epam.ta.reportportal.database.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.database.entity.UserPreference;
 import com.epam.ta.reportportal.database.entity.filter.UserFilter;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.converter.converters.PreferenceConverter;
+import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
 import com.epam.ta.reportportal.ws.model.preference.UpdatePreferenceRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,7 +51,7 @@ public class UpdatePreferenceHandler implements IUpdatePreferenceHandler {
 	private UserFilterRepository filterRepository;
 
 	@Override
-	public OperationCompletionRS updatePreference(String userName, String projectName, UpdatePreferenceRQ rq) {
+	public PreferenceResource updatePreference(String userName, String projectName, UpdatePreferenceRQ rq) {
 
 		UserPreference preference = userPreferenceRepository.findByProjectAndUserName(projectName, userName);
 
@@ -71,9 +72,7 @@ public class UpdatePreferenceHandler implements IUpdatePreferenceHandler {
 				.collect(Collectors.toList());
 
 		preference.getLaunchTabs().setFilters(filters);
-		OperationCompletionRS operationCompletionRS = new OperationCompletionRS();
 		userPreferenceRepository.save(preference);
-		operationCompletionRS.setResultMessage("Filter tabs for '" + userName + "' user have been updated");
-		return operationCompletionRS;
+		return PreferenceConverter.TO_RESOURCE.apply(preference);
 	}
 }

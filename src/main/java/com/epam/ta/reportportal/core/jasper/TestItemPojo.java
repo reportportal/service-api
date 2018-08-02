@@ -41,7 +41,6 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
-import com.epam.ta.reportportal.util.DurationFormatUtils;
 
 import java.time.Duration;
 
@@ -54,7 +53,7 @@ public class TestItemPojo {
 	private String type;
 	private String name;
 	private String status;
-	private String duration;
+	private Double duration;
 	private Integer total;
 	private Integer passed;
 	private Integer failed;
@@ -80,9 +79,9 @@ public class TestItemPojo {
 		}
 		this.name = input.getName() + description + issueDescription;
 		this.status = input.getStatus().name();
-		this.duration = DurationFormatUtils.formatDuration(Duration.between(DateUtils.fromDate(input.getStartTime()),
-				DateUtils.fromDate(input.getEndTime())
-		).toNanos());
+
+		this.duration = Duration.between(DateUtils.fromDate(input.getStartTime()), DateUtils.fromDate(input.getEndTime())).toMillis()
+				/ (double) org.apache.commons.lang.time.DateUtils.MILLIS_PER_SECOND;
 
 		ExecutionCounter exec = input.getStatistics().getExecutionCounter();
 		this.total = exec.getTotal();
@@ -98,110 +97,112 @@ public class TestItemPojo {
 		this.toInvestigate = issue.getToInvestigateTotal();
 	}
 
-	// @formatter:off
-    public void setType(String value) {
-        this.type = value;
-    }
+	public void setType(String value) {
+		this.type = value;
+	}
 
-    public String getType() {
-        return type;
-    }
+	public String getType() {
+		return type;
+	}
 
-    public void setName(String value) {
-        this.name = value;
-    }
+	public void setName(String value) {
+		this.name = value;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setStatus(String value) {
-        this.status = value;
-    }
+	public void setStatus(String value) {
+		this.status = value;
+	}
 
-    public String getStatus() {
-        return status;
-    }
+	public String getStatus() {
+		return status;
+	}
 
-    public void setTotal(Integer value) {
-        this.total = value;
-    }
+	public void setTotal(Integer value) {
+		this.total = value;
+	}
 
-    public Integer getTotal() {
-        return total;
-    }
+	public Integer getTotal() {
+		return total;
+	}
 
-    public void setPased(Integer value) {
-        this.passed = value;
-    }
+	public void setPased(Integer value) {
+		this.passed = value;
+	}
 
-    public Integer getPassed() {
-        return passed;
-    }
+	public Integer getPassed() {
+		return passed;
+	}
 
-    public void setFailed(Integer value) {
-        this.failed = value;
-    }
+	public void setFailed(Integer value) {
+		this.failed = value;
+	}
 
-    public Integer getFailed() {
-        return failed;
-    }
+	public Integer getFailed() {
+		return failed;
+	}
 
-    public void setSkipped(Integer value) {
-        this.skipped = value;
-    }
+	public void setSkipped(Integer value) {
+		this.skipped = value;
+	}
 
-    public Integer getSkipped() {
-        return skipped;
-    }
+	public Integer getSkipped() {
+		return skipped;
+	}
 
-    public void setAutomationBug(Integer value) {
-        this.automationBug = value;
-    }
+	public void setAutomationBug(Integer value) {
+		this.automationBug = value;
+	}
 
-    public Integer getAutomationBug() {
-        return automationBug;
-    }
+	public Integer getAutomationBug() {
+		return automationBug;
+	}
 
-    public void setProductBug(Integer value) {
-        this.productBug = value;
-    }
+	public void setProductBug(Integer value) {
+		this.productBug = value;
+	}
 
-    public Integer getProductBug() {
-        return productBug;
-    }
+	public Integer getProductBug() {
+		return productBug;
+	}
 
-    public void setSystemIssue(Integer value) {
-        this.systemIssue = value;
-    }
+	public void setSystemIssue(Integer value) {
+		this.systemIssue = value;
+	}
 
-    public Integer getSystemIssue() {
-        return systemIssue;
-    }
+	public Integer getSystemIssue() {
+		return systemIssue;
+	}
 
-    public void setNoDefect(Integer value) {
-        this.noDefect = value;
-    }
+	public void setNoDefect(Integer value) {
+		this.noDefect = value;
+	}
 
-    public Integer getNoDefect() {
-        return noDefect;
-    }
+	public Integer getNoDefect() {
+		return noDefect;
+	}
 
-    public void setToInvestigate(Integer value) {
-        this.toInvestigate = value;
-    }
+	public void setToInvestigate(Integer value) {
+		this.toInvestigate = value;
+	}
 
-    public Integer getToInvestigate() {
-        return toInvestigate;
-    }
-    //@formatter:on
+	public Integer getToInvestigate() {
+		return toInvestigate;
+	}
 
-	public String getDuration() {
+	public Double getDuration() {
 		return duration;
 	}
 
-	public void setDuration(String duration) {
+	public void setDuration(Double duration) {
 		this.duration = duration;
+	}
+
+	public void setPassed(Integer passed) {
+		this.passed = passed;
 	}
 
 	@Override

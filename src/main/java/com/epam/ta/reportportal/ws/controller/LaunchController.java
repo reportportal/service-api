@@ -78,9 +78,6 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 /**
  * Controller implementation for
@@ -137,7 +134,7 @@ public class LaunchController {
 		return createLaunchMessageHandler.startLaunch(reportPortalUser, projectName, startLaunchRQ);
 	}
 
-	@RequestMapping(value = "/{launchId}/finish", method = PUT)
+	@PutMapping(value = "/{launchId}/finish")
 	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
@@ -229,7 +226,7 @@ public class LaunchController {
 		);
 	}
 
-	@RequestMapping(value = "/latest", method = GET)
+	@GetMapping(value = "/latest")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Get list of latest project launches by filter")
@@ -238,7 +235,7 @@ public class LaunchController {
 		return getLaunchMessageHandler.getLatestLaunches(ProjectUtils.extractProjectDetails(user, projectName), filter, pageable);
 	}
 
-	@RequestMapping(value = "/tags", method = GET)
+	@GetMapping(value = "/tags")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique tags of project launches")
@@ -247,7 +244,7 @@ public class LaunchController {
 		return getLaunchMessageHandler.getTags(ProjectUtils.extractProjectDetails(user, projectName), value);
 	}
 
-	@RequestMapping(value = "/owners", method = GET)
+	@GetMapping(value = "/owners")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique owners of project launches")
@@ -257,7 +254,7 @@ public class LaunchController {
 		return getLaunchMessageHandler.getOwners(ProjectUtils.extractProjectDetails(user, projectName), value, mode);
 	}
 
-	@RequestMapping(value = "/names", method = GET)
+	@GetMapping(value = "/names")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Get launch names of project")
@@ -266,7 +263,7 @@ public class LaunchController {
 		return getLaunchMessageHandler.getLaunchNames(ProjectUtils.extractProjectDetails(user, projectName), value);
 	}
 
-	@RequestMapping(value = "/compare", method = GET)
+	@GetMapping(value = "/compare")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Compare launches")
@@ -286,7 +283,7 @@ public class LaunchController {
 		return mergeLaunchesHandler.mergeLaunches(normalizeId(projectName), user, mergeLaunchesRQ);
 	}
 
-	@RequestMapping(value = "/{launchId}/analyze", method = POST)
+	@PostMapping(value = "/{launchId}/analyze")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Start launch auto-analyzer on demand")
@@ -295,7 +292,7 @@ public class LaunchController {
 		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), launchId);
 	}
 
-	@RequestMapping(value = "/status", method = GET)
+	@GetMapping(value = "/status")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiIgnore
@@ -304,7 +301,7 @@ public class LaunchController {
 		return getLaunchMessageHandler.getStatuses(ProjectUtils.extractProjectDetails(user, projectName), ids);
 	}
 
-	@RequestMapping(value = "/{launchId}/report", method = RequestMethod.GET)
+	@GetMapping(value = "/{launchId}/report")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation(value = "Export specified launch", notes = "Only following formats are supported: pdf (by default), xls, html.")
@@ -329,7 +326,7 @@ public class LaunchController {
 		return deleteLaunchMessageHandler.deleteLaunches(ids, projectName, user);
 	}
 
-	@RequestMapping(value = "/import", method = RequestMethod.POST)
+	@PostMapping(value = "/import")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip.")

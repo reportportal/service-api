@@ -38,17 +38,24 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.core.imprt.ImportLaunchHandler;
+import com.epam.ta.reportportal.core.jasper.IGetJasperReportHandler;
+import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.core.launch.*;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
+import com.google.common.net.HttpHeaders;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import net.sf.jasperreports.engine.JasperPrint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -57,17 +64,22 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 /**
@@ -93,24 +105,23 @@ public class LaunchController {
 	private final GetLaunchHandler getLaunchMessageHandler;
 	private final UpdateLaunchHandler updateLaunchHandler;
 	private final MergeLaunchHandler mergeLaunchesHandler;
-
-	//	@Autowired
-	//	private IGetJasperReportHandler getJasperHandler;
+	private final ImportLaunchHandler importLaunchHandler;
+	private final IGetJasperReportHandler getJasperHandler;
 
 	@Autowired
 	public LaunchController(StartLaunchHandler createLaunchMessageHandler, FinishLaunchHandler finishLaunchMessageHandler,
 			DeleteLaunchHandler deleteLaunchMessageHandler, GetLaunchHandler getLaunchMessageHandler,
-			UpdateLaunchHandler updateLaunchHandler, MergeLaunchHandler mergeLaunchesHandler) {
+			UpdateLaunchHandler updateLaunchHandler, MergeLaunchHandler mergeLaunchesHandler, ImportLaunchHandler importLaunchHandler,
+			IGetJasperReportHandler getJasperHandler) {
 		this.createLaunchMessageHandler = createLaunchMessageHandler;
 		this.finishLaunchMessageHandler = finishLaunchMessageHandler;
 		this.deleteLaunchMessageHandler = deleteLaunchMessageHandler;
 		this.getLaunchMessageHandler = getLaunchMessageHandler;
 		this.updateLaunchHandler = updateLaunchHandler;
 		this.mergeLaunchesHandler = mergeLaunchesHandler;
+		this.importLaunchHandler = importLaunchHandler;
+		this.getJasperHandler = getJasperHandler;
 	}
-
-	//	@Autowired
-	//	private ImportLaunchHandler importLaunchHandler;
 
 	@PostMapping
 	@Transactional
@@ -255,35 +266,35 @@ public class LaunchController {
 		return getLaunchMessageHandler.getLaunchNames(ProjectUtils.extractProjectDetails(user, projectName), value);
 	}
 
-	//	@RequestMapping(value = "/compare", method = GET)
-	//	@ResponseBody
-	//	@ResponseStatus(OK)
-	//	@ApiOperation("Compare launches")
-	//	public Map<String, List<ChartObject>> compareLaunches(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
-	//			@AuthenticationPrincipal ReportPortalUser user) {
-	//		return getLaunchMessageHandler.getLaunchesComparisonInfo(normalizeId(projectName), ids);
-	//	}
+	@RequestMapping(value = "/compare", method = GET)
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Compare launches")
+	public List<ComparisonStatisticsContent> compareLaunches(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getLaunchesComparisonInfo(normalizeId(projectName), ids);
+	}
 
-	//
-	//	@PostMapping("/merge")
-	//	@ResponseBody
-	//	@ResponseStatus(OK)
-	//	@ApiOperation("Merge set of specified launches in common one")
-	//	public LaunchResource mergeLaunches(
-	//			@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,
-	//			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
-	//			@AuthenticationPrincipal ReportPortalUser user) {
-	//		return mergeLaunchesHandler.mergeLaunches(normalizeId(projectName), user, mergeLaunchesRQ);
-	//	}
-	//
-	//	@RequestMapping(value = "/{launchId}/analyze", method = POST)
-	//	@ResponseBody
-	//	@ResponseStatus(OK)
-	//	@ApiOperation("Start launch auto-analyzer on demand")
-	//	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName, @PathVariable Long launchId, @AuthenticationPrincipal ReportPortalUser user) {
-	//		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), launchId);
-	//	}
-	//
+	@PostMapping("/merge")
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Merge set of specified launches in common one")
+	public LaunchResource mergeLaunches(
+			@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,
+			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return mergeLaunchesHandler.mergeLaunches(normalizeId(projectName), user, mergeLaunchesRQ);
+	}
+
+	@RequestMapping(value = "/{launchId}/analyze", method = POST)
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Start launch auto-analyzer on demand")
+	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName, @PathVariable Long launchId,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), launchId);
+	}
+
 	@RequestMapping(value = "/status", method = GET)
 	@ResponseBody
 	@ResponseStatus(OK)
@@ -292,27 +303,22 @@ public class LaunchController {
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return getLaunchMessageHandler.getStatuses(ProjectUtils.extractProjectDetails(user, projectName), ids);
 	}
-	//
-	//	@RequestMapping(value = "/{launchId}/report", method = RequestMethod.GET)
-	//	@ResponseBody
-	//	@ResponseStatus(OK)
-	//	@ApiOperation(value = "Export specified launch", notes = "Only following formats are supported: pdf (by default), xls, html.")
-	//	public void getLaunchReport(@PathVariable String projectName, @PathVariable Long launchId,
-	//			@ApiParam(allowableValues = "pdf, xls, html") @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,
-	//			@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) throws IOException {
-	//
-	//		throw new UnsupportedOperationException();
-	//		//		JasperPrint jasperPrint = getJasperHandler.getLaunchDetails(launchId, user);
-	//		//
-	//		//		ReportFormat format = getJasperHandler.getReportFormat(view);
-	//		//		response.setContentType(format.getContentType());
-	//		//		response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-	//		//				String.format("attachment; filename=RP_%s_Report.%s", format.name(), format.getValue())
-	//		//		);
-	//		//
-	//		//		getJasperHandler.writeReport(format, response.getOutputStream(), jasperPrint);
-	//
-	//	}
+
+	@RequestMapping(value = "/{launchId}/report", method = RequestMethod.GET)
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation(value = "Export specified launch", notes = "Only following formats are supported: pdf (by default), xls, html.")
+	public void getLaunchReport(@PathVariable String projectName, @PathVariable Long launchId,
+			@ApiParam(allowableValues = "pdf, xls, html") @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,
+			@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) throws IOException {
+		JasperPrint jasperPrint = getJasperHandler.getLaunchDetails(launchId, user);
+		ReportFormat format = getJasperHandler.getReportFormat(view);
+		response.setContentType(format.getContentType());
+		response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+				String.format("attachment; filename=RP_%s_Report.%s", format.name(), format.getValue())
+		);
+		getJasperHandler.writeReport(format, response.getOutputStream(), jasperPrint);
+	}
 
 	@DeleteMapping
 	@ResponseBody
@@ -322,14 +328,13 @@ public class LaunchController {
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return deleteLaunchMessageHandler.deleteLaunches(ids, projectName, user);
 	}
-	//
-	//	@RequestMapping(value = "/import", method = RequestMethod.POST)
-	//	@ResponseBody
-	//	@ResponseStatus(OK)
-	//	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip.")
-	//	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file,
-	//			@AuthenticationPrincipal ReportPortalUser user) {
-	//		throw new UnsupportedOperationException();
-	//		//return importLaunchHandler.importLaunch(normalizeId(projectName), user, "XUNIT", file);
-	//	}
+
+	@RequestMapping(value = "/import", method = RequestMethod.POST)
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip.")
+	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return importLaunchHandler.importLaunch(normalizeId(projectName), user, "XUNIT", file);
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  *
  *
  * This file is part of EPAM Report Portal.
@@ -18,20 +18,25 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package com.epam.ta.reportportal.core.launch;
+package com.epam.ta.reportportal.core.imprt;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
- * Merge launches handler in common one
- *
  * @author Pavel_Bortnik
  */
-public interface MergeLaunchHandler {
+public interface ImportLaunchHandler {
 
-	LaunchResource mergeLaunches(String projectName, ReportPortalUser user, MergeLaunchesRQ mergeLaunchesRQ);
-
+	/**
+	 * Import launch from file with specified format.
+	 *
+	 * @param projectId project
+	 * @param user  user
+	 * @param format    report format
+	 * @param file      file with report
+	 * @return OperationCompletionRS
+	 */
+	OperationCompletionRS importLaunch(String projectId, ReportPortalUser user, String format, MultipartFile file);
 }

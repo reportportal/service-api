@@ -23,9 +23,9 @@ package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
 import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -106,7 +106,7 @@ public interface GetLaunchHandler {
 	 * @param ids         IDs to be looked up
 	 * @return Response Data
 	 */
-	Map<String, List<ChartObject>> getLaunchesComparisonInfo(String projectName, Long[] ids);
+	List<ComparisonStatisticsContent> getLaunchesComparisonInfo(String projectName, Long[] ids);
 
 	/**
 	 * Get statuses of specified launches

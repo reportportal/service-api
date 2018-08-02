@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.impl.TestItemUniqueIdGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -61,14 +62,14 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 		this.launchRepository = launchRepository;
 	}
 
-
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
 		this.testItemRepository = testItemRepository;
 	}
 
 	@Override
-	public LaunchResource mergeLaunches(String projectName, String userName, MergeLaunchesRQ rq) {
+	public LaunchResource mergeLaunches(String projectName, ReportPortalUser user, MergeLaunchesRQ rq) {
+		//TODO: implement
 		//		User user = userRepository.findOne(userName);
 		//		Project project = projectRepository.findOne(projectName);
 		//		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
@@ -114,7 +115,7 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 		//		logIndexer.indexLogs(launch.getId(), testItemRepository.findItemsNotInIssueType(TO_INVESTIGATE.getLocator(), launch.getId()));
 		//
 		//		return LaunchConverter.TO_RESOURCE.apply(launch);
-		return null;
+		return new LaunchResource();
 	}
 
 	//	/**

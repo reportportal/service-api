@@ -54,7 +54,7 @@ public class LaunchesDurationContentLoader implements LoadContentStrategy {
 		Map<String, List<String>> fields = GROUP_CONTENT_FIELDS.apply(contentFields);
 		validateContentFields(fields);
 
-		List<LaunchesDurationContent> result = widgetContentRepository.launchesDurationStatistics(filter, fields);
+		List<LaunchesDurationContent> result = widgetContentRepository.launchesDurationStatistics(filter, fields, limit);
 		return singletonMap(RESULT, result);
 	}
 

@@ -54,7 +54,7 @@ public class NotPassedTestsContentLoader implements LoadContentStrategy {
 		Map<String, List<String>> fields = GROUP_CONTENT_FIELDS.apply(contentFields);
 		validateContentFields(fields);
 
-		List<NotPassedCasesContent> result = widgetContentRepository.notPassedCasesStatistics(filter, fields);
+		List<NotPassedCasesContent> result = widgetContentRepository.notPassedCasesStatistics(filter, fields, limit);
 		return singletonMap(RESULT, result);
 	}
 

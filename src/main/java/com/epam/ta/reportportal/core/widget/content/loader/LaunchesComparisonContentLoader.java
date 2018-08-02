@@ -72,7 +72,7 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 		//TODO change the way of getting previous launch
 		Long latestLaunchId = latestLaunch.getId();
 
-		List<ComparisonStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter, fields,
+		List<ComparisonStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter, fields, limit,
 				latestLaunchId - 1,
 				latestLaunchId
 		);

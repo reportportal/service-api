@@ -76,7 +76,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 		//
 		//		filter.withCondition(filterCondition);
 
-		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, user.getLogin(), activityTypes);
+		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, user.getLogin(), activityTypes, limit);
 
 		return singletonMap(RESULT, activityContents);
 	}

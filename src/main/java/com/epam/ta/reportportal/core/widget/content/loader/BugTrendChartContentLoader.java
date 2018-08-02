@@ -54,7 +54,7 @@ public class BugTrendChartContentLoader implements LoadContentStrategy {
 		Map<String, List<String>> fields = WidgetContentUtils.GROUP_CONTENT_FIELDS.apply(contentFields);
 		validateContentFields(fields);
 
-		List<LaunchStatisticsContent> result = widgetContentRepository.bugTrendStatistics(filter, fields);
+		List<LaunchStatisticsContent> result = widgetContentRepository.bugTrendStatistics(filter, fields, limit);
 		return singletonMap(RESULT, result);
 	}
 

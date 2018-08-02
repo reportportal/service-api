@@ -33,7 +33,7 @@ public class PassingRateSummaryContentLoader implements LoadContentStrategy {
 		Map<String, List<String>> fields = GROUP_CONTENT_FIELDS.apply(contentFields);
 		validateContentFields(fields);
 
-		PassStatisticsResult result = widgetContentRepository.summaryPassStatistics(filter, fields);
+		PassStatisticsResult result = widgetContentRepository.summaryPassStatistics(filter, fields, limit);
 		return singletonMap(RESULT, result);
 	}
 

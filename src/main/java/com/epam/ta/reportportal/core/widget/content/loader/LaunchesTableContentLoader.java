@@ -59,7 +59,7 @@ public class LaunchesTableContentLoader implements LoadContentStrategy {
 				.collect(Collectors.toList()));
 		validateContentFields(fields);
 
-		List<LaunchesTableContent> result = widgetContentRepository.launchesTableStatistics(filter, fields, tableColumns);
+		List<LaunchesTableContent> result = widgetContentRepository.launchesTableStatistics(filter, fields, tableColumns, limit);
 		return singletonMap(RESULT, result);
 	}
 

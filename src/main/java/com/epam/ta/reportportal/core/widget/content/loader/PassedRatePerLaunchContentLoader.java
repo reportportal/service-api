@@ -49,7 +49,8 @@ public class PassedRatePerLaunchContentLoader implements LoadContentStrategy {
 				filter,
 				fields,
 				launchRepository.findLatestByNameAndFilter(launchName, filter)
-						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName))
+						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName)),
+				limit
 		);
 		return singletonMap(RESULT, content);
 	}

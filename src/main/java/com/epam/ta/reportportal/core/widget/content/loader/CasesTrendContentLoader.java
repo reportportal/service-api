@@ -53,7 +53,7 @@ public class CasesTrendContentLoader implements LoadContentStrategy {
 		Map<String, List<String>> fields = GROUP_CONTENT_FIELDS.apply(contentFields);
 		validateContentFields(fields);
 
-		List<CasesTrendContent> result = widgetContentRepository.casesTrendStatistics(filter, fields);
+		List<CasesTrendContent> result = widgetContentRepository.casesTrendStatistics(filter, fields, limit);
 
 		return singletonMap(RESULT, result);
 	}

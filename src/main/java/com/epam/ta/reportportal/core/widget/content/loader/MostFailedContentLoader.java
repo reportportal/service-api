@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.entity.widget.content.MostFailedContent;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.ImmutableMap;
@@ -73,7 +74,9 @@ public class MostFailedContentLoader implements LoadContentStrategy {
 		Map<String, List<String>> options = WidgetContentUtils.GROUP_WIDGET_OPTIONS.apply(widgetOptions);
 		validateWidgetOptions(options);
 
-		Launch latestByName = launchRepository.findLatestByNameAndFilter(options.get(LAUNCH_NAME_FIELD).iterator().next(), filter);
+		String launchName = options.get(LAUNCH_NAME_FIELD).iterator().next();
+		Launch latestByName = launchRepository.findLatestByNameAndFilter(launchName, filter)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName));
 
 		List<MostFailedContent> content;
 		if (fields.containsKey(EXECUTIONS)) {

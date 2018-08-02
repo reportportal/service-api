@@ -41,6 +41,8 @@ public interface LoadContentStrategy {
 	String DEFECTS = "defects";
 	String EXECUTIONS = "executions";
 	String LAUNCH_NAME_FIELD = "launch_name_filter";
+	String LOGIN = "login";
+	String ACTIVITY_TYPE = "activity_type";
 
 	Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit);
 

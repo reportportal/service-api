@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.widget.content.loader;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.content.WidgetContentUtils;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -30,6 +31,7 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.entity.widget.content.ActivityContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,9 +39,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.Predicate;
 
-import static com.epam.ta.reportportal.core.widget.content.WidgetContentUtils.GROUP_CONTENT_FIELDS;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -58,13 +60,14 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
 
 		Map<String, List<String>> options = WidgetContentUtils.GROUP_WIDGET_OPTIONS.apply(widgetOptions);
+		validateWidgetOptions(options);
 
-		Optional<User> userOptional = userRepository.findByLogin(options.get("login").iterator().next());
+		String login = options.get(LOGIN).iterator().next();
 
-		User user = userOptional.orElseThrow(() -> new ReportPortalException(
-				"User with login " + options.get("login").iterator().next() + " was not found"));
+		User user = userRepository.findByLogin(login)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, "User with login " + login + " was not found"));
 
-		List<String> activityTypes = Optional.ofNullable(options.get("activity_type"))
+		List<String> activityTypes = Optional.ofNullable(options.get(ACTIVITY_TYPE))
 				.orElseThrow(() -> new ReportPortalException("Activity types must not be null"));
 
 		//		String conditionValue = activityTypes.stream().collect(Collectors.joining(", "));
@@ -73,13 +76,20 @@ public class ActivityContentLoader implements LoadContentStrategy {
 		//
 		//		filter.withCondition(filterCondition);
 
-		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(
-				filter,
-				GROUP_CONTENT_FIELDS.apply(contentFields.stream().filter(field -> field.contains("$")).collect(Collectors.toList())),
-				user.getLogin(),
-				activityTypes
-		);
+		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, user.getLogin(), activityTypes);
 
 		return singletonMap(RESULT, activityContents);
 	}
+
+	/**
+	 * Validate provided widget options. For current widget should be user login for activity tracking.
+	 *
+	 * @param widgetOptions Set of stored widget options.
+	 */
+	private void validateWidgetOptions(Map<String, List<String>> widgetOptions) {
+		BusinessRule.expect(widgetOptions, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should not be null.");
+		BusinessRule.expect(widgetOptions.containsKey(LOGIN), Predicate.isEqual(true))
+				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LOGIN + " should be specified for widget.");
+	}
+
 }

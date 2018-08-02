@@ -47,7 +47,7 @@
         <field name="name" class="java.lang.String">
             <fieldDescription><![CDATA[]]></fieldDescription>
         </field>
-        <field name="duration" class="java.lang.String"/>
+        <field name="duration" class="java.lang.Double"/>
         <field name="status" class="java.lang.String"/>
         <field name="total" class="java.lang.Integer"/>
         <field name="passed" class="java.lang.Integer"/>
@@ -529,7 +529,7 @@
                                 <textElement textAlignment="Center" verticalAlignment="Middle">
                                     <font fontName="Noto Sans" size="9" isBold="true"/>
                                 </textElement>
-                                <text><![CDATA[Duration]]></text>
+                                <text><![CDATA[Duration (sec)]]></text>
                             </staticText>
                         </jr:columnHeader>
                         <jr:detailCell style="Table_TD" height="20">
@@ -538,7 +538,7 @@
                                 <textElement textAlignment="Center" verticalAlignment="Middle">
                                     <font fontName="Noto Sans" size="9"/>
                                 </textElement>
-                                <textFieldExpression><![CDATA[$F{duration}.toString()]]></textFieldExpression>
+                                <textFieldExpression><![CDATA[$F{duration}]]></textFieldExpression>
                             </textField>
                         </jr:detailCell>
                     </jr:column>

@@ -32,15 +32,22 @@ import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
 import com.epam.ta.reportportal.events.TicketAttachedEvent;
 import com.epam.ta.reportportal.events.TicketPostedEvent;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -66,6 +73,9 @@ public class TicketActivitySubscriber {
 	private final TestItemRepository testItemRepository;
 
 	private final ProjectRepository projectSettingsRepository;
+
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	@Autowired
 	public TicketActivitySubscriber(ActivityRepository activityRepository, TestItemRepository testItemRepository,
@@ -111,8 +121,10 @@ public class TicketActivitySubscriber {
 		Iterable<TestItem> testItems = event.getBefore();
 		Map<String, Activity.FieldValues> results = StreamSupport.stream(testItems.spliterator(), false)
 				.filter(item -> null != item.getIssue())
-				.collect(Collectors.toMap(TestItem::getId, item -> Activity.FieldValues.newOne()
-						.withOldValue(issuesIdsToString(item.getIssue().getExternalSystemIssues(), separator))));
+				.collect(Collectors.toMap(TestItem::getId,
+						item -> Activity.FieldValues.newOne()
+								.withOldValue(issuesIdsToString(item.getIssue().getExternalSystemIssues(), separator))
+				));
 
 		Iterable<TestItem> updated = event.getAfter();
 
@@ -141,10 +153,11 @@ public class TicketActivitySubscriber {
 					.addObjectType(TEST_ITEM)
 					.addObjectName(testItem.getName())
 					.addUserRef(event.getPostedBy())
-					.addHistory(Collections.singletonList(fieldValues))
+					.addHistory(Lists.newArrayList(fieldValues))
 					.get();
 			activities.add(activity);
 		}
+		processAnalyzedItems(activities, event.getRelevantItemMap());
 		activityRepository.save(activities);
 	}
 
@@ -158,10 +171,19 @@ public class TicketActivitySubscriber {
 		}
 	}
 
-	private void processAnalyzedItems(List<Activity> activities, Map<String, String> relevantItemMap) {
+	private void processAnalyzedItems(List<Activity> activities, Map<String, TestItem> relevantItemMap) {
 		if (relevantItemMap != null) {
-			activities.forEach(a -> a.getHistory()
-					.add(createHistoryField(RELEVANT_ITEM, EMPTY_FIELD, relevantItemMap.get(a.getLoggedObjectRef()))));
+			activities.forEach(a -> {
+				try {
+					a.getHistory()
+							.add(createHistoryField(RELEVANT_ITEM,
+									EMPTY_FIELD,
+									objectMapper.writeValueAsString(relevantItemMap.get(a.getLoggedObjectRef()))
+							));
+				} catch (JsonProcessingException e) {
+					throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, e.getMessage());
+				}
+			});
 		}
 	}
 

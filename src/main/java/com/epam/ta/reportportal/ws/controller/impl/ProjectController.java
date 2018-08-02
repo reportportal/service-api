@@ -245,7 +245,7 @@ public class ProjectController implements IProjectController {
 	@PreAuthorize(ALLOWED_TO_EDIT_USER)
 	@ApiIgnore
 	// Hide method cause results using for UI only and doesn't affect WS
-	public OperationCompletionRS updateUserPreference(@PathVariable String projectName,
+	public PreferenceResource updateUserPreference(@PathVariable String projectName,
 			@RequestBody @Validated UpdatePreferenceRQ updatePreferenceRQ, @PathVariable String login, Principal principal) {
 		return updatePreferenceHandler.updatePreference(principal.getName(), EntityUtils.normalizeId(projectName), updatePreferenceRQ);
 	}

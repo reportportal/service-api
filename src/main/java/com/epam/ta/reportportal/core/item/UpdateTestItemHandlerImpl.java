@@ -172,8 +172,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 					} else {
 						issuesFromDB.removeAll(newHashSet(Sets.difference(issuesFromDB, issuesFromRequest)));
 						testItemIssue.setExternalSystemIssues(issuesFromDB);
-						eventPublisher.publishEvent(
-								new TicketAttachedEvent(singletonList(before), singletonList(testItem), userName, projectName));
+						eventPublisher.publishEvent(new TicketAttachedEvent(singletonList(before),
+								singletonList(testItem),
+								userName,
+								projectName,
+								null
+						));
 					}
 				}
 
@@ -240,7 +244,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		expect(!errors.isEmpty(), equalTo(FALSE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 
 		testItemRepository.save(testItems);
-		eventPublisher.publishEvent(new TicketAttachedEvent(before, Lists.newArrayList(testItems), userName, projectName));
+		eventPublisher.publishEvent(new TicketAttachedEvent(before, Lists.newArrayList(testItems), userName, projectName, null));
 		return StreamSupport.stream(testItems.spliterator(), false)
 				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getId() + "' successfully updated."))
 				.collect(toList());
@@ -288,16 +292,16 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 */
 	private String verifyTestItemDefinedIssueType(final String type, final Project.Configuration settings) {
 		StatisticSubType defined = settings.getByLocator(type);
-		expect(defined, notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS,
-				formattedSupplier("Invalid test item issue type definition '{}'. Valid issue types locators are: {}", type,
-						settings.getSubTypes()
-								.values()
-								.stream()
-								.flatMap(Collection::stream)
-								.map(StatisticSubType::getLocator)
-								.collect(Collectors.toList())
-				)
-		);
+		expect(defined, notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
+				"Invalid test item issue type definition '{}'. Valid issue types locators are: {}",
+				type,
+				settings.getSubTypes()
+						.values()
+						.stream()
+						.flatMap(Collection::stream)
+						.map(StatisticSubType::getLocator)
+						.collect(Collectors.toList())
+		));
 		return defined.getLocator();
 	}
 
@@ -309,27 +313,40 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @throws BusinessRuleViolationException when business rule violation
 	 */
 	private void verifyTestItem(TestItem testItem, String id) throws BusinessRuleViolationException {
-		expect(
-				testItem, notNull(), Suppliers.formattedSupplier("Cannot update issue type for test item '{}', cause it is not found.", id))
-				.verify();
+		expect(testItem,
+				notNull(),
+				Suppliers.formattedSupplier("Cannot update issue type for test item '{}', cause it is not found.", id)
+		).verify();
 
-		expect(testItem.getStatus(), not(equalTo(PASSED)),
+		expect(testItem.getStatus(),
+				not(equalTo(PASSED)),
 				Suppliers.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
 						PASSED.name()
 				)
 		).verify();
 
-		expect(
-				testItem.hasChilds(), not(equalTo(TRUE)), Suppliers.formattedSupplier(
-						"It is not allowed to udpate issue type for items with descendants. Test item '{}' has descendants.", id)).verify();
+		expect(testItem.hasChilds(),
+				not(equalTo(TRUE)),
+				Suppliers.formattedSupplier(
+						"It is not allowed to udpate issue type for items with descendants. Test item '{}' has descendants.",
+						id
+				)
+		).verify();
 
-		expect(
-				testItem.getIssue(), notNull(), Suppliers.formattedSupplier(
-						"Cannot update issue type for test item '{}', cause there is no info about actual issue type value.", id)).verify();
+		expect(testItem.getIssue(),
+				notNull(),
+				Suppliers.formattedSupplier(
+						"Cannot update issue type for test item '{}', cause there is no info about actual issue type value.",
+						id
+				)
+		).verify();
 
-		expect(
-				testItem.getIssue().getIssueType(), notNull(), Suppliers.formattedSupplier(
-						"Cannot update issue type for test item {}, cause it's actual issue type value is not provided.", id)).verify();
+		expect(testItem.getIssue().getIssueType(),
+				notNull(),
+				Suppliers.formattedSupplier("Cannot update issue type for test item {}, cause it's actual issue type value is not provided.",
+						id
+				)
+		).verify();
 	}
 
 }

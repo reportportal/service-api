@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.database.entity.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.Page;
+import com.epam.ta.reportportal.ws.model.preference.UpdatePreferenceRQ;
 import com.epam.ta.reportportal.ws.model.project.*;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
@@ -144,7 +145,8 @@ public class ProjectControllerTest extends BaseMvcTest {
 
 	@Test
 	public void updateUserPreferencePositive() throws Exception {
-		UpdateProjectRQ rq = new UpdateProjectRQ();
+		UpdatePreferenceRQ rq = new UpdatePreferenceRQ();
+		rq.setFilters(Collections.singletonList("id"));
 		mvcMock.perform(put("/project/project1/preference/user1").principal(authentication())
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(200));

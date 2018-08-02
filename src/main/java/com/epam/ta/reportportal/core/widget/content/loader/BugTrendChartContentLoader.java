@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetOption;
+import com.epam.ta.reportportal.entity.widget.content.LaunchStatisticsContent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +47,8 @@ public class BugTrendChartContentLoader implements LoadContentStrategy {
 
 	@Override
 	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
-		Map<Integer, Map<String, Integer>> result = widgetContentRepository.bugTrendStatistics(filter,
+		List<LaunchStatisticsContent> result = widgetContentRepository.bugTrendStatistics(
+				filter,
 				GROUP_CONTENT_FIELDS.apply(contentFields)
 		);
 		return singletonMap(RESULT, result);

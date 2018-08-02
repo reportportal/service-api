@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.WidgetOption;
+import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -55,12 +56,13 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 
 		Map<String, List<String>> options = WidgetContentUtils.GROUP_WIDGET_OPTIONS.apply(widgetOptions);
 
-		Launch lastLaunch = launchRepository.findLatestByNameAndFilter(options.get(LAUNCH_NAME_FIELD).iterator().next(), filter);
+		Launch latestLaunch = launchRepository.findLatestByNameAndFilter(options.get(LAUNCH_NAME_FIELD).iterator().next(), filter);
+		Long latestLaunchId = latestLaunch.getId();
 
-		Map<Integer, Map<String, Double>> result = widgetContentRepository.launchesComparisonStatistics(filter,
+		List<ComparisonStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter,
 				GROUP_CONTENT_FIELDS.apply(contentFields),
-				lastLaunch.getNumber(),
-				lastLaunch.getNumber() - 1
+				latestLaunchId - 1,
+				latestLaunchId
 		);
 		return singletonMap(RESULT, result);
 	}

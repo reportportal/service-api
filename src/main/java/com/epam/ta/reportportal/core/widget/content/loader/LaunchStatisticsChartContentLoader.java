@@ -25,15 +25,16 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetOption;
+import com.epam.ta.reportportal.entity.widget.content.LaunchStatisticsContent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static com.epam.ta.reportportal.core.widget.content.WidgetContentUtils.GROUP_CONTENT_FIELDS;
+import static java.util.Collections.singletonMap;
 
 /**
  * @author Pavel Bortnik
@@ -46,11 +47,8 @@ public class LaunchStatisticsChartContentLoader implements LoadContentStrategy {
 
 	@Override
 	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
-		Map<Integer, Map<String, Integer>> content = widgetContentRepository.launchStatistics(filter,
-				GROUP_CONTENT_FIELDS.apply(contentFields)
-		);
-		Map<String, Map<Integer, Map<String, Integer>>> result = new HashMap<>();
-		result.put(RESULT, content);
-		return result;
+		List<LaunchStatisticsContent> content = widgetContentRepository.launchStatistics(filter, GROUP_CONTENT_FIELDS.apply(contentFields));
+
+		return singletonMap(RESULT, content);
 	}
 }

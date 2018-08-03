@@ -119,8 +119,8 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		return launchRepository.getOwnerNames(projectDetails.getProjectId(), value, mode);
 	}
 
-//	@Override
-//	public List<ComparisonStatisticsContent> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {
+	@Override
+	public List<ComparisonStatisticsContent> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {
 		//@formatter:off
 		//TODO: implement after Ivan's response
 //				List<String> contentFields = Arrays.stream(JIssueGroupEnum.values()).map(JIssueGroupEnum::getLiteral).collect(Collectors.toList());
@@ -180,9 +180,8 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		//		});
 		//		return Collections.singletonMap(LoadContentStrategy.RESULT, objects);
 		//@formatter:on
-		//dummy
-//		throw new UnsupportedOperationException("Comparing is not implemented.");
-//	}
+		throw new UnsupportedOperationException("Comparing is not implemented.");
+	}
 
 	@Override
 	public Map<String, String> getStatuses(ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {

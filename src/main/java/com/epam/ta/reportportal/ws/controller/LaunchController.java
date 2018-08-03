@@ -92,7 +92,7 @@ import static org.springframework.http.HttpStatus.OK;
  */
 @Controller
 @RequestMapping("/{projectName}/launch")
-//@PreAuthorize(ASSIGNED_TO_PROJECT)
+@PreAuthorize(ASSIGNED_TO_PROJECT)
 public class LaunchController {
 
 	private final StartLaunchHandler createLaunchMessageHandler;
@@ -124,7 +124,7 @@ public class LaunchController {
 	@ResponseBody
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
-	//	@PreAuthorize(ALLOWED_TO_REPORT)
+	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS startLaunch(@ApiParam(value = "Name of project launch starts under", required = true) @ModelAttribute
 			ReportPortalUser.ProjectDetails projectDetails,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
@@ -136,7 +136,7 @@ public class LaunchController {
 	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
-	//	@PreAuthorize(ALLOWED_TO_REPORT)
+	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ApiOperation("Finish launch for specified project")
 	public OperationCompletionRS finishLaunch(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
@@ -253,14 +253,14 @@ public class LaunchController {
 		return getLaunchMessageHandler.getLaunchNames(projectDetails, value);
 	}
 
-	//	@GetMapping(value = "/compare")
-	//	@ResponseBody
-	//	@ResponseStatus(OK)
-	//	@ApiOperation("Compare launches")
-	//	public List<ComparisonStatisticsContent> compareLaunches(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @RequestParam(value = "ids") Long[] ids,
-	//			@AuthenticationPrincipal ReportPortalUser user) {
-	//		return getLaunchMessageHandler.getLaunchesComparisonInfo(projectDetails, ids);
-	//	}
+	@GetMapping(value = "/compare")
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Compare launches")
+	public List<ComparisonStatisticsContent> compareLaunches(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+			@RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getLaunchesComparisonInfo(projectDetails, ids);
+	}
 
 	@PostMapping("/merge")
 	@ResponseBody
@@ -327,7 +327,8 @@ public class LaunchController {
 	}
 
 	@ModelAttribute
-	private ReportPortalUser.ProjectDetails projectDetails(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
+	private ReportPortalUser.ProjectDetails projectDetails(@PathVariable String projectName,
+			@AuthenticationPrincipal ReportPortalUser user) {
 		return ProjectUtils.extractProjectDetails(user, projectName);
 	}
 }

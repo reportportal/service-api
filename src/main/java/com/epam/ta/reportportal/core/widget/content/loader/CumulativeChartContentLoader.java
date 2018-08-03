@@ -23,10 +23,10 @@ package com.epam.ta.reportportal.core.widget.content.loader;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.entity.widget.ContentField;
 import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,7 +37,7 @@ import java.util.Set;
 public class CumulativeChartContentLoader implements LoadContentStrategy {
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
 		return null;
 	}
 }

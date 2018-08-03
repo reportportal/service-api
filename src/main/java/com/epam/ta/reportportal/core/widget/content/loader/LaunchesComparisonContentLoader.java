@@ -28,10 +28,12 @@ import com.epam.ta.reportportal.core.widget.content.WidgetContentUtils;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.widget.ContentField;
 import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.collections.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,6 +42,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.core.widget.content.WidgetContentUtils.GROUP_CONTENT_FIELDS;
 import static java.util.Collections.singletonMap;
@@ -57,7 +60,7 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
 
 		Map<String, List<String>> fields = GROUP_CONTENT_FIELDS.apply(contentFields);
 		validateContentFields(fields);
@@ -96,6 +99,7 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 	 * @param contentFields Map of provided content.
 	 */
 	private void validateContentFields(Map<String, List<String>> contentFields) {
-		BusinessRule.expect(contentFields, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be null.");
+		BusinessRule.expect(MapUtils.isNotEmpty(contentFields), equalTo(true))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
 	}
 }

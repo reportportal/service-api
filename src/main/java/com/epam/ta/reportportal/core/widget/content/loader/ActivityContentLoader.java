@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.core.widget.content.WidgetContentUtils;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.entity.widget.ContentField;
 import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.entity.widget.content.ActivityContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -57,7 +58,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
 
 		Map<String, List<String>> options = WidgetContentUtils.GROUP_WIDGET_OPTIONS.apply(widgetOptions);
 		validateWidgetOptions(options);

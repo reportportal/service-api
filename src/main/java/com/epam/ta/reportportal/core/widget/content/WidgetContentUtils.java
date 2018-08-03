@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
+import com.epam.ta.reportportal.entity.widget.ContentField;
 import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -33,25 +34,19 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.*;
-
 /**
  * @author Pavel Bortnik
  */
 public final class WidgetContentUtils {
 
-	private static final String SPLITTING_REGEX = "\\$";
-
 	private WidgetContentUtils() {
 		//static only
 	}
 
-	public static final Function<List<String>, Map<String, List<String>>> GROUP_CONTENT_FIELDS = contentFields -> Optional.ofNullable(
+	public static final Function<Set<ContentField>, Map<String, List<String>>> GROUP_CONTENT_FIELDS = contentFields -> Optional.ofNullable(
 			contentFields)
 			.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Content fields shouldn't be null"))
-			.stream()
-			.map(it -> it.split(SPLITTING_REGEX))
-			.collect(groupingBy(it -> it[0], mapping(it -> it[1].toUpperCase(), toList())));
+			.stream().collect(Collectors.toMap(ContentField::getFieldName, v -> Lists.newArrayList(v.getValues())));
 
 	public static final Function<Set<WidgetOption>, Map<String, List<String>>> GROUP_WIDGET_OPTIONS = widgetOptions -> Optional.ofNullable(
 			widgetOptions)

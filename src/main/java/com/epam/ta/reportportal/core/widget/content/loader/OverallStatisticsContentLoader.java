@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.core.widget.content.loader;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
+import com.epam.ta.reportportal.entity.widget.ContentField;
 import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.entity.widget.content.StatisticsContent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,7 @@ public class OverallStatisticsContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
 		boolean latestMode = widgetOptions.stream().anyMatch(it -> it.getWidgetOption().equalsIgnoreCase(LATEST_OPTION));
 		List<StatisticsContent> content = widgetContentRepository.overallStatisticsContent(filter,
 				GROUP_CONTENT_FIELDS.apply(contentFields),

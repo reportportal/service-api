@@ -37,19 +37,19 @@ public interface DeleteLaunchHandler {
 	 * Delete {@link com.epam.ta.reportportal.entity.launch.Launch} instance
 	 *
 	 * @param launchId    ID of launch
-	 * @param projectName Project Name
+	 * @param projectDetails Project Details
 	 * @param user        User
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS deleteLaunch(Long launchId, String projectName, ReportPortalUser user);
+	OperationCompletionRS deleteLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
 	 * Bul launches delete.
 	 *
 	 * @param ids         Launch ids
-	 * @param projectName Project name
+	 * @param projectDetails Project Details
 	 * @param user        User
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS deleteLaunches(Long[] ids, String projectName, ReportPortalUser user);
+	OperationCompletionRS deleteLaunches(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 }

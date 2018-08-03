@@ -36,9 +36,9 @@ public interface StartLaunchHandler {
 	 * Creates new launch for specified project
 	 *
 	 * @param user          ReportPortal user
-	 * @param project       Project name
+	 * @param projectDetails Project Details
 	 * @param startLaunchRQ Request Data
 	 * @return StartLaunchRS
 	 */
-	StartLaunchRS startLaunch(ReportPortalUser user, String project, StartLaunchRQ startLaunchRQ);
+	StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ);
 }

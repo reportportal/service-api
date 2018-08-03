@@ -68,7 +68,7 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 	}
 
 	@Override
-	public LaunchResource mergeLaunches(String projectName, ReportPortalUser user, MergeLaunchesRQ rq) {
+	public LaunchResource mergeLaunches(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, MergeLaunchesRQ rq) {
 		//TODO: implement
 		//		User user = userRepository.findOne(userName);
 		//		Project project = projectRepository.findOne(projectName);
@@ -115,7 +115,7 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 		//		logIndexer.indexLogs(launch.getId(), testItemRepository.findItemsNotInIssueType(TO_INVESTIGATE.getLocator(), launch.getId()));
 		//
 		//		return LaunchConverter.TO_RESOURCE.apply(launch);
-		return new LaunchResource();
+		throw new UnsupportedOperationException("Merging is not implemented.");
 	}
 
 	//	/**

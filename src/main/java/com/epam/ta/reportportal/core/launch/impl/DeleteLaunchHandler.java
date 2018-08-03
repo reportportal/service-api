@@ -77,10 +77,10 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 	//	}
 
 	//TODO Analyzer, Activities
-	public OperationCompletionRS deleteLaunch(Long launchId, String projectName, ReportPortalUser user) {
+	public OperationCompletionRS deleteLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-		validate(launch, user, projectName);
+		validate(launch, user, projectDetails);
 		launchRepository.delete(launch);
 
 		//		logIndexer.cleanIndex(
@@ -90,9 +90,9 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 	}
 
 	//TODO Analyzer, Activities
-	public OperationCompletionRS deleteLaunches(Long[] ids, String projectName, ReportPortalUser user) {
+	public OperationCompletionRS deleteLaunches(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		List<Launch> launches = launchRepository.findAllById(asList(ids));
-		launches.forEach(l -> validate(l, user, projectName));
+		launches.forEach(l -> validate(l, user, projectDetails));
 		//		launches.forEach(launch -> logIndexer.cleanIndex(projectName,
 		//				itemRepository.selectIdsNotInIssueByLaunch(launch.getId(), TestItemIssueType.TO_INVESTIGATE.getLocator())
 		//		));
@@ -107,12 +107,11 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 	 *
 	 * @param launch
 	 * @param user
-	 * @param projectName
+	 * @param projectDetails
 	 */
-	private void validate(Launch launch, ReportPortalUser user, String projectName) {
-		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
+	private void validate(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-				formattedSupplier("FilterTarget launch '{}' not under specified project '{}'", launch.getId(), projectName)
+				formattedSupplier("FilterTarget launch '{}' not under specified project '{}'", launch.getId(), projectDetails.getProjectId())
 		);
 		expect(launch, not(l -> l.getStatus().equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId())

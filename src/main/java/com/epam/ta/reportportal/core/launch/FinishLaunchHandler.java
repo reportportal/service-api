@@ -42,30 +42,30 @@ public interface FinishLaunchHandler {
 	 *
 	 * @param launchId       ID of launch
 	 * @param finishLaunchRQ Request data
-	 * @param projectName    Project name
+	 * @param projectDetails Project Details
 	 * @param user           User
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, String projectName, ReportPortalUser user);
+	OperationCompletionRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
 	 * Stop Launch instance by user
 	 *
 	 * @param launchId       ID of launch
 	 * @param finishLaunchRQ Request data
-	 * @param projectName    Project ID
+	 * @param projectDetails Project Details
 	 * @param user           User
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, String projectName, ReportPortalUser user);
+	OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
 	 * Bulk stop launches operation.
 	 *
 	 * @param bulkRQ      Bulk request
-	 * @param projectName Project name
+	 * @param projectDetails Project Details
 	 * @param user        User
-	 * @return OperationCompetionsRS
+	 * @return OperationCompletionsRS
 	 */
-	List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, String projectName, ReportPortalUser user);
+	List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 }

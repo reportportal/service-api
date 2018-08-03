@@ -23,7 +23,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.dao.*;
-import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
+//import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
@@ -59,7 +59,8 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	private final LaunchTagRepository launchTagRepository;
 	private final ProjectRepository projectRepository;
 
-	public GetLaunchHandler(LaunchRepository launchRepository, LaunchTagRepository launchTagRepository, ProjectRepository projectRepository) {
+	public GetLaunchHandler(LaunchRepository launchRepository, LaunchTagRepository launchTagRepository,
+			ProjectRepository projectRepository) {
 		this.launchRepository = launchRepository;
 		this.launchTagRepository = launchTagRepository;
 		this.projectRepository = projectRepository;
@@ -67,6 +68,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 
 	@Override
 	public LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails) {
+		//TODO: fix this
 		return launchRepository.findById(launchId)
 				.map(TO_RESOURCE)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
@@ -117,26 +119,26 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		return launchRepository.getOwnerNames(projectDetails.getProjectId(), value, mode);
 	}
 
-	@Override
-	public List<ComparisonStatisticsContent> getLaunchesComparisonInfo(String projectName, Long[] ids) {
+//	@Override
+//	public List<ComparisonStatisticsContent> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {
 		//@formatter:off
 		//TODO: implement after Ivan's response
-		//		List<String> contentFields = Arrays.stream(JIssueGroupEnum.values()).map(JIssueGroupEnum::getLiteral).collect(Collectors.toList());
-		//		contentFields.addAll(Lists.newArrayList(JStatusEnum.FAILED, JStatusEnum.SKIPPED, JStatusEnum.PASSED)
-		//				.stream()
-		//				.map(JStatusEnum::getLiteral)
-		//				.collect(Collectors.toList()));
-		//		Set<FilterCondition> filterConditions = new HashSet<>();
-		//		filterConditions.add(new FilterCondition(Condition.IN,
-		//				false,
-		//				Arrays.stream(ids).map(value -> Long.toString(value)).collect(Collectors.joining(",")),
-		//				GeneralCriteriaConstant.PROJECT_ID
-		//		));
-		//		filterConditions.add(new FilterCondition(Condition.EQUALS, false, projectName, GeneralCriteriaConstant.PROJECT));
-		//		Filter filter = new Filter(Launch.class, filterConditions);
-		//		return comparisonContentLoader.loadContent(contentFields, filter, Collections.emptySet(), ids.length).forEach((result, values) -> {
-		//			((Map<Integer, Map<String, Double>>) values).forEach();
-		//		});
+//				List<String> contentFields = Arrays.stream(JIssueGroupEnum.values()).map(JIssueGroupEnum::getLiteral).collect(Collectors.toList());
+//				contentFields.addAll(Lists.newArrayList(JStatusEnum.FAILED, JStatusEnum.SKIPPED, JStatusEnum.PASSED)
+//						.stream()
+//						.map(JStatusEnum::getLiteral)
+//						.collect(Collectors.toList()));
+//				Set<FilterCondition> filterConditions = new HashSet<>();
+//				filterConditions.add(new FilterCondition(Condition.IN,
+//						false,
+//						Arrays.stream(ids).map(String::valueOf).collect(Collectors.joining(",")),
+//						GeneralCriteriaConstant.PROJECT_ID
+//				));
+//				filterConditions.add(new FilterCondition(Condition.EQUALS, false, projectName, GeneralCriteriaConstant.PROJECT));
+//				Filter filter = new Filter(Launch.class, filterConditions);
+//				return comparisonContentLoader.loadContent(contentFields, filter, Collections.emptySet(), ids.length).forEach((result, values) -> {
+//					((Map<Integer, Map<String, Double>>) values).forEach();
+//				});
 
 		//TODO: remove old implementation
 		//				widgetContentRepository.launchesComparisonStatistics(new Filter(Launch.class, Condition.IN, ), contentFields, ids);
@@ -179,8 +181,8 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		//		return Collections.singletonMap(LoadContentStrategy.RESULT, objects);
 		//@formatter:on
 		//dummy
-		return Collections.emptyList();
-	}
+//		throw new UnsupportedOperationException("Comparing is not implemented.");
+//	}
 
 	@Override
 	public Map<String, String> getStatuses(ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {

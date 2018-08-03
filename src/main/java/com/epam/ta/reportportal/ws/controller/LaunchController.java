@@ -43,7 +43,7 @@ import com.epam.ta.reportportal.core.jasper.IGetJasperReportHandler;
 import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.core.launch.*;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
+//import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
@@ -75,7 +75,6 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -93,7 +92,7 @@ import static org.springframework.http.HttpStatus.OK;
  */
 @Controller
 @RequestMapping("/{projectName}/launch")
-@PreAuthorize(ASSIGNED_TO_PROJECT)
+//@PreAuthorize(ASSIGNED_TO_PROJECT)
 public class LaunchController {
 
 	private final StartLaunchHandler createLaunchMessageHandler;
@@ -125,26 +124,24 @@ public class LaunchController {
 	@ResponseBody
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
-	@PreAuthorize(ALLOWED_TO_REPORT)
-	public EntryCreatedRS startLaunch(
-			@ApiParam(value = "Name of project launch starts under", required = true) @PathVariable String projectName,
+	//	@PreAuthorize(ALLOWED_TO_REPORT)
+	public EntryCreatedRS startLaunch(@ApiParam(value = "Name of project launch starts under", required = true) @ModelAttribute
+			ReportPortalUser.ProjectDetails projectDetails,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
-			@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
-		ProjectUtils.extractProjectDetails(reportPortalUser, projectName);
-		return createLaunchMessageHandler.startLaunch(reportPortalUser, projectName, startLaunchRQ);
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return createLaunchMessageHandler.startLaunch(user, projectDetails, startLaunchRQ);
 	}
 
 	@PutMapping(value = "/{launchId}/finish")
 	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
-	@PreAuthorize(ALLOWED_TO_REPORT)
+	//	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ApiOperation("Finish launch for specified project")
-	public OperationCompletionRS finishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
+	public OperationCompletionRS finishLaunch(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
 			HttpServletRequest request) {
-		ProjectUtils.extractProjectDetails(user, projectName);
-		return finishLaunchMessageHandler.finishLaunch(launchId, finishLaunchRQ, projectName, user);
+		return finishLaunchMessageHandler.finishLaunch(launchId, finishLaunchRQ, projectDetails, user);
 	}
 
 	@PutMapping("/{launchId}/stop")
@@ -152,44 +149,39 @@ public class LaunchController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Force finish launch for specified project")
-	public OperationCompletionRS forceFinishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
-			@RequestBody @Validated FinishExecutionRQ finishExecutionRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		ProjectUtils.extractProjectDetails(user, projectName);
-		return finishLaunchMessageHandler.stopLaunch(launchId, finishExecutionRQ, projectName, user);
+	public OperationCompletionRS forceFinishLaunch(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+			@PathVariable Long launchId, @RequestBody @Validated FinishExecutionRQ finishExecutionRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return finishLaunchMessageHandler.stopLaunch(launchId, finishExecutionRQ, projectDetails, user);
 	}
 
 	@PutMapping("/stop")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Force finish launch")
-	public List<OperationCompletionRS> bulkForceFinish(@PathVariable String projectName,
+	public List<OperationCompletionRS> bulkForceFinish(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
 			@RequestBody @Validated BulkRQ<FinishExecutionRQ> rq, @AuthenticationPrincipal ReportPortalUser user) {
-		ProjectUtils.extractProjectDetails(user, projectName);
-		return finishLaunchMessageHandler.stopLaunch(rq, projectName, user);
+		return finishLaunchMessageHandler.stopLaunch(rq, projectDetails, user);
 	}
 
 	@PutMapping("/{launchId}/update")
 	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
-	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Updates launch for specified project")
-	public OperationCompletionRS updateLaunch(@PathVariable String projectName, @PathVariable Long launchId,
+	public OperationCompletionRS updateLaunch(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long launchId,
 			@RequestBody @Validated UpdateLaunchRQ updateLaunchRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		ProjectUtils.extractProjectDetails(user, projectName);
-		return updateLaunchHandler.updateLaunch(launchId, projectName, user, updateLaunchRQ);
+		return updateLaunchHandler.updateLaunch(launchId, projectDetails, user, updateLaunchRQ);
 	}
 
 	@PutMapping("/update")
 	@Transactional
 	@ResponseBody
-	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ResponseStatus(OK)
 	@ApiOperation("Updates launches for specified project")
-	public List<OperationCompletionRS> updateLaunches(@PathVariable String projectName, @RequestBody @Validated BulkRQ<UpdateLaunchRQ> rq,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		ProjectUtils.extractProjectDetails(user, projectName);
-		return updateLaunchHandler.updateLaunch(rq, projectName, user);
+	public List<OperationCompletionRS> updateLaunches(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+			@RequestBody @Validated BulkRQ<UpdateLaunchRQ> rq, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateLaunchHandler.updateLaunch(rq, projectDetails, user);
 	}
 
 	@DeleteMapping("/{launchId}")
@@ -197,10 +189,9 @@ public class LaunchController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified launch by ID")
-	public OperationCompletionRS deleteLaunch(@PathVariable String projectName, @PathVariable Long launchId,
+	public OperationCompletionRS deleteLaunch(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long launchId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		ProjectUtils.extractProjectDetails(user, projectName);
-		return deleteLaunchMessageHandler.deleteLaunch(launchId, projectName, user);
+		return deleteLaunchMessageHandler.deleteLaunch(launchId, projectDetails, user);
 	}
 
 	@GetMapping("/{launchId}")
@@ -208,104 +199,104 @@ public class LaunchController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Get specified launch")
-	public LaunchResource getLaunch(@PathVariable String projectName, @PathVariable Long launchId,
+	public LaunchResource getLaunch(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long launchId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getLaunch(launchId, ProjectUtils.extractProjectDetails(user, projectName));
+		return getLaunchMessageHandler.getLaunch(launchId, projectDetails);
 	}
 
 	@GetMapping
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Get list of project launches by filter")
-	public Iterable<LaunchResource> getProjectLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
-			@SortFor(Launch.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getProjectLaunches(ProjectUtils.extractProjectDetails(user, projectName),
-				filter,
-				pageable,
-				user.getUsername()
-		);
+	public Iterable<LaunchResource> getProjectLaunches(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+			@FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getProjectLaunches(projectDetails, filter, pageable, user.getUsername());
 	}
 
 	@GetMapping(value = "/latest")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Get list of latest project launches by filter")
-	public Page<LaunchResource> getLatestLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
-			@SortFor(Launch.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getLatestLaunches(ProjectUtils.extractProjectDetails(user, projectName), filter, pageable);
+	public Page<LaunchResource> getLatestLaunches(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+			@FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getLatestLaunches(projectDetails, filter, pageable);
 	}
 
 	@GetMapping(value = "/tags")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique tags of project launches")
-	public List<String> getAllTags(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "tags") String value,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getTags(ProjectUtils.extractProjectDetails(user, projectName), value);
+	public List<String> getAllTags(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+			@RequestParam(value = "filter." + "cnt." + "tags") String value, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getTags(projectDetails, value);
 	}
 
 	@GetMapping(value = "/owners")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique owners of project launches")
-	public List<String> getAllOwners(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "user") String value,
+	public List<String> getAllOwners(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+			@RequestParam(value = "filter." + "cnt." + "user") String value,
 			@RequestParam(value = "mode", required = false, defaultValue = "DEFAULT") String mode,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getOwners(ProjectUtils.extractProjectDetails(user, projectName), value, mode);
+		return getLaunchMessageHandler.getOwners(projectDetails, value, mode);
 	}
 
 	@GetMapping(value = "/names")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Get launch names of project")
-	public List<String> getAllLaunchNames(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "name") String value,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getLaunchNames(ProjectUtils.extractProjectDetails(user, projectName), value);
+	public List<String> getAllLaunchNames(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+			@RequestParam(value = "filter." + "cnt." + "name") String value, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getLaunchNames(projectDetails, value);
 	}
 
-	@GetMapping(value = "/compare")
-	@ResponseBody
-	@ResponseStatus(OK)
-	@ApiOperation("Compare launches")
-	public List<ComparisonStatisticsContent> compareLaunches(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getLaunchesComparisonInfo(normalizeId(projectName), ids);
-	}
+	//	@GetMapping(value = "/compare")
+	//	@ResponseBody
+	//	@ResponseStatus(OK)
+	//	@ApiOperation("Compare launches")
+	//	public List<ComparisonStatisticsContent> compareLaunches(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @RequestParam(value = "ids") Long[] ids,
+	//			@AuthenticationPrincipal ReportPortalUser user) {
+	//		return getLaunchMessageHandler.getLaunchesComparisonInfo(projectDetails, ids);
+	//	}
 
 	@PostMapping("/merge")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Merge set of specified launches in common one")
 	public LaunchResource mergeLaunches(
-			@ApiParam(value = "Name of project contains merging launches under", required = true) @PathVariable String projectName,
+			@ApiParam(value = "Name of project contains merging launches under", required = true) @ModelAttribute
+					ReportPortalUser.ProjectDetails projectDetails,
 			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return mergeLaunchesHandler.mergeLaunches(normalizeId(projectName), user, mergeLaunchesRQ);
+		return mergeLaunchesHandler.mergeLaunches(projectDetails, user, mergeLaunchesRQ);
 	}
 
 	@PostMapping(value = "/{launchId}/analyze")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Start launch auto-analyzer on demand")
-	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName, @PathVariable Long launchId,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateLaunchHandler.startLaunchAnalyzer(normalizeId(projectName), launchId);
+	public OperationCompletionRS startLaunchAnalyzer(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+			@PathVariable Long launchId, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateLaunchHandler.startLaunchAnalyzer(projectDetails, launchId);
 	}
 
 	@GetMapping(value = "/status")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiIgnore
-	public Map<String, String> getStatuses(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getStatuses(ProjectUtils.extractProjectDetails(user, projectName), ids);
+	public Map<String, String> getStatuses(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+			@RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getStatuses(projectDetails, ids);
 	}
 
 	@GetMapping(value = "/{launchId}/report")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation(value = "Export specified launch", notes = "Only following formats are supported: pdf (by default), xls, html.")
-	public void getLaunchReport(@PathVariable String projectName, @PathVariable Long launchId,
+	public void getLaunchReport(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long launchId,
 			@ApiParam(allowableValues = "pdf, xls, html") @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,
 			@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) throws IOException {
 		JasperPrint jasperPrint = getJasperHandler.getLaunchDetails(launchId, user);
@@ -321,17 +312,22 @@ public class LaunchController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified launches by ids")
-	public OperationCompletionRS deleteLaunches(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteLaunchMessageHandler.deleteLaunches(ids, projectName, user);
+	public OperationCompletionRS deleteLaunches(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+			@RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
+		return deleteLaunchMessageHandler.deleteLaunches(ids, projectDetails, user);
 	}
 
 	@PostMapping(value = "/import")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip.")
-	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return importLaunchHandler.importLaunch(normalizeId(projectName), user, "XUNIT", file);
+	public OperationCompletionRS importLaunch(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+			@RequestParam("file") MultipartFile file, @AuthenticationPrincipal ReportPortalUser user) {
+		return importLaunchHandler.importLaunch(projectDetails, user, "XUNIT", file);
+	}
+
+	@ModelAttribute
+	private ReportPortalUser.ProjectDetails projectDetails(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
+		return ProjectUtils.extractProjectDetails(user, projectName);
 	}
 }

@@ -32,11 +32,11 @@ public interface ImportLaunchHandler {
 	/**
 	 * Import launch from file with specified format.
 	 *
-	 * @param projectId project
+	 * @param projectDetails Project Details
 	 * @param user  user
 	 * @param format    report format
 	 * @param file      file with report
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS importLaunch(String projectId, ReportPortalUser user, String format, MultipartFile file);
+	OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String format, MultipartFile file);
 }

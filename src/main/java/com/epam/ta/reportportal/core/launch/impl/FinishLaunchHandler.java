@@ -82,11 +82,11 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 	}
 
 	@Override
-	public OperationCompletionRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, String projectName, ReportPortalUser user) {
+	public OperationCompletionRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
 
-		validateRoles(launch, user, projectName);
+		validateRoles(launch, user, projectDetails);
 		validate(launch, finishLaunchRQ);
 
 		if (testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)) {
@@ -114,11 +114,11 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 	}
 
 	@Override
-	public OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, String projectName, ReportPortalUser user) {
+	public OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 
-		validateRoles(launch, user, projectName);
+		validateRoles(launch, user, projectDetails);
 
 		expect(launch.getStatus(), statusIn(IN_PROGRESS)).verify(FINISH_LAUNCH_NOT_ALLOWED,
 				formattedSupplier("Launch '{}' already finished with status '{}'", launch.getId(), launch.getStatus())
@@ -138,11 +138,11 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 	}
 
 	@Override
-	public List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, String projectName, ReportPortalUser user) {
+	public List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		return bulkRQ.getEntities()
 				.entrySet()
 				.stream()
-				.map(entry -> stopLaunch(entry.getKey(), entry.getValue(), projectName, user))
+				.map(entry -> stopLaunch(entry.getKey(), entry.getValue(), projectDetails, user))
 				.collect(toList());
 	}
 
@@ -169,10 +169,9 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 	 *
 	 * @param launch
 	 * @param user
-	 * @param projectName
+	 * @param projectDetails
 	 */
-	private void validateRoles(Launch launch, ReportPortalUser user, String projectName) {
-		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
+	private void validateRoles(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(launch.getUserId(), user.getUserId())) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
 			expect(projectDetails.getProjectRole(), equalTo(PROJECT_MANAGER)).verify(ACCESS_DENIED);

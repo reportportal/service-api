@@ -34,33 +34,34 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 
 	private static final String ZIP_REGEX = ".*zip";
 
-//	@Autowired
-//	private ImportStrategyFactoryImpl factory;
+	//	@Autowired
+	//	private ImportStrategyFactoryImpl factory;
 
-//	@Autowired
-//	private ProjectRepository projectRepository;
+	//	@Autowired
+	//	private ProjectRepository projectRepository;
 
-//	@Autowired
-//	private ApplicationEventPublisher eventPublisher;
+	//	@Autowired
+	//	private ApplicationEventPublisher eventPublisher;
 
 	@Override
-	public OperationCompletionRS importLaunch(String projectId, ReportPortalUser user, String format, MultipartFile file) {
-//		Project project = projectRepository.findOne(projectId);
-//
-//		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectId);
-//		expect(file.getOriginalFilename(), it -> it.matches(ZIP_REGEX)).verify(
-//				INCORRECT_REQUEST, "Should be a zip archive" + file.getOriginalFilename());
-//
-//		ImportType type = ImportType.fromValue(format).orElse(null);
-//		expect(type, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, format);
-//
-//		File tempFile = transferToTempFile(file);
-//		eventPublisher.publishEvent(new ImportStartedEvent(projectId, userName, file.getOriginalFilename()));
-//		ImportStrategy strategy = factory.getImportLaunch(type);
-//		String launch = strategy.importLaunch(projectId, userName, tempFile);
-//		eventPublisher.publishEvent(new ImportFinishedEvent(projectId, userName, file.getOriginalFilename()));
-//		return new OperationCompletionRS("Launch with id = " + launch + " is successfully imported.");
-		return new OperationCompletionRS("Launch is not created. No implementation.");
+	public OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String format,
+			MultipartFile file) {
+		//		Project project = projectRepository.findOne(projectId);
+		//
+		//		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectId);
+		//		expect(file.getOriginalFilename(), it -> it.matches(ZIP_REGEX)).verify(
+		//				INCORRECT_REQUEST, "Should be a zip archive" + file.getOriginalFilename());
+		//
+		//		ImportType type = ImportType.fromValue(format).orElse(null);
+		//		expect(type, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, format);
+		//
+		//		File tempFile = transferToTempFile(file);
+		//		eventPublisher.publishEvent(new ImportStartedEvent(projectId, userName, file.getOriginalFilename()));
+		//		ImportStrategy strategy = factory.getImportLaunch(type);
+		//		String launch = strategy.importLaunch(projectId, userName, tempFile);
+		//		eventPublisher.publishEvent(new ImportFinishedEvent(projectId, userName, file.getOriginalFilename()));
+		//		return new OperationCompletionRS("Launch with id = " + launch + " is successfully imported.");
+		throw new UnsupportedOperationException("Importing is not implemented.");
 	}
 
 	private File transferToTempFile(MultipartFile file) {

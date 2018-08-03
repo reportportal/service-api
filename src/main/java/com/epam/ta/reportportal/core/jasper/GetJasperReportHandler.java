@@ -122,7 +122,7 @@ public class GetJasperReportHandler implements IGetJasperReportHandler {
 //		}
 //		params.put(TEST_ITEMS, dataProvider.getReportSource(launch));
 //		return reportRender.generateReportPrint(params, new JREmptyDataSource());
-		return new JasperPrint();
+		throw new UnsupportedOperationException("Reporting is not implemented.");
 	}
 
 	@SuppressWarnings("OptionalGetWithoutIsPresent")

@@ -1,26 +1,27 @@
 /*
  * Copyright 2016 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.fasterxml.classmate.ResolvedType;
 import com.fasterxml.classmate.TypeResolver;
@@ -31,29 +32,26 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import springfox.documentation.PathProvider;
 import springfox.documentation.builders.ParameterBuilder;
 import springfox.documentation.schema.ModelReference;
 import springfox.documentation.schema.ResolvedTypes;
 import springfox.documentation.schema.TypeNameExtractor;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.service.Contact;
-import springfox.documentation.service.Parameter;
-import springfox.documentation.service.ResolvedMethodParameter;
+import springfox.documentation.service.*;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spi.schema.contexts.ModelContext;
-import springfox.documentation.spi.service.OperationBuilderPlugin;
-import springfox.documentation.spi.service.contexts.OperationContext;
-import springfox.documentation.spi.service.contexts.ParameterContext;
+import springfox.documentation.spi.service.*;
+import springfox.documentation.spi.service.contexts.*;
 import springfox.documentation.spring.web.paths.RelativePathProvider;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger.web.UiConfiguration;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.servlet.ServletContext;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 import static com.google.common.base.Predicates.not;
@@ -89,9 +87,15 @@ public class Swagger2Configuration {
 	@Bean
 	public Docket docket() {
 		/* For more information see default params at {@link ApiInfo} */
-		ApiInfo rpInfo = new ApiInfo("Report Portal", "Report Portal API documentation", buildVersion, "urn:tos",
+		ApiInfo rpInfo = new ApiInfo(
+				"Report Portal",
+				"Report Portal API documentation",
+				buildVersion,
+				"urn:tos",
 				new Contact("EPAM Systems", "http://epam.com", "Support EPMC-TST Report Portal <SupportEPMC-TSTReportPortal@epam.com>"),
-				"GPLv3", "https://www.gnu.org/licenses/licenses.html#GPL", Collections.emptyList()
+				"GPLv3",
+				"https://www.gnu.org/licenses/licenses.html#GPL",
+				Collections.emptyList()
 		);
 
 		// @formatter:off
@@ -99,7 +103,7 @@ public class Swagger2Configuration {
                 //.ignoredParameterTypes(Principal.class, Filter.class, Pageable.class)
                 .pathProvider(rpPathProvider())
                 .useDefaultResponseMessages(false)
-				.ignoredParameterTypes(UserRole.class)
+				.ignoredParameterTypes(UserRole.class, AuthenticationPrincipal.class, ReportPortalUser.ProjectDetails.class)
                 /* remove default endpoints from listing */
                 .select().apis(not(or(
                         basePackage("org.springframework.boot"),
@@ -133,6 +137,7 @@ public class Swagger2Configuration {
 
 		private final ResolvedType pageableType;
 		//private final ResolvedType filterType;
+		private final ResolvedType projectDetailsType;
 
 		@Autowired
 		public OperationPageableParameterReader(TypeNameExtractor nameExtractor, TypeResolver resolver) {
@@ -140,6 +145,7 @@ public class Swagger2Configuration {
 			this.resolver = resolver;
 			this.pageableType = resolver.resolve(Pageable.class);
 			//this.filterType = resolver.resolve(Filter.class);
+			this.projectDetailsType = resolver.resolve(ReportPortalUser.ProjectDetails.class);
 		}
 
 		@Override
@@ -149,15 +155,29 @@ public class Swagger2Configuration {
 
 			for (ResolvedMethodParameter methodParameter : methodParameters) {
 				ResolvedType resolvedType = methodParameter.getParameterType();
-				ParameterContext parameterContext = new ParameterContext(methodParameter, new ParameterBuilder(),
-						context.getDocumentationContext(), context.getGenericsNamingStrategy(), context
+				ParameterContext parameterContext = new ParameterContext(
+						methodParameter,
+						new ParameterBuilder(),
+						context.getDocumentationContext(),
+						context.getGenericsNamingStrategy(),
+						context
 				);
 				Function<ResolvedType, ? extends ModelReference> factory = createModelRefFactory(parameterContext);
+				ModelReference stringModel = factory.apply(resolver.resolve(List.class, String.class));
 
-				if (pageableType.equals(resolvedType)) {
+				if (projectDetailsType.equals(resolvedType)) {
+
+					parameters.add(new ParameterBuilder().parameterType("path")
+							.name("projectName")
+							.modelRef(stringModel)
+							.description("Name of project launch starts under")
+							.required(true)
+							.build());
+
+					context.operationBuilder().parameters(parameters);
+				} else if (pageableType.equals(resolvedType)) {
 
 					ModelReference intModel = factory.apply(resolver.resolve(Integer.TYPE));
-					ModelReference stringModel = factory.apply(resolver.resolve(List.class, String.class));
 					//@formatter:off
 
 					parameters.add(new ParameterBuilder()
@@ -211,9 +231,13 @@ public class Swagger2Configuration {
 		}
 
 		private Function<ResolvedType, ? extends ModelReference> createModelRefFactory(ParameterContext context) {
-			ModelContext modelContext = inputParam(Docket.DEFAULT_GROUP_NAME,
-					context.resolvedMethodParameter().getParameterType().getErasedType(), context.getDocumentationType(),
-					context.getAlternateTypeProvider(), context.getGenericNamingStrategy(), context.getIgnorableParameterTypes()
+			ModelContext modelContext = inputParam(
+					Docket.DEFAULT_GROUP_NAME,
+					context.resolvedMethodParameter().getParameterType().getErasedType(),
+					context.getDocumentationType(),
+					context.getAlternateTypeProvider(),
+					context.getGenericNamingStrategy(),
+					context.getIgnorableParameterTypes()
 			);
 			return ResolvedTypes.modelRefFactory(modelContext, nameExtractor);
 		}
@@ -234,5 +258,4 @@ public class Swagger2Configuration {
 			return "/" + gatewayPath + super.applicationPath();
 		}
 	}
-
 }

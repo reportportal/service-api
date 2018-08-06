@@ -56,7 +56,7 @@ public interface GetLaunchHandler {
 	//	 * @param username User name
 	//	 * @return Response Data
 	//	 */
-	LaunchResource getLaunchByName(String project, Pageable pageable, Filter filter, String username);
+	//	LaunchResource getLaunchByName(String project, Pageable pageable, Filter filter, String username);
 
 	/**
 	 * Get list of Launch resources for specified project
@@ -105,7 +105,7 @@ public interface GetLaunchHandler {
 	 * @param ids            IDs to be looked up
 	 * @return Response Data
 	 */
-	//	List<ComparisonStatisticsContent> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids);
+	List<ComparisonStatisticsContent> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids);
 
 	/**
 	 * Get statuses of specified launches

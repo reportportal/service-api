@@ -43,7 +43,7 @@ import com.epam.ta.reportportal.core.jasper.IGetJasperReportHandler;
 import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.core.launch.*;
 import com.epam.ta.reportportal.entity.launch.Launch;
-//import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
+import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
@@ -125,8 +125,7 @@ public class LaunchController {
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
 	@PreAuthorize(ALLOWED_TO_REPORT)
-	public EntryCreatedRS startLaunch(@ApiParam(value = "Name of project launch starts under", required = true) @ModelAttribute
-			ReportPortalUser.ProjectDetails projectDetails,
+	public EntryCreatedRS startLaunch(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return createLaunchMessageHandler.startLaunch(user, projectDetails, startLaunchRQ);
@@ -266,9 +265,7 @@ public class LaunchController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Merge set of specified launches in common one")
-	public LaunchResource mergeLaunches(
-			@ApiParam(value = "Name of project contains merging launches under", required = true) @ModelAttribute
-					ReportPortalUser.ProjectDetails projectDetails,
+	public LaunchResource mergeLaunches(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
 			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return mergeLaunchesHandler.mergeLaunches(projectDetails, user, mergeLaunchesRQ);

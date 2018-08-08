@@ -81,7 +81,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	//	}
 
 	@Override
-	public OperationCompletionRS finishTestItem(ReportPortalUser user, String projectName, Long testItemId,
+	public OperationCompletionRS finishTestItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Long testItemId,
 			FinishTestItemRQ finishExecutionRQ) {
 		TestItem testItem = testItemRepository.findById(testItemId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId));
@@ -90,7 +90,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		verifyTestItem(user, testItem, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()), hasChildren);
 
 		TestItemResults testItemResults = processItemResults(
-				ProjectUtils.extractProjectDetails(user, projectName).getProjectId(),
+				projectDetails.getProjectId(),
 				testItem,
 				finishExecutionRQ,
 				hasChildren

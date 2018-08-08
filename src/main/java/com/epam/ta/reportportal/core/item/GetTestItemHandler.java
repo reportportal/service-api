@@ -40,7 +40,7 @@ public interface GetTestItemHandler {
 	 * @param testItemId
 	 * @return
 	 */
-	TestItemResource getTestItem(String testItemId);
+	TestItemResource getTestItem(Long testItemId);
 
 	/**
 	 * Gets {@link TestItem} instances
@@ -58,7 +58,7 @@ public interface GetTestItemHandler {
 	 * @param value
 	 * @return
 	 */
-	List<String> getTags(String launchId, String value);
+	List<String> getTags(Long launchId, String value);
 
-	List<TestItemResource> getTestItems(String[] ids);
+	List<TestItemResource> getTestItems(Long[] ids);
 }

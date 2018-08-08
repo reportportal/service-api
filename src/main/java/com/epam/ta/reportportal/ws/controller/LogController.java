@@ -31,12 +31,14 @@ import com.epam.ta.reportportal.core.log.impl.GetLogHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Predicates;
+import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
@@ -54,6 +56,7 @@ import javax.validation.Path;
 import javax.validation.Validator;
 import java.util.*;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 
 /**
@@ -69,6 +72,7 @@ public class LogController {
 	private final GetLogHandler getLogHandler;
 	private final Validator validator;
 
+	@Autowired
 	public LogController(@Regular CreateLogHandler createLogMessageHandler, DeleteLogHandler deleteLogHandler, GetLogHandler getLogHandler,
 			Validator validator) {
 		this.createLogMessageHandler = createLogMessageHandler;
@@ -78,9 +82,9 @@ public class LogController {
 	}
 
 	@RequestMapping(method = RequestMethod.POST, consumes = { MediaType.APPLICATION_JSON_VALUE })
-	@Transactional
 	@ResponseBody
 	@ResponseStatus(CREATED)
+	@Transactional
 	@ApiOperation("Create log")
 	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
@@ -90,8 +94,8 @@ public class LogController {
 	}
 
 	@RequestMapping(method = RequestMethod.POST, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE})
-//	@Transactional
 	@ResponseBody
+//	@Transactional
 	// @ApiOperation("Create log (batching operation)")
 	// Specific handler should be added for springfox in case of similar POST
 	// request mappings
@@ -179,6 +183,12 @@ public class LogController {
 	public LogResource getLog(@PathVariable String projectName, @PathVariable String logId,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return getLogHandler.getLog(logId, EntityUtils.normalizeId(projectName), user);
+	}
+
+	@ModelAttribute
+	private ReportPortalUser.ProjectDetails projectDetails(@PathVariable String projectName,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return ProjectUtils.extractProjectDetails(user, normalizeId(projectName));
 	}
 
 	/**

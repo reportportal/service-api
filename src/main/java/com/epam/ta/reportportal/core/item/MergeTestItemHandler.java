@@ -23,34 +23,17 @@ package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
 
-import java.util.List;
-
-/**
- * Handler for delete test item operation
- *
- * @author Andrei Varabyeu
- * @author Aliaksei Makayed
- */
-public interface DeleteTestItemHandler {
-
+public interface MergeTestItemHandler {
 	/**
-	 * Delete test item by id.
+	 * Merge test items specified in rq to item
 	 *
-	 * @param itemId         Item id
-	 * @param projectDetails Project Details
-	 * @param user           User
-	 * @return
+	 * @param projectDetails project details
+	 * @param itemId         test item ID
+	 * @param rq             merge test item request data. Contains list of items we want to merge
+	 * @param userName       request principal name
+	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS deleteTestItem(Long itemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
-
-	/**
-	 * Delete list of items by ids.
-	 *
-	 * @param ids            Test item ids
-	 * @param projectDetails Project Details
-	 * @param user           User
-	 * @return
-	 */
-	List<OperationCompletionRS> deleteTestItem(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	OperationCompletionRS mergeTestItem(ReportPortalUser.ProjectDetails projectDetails, Long itemId, MergeTestItemRQ rq, String userName);
 }

@@ -29,14 +29,14 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.util.ProjectUtils;
-import com.epam.ta.reportportal.ws.converter.LogResourceAssembler;
+import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import org.springframework.stereotype.Service;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.ta.reportportal.ws.model.ErrorType.LOG_NOT_FOUND;
 
@@ -51,16 +51,12 @@ public class GetLogHandler {
 
 	private final LogRepository logRepository;
 
-	private final LogResourceAssembler logResourceAssembler;
-
 	private final TestItemRepository testItemRepository;
 
 	private final LaunchRepository launchRepository;
 
-	public GetLogHandler(LogRepository logRepository, LogResourceAssembler logResourceAssembler, TestItemRepository testItemRepository,
-			LaunchRepository launchRepository) {
+	public GetLogHandler(LogRepository logRepository, TestItemRepository testItemRepository, LaunchRepository launchRepository) {
 		this.logRepository = logRepository;
-		this.logResourceAssembler = logResourceAssembler;
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
 	}
@@ -80,7 +76,7 @@ public class GetLogHandler {
 
 		Log log = findAndValidate(logId, projectName, user);
 
-		return logResourceAssembler.toResource(log);
+		return LogConverter.TO_RESOURCE.apply(log);
 	}
 
 	/**

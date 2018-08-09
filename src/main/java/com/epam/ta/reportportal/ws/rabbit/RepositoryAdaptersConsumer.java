@@ -1,18 +1,28 @@
 package com.epam.ta.reportportal.ws.rabbit;
 
 import com.epam.reportportal.extension.constants.RabbitConstants;
-import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.dao.IntegrationRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.store.service.DataStoreService;
+import com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter;
+import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
+import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
+import com.epam.ta.reportportal.ws.model.TestItemResource;
+import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
+import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
+import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -51,19 +61,36 @@ public class RepositoryAdaptersConsumer {
 		this.testItemRepository = testItemRepository;
 	}
 
+	@Autowired
+	public void setDataStoreService(DataStoreService dataStoreService) {
+		this.dataStoreService = dataStoreService;
+	}
+
 	@RabbitListener(queues = RabbitConstants.QueueNames.PROJECTS_FIND_BY_NAME)
-	public Project findProjectByName(@Payload String projectName) {
-		return projectRepository.findByName(projectName).orElse(null);
+	public ProjectResource findProjectByName(@Payload String projectName) {
+		Project project = projectRepository.findByName(projectName).orElse(null);
+		if (null == project) {
+			return null;
+		}
+		return ProjectConverter.TO_PROJECT_RESOURCE.apply(project);
 	}
 
 	@RabbitListener(queues = RabbitConstants.QueueNames.INTEGRATION_FIND_ONE)
-	public Integration findIntegrationById(Long integrationId) {
-		return integrationRepository.findById(integrationId).orElse(null);
+	public IntegrationResource findIntegrationById(@Payload Long integrationId) {
+		Integration integration = integrationRepository.findById(integrationId).orElse(null);
+		if (null == integration) {
+			return IntegrationConverter.TO_INTEGRATION_RESOURCE.apply(integration);
+		}
+		return null;
 	}
 
 	@RabbitListener(queues = RabbitConstants.QueueNames.TEST_ITEMS_FIND_ONE_QUEUE)
-	public TestItem findTestItem(@Payload Long itemId) {
-		return testItemRepository.findById(itemId).orElse(null);
+	public TestItemResource findTestItem(@Payload Long itemId) {
+		TestItem testItem = testItemRepository.findById(itemId).orElse(null);
+		if (testItem == null) {
+			return TestItemConverter.TO_RESOURCE.apply(testItem.getItemStructure());
+		}
+		return null;
 	}
 
 	@RabbitListener(queues = RabbitConstants.QueueNames.LOGS_FIND_BY_TEST_ITEM_REF_QUEUE)
@@ -73,9 +100,12 @@ public class RepositoryAdaptersConsumer {
 		return logRepository.findByTestItemId(itemRef, limit, loadBinaryData);
 	}
 
-	//	@RabbitListener(queues = RabbitConstants.QueueNames.DATA_STORAGE_FETCH_DATA_QUEUE)
-	//	public BinaryData fetchData(String dataId) {
-	//		return new BinaryData(dataStoreService.load(dataId));
-	//	}
+	//TODO think about how to work with such content
+
+	@RabbitListener(queues = RabbitConstants.QueueNames.DATA_STORAGE_FETCH_DATA_QUEUE)
+	public InputStream fetchData(String dataId) {
+		InputStream load = dataStoreService.load(dataId);
+		return load;
+	}
 
 }

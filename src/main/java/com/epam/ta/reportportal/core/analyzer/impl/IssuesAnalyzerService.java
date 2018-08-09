@@ -40,6 +40,8 @@ import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
 import com.epam.ta.reportportal.events.TicketAttachedEvent;
 import com.epam.ta.reportportal.ws.converter.converters.AnalyzerConfigConverter;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
+import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
+import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Lists;
@@ -167,7 +169,7 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	 */
 	private List<TestItem> updateTestItems(String analyzerInstance, List<AnalyzedItemRs> rs, List<TestItem> testItems, String project) {
 		final Map<IssueDefinition, TestItem> forEvents = new HashMap<>();
-		final Map<String, TestItem> relevantItemIdMap = new HashMap<>();
+		final Map<String, TestItemResource> relevantItemIdMap = new HashMap<>();
 
 		List<TestItem> beforeUpdate = new ArrayList<>(rs.size());
 		List<TestItem> updatedItems = rs.stream().map(analyzed -> {
@@ -181,13 +183,13 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 				ofNullable(analyzed.getRelevantItemId()).ifPresent(relevantItemId -> fromRelevantItem(issue, relevantItemId));
 				IssueDefinition issueDefinition = createIssueDefinition(testItem.getId(), issue);
 				forEvents.put(issueDefinition, SerializationUtils.clone(testItem));
-				relevantItemIdMap.put(
-						testItem.getId(),
-						testItemRepository.findById(analyzed.getRelevantItemId(), Lists.newArrayList("_id", "path", "launchRef"))
-				);
+
+				TestItemResource resource = TestItemConverter.TO_RESOURCE.apply(testItemRepository.findById(analyzed.getRelevantItemId(),
+						Lists.newArrayList("_id", "path", "launchRef")
+				));
+				relevantItemIdMap.put(testItem.getId(), resource);
 				testItem.setIssue(issue);
-			});
-			return toUpdate;
+			}); return toUpdate;
 		}).filter(Optional::isPresent).map(Optional::get).collect(toList());
 		eventPublisher.publishEvent(new ItemIssueTypeDefined(forEvents, analyzerInstance, project, relevantItemIdMap));
 		eventPublisher.publishEvent(new TicketAttachedEvent(beforeUpdate, updatedItems, analyzerInstance, project, relevantItemIdMap));

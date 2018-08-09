@@ -21,6 +21,7 @@
 package com.epam.ta.reportportal.events;
 
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.ws.model.TestItemResource;
 
 import java.util.List;
 import java.util.Map;
@@ -32,17 +33,17 @@ public class TicketAttachedEvent extends AroundEvent<List<TestItem>> {
 
 	private final String postedBy;
 	private final String project;
-	private final Map<String, TestItem> relevantItemMap;
+	private final Map<String, TestItemResource> relevantItemMap;
 
 	public TicketAttachedEvent(List<TestItem> before, List<TestItem> after, String postedBy, String project,
-			Map<String, TestItem> relevantItemMap) {
+			Map<String, TestItemResource> relevantItemMap) {
 		super(before, after);
 		this.postedBy = postedBy;
 		this.project = project;
 		this.relevantItemMap = relevantItemMap;
 	}
 
-	public Map<String, TestItem> getRelevantItemMap() {
+	public Map<String, TestItemResource> getRelevantItemMap() {
 		return relevantItemMap;
 	}
 

@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.events.TicketPostedEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -171,7 +172,7 @@ public class TicketActivitySubscriber {
 		}
 	}
 
-	private void processAnalyzedItems(List<Activity> activities, Map<String, TestItem> relevantItemMap) {
+	private void processAnalyzedItems(List<Activity> activities, Map<String, TestItemResource> relevantItemMap) {
 		if (relevantItemMap != null) {
 			activities.forEach(a -> {
 				try {

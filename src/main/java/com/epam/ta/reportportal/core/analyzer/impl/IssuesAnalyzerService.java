@@ -38,9 +38,9 @@ import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
 import com.epam.ta.reportportal.events.TicketAttachedEvent;
+import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.AnalyzerConfigConverter;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
-import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
@@ -92,6 +92,9 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 
 	@Autowired
 	private AnalyzerStatusCache analyzerStatusCache;
+
+	@Autowired
+	private TestItemResourceAssembler itemConverter;
 
 	@Override
 	public boolean hasAnalyzers() {
@@ -184,12 +187,13 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 				IssueDefinition issueDefinition = createIssueDefinition(testItem.getId(), issue);
 				forEvents.put(issueDefinition, SerializationUtils.clone(testItem));
 
-				TestItemResource resource = TestItemConverter.TO_RESOURCE.apply(testItemRepository.findById(analyzed.getRelevantItemId(),
+				TestItemResource resource = itemConverter.apply(testItemRepository.findById(analyzed.getRelevantItemId(),
 						Lists.newArrayList("_id", "path", "launchRef")
 				));
 				relevantItemIdMap.put(testItem.getId(), resource);
 				testItem.setIssue(issue);
-			}); return toUpdate;
+			});
+			return toUpdate;
 		}).filter(Optional::isPresent).map(Optional::get).collect(toList());
 		eventPublisher.publishEvent(new ItemIssueTypeDefined(forEvents, analyzerInstance, project, relevantItemIdMap));
 		eventPublisher.publishEvent(new TicketAttachedEvent(beforeUpdate, updatedItems, analyzerInstance, project, relevantItemIdMap));

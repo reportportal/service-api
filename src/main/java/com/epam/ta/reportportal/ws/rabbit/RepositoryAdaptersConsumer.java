@@ -11,10 +11,12 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.store.service.DataStoreService;
 import com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter;
+import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
+import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Pavel Bortnik
@@ -69,16 +72,16 @@ public class RepositoryAdaptersConsumer {
 	@RabbitListener(queues = RabbitConstants.QueueNames.PROJECTS_FIND_BY_NAME)
 	public ProjectResource findProjectByName(@Payload String projectName) {
 		Project project = projectRepository.findByName(projectName).orElse(null);
-		if (null == project) {
-			return null;
+		if (null != project) {
+			return ProjectConverter.TO_PROJECT_RESOURCE.apply(project);
 		}
-		return ProjectConverter.TO_PROJECT_RESOURCE.apply(project);
+		return null;
 	}
 
 	@RabbitListener(queues = RabbitConstants.QueueNames.INTEGRATION_FIND_ONE)
 	public IntegrationResource findIntegrationById(@Payload Long integrationId) {
 		Integration integration = integrationRepository.findById(integrationId).orElse(null);
-		if (null == integration) {
+		if (null != integration) {
 			return IntegrationConverter.TO_INTEGRATION_RESOURCE.apply(integration);
 		}
 		return null;
@@ -87,17 +90,18 @@ public class RepositoryAdaptersConsumer {
 	@RabbitListener(queues = RabbitConstants.QueueNames.TEST_ITEMS_FIND_ONE_QUEUE)
 	public TestItemResource findTestItem(@Payload Long itemId) {
 		TestItem testItem = testItemRepository.findById(itemId).orElse(null);
-		if (testItem == null) {
+		if (testItem != null) {
 			return TestItemConverter.TO_RESOURCE.apply(testItem.getItemStructure());
 		}
 		return null;
 	}
 
 	@RabbitListener(queues = RabbitConstants.QueueNames.LOGS_FIND_BY_TEST_ITEM_REF_QUEUE)
-	public List<Log> findLogsByTestItem(@Header(RabbitConstants.MessageHeaders.ITEM_REF) Long itemRef,
+	public List<LogResource> findLogsByTestItem(@Header(RabbitConstants.MessageHeaders.ITEM_REF) Long itemRef,
 			@Header(RabbitConstants.MessageHeaders.LIMIT) Integer limit,
 			@Header(RabbitConstants.MessageHeaders.IS_LOAD_BINARY_DATA) boolean loadBinaryData) {
-		return logRepository.findByTestItemId(itemRef, limit, loadBinaryData);
+		List<Log> logs = logRepository.findByTestItemId(itemRef, limit, loadBinaryData);
+		return logs.stream().map(LogConverter.TO_RESOURCE).collect(Collectors.toList());
 	}
 
 	//TODO think about how to work with such content

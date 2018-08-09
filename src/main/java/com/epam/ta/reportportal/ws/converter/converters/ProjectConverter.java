@@ -20,6 +20,7 @@ public final class ProjectConverter {
 		}
 
 		ProjectResource projectResource = new ProjectResource();
+		projectResource.setProjectId(project.getName());
 
 		return projectResource;
 	};

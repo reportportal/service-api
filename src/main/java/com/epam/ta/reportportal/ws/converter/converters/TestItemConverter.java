@@ -62,9 +62,12 @@ public final class TestItemConverter {
 		resource.setType(item.getTestItem().getType() != null ? item.getTestItem().getType().name() : null);
 
 		//FIXME: provide correct parameters
-		resource.setParent("parent");
 		resource.setHasChilds(false);
-		resource.setLaunchId("launch");
+
+		if (item.getParent() != null) {
+			resource.setParent(item.getParent().getItemId());
+		}
+		resource.setLaunchId(item.getLaunch().getId());
 		resource.setStatistics(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults().getIssueStatistics(),
 				item.getItemResults().getExecutionStatistics()
 		));

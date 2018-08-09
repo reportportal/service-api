@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.annotation.Regular;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.job.SaveBinaryDataJob;
@@ -64,7 +65,7 @@ public class AsyncCreateLogHandler extends CreateLogHandler {
 
 	@Override
 	@Nonnull
-	public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, String projectName) {
+	public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, ReportPortalUser.ProjectDetails projectDetails) {
 
 		TestItem testItem = testItemRepository.findById(createLogRQ.getTestItemId()).orElse(null);
 
@@ -80,7 +81,7 @@ public class AsyncCreateLogHandler extends CreateLogHandler {
 			taskExecutor.execute(saveBinaryDataJob.get()
 					.withFile(file)
 					.withLog(log)
-					.withProjectName(projectName)
+					.withProjectId(projectDetails.getProjectId())
 			);
 		}
 

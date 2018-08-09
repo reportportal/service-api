@@ -52,9 +52,9 @@ public interface UpdateTestItemHandler {
 	 * Update specified test item
 	 *
 	 * @param projectDetails Project Details
-	 * @param itemId test item ID
-	 * @param rq     update test item request data
-	 * @param user   request principal name
+	 * @param itemId         test item ID
+	 * @param rq             update test item request data
+	 * @param user           request principal name
 	 * @return OperationCompletionRS
 	 */
 	OperationCompletionRS updateTestItem(ReportPortalUser.ProjectDetails projectDetails, Long itemId, UpdateTestItemRQ rq,

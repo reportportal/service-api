@@ -34,10 +34,10 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 public interface FinishTestItemHandler {
 
 	/**
-	 * Updates {@link TestItem} instance
+	 * Updates {@link com.epam.ta.reportportal.entity.item.TestItem} instance
 	 *
-	 * @param user          RQ principal
-	 * @param projectDetails Project Details
+	 * @param user              RQ principal
+	 * @param projectDetails    Project Details
 	 * @param testItemId        Test item ID
 	 * @param finishExecutionRQ Request with finish Test Item data
 	 * @return OperationCompletionRS

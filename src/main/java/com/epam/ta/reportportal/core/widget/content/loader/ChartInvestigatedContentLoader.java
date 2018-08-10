@@ -53,7 +53,7 @@ public class ChartInvestigatedContentLoader implements LoadContentStrategy {
 	@Override
 	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
 		Map<String, List<String>> fields = GROUP_CONTENT_FIELDS.apply(contentFields);
-		validateContentFields(fields);
+		//		validateContentFields(fields);
 
 		List<InvestigatedStatisticsResult> content = widgetContentRepository.investigatedStatistics(filter, fields, limit);
 		return singletonMap(RESULT, content);

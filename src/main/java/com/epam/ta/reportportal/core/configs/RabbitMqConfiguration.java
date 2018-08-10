@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.reportportal.extension.constants.RabbitConstants;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.MessageBusImpl;
 import com.epam.ta.reportportal.core.plugin.RabbitAwarePluginBox;
@@ -217,6 +218,31 @@ public class RabbitMqConfiguration {
 	@Bean
 	public Binding pluginsPingBinding() {
 		return BindingBuilder.bind(pluginsPingQueue()).to(pluginsExchange()).with(KEY_PLUGINS_PING);
+	}
+
+	@Bean
+	public Queue projectRepoQueue() {
+		return new Queue(RabbitConstants.QueueNames.PROJECTS_FIND_BY_NAME);
+	}
+
+	@Bean
+	public Queue dataStorageQueue() {
+		return new Queue(RabbitConstants.QueueNames.DATA_STORAGE_FETCH_DATA_QUEUE);
+	}
+
+	@Bean
+	public Queue integrationRepoQueue() {
+		return new Queue(RabbitConstants.QueueNames.INTEGRATION_FIND_ONE);
+	}
+
+	@Bean
+	public Queue logRepoQueue() {
+		return new Queue(RabbitConstants.QueueNames.LOGS_FIND_BY_TEST_ITEM_REF_QUEUE);
+	}
+
+	@Bean
+	public Queue testItemRepoQueue() {
+		return new Queue(RabbitConstants.QueueNames.TEST_ITEMS_FIND_ONE_QUEUE);
 	}
 
 	@Bean

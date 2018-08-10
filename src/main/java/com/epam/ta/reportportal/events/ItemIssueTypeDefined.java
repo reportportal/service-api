@@ -21,6 +21,7 @@
 package com.epam.ta.reportportal.events;
 
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 
 import java.util.Map;
@@ -32,11 +33,11 @@ public class ItemIssueTypeDefined {
 
 	private final String postedBy;
 	private final Map<IssueDefinition, TestItem> before;
-	private final Map<String, TestItem> relevantItemMap;
+	private final Map<String, TestItemResource> relevantItemMap;
 	private final String project;
 
 	public ItemIssueTypeDefined(Map<IssueDefinition, TestItem> before, String postedBy, String project,
-			Map<String, TestItem> relevantItemMap) {
+			Map<String, TestItemResource> relevantItemMap) {
 		this.postedBy = postedBy;
 		this.before = before;
 		this.project = project;
@@ -55,7 +56,7 @@ public class ItemIssueTypeDefined {
 		return project;
 	}
 
-	public Map<String, TestItem> getRelevantItemMap() {
+	public Map<String, TestItemResource> getRelevantItemMap() {
 		return relevantItemMap;
 	}
 }

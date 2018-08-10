@@ -23,9 +23,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
-import com.google.common.base.Preconditions;
 
-import java.util.Comparator;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -44,7 +42,11 @@ public final class TestItemConverter {
 	}
 
 	public static final Function<TestItem, TestItemResource> TO_RESOURCE = item -> {
-		Preconditions.checkNotNull(item);
+
+		if (item == null) {
+			return null;
+		}
+
 		TestItemResource resource = new TestItemResource();
 		resource.setDescription(item.getItemDescription());
 		resource.setUniqueId(item.getUniqueId());
@@ -65,7 +67,8 @@ public final class TestItemConverter {
 		resource.setStatistics(StatisticsConverter.TO_RESOURCE.apply(item.getStatistics()));
 
 		Optional.ofNullable(item.getRetries())
-				.map(items -> items.stream().map(TestItemConverter.TO_RESOURCE)
+				.map(items -> items.stream()
+						.map(TestItemConverter.TO_RESOURCE)
 						.sorted(comparing(TestItemResource::getStartTime))
 						.collect(Collectors.toList()))
 				.ifPresent(resource::setRetries);

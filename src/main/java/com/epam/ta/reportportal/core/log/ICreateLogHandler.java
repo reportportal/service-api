@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.log;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,6 +31,15 @@ import javax.annotation.Nullable;
 
 public interface ICreateLogHandler {
 
+	/**
+	 * Creates a new Log
+	 *
+	 * @param createLogRQ    Log details
+	 * @param file           file with log
+	 * @param projectDetails Project details
+	 * @return EntryCreatedRS
+	 */
 	@Nonnull
-	EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, @Nullable MultipartFile file, @Nullable String projectName);
+	EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, @Nullable MultipartFile file,
+			@Nullable ReportPortalUser.ProjectDetails projectDetails);
 }

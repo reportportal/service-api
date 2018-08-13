@@ -76,7 +76,7 @@ public class DataStoreServiceTest {
 		when(file.getInputStream()).thenThrow(new IOException());
 
 		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.save("asdasd", file);
+		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.save(123L, file);
 
 		//  then:
 		assertFalse(maybeResult.isPresent());
@@ -86,7 +86,7 @@ public class DataStoreServiceTest {
 	public void save_use_type_resolver() throws Exception {
 		//  given:
 		MultipartFile file = mock(MultipartFile.class);
-		String projectName = "asdasd";
+		Long projectId = 123L;
 
 		//  and: setups
 		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes());
@@ -100,14 +100,14 @@ public class DataStoreServiceTest {
 		String generatedFilePath = File.separator + "test" + File.separator + "path";
 		when(filePathGenerator.generate()).thenReturn(generatedFilePath);
 
-		String expectedFilePath = projectName + generatedFilePath + File.separator + fileName;
+		String expectedFilePath = projectId + generatedFilePath + File.separator + fileName;
 		when(dataStore.save(expectedFilePath, fileInputStream)).thenReturn(expectedFilePath);
 
 		String fileId = "expected-encoded-file-id";
 		when(dataEncoder.encode(expectedFilePath)).thenReturn(fileId);
 
 		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.save(projectName, file);
+		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.save(projectId, file);
 
 		//  then:
 		assertTrue(maybeResult.isPresent());
@@ -119,7 +119,7 @@ public class DataStoreServiceTest {
 	public void save_does_not_use_type_resolver() throws Exception {
 		//  given:
 		MultipartFile file = mock(MultipartFile.class);
-		String projectName = "asdasd";
+		Long projectId = 132L;
 
 		//  and: setups
 		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes());
@@ -131,14 +131,14 @@ public class DataStoreServiceTest {
 		String generatedFilePath = File.separator + "test" + File.separator + "path2";
 		when(filePathGenerator.generate()).thenReturn(generatedFilePath);
 
-		String expectedFilePath = projectName + generatedFilePath + File.separator + fileName;
+		String expectedFilePath = projectId + generatedFilePath + File.separator + fileName;
 		when(dataStore.save(expectedFilePath, fileInputStream)).thenReturn(expectedFilePath);
 
 		String fileId = "expected-encoded-file-id2";
 		when(dataEncoder.encode(expectedFilePath)).thenReturn(fileId);
 
 		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.save(projectName, file);
+		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.save(projectId, file);
 
 		//  then:
 		assertTrue(maybeResult.isPresent());
@@ -153,7 +153,7 @@ public class DataStoreServiceTest {
 	public void save_does_not_use_type_resolver_with_thumbnail() throws Exception {
 		//  given:
 		MultipartFile file = mock(MultipartFile.class);
-		String projectName = "asdasd";
+		Long projectId = 123L;
 
 		//  and: setups
 		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes());
@@ -170,21 +170,21 @@ public class DataStoreServiceTest {
 		when(thumbnailator.createThumbnail(file.getInputStream())).thenReturn(thumbnailFileInputStream);
 
 		//  save thumbnail file
-		String expectedThumbnailFilePath = projectName + generatedFilePath + File.separator + "thumbnail-" + fileName;
+		String expectedThumbnailFilePath = projectId + generatedFilePath + File.separator + "thumbnail-" + fileName;
 		when(dataStore.save(expectedThumbnailFilePath, thumbnailFileInputStream)).thenReturn(expectedThumbnailFilePath);
 
 		String thumbnailFileId = "thumbnail-encoded-file-id2";
 		when(dataEncoder.encode(expectedThumbnailFilePath)).thenReturn(thumbnailFileId);
 
 		//  save original file
-		String expectedFilePath = projectName + generatedFilePath + File.separator + fileName;
+		String expectedFilePath = projectId + generatedFilePath + File.separator + fileName;
 		when(dataStore.save(expectedFilePath, fileInputStream)).thenReturn(expectedFilePath);
 
 		String fileId = "expected-encoded-file-id2";
 		when(dataEncoder.encode(expectedFilePath)).thenReturn(fileId);
 
 		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.save(projectName, file);
+		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.save(projectId, file);
 
 		//  then:
 		assertTrue(maybeResult.isPresent());
@@ -199,7 +199,7 @@ public class DataStoreServiceTest {
 	public void save_with_fail_on_thumbnail() throws Exception {
 		//  given:
 		MultipartFile file = mock(MultipartFile.class);
-		String projectName = "asdasd";
+		Long projectId = 123L;
 
 		//  and: setups
 		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes());
@@ -215,14 +215,14 @@ public class DataStoreServiceTest {
 		when(thumbnailator.createThumbnail(file.getInputStream())).thenThrow(IOException.class);
 
 		//  save original file
-		String expectedFilePath = projectName + generatedFilePath + File.separator + fileName;
+		String expectedFilePath = projectId + generatedFilePath + File.separator + fileName;
 		when(dataStore.save(expectedFilePath, fileInputStream)).thenReturn(expectedFilePath);
 
 		String fileId = "expected-encoded-file-id2";
 		when(dataEncoder.encode(expectedFilePath)).thenReturn(fileId);
 
 		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.save(projectName, file);
+		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.save(projectId, file);
 
 		//  then:
 		assertTrue(maybeResult.isPresent());

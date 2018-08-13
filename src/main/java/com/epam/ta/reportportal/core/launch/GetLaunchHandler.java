@@ -104,8 +104,8 @@ public interface GetLaunchHandler {
 	 * @param projectDetails Project Details
 	 * @param ids            IDs to be looked up
 	 * @return Response Data
-	 */
-	List<ComparisonStatisticsContent> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids);
+//	 */
+//	List<ComparisonStatisticsContent> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids);
 
 	/**
 	 * Get statuses of specified launches

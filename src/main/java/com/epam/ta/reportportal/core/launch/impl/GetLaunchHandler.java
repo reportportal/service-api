@@ -119,69 +119,69 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		return launchRepository.getOwnerNames(projectDetails.getProjectId(), value, mode);
 	}
 
-	@Override
-	public List<ComparisonStatisticsContent> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {
-		//@formatter:off
-		//TODO: implement after Ivan's response
-//				List<String> contentFields = Arrays.stream(JIssueGroupEnum.values()).map(JIssueGroupEnum::getLiteral).collect(Collectors.toList());
-//				contentFields.addAll(Lists.newArrayList(JStatusEnum.FAILED, JStatusEnum.SKIPPED, JStatusEnum.PASSED)
-//						.stream()
-//						.map(JStatusEnum::getLiteral)
-//						.collect(Collectors.toList()));
-//				Set<FilterCondition> filterConditions = new HashSet<>();
-//				filterConditions.add(new FilterCondition(Condition.IN,
-//						false,
-//						Arrays.stream(ids).map(String::valueOf).collect(Collectors.joining(",")),
-//						GeneralCriteriaConstant.PROJECT_ID
-//				));
-//				filterConditions.add(new FilterCondition(Condition.EQUALS, false, projectName, GeneralCriteriaConstant.PROJECT));
-//				Filter filter = new Filter(Launch.class, filterConditions);
-//				return comparisonContentLoader.loadContent(contentFields, filter, Collections.emptySet(), ids.length).forEach((result, values) -> {
-//					((Map<Integer, Map<String, Double>>) values).forEach();
-//				});
-
-		//TODO: remove old implementation
-		//				widgetContentRepository.launchesComparisonStatistics(new Filter(Launch.class, Condition.IN, ), contentFields, ids);
-		//		List<Launch> launches = launchRepository.findByIdIn(Arrays.asList(ids));
-		//		List<ChartObject> objects = new ArrayList<>(launches.size());
-		//		launches.forEach(launch -> {
-		//			ChartObject object = new ChartObject();
-		//			object.setName(launch.getName());
-		//			object.setStartTime(String.valueOf(launch.getStartTime()));
-		//			object.setNumber(String.valueOf(launch.getNumber()));
-		//			object.setId(launch.getId().toString());
-		//
-		//			EnumMap<TestItemIssueGroup, Integer> issueCounter = new EnumMap<TestItemIssueGroup, Integer>(TestItemIssueGroup.class);
-		//			launch.getIssueStatistics().forEach(issue ->
-		//					issueCounter.put(issue.getIssueType().getIssueGroup().getTestItemIssueGroup(), issue.getCounter())
-		//			);
-		//			Map<String, Integer> issuesData = ImmutableMap.<String, Integer>builder()
-		//					.put("statistics$defects$product_bug$total", issueCounter.get(TestItemIssueGroup.PRODUCT_BUG))
-		//					.put("statistics$defects$system_issue$total", issueCounter.get(TestItemIssueGroup.SYSTEM_ISSUE))
-		//					.put("statistics$defects$automation_bug$total", issueCounter.get(TestItemIssueGroup.AUTOMATION_BUG))
-		//                    .put("statistics$defects$to_investigate$total", issueCounter.get(TestItemIssueGroup.TO_INVESTIGATE))
-		//					.put("statistics$defects$no_defect$total", issueCounter.get(TestItemIssueGroup.NO_DEFECT))
-		//					.build();
-		//
-		//			Map<String, Integer> executionCounter = new HashMap<>();
-		//			launch.getExecutionStatistics().forEach(execution ->
-		//					executionCounter.put(execution.getStatus().toUpperCase(), execution.getCounter())
-		//			);
-		//			Map<String, Integer> executionData = ImmutableMap.<String, Integer>builder()
-		//					.put("statistics$executions$failed", executionCounter.get("FAILED"))
-		//					.put("statistics$executions$passed", executionCounter.get("PASSED"))
-		//					.put("statistics$executions$skipped", executionCounter.get("SKIPPED"))
-		//					.build();
-		//
-		//			Map<String, String> computedStatistics = computeFraction(issuesData);
-		//			computedStatistics.putAll(computeFraction(executionData));
-		//			object.setValues(computedStatistics);
-		//			objects.add(object);
-		//		});
-		//		return Collections.singletonMap(LoadContentStrategy.RESULT, objects);
-		//@formatter:on
-		throw new UnsupportedOperationException("Comparing is not implemented.");
-	}
+//	@Override
+//	public List<ComparisonStatisticsContent> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {
+//		//@formatter:off
+//		//TODO: implement after Ivan's response
+////				List<String> contentFields = Arrays.stream(JIssueGroupEnum.values()).map(JIssueGroupEnum::getLiteral).collect(Collectors.toList());
+////				contentFields.addAll(Lists.newArrayList(JStatusEnum.FAILED, JStatusEnum.SKIPPED, JStatusEnum.PASSED)
+////						.stream()
+////						.map(JStatusEnum::getLiteral)
+////						.collect(Collectors.toList()));
+////				Set<FilterCondition> filterConditions = new HashSet<>();
+////				filterConditions.add(new FilterCondition(Condition.IN,
+////						false,
+////						Arrays.stream(ids).map(String::valueOf).collect(Collectors.joining(",")),
+////						GeneralCriteriaConstant.PROJECT_ID
+////				));
+////				filterConditions.add(new FilterCondition(Condition.EQUALS, false, projectName, GeneralCriteriaConstant.PROJECT));
+////				Filter filter = new Filter(Launch.class, filterConditions);
+////				return comparisonContentLoader.loadContent(contentFields, filter, Collections.emptySet(), ids.length).forEach((result, values) -> {
+////					((Map<Integer, Map<String, Double>>) values).forEach();
+////				});
+//
+//		//TODO: remove old implementation
+//		//				widgetContentRepository.launchesComparisonStatistics(new Filter(Launch.class, Condition.IN, ), contentFields, ids);
+//		//		List<Launch> launches = launchRepository.findByIdIn(Arrays.asList(ids));
+//		//		List<ChartObject> objects = new ArrayList<>(launches.size());
+//		//		launches.forEach(launch -> {
+//		//			ChartObject object = new ChartObject();
+//		//			object.setName(launch.getName());
+//		//			object.setStartTime(String.valueOf(launch.getStartTime()));
+//		//			object.setNumber(String.valueOf(launch.getNumber()));
+//		//			object.setId(launch.getId().toString());
+//		//
+//		//			EnumMap<TestItemIssueGroup, Integer> issueCounter = new EnumMap<TestItemIssueGroup, Integer>(TestItemIssueGroup.class);
+//		//			launch.getIssueStatistics().forEach(issue ->
+//		//					issueCounter.put(issue.getIssueType().getIssueGroup().getTestItemIssueGroup(), issue.getCounter())
+//		//			);
+//		//			Map<String, Integer> issuesData = ImmutableMap.<String, Integer>builder()
+//		//					.put("statistics$defects$product_bug$total", issueCounter.get(TestItemIssueGroup.PRODUCT_BUG))
+//		//					.put("statistics$defects$system_issue$total", issueCounter.get(TestItemIssueGroup.SYSTEM_ISSUE))
+//		//					.put("statistics$defects$automation_bug$total", issueCounter.get(TestItemIssueGroup.AUTOMATION_BUG))
+//		//                    .put("statistics$defects$to_investigate$total", issueCounter.get(TestItemIssueGroup.TO_INVESTIGATE))
+//		//					.put("statistics$defects$no_defect$total", issueCounter.get(TestItemIssueGroup.NO_DEFECT))
+//		//					.build();
+//		//
+//		//			Map<String, Integer> executionCounter = new HashMap<>();
+//		//			launch.getExecutionStatistics().forEach(execution ->
+//		//					executionCounter.put(execution.getStatus().toUpperCase(), execution.getCounter())
+//		//			);
+//		//			Map<String, Integer> executionData = ImmutableMap.<String, Integer>builder()
+//		//					.put("statistics$executions$failed", executionCounter.get("FAILED"))
+//		//					.put("statistics$executions$passed", executionCounter.get("PASSED"))
+//		//					.put("statistics$executions$skipped", executionCounter.get("SKIPPED"))
+//		//					.build();
+//		//
+//		//			Map<String, String> computedStatistics = computeFraction(issuesData);
+//		//			computedStatistics.putAll(computeFraction(executionData));
+//		//			object.setValues(computedStatistics);
+//		//			objects.add(object);
+//		//		});
+//		//		return Collections.singletonMap(LoadContentStrategy.RESULT, objects);
+//		//@formatter:on
+//		throw new UnsupportedOperationException("Comparing is not implemented.");
+//	}
 
 	@Override
 	public Map<String, String> getStatuses(ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {

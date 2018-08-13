@@ -22,6 +22,8 @@
 package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.core.log.IGetLogHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -31,6 +33,7 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -47,7 +50,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.LOG_NOT_FOUND;
  * @author Andrei_Ramanchuk
  */
 @Service
-public class GetLogHandler {
+public class GetLogHandler implements IGetLogHandler {
 
 	private final LogRepository logRepository;
 
@@ -61,20 +64,25 @@ public class GetLogHandler {
 		this.launchRepository = launchRepository;
 	}
 
-	//		public Iterable<LogResource> getLogs(String testStepId, String project, Filter filterable, Pageable pageable) {
-	//			// DO we need filter for project here?
-	//			Page<Log> logs = logRepository.findByFilter(filterable, pageable);
-	//			return logResourceAssembler.toPagedResources(logs);
-	//		}
-	//
-	//	@Override
-	//	public long getPageNumber(String logId, String project, Filter filterable, Pageable pageable) {
-	//		return logRepository.getPageNumber(logId, filterable, pageable);
-	//	}
-	//
-	public LogResource getLog(String logId, String projectName, ReportPortalUser user) {
+	@Override
+	public Iterable<LogResource> getLogs(Long testStepId, ReportPortalUser.ProjectDetails projectDetails, Filter filterable,
+			Pageable pageable) {
+		// DO we need filter for project here?
+		//		Page<Log> logs = logRepository.findByFilter(filterable, pageable);
+		//		return logResourceAssembler.toPagedResources(logs);
+		throw new UnsupportedOperationException("No implementation");
+	}
 
-		Log log = findAndValidate(logId, projectName, user);
+	@Override
+	public long getPageNumber(Long logId, ReportPortalUser.ProjectDetails projectDetails, Filter filterable, Pageable pageable) {
+		//		return logRepository.getPageNumber(logId, filterable, pageable);
+		throw new UnsupportedOperationException("No implementation");
+	}
+
+	@Override
+	public LogResource getLog(Long logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+
+		Log log = findAndValidate(logId, projectDetails, user);
 
 		return LogConverter.TO_RESOURCE.apply(log);
 	}
@@ -83,21 +91,20 @@ public class GetLogHandler {
 	 * Validate log item on existence, availability under specified project,
 	 * etc.
 	 *
-	 * @param logId       - log ID
-	 * @param projectName - project name value
+	 * @param logId          - log ID
+	 * @param projectDetails Project details
 	 * @return Log - validate Log item in accordance with specified ID
 	 */
-	private Log findAndValidate(String logId, String projectName, ReportPortalUser user) {
+	private Log findAndValidate(Long logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 
-		Log log = logRepository.findById(Long.valueOf(logId)).orElse(null);
+		Log log = logRepository.findById(logId).orElse(null);
 		expect(log, notNull()).verify(LOG_NOT_FOUND, logId);
 
 		final TestItem testItem = log.getTestItem();
 		Launch launch = testItem.getItemStructure().getLaunch();
 
-		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-				formattedSupplier("Log '{}' not under specified '{}' project", logId, projectName)
+				formattedSupplier("Log '{}' not under specified '{}' project", logId, projectDetails.getProjectId())
 		);
 
 		return log;

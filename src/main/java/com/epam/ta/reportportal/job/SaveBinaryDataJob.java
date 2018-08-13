@@ -5,6 +5,7 @@ import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.store.service.DataStoreService;
 import com.google.common.base.Preconditions;
+import com.mchange.lang.LongUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,12 +41,12 @@ public class SaveBinaryDataJob implements Runnable {
 	 */
 	private Log log;
 
-	private String projectName;
+	private Long projectId;
 
 	@Override
 	public void run() {
 
-		Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = dataStoreService.save(projectName, file);
+		Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = dataStoreService.save(projectId, file);
 
 		maybeBinaryDataMetaInfo.ifPresent(binaryDataMetaInfo -> {
 
@@ -78,9 +79,9 @@ public class SaveBinaryDataJob implements Runnable {
 		return this;
 	}
 
-	public SaveBinaryDataJob withProjectName(String projectName) {
-		Preconditions.checkArgument(StringUtils.isNotEmpty(projectName), "Project name shouldn't be null");
-		this.projectName = projectName;
+	public SaveBinaryDataJob withProjectId(Long projectId) {
+		Preconditions.checkNotNull(projectId, "Project id should not be null");
+		this.projectId = projectId;
 		return this;
 	}
 }

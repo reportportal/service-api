@@ -27,6 +27,8 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+
 /**
  * @author Pavel Bortnik
  */
@@ -40,7 +42,7 @@ public class ProjectUtils {
 	 * @return Project Details
 	 */
 	public static ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user, String projectName) {
-		return Optional.ofNullable(user.getProjectDetails().get(projectName))
+		return Optional.ofNullable(user.getProjectDetails().get(normalizeId(projectName)))
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 	}
 

@@ -25,5 +25,14 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 public interface IDeleteLogHandler {
-	OperationCompletionRS deleteLog(String logId, String projectName, ReportPortalUser user);
+
+	/**
+	 * Delete {@link com.epam.ta.reportportal.entity.log.Log} instance
+	 *
+	 * @param logId          ID of Log
+	 * @param projectDetails Project Details
+	 * @param user           User
+	 * @return OperationCompletionRS
+	 */
+	OperationCompletionRS deleteLog(Long logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 }

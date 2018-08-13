@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.Predicates;
@@ -76,7 +77,7 @@ public class CreateLogHandler implements ICreateLogHandler {
 
 	@Override
 	@Nonnull
-	public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, String project) {
+	public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, ReportPortalUser.ProjectDetails projectDetails) {
 
 		TestItem testItem = testItemRepository.findById(createLogRQ.getTestItemId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, createLogRQ.getTestItemId()));
@@ -85,7 +86,7 @@ public class CreateLogHandler implements ICreateLogHandler {
 
 		Log log = new LogBuilder().addSaveLogRq(createLogRQ).addTestItem(testItem).get();
 
-		Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = dataStoreService.save(project, file);
+		Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = dataStoreService.save(projectDetails.getProjectId(), file);
 		maybeBinaryDataMetaInfo.ifPresent(binaryDataMetaInfo -> {
 
 			log.setAttachment(maybeBinaryDataMetaInfo.get().getFileId());

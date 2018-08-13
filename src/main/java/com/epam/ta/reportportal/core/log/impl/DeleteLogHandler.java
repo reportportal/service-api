@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.core.log.IDeleteLogHandler;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -54,7 +55,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
  * @author Andrei_Ramanchuk
  */
 @Service
-public class DeleteLogHandler {
+public class DeleteLogHandler implements IDeleteLogHandler {
 
 	private final LogRepository logRepository;
 
@@ -68,22 +69,24 @@ public class DeleteLogHandler {
 		this.projectRepository = projectRepository;
 	}
 
-	public OperationCompletionRS deleteLog(String logId, String projectName, ReportPortalUser user) {
+	@Override
+	public OperationCompletionRS deleteLog(Long logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 
-		Project project = projectRepository.findByName(projectName).orElse(null);
-		expect(project, notNull()).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
-
-		Log log = validate(logId, user, projectName);
-
-		try {
-
-			logRepository.delete(log);
-			cleanUpLogData(log);
-		} catch (Exception exc) {
-			throw new ReportPortalException("Error while Log instance deleting.", exc);
-		}
-
-		return new OperationCompletionRS("Log with ID = '" + logId + "' successfully deleted.");
+		//		Project project = projectRepository.findByName(projectName).orElse(null);
+		//		expect(project, notNull()).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
+		//
+		//		Log log = validate(logId, user, projectName);
+		//
+		//		try {
+		//
+		//			logRepository.delete(log);
+		//			cleanUpLogData(log);
+		//		} catch (Exception exc) {
+		//			throw new ReportPortalException("Error while Log instance deleting.", exc);
+		//		}
+		//
+		//		return new OperationCompletionRS("Log with ID = '" + logId + "' successfully deleted.");
+		throw new UnsupportedOperationException("No implementation");
 	}
 
 	private void cleanUpLogData(Log log) {
@@ -101,11 +104,11 @@ public class DeleteLogHandler {
 	/**
 	 * Validate specified log against parent objects and project
 	 *
-	 * @param logId       - validated log ID value
-	 * @param projectName - specified project name
+	 * @param logId          - validated log ID value
+	 * @param projectDetails Project details
 	 * @return Log
 	 */
-	private Log validate(String logId, ReportPortalUser user, String projectName) {
+	private Log validate(String logId, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 
 		Log log = logRepository.findById(Long.valueOf(logId)).orElse(null);
 		expect(log, notNull()).verify(ErrorType.LOG_NOT_FOUND, logId);
@@ -118,9 +121,8 @@ public class DeleteLogHandler {
 
 		Launch launch = testItem.getItemStructure().getLaunch();
 
-		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-				formattedSupplier("Log '{}' not under specified '{}' project", logId, projectName)
+				formattedSupplier("Log '{}' not under specified '{}' project", logId, projectDetails.getProjectId())
 		);
 
 		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUserId(), launch.getUserId())) {

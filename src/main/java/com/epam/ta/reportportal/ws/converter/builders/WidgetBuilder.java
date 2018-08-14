@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.widget.ContentField;
 import com.epam.ta.reportportal.entity.widget.Widget;
-import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.google.common.collect.Sets;
 
@@ -52,12 +51,7 @@ public class WidgetBuilder implements Supplier<Widget> {
 		widget.setName(widgetRQ.getName());
 
 		widget.getWidgetOptions().clear();
-		widget.getWidgetOptions().addAll(widgetRQ.getContentParameters().getWidgetOptions().entrySet().stream().map(entry -> {
-			WidgetOption option = new WidgetOption();
-			option.setWidgetOption(entry.getKey());
-			option.setValues(Sets.newHashSet(entry.getValue()));
-			return option;
-		}).collect(toSet()));
+		widget.getWidgetOptions().putAll(widgetRQ.getContentParameters().getWidgetOptions());
 
 		widget.setWidgetType(widgetRQ.getContentParameters().getWidgetType());
 		widget.setItemsCount(widgetRQ.getContentParameters().getItemsCount());

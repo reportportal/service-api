@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.ContentField;
-import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.entity.widget.content.MostFailedContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
@@ -70,25 +69,22 @@ public class MostFailedContentLoader implements LoadContentStrategy {
 	}
 
 	@Override
-	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
 		Map<String, List<String>> fields = WidgetContentUtils.GROUP_CONTENT_FIELDS.apply(contentFields);
 		validateContentFields(fields);
 
-		Map<String, List<String>> options = WidgetContentUtils.GROUP_WIDGET_OPTIONS.apply(widgetOptions);
-		validateWidgetOptions(options);
-
-		String launchName = options.get(LAUNCH_NAME_FIELD).iterator().next();
+		String launchName = widgetOptions.get(LAUNCH_NAME_FIELD);
 		Launch latestByName = launchRepository.findLatestByNameAndFilter(launchName, filter)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName));
 
 		List<MostFailedContent> content;
 		if (fields.containsKey(EXECUTIONS)) {
-			content = widgetContentRepository.mostFailedByExecutionCriteria(options.get(LAUNCH_NAME_FIELD).get(0),
+			content = widgetContentRepository.mostFailedByExecutionCriteria(widgetOptions.get(LAUNCH_NAME_FIELD),
 					fields.get(EXECUTIONS).get(0),
 					limit
 			);
 		} else {
-			content = widgetContentRepository.mostFailedByDefectCriteria(options.get(LAUNCH_NAME_FIELD).get(0),
+			content = widgetContentRepository.mostFailedByDefectCriteria(widgetOptions.get(LAUNCH_NAME_FIELD),
 					fields.get(DEFECTS).get(0),
 					limit
 			);

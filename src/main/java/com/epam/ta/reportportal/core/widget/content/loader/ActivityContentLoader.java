@@ -29,20 +29,20 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.widget.ContentField;
-import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.entity.widget.content.ActivityContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -58,28 +58,37 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
 
-		Map<String, List<String>> options = WidgetContentUtils.GROUP_WIDGET_OPTIONS.apply(widgetOptions);
-		validateWidgetOptions(options);
+		validateWidgetOptions(widgetOptions);
 
-		String login = options.get(LOGIN).iterator().next();
+		Map<String, List<String>> fields = WidgetContentUtils.GROUP_CONTENT_FIELDS.apply(contentFields);
+		validateContentFields(fields);
 
-		User user = userRepository.findByLogin(login)
+		String login = widgetOptions.get(LOGIN);
+
+		User user = userRepository.findByLogin(widgetOptions.get(LOGIN))
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, "User with login " + login + " was not found"));
 
-		List<String> activityTypes = Optional.ofNullable(options.get(ACTIVITY_TYPE))
-				.orElseThrow(() -> new ReportPortalException("Activity types must not be null"));
-
-		//		String conditionValue = activityTypes.stream().collect(Collectors.joining(", "));
-		//
-		//		FilterCondition filterCondition = new FilterCondition(Condition.IN, false, conditionValue, "value");
-		//
-		//		filter.withCondition(filterCondition);
-
-		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, user.getLogin(), activityTypes, limit);
+		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter,
+				user.getLogin(),
+				fields.get(ACTIVITY_TYPE),
+				limit
+		);
 
 		return singletonMap(RESULT, activityContents);
+	}
+
+	/**
+	 * Validate provided content fields.
+	 *
+	 * @param contentFields Map of provided content.
+	 */
+	private void validateContentFields(Map<String, List<String>> contentFields) {
+		BusinessRule.expect(MapUtils.isNotEmpty(contentFields), equalTo(true))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
+		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields.get(ACTIVITY_TYPE)), equalTo(true))
+				.verify(ErrorType.ACTIVITY_NOT_FOUND, "Activities list should not be empty");
 	}
 
 	/**
@@ -87,8 +96,9 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	 *
 	 * @param widgetOptions Set of stored widget options.
 	 */
-	private void validateWidgetOptions(Map<String, List<String>> widgetOptions) {
-		BusinessRule.expect(widgetOptions, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should not be null.");
+	private void validateWidgetOptions(Map<String, String> widgetOptions) {
+		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should not be empty.");
 		BusinessRule.expect(widgetOptions.containsKey(LOGIN), Predicate.isEqual(true))
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LOGIN + " should be specified for widget.");
 	}

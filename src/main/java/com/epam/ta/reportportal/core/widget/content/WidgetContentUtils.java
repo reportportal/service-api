@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.core.widget.content;
 
 import com.epam.ta.reportportal.entity.widget.ContentField;
-import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.Lists;
@@ -47,11 +46,5 @@ public final class WidgetContentUtils {
 			contentFields)
 			.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Content fields shouldn't be null"))
 			.stream().collect(Collectors.toMap(ContentField::getFieldName, v -> Lists.newArrayList(v.getValues())));
-
-	public static final Function<Set<WidgetOption>, Map<String, List<String>>> GROUP_WIDGET_OPTIONS = widgetOptions -> Optional.ofNullable(
-			widgetOptions)
-			.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Widget options shouldn't be null"))
-			.stream()
-			.collect(Collectors.toMap(WidgetOption::getWidgetOption, v -> Lists.newArrayList(v.getValues())));
 
 }

@@ -51,7 +51,7 @@ public class LaunchesDurationContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
 
 		Map<String, List<String>> fields = GROUP_CONTENT_FIELDS.apply(contentFields);
 		validateContentFields(fields);

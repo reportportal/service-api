@@ -57,9 +57,9 @@ public final class TestItemConverter {
 		resource.setStartTime(EntityUtils.TO_DATE.apply(item.getTestItem().getStartTime()));
 		resource.setStatus(item.getItemResults().getStatus() != null ? item.getItemResults().getStatus().toString() : null);
 		resource.setType(item.getTestItem().getType() != null ? item.getTestItem().getType().name() : null);
-		resource.setParent("parent");
+		resource.setParent(item.getParent().getItemId());
 		resource.setHasChilds(false);
-		resource.setLaunchId("launch");
+		resource.setLaunchId(item.getLaunch().getId());
 		resource.setStatistics(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults().getIssueStatistics(),
 				item.getItemResults().getExecutionStatistics()
 		));

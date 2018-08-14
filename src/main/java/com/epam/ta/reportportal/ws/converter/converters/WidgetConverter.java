@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidgetId;
 import com.epam.ta.reportportal.entity.widget.ContentField;
 import com.epam.ta.reportportal.entity.widget.Widget;
-import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.ws.model.Position;
 import com.epam.ta.reportportal.ws.model.Size;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
@@ -36,8 +35,6 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toMap;
 
 /**
  * @author Pavel Bortnik
@@ -63,9 +60,7 @@ public class WidgetConverter {
 		contentParameters.setContentFields(widget.getContentFields()
 				.stream()
 				.collect(Collectors.toMap(ContentField::getFieldName, ContentField::getValues)));
-		contentParameters.setWidgetOptions(widget.getWidgetOptions()
-				.stream()
-				.collect(toMap(WidgetOption::getWidgetOption, WidgetOption::getValues)));
+		contentParameters.setWidgetOptions(widget.getWidgetOptions());
 		widgetResource.setContentParameters(contentParameters);
 		return widgetResource;
 	};

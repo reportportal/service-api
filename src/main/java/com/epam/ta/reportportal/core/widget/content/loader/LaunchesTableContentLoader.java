@@ -25,9 +25,8 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.ContentField;
-import com.epam.ta.reportportal.entity.widget.WidgetOption;
-import com.epam.ta.reportportal.entity.widget.content.LaunchStatisticsContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,12 +50,12 @@ public class LaunchesTableContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
 
 		Map<String, List<String>> fields = GROUP_CONTENT_FIELDS.apply(contentFields);
 		validateContentFields(fields);
 
-		List<LaunchStatisticsContent> result = widgetContentRepository.launchesTableStatistics(filter, fields, limit);
+		List<Launch> result = widgetContentRepository.launchesTableStatistics(filter, fields, limit);
 		return singletonMap(RESULT, result);
 	}
 

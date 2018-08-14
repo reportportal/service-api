@@ -27,7 +27,6 @@ import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.ContentField;
-import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.MapUtils;
@@ -53,7 +52,7 @@ public class LaunchStatisticsChartContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
 
 		Map<String, List<String>> fields = GROUP_CONTENT_FIELDS.apply(contentFields);
 		validateContentFields(fields);

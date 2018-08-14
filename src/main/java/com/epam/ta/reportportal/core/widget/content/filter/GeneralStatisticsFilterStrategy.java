@@ -37,6 +37,10 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.Set;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.PROJECT_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.MODE;
+import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.STATUS;
+
 /**
  * @author Pavel Bortnik
  */
@@ -54,9 +58,9 @@ public class GeneralStatisticsFilterStrategy implements BuildFilterStrategy {
 
 	private Filter updateWithDefaultConditions(Filter filter, Long projectId) {
 		Set<FilterCondition> defaultConditions = Sets.newHashSet(
-				new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), "project_id"),
-				new FilterCondition(Condition.NOT_EQUALS, false, StatusEnum.IN_PROGRESS.name(), "status"),
-				new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.toString(), "mode")
+				new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), PROJECT_ID),
+				new FilterCondition(Condition.NOT_EQUALS, false, StatusEnum.IN_PROGRESS.name(), STATUS),
+				new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.toString(), MODE)
 		);
 		filter.withConditions(defaultConditions);
 		return filter;

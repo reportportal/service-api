@@ -45,7 +45,7 @@ public class UniqueBugContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetRepository;
 
 	@Override
-	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
 		return singletonMap(RESULT, widgetRepository.uniqueBugStatistics(filter, GROUP_CONTENT_FIELDS.apply(contentFields), limit));
 	}
 }

@@ -3,11 +3,9 @@ package com.epam.ta.reportportal.core.widget.content.loader;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.core.widget.content.WidgetContentUtils;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.ContentField;
-import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import com.epam.ta.reportportal.entity.widget.content.PassStatisticsResult;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -38,15 +36,13 @@ public class PassedRatePerLaunchContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
 
 		Map<String, List<String>> fields = GROUP_CONTENT_FIELDS.apply(contentFields);
 		validateContentFields(fields);
 
-		Map<String, List<String>> options = WidgetContentUtils.GROUP_WIDGET_OPTIONS.apply(widgetOptions);
-		validateWidgetOptions(options);
 
-		String launchName = options.get(LAUNCH_NAME_FIELD).iterator().next();
+		String launchName = widgetOptions.get(LAUNCH_NAME_FIELD);
 
 		PassStatisticsResult content = widgetContentRepository.launchPassPerLaunchStatistics(
 				filter,

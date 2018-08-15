@@ -74,10 +74,10 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	private RabbitTemplate rabbitTemplate;
 
 	@Override
-	public ItemCreatedRS startRootItem(ReportPortalUser user, String projectName, StartTestItemRQ rq) {
+	public ItemCreatedRS startRootItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq) {
 		Launch launch = launchRepository.findById(rq.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId().toString()));
-		validate(user, projectName, rq, launch);
+		validate(user, projectDetails, rq, launch);
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addLaunch(launch).get();
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
@@ -87,12 +87,11 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	}
 
 	@Override
-	public ItemCreatedRS startChildItem(ReportPortalUser user, String projectName, StartTestItemRQ rq, Long parentId) {
+	public ItemCreatedRS startChildItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq, Long parentId) {
 		TestItem parentItem = testItemRepository.findById(parentId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId.toString()));
 		Launch launch = launchRepository.findById(rq.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
-		validateProject(user, projectName);
 		validate(rq, parentItem);
 
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addLaunch(launch).addParent(parentItem.getItemStructure()).get();
@@ -104,8 +103,15 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
 
-	private void validate(ReportPortalUser user, String projectName, StartTestItemRQ rq, Launch launch) {
-		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
+	/**
+	 * TODO document this
+	 *
+	 * @param user
+	 * @param projectDetails
+	 * @param rq
+	 * @param launch
+	 */
+	private void validate(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq, Launch launch) {
 		expect(projectDetails.getProjectId(), equalTo(launch.getProjectId())).verify(ACCESS_DENIED);
 		expect(launch.getStatus(), equalTo(StatusEnum.IN_PROGRESS)).verify(START_ITEM_NOT_ALLOWED,
 				formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId())
@@ -133,9 +139,5 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		expect(logRepository.hasLogs(parent.getItemId()), equalTo(false)).verify(START_ITEM_NOT_ALLOWED,
 				formattedSupplier("Parent Item '{}' already has log items", parent.getItemId())
 		);
-	}
-
-	private void validateProject(ReportPortalUser user, String projectName) {
-		ProjectUtils.extractProjectDetails(user, projectName);
 	}
 }

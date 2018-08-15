@@ -1,20 +1,20 @@
 /*
  * Copyright 2016 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -81,10 +81,11 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 	}
 
 	@Override
-	public OperationCompletionRS updateLaunch(Long launchId, String projectName, ReportPortalUser user, UpdateLaunchRQ rq) {
+	public OperationCompletionRS updateLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			UpdateLaunchRQ rq) {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
-		validate(launch, user, projectName, rq.getMode());
+		validate(launch, user, projectDetails, rq.getMode());
 		launch = new LaunchBuilder(launch).addMode(rq.getMode()).addDescription(rq.getDescription()).addTags(rq.getTags()).get();
 		//reindexLogs(launch);
 		launchRepository.save(launch);
@@ -92,16 +93,17 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 	}
 
 	@Override
-	public List<OperationCompletionRS> updateLaunch(BulkRQ<UpdateLaunchRQ> rq, String projectName, ReportPortalUser user) {
+	public List<OperationCompletionRS> updateLaunch(BulkRQ<UpdateLaunchRQ> rq, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
 		return rq.getEntities()
 				.entrySet()
 				.stream()
-				.map(entry -> updateLaunch(entry.getKey(), projectName, user, entry.getValue()))
+				.map(entry -> updateLaunch(entry.getKey(), projectDetails, user, entry.getValue()))
 				.collect(toList());
 	}
 
 	@Override
-	public OperationCompletionRS startLaunchAnalyzer(String projectName, Long launchId) {
+	public OperationCompletionRS startLaunchAnalyzer(ReportPortalUser.ProjectDetails projectDetails, Long launchId) {
 		//		//		expect(analyzerService.hasAnalyzers(), Predicate.isEqual(true)).verify(
 		//		//				ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer services are deployed.");
 		//
@@ -123,7 +125,7 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 		//		//taskExecutor.execute(() -> analyzerService.analyze(launch, toInvestigate));
 		//
 		//		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launchId + "' started.");
-		return new OperationCompletionRS("Not yet");
+		throw new UnsupportedOperationException("Auto-analyzer starting is not implemented.");
 	}
 
 	//	/**
@@ -143,8 +145,14 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 	//		}
 	//	}
 
-	private void validate(Launch launch, ReportPortalUser user, String projectName, Mode mode) {
-		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
+	/**
+	 * TODO document this
+	 *
+	 * @param launch
+	 * @param user
+	 * @param mode
+	 */
+	private void validate(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Mode mode) {
 		if (projectDetails.getProjectRole() == ProjectRole.CUSTOMER && null != mode) {
 			expect(mode, equalTo(Mode.DEFAULT)).verify(ACCESS_DENIED);
 		}

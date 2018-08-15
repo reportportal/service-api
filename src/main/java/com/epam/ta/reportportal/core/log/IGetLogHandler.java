@@ -21,6 +21,12 @@
 
 package com.epam.ta.reportportal.core.log;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.ws.model.log.LogResource;
+import org.springframework.data.domain.Pageable;
+
 /**
  * GET operation for {@link Log} entity
  *
@@ -28,33 +34,34 @@ package com.epam.ta.reportportal.core.log;
  */
 public interface IGetLogHandler {
 
-	//	/**
-	//	 * Returns logs for specified filter
-	//	 *
-	//	 * @param testStepId - parent step ID value
-	//	 * @param filterable - filter definition
-	//	 * @param pageable   - pageable definition
-	//	 * @return Iterable<LogResource>
-	//	 */
-	//	Iterable<LogResource> getLogs(String testStepId, String project, Filter filterable, Pageable pageable);
-	//
-	//	/**
-	//	 * Returns log by ID
-	//	 *
-	//	 * @param logId       - target log ID value
-	//	 * @param projectName - specified project name value
-	//	 * @return LogResource
-	//	 */
-	//	LogResource getLog(String logId, String projectName);
-	//
-	//	/**
-	//	 * Calculates page number and returns entire page for specified log ID
-	//	 *
-	//	 * @param logId      ID of log to find
-	//	 * @param project    Project name
-	//	 * @param filterable Filter for paging
-	//	 * @param pageable   Paging details
-	//	 * @return Page Number
-	//	 */
-	//	long getPageNumber(String logId, String project, Filter filterable, Pageable pageable);
+	/**
+	 * Returns logs for specified filter
+	 *
+	 * @param testStepId - parent step ID value
+	 * @param filterable - filter definition
+	 * @param pageable   - pageable definition
+	 * @return Iterable<LogResource>
+	 */
+	Iterable<LogResource> getLogs(Long testStepId, ReportPortalUser.ProjectDetails projectDetails, Filter filterable, Pageable pageable);
+
+	/**
+	 * Returns log by ID
+	 *
+	 * @param logId          - target log ID value
+	 * @param projectDetails Project details
+	 * @param user           User
+	 * @return LogResource
+	 */
+	LogResource getLog(Long logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+
+	/**
+	 * Calculates page number and returns entire page for specified log ID
+	 *
+	 * @param logId          ID of log to find
+	 * @param projectDetails Project details
+	 * @param filterable     Filter for paging
+	 * @param pageable       Paging details
+	 * @return Page Number
+	 */
+	long getPageNumber(Long logId, ReportPortalUser.ProjectDetails projectDetails, Filter filterable, Pageable pageable);
 }

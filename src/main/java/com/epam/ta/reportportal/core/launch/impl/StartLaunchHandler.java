@@ -53,11 +53,11 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 	}
 
 	@Override
-	public StartLaunchRS startLaunch(ReportPortalUser user, String projectName, StartLaunchRQ startLaunchRQ) {
-		validateRoles(user, projectName, startLaunchRQ);
+	public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ) {
+		validateRoles(user, projectDetails, startLaunchRQ);
 
 		Launch launch = new LaunchBuilder().addStartRQ(startLaunchRQ)
-				.addProject(user.getProjectDetails().get(projectName).getProjectId())
+				.addProject(projectDetails.getProjectId())
 				.addUser(user.getUserId())
 				.addTags(startLaunchRQ.getTags())
 				.get();
@@ -69,8 +69,14 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 		return new StartLaunchRS(launch.getId(), launch.getNumber());
 	}
 
-	private void validateRoles(ReportPortalUser user, String projectName, StartLaunchRQ startLaunchRQ) {
-		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
+	/**
+	 * TODO document this
+	 *
+	 * @param user
+	 * @param projectDetails
+	 * @param startLaunchRQ
+	 */
+	private void validateRoles(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ) {
 		if (startLaunchRQ.getMode() == Mode.DEBUG) {
 			if (projectDetails.getProjectRole() == ProjectRole.CUSTOMER) {
 				startLaunchRQ.setMode(Mode.DEFAULT);

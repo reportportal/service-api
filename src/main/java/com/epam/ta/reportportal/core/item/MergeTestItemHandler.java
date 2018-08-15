@@ -22,26 +22,18 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
 
-/**
- * Handler for finish test item operation
- *
- * @author Andrei Varabyeu
- * @author Aliaksei Makayed
- */
-public interface FinishTestItemHandler {
-
+public interface MergeTestItemHandler {
 	/**
-	 * Updates {@link com.epam.ta.reportportal.entity.item.TestItem} instance
+	 * Merge test items specified in rq to item
 	 *
-	 * @param user              RQ principal
-	 * @param projectDetails    Project Details
-	 * @param testItemId        Test item ID
-	 * @param finishExecutionRQ Request with finish Test Item data
+	 * @param projectDetails project details
+	 * @param itemId         test item ID
+	 * @param rq             merge test item request data. Contains list of items we want to merge
+	 * @param userName       request principal name
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS finishTestItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Long testItemId,
-			FinishTestItemRQ finishExecutionRQ);
+	OperationCompletionRS mergeTestItem(ReportPortalUser.ProjectDetails projectDetails, Long itemId, MergeTestItemRQ rq, String userName);
 }

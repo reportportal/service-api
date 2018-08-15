@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2017 EPAM Systems
  *
  *
  * This file is part of EPAM Report Portal.
@@ -18,30 +18,25 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package com.epam.ta.reportportal.core.item;
+package com.epam.ta.reportportal.core.imprt;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
- * Handler for finish test item operation
- *
- * @author Andrei Varabyeu
- * @author Aliaksei Makayed
+ * @author Pavel_Bortnik
  */
-public interface FinishTestItemHandler {
+public interface ImportLaunchHandler {
 
 	/**
-	 * Updates {@link com.epam.ta.reportportal.entity.item.TestItem} instance
+	 * Import launch from file with specified format.
 	 *
-	 * @param user              RQ principal
-	 * @param projectDetails    Project Details
-	 * @param testItemId        Test item ID
-	 * @param finishExecutionRQ Request with finish Test Item data
+	 * @param projectDetails Project Details
+	 * @param user  user
+	 * @param format    report format
+	 * @param file      file with report
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS finishTestItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Long testItemId,
-			FinishTestItemRQ finishExecutionRQ);
+	OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String format, MultipartFile file);
 }

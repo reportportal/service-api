@@ -77,31 +77,44 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	}
 
 	@Override
-	public OperationCompletionRS deleteTestItem(Long itemId, String projectName, ReportPortalUser reportPortalUser) {
+	public OperationCompletionRS deleteTestItem(Long itemId, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser reportPortalUser) {
 		TestItemStructure item = structureRepository.findById(itemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
-		validate(item.getTestItem(), reportPortalUser, projectName);
+		validate(item.getTestItem(), reportPortalUser, projectDetails);
 		structureRepository.delete(item);
 		return new OperationCompletionRS("Test Item with ID = '" + itemId + "' has been successfully deleted.");
 	}
 
 	@Override
-	public List<OperationCompletionRS> deleteTestItem(Long[] ids, String project, ReportPortalUser reportPortalUser) {
-		return Stream.of(ids).map(it -> deleteTestItem(it, project, reportPortalUser)).collect(toList());
+	public List<OperationCompletionRS> deleteTestItem(Long[] ids, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser reportPortalUser) {
+		return Stream.of(ids).map(it -> deleteTestItem(it, projectDetails, reportPortalUser)).collect(toList());
 	}
 
-	private void validate(TestItem testItem, ReportPortalUser user, String projectName) {
-		expect(testItem.getItemStructure().getItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(
-				TEST_ITEM_IS_NOT_FINISHED, formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId()));
+	/**
+	 * TODO document this
+	 *
+	 * @param testItem
+	 * @param user
+	 * @param projectDetails
+	 */
+	private void validate(TestItem testItem, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
+		expect(testItem.getItemStructure().getItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(TEST_ITEM_IS_NOT_FINISHED,
+				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId())
+		);
 		Launch launch = testItem.getItemStructure().getLaunch();
 		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
-				formattedSupplier("Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state", testItem.getItemId(),
+				formattedSupplier("Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
+						testItem.getItemId(),
 						launch.getId()
 				)
 		);
-		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-				formattedSupplier("Deleting testItem '{}' is not under specified project '{}'", testItem.getItemId(), projectName)
+				formattedSupplier("Deleting testItem '{}' is not under specified project '{}'",
+						testItem.getItemId(),
+						projectDetails.getProjectId()
+				)
 		);
 		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUserId(), launch.getUserId())) {
 			/*

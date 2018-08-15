@@ -66,7 +66,7 @@ public class DataStoreService {
 		this.dataEncoder = dataEncoder;
 	}
 
-	public Optional<BinaryDataMetaInfo> save(String projectName, MultipartFile file) {
+	public Optional<BinaryDataMetaInfo> save(Long projectId, MultipartFile file) {
 
 		Optional<BinaryDataMetaInfo> maybeResult = Optional.empty();
 
@@ -75,7 +75,7 @@ public class DataStoreService {
 			BinaryData binaryData = getBinaryData(file);
 
 			String generatedFilePath = filePathGenerator.generate();
-			String commonPath = Paths.get(projectName, generatedFilePath).toString();
+			String commonPath = Paths.get(projectId.toString(), generatedFilePath).toString();
 			Path targetPath = Paths.get(commonPath, file.getOriginalFilename());
 
 			String thumbnailFilePath = null;

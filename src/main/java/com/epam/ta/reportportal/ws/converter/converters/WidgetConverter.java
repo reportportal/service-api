@@ -57,6 +57,8 @@ public class WidgetConverter {
 		Optional.ofNullable(widget.getFilter())
 				.ifPresent(filter -> widgetResource.setAppliedFilters(UserFilterConverter.TO_FILTER_RESOURCE.apply(filter)));
 		ContentParameters contentParameters = new ContentParameters();
+		contentParameters.setItemsCount(widget.getItemsCount());
+		contentParameters.setWidgetOptions(widget.getWidgetOptions()
 		contentParameters.setContentFields(widget.getContentFields()
 				.stream()
 				.collect(Collectors.toMap(ContentField::getFieldName, ContentField::getValues)));

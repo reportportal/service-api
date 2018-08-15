@@ -67,7 +67,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 		validateContentFields(fields);
 
 		String login = widgetOptions.get(LOGIN);
-		User user = userRepository.findByLogin(widgetOptions.get(LOGIN))
+		User user = userRepository.findByLogin(login)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, "User with login " + login + " was not found"));
 
 		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, user.getLogin(), fields, limit);

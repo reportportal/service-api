@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.core.widget.content.WidgetContentUtils.GROUP_CONTENT_FIELDS;
 import static com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants.DEFECTS_KEY;
 import static com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants.EXECUTIONS_KEY;
@@ -87,8 +86,6 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 		String launchName = widgetOptions.get(LAUNCH_NAME_FIELD);
 		BusinessRule.expect(launchName, StringUtils::isNotEmpty)
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LAUNCH_NAME_FIELD + " should be specified for widget.");
-		BusinessRule.expect(launchRepository.findLatestByNameAndFilter(launchName, filter), notNull())
-				.verify(ErrorType.LAUNCH_NOT_FOUND, "Launch with name: " + launchName + " - was not found");
 	}
 
 	/**

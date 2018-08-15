@@ -40,9 +40,9 @@ public interface IProjectSettingsController {
 	/**
 	 * Create issue sub type for specified project
 	 *
-	 * @param projectName
+	 * @param projectName Project name
 	 * @param request
-	 * @param principal
+	 * @param principal   Principal
 	 * @return EntryCreatedRS
 	 */
 	EntryCreatedRS createProjectIssueSubType(String projectName, CreateIssueSubTypeRQ request, Principal principal);
@@ -50,9 +50,9 @@ public interface IProjectSettingsController {
 	/**
 	 * Update specified issue sub-type for specified project
 	 *
-	 * @param projectName
+	 * @param projectName Project name
 	 * @param request
-	 * @param principal
+	 * @param principal   Principal
 	 * @return OperationCompletionRS
 	 */
 	OperationCompletionRS updateProjectIssueSubType(String projectName, UpdateIssueSubTypeRQ request, Principal principal);
@@ -60,9 +60,9 @@ public interface IProjectSettingsController {
 	/**
 	 * Remove specified issue sub-type from specified project
 	 *
-	 * @param projectName
+	 * @param projectName Project name
 	 * @param id
-	 * @param principal
+	 * @param principal   Principal
 	 * @return OperationCompletionRS
 	 */
 	OperationCompletionRS deleteProjectIssueSubType(String projectName, String id, Principal principal);
@@ -70,8 +70,8 @@ public interface IProjectSettingsController {
 	/**
 	 * Get settings of specified project
 	 *
-	 * @param projectName
-	 * @param principal
+	 * @param projectName Project name
+	 * @param principal   Principal
 	 * @return ProjectSettingsResource
 	 */
 	ProjectSettingsResource getProjectSettings(String projectName, Principal principal);

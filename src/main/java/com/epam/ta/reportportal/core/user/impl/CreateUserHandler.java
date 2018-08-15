@@ -241,7 +241,7 @@ public class CreateUserHandler implements ICreateUserHandler {
 		UserCreationBid bid = userCreationBidRepository.findOne(uuid);
 		expect(bid, notNull()).verify(INCORRECT_REQUEST, "Impossible to register user. UUID expired or already registered.");
 
-		User user = userRepository.findOne(request.getLogin());
+		User user = userRepository.findOne(request.getLogin().toLowerCase());
 		expect(user, isNull()).verify(USER_ALREADY_EXISTS, formattedSupplier("login='{}'", request.getLogin()));
 
 		expect(request.getLogin(), Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,

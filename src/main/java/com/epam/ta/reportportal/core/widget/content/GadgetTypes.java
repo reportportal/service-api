@@ -51,16 +51,14 @@ public enum GadgetTypes {
 	PASSING_RATE_SUMMARY("passing_rate_summary"),
 	PASSING_RATE_PER_LAUNCH("passing_rate_per_launch"),
 	PRODUCT_STATUS("product_status"),
-	CUMULATIVE("cumulative");
+	CUMULATIVE("cumulative"),
+	MOST_TIME_CONSUMING("most_time_consuming"),
+	GROUPING("grouping");
 
 	private final String type;
 
 	GadgetTypes(String type) {
 		this.type = type;
-	}
-
-	public String getType() {
-		return this.type;
 	}
 
 	public static GadgetTypes getByName(String type) {
@@ -69,5 +67,9 @@ public enum GadgetTypes {
 
 	public static Optional<GadgetTypes> findByName(@Nullable String name) {
 		return Arrays.stream(GadgetTypes.values()).filter(gadgetTypes -> gadgetTypes.getType().equalsIgnoreCase(name)).findAny();
+	}
+
+	public String getType() {
+		return this.type;
 	}
 }

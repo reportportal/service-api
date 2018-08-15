@@ -23,18 +23,24 @@ package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.search.Queryable;
 import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 
 /**
  * GET operations for {@link TestItem}<br>
@@ -45,22 +51,24 @@ import java.util.List;
  */
 @Service
 class GetTestItemHandlerImpl implements GetTestItemHandler {
+	private final LaunchRepository launchRepository;
 	private final TestItemRepository testItemRepository;
 	private final TestItemResourceAssembler itemAssembler;
 
-	@Autowired
-	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, TestItemResourceAssembler itemAssembler) {
+	public GetTestItemHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository,
+			TestItemResourceAssembler itemAssembler) {
+		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.itemAssembler = itemAssembler;
 	}
 
 	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.epam.ta.reportportal.core.item.GetTestItemHandler#getTestItem(java
-	 * .lang.String)
-	 */
+		 * (non-Javadoc)
+		 *
+		 * @see
+		 * com.epam.ta.reportportal.core.item.GetTestItemHandler#getTestItem(java
+		 * .lang.String)
+		 */
 	@Override
 	public TestItemResource getTestItem(String testItemId) {
 		TestItem testItem = testItemRepository.findOne(testItemId);
@@ -76,7 +84,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	 * .lang.String, java.util.Set, org.springframework.data.domain.Pageable)
 	 */
 	@Override
-	public Iterable<TestItemResource> getTestItems(Queryable filterable, Pageable pageable) {
+	public Iterable<TestItemResource> getTestItems(Queryable filterable, Pageable pageable, String launchId, String projectName) {
+		validate(launchId, projectName);
 		return itemAssembler.toPagedResources(testItemRepository.findByFilter(filterable, pageable));
 	}
 
@@ -89,5 +98,20 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	public List<TestItemResource> getTestItems(String[] ids) {
 		Iterable<TestItem> testItems = testItemRepository.findAll(Arrays.asList(ids));
 		return itemAssembler.toResources(testItems);
+	}
+
+	/**
+	 * Validate launch reference to specified project ID
+	 *
+	 * @param launchId    - validating launch ID
+	 * @param projectName - specified project name
+	 */
+	private void validate(String launchId, String projectName) {
+		Launch launch = launchRepository.findOne(launchId);
+		expect(launch, notNull()).verify(ErrorType.LAUNCH_NOT_FOUND, launchId);
+		expect(launch.getProjectRef(), equalTo(projectName)).verify(
+				ErrorType.FORBIDDEN_OPERATION,
+				formattedSupplier("Specified launch with id '{}' not referenced to specified project '{}'", launch.getId(), projectName)
+		);
 	}
 }

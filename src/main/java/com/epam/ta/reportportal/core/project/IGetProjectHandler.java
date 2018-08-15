@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.ws.model.user.UserResource;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Andrei_Ramanchuk
@@ -80,4 +81,6 @@ public interface IGetProjectHandler {
 	 * @return All project names
 	 */
 	List<String> getAllProjectNames();
+
+	Map<String,Boolean> getAnalyzerIndexingStatus();
 }

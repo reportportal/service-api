@@ -22,14 +22,17 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.project.IDeleteProjectHandler;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.project.EntryType;
+import com.epam.ta.reportportal.events.ProjectIndexEvent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -54,6 +57,12 @@ public class DeleteProjectHandler implements IDeleteProjectHandler {
 	private ILogIndexer logIndexer;
 
 	@Autowired
+	private AnalyzerStatusCache analyzerStatusCache;
+
+	@Autowired
+	private ApplicationEventPublisher eventPublisher;
+
+	@Autowired
 	public DeleteProjectHandler(ProjectRepository projectRepository) {
 		this.projectRepository = projectRepository;
 	}
@@ -72,5 +81,18 @@ public class DeleteProjectHandler implements IDeleteProjectHandler {
 			throw new ReportPortalException("Error during deleting Project and attributes", e);
 		}
 		return new OperationCompletionRS("Project with name = '" + projectName + "' is successfully deleted.");
+	}
+
+	@Override
+	public OperationCompletionRS deleteProjectIndex(String projectName, String username) {
+		Project project = projectRepository.findOne(projectName);
+		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
+		expect(project.getConfiguration().getAnalyzerConfig().isIndexingRunning(), equalTo(false)).verify(
+				ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
+		expect(analyzerStatusCache.getAnalyzerStatus().asMap().containsValue(projectName), equalTo(false)).verify(
+				ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
+		logIndexer.deleteIndex(projectName);
+		eventPublisher.publishEvent(new ProjectIndexEvent(projectName, username, false));
+		return new OperationCompletionRS("Project index with name = '" + projectName + "' is successfully deleted.");
 	}
 }

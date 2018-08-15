@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.database.entity.*;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
+import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,6 +68,11 @@ public class IssuesAnalyzerServiceTest {
 	private ILogIndexer logIndexer;
 	@Mock
 	private ApplicationEventPublisher eventPublisher;
+	@Mock
+	private TestItemResourceAssembler resourceAssembler;
+
+	@Mock
+	private AnalyzerStatusCache analyzerStatusCache;
 
 	@InjectMocks
 	private IIssuesAnalyzer issuesAnalyzer;
@@ -88,11 +94,16 @@ public class IssuesAnalyzerServiceTest {
 		Launch launch = launch();
 		TestItem testItems = testItemsTI(1).get(0);
 		when(logRepository.findGreaterOrEqualLevel(singletonList(testItems.getId()), LogLevel.ERROR)).thenReturn(Collections.emptyList());
-		when(projectRepository.findByName(launch.getProjectRef())).thenReturn(project());
+		Project project = project();
+		when(projectRepository.findByName(launch.getProjectRef())).thenReturn(project);
+		doNothing().when(analyzerStatusCache).analyzeStarted(launch.getId(), launch.getProjectRef());
+		doNothing().when(analyzerStatusCache).analyzeFinished(launch.getId());
 		StepBasedStatisticsFacade mock = mock(StepBasedStatisticsFacade.class);
 		when(statisticsFacadeFactory.getStatisticsFacade(StatisticsCalculationStrategy.STEP_BASED)).thenReturn(mock);
-		issuesAnalyzer.analyze(launch, singletonList(testItems), AnalyzeMode.ALL_LAUNCHES);
+		issuesAnalyzer.analyze(launch, project, singletonList(testItems), AnalyzeMode.ALL_LAUNCHES);
 		verify(logRepository, times(1)).findGreaterOrEqualLevel(singletonList(testItems.getId()), LogLevel.ERROR);
+		verify(analyzerStatusCache, times(1)).analyzeStarted(launch.getId(), project.getName());
+		verify(analyzerStatusCache, times(1)).analyzeFinished(launch.getId());
 		verifyZeroInteractions(analyzerServiceClient);
 	}
 
@@ -104,18 +115,18 @@ public class IssuesAnalyzerServiceTest {
 		List<TestItem> items = testItemsTI(itemsCount);
 
 		when(logRepository.findGreaterOrEqualLevel(anyListOf(String.class), eq(LogLevel.ERROR))).thenReturn(errorLogs(2));
+		doReturn(null).when(resourceAssembler).toResource(any(TestItem.class));
 		when(analyzerServiceClient.analyze(any())).thenReturn(analyzedItems(itemsCount));
 		when(projectRepository.findByName(launch.getProjectRef())).thenReturn(project);
 
 		StepBasedStatisticsFacade mock = mock(StepBasedStatisticsFacade.class);
 		when(statisticsFacadeFactory.getStatisticsFacade(StatisticsCalculationStrategy.STEP_BASED)).thenReturn(mock);
 
-		issuesAnalyzer.analyze(launch, items, AnalyzeMode.ALL_LAUNCHES);
+		issuesAnalyzer.analyze(launch, project, items, AnalyzeMode.ALL_LAUNCHES);
 
 		verify(logRepository, times(itemsCount)).findGreaterOrEqualLevel(anyListOf(String.class), eq(LogLevel.ERROR));
 		verify(analyzerServiceClient, times(1)).analyze(any());
 		verify(testItemRepository, times(1)).updateItemsIssues(any());
-		verify(projectRepository, times(1)).findByName(launch.getProjectRef());
 		verify(statisticsFacadeFactory, times(1)).getStatisticsFacade(StatisticsCalculationStrategy.STEP_BASED);
 		verify(mock, times(1)).recalculateStatistics(launch);
 		verify(logIndexer, times(1)).indexLogs(eq(launch.getId()), anyListOf(TestItem.class));

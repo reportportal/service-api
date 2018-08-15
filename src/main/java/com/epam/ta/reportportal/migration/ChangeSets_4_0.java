@@ -21,6 +21,8 @@
 
 package com.epam.ta.reportportal.migration;
 
+import com.epam.ta.reportportal.database.entity.AnalyzeMode;
+import com.epam.ta.reportportal.database.entity.ProjectAnalyzerConfig;
 import com.github.mongobee.changeset.ChangeLog;
 import com.github.mongobee.changeset.ChangeSet;
 import com.google.common.collect.Lists;
@@ -34,7 +36,9 @@ import org.springframework.data.mongodb.core.query.Update;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import static com.epam.ta.reportportal.database.entity.AnalyzeMode.BY_LAUNCH_NAME;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
 
@@ -127,7 +131,7 @@ public class ChangeSets_4_0 {
 	@ChangeSet(order = "4.2-1", id = "v4.2-Update activities names", author = "pbortnik")
 	public void updateActivitiesNames(MongoTemplate mongoTemplate) {
 		String collection = "activity";
-		Query q = query(where("actionType").in(Lists.newArrayList("load_issue", "load_issue_aa", "attach_issue")));
+		Query q = query(where("actionType").in(Lists.newArrayList("load_issue", "load_issue_aa", "attach_issue", "attach_issue_aa")));
 		q.fields().include(("_id"));
 		q.fields().include("actionType");
 		mongoTemplate.stream(q, DBObject.class, collection).forEachRemaining(o -> {
@@ -135,10 +139,41 @@ public class ChangeSets_4_0 {
 			Update u = new Update();
 			if ("load_issue".equals(type) || "attach_issue".equals(type)) {
 				u.set("actionType", "link_issue");
-			} else if ("load_issue_aa".equals(type)) {
+			} else if ("load_issue_aa".equals(type) || "attach_issue_aa".equals(type)) {
 				u.set("actionType", "link_issue_aa");
 			}
 			mongoTemplate.updateFirst(query(where("_id").is(o.get("_id"))), u, collection);
+		});
+	}
+
+	@ChangeSet(order = "4.2-2", id = "v4.2-Introduce default analyzer parameters for each project", author = "pbortnik")
+	public void introduceAnalyzerParameters(MongoTemplate mongoTemplate) {
+		String collection = "project";
+		Query query = query(where("configuration").exists(true).and("configuration.analyzerConfig").exists(false));
+		query.fields().include("_id");
+		query.fields().include("configuration");
+		mongoTemplate.stream(query, DBObject.class, collection).forEachRemaining(p -> {
+			BasicDBObject configuration = (BasicDBObject) p.get("configuration");
+			Boolean isAAEnabled = (Boolean) Optional.ofNullable(configuration.get("isAutoAnalyzerEnabled")).orElse(false);
+
+			String analyzerMode;
+			if (configuration.get("analyzerMode") != null) {
+				analyzerMode = AnalyzeMode.valueOf((String) configuration.get("analyzerMode")).getValue();
+			} else {
+				analyzerMode = BY_LAUNCH_NAME.getValue();
+			}
+
+			Update update = new Update();
+			update.unset("configuration.isAutoAnalyzerEnabled");
+			update.unset("configuration.analyzerMode");
+
+			update.set("configuration.analyzerConfig.minDocFreq", ProjectAnalyzerConfig.MIN_DOC_FREQ);
+			update.set("configuration.analyzerConfig.minTermFreq", ProjectAnalyzerConfig.MIN_TERM_FREQ);
+			update.set("configuration.analyzerConfig.minShouldMatch", ProjectAnalyzerConfig.MIN_SHOULD_MATCH);
+			update.set("configuration.analyzerConfig.numberOfLogLines", ProjectAnalyzerConfig.NUMBER_OF_LOG_LINES);
+			update.set("configuration.analyzerConfig.isAutoAnalyzerEnabled", isAAEnabled);
+			update.set("configuration.analyzerConfig.analyzerMode", analyzerMode);
+			mongoTemplate.updateFirst(query(where("_id").is(p.get("_id"))), update, collection);
 		});
 	}
 }

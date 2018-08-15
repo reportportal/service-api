@@ -29,17 +29,22 @@ import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.LogRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.LogLevel;
+import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
 import com.epam.ta.reportportal.events.TicketAttachedEvent;
+import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
+import com.epam.ta.reportportal.ws.converter.converters.AnalyzerConfigConverter;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
+import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,9 +79,6 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	private TestItemRepository testItemRepository;
 
 	@Autowired
-	private ProjectRepository projectRepository;
-
-	@Autowired
 	private StatisticsFacadeFactory statisticsFacadeFactory;
 
 	@Autowired
@@ -88,41 +90,63 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
 
+	@Autowired
+	private AnalyzerStatusCache analyzerStatusCache;
+
+	@Autowired
+	private TestItemResourceAssembler itemConverter;
+
 	@Override
 	public boolean hasAnalyzers() {
 		return analyzerServiceClient.hasClients();
 	}
 
 	@Override
-	public void analyze(Launch launch, List<TestItem> testItems, AnalyzeMode analyzeMode) {
+	public void analyze(Launch launch, Project project, List<TestItem> testItems, AnalyzeMode analyzeMode) {
 		if (launch != null) {
-			List<IndexTestItem> rqTestItems = prepareItems(testItems);
-			Map<String, List<AnalyzedItemRs>> rs = analyze(rqTestItems, launch, analyzeMode);
-			if (!MapUtils.isEmpty(rs)) {
-				List<TestItem> updatedItems = rs.entrySet()
-						.stream()
-						.flatMap(it -> updateTestItems(it.getKey(), it.getValue(), testItems, launch.getProjectRef()).stream())
-						.collect(toList());
-				saveUpdatedItems(updatedItems);
-				logIndexer.indexLogs(launch.getId(), updatedItems);
+			try {
+				analyzerStatusCache.analyzeStarted(launch.getId(), project.getName());
+				List<IndexTestItem> rqTestItems = prepareItems(testItems);
+				IndexLaunch rqLaunch = prepareLaunch(rqTestItems, launch, project, analyzeMode);
+				Map<String, List<AnalyzedItemRs>> rs = analyze(rqLaunch);
+				if (!MapUtils.isEmpty(rs)) {
+					List<TestItem> updatedItems = rs.entrySet()
+							.stream()
+							.flatMap(it -> updateTestItems(it.getKey(), it.getValue(), testItems, launch.getProjectRef()).stream())
+							.collect(toList());
+					saveUpdatedItems(updatedItems);
+					logIndexer.indexLogs(launch.getId(), updatedItems);
+				}
+				statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
+						.recalculateStatistics(launch);
+			} finally {
+				analyzerStatusCache.analyzeFinished(launch.getId());
 			}
-			statisticsFacadeFactory.getStatisticsFacade(
-					projectRepository.findByName(launch.getProjectRef()).getConfiguration().getStatisticsCalculationStrategy())
-					.recalculateStatistics(launch);
 		}
 	}
 
-	private Map<String, List<AnalyzedItemRs>> analyze(List<IndexTestItem> rqTestItems, Launch launch, AnalyzeMode analyzeMode) {
-		if (!rqTestItems.isEmpty()) {
-			IndexLaunch rqLaunch = new IndexLaunch();
-			rqLaunch.setAnalyzeMode(analyzeMode.getValue());
-			rqLaunch.setLaunchId(launch.getId());
-			rqLaunch.setLaunchName(launch.getName());
-			rqLaunch.setProject(launch.getProjectRef());
-			rqLaunch.setTestItems(rqTestItems);
-			return analyzerServiceClient.analyze(rqLaunch);
+	private Map<String, List<AnalyzedItemRs>> analyze(IndexLaunch launch) {
+		if (null != launch) {
+			return analyzerServiceClient.analyze(launch);
 		}
 		return Collections.emptyMap();
+	}
+
+	private IndexLaunch prepareLaunch(List<IndexTestItem> rqTestItems, Launch launch, Project project, AnalyzeMode analyzeMode) {
+		if (!rqTestItems.isEmpty()) {
+			IndexLaunch rqLaunch = new IndexLaunch();
+			rqLaunch.setLaunchId(launch.getId());
+			rqLaunch.setLaunchName(launch.getName());
+			rqLaunch.setProject(project.getName());
+			AnalyzerConfig analyzerConfig = AnalyzerConfigConverter.TO_RESOURCE.apply(project.getConfiguration().getAnalyzerConfig());
+			//uses provided analyze mode because it could be run with another mode from launch view
+			analyzerConfig.setAnalyzerMode(analyzeMode.getValue());
+
+			rqLaunch.setAnalyzerConfig(analyzerConfig);
+			rqLaunch.setTestItems(rqTestItems);
+			return rqLaunch;
+		}
+		return null;
 	}
 
 	/**
@@ -148,6 +172,8 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	 */
 	private List<TestItem> updateTestItems(String analyzerInstance, List<AnalyzedItemRs> rs, List<TestItem> testItems, String project) {
 		final Map<IssueDefinition, TestItem> forEvents = new HashMap<>();
+		final Map<String, TestItemResource> relevantItemIdMap = new HashMap<>();
+
 		List<TestItem> beforeUpdate = new ArrayList<>(rs.size());
 		List<TestItem> updatedItems = rs.stream().map(analyzed -> {
 			Optional<TestItem> toUpdate = testItems.stream().filter(item -> item.getId().equals(analyzed.getItemId())).findAny();
@@ -160,12 +186,17 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 				ofNullable(analyzed.getRelevantItemId()).ifPresent(relevantItemId -> fromRelevantItem(issue, relevantItemId));
 				IssueDefinition issueDefinition = createIssueDefinition(testItem.getId(), issue);
 				forEvents.put(issueDefinition, SerializationUtils.clone(testItem));
+
+				TestItemResource resource = itemConverter.apply(testItemRepository.findById(analyzed.getRelevantItemId(),
+						Lists.newArrayList("_id", "path", "launchRef")
+				));
+				relevantItemIdMap.put(testItem.getId(), resource);
 				testItem.setIssue(issue);
 			});
 			return toUpdate;
 		}).filter(Optional::isPresent).map(Optional::get).collect(toList());
-		eventPublisher.publishEvent(new ItemIssueTypeDefined(forEvents, analyzerInstance, project));
-		eventPublisher.publishEvent(new TicketAttachedEvent(beforeUpdate, updatedItems, analyzerInstance, project));
+		eventPublisher.publishEvent(new ItemIssueTypeDefined(forEvents, analyzerInstance, project, relevantItemIdMap));
+		eventPublisher.publishEvent(new TicketAttachedEvent(beforeUpdate, updatedItems, analyzerInstance, project, relevantItemIdMap));
 		return updatedItems;
 	}
 
@@ -185,8 +216,8 @@ public class IssuesAnalyzerService implements IIssuesAnalyzer {
 	private void fromRelevantItem(TestItemIssue issue, String relevantItemId) {
 		TestItem relevantItem = testItemRepository.findOne(relevantItemId);
 		if (relevantItem != null && relevantItem.getIssue() != null) {
-			issue.setIssueDescription(
-					emptyToNull(nullToEmpty(issue.getIssueDescription()) + nullToEmpty(relevantItem.getIssue().getIssueDescription())));
+			issue.setIssueDescription(emptyToNull(
+					nullToEmpty(issue.getIssueDescription()) + nullToEmpty(relevantItem.getIssue().getIssueDescription())));
 			issue.setExternalSystemIssues(Optional.ofNullable(relevantItem.getIssue().getExternalSystemIssues()).orElse(emptySet()));
 		}
 	}

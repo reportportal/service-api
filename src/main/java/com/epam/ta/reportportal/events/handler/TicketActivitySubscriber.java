@@ -32,20 +32,29 @@ import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
 import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
 import com.epam.ta.reportportal.events.TicketAttachedEvent;
 import com.epam.ta.reportportal.events.TicketPostedEvent;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.*;
 import static com.epam.ta.reportportal.database.entity.item.ActivityObjectType.TEST_ITEM;
+import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.EMPTY_FIELD;
 import static com.epam.ta.reportportal.events.handler.EventHandlerUtil.createHistoryField;
 
 /**
@@ -58,12 +67,16 @@ public class TicketActivitySubscriber {
 	public static final String ISSUE_TYPE = "issueType";
 	public static final String IGNORE_ANALYZER = "ignoreAnalyzer";
 	public static final String COMMENT = "comment";
+	private static final String RELEVANT_ITEM = "relevantItem";
 
 	private final ActivityRepository activityRepository;
 
 	private final TestItemRepository testItemRepository;
 
 	private final ProjectRepository projectSettingsRepository;
+
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	@Autowired
 	public TicketActivitySubscriber(ActivityRepository activityRepository, TestItemRepository testItemRepository,
@@ -109,8 +122,10 @@ public class TicketActivitySubscriber {
 		Iterable<TestItem> testItems = event.getBefore();
 		Map<String, Activity.FieldValues> results = StreamSupport.stream(testItems.spliterator(), false)
 				.filter(item -> null != item.getIssue())
-				.collect(Collectors.toMap(TestItem::getId, item -> Activity.FieldValues.newOne()
-						.withOldValue(issuesIdsToString(item.getIssue().getExternalSystemIssues(), separator))));
+				.collect(Collectors.toMap(TestItem::getId,
+						item -> Activity.FieldValues.newOne()
+								.withOldValue(issuesIdsToString(item.getIssue().getExternalSystemIssues(), separator))
+				));
 
 		Iterable<TestItem> updated = event.getAfter();
 
@@ -139,10 +154,11 @@ public class TicketActivitySubscriber {
 					.addObjectType(TEST_ITEM)
 					.addObjectName(testItem.getName())
 					.addUserRef(event.getPostedBy())
-					.addHistory(Collections.singletonList(fieldValues))
+					.addHistory(Lists.newArrayList(fieldValues))
 					.get();
 			activities.add(activity);
 		}
+		processAnalyzedItems(activities, event.getRelevantItemMap());
 		activityRepository.save(activities);
 	}
 
@@ -150,8 +166,25 @@ public class TicketActivitySubscriber {
 	public void onIssueTypeDefined(ItemIssueTypeDefined itemIssueTypeDefined) {
 		Map<IssueDefinition, TestItem> data = itemIssueTypeDefined.getBefore();
 		List<Activity> activities = processTestItemIssues(itemIssueTypeDefined.getProject(), itemIssueTypeDefined.getPostedBy(), data);
+		processAnalyzedItems(activities, itemIssueTypeDefined.getRelevantItemMap());
 		if (!activities.isEmpty()) {
 			activityRepository.save(activities);
+		}
+	}
+
+	private void processAnalyzedItems(List<Activity> activities, Map<String, TestItemResource> relevantItemMap) {
+		if (relevantItemMap != null) {
+			activities.forEach(a -> {
+				try {
+					a.getHistory()
+							.add(createHistoryField(RELEVANT_ITEM,
+									EMPTY_FIELD,
+									objectMapper.writeValueAsString(relevantItemMap.get(a.getLoggedObjectRef()))
+							));
+				} catch (JsonProcessingException e) {
+					throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, e.getMessage());
+				}
+			});
 		}
 	}
 
@@ -201,7 +234,8 @@ public class TicketActivitySubscriber {
 				history.add(fieldValues);
 			}
 			if (oldIgnoreAnalyzer != issueDefinition.getIssue().getIgnoreAnalyzer()) {
-				Activity.FieldValues field = createHistoryField(IGNORE_ANALYZER, String.valueOf(oldIgnoreAnalyzer),
+				Activity.FieldValues field = createHistoryField(IGNORE_ANALYZER,
+						String.valueOf(oldIgnoreAnalyzer),
 						String.valueOf(issueDefinition.getIssue().getIgnoreAnalyzer())
 				);
 				history.add(field);

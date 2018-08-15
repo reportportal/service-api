@@ -65,6 +65,9 @@ public class PagedResourcesAssemblerTest extends BaseTest {
 	@Autowired
 	protected ProjectRepository projectRepository;
 
+	@Autowired
+	protected LaunchConverter launchConverter;
+
 	@Rule
 	@Autowired
 	public SpringFixtureRule dfRule;
@@ -95,7 +98,7 @@ public class PagedResourcesAssemblerTest extends BaseTest {
 		}
 
 		com.epam.ta.reportportal.ws.model.Page<LaunchResource> pagedResources = PagedResourcesAssembler.pageConverter(
-				LaunchConverter.TO_RESOURCE).apply(savedLaunch);
+				launchConverter.getLaunchConverter()).apply(savedLaunch);
 
 		/*
 		 * Test Current

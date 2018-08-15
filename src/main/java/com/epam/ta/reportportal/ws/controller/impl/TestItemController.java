@@ -26,10 +26,8 @@ import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
 import com.epam.ta.reportportal.core.item.merge.MergeTestItemHandler;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.search.CompositeFilter;
 import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
-import com.epam.ta.reportportal.database.search.Queryable;
 import com.epam.ta.reportportal.ws.controller.ITestItemController;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
@@ -134,9 +132,10 @@ public class TestItemController implements ITestItemController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Find test items by specified filter")
-	public Iterable<TestItemResource> getTestItems(@PathVariable String projectName, @FilterFor(TestItem.class) Filter filter,
-			@FilterFor(TestItem.class) Queryable predefinedFilter, @SortFor(TestItem.class) Pageable pageable, Principal principal) {
-		return getTestItemHandler.getTestItems(new CompositeFilter(filter, predefinedFilter), pageable);
+	public Iterable<TestItemResource> getTestItems(@PathVariable String projectName,
+			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ + TestItem.LAUNCH_CRITERIA) String launchId,
+			@FilterFor(TestItem.class) Filter filter, @SortFor(TestItem.class) Pageable pageable, Principal principal) {
+		return getTestItemHandler.getTestItems(filter, pageable, launchId, projectName);
 	}
 
 	@DeleteMapping("/{item}")

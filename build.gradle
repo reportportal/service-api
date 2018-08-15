@@ -25,9 +25,9 @@ apply plugin: "io.spring.dependency-management"
 apply plugin: 'jacoco'
 
 apply from: 'build-quality.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-docker.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/4.0/build-docker.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/4.0/build-info.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/4.0/release-service.gradle'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -60,7 +60,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Edgware.RELEASE"
+        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Edgware.SR3"
         mavenBom "org.springframework.boot:spring-boot-dependencies:1.5.9.RELEASE"
     }
 }
@@ -71,14 +71,14 @@ configurations {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:4.1.1'
-        compile 'com.epam.reportportal:commons-rules:4.0.1'
-        compile 'com.epam.reportportal:commons-model:4.0.4'
+        compile 'com.epam.reportportal:commons-dao:4.2.0'
+        compile 'com.epam.reportportal:commons-rules:4.2.0'
+        compile 'com.epam.reportportal:commons-model:4.2.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile('com.github.reportportal:commons-dao:58b4de6')
-        compile('com.github.reportportal:commons-rules:a3f8055')
-        compile 'com.github.reportportal:commons-model:4f7b61d'
+        compile('com.github.reportportal:commons-dao:c772bde')
+        compile('com.github.reportportal:commons-rules:4.2.0')
+        compile 'com.github.reportportal:commons-model:4.2.0'
         compile('com.github.reportportal:commons:3.1.0')
     }
 

@@ -1,20 +1,20 @@
 /*
  * Copyright 2017 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -125,8 +125,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				verifyTestItem(testItem, issueDefinition.getId());
 				TestItem before = SerializationUtils.clone(testItem);
 
-				//if item is updated then it is no longer auto analyzed
-				issueDefinition.getIssue().setAutoAnalyzed(false);
 				eventData.put(issueDefinition, testItem);
 
 				final Launch launch = launchRepository.findOne(testItem.getLaunchRef());
@@ -174,8 +172,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 					} else {
 						issuesFromDB.removeAll(newHashSet(Sets.difference(issuesFromDB, issuesFromRequest)));
 						testItemIssue.setExternalSystemIssues(issuesFromDB);
-						eventPublisher.publishEvent(
-								new TicketAttachedEvent(singletonList(before), singletonList(testItem), userName, projectName));
+						eventPublisher.publishEvent(new TicketAttachedEvent(singletonList(before),
+								singletonList(testItem),
+								userName,
+								projectName,
+								null
+						));
 					}
 				}
 
@@ -198,7 +200,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		expect(!errors.isEmpty(), equalTo(FALSE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 
-		eventPublisher.publishEvent(new ItemIssueTypeDefined(eventData.build(), userName, projectName));
+		eventPublisher.publishEvent(new ItemIssueTypeDefined(eventData.build(), userName, projectName, null));
 		return updated;
 	}
 
@@ -242,7 +244,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		expect(!errors.isEmpty(), equalTo(FALSE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 
 		testItemRepository.save(testItems);
-		eventPublisher.publishEvent(new TicketAttachedEvent(before, Lists.newArrayList(testItems), userName, projectName));
+		eventPublisher.publishEvent(new TicketAttachedEvent(before, Lists.newArrayList(testItems), userName, projectName, null));
 		return StreamSupport.stream(testItems.spliterator(), false)
 				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getId() + "' successfully updated."))
 				.collect(toList());
@@ -290,16 +292,16 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 */
 	private String verifyTestItemDefinedIssueType(final String type, final Project.Configuration settings) {
 		StatisticSubType defined = settings.getByLocator(type);
-		expect(defined, notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS,
-				formattedSupplier("Invalid test item issue type definition '{}'. Valid issue types locators are: {}", type,
-						settings.getSubTypes()
-								.values()
-								.stream()
-								.flatMap(Collection::stream)
-								.map(StatisticSubType::getLocator)
-								.collect(Collectors.toList())
-				)
-		);
+		expect(defined, notNull()).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
+				"Invalid test item issue type definition '{}'. Valid issue types locators are: {}",
+				type,
+				settings.getSubTypes()
+						.values()
+						.stream()
+						.flatMap(Collection::stream)
+						.map(StatisticSubType::getLocator)
+						.collect(Collectors.toList())
+		));
 		return defined.getLocator();
 	}
 
@@ -311,27 +313,40 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @throws BusinessRuleViolationException when business rule violation
 	 */
 	private void verifyTestItem(TestItem testItem, String id) throws BusinessRuleViolationException {
-		expect(
-				testItem, notNull(), Suppliers.formattedSupplier("Cannot update issue type for test item '{}', cause it is not found.", id))
-				.verify();
+		expect(testItem,
+				notNull(),
+				Suppliers.formattedSupplier("Cannot update issue type for test item '{}', cause it is not found.", id)
+		).verify();
 
-		expect(testItem.getStatus(), not(equalTo(PASSED)),
+		expect(testItem.getStatus(),
+				not(equalTo(PASSED)),
 				Suppliers.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
 						PASSED.name()
 				)
 		).verify();
 
-		expect(
-				testItem.hasChilds(), not(equalTo(TRUE)), Suppliers.formattedSupplier(
-						"It is not allowed to udpate issue type for items with descendants. Test item '{}' has descendants.", id)).verify();
+		expect(testItem.hasChilds(),
+				not(equalTo(TRUE)),
+				Suppliers.formattedSupplier(
+						"It is not allowed to udpate issue type for items with descendants. Test item '{}' has descendants.",
+						id
+				)
+		).verify();
 
-		expect(
-				testItem.getIssue(), notNull(), Suppliers.formattedSupplier(
-						"Cannot update issue type for test item '{}', cause there is no info about actual issue type value.", id)).verify();
+		expect(testItem.getIssue(),
+				notNull(),
+				Suppliers.formattedSupplier(
+						"Cannot update issue type for test item '{}', cause there is no info about actual issue type value.",
+						id
+				)
+		).verify();
 
-		expect(
-				testItem.getIssue().getIssueType(), notNull(), Suppliers.formattedSupplier(
-						"Cannot update issue type for test item {}, cause it's actual issue type value is not provided.", id)).verify();
+		expect(testItem.getIssue().getIssueType(),
+				notNull(),
+				Suppliers.formattedSupplier("Cannot update issue type for test item {}, cause it's actual issue type value is not provided.",
+						id
+				)
+		).verify();
 	}
 
 }

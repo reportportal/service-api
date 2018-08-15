@@ -28,10 +28,12 @@ import com.epam.ta.reportportal.core.analyzer.model.IndexRsIndex;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRsItem;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.dao.LogRepository;
+import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
 import com.epam.ta.reportportal.database.entity.Log;
 import com.epam.ta.reportportal.database.entity.LogLevel;
+import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
@@ -76,6 +78,8 @@ public class LogIndexerServiceTest {
 	private TestItemRepository testItemRepository;
 	@Mock
 	private LogRepository logRepository;
+	@Mock
+	private ProjectRepository projectRepository;
 
 	@InjectMocks
 	private LogIndexerService logIndexerService;
@@ -159,10 +163,12 @@ public class LogIndexerServiceTest {
 	@Test
 	public void testIndexLogs() {
 		String launchId = "4";
-		when(launchRepository.findOne(eq(launchId))).thenReturn(createLaunch(launchId));
+		Launch launch = createLaunch(launchId);
+		when(launchRepository.findOne(eq(launchId))).thenReturn(launch);
 		when(logRepository.findGreaterOrEqualLevel(anyListOf(String.class), eq(LogLevel.ERROR))).thenReturn(
 				Collections.singletonList(createLog("id")));
 		int testItemCount = 2;
+		when(projectRepository.findOne(launch.getProjectRef())).thenReturn(new Project());
 		when(analyzerServiceClient.index(anyListOf(IndexLaunch.class))).thenReturn(Collections.singletonList(createIndexRs(testItemCount)));
 		logIndexerService.indexLogs(launchId, createTestItems(testItemCount));
 		verify(logRepository, times(testItemCount)).findGreaterOrEqualLevel(anyListOf(String.class), eq(LogLevel.ERROR));

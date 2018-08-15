@@ -1,20 +1,20 @@
 /*
  * Copyright 2016 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -86,6 +86,24 @@ public interface IProjectController {
 	 * @throws ReportPortalException
 	 */
 	OperationCompletionRS deleteProject(String projectName, Principal principal);
+
+	/**
+	 * Deletes project indexed data from analyzer
+	 *
+	 * @param projectName Project name
+	 * @param principal   Principal
+	 * @return OperationCompletionRS
+	 */
+	OperationCompletionRS deleteProjectIndex(String projectName, Principal principal);
+
+	/**
+	 * Removes project indexed data from analyzer if it exists and do reindex.
+	 *
+	 * @param projectName Project name
+	 * @param principal   Principal
+	 * @return OperationCompletionRS
+	 */
+	OperationCompletionRS indexProjectData(String projectName, Principal principal);
 
 	/**
 	 * Get list of {@link com.epam.ta.reportportal.ws.model.user.UserResource}
@@ -173,7 +191,7 @@ public interface IProjectController {
 	 * @param principal
 	 * @return
 	 */
-	OperationCompletionRS updateUserPreference(String projectName, UpdatePreferenceRQ rq, String login, Principal principal);
+	PreferenceResource updateUserPreference(String projectName, UpdatePreferenceRQ rq, String login, Principal principal);
 
 	/**
 	 * Get information about all projects
@@ -200,5 +218,13 @@ public interface IProjectController {
 	 * @return
 	 */
 	Iterable<String> getAllProjectNames(Principal principal);
+
+	/**
+	 * Get statuses of log indexing per project
+	 *
+	 * @param principal Principal
+	 * @return Map of results
+	 */
+	Map<String, Boolean> getAnalyzerIndexingStatus(Principal principal);
 
 }

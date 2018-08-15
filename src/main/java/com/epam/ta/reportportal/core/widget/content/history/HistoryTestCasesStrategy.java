@@ -22,16 +22,20 @@
 package com.epam.ta.reportportal.core.widget.content.history;
 
 import com.epam.ta.reportportal.core.item.history.ITestItemsHistoryService;
-import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.database.dao.LaunchRepository;
 import com.epam.ta.reportportal.database.entity.Launch;
+import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
+import com.epam.ta.reportportal.database.search.Condition;
+import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.database.search.FilterCondition;
+import com.epam.ta.reportportal.database.search.Queryable;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -39,15 +43,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
  * @author Pavel Bortnik
  */
 @Service
-public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
-
-	private static final String LAUNCH_NAME_FIELD = "launchNameFilter";
-
-	private static final String LAST_FOUND_LAUNCH = "lastLaunch";
-
-	static final int RESULTED_MAP_SIZE = 2;
-
-	static final int ITEMS_COUNT_VALUE = 20;
+public abstract class HistoryTestCasesStrategy extends LastLaunchFilterStrategy {
 
 	@Autowired
 	protected LaunchRepository launchRepository;
@@ -56,20 +52,17 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 	private ITestItemsHistoryService historyServiceStrategy;
 
 	List<Launch> getLaunchHistory(ContentOptions contentOptions, String projectName) {
-		/*
-		 * Return false response for absent filtering launch name parameter
-		 */
-		if (contentOptions.getWidgetOptions() == null || contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD) == null) {
+
+		Optional<Launch> lastLaunch = getLastLaunch(contentOptions, projectName);
+
+		if (!lastLaunch.isPresent()) {
 			return Collections.emptyList();
 		}
-		Optional<Launch> lastLaunchForProject = launchRepository.findLastLaunch(projectName,
-				contentOptions.getWidgetOptions().get(LAUNCH_NAME_FIELD).get(0), Mode.DEFAULT.name()
-		);
-		if (!lastLaunchForProject.isPresent()) {
-			return Collections.emptyList();
-		}
-		List<Launch> launchHistory = historyServiceStrategy.loadLaunches(contentOptions.getItemsCount(), lastLaunchForProject.get().getId(),
-				projectName, false
+
+		List<Launch> launchHistory = historyServiceStrategy.loadLaunches(contentOptions.getItemsCount(),
+				lastLaunch.get().getId(),
+				projectName,
+				false
 		);
 		if (launchHistory.isEmpty()) {
 			return Collections.emptyList();
@@ -86,6 +79,22 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 			lastLaunch.setId(last.getId());
 			result.put(LAST_FOUND_LAUNCH, Collections.singletonList(lastLaunch));
 		}
+	}
+
+	Queryable buildHistoryFilter(ContentOptions contentOptions, List<Launch> launches) {
+		Set<FilterCondition> filterConditions = new HashSet<>();
+
+		filterConditions.add(new FilterCondition(Condition.IN,
+				false,
+				launches.stream().map(Launch::getId).collect(Collectors.joining(",")),
+				TestItem.LAUNCH_CRITERIA
+		));
+		filterConditions.add(new FilterCondition(Condition.EQUALS, false, "false", "has_childs"));
+
+		if (!contentOptions.getWidgetOptions().containsKey(INCLUDE_METHODS)) {
+			filterConditions.add(new FilterCondition(Condition.EQUALS, false, "STEP", "type"));
+		}
+		return new Filter(TestItem.class, filterConditions);
 	}
 
 	String countPercentage(int amount, int total) {
@@ -153,8 +162,9 @@ public abstract class HistoryTestCasesStrategy implements BuildFilterStrategy {
 				return false;
 			}
 			HistoryObject that = (HistoryObject) o;
-			return total == that.total && Objects.equals(uniqueId, that.uniqueId) && Objects.equals(name, that.name) && Objects.equals(
-					lastTime, that.lastTime) && Objects.equals(percentage, that.percentage);
+			return total == that.total && Objects.equals(uniqueId, that.uniqueId) && Objects.equals(name, that.name) && Objects.equals(lastTime,
+					that.lastTime
+			) && Objects.equals(percentage, that.percentage);
 		}
 
 		@Override

@@ -63,9 +63,12 @@ public class MostFailedTestCasesFilterStrategy extends HistoryTestCasesStrategy 
 		if (isEmpty(launchHistory)) {
 			return emptyMap();
 		}
-		List<String> ids = launchHistory.stream().map(Launch::getId).collect(toList());
 
-		List<MostFailedHistory> history = itemRepository.getMostFailedItemHistory(ids, criteria, ITEMS_COUNT_VALUE);
+		List<MostFailedHistory> history = itemRepository.getMostFailedItemHistory(
+				buildHistoryFilter(contentOptions, launchHistory),
+				criteria,
+				ITEMS_COUNT_VALUE
+		);
 		if (isEmpty(history)) {
 			return emptyMap();
 		}

@@ -22,7 +22,9 @@
 package com.epam.ta.reportportal.core.analyzer;
 
 import com.epam.ta.reportportal.database.entity.Log;
+import com.epam.ta.reportportal.database.entity.Project;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.database.entity.user.User;
 
 import java.util.List;
 
@@ -48,8 +50,9 @@ public interface ILogIndexer {
 	 *
 	 * @param launchId  - ID of the launch
 	 * @param testItems - list of test items, for which log indexing will be performed
+	 * @return The count of indexed test items
 	 */
-	void indexLogs(String launchId, List<TestItem> testItems);
+	Long indexLogs(String launchId, List<TestItem> testItems);
 
 	/**
 	 * Delete index of specified project
@@ -71,4 +74,14 @@ public interface ILogIndexer {
 	 * {@link com.epam.ta.reportportal.database.entity.LogLevel#ERROR} in repository
 	 */
 	void indexAllLogs();
+
+	/**
+	 * Index all logs with its' level greater than
+	 * {@link com.epam.ta.reportportal.database.entity.LogLevel#ERROR}
+	 * for specified project
+	 *
+	 * @param project Project
+	 * @param user    User
+	 */
+	void indexProjectData(Project project, User user);
 }

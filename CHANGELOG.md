@@ -218,7 +218,7 @@
 * EPMRPP-33492 - WS: Logs of launches from DEBUG level are get to ES during the indexing
 
 ## 4.2
-##### Released: XXX XX, 2017
+##### Released: Jun 14, 2018
 
 ### Bugfixes
 
@@ -226,3 +226,12 @@
 * EPMRPP-34202 - WS: Item with 'Ignore'=true should be escaped during analysis process
 * EPMRPP-34203 - WS: No activity record of unlicked issue for re-analysis.
 * EPMRPP-34212 - WS: No action for linked issue by ML on History of actions
+
+## 4.3
+##### Released: XXX XX, 2017
+
+### Bugfixes
+
+* EPMRPP-35134 - Registration is passed for user with login already in use
+* EPMRPP-35289 - WS: GET item controller returns items that do not belong to specified project, but all available items
+* EPMRPP-35291 - WS: Unclassified error on get latest launches. Improve latest query performance

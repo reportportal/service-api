@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsCollector;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
-import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
 import com.epam.ta.reportportal.database.dao.TestItemRepository;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
@@ -46,6 +45,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+
 /**
  * @author Pavel Bortnik
  */
@@ -56,16 +57,15 @@ public class AnalyzeCollectorConfig {
 	private TestItemRepository testItemRepository;
 
 	@Autowired
-	private StatisticsFacadeFactory statisticsFacadeFactory;
-
-	@Autowired
 	private ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	private ILogIndexer logIndexer;
 
 	private AnalyzeItemsCollector TO_INVESTIGATE_COLLECTOR = (project, username, launchId) -> testItemRepository.findInIssueTypeItems(
-			TestItemIssueType.TO_INVESTIGATE.getLocator(), launchId);
+			TestItemIssueType.TO_INVESTIGATE.getLocator(),
+			launchId
+	).stream().filter(it -> !it.getIssue().isIgnoreAnalyzer()).collect(toList());
 
 	private AnalyzeItemsCollector AUTO_ANALYZED_COLLECTOR = (project, username, launchId) -> {
 		List<TestItem> itemsByAutoAnalyzedStatus = testItemRepository.findItemsByAutoAnalyzedStatus(true, launchId);
@@ -93,8 +93,8 @@ public class AnalyzeCollectorConfig {
 			it.setIssue(new TestItemIssue());
 		});
 		testItemRepository.save(items);
-		eventPublisher.publishEvent(new ItemIssueTypeDefined(definitions, username, projectName));
-		eventPublisher.publishEvent(new TicketAttachedEvent(before, items, username, projectName));
+		eventPublisher.publishEvent(new ItemIssueTypeDefined(definitions, username, projectName, null));
+		eventPublisher.publishEvent(new TicketAttachedEvent(before, items, username, projectName, null));
 		return items;
 	}
 

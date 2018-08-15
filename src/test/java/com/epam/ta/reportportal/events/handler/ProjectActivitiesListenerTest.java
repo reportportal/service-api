@@ -22,6 +22,7 @@ package com.epam.ta.reportportal.events.handler;
 
 import com.epam.ta.reportportal.auth.AuthConstants;
 import com.epam.ta.reportportal.database.dao.ActivityRepository;
+import com.epam.ta.reportportal.database.entity.AnalyzeMode;
 import com.epam.ta.reportportal.database.entity.StatisticsCalculationStrategy;
 import com.epam.ta.reportportal.database.entity.item.Activity;
 import com.epam.ta.reportportal.database.entity.project.InterruptionJobDelay;
@@ -31,9 +32,11 @@ import com.epam.ta.reportportal.database.search.Condition;
 import com.epam.ta.reportportal.database.search.Filter;
 import com.epam.ta.reportportal.database.search.FilterCondition;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +48,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.UPDATE_ANALYZER;
+import static com.epam.ta.reportportal.database.entity.item.ActivityEventType.UPDATE_PROJECT;
 import static com.epam.ta.reportportal.events.handler.ProjectActivityHandler.*;
+import static java.util.stream.Collectors.toList;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -68,7 +74,13 @@ public class ProjectActivitiesListenerTest extends BaseMvcTest {
 		projectConfiguration.setKeepLogs(KeepLogsDelay.ONE_MONTH.getValue());
 		projectConfiguration.setKeepScreenshots(KeepScreenshotsDelay.ONE_MONTH.getValue());
 		projectConfiguration.setStatisticCalculationStrategy(StatisticsCalculationStrategy.TEST_BASED.name());
-		projectConfiguration.setIsAutoAnalyzerEnabled(false);
+		AnalyzerConfig analyzerConfig = new AnalyzerConfig();
+		analyzerConfig.setIsAutoAnalyzerEnabled(false);
+		analyzerConfig.setAnalyzerMode(AnalyzeMode.BY_LAUNCH_NAME.getValue());
+		analyzerConfig.setIndexingRunning(false);
+		analyzerConfig.setNumberOfLogLines(1);
+		analyzerConfig.setMinTermFreq(2);
+		projectConfiguration.setAnalyzerConfig(analyzerConfig);
 		updateProjectRQ.setConfiguration(projectConfiguration);
 
 		this.mvcMock.perform(put("/project/project1").content(objectMapper.writeValueAsBytes(updateProjectRQ))
@@ -77,17 +89,21 @@ public class ProjectActivitiesListenerTest extends BaseMvcTest {
 
 		Filter filter = new Filter(Activity.class, new HashSet<>(
 				Arrays.asList(new FilterCondition(Condition.EQUALS, false, "project1", "projectRef"),
-						new FilterCondition(Condition.EQUALS, false, "update_project", "actionType")
+						new FilterCondition(Condition.IN, false, Lists.newArrayList(UPDATE_PROJECT.getValue(), UPDATE_ANALYZER.getValue())
+								.stream()
+								.collect(Collectors.joining(",")), "actionType")
 				)));
 		List<Activity> activities = activityRepository.findByFilter(filter);
-		List<Activity.FieldValues> history = activities.get(0).getHistory();
-
-		List<String> fields = history.stream().map(Activity.FieldValues::getField).collect(Collectors.toList());
+		List<String> fields = activities.stream()
+				.flatMap(it -> it.getHistory().stream())
+				.map(Activity.FieldValues::getField)
+				.collect(toList());
 		Assert.assertTrue(fields.contains(LAUNCH_INACTIVITY));
 		Assert.assertTrue(fields.contains(KEEP_LOGS));
 		Assert.assertTrue(fields.contains(KEEP_SCREENSHOTS));
-		Assert.assertTrue(fields.contains(AUTO_ANALYZE));
 		Assert.assertTrue(fields.contains(STATISTICS_CALCULATION_STRATEGY));
+		Assert.assertTrue(fields.contains(NUMBER_OF_LOG_LINES));
+		Assert.assertTrue(fields.contains(MIN_TERM_FREQ));
 	}
 
 	@Override

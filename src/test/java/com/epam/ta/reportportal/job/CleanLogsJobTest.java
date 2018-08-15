@@ -29,12 +29,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.stream.Stream;
 
+import static com.epam.ta.reportportal.database.entity.project.KeepLogsDelay.findByName;
+import static java.time.Duration.ofDays;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
@@ -69,23 +76,29 @@ public class CleanLogsJobTest {
 		project.setName(name);
 		project.setConfiguration(configuration);
 
-		Stream<Project> sp = Stream.of(project);
-
 		Launch launch = new Launch();
 		launch.setId(name);
-		Stream<Launch> sl = Stream.of(launch);
 
 		TestItem testItem = new TestItem();
 		Stream<TestItem> st = Stream.of(testItem);
 
-		when(projectRepository.streamAllIdsAndConfiguration()).thenReturn(sp);
-		when(launchRepo.streamModifiedInRange(anyString(), any(Date.class), any(Date.class))).thenReturn(sl);
+		when(projectRepository.findAllIdsAndConfiguration(Mockito.any())).thenReturn(new PageImpl<>(Arrays.asList(project)));
+		when(launchRepo.findModifiedBefore(anyString(), any(Date.class), any())).thenReturn(new PageImpl<>(Arrays.asList(launch)));
 		when(testItemRepo.streamIdsByLaunch(anyString())).thenReturn(st);
 
 		cleanLogsJob.execute(null);
 
 		verify(activityRepository, times(1)).deleteModifiedLaterAgo(anyString(), any(Duration.class));
 		verify(logRepo, times(1)).deleteByPeriodAndItemsRef(any(Duration.class), anyListOf(String.class));
+	}
+
+	@Test
+	public void testPeriods(){
+		Duration period = ofDays(findByName("6 months").getDays());
+		//PT4392H
+		System.out.println(Date.from(Instant.now().minusSeconds(period.getSeconds())));
+		System.out.println(period);
+
 	}
 
 }

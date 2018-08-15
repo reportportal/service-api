@@ -36,6 +36,7 @@
  */
 package com.epam.ta.reportportal.ws.controller.impl;
 
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.imprt.ImportLaunchHandler;
 import com.epam.ta.reportportal.core.jasper.IGetJasperReportHandler;
 import com.epam.ta.reportportal.core.jasper.ReportFormat;
@@ -116,6 +117,9 @@ public class LaunchController implements ILaunchController {
 
 	@Autowired
 	private ImportLaunchHandler importLaunchHandler;
+
+	@Autowired
+	private AnalyzerStatusCache analyzerStatusCache;
 
 	@Override
 	@PostMapping

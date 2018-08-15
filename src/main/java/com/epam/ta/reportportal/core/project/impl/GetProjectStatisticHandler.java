@@ -53,6 +53,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 
+import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.database.entity.item.Activity.ACTION_TYPE;
@@ -187,7 +188,7 @@ public class GetProjectStatisticHandler implements IGetProjectInfoHandler {
 	@SuppressWarnings("serial")
 	private Map<String, List<ChartObject>> getActivities(String projectId, InfoInterval interval) {
 		String value = Arrays.stream(ActivityEventType.values())
-				.filter(ACTIVITIES_PROJECT_FILTER)
+				.filter(not(ACTIVITIES_PROJECT_FILTER))
 				.map(ActivityEventType::getValue)
 				.collect(joining(","));
 		int limit = 150;

@@ -78,7 +78,7 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 	 * Validate provided widget options. For current widget launch name should be specified.
 	 *
 	 * @param widgetOptions Set of stored widget options.
-	 * @param filter		Filter for launch search
+	 * @param filter        Filter for launch search
 	 */
 	private void validateWidgetOptions(Map<String, String> widgetOptions, Filter filter) {
 		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))
@@ -94,9 +94,9 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 	/**
 	 * Validate provided content fields.
 	 * For this widget content fields only with {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#EXECUTIONS_KEY},
-	 * 											{@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#DEFECTS_KEY}
-	 * 										keys should be specified
-	 *
+	 * {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#DEFECTS_KEY}
+	 * keys should be specified
+	 * <p>
 	 * The value of at least one of the content fields should not be empty
 	 *
 	 * @param contentFields Map of provided content.
@@ -104,15 +104,13 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 	private void validateContentFields(Map<String, List<String>> contentFields) {
 		BusinessRule.expect(MapUtils.isNotEmpty(contentFields), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
-		BusinessRule.expect(contentFields.size(), size -> !(size > 2)).verify(
-				ErrorType.BAD_REQUEST_ERROR,
+		BusinessRule.expect(contentFields.size(), size -> !(size > 2)).verify(ErrorType.BAD_REQUEST_ERROR,
 				"Launch statistics' content fields should contain either " + DEFECTS_KEY + " or " + EXECUTIONS_KEY + " keys or both of them"
 		);
 		BusinessRule.expect(
 				CollectionUtils.isNotEmpty(contentFields.get(EXECUTIONS_KEY)) || CollectionUtils.isNotEmpty(contentFields.get(DEFECTS_KEY)),
 				equalTo(true)
-		).verify(
-				ErrorType.BAD_REQUEST_ERROR,
+		).verify(ErrorType.BAD_REQUEST_ERROR,
 				"The value of at least one of the content fields with keys: " + EXECUTIONS_KEY + ", " + DEFECTS_KEY
 						+ " - should not be empty"
 		);

@@ -102,6 +102,7 @@ dependencies {
         compile 'com.github.reportportal:commons-dao:49968fa'
         compile 'com.github.reportportal:commons-rules:spb2-SNAPSHOT'
         compile 'com.github.reportportal:commons-model:25d88e7'
+        compile 'com.github.reportportal:commons-bugtracking:496a571'
         compile('com.github.reportportal:commons:71d4aca')
     }
 

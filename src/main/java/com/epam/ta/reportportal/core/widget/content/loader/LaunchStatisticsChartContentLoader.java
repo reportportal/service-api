@@ -22,13 +22,28 @@
 package com.epam.ta.reportportal.core.widget.content.loader;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.entity.widget.WidgetOption;
+import com.epam.ta.reportportal.dao.WidgetContentRepository;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.widget.ContentField;
+import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.core.widget.content.WidgetContentUtils.GROUP_CONTENT_FIELDS;
+import static com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants.DEFECTS_KEY;
+import static com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants.EXECUTIONS_KEY;
+import static java.util.Collections.singletonMap;
 
 /**
  * @author Pavel Bortnik
@@ -36,8 +51,44 @@ import java.util.Set;
 @Service
 public class LaunchStatisticsChartContentLoader implements LoadContentStrategy {
 
+	@Autowired
+	private WidgetContentRepository widgetContentRepository;
+
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit) {
-		return null;
+	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
+
+		Map<String, List<String>> fields = GROUP_CONTENT_FIELDS.apply(contentFields);
+		validateContentFields(fields);
+
+		List<Launch> content = widgetContentRepository.launchStatistics(filter, fields, limit);
+
+		return singletonMap(RESULT, content.stream().map(LaunchConverter.TO_RESOURCE).collect(Collectors.toList()));
+	}
+
+	/**
+	 * Validate provided content fields.
+	 * For this widget content fields only with {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#EXECUTIONS_KEY},
+	 * {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#DEFECTS_KEY}
+	 * keys should be specified
+	 * <p>
+	 * The value of at least one of the content fields should not be empty
+	 *
+	 * @param contentFields Map of provided content.
+	 */
+	private void validateContentFields(Map<String, List<String>> contentFields) {
+		BusinessRule.expect(MapUtils.isNotEmpty(contentFields), equalTo(true))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
+		BusinessRule.expect(contentFields.size(), size -> !(size > 2)).verify(
+				ErrorType.BAD_REQUEST_ERROR,
+				"Launch statistics' content fields should contain either " + DEFECTS_KEY + " or " + EXECUTIONS_KEY + " keys or both of them"
+		);
+		BusinessRule.expect(
+				CollectionUtils.isNotEmpty(contentFields.get(EXECUTIONS_KEY)) || CollectionUtils.isNotEmpty(contentFields.get(DEFECTS_KEY)),
+				equalTo(true)
+		).verify(
+				ErrorType.BAD_REQUEST_ERROR,
+				"The value of at least one of the content fields with keys: " + EXECUTIONS_KEY + ", " + DEFECTS_KEY
+						+ " - should not be empty"
+		);
 	}
 }

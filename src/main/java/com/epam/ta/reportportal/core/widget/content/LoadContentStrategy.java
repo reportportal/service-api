@@ -22,9 +22,8 @@
 package com.epam.ta.reportportal.core.widget.content;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.entity.widget.WidgetOption;
+import com.epam.ta.reportportal.entity.widget.ContentField;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,10 +37,9 @@ public interface LoadContentStrategy {
 	String RESULT = "result";
 	String LATEST_OPTION = "latest";
 	String LATEST_LAUNCH = "latest_launch";
-	String DEFECTS = "defects";
-	String EXECUTIONS = "executions";
 	String LAUNCH_NAME_FIELD = "launch_name_filter";
+	String LOGIN = "login";
 
-	Map<String, ?> loadContent(List<String> contentFields, Filter filter, Set<WidgetOption> widgetOptions, int limit);
+	Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Map<String, String> widgetOptions, int limit);
 
 }

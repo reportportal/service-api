@@ -43,8 +43,8 @@ public class PassingRateSummaryContentLoader implements LoadContentStrategy {
 	/**
 	 * Validate provided content fields.
 	 * For this widget content field only with {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#EXECUTIONS_KEY}
-	 * 									   	key should be specified
-	 *
+	 * key should be specified
+	 * <p>
 	 * The value of content field should not be empty
 	 *
 	 * @param contentFields Map of provided content.
@@ -53,9 +53,7 @@ public class PassingRateSummaryContentLoader implements LoadContentStrategy {
 		BusinessRule.expect(MapUtils.isNotEmpty(contentFields), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
 		BusinessRule.expect(contentFields.size(), equalTo(1))
-				.verify(ErrorType.BAD_REQUEST_ERROR,
-						"Passing rate summary content fields should contain only one key - " + EXECUTIONS_KEY
-				);
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Passing rate summary content fields should contain only one key - " + EXECUTIONS_KEY);
 		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields.get(EXECUTIONS_KEY)), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "The value of content field - " + EXECUTIONS_KEY + " - should not be empty");
 

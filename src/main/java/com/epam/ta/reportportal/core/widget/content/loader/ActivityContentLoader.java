@@ -78,8 +78,8 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	/**
 	 * Validate provided content fields.
 	 * For this widget content field only with {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#ACTIVITY_TYPE}
-	 * 										key should be specified
-	 *
+	 * key should be specified
+	 * <p>
 	 * The value of content field should not be empty
 	 *
 	 * @param contentFields Map of provided content.

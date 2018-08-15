@@ -112,11 +112,11 @@ public class MostFailedContentLoader implements LoadContentStrategy {
 	/**
 	 * Validate provided content fields. For current widget it should be only one field specified in content fields.
 	 * Example is 'executions$failed', so widget would be created by 'failed' criteria.
-	 *
+	 * <p>
 	 * For this widget content fields only with {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#EXECUTIONS_KEY},
-	 * 											{@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#DEFECTS_KEY}
-	 * 										keys should be specified
-	 *
+	 * {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#DEFECTS_KEY}
+	 * keys should be specified
+	 * <p>
 	 * The value of at least one of the content fields should not be empty
 	 *
 	 * @param contentFields List of provided content.

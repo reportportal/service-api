@@ -44,11 +44,9 @@ public class PassedRatePerLaunchContentLoader implements LoadContentStrategy {
 		Map<String, List<String>> fields = GROUP_CONTENT_FIELDS.apply(contentFields);
 		validateContentFields(fields);
 
-
 		String launchName = widgetOptions.get(LAUNCH_NAME_FIELD);
 
-		PassStatisticsResult content = widgetContentRepository.launchPassPerLaunchStatistics(
-				filter,
+		PassStatisticsResult content = widgetContentRepository.launchPassPerLaunchStatistics(filter,
 				fields,
 				launchRepository.findLatestByNameAndFilter(launchName, filter)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName)),
@@ -72,8 +70,8 @@ public class PassedRatePerLaunchContentLoader implements LoadContentStrategy {
 	/**
 	 * Validate provided content fields.
 	 * For this widget content field only with {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#EXECUTIONS_KEY}
-	 * 									   	key should be specified
-	 *
+	 * key should be specified
+	 * <p>
 	 * The value of content field should not be empty
 	 *
 	 * @param contentFields Map of provided content.

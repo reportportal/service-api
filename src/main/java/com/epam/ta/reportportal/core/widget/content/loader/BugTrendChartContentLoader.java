@@ -64,8 +64,8 @@ public class BugTrendChartContentLoader implements LoadContentStrategy {
 	/**
 	 * Validate provided content fields.
 	 * For this widget content field only with {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#DEFECTS_KEY}
-	 * 										key should be specified
-	 *
+	 * key should be specified
+	 * <p>
 	 * The value of content field should not be empty
 	 *
 	 * @param contentFields Map of provided content.

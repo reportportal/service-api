@@ -34,15 +34,16 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants.ACTIVITY_TYPE;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -66,21 +67,20 @@ public class ActivityContentLoader implements LoadContentStrategy {
 		validateContentFields(fields);
 
 		String login = widgetOptions.get(LOGIN);
-
 		User user = userRepository.findByLogin(widgetOptions.get(LOGIN))
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, "User with login " + login + " was not found"));
 
-		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter,
-				user.getLogin(),
-				fields.get(ACTIVITY_TYPE),
-				limit
-		);
+		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, user.getLogin(), fields, limit);
 
 		return singletonMap(RESULT, activityContents);
 	}
 
 	/**
 	 * Validate provided content fields.
+	 * For this widget content field only with {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#ACTIVITY_TYPE}
+	 * 										key should be specified
+	 *
+	 * The value of content field should not be empty
 	 *
 	 * @param contentFields Map of provided content.
 	 */
@@ -92,14 +92,14 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	}
 
 	/**
-	 * Validate provided widget options. For current widget should be user login for activity tracking.
+	 * Validate provided widget options. For current widget user login should be specified for activity tracking.
 	 *
 	 * @param widgetOptions Set of stored widget options.
 	 */
 	private void validateWidgetOptions(Map<String, String> widgetOptions) {
 		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should not be empty.");
-		BusinessRule.expect(widgetOptions.containsKey(LOGIN), Predicate.isEqual(true))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should not be null.");
+		BusinessRule.expect(widgetOptions.get(LOGIN), StringUtils::isNotEmpty)
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LOGIN + " should be specified for widget.");
 	}
 

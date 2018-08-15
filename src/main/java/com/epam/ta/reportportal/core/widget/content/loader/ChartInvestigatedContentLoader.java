@@ -25,11 +25,9 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.ContentField;
-import com.epam.ta.reportportal.entity.widget.content.InvestigatedStatisticsResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,8 +45,7 @@ public class ChartInvestigatedContentLoader implements LoadContentStrategy {
 	@Override
 	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
 
-		List<InvestigatedStatisticsResult> content = widgetContentRepository.investigatedStatistics(filter, limit);
-		return singletonMap(RESULT, content);
+		return singletonMap(RESULT, widgetContentRepository.investigatedStatistics(filter, limit));
 	}
 
 }

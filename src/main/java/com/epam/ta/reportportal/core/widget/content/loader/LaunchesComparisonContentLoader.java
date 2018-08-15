@@ -26,23 +26,24 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
-import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.ContentField;
 import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.core.widget.content.WidgetContentUtils.GROUP_CONTENT_FIELDS;
+import static com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants.DEFECTS_KEY;
+import static com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants.EXECUTIONS_KEY;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -60,43 +61,61 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 	@Override
 	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
 
+		validateWidgetOptions(widgetOptions, filter);
+
 		Map<String, List<String>> fields = GROUP_CONTENT_FIELDS.apply(contentFields);
 		validateContentFields(fields);
 
-		//validateWidgetOptions(options);
-
-		String launchName = widgetOptions.get(LAUNCH_NAME_FIELD);
-		Launch latestLaunch = launchRepository.findLatestByNameAndFilter(launchName, filter)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName));
-
-		//TODO change the way of getting previous launch
-		Long latestLaunchId = latestLaunch.getId();
-
-		List<ComparisonStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter, fields, limit,
-				latestLaunchId - 1,
-				latestLaunchId
+		List<ComparisonStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter,
+				fields,
+				widgetOptions.get(LAUNCH_NAME_FIELD),
+				limit
 		);
 		return singletonMap(RESULT, result);
 	}
 
 	/**
-	 * Validate provided widget options. For current widget should be specified launch name.
+	 * Validate provided widget options. For current widget launch name should be specified.
 	 *
 	 * @param widgetOptions Set of stored widget options.
+	 * @param filter		Filter for launch search
 	 */
-	private void validateWidgetOptions(Map<String, List<String>> widgetOptions) {
-		BusinessRule.expect(widgetOptions, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should not be null.");
-		BusinessRule.expect(widgetOptions.containsKey(LAUNCH_NAME_FIELD), Predicate.isEqual(true))
+	private void validateWidgetOptions(Map<String, String> widgetOptions, Filter filter) {
+		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should not be null.");
+
+		String launchName = widgetOptions.get(LAUNCH_NAME_FIELD);
+		BusinessRule.expect(launchName, StringUtils::isNotEmpty)
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LAUNCH_NAME_FIELD + " should be specified for widget.");
+		BusinessRule.expect(launchRepository.findLatestByNameAndFilter(launchName, filter), notNull())
+				.verify(ErrorType.LAUNCH_NOT_FOUND, "Launch with name: " + launchName + " - was not found");
 	}
 
 	/**
 	 * Validate provided content fields.
+	 * For this widget content fields only with {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#EXECUTIONS_KEY},
+	 * 											{@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#DEFECTS_KEY}
+	 * 										keys should be specified
+	 *
+	 * The value of at least one of the content fields should not be empty
 	 *
 	 * @param contentFields Map of provided content.
 	 */
 	private void validateContentFields(Map<String, List<String>> contentFields) {
 		BusinessRule.expect(MapUtils.isNotEmpty(contentFields), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
+		BusinessRule.expect(contentFields.size(), size -> !(size > 2)).verify(
+				ErrorType.BAD_REQUEST_ERROR,
+				"Launch statistics' content fields should contain either " + DEFECTS_KEY + " or " + EXECUTIONS_KEY + " keys or both of them"
+		);
+		BusinessRule.expect(
+				CollectionUtils.isNotEmpty(contentFields.get(EXECUTIONS_KEY)) || CollectionUtils.isNotEmpty(contentFields.get(DEFECTS_KEY)),
+				equalTo(true)
+		).verify(
+				ErrorType.BAD_REQUEST_ERROR,
+				"The value of at least one of the content fields with keys: " + EXECUTIONS_KEY + ", " + DEFECTS_KEY
+						+ " - should not be empty"
+		);
 	}
+
 }

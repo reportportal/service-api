@@ -25,9 +25,9 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
-import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.ContentField;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,6 +38,8 @@ import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.widget.content.WidgetContentUtils.GROUP_CONTENT_FIELDS;
+import static com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants.DEFECTS_KEY;
+import static com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants.EXECUTIONS_KEY;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -55,17 +57,30 @@ public class LaunchesTableContentLoader implements LoadContentStrategy {
 		Map<String, List<String>> fields = GROUP_CONTENT_FIELDS.apply(contentFields);
 		validateContentFields(fields);
 
-		List<Launch> result = widgetContentRepository.launchesTableStatistics(filter, fields, limit);
-		return singletonMap(RESULT, result);
+		return singletonMap(RESULT, widgetContentRepository.launchesTableStatistics(filter, fields, limit));
 	}
 
 	/**
 	 * Validate provided content fields.
+	 * For this widget content fields only with {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#EXECUTIONS_KEY},
+	 * 										 {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#DEFECTS_KEY},
+	 * 									   {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#TABLE_COLUMN_KEY} (optional)
+	 * 									keys should be specified
+	 *
+	 * The value of at least one of the non-optional content fields should not be empty
 	 *
 	 * @param contentFields Map of provided content.
 	 */
 	private void validateContentFields(Map<String, List<String>> contentFields) {
 		BusinessRule.expect(MapUtils.isNotEmpty(contentFields), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
+		BusinessRule.expect(
+				CollectionUtils.isNotEmpty(contentFields.get(EXECUTIONS_KEY)) || CollectionUtils.isNotEmpty(contentFields.get(DEFECTS_KEY)),
+				equalTo(true)
+		).verify(
+				ErrorType.BAD_REQUEST_ERROR,
+				"The value of at least one of the content fields with keys: " + EXECUTIONS_KEY + ", " + DEFECTS_KEY
+						+ " - should not be empty"
+		);
 	}
 }

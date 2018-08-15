@@ -25,14 +25,12 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.ContentField;
-import com.epam.ta.reportportal.entity.widget.WidgetOption;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.Set;
 
-import static com.epam.ta.reportportal.core.widget.content.WidgetContentUtils.GROUP_CONTENT_FIELDS;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -46,6 +44,6 @@ public class UniqueBugContentLoader implements LoadContentStrategy {
 
 	@Override
 	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
-		return singletonMap(RESULT, widgetRepository.uniqueBugStatistics(filter, GROUP_CONTENT_FIELDS.apply(contentFields), limit));
+		return singletonMap(RESULT, widgetRepository.uniqueBugStatistics(filter, limit));
 	}
 }

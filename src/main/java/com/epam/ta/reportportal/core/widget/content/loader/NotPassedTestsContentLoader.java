@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.ContentField;
 import com.epam.ta.reportportal.entity.widget.content.NotPassedCasesContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,7 @@ import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.widget.content.WidgetContentUtils.GROUP_CONTENT_FIELDS;
+import static com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants.EXECUTIONS_KEY;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -61,11 +63,19 @@ public class NotPassedTestsContentLoader implements LoadContentStrategy {
 
 	/**
 	 * Validate provided content fields.
+	 * For this widget content field only with {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#EXECUTIONS_KEY}
+	 * 									   	key should be specified
+	 *
+	 * The value of content field should not be empty
 	 *
 	 * @param contentFields Map of provided content.
 	 */
 	private void validateContentFields(Map<String, List<String>> contentFields) {
 		BusinessRule.expect(MapUtils.isNotEmpty(contentFields), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
+		BusinessRule.expect(contentFields.size(), equalTo(1))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Not passed tests content fields should contain only one key - " + EXECUTIONS_KEY);
+		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields.get(EXECUTIONS_KEY)), equalTo(true))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "The value of content field - " + EXECUTIONS_KEY + " - should not be empty");
 	}
 }

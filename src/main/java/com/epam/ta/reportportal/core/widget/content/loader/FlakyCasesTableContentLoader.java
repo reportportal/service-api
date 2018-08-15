@@ -7,9 +7,10 @@ import com.epam.ta.reportportal.entity.widget.ContentField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+
+import static java.util.Collections.singletonMap;
 
 /**
  * @author Ivan Budayeu
@@ -22,6 +23,7 @@ public class FlakyCasesTableContentLoader implements LoadContentStrategy {
 
 	@Override
 	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
-		return Collections.singletonMap(RESULT, widgetRepository.flakyCasesStatistics(filter, 1000));
+
+		return singletonMap(RESULT, widgetRepository.flakyCasesStatistics(filter, limit));
 	}
 }

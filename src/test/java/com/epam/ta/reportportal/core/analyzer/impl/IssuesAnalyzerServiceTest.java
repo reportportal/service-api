@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.database.entity.*;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.events.ItemIssueTypeDefined;
+import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,6 +68,8 @@ public class IssuesAnalyzerServiceTest {
 	private ILogIndexer logIndexer;
 	@Mock
 	private ApplicationEventPublisher eventPublisher;
+	@Mock
+	private TestItemResourceAssembler resourceAssembler;
 
 	@Mock
 	private AnalyzerStatusCache analyzerStatusCache;
@@ -112,6 +115,7 @@ public class IssuesAnalyzerServiceTest {
 		List<TestItem> items = testItemsTI(itemsCount);
 
 		when(logRepository.findGreaterOrEqualLevel(anyListOf(String.class), eq(LogLevel.ERROR))).thenReturn(errorLogs(2));
+		doReturn(null).when(resourceAssembler).toResource(any(TestItem.class));
 		when(analyzerServiceClient.analyze(any())).thenReturn(analyzedItems(itemsCount));
 		when(projectRepository.findByName(launch.getProjectRef())).thenReturn(project);
 

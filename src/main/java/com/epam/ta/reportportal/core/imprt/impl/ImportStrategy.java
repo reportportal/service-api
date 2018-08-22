@@ -18,36 +18,25 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
+package com.epam.ta.reportportal.core.imprt.impl;
 
-package com.epam.ta.reportportal.core.events.activity;
+import com.epam.ta.reportportal.auth.ReportPortalUser;
+
+import java.io.File;
 
 /**
- * @author Pavel Bortnik
+ * Handler for processing launch importing.
+ *
+ * @author Pavel_Bortnik
  */
-public class ImportFinishedEvent {
-
-	private Long projectId;
-
-	private Long userId;
-
-	private String fileName;
-
-	public ImportFinishedEvent(Long projectId, Long userId, String fileName) {
-		this.projectId = projectId;
-		this.userId = userId;
-		this.fileName = fileName;
-	}
-
-	public Long getProjectId() {
-		return projectId;
-	}
-
-	public Long getUserId() {
-		return userId;
-	}
-
-	public String getFileName() {
-		return fileName;
-	}
-
+public interface ImportStrategy {
+	/**
+	 * Processing launch importing.
+	 *
+	 * @param projectDetails project
+	 * @param user           user
+	 * @param file           zip file that contains xml test reports
+	 * @return launch id
+	 */
+	Long importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file);
 }

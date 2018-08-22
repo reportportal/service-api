@@ -18,36 +18,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
+package com.epam.ta.reportportal.core.imprt.impl;
 
-package com.epam.ta.reportportal.core.events.activity;
+import java.util.Arrays;
+import java.util.Optional;
 
-/**
- * @author Pavel Bortnik
- */
-public class ImportFinishedEvent {
+public enum ImportType {
+	XUNIT;
 
-	private Long projectId;
-
-	private Long userId;
-
-	private String fileName;
-
-	public ImportFinishedEvent(Long projectId, Long userId, String fileName) {
-		this.projectId = projectId;
-		this.userId = userId;
-		this.fileName = fileName;
+	public static Optional<ImportType> fromValue(String value) {
+		return Arrays.stream(ImportType.values()).filter(type -> type.name().equalsIgnoreCase(value)).findFirst();
 	}
-
-	public Long getProjectId() {
-		return projectId;
-	}
-
-	public Long getUserId() {
-		return userId;
-	}
-
-	public String getFileName() {
-		return fileName;
-	}
-
 }

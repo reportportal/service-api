@@ -18,36 +18,29 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package com.epam.ta.reportportal.core.events.activity;
+package com.epam.ta.reportportal.core.imprt.impl;
 
 /**
  * @author Pavel Bortnik
  */
-public class ImportFinishedEvent {
+public final class DateUtils {
 
-	private Long projectId;
-
-	private Long userId;
-
-	private String fileName;
-
-	public ImportFinishedEvent(Long projectId, Long userId, String fileName) {
-		this.projectId = projectId;
-		this.userId = userId;
-		this.fileName = fileName;
+	private DateUtils() {
+		//static only
 	}
 
-	public Long getProjectId() {
-		return projectId;
-	}
-
-	public Long getUserId() {
-		return userId;
-	}
-
-	public String getFileName() {
-		return fileName;
+	/**
+	 * Converts string representation of seconds to millis
+	 *
+	 * @param duration String seconds
+	 * @return long millis
+	 */
+	public static long toMillis(String duration) {
+		if (null != duration) {
+			Double value = Double.valueOf(duration) * 1000;
+			return value.longValue();
+		}
+		return 0;
 	}
 
 }

@@ -68,9 +68,7 @@ public final class TestItemConverter {
 			resource.setParent(item.getParent().getItemId());
 		}
 		resource.setLaunchId(item.getLaunch().getId());
-		resource.setStatistics(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults().getIssueStatistics(),
-				item.getItemResults().getExecutionStatistics()
-		));
+		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults().getStatistics()));
 		return resource;
 	};
 }

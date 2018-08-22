@@ -58,7 +58,7 @@ public final class LaunchConverter {
 		resource.setTags(getTags(db));
 		resource.setMode(db.getMode() == null ? null : Mode.valueOf(db.getMode().name()));
 		resource.setOwner(String.valueOf(db.getUserId()));
-		resource.setStatistics(StatisticsConverter.TO_RESOURCE.apply(db.getIssueStatistics(), db.getExecutionStatistics()));
+		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
 		return resource;
 	};
 

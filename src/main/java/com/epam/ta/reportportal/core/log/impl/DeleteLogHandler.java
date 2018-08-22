@@ -28,12 +28,9 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
-import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.service.DataStoreService;
-import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.apache.commons.lang.StringUtils;
@@ -115,7 +112,8 @@ public class DeleteLogHandler implements IDeleteLogHandler {
 
 		final TestItem testItem = log.getTestItem();
 
-		expect(testItem.getItemStructure().getItemResults().getExecutionStatistics(), notNull()).verify(TEST_ITEM_IS_NOT_FINISHED,
+		//TODO check if statistics is right in item results
+		expect(testItem.getItemStructure().getItemResults().getStatistics(), notNull()).verify(TEST_ITEM_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete log '{}' when test item '{}' in progress state", log.getId(), testItem.getItemId())
 		);
 

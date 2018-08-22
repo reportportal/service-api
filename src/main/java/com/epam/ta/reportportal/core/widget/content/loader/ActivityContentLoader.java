@@ -24,11 +24,9 @@ package com.epam.ta.reportportal.core.widget.content.loader;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.core.widget.content.WidgetContentUtils;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.entity.widget.ContentField;
 import com.epam.ta.reportportal.entity.widget.content.ActivityContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -40,10 +38,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants.ACTIVITY_TYPE;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -59,36 +55,32 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
 
 		validateWidgetOptions(widgetOptions);
 
-		Map<String, List<String>> fields = WidgetContentUtils.GROUP_CONTENT_FIELDS.apply(contentFields);
-		validateContentFields(fields);
+		validateContentFields(contentFields);
 
 		String login = widgetOptions.get(LOGIN);
 		User user = userRepository.findByLogin(login)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, "User with login " + login + " was not found"));
 
-		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, user.getLogin(), fields, limit);
+		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, user.getLogin(), contentFields, limit);
 
 		return singletonMap(RESULT, activityContents);
 	}
 
 	/**
 	 * Validate provided content fields.
-	 * For this widget content field only with {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#ACTIVITY_TYPE}
-	 * key should be specified
+	 *
 	 * <p>
 	 * The value of content field should not be empty
 	 *
 	 * @param contentFields Map of provided content.
 	 */
-	private void validateContentFields(Map<String, List<String>> contentFields) {
-		BusinessRule.expect(MapUtils.isNotEmpty(contentFields), equalTo(true))
+	private void validateContentFields(List<String> contentFields) {
+		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
-		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields.get(ACTIVITY_TYPE)), equalTo(true))
-				.verify(ErrorType.ACTIVITY_NOT_FOUND, "Activities list should not be empty");
 	}
 
 	/**

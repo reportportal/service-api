@@ -21,22 +21,32 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-//@Configuration
-public class MergeStrategyConfig {
-	//	@Autowired
-	//	private TestItemRepository testItemRepository;
+import com.epam.ta.reportportal.core.item.impl.merge.strategy.DeepMergeStrategy;
+import com.epam.ta.reportportal.core.item.impl.merge.strategy.MergeStrategyFactory;
+import com.epam.ta.reportportal.core.item.impl.merge.strategy.MergeStrategyType;
+import com.epam.ta.reportportal.core.item.merge.MergeStrategy;
+import com.epam.ta.reportportal.dao.TestItemRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-	//	@Bean
-	//	public Map<MergeStrategyType, MergeStrategy> mapping() {
-	//		Map<MergeStrategyType, MergeStrategy> mapping = new HashMap<>();
-	//		mapping.put(MergeStrategyType.TEST, new TestMergeStrategy(testItemRepository));
-	//		mapping.put(MergeStrategyType.SUITE, new SuiteMergeStrategy(testItemRepository));
-	//		mapping.put(MergeStrategyType.DEEP, new DeepMergeStrategy(testItemRepository));
-	//		return mapping;
-	//	}
-	//
-	//	@Bean
-	//	public MergeStrategyFactory factory() {
-	//		return new MergeStrategyFactory(mapping());
-	//	}
+import java.util.HashMap;
+import java.util.Map;
+
+@Configuration
+public class MergeStrategyConfig {
+		@Autowired
+		private TestItemRepository testItemRepository;
+
+		@Bean
+		public Map<MergeStrategyType, MergeStrategy> mapping() {
+			Map<MergeStrategyType, MergeStrategy> mapping = new HashMap<>();
+			mapping.put(MergeStrategyType.DEEP, new DeepMergeStrategy(testItemRepository));
+			return mapping;
+		}
+
+		@Bean
+		public MergeStrategyFactory factory() {
+			return new MergeStrategyFactory(mapping());
+		}
 }

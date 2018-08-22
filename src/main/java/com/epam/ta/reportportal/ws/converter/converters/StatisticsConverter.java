@@ -21,13 +21,15 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.entity.item.ExecutionStatistics;
-import com.epam.ta.reportportal.entity.item.IssueStatistics;
-import com.epam.ta.reportportal.ws.model.statistics.Statistics;
+import com.epam.ta.reportportal.entity.statistics.Statistics;
+import com.epam.ta.reportportal.ws.model.statistics.StatisticsResource;
 
 import java.util.Set;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.DEFECTS_KEY;
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_KEY;
 
 /**
  * @author Pavel Bortnik
@@ -38,14 +40,18 @@ public final class StatisticsConverter {
 		//static only
 	}
 
-	public static final BiFunction<Set<IssueStatistics>, Set<ExecutionStatistics>, Statistics> TO_RESOURCE = (issue, execution) -> {
-		Statistics statistics = new Statistics();
-		statistics.setDefects(issue.stream().filter(it -> it.getCounter() > 0).collect(Collectors.groupingBy(
-				it -> it.getIssueType().getIssueGroup().getTestItemIssueGroup().getValue(),
-				Collectors.groupingBy(it -> it.getIssueType().getLocator(), Collectors.summingInt(IssueStatistics::getCounter))
-		)));
-		statistics.setExecutions(
-				execution.stream().collect(Collectors.toMap(ExecutionStatistics::getStatus, ExecutionStatistics::getCounter)));
-		return statistics;
+	public static final Function<Set<Statistics>, StatisticsResource> TO_RESOURCE = statistics -> {
+		StatisticsResource statisticsResource = new StatisticsResource();
+		statisticsResource.setDefects(statistics.stream()
+				.filter(it -> it.getCounter() > 0 && it.getField().contains(DEFECTS_KEY))
+				.collect(Collectors.groupingBy(
+						it -> it.getField().split("\\$")[2],
+						Collectors.groupingBy(it -> it.getField().split("\\$")[3], Collectors.summingInt(Statistics::getCounter))
+				)));
+		statisticsResource.setExecutions(statistics.stream()
+				.filter(it -> it.getCounter() > 0 && it.getField().contains(EXECUTIONS_KEY))
+				.collect(Collectors.groupingBy(it -> it.getField().split("\\$")[2], Collectors.summingInt(Statistics::getCounter))));
+		return statisticsResource;
+
 	};
 }

@@ -1,12 +1,13 @@
 package com.epam.ta.reportportal.core.widget.content.loader;
 
+import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
-import com.epam.ta.reportportal.entity.widget.ContentField;
-import com.epam.ta.reportportal.entity.widget.content.PassStatisticsResult;
+import com.epam.ta.reportportal.entity.widget.content.PassingRateStatisticsResult;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
@@ -17,11 +18,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.core.widget.content.WidgetContentUtils.GROUP_CONTENT_FIELDS;
-import static com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants.EXECUTIONS_KEY;
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.NAME;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -37,21 +36,24 @@ public class PassedRatePerLaunchContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
 
 		validateWidgetOptions(widgetOptions);
 
-		Map<String, List<String>> fields = GROUP_CONTENT_FIELDS.apply(contentFields);
-		validateContentFields(fields);
+		validateContentFields(contentFields);
 
 		String launchName = widgetOptions.get(LAUNCH_NAME_FIELD);
 
-		PassStatisticsResult content = widgetContentRepository.launchPassPerLaunchStatistics(filter,
-				fields,
+		filter.withCondition(new FilterCondition(
+				Condition.EQUALS,
+				false,
 				launchRepository.findLatestByNameAndFilter(launchName, filter)
-						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName)),
-				limit
-		);
+						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName))
+						.getName(),
+				NAME
+		));
+
+		PassingRateStatisticsResult content = widgetContentRepository.passingRateStatistics(filter, limit);
 		return singletonMap(RESULT, content);
 	}
 
@@ -69,22 +71,14 @@ public class PassedRatePerLaunchContentLoader implements LoadContentStrategy {
 
 	/**
 	 * Validate provided content fields.
-	 * For this widget content field only with {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#EXECUTIONS_KEY}
-	 * key should be specified
 	 * <p>
 	 * The value of content field should not be empty
 	 *
 	 * @param contentFields Map of provided content.
 	 */
-	private void validateContentFields(Map<String, List<String>> contentFields) {
-		BusinessRule.expect(MapUtils.isNotEmpty(contentFields), equalTo(true))
+	private void validateContentFields(List<String> contentFields) {
+		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
-		BusinessRule.expect(contentFields.size(), equalTo(1))
-				.verify(ErrorType.BAD_REQUEST_ERROR,
-						"Passed rate per launch content fields should contain only one key - " + EXECUTIONS_KEY
-				);
-		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields.get(EXECUTIONS_KEY)), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "The value of content field - " + EXECUTIONS_KEY + " - should not be empty");
 
 	}
 }

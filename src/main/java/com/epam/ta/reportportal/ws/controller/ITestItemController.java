@@ -1,20 +1,20 @@
 /*
  * Copyright 2016 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.database.search.Queryable;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -84,7 +85,8 @@ public interface ITestItemController {
 	 * @param principal
 	 * @return Iterable<TestItemResource>
 	 */
-	Iterable<TestItemResource> getTestItems(String projectName, String launchId, Filter filter, Pageable pageble, Principal principal);
+	Iterable<TestItemResource> getTestItems(String projectName, String launchId, Filter filter, Queryable predefinedFilter, Pageable pageble,
+			Principal principal);
 
 	/**
 	 * Deletes Test Item
@@ -124,7 +126,7 @@ public interface ITestItemController {
 	 *                           statuses<br>
 	 *                           <code>false</code> - if history should contain only passed and
 	 *                           failed launches
-	 * @return Map<String, List<TestItemResource>>
+	 * @return Map<String   ,       List   <   TestItemResource>>
 	 */
 	List<TestItemHistoryElement> getItemsHistory(String projectName, int historyDepth, String[] ids, boolean showBrokenLaunches,
 			Principal principal);

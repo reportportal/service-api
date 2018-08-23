@@ -57,7 +57,7 @@ public abstract class AbstractImportStrategy<T extends CallableImportJob> implem
 	@Autowired
 	private LaunchRepository launchRepository;
 
-	protected ParseResults processResults(CompletableFuture[] futures) {
+	protected ParseResults processResults(CompletableFuture... futures) {
 		ParseResults results = new ParseResults();
 		Arrays.stream(futures).map(it -> (ParseResults) it.join()).forEach(res -> {
 			results.checkAndSetStartLaunchTime(res.getStartTime());

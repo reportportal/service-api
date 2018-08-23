@@ -16,8 +16,15 @@
 package com.epam.ta.reportportal.core.imprt.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.concurrent.CompletableFuture;
+
+import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
 
 /**
  * @author Anton Machulski
@@ -40,24 +47,18 @@ public class XmlImportStrategy<T extends CallableImportJob> extends AbstractImpo
 
 	private Long processXmlFile(File xml, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		//copy of the launch's id to use it in catch block if something goes wrong
-		//TODO: implement
-//		Long savedLaunchId = null;
-//		try (ZipFile zipFile = new ZipFile(zip)) {
-//			Long launchId = startLaunch(projectDetails, user, zip.getName().substring(0, zip.getName().indexOf(ZIP_EXTENSION)));
-//			savedLaunchId = launchId;
-//			CompletableFuture[] futures = zipFile.stream().filter(isFile.and(isXml)).map(zipEntry -> {
-//				CallableImportJob job = xmlParseJobProvider.get()
-//						.withParameters(projectDetails, launchId, user, getEntryStream(zipFile, zipEntry));
-//				return CompletableFuture.supplyAsync(job::call, service);
-//			}).toArray(CompletableFuture[]::new);
-//			ParseResults parseResults = processResults(futures);
-//			finishLaunch(launchId, projectDetails, user, parseResults);
-//			return launchId;
-//		} catch (Exception e) {
-//			updateBrokenLaunch(savedLaunchId);
-//			throw new ReportPortalException(ErrorType.IMPORT_FILE_ERROR, cleanMessage(e));
-//		}
-		throw new UnsupportedOperationException("No implementation.");
+		Long savedLaunchId = null;
+		try (InputStream xmlStream = new FileInputStream(xml)) {
+			Long launchId = startLaunch(projectDetails, user, xml.getName().substring(0, xml.getName().indexOf(XML_EXTENSION)));
+			savedLaunchId = launchId;
+			CallableImportJob job = xmlParseJobProvider.get().withParameters(projectDetails, launchId, user, xmlStream);
+			CompletableFuture future = CompletableFuture.supplyAsync(job::call, service);
+			ParseResults parseResults = processResults(future);
+			finishLaunch(launchId, projectDetails, user, parseResults);
+			return launchId;
+		} catch (Exception e) {
+			updateBrokenLaunch(savedLaunchId);
+			throw new ReportPortalException(ErrorType.IMPORT_FILE_ERROR, cleanMessage(e));
+		}
 	}
-
 }

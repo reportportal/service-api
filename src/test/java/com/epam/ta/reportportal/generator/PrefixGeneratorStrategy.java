@@ -1,7 +1,7 @@
 package com.epam.ta.reportportal.generator;
 
-import org.jooq.util.DefaultGeneratorStrategy;
-import org.jooq.util.Definition;
+import org.jooq.codegen.DefaultGeneratorStrategy;
+import org.jooq.meta.Definition;
 
 /**
  * Strategy for generating JOOQ entities

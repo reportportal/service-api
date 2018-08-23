@@ -32,7 +32,6 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
@@ -135,6 +134,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				issueEntity = new IssueEntity();
 				issueEntity.setIssueType(toInvestigate);
 			}
+			issueEntity.setIssueId(testItem.getItemId());
 			testItemResults.setIssue(issueEntity);
 		}
 		testItemResults.setEndTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()));

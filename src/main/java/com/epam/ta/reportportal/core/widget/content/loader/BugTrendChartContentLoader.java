@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
-import com.epam.ta.reportportal.entity.widget.content.LaunchStatisticsContent;
+import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +51,7 @@ public class BugTrendChartContentLoader implements LoadContentStrategy {
 
 		validateContentFields(contentFields);
 
-		List<LaunchStatisticsContent> result = widgetContentRepository.bugTrendStatistics(filter, contentFields, limit);
+		List<LaunchesStatisticsContent> result = widgetContentRepository.bugTrendStatistics(filter, contentFields, limit);
 		return singletonMap(RESULT, result);
 	}
 

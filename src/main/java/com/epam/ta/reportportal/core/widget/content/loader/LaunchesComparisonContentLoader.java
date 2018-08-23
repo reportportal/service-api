@@ -28,7 +28,7 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
-import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
+import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -64,7 +64,7 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 
 		filter.withCondition(new FilterCondition(Condition.EQUALS, false, widgetOptions.get(LAUNCH_NAME_FIELD), NAME));
 
-		List<ComparisonStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter, contentFields, limit);
+		List<LaunchesStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter, contentFields, limit);
 		return singletonMap(RESULT, result);
 	}
 

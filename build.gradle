@@ -99,7 +99,7 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:dbb9076'
+        compile 'com.github.reportportal:commons-dao:48f0cd0'
         compile 'com.github.reportportal:commons-rules:spb2-SNAPSHOT'
         compile 'com.github.reportportal:commons-model:c6c483b'
         compile 'com.github.reportportal:commons-bugtracking:496a571'
@@ -116,8 +116,7 @@ dependencies {
     compile 'javax.persistence:javax.persistence-api:2.2'
     compile 'org.hibernate:hibernate-validator'
     compile 'org.postgresql:postgresql'
-    compile 'org.jooq:jooq'
-    compile 'org.jooq:jooq-codegen:3.10.5'
+    compile group: 'org.jooq', name: 'jooq', version: '3.11.4'
     compile 'org.jasypt:jasypt:1.9.2'
     compile("org.springframework.boot:spring-boot-starter-amqp")
 

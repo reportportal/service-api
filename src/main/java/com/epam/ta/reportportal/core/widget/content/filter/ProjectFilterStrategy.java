@@ -30,10 +30,13 @@ import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.google.common.collect.Sets;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.PROJECT_ID;
 
@@ -47,6 +50,14 @@ public class ProjectFilterStrategy implements BuildFilterStrategy {
 	public Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, ReportPortalUser.ProjectDetails projectDetails,
 			Widget widget) {
 		UserFilter userFilter = widget.getFilter();
+
+		List<Sort.Order> orderings = userFilter.getFilterSorts()
+				.stream()
+				.map(filterSort -> new Sort.Order(filterSort.getDirection(), filterSort.getField()))
+				.collect(Collectors.toList());
+
+		Sort sort = Sort.by(orderings);
+
 		Filter filter = new Filter(userFilter.getTargetClass(), Sets.newHashSet(userFilter.getFilterCondition()));
 		filter = updateWithDefaultConditions(filter, projectDetails.getProjectId());
 		return loadContentStrategy.loadContent(widget.getContentFields(), filter, widget.getWidgetOptions(), widget.getItemsCount());

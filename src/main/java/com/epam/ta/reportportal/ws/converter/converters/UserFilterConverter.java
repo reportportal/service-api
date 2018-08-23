@@ -67,7 +67,8 @@ public final class UserFilterConverter {
 	private static final Function<FilterSort, Order> TO_FILTER_ORDER = filterSort -> {
 		Order order = new Order();
 		order.setSortingColumnName(filterSort.getField());
-		order.setIsAsc(filterSort.isAscending());
+		//TODO CHECK
+		//order.setIsAsc(filterSort.isAscending());
 		return order;
 	};
 }

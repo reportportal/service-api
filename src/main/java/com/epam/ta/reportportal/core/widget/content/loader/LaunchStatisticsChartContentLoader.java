@@ -25,8 +25,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
-import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
+import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +33,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static java.util.Collections.singletonMap;
@@ -53,9 +51,10 @@ public class LaunchStatisticsChartContentLoader implements LoadContentStrategy {
 
 		validateContentFields(contentFields);
 
-		List<Launch> content = widgetContentRepository.launchStatistics(filter, contentFields, limit);
+		List<LaunchesStatisticsContent> content = widgetContentRepository.launchStatistics(filter, contentFields, limit);
 
-		return singletonMap(RESULT, content.stream().map(LaunchConverter.TO_RESOURCE).collect(Collectors.toList()));
+//		return singletonMap(RESULT, content.stream().map(LaunchConverter.TO_RESOURCE).collect(Collectors.toList()));
+		return singletonMap(RESULT, content);
 	}
 
 	/**

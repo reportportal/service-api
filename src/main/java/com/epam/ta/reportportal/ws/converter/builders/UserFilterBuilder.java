@@ -93,7 +93,8 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 		orders.forEach(order -> {
 			FilterSort filterSort = new FilterSort();
 			filterSort.setField(order.getSortingColumnName());
-			filterSort.setAscending(order.getIsAsc());
+			//TODO CHECK
+			//filterSort.setAscending(order.getIsAsc());
 			userFilter.getFilterSorts().add(filterSort);
 		});
 		return this;

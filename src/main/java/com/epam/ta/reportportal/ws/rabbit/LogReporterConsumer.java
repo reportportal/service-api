@@ -29,12 +29,14 @@ import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Pavel Bortnik
  */
 
 @Component
+@Transactional
 public class LogReporterConsumer {
 
 	private DatabaseUserDetailsService userDetailsService;

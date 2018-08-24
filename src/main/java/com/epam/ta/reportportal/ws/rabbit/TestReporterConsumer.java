@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 
@@ -40,6 +41,7 @@ import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
  * @author Pavel Bortnik
  */
 @Component
+@Transactional
 public class TestReporterConsumer {
 
 	private DatabaseUserDetailsService userDetailsService;

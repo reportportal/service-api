@@ -22,10 +22,9 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.item.UniqueIdGenerator;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -33,17 +32,18 @@ import com.epam.ta.reportportal.dao.TestItemStructureRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.util.ProjectUtils;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -117,7 +117,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId())
 		);
 		expect(rq.getStartTime(), Preconditions.sameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(), launch.getStartTime(), launch.getId()
+				rq.getStartTime(),
+				launch.getStartTime(),
+				launch.getId()
 		);
 	}
 
@@ -132,10 +134,14 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 */
 	private void validate(StartTestItemRQ rq, TestItem parent) {
 		expect(rq.getStartTime(), Preconditions.sameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(), parent.getStartTime(), parent.getItemId()
+				rq.getStartTime(),
+				parent.getStartTime(),
+				parent.getItemId()
 		);
 		expect(parent.getItemStructure().getItemResults().getStatus(), Preconditions.statusIn(StatusEnum.IN_PROGRESS)).verify(
-				START_ITEM_NOT_ALLOWED, formattedSupplier("Parent Item '{}' is not in progress", parent.getItemId()));
+				START_ITEM_NOT_ALLOWED,
+				formattedSupplier("Parent Item '{}' is not in progress", parent.getItemId())
+		);
 		expect(logRepository.hasLogs(parent.getItemId()), equalTo(false)).verify(START_ITEM_NOT_ALLOWED,
 				formattedSupplier("Parent Item '{}' already has log items", parent.getItemId())
 		);

@@ -22,7 +22,7 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
-import com.epam.ta.reportportal.entity.item.TestItemStructure;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemTag;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 
@@ -41,25 +41,25 @@ public final class TestItemConverter {
 		//static only
 	}
 
-	public static final Function<TestItemStructure, TestItemResource> TO_RESOURCE = item -> {
+	public static final Function<TestItem, TestItemResource> TO_RESOURCE = item -> {
 		TestItemResource resource = new TestItemResource();
-		resource.setDescription(item.getTestItem().getDescription());
-		resource.setUniqueId(item.getTestItem().getUniqueId());
-		resource.setTags(item.getTestItem().getTags().stream().map(TestItemTag::getValue).collect(Collectors.toSet()));
+		resource.setDescription(item.getDescription());
+		resource.setUniqueId(item.getUniqueId());
+		resource.setTags(item.getTags().stream().map(TestItemTag::getValue).collect(Collectors.toSet()));
 		resource.setEndTime(EntityUtils.TO_DATE.apply(item.getItemResults().getEndTime()));
 		resource.setItemId(String.valueOf(item.getItemId()));
-		if (null != item.getTestItem().getParameters()) {
-			resource.setParameters(item.getTestItem()
+		if (null != item.getParameters()) {
+			resource.setParameters(item
 					.getParameters()
 					.stream()
 					.map(ParametersConverter.TO_RESOURCE)
 					.collect(Collectors.toList()));
 		}
 		Optional.ofNullable(item.getItemResults().getIssue()).ifPresent(i -> resource.setIssue(IssueConverter.TO_MODEL.apply(i)));
-		resource.setName(item.getTestItem().getName());
-		resource.setStartTime(EntityUtils.TO_DATE.apply(item.getTestItem().getStartTime()));
+		resource.setName(item.getName());
+		resource.setStartTime(EntityUtils.TO_DATE.apply(item.getStartTime()));
 		resource.setStatus(item.getItemResults().getStatus() != null ? item.getItemResults().getStatus().toString() : null);
-		resource.setType(item.getTestItem().getType() != null ? item.getTestItem().getType().name() : null);
+		resource.setType(item.getType() != null ? item.getType().name() : null);
 
 		//FIXME: provide correct parameters
 		resource.setHasChilds(false);

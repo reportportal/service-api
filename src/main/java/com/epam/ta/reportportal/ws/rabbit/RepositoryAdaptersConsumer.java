@@ -93,7 +93,7 @@ public class RepositoryAdaptersConsumer {
 	public TestItemResource findTestItem(@Payload Long itemId) {
 		TestItem testItem = testItemRepository.findById(itemId).orElse(null);
 		if (testItem != null) {
-			return TestItemConverter.TO_RESOURCE.apply(testItem.getItemStructure());
+			return TestItemConverter.TO_RESOURCE.apply(testItem);
 		}
 		return null;
 	}

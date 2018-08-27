@@ -21,7 +21,9 @@
 
 package com.epam.ta.reportportal.core.widget.content.loader;
 
+import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -34,6 +36,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -55,7 +58,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Sort sort, Map<String, String> widgetOptions, int limit) {
 
 		validateWidgetOptions(widgetOptions);
 
@@ -65,7 +68,10 @@ public class ActivityContentLoader implements LoadContentStrategy {
 		User user = userRepository.findByLogin(login)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, "User with login " + login + " was not found"));
 
-		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, user.getLogin(), contentFields, limit);
+		filter.withCondition(new FilterCondition(Condition.EQUALS, false, user.getLogin(), LOGIN))
+				.withCondition(new FilterCondition(Condition.IN, false, String.join(",", contentFields), "action"));
+
+		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, contentFields, sort, limit);
 
 		return singletonMap(RESULT, activityContents);
 	}

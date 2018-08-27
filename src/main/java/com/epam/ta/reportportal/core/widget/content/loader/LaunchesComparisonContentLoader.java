@@ -34,6 +34,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -56,7 +57,7 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Sort sort, Map<String, String> widgetOptions, int limit) {
 
 		validateWidgetOptions(widgetOptions, filter);
 
@@ -64,7 +65,7 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 
 		filter.withCondition(new FilterCondition(Condition.EQUALS, false, widgetOptions.get(LAUNCH_NAME_FIELD), NAME));
 
-		List<LaunchesStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter, contentFields, limit);
+		List<LaunchesStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter, contentFields, sort, limit);
 		return singletonMap(RESULT, result);
 	}
 

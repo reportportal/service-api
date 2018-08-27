@@ -68,6 +68,7 @@ public final class UserFilterConverter {
 		Order order = new Order();
 		order.setSortingColumnName(filterSort.getField());
 		//TODO CHECK
+		order.setIsAsc(filterSort.getDirection().isAscending());
 		//order.setIsAsc(filterSort.isAscending());
 		return order;
 	};

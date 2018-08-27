@@ -60,7 +60,7 @@ public class ProjectFilterStrategy implements BuildFilterStrategy {
 
 		Filter filter = new Filter(userFilter.getTargetClass(), Sets.newHashSet(userFilter.getFilterCondition()));
 		filter = updateWithDefaultConditions(filter, projectDetails.getProjectId());
-		return loadContentStrategy.loadContent(widget.getContentFields(), filter, widget.getWidgetOptions(), widget.getItemsCount());
+		return loadContentStrategy.loadContent(widget.getContentFields(), filter, sort, widget.getWidgetOptions(), widget.getItemsCount());
 	}
 
 	private Filter updateWithDefaultConditions(Filter filter, Long projectId) {

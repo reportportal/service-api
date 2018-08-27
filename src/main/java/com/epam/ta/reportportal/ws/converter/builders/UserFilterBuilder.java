@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.Order;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Set;
@@ -93,8 +94,7 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 		orders.forEach(order -> {
 			FilterSort filterSort = new FilterSort();
 			filterSort.setField(order.getSortingColumnName());
-			//TODO CHECK
-			//filterSort.setAscending(order.getIsAsc());
+			filterSort.setDirection(order.getIsAsc() ? Sort.Direction.ASC : Sort.Direction.DESC);
 			userFilter.getFilterSorts().add(filterSort);
 		});
 		return this;

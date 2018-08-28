@@ -23,16 +23,13 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.dao.TestItemStructureRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.item.TestItemStructure;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.util.ProjectUtils;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,10 +39,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.toList;
 
@@ -60,8 +57,6 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 	private TestItemRepository testItemRepository;
 
-	private TestItemStructureRepository structureRepository;
-
 	// TODO ANALYZER
 	//	@Autowired
 	//	private ILogIndexer logIndexer;
@@ -71,18 +66,13 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		this.testItemRepository = testItemRepository;
 	}
 
-	@Autowired
-	public void setStructureRepository(TestItemStructureRepository structureRepository) {
-		this.structureRepository = structureRepository;
-	}
-
 	@Override
 	public OperationCompletionRS deleteTestItem(Long itemId, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser reportPortalUser) {
-		TestItemStructure item = structureRepository.findById(itemId)
+		TestItem item = testItemRepository.findById(itemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
-		validate(item.getTestItem(), reportPortalUser, projectDetails);
-		structureRepository.delete(item);
+		validate(item, reportPortalUser, projectDetails);
+		testItemRepository.delete(item);
 		return new OperationCompletionRS("Test Item with ID = '" + itemId + "' has been successfully deleted.");
 	}
 
@@ -100,16 +90,15 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	 * @param projectDetails
 	 */
 	private void validate(TestItem testItem, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
-		expect(testItem.getItemStructure().getItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(TEST_ITEM_IS_NOT_FINISHED,
+		expect(testItem.getItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(TEST_ITEM_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId())
 		);
-		Launch launch = testItem.getItemStructure().getLaunch();
-		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
-				formattedSupplier("Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
-						testItem.getItemId(),
-						launch.getId()
-				)
-		);
+		Launch launch = testItem.getLaunch();
+		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED, formattedSupplier(
+				"Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
+				testItem.getItemId(),
+				launch.getId()
+		));
 		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
 				formattedSupplier("Deleting testItem '{}' is not under specified project '{}'",
 						testItem.getItemId(),

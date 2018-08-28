@@ -21,11 +21,14 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
-import com.epam.ta.reportportal.entity.item.*;
+import com.epam.ta.reportportal.entity.item.Parameter;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.item.TestItemResults;
+import com.epam.ta.reportportal.entity.item.TestItemTag;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
@@ -47,16 +50,12 @@ public class TestItemBuilder implements Supplier<TestItem> {
 
 	private TestItem testItem;
 
-	private TestItemStructure structure;
-
 	public TestItemBuilder() {
 		testItem = new TestItem();
-		structure = new TestItemStructure();
 	}
 
 	public TestItemBuilder(TestItem testItem) {
 		this.testItem = testItem;
-		this.structure = testItem.getItemStructure();
 	}
 
 	public TestItemBuilder addStartItemRequest(StartTestItemRQ rq) {
@@ -68,8 +67,8 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		TestItemResults testItemResults = new TestItemResults();
 		testItemResults.setStatus(StatusEnum.IN_PROGRESS);
 
-		structure.setItemResults(testItemResults);
-		testItemResults.setItemStructure(structure);
+		testItem.setItemResults(testItemResults);
+		testItemResults.setTestItem(testItem);
 
 		addDescription(rq.getDescription());
 		addTags(rq.getTags());
@@ -79,12 +78,12 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	}
 
 	public TestItemBuilder addLaunch(Launch launch) {
-		structure.setLaunch(launch);
+		testItem.setLaunch(launch);
 		return this;
 	}
 
-	public TestItemBuilder addParent(TestItemStructure parentStructure) {
-		structure.setParent(parentStructure);
+	public TestItemBuilder addParent(TestItem parent) {
+		testItem.setParent(parent);
 		return this;
 	}
 
@@ -111,17 +110,17 @@ public class TestItemBuilder implements Supplier<TestItem> {
 
 	public TestItemBuilder addTestItemResults(TestItemResults testItemResults) {
 		checkNotNull(testItemResults, "Provided value shouldn't be null");
-		structure.setItemResults(testItemResults);
+		testItem.setItemResults(testItemResults);
 		addDuration(testItemResults.getEndTime());
 		return this;
 	}
 
 	public TestItemBuilder addDuration(LocalDateTime endTime) {
 		checkNotNull(endTime, "Provided value shouldn't be null");
-		checkNotNull(structure.getItemResults(), "Test item results shouldn't be null");
+		checkNotNull(testItem.getItemResults(), "Test item results shouldn't be null");
 
 		//converts to seconds
-		structure.getItemResults().setDuration(ChronoUnit.MILLIS.between(testItem.getStartTime(), endTime) / 1000d);
+		testItem.getItemResults().setDuration(ChronoUnit.MILLIS.between(testItem.getStartTime(), endTime) / 1000d);
 		return this;
 	}
 
@@ -139,8 +138,6 @@ public class TestItemBuilder implements Supplier<TestItem> {
 
 	@Override
 	public TestItem get() {
-		structure.setTestItem(testItem);
-		testItem.setItemStructure(structure);
 		return this.testItem;
 	}
 

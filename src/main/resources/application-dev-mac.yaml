@@ -1,3 +1,10 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${rp.db.url}
+  rabbitmq:
+    addresses: ${rp.amqp.addresses}
+
 rp:
   amqp:
     addresses: amqp://guest:guest@localhost:5672

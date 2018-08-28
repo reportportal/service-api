@@ -55,6 +55,7 @@ public class LaunchFinishedEvent implements ActivityEvent {
 		activity.setUserId(this.launch.getUserId());
 		activity.setEntity(Activity.Entity.LAUNCH);
 		activity.setCreatedAt(LocalDateTime.now());
+		activity.setProjectId(launch.getProjectId());
 		activity.setDetails(new LaunchActivityDetails(launch.getId()));
 		return activity;
 	}

@@ -41,7 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.transaction.PlatformTransactionManager;
 
 import java.net.URI;
 
@@ -90,7 +89,6 @@ public class RabbitMqConfiguration {
 		return new MessageBusImpl(amqpTemplate);
 	}
 
-
 	@Bean
 	public MessageConverter jsonMessageConverter() {
 		return new Jackson2JsonMessageConverter(objectMapper);
@@ -107,13 +105,10 @@ public class RabbitMqConfiguration {
 	}
 
 	@Bean
-	public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(@Autowired ConnectionFactory connectionFactory,
-			PlatformTransactionManager transactionManager) {
+	public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(@Autowired ConnectionFactory connectionFactory) {
 		SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
 		factory.setConnectionFactory(connectionFactory);
 		factory.setDefaultRequeueRejected(false);
-		factory.setTransactionManager(transactionManager);
-		factory.setChannelTransacted(true);
 		factory.setMessageConverter(jsonMessageConverter());
 		factory.setConcurrentConsumers(3);
 		factory.setMaxConcurrentConsumers(10);

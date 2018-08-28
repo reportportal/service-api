@@ -113,11 +113,11 @@ public class DeleteLogHandler implements IDeleteLogHandler {
 		final TestItem testItem = log.getTestItem();
 
 		//TODO check if statistics is right in item results
-		expect(testItem.getItemStructure().getItemResults().getStatistics(), notNull()).verify(TEST_ITEM_IS_NOT_FINISHED,
+		expect(testItem.getItemResults().getStatistics(), notNull()).verify(TEST_ITEM_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete log '{}' when test item '{}' in progress state", log.getId(), testItem.getItemId())
 		);
 
-		Launch launch = testItem.getItemStructure().getLaunch();
+		Launch launch = testItem.getLaunch();
 
 		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
 				formattedSupplier("Log '{}' not under specified '{}' project", logId, projectDetails.getProjectId())

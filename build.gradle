@@ -221,7 +221,6 @@ jar.dependsOn gitInfo
 
 build.dependsOn jacocoTestReport
 
-
 //task resolveDependencies() {
 //    doLast {
 //        project.rootProject.allprojects.each { subProject ->

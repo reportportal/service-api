@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.util.List;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
  * @author Pavel Bortnik
  */
 @Component
+@Transactional
 public class RepositoryAdaptersConsumer {
 
 	private IntegrationRepository integrationRepository;
@@ -91,7 +93,7 @@ public class RepositoryAdaptersConsumer {
 	public TestItemResource findTestItem(@Payload Long itemId) {
 		TestItem testItem = testItemRepository.findById(itemId).orElse(null);
 		if (testItem != null) {
-			return TestItemConverter.TO_RESOURCE.apply(testItem.getItemStructure());
+			return TestItemConverter.TO_RESOURCE.apply(testItem);
 		}
 		return null;
 	}

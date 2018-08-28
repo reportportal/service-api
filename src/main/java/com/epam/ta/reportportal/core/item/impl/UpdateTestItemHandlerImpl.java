@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.dao.BugTrackingSystemRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.TicketRepository;
@@ -38,7 +37,7 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.util.ProjectUtils;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemIssueConverter;
@@ -60,8 +59,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.Predicates.*;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.EXTERNAL_SYSTEM_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION;
 import static java.lang.Boolean.FALSE;
@@ -125,19 +124,18 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				verifyTestItem(testItem, issueDefinition.getId());
 
 				Issue issue = issueDefinition.getIssue();
-				IssueType issueType = issueTypeHandler.defineIssueType(
-						testItem.getItemId(),
+				IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(),
 						projectDetails.getProjectId(),
 						issue.getIssueType()
 				);
 
-				IssueEntity issueEntity = new IssueEntityBuilder(testItem.getItemStructure().getItemResults().getIssue()).addIssueType(
-						issueType)
+				IssueEntity issueEntity = new IssueEntityBuilder(testItem.getItemResults().getIssue()).addIssueType(issueType)
 						.addDescription(issue.getComment())
 						.addIgnoreFlag(issue.getIgnoreAnalyzer())
 						.addAutoAnalyzedFlag(false)
 						.get();
-				testItem.getItemStructure().getItemResults().setIssue(issueEntity);
+				issueEntity.setIssueId(testItem.getItemId());
+				testItem.getItemResults().setIssue(issueEntity);
 
 				//TODO EXTERNAL SYSTEM LOGIC, ANALYZER LOGIC
 				testItemRepository.save(testItem);
@@ -173,7 +171,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		testItems.forEach(testItem -> {
 			try {
 				verifyTestItem(testItem, testItem.getItemId());
-				IssueEntity issue = testItem.getItemStructure().getItemResults().getIssue();
+				IssueEntity issue = testItem.getItemResults().getIssue();
 				existedTickets.forEach(it -> it.getIssues().add(issue));
 				ticketsFromRq.forEach(it -> it.getIssues().add(issue));
 			} catch (Exception e) {
@@ -196,11 +194,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		testItems.forEach(testItem -> {
 			try {
 				verifyTestItem(testItem, testItem.getItemId());
-				testItem.getItemStructure()
-						.getItemResults()
-						.getIssue()
-						.getTickets()
-						.removeIf(it -> rq.getIssueIds().contains(it.getTicketId()));
+				testItem.getItemResults().getIssue().getTickets().removeIf(it -> rq.getIssueIds().contains(it.getTicketId()));
 			} catch (BusinessRuleViolationException e) {
 				errors.add(e.getMessage());
 			}
@@ -255,10 +249,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @param testItem       Test Item
 	 */
 	private void validate(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, TestItem testItem) {
-		Launch launch = testItem.getItemStructure().getLaunch();
+		Launch launch = testItem.getLaunch();
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
-					ErrorType.ACCESS_DENIED,
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ErrorType.ACCESS_DENIED,
 					"Launch is not under the specified project."
 			);
 			if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
@@ -293,12 +286,14 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 */
 	private void verifyTestItem(TestItem item, Long id) throws BusinessRuleViolationException {
 		// TODO possible npe
-		expect(item.getItemStructure().getItemResults().getStatus(), not(equalTo(StatusEnum.PASSED)), Suppliers.formattedSupplier(
-				"Issue status update cannot be applied on {} test items, cause it is not allowed.",
-				StatusEnum.PASSED.name()
-		)).verify();
 		expect(
-				testItemRepository.hasChildren(item.getItemId()),
+				item.getItemResults().getStatus(),
+				not(equalTo(StatusEnum.PASSED)),
+				Suppliers.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
+						StatusEnum.PASSED.name()
+				)
+		).verify();
+		expect(testItemRepository.hasChildren(item.getPath()),
 				equalTo(false),
 				Suppliers.formattedSupplier(
 						"It is not allowed to udpate issue type for items with descendants. Test item '{}' has descendants.",
@@ -306,8 +301,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				)
 		).verify();
 
-		expect(
-				item.getItemStructure().getItemResults().getIssue(),
+		expect(item.getItemResults().getIssue(),
 				notNull(),
 				Suppliers.formattedSupplier(
 						"Cannot update issue type for test item '{}', cause there is no info about actual issue type value.",
@@ -315,11 +309,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				)
 		).verify();
 
-		expect(
-				item.getItemStructure().getItemResults().getIssue().getIssueType(),
+		expect(item.getItemResults().getIssue().getIssueType(),
 				notNull(),
-				Suppliers.formattedSupplier(
-						"Cannot update issue type for test item {}, cause it's actual issue type value is not provided.",
+				Suppliers.formattedSupplier("Cannot update issue type for test item {}, cause it's actual issue type value is not provided.",
 						id
 				)
 		).verify();

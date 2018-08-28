@@ -32,7 +32,6 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
@@ -86,8 +85,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		TestItem testItem = testItemRepository.findById(testItemId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId));
 
-		boolean hasChildren = testItemRepository.hasChildren(testItem.getItemId());
-		verifyTestItem(user, testItem, finishExecutionRQ, fromValue(finishExecutionRQ.getStatus()), hasChildren);
+		boolean hasChildren = testItemRepository.hasChildren(testItem.getPath());
+		verifyTestItem(user, testItem, fromValue(finishExecutionRQ.getStatus()), hasChildren);
 
 		TestItemResults testItemResults = processItemResults(projectDetails.getProjectId(), testItem, finishExecutionRQ, hasChildren);
 
@@ -110,7 +109,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @return TestItemResults object
 	 */
 	private TestItemResults processItemResults(Long projectId, TestItem testItem, FinishTestItemRQ finishExecutionRQ, boolean hasChildren) {
-		TestItemResults testItemResults = Optional.ofNullable(testItem.getItemStructure().getItemResults()).orElse(new TestItemResults());
+		TestItemResults testItemResults = Optional.ofNullable(testItem.getItemResults()).orElse(new TestItemResults());
 		Optional<StatusEnum> actualStatus = fromValue(finishExecutionRQ.getStatus());
 		Issue providedIssue = finishExecutionRQ.getIssue();
 
@@ -121,7 +120,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		}
 
 		if (Preconditions.statusIn(FAILED, SKIPPED).test(testItemResults.getStatus()) && !hasChildren) {
-			IssueEntity issueEntity = null;
+			IssueEntity issueEntity = new IssueEntity();
 			if (null != providedIssue) {
 				//in provided issue should be locator id or NOT_ISSUE value
 				String locator = providedIssue.getIssueType();
@@ -132,9 +131,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				}
 			} else {
 				IssueType toInvestigate = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, TO_INVESTIGATE.getLocator());
-				issueEntity = new IssueEntity();
 				issueEntity.setIssueType(toInvestigate);
 			}
+			issueEntity.setIssueId(testItem.getItemId());
 			testItemResults.setIssue(issueEntity);
 		}
 		testItemResults.setEndTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()));
@@ -145,19 +144,16 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * Validation procedure for specified test item
 	 * TODO document this
 	 *
-	 * @param user              Report portal user
-	 * @param testItem          Test item
-	 * @param finishExecutionRQ Request data
-	 * @param actualStatus      Actual status of item
-	 * @param hasChildren       Does item contain children
+	 * @param user         Report portal user
+	 * @param testItem     Test item
+	 * @param actualStatus Actual status of item
+	 * @param hasChildren  Does item contain children
 	 */
-	private void verifyTestItem(ReportPortalUser user, TestItem testItem, FinishTestItemRQ finishExecutionRQ,
-			Optional<StatusEnum> actualStatus, boolean hasChildren) {
-		Launch launch = Optional.ofNullable(testItem.getItemStructure().getLaunch())
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
+	private void verifyTestItem(ReportPortalUser user, TestItem testItem, Optional<StatusEnum> actualStatus, boolean hasChildren) {
+		Launch launch = Optional.ofNullable(testItem.getLaunch()).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
 		expect(user.getUserId(), equalTo(launch.getUserId())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
 
-		expect(testItem.getItemStructure().getItemResults().getStatus(), Preconditions.statusIn(IN_PROGRESS)).verify(REPORTING_ITEM_ALREADY_FINISHED,
+		expect(testItem.getItemResults().getStatus(), Preconditions.statusIn(IN_PROGRESS)).verify(REPORTING_ITEM_ALREADY_FINISHED,
 				testItem.getItemId()
 		);
 
@@ -165,11 +161,5 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
 				testItem.getItemId()
 		));
-
-		expect(finishExecutionRQ.getEndTime(), Preconditions.sameTimeOrLater(testItem.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
-				finishExecutionRQ.getEndTime(),
-				testItem.getStartTime(),
-				testItem.getItemId()
-		);
 	}
 }

@@ -51,6 +51,8 @@ import static java.util.Collections.singletonMap;
 @Service
 public class ActivityContentLoader implements LoadContentStrategy {
 
+	public static final String CONTENT_FIELDS_DELIMITER = ",";
+
 	@Autowired
 	private UserRepository userRepository;
 
@@ -69,7 +71,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, "User with login " + login + " was not found"));
 
 		filter.withCondition(new FilterCondition(Condition.EQUALS, false, user.getLogin(), LOGIN))
-				.withCondition(new FilterCondition(Condition.IN, false, String.join(",", contentFields), "action"));
+				.withCondition(new FilterCondition(Condition.IN, false, String.join(CONTENT_FIELDS_DELIMITER, contentFields), "action"));
 
 		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, contentFields, sort, limit);
 

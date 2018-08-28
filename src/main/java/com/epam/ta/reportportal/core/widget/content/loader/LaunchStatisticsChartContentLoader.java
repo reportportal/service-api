@@ -54,7 +54,6 @@ public class LaunchStatisticsChartContentLoader implements LoadContentStrategy {
 
 		List<LaunchesStatisticsContent> content = widgetContentRepository.launchStatistics(filter, contentFields, sort, limit);
 
-		//		return singletonMap(RESULT, content.stream().map(LaunchConverter.TO_RESOURCE).collect(Collectors.toList()));
 		return singletonMap(RESULT, content);
 	}
 

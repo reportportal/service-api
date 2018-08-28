@@ -70,7 +70,7 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 	private String prepareForEncoding(TestItem testItem, Launch launch) {
 		Long projectId = launch.getProjectId();
 		String launchName = launch.getName();
-		List<String> pathNames = testItemRepository.selectPathNames(testItem.getPath());
+		List<String> pathNames = testItemRepository.selectPathNames(testItem.getItemId(), testItem.getPath());
 		String itemName = testItem.getName();
 		StringJoiner joiner = new StringJoiner(";");
 		joiner.add(projectId.toString()).add(launchName);

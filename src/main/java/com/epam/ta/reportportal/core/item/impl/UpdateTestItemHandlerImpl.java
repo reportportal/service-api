@@ -293,7 +293,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						StatusEnum.PASSED.name()
 				)
 		).verify();
-		expect(testItemRepository.hasChildren(item.getPath()),
+		expect(testItemRepository.hasChildren(item.getItemId(), item.getPath()),
 				equalTo(false),
 				Suppliers.formattedSupplier(
 						"It is not allowed to udpate issue type for items with descendants. Test item '{}' has descendants.",

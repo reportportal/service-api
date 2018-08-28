@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.entity.widget.content.NotPassedCasesContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -47,11 +48,11 @@ public class NotPassedTestsContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Sort sort, Map<String, String> widgetOptions, int limit) {
 
 		validateContentFields(contentFields);
 
-		List<NotPassedCasesContent> result = widgetContentRepository.notPassedCasesStatistics(filter, limit);
+		List<NotPassedCasesContent> result = widgetContentRepository.notPassedCasesStatistics(filter, sort, limit);
 		return singletonMap(RESULT, result);
 	}
 

@@ -14,6 +14,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,7 +37,7 @@ public class PassedRatePerLaunchContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Sort sort, Map<String, String> widgetOptions, int limit) {
 
 		validateWidgetOptions(widgetOptions);
 
@@ -53,7 +54,7 @@ public class PassedRatePerLaunchContentLoader implements LoadContentStrategy {
 				NAME
 		));
 
-		PassingRateStatisticsResult content = widgetContentRepository.passingRateStatistics(filter, limit);
+		PassingRateStatisticsResult content = widgetContentRepository.passingRateStatistics(filter, sort, limit);
 		return singletonMap(RESULT, content);
 	}
 

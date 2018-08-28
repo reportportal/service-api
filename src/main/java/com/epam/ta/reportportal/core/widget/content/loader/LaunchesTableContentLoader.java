@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -46,11 +47,11 @@ public class LaunchesTableContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Sort sort, Map<String, String> widgetOptions, int limit) {
 
 		validateContentFields(contentFields);
 
-		return singletonMap(RESULT, widgetContentRepository.launchesTableStatistics(filter, contentFields, limit));
+		return singletonMap(RESULT, widgetContentRepository.launchesTableStatistics(filter, contentFields, sort, limit));
 	}
 
 	/**

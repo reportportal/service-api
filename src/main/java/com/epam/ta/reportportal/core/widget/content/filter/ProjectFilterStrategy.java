@@ -29,13 +29,18 @@ import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.PROJECT_ID;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
@@ -47,9 +52,14 @@ public class ProjectFilterStrategy implements BuildFilterStrategy {
 	public Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, ReportPortalUser.ProjectDetails projectDetails,
 			Widget widget) {
 		UserFilter userFilter = widget.getFilter();
+
+		Sort sort = Sort.by(ofNullable(userFilter.getFilterSorts()).map(fs -> fs.stream()
+				.map(s -> new Sort.Order(s.getDirection(), s.getField()))
+				.collect(Collectors.toList())).orElseGet(Lists::newArrayList));
+
 		Filter filter = new Filter(userFilter.getTargetClass(), Sets.newHashSet(userFilter.getFilterCondition()));
 		filter = updateWithDefaultConditions(filter, projectDetails.getProjectId());
-		return loadContentStrategy.loadContent(widget.getContentFields(), filter, widget.getWidgetOptions(), widget.getItemsCount());
+		return loadContentStrategy.loadContent(widget.getContentFields(), filter, sort, widget.getWidgetOptions(), widget.getItemsCount());
 	}
 
 	private Filter updateWithDefaultConditions(Filter filter, Long projectId) {

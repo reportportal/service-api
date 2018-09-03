@@ -26,6 +26,7 @@ import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Strategy definition interface for loading widget content.
@@ -39,7 +40,8 @@ public interface LoadContentStrategy {
 	String LATEST_LAUNCH = "latest_launch";
 	String LAUNCH_NAME_FIELD = "launch_name_filter";
 	String LOGIN = "login";
+	String PREFIX = "PREFIX";
 
-	Map<String, ?> loadContent(List<String> contentFields, Filter filter, Sort sort, Map<String, String> widgetOptions, int limit);
+	Map<String, ?> loadContent(List<String> contentFields, Set<Filter> filters, Sort sort, Map<String, String> widgetOptions, int limit);
 
 }

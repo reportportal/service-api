@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -22,7 +24,9 @@ public class FlakyCasesTableContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Sort sort, Map<String, String> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Set<Filter> filters, Sort sort, Map<String, String> widgetOptions, int limit) {
+
+		Filter filter = GROUP_FILTERS.apply(filters);
 
 		return singletonMap(RESULT, widgetRepository.flakyCasesStatistics(filter, limit));
 	}

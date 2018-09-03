@@ -19,8 +19,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.NAME;
 import static java.util.Collections.singletonMap;
 
@@ -37,13 +39,15 @@ public class PassedRatePerLaunchContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Sort sort, Map<String, String> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Set<Filter> filters, Sort sort, Map<String, String> widgetOptions, int limit) {
 
 		validateWidgetOptions(widgetOptions);
 
 		validateContentFields(contentFields);
 
 		String launchName = widgetOptions.get(LAUNCH_NAME_FIELD);
+
+		Filter filter = GROUP_FILTERS.apply(filters);
 
 		filter.withCondition(new FilterCondition(
 				Condition.EQUALS,

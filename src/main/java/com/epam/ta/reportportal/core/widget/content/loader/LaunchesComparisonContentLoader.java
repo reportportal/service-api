@@ -39,8 +39,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.NAME;
 import static java.util.Collections.singletonMap;
 
@@ -57,11 +59,13 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Sort sort, Map<String, String> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Set<Filter> filters, Sort sort, Map<String, String> widgetOptions, int limit) {
 
-		validateWidgetOptions(widgetOptions, filter);
+		validateWidgetOptions(widgetOptions);
 
 		validateContentFields(contentFields);
+
+		Filter filter = GROUP_FILTERS.apply(filters);
 
 		filter.withCondition(new FilterCondition(Condition.EQUALS, false, widgetOptions.get(LAUNCH_NAME_FIELD), NAME));
 
@@ -73,9 +77,8 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 	 * Validate provided widget options. For current widget launch name should be specified.
 	 *
 	 * @param widgetOptions Set of stored widget options.
-	 * @param filter        Filter for launch search
 	 */
-	private void validateWidgetOptions(Map<String, String> widgetOptions, Filter filter) {
+	private void validateWidgetOptions(Map<String, String> widgetOptions) {
 		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should not be null.");
 

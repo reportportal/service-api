@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.core.widget.content.loader.*;
 import com.epam.ta.reportportal.core.widget.content.loader.ProductStatusContentLoader;
 import com.epam.ta.reportportal.core.widget.content.loader.ProductStatusFilterGroupedContentLoader;
 import com.epam.ta.reportportal.core.widget.content.loader.ProductStatusLaunchGroupedContentLoader;
+import com.epam.ta.reportportal.core.widget.content.loader.util.ProductStatusContentLoaderManager;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +76,7 @@ public class WidgetConfig implements ApplicationContextAware {
 		mapping.put(WidgetType.LAUNCHES_TABLE, applicationContext.getBean(LaunchesTableContentLoader.class));
 		mapping.put(WidgetType.MOST_FAILED_TEST_CASES, applicationContext.getBean(MostFailedContentLoader.class));
 		mapping.put(WidgetType.PASSING_RATE_PER_LAUNCH, applicationContext.getBean(PassedRatePerLaunchContentLoader.class));
+		mapping.put(WidgetType.PRODUCT_STATUS, applicationContext.getBean(ProductStatusContentLoaderManager.class));
 		mapping.put(WidgetType.CUMULATIVE, applicationContext.getBean(CumulativeTrendChartLoader.class));
 		return mapping;
 	}
@@ -93,7 +95,7 @@ public class WidgetConfig implements ApplicationContextAware {
 		mapping.put(WidgetType.LAUNCHES_TABLE, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
 		mapping.put(WidgetType.PASSING_RATE_SUMMARY, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
 		mapping.put(WidgetType.CUMULATIVE, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-
+		mapping.put(WidgetType.PRODUCT_STATUS, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
 		mapping.put(WidgetType.UNIQUE_BUG_TABLE, applicationContext.getBean(ProjectFilterStrategy.class));
 		mapping.put(WidgetType.ACTIVITY, applicationContext.getBean(ProjectFilterStrategy.class));
 		mapping.put(WidgetType.LAUNCHES_COMPARISON_CHART, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));

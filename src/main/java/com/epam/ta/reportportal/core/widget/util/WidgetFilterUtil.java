@@ -24,9 +24,13 @@ package com.epam.ta.reportportal.core.widget.util;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.google.common.collect.Lists;
+import org.springframework.data.domain.Sort;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author Pavel Bortnik
@@ -41,5 +45,9 @@ public class WidgetFilterUtil {
 
 		return filter;
 	};
+
+	public static final Function<Collection<Sort>, Sort> GROUP_SORTS = sorts -> Sort.by(sorts.stream()
+			.flatMap(s -> Lists.newArrayList(s.iterator()).stream())
+			.collect(Collectors.toList()));
 
 }

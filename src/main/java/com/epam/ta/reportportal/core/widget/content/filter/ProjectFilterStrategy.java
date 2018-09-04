@@ -28,7 +28,6 @@ import com.google.common.collect.Sets;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.PROJECT_ID;
 
@@ -38,12 +37,12 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 @Service
 public class ProjectFilterStrategy extends AbstractStatisticsFilterStrategy {
 
-	protected Set<Filter> updateWithDefaultConditions(Set<Filter> filters, Long projectId) {
+	protected Filter updateWithDefaultConditions(Filter filter, Long projectId) {
 		Set<FilterCondition> defaultConditions = Sets.newHashSet(new FilterCondition(Condition.EQUALS,
 				false,
 				String.valueOf(projectId),
 				PROJECT_ID
 		));
-		return filters.stream().map(f -> f.withConditions(defaultConditions)).collect(Collectors.toSet());
+		return filter.withConditions(defaultConditions);
 	}
 }

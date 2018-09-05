@@ -10,7 +10,6 @@ import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.content.PassingRateStatisticsResult;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +41,9 @@ public class PassedRatePerLaunchContentLoader implements LoadContentStrategy {
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,
 			int limit) {
 
-		validateWidgetOptions(widgetOptions);
+		validateFilterSortMapping(filterSortMapping);
 
-		validateContentFields(contentFields);
+		validateWidgetOptions(widgetOptions);
 
 		String launchName = widgetOptions.get(LAUNCH_NAME_FIELD);
 
@@ -65,6 +64,11 @@ public class PassedRatePerLaunchContentLoader implements LoadContentStrategy {
 		return singletonMap(RESULT, content);
 	}
 
+	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
+		BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Filter-Sort mapping should not be empty");
+	}
+
 	/**
 	 * Validate provided widget options. For current widget launch name should be specified.
 	 *
@@ -77,16 +81,4 @@ public class PassedRatePerLaunchContentLoader implements LoadContentStrategy {
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LAUNCH_NAME_FIELD + " should be specified for widget.");
 	}
 
-	/**
-	 * Validate provided content fields.
-	 * <p>
-	 * The value of content field should not be empty
-	 *
-	 * @param contentFields Map of provided content.
-	 */
-	private void validateContentFields(List<String> contentFields) {
-		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
-
-	}
 }

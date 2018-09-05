@@ -26,7 +26,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.core.widget.util.ContentFieldMatcherUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.COMBINED_CONTENT_FIELDS_REGEX;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.NAME;
@@ -53,14 +54,13 @@ import static java.util.Collections.singletonMap;
 public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 
 	@Autowired
-	private LaunchRepository launchRepository;
-
-	@Autowired
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,
 			int limit) {
+
+		validateFilterSortMapping(filterSortMapping);
 
 		validateWidgetOptions(widgetOptions);
 
@@ -74,6 +74,11 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 
 		List<LaunchesStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter, contentFields, sort, limit);
 		return singletonMap(RESULT, result);
+	}
+
+	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
+		BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Filter-Sort mapping should not be empty");
 	}
 
 	/**
@@ -90,6 +95,7 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LAUNCH_NAME_FIELD + " should be specified for widget.");
 	}
 
+	//TODO update docs
 	/**
 	 * Validate provided content fields.
 	 *
@@ -98,6 +104,8 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 	private void validateContentFields(List<String> contentFields) {
 		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
+		BusinessRule.expect(ContentFieldMatcherUtil.match(COMBINED_CONTENT_FIELDS_REGEX, contentFields), equalTo(true))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Bad content fields format");
 	}
 
 }

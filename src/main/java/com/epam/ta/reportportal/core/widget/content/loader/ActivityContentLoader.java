@@ -65,6 +65,8 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,
 			int limit) {
 
+		validateFilterSortMapping(filterSortMapping);
+
 		validateWidgetOptions(widgetOptions);
 
 		validateContentFields(contentFields);
@@ -80,9 +82,14 @@ public class ActivityContentLoader implements LoadContentStrategy {
 		filter.withCondition(new FilterCondition(Condition.EQUALS, false, user.getLogin(), LOGIN))
 				.withCondition(new FilterCondition(Condition.IN, false, String.join(CONTENT_FIELDS_DELIMITER, contentFields), "action"));
 
-		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, contentFields, sort, limit);
+		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, sort, limit);
 
 		return singletonMap(RESULT, activityContents);
+	}
+
+	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
+		BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Filter-Sort mapping should not be empty");
 	}
 
 	/**

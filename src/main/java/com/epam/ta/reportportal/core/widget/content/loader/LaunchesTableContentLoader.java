@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,8 @@ public class LaunchesTableContentLoader implements LoadContentStrategy {
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,
 			int limit) {
 
+		validateFilterSortMapping(filterSortMapping);
+
 		validateContentFields(contentFields);
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
@@ -59,6 +62,11 @@ public class LaunchesTableContentLoader implements LoadContentStrategy {
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
 		return singletonMap(RESULT, widgetContentRepository.launchesTableStatistics(filter, contentFields, sort, limit));
+	}
+
+	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
+		BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Filter-Sort mapping should not be empty");
 	}
 
 	/**

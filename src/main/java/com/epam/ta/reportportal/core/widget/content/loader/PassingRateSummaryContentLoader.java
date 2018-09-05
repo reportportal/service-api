@@ -6,7 +6,7 @@ import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.content.PassingRateStatisticsResult;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -32,7 +32,7 @@ public class PassingRateSummaryContentLoader implements LoadContentStrategy {
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,
 			int limit) {
 
-		validateContentFields(contentFields);
+		validateFilterSortMapping(filterSortMapping);
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 
@@ -42,16 +42,9 @@ public class PassingRateSummaryContentLoader implements LoadContentStrategy {
 		return singletonMap(RESULT, result);
 	}
 
-	/**
-	 * Validate provided content fields.
-	 * <p>
-	 * The value of content field should not be empty
-	 *
-	 * @param contentFields Map of provided content.
-	 */
-	private void validateContentFields(List<String> contentFields) {
-		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
-
+	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
+		BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Filter-Sort mapping should not be empty");
 	}
+
 }

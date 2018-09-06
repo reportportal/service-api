@@ -87,6 +87,11 @@ public class ActivityContentLoader implements LoadContentStrategy {
 		return singletonMap(RESULT, activityContents);
 	}
 
+	/**
+	 * Mapping should not be empty
+	 *
+	 * @param filterSortMapping Map of ${@link Filter} for query building as key and ${@link Sort} as value for each filter
+	 */
 	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
 		BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Filter-Sort mapping should not be empty");
@@ -98,7 +103,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	 * <p>
 	 * The value of content field should not be empty
 	 *
-	 * @param contentFields Map of provided content.
+	 * @param contentFields List of provided content.
 	 */
 	private void validateContentFields(List<String> contentFields) {
 		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
@@ -108,7 +113,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	/**
 	 * Validate provided widget options. For current widget user login should be specified for activity tracking.
 	 *
-	 * @param widgetOptions Set of stored widget options.
+	 * @param widgetOptions Map of stored widget options.
 	 */
 	private void validateWidgetOptions(Map<String, String> widgetOptions) {
 		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))

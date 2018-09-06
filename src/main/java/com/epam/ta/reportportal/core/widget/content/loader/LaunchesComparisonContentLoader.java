@@ -76,6 +76,11 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 		return singletonMap(RESULT, result);
 	}
 
+	/**
+	 * Mapping should not be empty
+	 *
+	 * @param filterSortMapping Map of ${@link Filter} for query building as key and ${@link Sort} as value for each filter
+	 */
 	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
 		BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Filter-Sort mapping should not be empty");
@@ -84,7 +89,7 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 	/**
 	 * Validate provided widget options. For current widget launch name should be specified.
 	 *
-	 * @param widgetOptions Set of stored widget options.
+	 * @param widgetOptions Map of stored widget options.
 	 */
 	private void validateWidgetOptions(Map<String, String> widgetOptions) {
 		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))
@@ -95,11 +100,12 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LAUNCH_NAME_FIELD + " should be specified for widget.");
 	}
 
-	//TODO update docs
 	/**
 	 * Validate provided content fields.
+	 * The value of content field should not be empty
+	 * All content fields should match the pattern {@link com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants#COMBINED_CONTENT_FIELDS_REGEX}
 	 *
-	 * @param contentFields Map of provided content.
+	 * @param contentFields List of provided content.
 	 */
 	private void validateContentFields(List<String> contentFields) {
 		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))

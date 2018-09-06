@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * @author Ivan Budaev
+ */
 public final class ContentFieldMatcherUtil {
 
 	private ContentFieldMatcherUtil() {

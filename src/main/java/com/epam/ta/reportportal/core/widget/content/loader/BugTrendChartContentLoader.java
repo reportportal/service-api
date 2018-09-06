@@ -68,6 +68,11 @@ public class BugTrendChartContentLoader implements LoadContentStrategy {
 		return singletonMap(RESULT, result);
 	}
 
+	/**
+	 * Mapping should not be empty
+	 *
+	 * @param filterSortMapping Map of ${@link Filter} for query building as key and ${@link Sort} as value for each filter
+	 */
 	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
 		BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Filter-Sort mapping should not be empty");
@@ -77,9 +82,10 @@ public class BugTrendChartContentLoader implements LoadContentStrategy {
 	 * Validate provided content fields.
 	 *
 	 * <p>
-	 * The value of content field should not be empty
+	 * The value of content field should not be empty.
+	 * All content fields should match the pattern {@link com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants#DEFECTS_REGEX}
 	 *
-	 * @param contentFields Map of provided content.
+	 * @param contentFields List of provided content.
 	 */
 	private void validateContentFields(List<String> contentFields) {
 		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))

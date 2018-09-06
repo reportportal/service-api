@@ -23,6 +23,9 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static java.util.Optional.ofNullable;
 
+/**
+ * @author Ivan Budaev
+ */
 public abstract class AbstractStatisticsFilterStrategy implements BuildFilterStrategy {
 
 	@Override

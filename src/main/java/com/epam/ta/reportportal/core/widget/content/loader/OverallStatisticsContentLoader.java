@@ -66,7 +66,7 @@ public class OverallStatisticsContentLoader implements LoadContentStrategy {
 	 * <p>
 	 * The value of at least one of the content fields should not be empty
 	 *
-	 * @param contentFields Map of provided content.
+	 * @param contentFields List of provided content.
 	 */
 	private void validateContentFields(List<String> contentFields) {
 		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))

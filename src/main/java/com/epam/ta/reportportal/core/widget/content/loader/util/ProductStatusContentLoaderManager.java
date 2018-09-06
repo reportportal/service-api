@@ -15,6 +15,9 @@ import java.util.Map;
 
 import static java.util.Optional.ofNullable;
 
+/**
+ * @author Ivan Budaev
+ */
 @Service
 public class ProductStatusContentLoaderManager implements LoadContentStrategy {
 

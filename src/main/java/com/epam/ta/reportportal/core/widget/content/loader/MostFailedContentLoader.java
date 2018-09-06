@@ -93,7 +93,7 @@ public class MostFailedContentLoader implements LoadContentStrategy {
 	/**
 	 * Validate provided widget options. For current widget launch name should be specified.
 	 *
-	 * @param widgetOptions Set of stored widget options.
+	 * @param widgetOptions Map of stored widget options.
 	 */
 	private void validateWidgetOptions(Map<String, String> widgetOptions) {
 		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))

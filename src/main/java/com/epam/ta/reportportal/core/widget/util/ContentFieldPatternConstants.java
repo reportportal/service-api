@@ -6,6 +6,9 @@ import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.*;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 
+/**
+ * @author Ivan Budaev
+ */
 public final class ContentFieldPatternConstants {
 
 	private static final String CONTENT_FIELD_SPLITTER = "\\$";

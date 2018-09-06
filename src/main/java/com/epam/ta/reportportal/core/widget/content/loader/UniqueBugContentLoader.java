@@ -58,6 +58,11 @@ public class UniqueBugContentLoader implements LoadContentStrategy {
 		return singletonMap(RESULT, widgetRepository.uniqueBugStatistics(filter, limit));
 	}
 
+	/**
+	 * Mapping should not be empty
+	 *
+	 * @param filterSortMapping Map of ${@link Filter} for query building as key and ${@link Sort} as value for each filter
+	 */
 	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
 		BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Filter-Sort mapping should not be empty");

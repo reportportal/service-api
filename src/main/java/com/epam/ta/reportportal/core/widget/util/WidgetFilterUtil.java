@@ -32,22 +32,25 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.ofNullable;
+
 /**
  * @author Pavel Bortnik
  */
 public class WidgetFilterUtil {
 
 	public static final Function<Set<Filter>, Filter> GROUP_FILTERS = filters -> {
-		Filter filter = filters.stream()
+		Filter filter = ofNullable(filters).map(Collection::stream)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Filters set should not be empty"))
 				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "No filters for widget"));
+				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "No filters for widget were found"));
 		filters.stream().skip(1).flatMap(f -> f.getFilterConditions().stream()).forEach(filter::withCondition);
 
 		return filter;
 	};
 
-	public static final Function<Collection<Sort>, Sort> GROUP_SORTS = sorts -> Sort.by(sorts.stream()
-			.flatMap(s -> Lists.newArrayList(s.iterator()).stream())
-			.collect(Collectors.toList()));
+	public static final Function<Collection<Sort>, Sort> GROUP_SORTS = sorts -> Sort.by(ofNullable(sorts).map(s -> s.stream()
+			.flatMap(sortStream -> Lists.newArrayList(sortStream.iterator()).stream())
+			.collect(Collectors.toList())).orElseGet(Lists::newArrayList));
 
 }

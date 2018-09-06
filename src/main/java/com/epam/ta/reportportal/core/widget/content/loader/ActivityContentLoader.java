@@ -55,11 +55,15 @@ public class ActivityContentLoader implements LoadContentStrategy {
 
 	public static final String CONTENT_FIELDS_DELIMITER = ",";
 
-	@Autowired
-	private UserRepository userRepository;
+	private final UserRepository userRepository;
+
+	private final WidgetContentRepository widgetContentRepository;
 
 	@Autowired
-	private WidgetContentRepository widgetContentRepository;
+	public ActivityContentLoader(UserRepository userRepository, WidgetContentRepository widgetContentRepository) {
+		this.userRepository = userRepository;
+		this.widgetContentRepository = widgetContentRepository;
+	}
 
 	@Override
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,

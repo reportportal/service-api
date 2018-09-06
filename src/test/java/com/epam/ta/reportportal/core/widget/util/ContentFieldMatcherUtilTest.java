@@ -5,15 +5,11 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.springframework.data.domain.Sort;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.*;
-import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
 
 @RunWith(Parameterized.class)
 public class ContentFieldMatcherUtilTest {
@@ -28,10 +24,6 @@ public class ContentFieldMatcherUtilTest {
 
 	@Test
 	public void whenWrongDefectsContentFieldsFormatThenFalse() {
-
-		Map<Sort, Sort> map = new LinkedHashMap<>();
-		System.out.println(map.keySet());
-		GROUP_SORTS.apply(map.values());
 
 		boolean match = ContentFieldMatcherUtil.match(DEFECTS_REGEX, buildWrongDefectContentFields());
 

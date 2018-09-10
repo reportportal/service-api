@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LAUNCH_NAME_FIELD;
 
 /**
  * Content loader for {@link com.epam.ta.reportportal.entity.widget.WidgetType#MOST_FAILED_TEST_CASES}

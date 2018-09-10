@@ -34,13 +34,6 @@ import java.util.Map;
  */
 public interface LoadContentStrategy {
 
-	String RESULT = "result";
-	String LATEST_OPTION = "latest";
-	String LATEST_LAUNCH = "latest_launch";
-	String LAUNCH_NAME_FIELD = "launch_name_filter";
-	String LOGIN = "login";
-	String PREFIX = "PREFIX";
-
 	Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, Map<String, String> widgetOptions, int limit);
 
 }

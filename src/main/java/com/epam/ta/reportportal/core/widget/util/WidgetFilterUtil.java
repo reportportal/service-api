@@ -44,7 +44,7 @@ public class WidgetFilterUtil {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Filters set should not be empty"))
 				.findFirst()
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "No filters for widget were found"));
-		filters.stream().skip(1).flatMap(f -> f.getFilterConditions().stream()).forEach(filter::withCondition);
+		filters.stream().flatMap(f -> f.getFilterConditions().stream()).forEach(filter::withCondition);
 
 		return filter;
 	};

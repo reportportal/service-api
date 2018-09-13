@@ -11,6 +11,10 @@ import java.util.Random;
 
 import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.*;
 
+/**
+ * @author Ivan_Budaev
+ */
+//TODO replace random wrong content field generation with the specified loop
 @RunWith(Parameterized.class)
 public class ContentFieldMatcherUtilTest {
 
@@ -136,7 +140,7 @@ public class ContentFieldMatcherUtilTest {
 
 	@Parameterized.Parameters
 	public static Object[][] data() {
-		return new Object[10][0];
+		return new Object[100][0];
 	}
 
 }

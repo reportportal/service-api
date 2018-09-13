@@ -27,32 +27,33 @@ import static java.util.Collections.singletonMap;
 /**
  * @author Ivan Budaev
  */
-@Service
-public class CumulativeTrendChartLoader implements LoadContentStrategy {
-
-	@Autowired
-	private WidgetContentRepository widgetContentRepository;
-
-	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,
-			int limit) {
-
-		validateFilterSortMapping(filterSortMapping);
-
-		validateContentFields(contentFields);
-
-		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
-
-		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
-
-		Map<String, List<LaunchesStatisticsContent>> result = widgetContentRepository.cumulativeTrendStatistics(filter,
-				contentFields,
-				sort,
-				widgetOptions.get(PREFIX),
-				limit
-		);
-		return singletonMap(RESULT, result);
-	}
+public class CumulativeTrendChartLoader {
+//@Service
+//public class CumulativeTrendChartLoader implements LoadContentStrategy {
+//
+//	@Autowired
+//	private WidgetContentRepository widgetContentRepository;
+//
+//	@Override
+//	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,
+//			int limit) {
+//
+//		validateFilterSortMapping(filterSortMapping);
+//
+//		validateContentFields(contentFields);
+//
+//		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
+//
+//		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
+//
+//		Map<String, List<LaunchesStatisticsContent>> result = widgetContentRepository.cumulativeTrendStatistics(filter,
+//				contentFields,
+//				sort,
+//				widgetOptions.get(PREFIX),
+//				limit
+//		);
+//		return singletonMap(RESULT, result);
+//	}
 
 	/**
 	 * Mapping should not be empty

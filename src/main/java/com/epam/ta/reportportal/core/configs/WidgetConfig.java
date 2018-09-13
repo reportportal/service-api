@@ -77,7 +77,7 @@ public class WidgetConfig implements ApplicationContextAware {
 		mapping.put(WidgetType.MOST_FAILED_TEST_CASES, applicationContext.getBean(MostFailedContentLoader.class));
 		mapping.put(WidgetType.PASSING_RATE_PER_LAUNCH, applicationContext.getBean(PassingRatePerLaunchContentLoader.class));
 		mapping.put(WidgetType.PRODUCT_STATUS, applicationContext.getBean(ProductStatusContentLoaderManager.class));
-		mapping.put(WidgetType.CUMULATIVE, applicationContext.getBean(CumulativeTrendChartLoader.class));
+//		mapping.put(WidgetType.CUMULATIVE, applicationContext.getBean(CumulativeTrendChartLoader.class));
 		mapping.put(WidgetType.MOST_TIME_CONSUMING, applicationContext.getBean(MostTimeConsumingContentLoader.class));
 		return mapping;
 	}
@@ -95,7 +95,7 @@ public class WidgetConfig implements ApplicationContextAware {
 		mapping.put(WidgetType.BUG_TREND, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
 		mapping.put(WidgetType.LAUNCHES_TABLE, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
 		mapping.put(WidgetType.PASSING_RATE_SUMMARY, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.CUMULATIVE, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
+//		mapping.put(WidgetType.CUMULATIVE, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
 		mapping.put(WidgetType.PRODUCT_STATUS, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
 		mapping.put(WidgetType.UNIQUE_BUG_TABLE, applicationContext.getBean(ProjectFilterStrategy.class));
 		mapping.put(WidgetType.ACTIVITY, applicationContext.getBean(ProjectFilterStrategy.class));

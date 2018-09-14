@@ -27,13 +27,14 @@ import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.widget.Widget;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @author Pavel Bortnik
@@ -58,15 +59,16 @@ public class CreateWidgetHandlerImpl implements ICreateWidgetHandler {
 	@Override
 	public EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 
-		UserFilter userFilter = null;
-		if (createWidgetRQ.getFilterId() != null) {
-			userFilter = filterRepository.findById(createWidgetRQ.getFilterId())
-					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, createWidgetRQ.getFilterId()));
+		List<UserFilter> userFilter = null;
+		//TODO chech if this statement could be replaced by loop filter search
+		if (CollectionUtils.isNotEmpty(createWidgetRQ.getFilterIds())) {
+			userFilter = filterRepository.findAllById(createWidgetRQ.getFilterIds());
+//					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, createWidgetRQ.getFilterId()));
 		}
 
 		Widget widget = new WidgetBuilder().addWidgetRq(createWidgetRQ)
 				.addProject(projectDetails.getProjectId())
-				.addFilter(userFilter)
+				.addFilters(userFilter)
 				.get();
 		widgetRepository.save(widget);
 

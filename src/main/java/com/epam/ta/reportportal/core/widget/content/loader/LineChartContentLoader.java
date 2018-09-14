@@ -36,7 +36,7 @@ import java.util.Map;
 public class LineChartContentLoader implements LoadContentStrategy {
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Sort sort, Map<String, String> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions, int limit) {
 		return null;
 	}
 }

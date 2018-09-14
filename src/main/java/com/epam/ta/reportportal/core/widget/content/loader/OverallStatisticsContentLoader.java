@@ -37,6 +37,9 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LATEST_OPTION;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
+import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 
 /**
  * @author Pavel Bortnik
@@ -48,10 +51,13 @@ public class OverallStatisticsContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Sort sort, Map<String, String> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,
+			int limit) {
 		boolean latestMode = widgetOptions.entrySet().stream().anyMatch(it -> it.getKey().equalsIgnoreCase(LATEST_OPTION));
 
 		validateContentFields(contentFields);
+
+		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 
 		List<StatisticsContent> content = widgetContentRepository.overallStatisticsContent(filter, contentFields, latestMode, limit);
 		return Collections.singletonMap(RESULT, content);
@@ -62,7 +68,7 @@ public class OverallStatisticsContentLoader implements LoadContentStrategy {
 	 * <p>
 	 * The value of at least one of the content fields should not be empty
 	 *
-	 * @param contentFields Map of provided content.
+	 * @param contentFields List of provided content.
 	 */
 	private void validateContentFields(List<String> contentFields) {
 		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))

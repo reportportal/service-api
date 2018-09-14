@@ -1,24 +1,3 @@
-/*
- * Copyright 2017 EPAM Systems
- *
- *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package com.epam.ta.reportportal.core.widget.content.loader;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -39,36 +18,42 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.PREFIX;
 import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.COMBINED_CONTENT_FIELDS_REGEX;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
 import static java.util.Collections.singletonMap;
 
 /**
- * @author Pavel Bortnik
+ * @author Ivan Budaev
  */
-@Service
-public class LaunchStatisticsChartContentLoader implements LoadContentStrategy {
-
-	@Autowired
-	private WidgetContentRepository widgetContentRepository;
-
-	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,
-			int limit) {
-
-		validateFilterSortMapping(filterSortMapping);
-
-		validateContentFields(contentFields);
-
-		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
-
-		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
-
-		List<LaunchesStatisticsContent> content = widgetContentRepository.launchStatistics(filter, contentFields, sort, limit);
-
-		return singletonMap(RESULT, content);
-	}
+public class CumulativeTrendChartLoader {
+//@Service
+//public class CumulativeTrendChartLoader implements LoadContentStrategy {
+//
+//	@Autowired
+//	private WidgetContentRepository widgetContentRepository;
+//
+//	@Override
+//	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,
+//			int limit) {
+//
+//		validateFilterSortMapping(filterSortMapping);
+//
+//		validateContentFields(contentFields);
+//
+//		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
+//
+//		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
+//
+//		Map<String, List<LaunchesStatisticsContent>> result = widgetContentRepository.cumulativeTrendStatistics(filter,
+//				contentFields,
+//				sort,
+//				widgetOptions.get(PREFIX),
+//				limit
+//		);
+//		return singletonMap(RESULT, result);
+//	}
 
 	/**
 	 * Mapping should not be empty
@@ -83,7 +68,7 @@ public class LaunchStatisticsChartContentLoader implements LoadContentStrategy {
 	/**
 	 * Validate provided content fields.
 	 * The value of content field should not be empty
-	 *  All content fields should match the pattern {@link com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants#COMBINED_CONTENT_FIELDS_REGEX}
+	 * All content fields should match the pattern {@link com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants#COMBINED_CONTENT_FIELDS_REGEX}
 	 *
 	 * @param contentFields List of provided content.
 	 */

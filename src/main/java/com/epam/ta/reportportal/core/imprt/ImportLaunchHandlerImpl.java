@@ -21,52 +21,61 @@
 package com.epam.ta.reportportal.core.imprt;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.activity.ImportFinishedEvent;
+import com.epam.ta.reportportal.core.events.activity.ImportStartedEvent;
+import com.epam.ta.reportportal.core.imprt.impl.ImportStrategy;
+import com.epam.ta.reportportal.core.imprt.impl.ImportStrategyFactoryImpl;
+import com.epam.ta.reportportal.core.imprt.impl.ImportType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
 
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
+import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.ZIP_EXTENSION;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+
 @Service
 public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
+	private ImportStrategyFactoryImpl importStrategyFactory;
+	private ApplicationEventPublisher eventPublisher;
 
-	private static final String ZIP_REGEX = ".*zip";
-
-	//	@Autowired
-	//	private ImportStrategyFactoryImpl factory;
-
-	//	@Autowired
-	//	private ProjectRepository projectRepository;
-
-	//	@Autowired
-	//	private ApplicationEventPublisher eventPublisher;
+	@Autowired
+	public ImportLaunchHandlerImpl(ImportStrategyFactoryImpl importStrategyFactory, ApplicationEventPublisher eventPublisher) {
+		this.eventPublisher = eventPublisher;
+		this.importStrategyFactory = importStrategyFactory;
+	}
 
 	@Override
 	public OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String format,
 			MultipartFile file) {
-		//		Project project = projectRepository.findOne(projectId);
-		//
-		//		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectId);
-		//		expect(file.getOriginalFilename(), it -> it.matches(ZIP_REGEX)).verify(
-		//				INCORRECT_REQUEST, "Should be a zip archive" + file.getOriginalFilename());
-		//
-		//		ImportType type = ImportType.fromValue(format).orElse(null);
-		//		expect(type, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, format);
-		//
-		//		File tempFile = transferToTempFile(file);
-		//		eventPublisher.publishEvent(new ImportStartedEvent(projectId, userName, file.getOriginalFilename()));
-		//		ImportStrategy strategy = factory.getImportLaunch(type);
-		//		String launch = strategy.importLaunch(projectId, userName, tempFile);
-		//		eventPublisher.publishEvent(new ImportFinishedEvent(projectId, userName, file.getOriginalFilename()));
-		//		return new OperationCompletionRS("Launch with id = " + launch + " is successfully imported.");
-		throw new UnsupportedOperationException("Importing is not implemented.");
+		expect(file.getOriginalFilename(), it -> it.endsWith(ZIP_EXTENSION) || it.endsWith(XML_EXTENSION)).verify(INCORRECT_REQUEST,
+				"Should be a zip archive or an xml file " + file.getOriginalFilename()
+		);
+
+		ImportType type = ImportType.fromValue(format).orElse(null);
+		expect(type, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, format);
+
+		File tempFile = transferToTempFile(file);
+		eventPublisher.publishEvent(new ImportStartedEvent(projectDetails.getProjectId(), user.getUserId(), file.getOriginalFilename()));
+		ImportStrategy strategy = importStrategyFactory.getImportStrategy(type, file.getOriginalFilename());
+		Long launch = strategy.importLaunch(projectDetails, user, tempFile);
+		eventPublisher.publishEvent(new ImportFinishedEvent(projectDetails.getProjectId(), user.getUserId(), file.getOriginalFilename()));
+		return new OperationCompletionRS("Launch with id = " + launch + " is successfully imported.");
 	}
 
 	private File transferToTempFile(MultipartFile file) {
 		try {
-			File tmp = File.createTempFile(file.getOriginalFilename(), ".zip");
+			File tmp = File.createTempFile(file.getOriginalFilename(), "." + FilenameUtils.getExtension(file.getOriginalFilename()));
 			file.transferTo(tmp);
 			return tmp;
 		} catch (IOException e) {

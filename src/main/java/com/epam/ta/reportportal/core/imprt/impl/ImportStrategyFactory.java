@@ -18,27 +18,25 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.epam.ta.reportportal.core.configs;
+package com.epam.ta.reportportal.core.imprt.impl;
+
+import com.epam.ta.reportportal.core.imprt.impl.ImportStrategy;
+import com.epam.ta.reportportal.core.imprt.impl.ImportType;
 
 /**
- * Configs for beans that are related to
- * importing xml report for junit tests
- * and SAX-parsing handler
+ * Factory for launch import handlers.
+ * Could be implemented other imports in future versions.
  *
  * @author Pavel_Bortnik
  */
-//@Configuration
-public class XunitImportConfiguration {
 
-	//	@Bean(name = "junitParseJob")
-	//	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	//	public XunitParseJob junitParseJob() {
-	//		return new XunitParseJob();
-	//	}
-	//
-	//	@Bean(name = "junitImportHandler")
-	//	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	//	public XunitImportHandler junitImportHandler() {
-	//		return new XunitImportHandler();
-	//	}
+public interface ImportStrategyFactory {
+	/**
+	 * Return import handler for specified type of import.
+	 *
+	 * @param type     import type
+	 * @param fileName file name with extension
+	 * @return handler
+	 */
+	ImportStrategy getImportStrategy(ImportType type, String fileName);
 }

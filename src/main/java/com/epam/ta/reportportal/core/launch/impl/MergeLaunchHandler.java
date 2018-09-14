@@ -104,7 +104,6 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 		//		User user = userRepository.findByLogin(user.getLogin());
 		Optional<Project> projectOptional = projectRepository.findById(projectDetails.getProjectId());
 		expect(projectOptional, isPresent()).verify(PROJECT_NOT_FOUND, projectDetails.getProjectId());
-		Project project = projectOptional.get();
 
 		Set<Long> launchesIds = rq.getLaunches();
 		List<Launch> launchesList = launchRepository.findAllById(launchesIds);

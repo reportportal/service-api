@@ -43,6 +43,7 @@ import com.epam.ta.reportportal.core.jasper.IGetJasperReportHandler;
 import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.core.launch.*;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
@@ -249,14 +250,14 @@ public class LaunchController {
 		return getLaunchMessageHandler.getLaunchNames(projectDetails, value);
 	}
 
-	//	@GetMapping(value = "/compare")
-	//	@ResponseBody
-	//	@ResponseStatus(OK)
-	//	@ApiOperation("Compare launches")
-	//	public List<ComparisonStatisticsContent> compareLaunches(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
-	//			@RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
-	//		return getLaunchMessageHandler.getLaunchesComparisonInfo(projectDetails, ids);
-	//	}
+	@GetMapping(value = "/compare")
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Compare launches")
+	public Map<String, List<LaunchesStatisticsContent>> compareLaunches(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+			@RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getLaunchesComparisonInfo(projectDetails, ids);
+	}
 
 	@PostMapping("/merge")
 	@ResponseBody

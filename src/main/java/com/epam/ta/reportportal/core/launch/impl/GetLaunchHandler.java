@@ -22,29 +22,43 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.dao.*;
-//import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
+import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.LaunchTagRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.google.common.collect.Lists;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.core.widget.content.LoadContentStrategy.RESULT;
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_FILTER_PARAMETERS;
 import static com.google.common.base.Predicates.equalTo;
+import static java.util.Collections.singletonMap;
+
+//import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
 
 /**
  * Default implementation of {@link com.epam.ta.reportportal.core.launch.GetLaunchHandler}
@@ -58,12 +72,14 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	private final LaunchRepository launchRepository;
 	private final LaunchTagRepository launchTagRepository;
 	private final ProjectRepository projectRepository;
+	private final WidgetContentRepository widgetContentRepository;
 
-	public GetLaunchHandler(LaunchRepository launchRepository, LaunchTagRepository launchTagRepository,
-			ProjectRepository projectRepository) {
+	public GetLaunchHandler(LaunchRepository launchRepository, LaunchTagRepository launchTagRepository, ProjectRepository projectRepository,
+			WidgetContentRepository widgetContentRepository) {
 		this.launchRepository = launchRepository;
 		this.launchTagRepository = launchTagRepository;
 		this.projectRepository = projectRepository;
+		this.widgetContentRepository = widgetContentRepository;
 	}
 
 	@Override
@@ -119,69 +135,38 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		return launchRepository.getOwnerNames(projectDetails.getProjectId(), value, mode);
 	}
 
-//	@Override
-//	public List<ComparisonStatisticsContent> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {
-//		//@formatter:off
-//		//TODO: implement after Ivan's response
-////				List<String> contentFields = Arrays.stream(JIssueGroupEnum.values()).map(JIssueGroupEnum::getLiteral).collect(Collectors.toList());
-////				contentFields.addAll(Lists.newArrayList(JStatusEnum.FAILED, JStatusEnum.SKIPPED, JStatusEnum.PASSED)
-////						.stream()
-////						.map(JStatusEnum::getLiteral)
-////						.collect(Collectors.toList()));
-////				Set<FilterCondition> filterConditions = new HashSet<>();
-////				filterConditions.add(new FilterCondition(Condition.IN,
-////						false,
-////						Arrays.stream(ids).map(String::valueOf).collect(Collectors.joining(",")),
-////						GeneralCriteriaConstant.PROJECT_ID
-////				));
-////				filterConditions.add(new FilterCondition(Condition.EQUALS, false, projectName, GeneralCriteriaConstant.PROJECT));
-////				Filter filter = new Filter(Launch.class, filterConditions);
-////				return comparisonContentLoader.loadContent(contentFields, filter, Collections.emptySet(), ids.length).forEach((result, values) -> {
-////					((Map<Integer, Map<String, Double>>) values).forEach();
-////				});
-//
-//		//TODO: remove old implementation
-//		//				widgetContentRepository.launchesComparisonStatistics(new Filter(Launch.class, Condition.IN, ), contentFields, ids);
-//		//		List<Launch> launches = launchRepository.findByIdIn(Arrays.asList(ids));
-//		//		List<ChartObject> objects = new ArrayList<>(launches.size());
-//		//		launches.forEach(launch -> {
-//		//			ChartObject object = new ChartObject();
-//		//			object.setName(launch.getName());
-//		//			object.setStartTime(String.valueOf(launch.getStartTime()));
-//		//			object.setNumber(String.valueOf(launch.getNumber()));
-//		//			object.setId(launch.getId().toString());
-//		//
-//		//			EnumMap<TestItemIssueGroup, Integer> issueCounter = new EnumMap<TestItemIssueGroup, Integer>(TestItemIssueGroup.class);
-//		//			launch.getIssueStatistics().forEach(issue ->
-//		//					issueCounter.put(issue.getIssueType().getIssueGroup().getTestItemIssueGroup(), issue.getCounter())
-//		//			);
-//		//			Map<String, Integer> issuesData = ImmutableMap.<String, Integer>builder()
-//		//					.put("statistics$defects$product_bug$total", issueCounter.get(TestItemIssueGroup.PRODUCT_BUG))
-//		//					.put("statistics$defects$system_issue$total", issueCounter.get(TestItemIssueGroup.SYSTEM_ISSUE))
-//		//					.put("statistics$defects$automation_bug$total", issueCounter.get(TestItemIssueGroup.AUTOMATION_BUG))
-//		//                    .put("statistics$defects$to_investigate$total", issueCounter.get(TestItemIssueGroup.TO_INVESTIGATE))
-//		//					.put("statistics$defects$no_defect$total", issueCounter.get(TestItemIssueGroup.NO_DEFECT))
-//		//					.build();
-//		//
-//		//			Map<String, Integer> executionCounter = new HashMap<>();
-//		//			launch.getExecutionStatistics().forEach(execution ->
-//		//					executionCounter.put(execution.getStatus().toUpperCase(), execution.getCounter())
-//		//			);
-//		//			Map<String, Integer> executionData = ImmutableMap.<String, Integer>builder()
-//		//					.put("statistics$executions$failed", executionCounter.get("FAILED"))
-//		//					.put("statistics$executions$passed", executionCounter.get("PASSED"))
-//		//					.put("statistics$executions$skipped", executionCounter.get("SKIPPED"))
-//		//					.build();
-//		//
-//		//			Map<String, String> computedStatistics = computeFraction(issuesData);
-//		//			computedStatistics.putAll(computeFraction(executionData));
-//		//			object.setValues(computedStatistics);
-//		//			objects.add(object);
-//		//		});
-//		//		return Collections.singletonMap(LoadContentStrategy.RESULT, objects);
-//		//@formatter:on
-//		throw new UnsupportedOperationException("Comparing is not implemented.");
-//	}
+	@Override
+	public Map<String, List<LaunchesStatisticsContent>> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {
+
+		List<String> contentFields = Lists.newArrayList(DEFECTS_AUTOMATION_BUG_TOTAL,
+				DEFECTS_NO_DEFECT_TOTAL,
+				DEFECTS_PRODUCT_BUG_TOTAL,
+				DEFECTS_SYSTEM_ISSUE_TOTAL,
+				DEFECTS_TO_INVESTIGATE_TOTAL,
+				EXECUTIONS_FAILED,
+				EXECUTIONS_PASSED,
+				EXECUTIONS_SKIPPED
+		);
+
+		Filter filter = Filter.builder()
+				.withTarget(Launch.class)
+				.withCondition(new FilterCondition(Condition.IN,
+						false,
+						Arrays.stream(ids).map(String::valueOf).collect(Collectors.joining(",")),
+						ID
+				))
+				.withCondition(new FilterCondition(Condition.EQUALS, false, String.valueOf(projectDetails.getProjectId()), ID))
+				.build();
+
+		List<LaunchesStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter,
+				contentFields,
+				Sort.unsorted(),
+				ids.length
+		);
+
+		return singletonMap(RESULT, result);
+
+	}
 
 	@Override
 	public Map<String, String> getStatuses(ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {

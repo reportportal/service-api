@@ -102,7 +102,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 			String userName) {
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, projectDetails.getProjectId()));
-		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getName()), pageable);
+		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getId()), pageable);
 		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
 	}
 
@@ -110,7 +110,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 			Filter filter, Pageable pageable) {
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, projectDetails.getProjectId()));
-		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getName()), pageable);
+		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getId()), pageable);
 		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
 	}
 

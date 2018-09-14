@@ -52,8 +52,8 @@ public class WidgetConverter {
 		widgetResource.setWidgetId(widget.getId());
 		widgetResource.setName(widget.getName());
 		widgetResource.setDescription(widget.getDescription());
-		Optional.ofNullable(widget.getFilter())
-				.ifPresent(filter -> widgetResource.setAppliedFilters(UserFilterConverter.TO_FILTER_RESOURCE.apply(filter)));
+		Optional.ofNullable(widget.getFilters())
+				.ifPresent(filter -> widgetResource.setAppliedFilters(UserFilterConverter.FILTER_SET_TO_FILTER_RESOURCE.apply(filter)));
 		ContentParameters contentParameters = new ContentParameters();
 		contentParameters.setItemsCount(widget.getItemsCount());
 		contentParameters.setWidgetOptions(widget.getWidgetOptions());

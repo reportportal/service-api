@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LAUNCH_NAME_FIELD;
 
 /**
  * Content loader for {@link com.epam.ta.reportportal.entity.widget.WidgetType#MOST_FAILED_TEST_CASES}
@@ -63,7 +64,7 @@ public class MostFailedContentLoader implements LoadContentStrategy {
 	}
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Sort sort, Map<String, String> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions, int limit) {
 
 //		validateContentFields(contentFields);
 //
@@ -93,7 +94,7 @@ public class MostFailedContentLoader implements LoadContentStrategy {
 	/**
 	 * Validate provided widget options. For current widget launch name should be specified.
 	 *
-	 * @param widgetOptions Set of stored widget options.
+	 * @param widgetOptions Map of stored widget options.
 	 */
 	private void validateWidgetOptions(Map<String, String> widgetOptions) {
 		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))

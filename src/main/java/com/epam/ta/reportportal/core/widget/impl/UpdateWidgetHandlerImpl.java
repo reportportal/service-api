@@ -32,8 +32,11 @@ import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @author Pavel Bortnik
@@ -60,12 +63,15 @@ public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
 			ReportPortalUser user) {
 		Widget widget = widgetRepository.findById(widgetId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND, widgetId));
-		UserFilter userFilter = null;
-		if (updateRQ.getFilterId() != null) {
-			userFilter = filterRepository.findById(updateRQ.getFilterId())
-					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, updateRQ.getFilterId()));
+		List<UserFilter> userFilter = null;
+		List<Long> filterIds = updateRQ.getFilterIds();
+
+		//TODO check if this statement could be replaced by loop filter search
+		if (CollectionUtils.isNotEmpty(filterIds)) {
+			userFilter = filterRepository.findAllById(filterIds);
+//					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, updateRQ.getFilterId()));
 		}
-		widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilter(userFilter).get();
+		widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilters(userFilter).get();
 		widgetRepository.save(widget);
 		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
 	}

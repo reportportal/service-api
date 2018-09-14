@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import com.google.common.collect.Sets;
 
 import java.util.function.Supplier;
 
@@ -64,8 +65,8 @@ public class WidgetBuilder implements Supplier<Widget> {
 		return this;
 	}
 
-	public WidgetBuilder addFilter(UserFilter userFilter) {
-		widget.setFilter(userFilter);
+	public WidgetBuilder addFilters(Iterable<UserFilter> userFilters) {
+		widget.setFilters(Sets.newHashSet(userFilters));
 		return this;
 	}
 

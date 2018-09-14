@@ -43,6 +43,9 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
+import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
+import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -53,14 +56,21 @@ public class ActivityContentLoader implements LoadContentStrategy {
 
 	public static final String CONTENT_FIELDS_DELIMITER = ",";
 
-	@Autowired
-	private UserRepository userRepository;
+	private final UserRepository userRepository;
+
+	private final WidgetContentRepository widgetContentRepository;
 
 	@Autowired
-	private WidgetContentRepository widgetContentRepository;
+	public ActivityContentLoader(UserRepository userRepository, WidgetContentRepository widgetContentRepository) {
+		this.userRepository = userRepository;
+		this.widgetContentRepository = widgetContentRepository;
+	}
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Filter filter, Sort sort, Map<String, String> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,
+			int limit) {
+
+		validateFilterSortMapping(filterSortMapping);
 
 		validateWidgetOptions(widgetOptions);
 
@@ -70,12 +80,26 @@ public class ActivityContentLoader implements LoadContentStrategy {
 		User user = userRepository.findByLogin(login)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, "User with login " + login + " was not found"));
 
+		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
+
+		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
+
 		filter.withCondition(new FilterCondition(Condition.EQUALS, false, user.getLogin(), LOGIN))
 				.withCondition(new FilterCondition(Condition.IN, false, String.join(CONTENT_FIELDS_DELIMITER, contentFields), "action"));
 
-		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, contentFields, sort, limit);
+		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, sort, limit);
 
 		return singletonMap(RESULT, activityContents);
+	}
+
+	/**
+	 * Mapping should not be empty
+	 *
+	 * @param filterSortMapping Map of ${@link Filter} for query building as key and ${@link Sort} as value for each filter
+	 */
+	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
+		BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Filter-Sort mapping should not be empty");
 	}
 
 	/**
@@ -84,7 +108,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	 * <p>
 	 * The value of content field should not be empty
 	 *
-	 * @param contentFields Map of provided content.
+	 * @param contentFields List of provided content.
 	 */
 	private void validateContentFields(List<String> contentFields) {
 		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
@@ -94,7 +118,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	/**
 	 * Validate provided widget options. For current widget user login should be specified for activity tracking.
 	 *
-	 * @param widgetOptions Set of stored widget options.
+	 * @param widgetOptions Map of stored widget options.
 	 */
 	private void validateWidgetOptions(Map<String, String> widgetOptions) {
 		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))

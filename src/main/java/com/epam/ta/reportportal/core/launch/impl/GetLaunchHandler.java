@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
-import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LaunchTagRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -46,19 +45,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.core.widget.content.LoadContentStrategy.RESULT;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_FILTER_PARAMETERS;
 import static com.google.common.base.Predicates.equalTo;
 import static java.util.Collections.singletonMap;
-
-//import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
 
 /**
  * Default implementation of {@link com.epam.ta.reportportal.core.launch.GetLaunchHandler}
@@ -136,7 +136,8 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	}
 
 	@Override
-	public Map<String, List<LaunchesStatisticsContent>> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {
+	public Map<String, List<LaunchesStatisticsContent>> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails,
+			Long[] ids) {
 
 		List<String> contentFields = Lists.newArrayList(DEFECTS_AUTOMATION_BUG_TOTAL,
 				DEFECTS_NO_DEFECT_TOTAL,
@@ -172,28 +173,5 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	public Map<String, String> getStatuses(ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {
 		return launchRepository.getStatuses(projectDetails.getProjectId(), ids);
 	}
-
-	//	private Map<String, String> computeFraction(Map<String, Integer> data) {
-	//		final int total = data.values().stream().mapToInt(Integer::intValue).sum();
-	//		return data.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> countPercentage(entry.getValue(), total)));
-	//	}
-
-	//	private String countPercentage(int value, int total) {
-	//		if (total == 0) {
-	//			return "0";
-	//		}
-	//		BigDecimal bigDecimal = new BigDecimal((double) value / total * 100);
-	//		return bigDecimal.setScale(2, BigDecimal.ROUND_HALF_EVEN).toString();
-	//	}
-
-	//	/**
-	//	 * Validate if filter doesn't contain any "mode" related conditions.
-	//	 *
-	//	 * @param filter
-	//	 */
-	//	private void validateModeConditions(Filter filter) {
-	//		expect(filter.getFilterConditions().stream().anyMatch(HAS_ANY_MODE), equalTo(false))
-	//				.verify(INCORRECT_FILTER_PARAMETERS, "Filters for 'mode' aren't applicable for project's launches.");
-	//	}
 
 }

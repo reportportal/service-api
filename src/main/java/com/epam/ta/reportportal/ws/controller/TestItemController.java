@@ -22,8 +22,10 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.item.*;
 import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
@@ -32,9 +34,11 @@ import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
+import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,8 +48,6 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -123,15 +125,16 @@ public class TestItemController {
 		return finishTestItemHandler.finishTestItem(user, projectDetails, testItemId, finishExecutionRQ);
 	}
 
-	//	@GetMapping
-	//	@ResponseBody
-	//	@ResponseStatus(OK)
-	//	@ApiOperation("Find test items by specified filter")
-	//	public Iterable<TestItemResource> getTestItems(@PathVariable String projectName, @FilterFor(TestItem.class) Filter filter,
-	//			@FilterFor(TestItem.class) Queryable predefinedFilter, @SortFor(TestItem.class) Pageable pageable,
-	//			@AuthenticationPrincipal ReportPortalUser user) {
-	//		return getTestItemHandler.getTestItems(new CompositeFilter(filter, predefinedFilter), pageable);
-	//	}
+	//TODO check pre-defined filter
+	@GetMapping
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Find test items by specified filter")
+	public Iterable<TestItemResource> getTestItems(@PathVariable String projectName, @FilterFor(TestItem.class) Filter filter,
+			@FilterFor(TestItem.class) Filter predefinedFilter, @SortFor(TestItem.class) Pageable pageable,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getTestItemHandler.getTestItems(new Filter(filter, predefinedFilter), pageable);
+	}
 
 	@DeleteMapping("/{itemId}")
 	@Transactional

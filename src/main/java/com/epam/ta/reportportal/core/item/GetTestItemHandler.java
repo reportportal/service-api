@@ -21,9 +21,9 @@
 
 package com.epam.ta.reportportal.core.item;
 
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
-import org.hibernate.persister.entity.Queryable;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -46,11 +46,11 @@ public interface GetTestItemHandler {
 	/**
 	 * Gets {@link TestItem} instances
 	 *
-	 * @param filterable
+	 * @param filter
 	 * @param pageable
 	 * @return
 	 */
-	Iterable<TestItemResource> getTestItems(Queryable filterable, Pageable pageable);
+	Iterable<TestItemResource> getTestItems(Filter filter, Pageable pageable);
 
 	/**
 	 * Get specified tags

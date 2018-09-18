@@ -120,12 +120,14 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 		if (!type.equals(MergeStrategyType.BASIC)) {
 			MergeStrategy strategy = mergeStrategyFactory.getStrategy(type);
 			//  group items by unique id
+			//TODO fix test-items of new launch
 			testItemRepository.selectAllDescendants(newLaunch.getId())
 					.stream()
 					.collect(groupingBy(TestItem::getUniqueId))
 					.entrySet()
 					.stream()
 					.map(Map.Entry::getValue)
+					.filter(testItems -> testItems.size() > 1)
 					.forEach(testItems -> strategy.mergeTestItems(testItems.get(0), testItems.subList(1, testItems.size())));
 		}
 

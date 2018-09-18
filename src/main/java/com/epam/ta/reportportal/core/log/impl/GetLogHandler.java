@@ -30,14 +30,15 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
-import com.epam.ta.reportportal.util.ProjectUtils;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
@@ -67,16 +68,14 @@ public class GetLogHandler implements IGetLogHandler {
 	@Override
 	public Iterable<LogResource> getLogs(Long testStepId, ReportPortalUser.ProjectDetails projectDetails, Filter filterable,
 			Pageable pageable) {
-		// DO we need filter for project here?
-		//		Page<Log> logs = logRepository.findByFilter(filterable, pageable);
-		//		return logResourceAssembler.toPagedResources(logs);
-		throw new UnsupportedOperationException("No implementation");
+
+		Page<Log> logs = logRepository.findByFilter(filterable, pageable);
+		return PagedResourcesAssembler.pageConverter(LogConverter.TO_RESOURCE).apply(logs);
 	}
 
 	@Override
 	public long getPageNumber(Long logId, ReportPortalUser.ProjectDetails projectDetails, Filter filterable, Pageable pageable) {
-		//		return logRepository.getPageNumber(logId, filterable, pageable);
-		throw new UnsupportedOperationException("No implementation");
+		return logRepository.getPageNumber(logId, filterable, pageable);
 	}
 
 	@Override
@@ -97,8 +96,7 @@ public class GetLogHandler implements IGetLogHandler {
 	 */
 	private Log findAndValidate(Long logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 
-		Log log = logRepository.findById(logId).orElse(null);
-		expect(log, notNull()).verify(LOG_NOT_FOUND, logId);
+		Log log = logRepository.findById(logId).orElseThrow(() -> new ReportPortalException(LOG_NOT_FOUND, logId));
 
 		final TestItem testItem = log.getTestItem();
 		Launch launch = testItem.getLaunch();

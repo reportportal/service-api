@@ -49,6 +49,7 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
 	@Override
 	public TestItem mergeTestItems(TestItem itemTarget, List<TestItem> items) {
 		TestItem result = items.stream().reduce(itemTarget, this::moveAllChildTestItems);
+		TestItem result1 = items.stream().reduce(itemTarget, (prev, curr) -> moveAllChildTestItems(prev, curr));
 		this.mergeAllChildItems(result);
 		return result;
 	}
@@ -93,7 +94,7 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
 	 */
 	private void updateTargetItemInfo(TestItem target, TestItem source) {
 		target = updateTime(target, source);
-		target.getTags().removeAll(source.getTags());
+		source.getTags().removeAll(target.getTags());
 		target.getTags().addAll(source.getTags());
 		String result = mergeDescriptions(target.getDescription(), source.getDescription());
 		if (!result.isEmpty()) {

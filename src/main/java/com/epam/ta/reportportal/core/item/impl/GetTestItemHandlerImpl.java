@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.core.item.impl;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.item.GetTestItemHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.TestItemTagRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -51,10 +52,12 @@ import static com.epam.ta.reportportal.dao.TestItemRepositoryCustomImpl.TEST_ITE
 @Service
 class GetTestItemHandlerImpl implements GetTestItemHandler {
 	private final TestItemRepository testItemRepository;
+	private final TestItemTagRepository testItemTagRepository;
 
 	@Autowired
-	public GetTestItemHandlerImpl(TestItemRepository testItemRepository) {
+	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, TestItemTagRepository testItemTagRepository) {
 		this.testItemRepository = testItemRepository;
+		this.testItemTagRepository = testItemTagRepository;
 	}
 
 	/*
@@ -86,9 +89,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	@Override
 	public List<String> getTags(Long launchId, String value) {
-		//TODO implement TestItem tags
-		//		return testItemRepository.findDistinctValues(launchId, value, "tags");
-		throw new UnsupportedOperationException("No implementation");
+		return testItemTagRepository.findDistinctByLaunchIdAndValue(launchId, value);
 	}
 
 	@Override

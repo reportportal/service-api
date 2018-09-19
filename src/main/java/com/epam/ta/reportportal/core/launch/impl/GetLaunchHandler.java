@@ -51,12 +51,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.querygen.Condition.EQUALS;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_FILTER_PARAMETERS;
+import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
 import static com.google.common.base.Predicates.equalTo;
 import static java.util.Collections.singletonMap;
 
@@ -87,16 +90,21 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		//TODO: fix this
 		return launchRepository.findById(launchId)
 				.map(TO_RESOURCE)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 	}
 
-	//		public LaunchResource getLaunchByName(String project, Pageable pageable, Filter filter, String username) {
-	////			filter.addCondition(new FilterCondition(EQUALS, false, project, Launch.PROJECT));
-	//	//		Page<Launch> launches = launchRepository.findByFilter(filter, pageable);
-	//	//		expect(launches, notNull()).verify(LAUNCH_NOT_FOUND);
-	//	//		return LaunchConverter.TO_RESOURCE.apply(launches.iterator().next());
-	//			return null;
-	//		}
+	public LaunchResource getLaunchByProjectName(String projectName, Pageable pageable, Filter filter, String username) {
+
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
+						"Project with name: " + projectName + " not found"
+				));
+
+		filter.withCondition(new FilterCondition(EQUALS, false, String.valueOf(project.getId()), PROJECT_ID));
+		Page<Launch> launches = launchRepository.findByFilter(filter, pageable);
+		expect(launches, notNull()).verify(LAUNCH_NOT_FOUND);
+		return LaunchConverter.TO_RESOURCE.apply(launches.iterator().next());
+	}
 
 	public Iterable<LaunchResource> getProjectLaunches(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable,
 			String userName) {
@@ -156,7 +164,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 						Arrays.stream(ids).map(String::valueOf).collect(Collectors.joining(",")),
 						ID
 				))
-				.withCondition(new FilterCondition(Condition.EQUALS, false, String.valueOf(projectDetails.getProjectId()), ID))
+				.withCondition(new FilterCondition(EQUALS, false, String.valueOf(projectDetails.getProjectId()), PROJECT_ID))
 				.build();
 
 		List<LaunchesStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter,

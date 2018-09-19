@@ -49,15 +49,15 @@ public interface GetLaunchHandler {
 	 */
 	LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails);
 
-	//	/**
-	//	 * Get Launch resource by specified Name (for Jenkins Plugin)
-	//	 *
-	//	 * @param project  Project Name
-	//	 * @param pageable Page details
-	//	 * @param username User name
-	//	 * @return Response Data
-	//	 */
-	//	LaunchResource getLaunchByName(String project, Pageable pageable, Filter filter, String username);
+	/**
+	 * Get Launch resource by specified Name (for Jenkins Plugin)
+	 *
+	 * @param project  Project Name
+	 * @param pageable Page details
+	 * @param username User name
+	 * @return Response Data
+	 */
+	LaunchResource getLaunchByProjectName(String project, Pageable pageable, Filter filter, String username);
 
 	/**
 	 * Get list of Launch resources for specified project
@@ -105,7 +105,8 @@ public interface GetLaunchHandler {
 	 * @param projectDetails Project Details
 	 * @param ids            IDs to be looked up
 	 * @return Response Data
-//	 */
+	 * //
+	 */
 	Map<String, List<LaunchesStatisticsContent>> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids);
 
 	/**

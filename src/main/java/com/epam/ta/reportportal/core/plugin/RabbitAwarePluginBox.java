@@ -49,7 +49,7 @@ public class RabbitAwarePluginBox extends AbstractScheduledService implements Pl
 					Collections.singletonMap("ok", UUID.randomUUID().toString())
 			);
 		} catch (Exception e) {
-			LOGGER.error("Cannot broadcasr ping message to plugins", e);
+			LOGGER.error("Cannot broadcast ping message to plugins", e);
 		}
 
 	}

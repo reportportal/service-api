@@ -28,8 +28,11 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.impl.TestItemUniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.MergeStrategyFactory;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.MergeStrategyType;
-import com.epam.ta.reportportal.core.item.merge.MergeStrategy;
-import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
+import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -50,6 +53,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.function.Supplier;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
@@ -78,9 +82,6 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 
 	@Autowired
 	private MergeStrategyFactory mergeStrategyFactory;
-
-	//	@Autowired
-	//	private StatisticsFacadeFactory statisticsFacadeFactory;
 
 	@Autowired
 	private TestItemUniqueIdGenerator identifierGenerator;
@@ -117,30 +118,16 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 		expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
 
 		// deep merge strategies
-		if (!type.equals(MergeStrategyType.BASIC)) {
-			MergeStrategy strategy = mergeStrategyFactory.getStrategy(type);
-			//  group items by unique id
-			//TODO fix test-items of new launch
-			testItemRepository.selectAllDescendants(newLaunch.getId())
-					.stream()
-					.collect(groupingBy(TestItem::getUniqueId))
-					.entrySet()
-					.stream()
-					.map(Map.Entry::getValue)
-					.filter(testItems -> testItems.size() > 1)
-					.forEach(testItems -> strategy.mergeTestItems(testItems.get(0), testItems.subList(1, testItems.size())));
+		if (type.equals(MergeStrategyType.DEEP)) {
+			launchRepository.mergeLaunchTestItems(newLaunch.getId());
 		}
 
-		//		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration()
-		//				.getStatisticsCalculationStrategy());
-		//		statisticsFacade.recalculateStatistics(newLaunch);
-
-		//		newLaunch = launchRepository.findById(newLaunch.getId());
-		//		newLaunch.setStatus(StatisticsHelper.getStatusFromStatistics(newLaunch.getStatistics()));
-		//		newLaunch.setEndTime(rq.getEndTime());
+		newLaunch = launchRepository.findById(newLaunch.getId()).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
+		newLaunch.setStatus(StatisticsHelper.getStatusFromStatistics(newLaunch.getStatistics()));
+		newLaunch.setEndTime(TO_LOCAL_DATE_TIME.apply(rq.getEndTime()));
 
 		launchRepository.save(newLaunch);
-		//		launchRepository.deleteAllById(launchesIds);
+		launchRepository.deleteAll(launchesList);
 
 		//		logIndexer.indexLogs(newLaunch.getId(), testItemRepository.findItemsNotInIssueType(TO_INVESTIGATE.getLocator(), newLaunch.getId()));
 

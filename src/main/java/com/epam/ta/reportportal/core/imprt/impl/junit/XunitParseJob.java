@@ -39,6 +39,7 @@ import java.io.InputStream;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class XunitParseJob extends CallableImportJob {
+
 	@Autowired
 	private XunitImportHandler handler;
 
@@ -55,7 +56,7 @@ public class XunitParseJob extends CallableImportJob {
 	}
 
 	@Override
-	protected XunitParseJob withParameters(ReportPortalUser.ProjectDetails projectDetails, Long launchId, ReportPortalUser user,
+	public XunitParseJob withParameters(ReportPortalUser.ProjectDetails projectDetails, Long launchId, ReportPortalUser user,
 			InputStream xmlInputStream) {
 		this.xmlInputStream = xmlInputStream;
 		this.handler = handler.withParameters(projectDetails, launchId, user);

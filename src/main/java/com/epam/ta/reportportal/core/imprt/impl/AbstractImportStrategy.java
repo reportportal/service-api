@@ -28,8 +28,8 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import javax.inject.Provider;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
@@ -40,22 +40,32 @@ import java.util.concurrent.Executors;
 /**
  * @author Anton Machulski
  */
-public abstract class AbstractImportStrategy<T extends CallableImportJob> implements ImportStrategy {
+@Component
+public abstract class AbstractImportStrategy implements ImportStrategy {
 	protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractImportStrategy.class);
 	private static final Date initialStartTime = new Date(0);
 	protected static final ExecutorService service = Executors.newFixedThreadPool(5);
 
-	@Autowired
-	protected Provider<T> xmlParseJobProvider;
-
-	@Autowired
 	private StartLaunchHandler startLaunchHandler;
 
-	@Autowired
 	private FinishLaunchHandler finishLaunchHandler;
 
-	@Autowired
 	private LaunchRepository launchRepository;
+
+	@Autowired
+	public void setStartLaunchHandler(StartLaunchHandler startLaunchHandler) {
+		this.startLaunchHandler = startLaunchHandler;
+	}
+
+	@Autowired
+	public void setFinishLaunchHandler(FinishLaunchHandler finishLaunchHandler) {
+		this.finishLaunchHandler = finishLaunchHandler;
+	}
+
+	@Autowired
+	public void setLaunchRepository(LaunchRepository launchRepository) {
+		this.launchRepository = launchRepository;
+	}
 
 	protected ParseResults processResults(CompletableFuture... futures) {
 		ParseResults results = new ParseResults();
@@ -74,7 +84,8 @@ public abstract class AbstractImportStrategy<T extends CallableImportJob> implem
 		return startLaunchHandler.startLaunch(user, projectDetails, startLaunchRQ).getId();
 	}
 
-	protected void finishLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, ParseResults results) {
+	protected void finishLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			ParseResults results) {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(results.getEndTime());
 		finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectDetails, user);

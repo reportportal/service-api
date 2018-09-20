@@ -20,10 +20,10 @@
  */
 package com.epam.ta.reportportal.core.imprt.impl;
 
-import com.epam.ta.reportportal.core.imprt.impl.junit.XunitParseJob;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -32,18 +32,23 @@ import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTE
 import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.ZIP_EXTENSION;
 
 @Service
+@Configuration
 public class ImportStrategyFactoryImpl implements ImportStrategyFactory {
 
 	private final Map<ImportType, Map<String, ImportStrategy>> MAPPING;
 
 	@Autowired
+	private ImportStrategy zipImportStrategy;
+
+	@Autowired
+	private ImportStrategy xmlImportStrategy;
+
+	@Autowired
 	public ImportStrategyFactoryImpl() {
-		Map<String, ImportStrategy> xunitStrategyMap = ImmutableMap.<String, ImportStrategy>builder()
-				.put(ZIP_EXTENSION, new ZipImportStrategy<XunitParseJob>())
-				.put(XML_EXTENSION, new XmlImportStrategy<XunitParseJob>())
+		Map<String, ImportStrategy> xunitStrategyMap = ImmutableMap.<String, ImportStrategy>builder().put(ZIP_EXTENSION, zipImportStrategy)
+				.put(XML_EXTENSION, xmlImportStrategy)
 				.build();
-		MAPPING = ImmutableMap.<ImportType, Map<String, ImportStrategy>>builder().put(ImportType.XUNIT, xunitStrategyMap)
-				.build();
+		MAPPING = ImmutableMap.<ImportType, Map<String, ImportStrategy>>builder().put(ImportType.XUNIT, xunitStrategyMap).build();
 	}
 
 	@Override

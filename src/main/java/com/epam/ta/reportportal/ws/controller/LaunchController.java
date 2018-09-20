@@ -57,7 +57,6 @@ import io.swagger.annotations.ApiParam;
 import net.sf.jasperreports.engine.JasperPrint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,8 +71,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -92,7 +89,7 @@ import static org.springframework.http.HttpStatus.OK;
  */
 @Controller
 @RequestMapping("/{projectName}/launch")
-@PreAuthorize(ASSIGNED_TO_PROJECT)
+//@PreAuthorize(ASSIGNED_TO_PROJECT)
 public class LaunchController {
 
 	private final StartLaunchHandler createLaunchMessageHandler;
@@ -124,7 +121,7 @@ public class LaunchController {
 	@ResponseBody
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
-	@PreAuthorize(ALLOWED_TO_REPORT)
+	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS startLaunch(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -135,7 +132,7 @@ public class LaunchController {
 	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
-	@PreAuthorize(ALLOWED_TO_REPORT)
+	//@PreAuthorize(ALLOWED_TO_REPORT)
 	@ApiOperation("Finish launch for specified project")
 	public OperationCompletionRS finishLaunch(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
@@ -252,14 +249,14 @@ public class LaunchController {
 		return getLaunchMessageHandler.getLaunchNames(projectDetails, value);
 	}
 
-//	@GetMapping(value = "/compare")
-//	@ResponseBody
-//	@ResponseStatus(OK)
-//	@ApiOperation("Compare launches")
-//	public List<ComparisonStatisticsContent> compareLaunches(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
-//			@RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
-//		return getLaunchMessageHandler.getLaunchesComparisonInfo(projectDetails, ids);
-//	}
+	//	@GetMapping(value = "/compare")
+	//	@ResponseBody
+	//	@ResponseStatus(OK)
+	//	@ApiOperation("Compare launches")
+	//	public List<ComparisonStatisticsContent> compareLaunches(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+	//			@RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
+	//		return getLaunchMessageHandler.getLaunchesComparisonInfo(projectDetails, ids);
+	//	}
 
 	@PostMapping("/merge")
 	@ResponseBody

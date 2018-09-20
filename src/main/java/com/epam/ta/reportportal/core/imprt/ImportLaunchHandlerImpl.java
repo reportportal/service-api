@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.ImportFinishedEvent;
 import com.epam.ta.reportportal.core.events.activity.ImportStartedEvent;
 import com.epam.ta.reportportal.core.imprt.impl.ImportStrategy;
+import com.epam.ta.reportportal.core.imprt.impl.ImportStrategyFactory;
 import com.epam.ta.reportportal.core.imprt.impl.ImportStrategyFactoryImpl;
 import com.epam.ta.reportportal.core.imprt.impl.ImportType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -46,7 +47,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 
 @Service
 public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
-	private ImportStrategyFactoryImpl importStrategyFactory;
+	private ImportStrategyFactory importStrategyFactory;
 	private ApplicationEventPublisher eventPublisher;
 
 	@Autowired
@@ -58,19 +59,26 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 	@Override
 	public OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String format,
 			MultipartFile file) {
-		expect(file.getOriginalFilename(), it -> it.endsWith(ZIP_EXTENSION) || it.endsWith(XML_EXTENSION)).verify(INCORRECT_REQUEST,
-				"Should be a zip archive or an xml file " + file.getOriginalFilename()
-		);
 
-		ImportType type = ImportType.fromValue(format).orElse(null);
-		expect(type, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, format);
+		validate(file);
+
+		ImportType type = ImportType.fromValue(format)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unknown import type - " + format));
 
 		File tempFile = transferToTempFile(file);
 		eventPublisher.publishEvent(new ImportStartedEvent(projectDetails.getProjectId(), user.getUserId(), file.getOriginalFilename()));
 		ImportStrategy strategy = importStrategyFactory.getImportStrategy(type, file.getOriginalFilename());
-		Long launch = strategy.importLaunch(projectDetails, user, tempFile);
+		Long launchId = strategy.importLaunch(projectDetails, user, tempFile);
 		eventPublisher.publishEvent(new ImportFinishedEvent(projectDetails.getProjectId(), user.getUserId(), file.getOriginalFilename()));
-		return new OperationCompletionRS("Launch with id = " + launch + " is successfully imported.");
+		return new OperationCompletionRS("Launch with id = " + launchId + " is successfully imported.");
+	}
+
+	private void validate(MultipartFile file) {
+		expect(file.getOriginalFilename(), notNull()).verify(ErrorType.INCORRECT_REQUEST, "File name should be not empty.");
+
+		expect(file.getOriginalFilename(), it -> it.endsWith(ZIP_EXTENSION) || it.endsWith(XML_EXTENSION)).verify(INCORRECT_REQUEST,
+				"Should be a zip archive or an xml file " + file.getOriginalFilename()
+		);
 	}
 
 	private File transferToTempFile(MultipartFile file) {
@@ -79,7 +87,7 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 			file.transferTo(tmp);
 			return tmp;
 		} catch (IOException e) {
-			throw new ReportPortalException("Error during transferring multipart file", e);
+			throw new ReportPortalException("Error during transferring multipart file.", e);
 		}
 	}
 }

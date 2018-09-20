@@ -16,9 +16,13 @@
 package com.epam.ta.reportportal.core.imprt.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.core.imprt.impl.junit.XunitParseJob;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import javax.inject.Provider;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,13 +33,18 @@ import java.util.zip.ZipFile;
 
 import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
 import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.ZIP_EXTENSION;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Anton Machulski
  */
-public class ZipImportStrategy<T extends CallableImportJob> extends AbstractImportStrategy<T> {
+@Service
+public class ZipImportStrategy extends AbstractImportStrategy {
 	private static final Predicate<ZipEntry> isFile = zipEntry -> !zipEntry.isDirectory();
 	private static final Predicate<ZipEntry> isXml = zipEntry -> zipEntry.getName().endsWith(XML_EXTENSION);
+
+	@Autowired
+	private Provider<XunitParseJob> xmlParseJobProvider;
 
 	@Override
 	public Long importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file) {
@@ -43,9 +52,7 @@ public class ZipImportStrategy<T extends CallableImportJob> extends AbstractImpo
 			return processZipFile(file, projectDetails, user);
 		} finally {
 			try {
-				if (null != file) {
-					file.delete();
-				}
+				ofNullable(file).ifPresent(File::delete);
 			} catch (Exception e) {
 				LOGGER.error("File '{}' was not successfully deleted.", file.getName(), e);
 			}

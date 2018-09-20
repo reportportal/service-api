@@ -66,7 +66,7 @@ public class ZipImportStrategy extends AbstractImportStrategy {
 			Long launchId = startLaunch(projectDetails, user, zip.getName().substring(0, zip.getName().indexOf(ZIP_EXTENSION)));
 			savedLaunchId = launchId;
 			CompletableFuture[] futures = zipFile.stream().filter(isFile.and(isXml)).map(zipEntry -> {
-				CallableImportJob job = xmlParseJobProvider.get()
+				XunitParseJob job = xmlParseJobProvider.get()
 						.withParameters(projectDetails, launchId, user, getEntryStream(zipFile, zipEntry));
 				return CompletableFuture.supplyAsync(job::call, service);
 			}).toArray(CompletableFuture[]::new);
@@ -74,7 +74,9 @@ public class ZipImportStrategy extends AbstractImportStrategy {
 			finishLaunch(launchId, projectDetails, user, parseResults);
 			return launchId;
 		} catch (Exception e) {
-			updateBrokenLaunch(savedLaunchId);
+			e.printStackTrace();
+//			updateBrokenLaunch(savedLaunchId);
+
 			throw new ReportPortalException(ErrorType.IMPORT_FILE_ERROR, cleanMessage(e));
 		}
 	}

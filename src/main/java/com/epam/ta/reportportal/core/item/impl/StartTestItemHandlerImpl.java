@@ -38,6 +38,7 @@ import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -88,6 +89,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		this.rabbitTemplate = rabbitTemplate;
 	}
 
+	@Transactional
 	@Override
 	public ItemCreatedRS startRootItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq) {
 		Launch launch = launchRepository.findById(rq.getLaunchId())
@@ -104,6 +106,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
 
+	@Transactional
 	@Override
 	public ItemCreatedRS startChildItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq,
 			Long parentId) {

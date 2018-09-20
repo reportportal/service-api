@@ -38,13 +38,7 @@ public class ImportStrategyFactoryImpl implements ImportStrategyFactory {
 	private final Map<ImportType, Map<String, ImportStrategy>> MAPPING;
 
 	@Autowired
-	private ImportStrategy zipImportStrategy;
-
-	@Autowired
-	private ImportStrategy xmlImportStrategy;
-
-	@Autowired
-	public ImportStrategyFactoryImpl() {
+	public ImportStrategyFactoryImpl(ImportStrategy zipImportStrategy, ImportStrategy xmlImportStrategy) {
 		Map<String, ImportStrategy> xunitStrategyMap = ImmutableMap.<String, ImportStrategy>builder().put(ZIP_EXTENSION, zipImportStrategy)
 				.put(XML_EXTENSION, xmlImportStrategy)
 				.build();

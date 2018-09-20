@@ -60,7 +60,7 @@ public class XmlImportStrategy extends AbstractImportStrategy {
 		try (InputStream xmlStream = new FileInputStream(xml)) {
 			Long launchId = startLaunch(projectDetails, user, xml.getName().substring(0, xml.getName().indexOf(XML_EXTENSION)));
 			savedLaunchId = launchId;
-			CallableImportJob job = xmlParseJobProvider.get().withParameters(projectDetails, launchId, user, xmlStream);
+			XunitParseJob job = xmlParseJobProvider.get().withParameters(projectDetails, launchId, user, xmlStream);
 			CompletableFuture future = CompletableFuture.supplyAsync(job::call, service);
 			ParseResults parseResults = processResults(future);
 			finishLaunch(launchId, projectDetails, user, parseResults);

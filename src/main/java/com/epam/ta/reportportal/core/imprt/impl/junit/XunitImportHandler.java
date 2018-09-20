@@ -72,6 +72,7 @@ public class XunitImportHandler extends DefaultHandler {
 	private ReportPortalUser.ProjectDetails projectDetails;
 	private ReportPortalUser user;
 	private Long launchId;
+	private String uuid;
 
 	//need to know item's id to attach System.out/System.err logs
 	private Long currentId;

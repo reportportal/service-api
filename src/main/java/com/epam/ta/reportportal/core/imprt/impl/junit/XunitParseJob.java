@@ -21,7 +21,6 @@
 package com.epam.ta.reportportal.core.imprt.impl.junit;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.imprt.impl.CallableImportJob;
 import com.epam.ta.reportportal.core.imprt.impl.ParseResults;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -35,10 +34,11 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.Callable;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class XunitParseJob extends CallableImportJob {
+public class XunitParseJob implements Callable<ParseResults> {
 
 	@Autowired
 	private XunitImportHandler handler;
@@ -55,7 +55,6 @@ public class XunitParseJob extends CallableImportJob {
 		return new ParseResults(handler.getStartSuiteTime(), handler.getCommonDuration());
 	}
 
-	@Override
 	public XunitParseJob withParameters(ReportPortalUser.ProjectDetails projectDetails, Long launchId, ReportPortalUser user,
 			InputStream xmlInputStream) {
 		this.xmlInputStream = xmlInputStream;

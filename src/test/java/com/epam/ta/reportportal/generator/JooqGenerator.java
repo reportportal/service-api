@@ -1,7 +1,7 @@
 package com.epam.ta.reportportal.generator;
 
-import org.jooq.util.GenerationTool;
-import org.jooq.util.jaxb.*;
+import org.jooq.codegen.GenerationTool;
+import org.jooq.meta.jaxb.*;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,22 +46,14 @@ public class JooqGenerator {
 	@Test
 	public void generate() {
 
-		Configuration configuration = new Configuration()
-				.withJdbc(new Jdbc()
-						.withDriver(driver)
-						.withUrl(url)
-						.withUser(username)
-						.withPassword(password))
-				.withGenerator(new Generator()
-						.withStrategy(new Strategy().withName(PrefixGeneratorStrategy.class.getName()))
+		Configuration configuration = new Configuration().withJdbc(new Jdbc().withDriver(driver)
+				.withUrl(url)
+				.withUser(username)
+				.withPassword(password))
+				.withGenerator(new Generator().withStrategy(new Strategy().withName(PrefixGeneratorStrategy.class.getName()))
 						.withName(defaultGeneratorName)
-						.withDatabase(new Database()
-								.withIncludes(".*")
-								.withSchemata(new Schema().withInputSchema(schema))
-						)
-						.withTarget(new Target()
-								.withPackageName(packageName)
-								.withDirectory(directory)));
+						.withDatabase(new Database().withIncludes(".*").withSchemata(new Schema().withInputSchema(schema)))
+						.withTarget(new Target().withPackageName(packageName).withDirectory(directory)));
 		try {
 			GenerationTool.generate(configuration);
 		} catch (Exception e) {

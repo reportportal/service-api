@@ -23,14 +23,11 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.widget.ContentField;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.google.common.collect.Sets;
 
 import java.util.function.Supplier;
-
-import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Pavel Bortnik
@@ -57,12 +54,7 @@ public class WidgetBuilder implements Supplier<Widget> {
 		widget.setItemsCount(widgetRQ.getContentParameters().getItemsCount());
 
 		widget.getContentFields().clear();
-		widget.getContentFields().addAll(widgetRQ.getContentParameters().getContentFields().entrySet().stream().map(entry -> {
-			ContentField contentField = new ContentField();
-			contentField.setFieldName(entry.getKey());
-			contentField.setValues(Sets.newHashSet(entry.getValue()));
-			return contentField;
-		}).collect(toSet()));
+		widget.getContentFields().addAll(widgetRQ.getContentParameters().getContentFields());
 		return this;
 	}
 
@@ -73,8 +65,8 @@ public class WidgetBuilder implements Supplier<Widget> {
 		return this;
 	}
 
-	public WidgetBuilder addFilter(UserFilter userFilter) {
-		widget.setFilter(userFilter);
+	public WidgetBuilder addFilters(Iterable<UserFilter> userFilters) {
+		widget.setFilters(Sets.newHashSet(userFilters));
 		return this;
 	}
 

@@ -34,11 +34,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Pavel Bortnik
  */
 @Component
+@Transactional
 public class LaunchReporterConsumer {
 
 	private DatabaseUserDetailsService userDetailsService;

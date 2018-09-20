@@ -28,7 +28,10 @@ import com.epam.ta.reportportal.ws.model.filter.Order;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
 
+import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -42,19 +45,11 @@ public final class UserFilterConverter {
 		//static only
 	}
 
-	public static final Function<UserFilter, UserFilterResource> TO_FILTER_RESOURCE = filter -> {
-		UserFilterResource userFilterResource = new UserFilterResource();
-		userFilterResource.setFilterId(filter.getId());
-		userFilterResource.setName(filter.getName());
-		userFilterResource.setDescription(filter.getDescription());
-		userFilterResource.setObjectType(filter.getTargetClass().getSimpleName());
-		userFilterResource.setConditions(filter.getFilterCondition()
-				.stream()
-				.map(UserFilterConverter.TO_FILTER_CONDITION)
-				.collect(toSet()));
-		userFilterResource.setOrders(filter.getFilterSorts().stream().map(UserFilterConverter.TO_FILTER_ORDER).collect(toList()));
-		return userFilterResource;
+	public static final Function<Set<UserFilter>, List<UserFilterResource>> FILTER_SET_TO_FILTER_RESOURCE = filters -> {
+		return filters.stream().map(UserFilterConverter::buildFilterResource).collect(Collectors.toList());
 	};
+
+	public static final Function<UserFilter, UserFilterResource> TO_FILTER_RESOURCE = UserFilterConverter::buildFilterResource;
 
 	private static final Function<FilterCondition, UserFilterCondition> TO_FILTER_CONDITION = filterCondition -> {
 		UserFilterCondition condition = new UserFilterCondition();
@@ -67,7 +62,21 @@ public final class UserFilterConverter {
 	private static final Function<FilterSort, Order> TO_FILTER_ORDER = filterSort -> {
 		Order order = new Order();
 		order.setSortingColumnName(filterSort.getField());
-		order.setIsAsc(filterSort.isAscending());
+		order.setIsAsc(filterSort.getDirection().isAscending());
 		return order;
 	};
+
+	private static final UserFilterResource buildFilterResource(UserFilter filter) {
+		UserFilterResource userFilterResource = new UserFilterResource();
+		userFilterResource.setFilterId(filter.getId());
+		userFilterResource.setName(filter.getName());
+		userFilterResource.setDescription(filter.getDescription());
+		userFilterResource.setObjectType(filter.getTargetClass().getSimpleName());
+		userFilterResource.setConditions(filter.getFilterCondition()
+				.stream()
+				.map(UserFilterConverter.TO_FILTER_CONDITION)
+				.collect(toSet()));
+		userFilterResource.setOrders(filter.getFilterSorts().stream().map(UserFilterConverter.TO_FILTER_ORDER).collect(toList()));
+		return userFilterResource;
+	}
 }

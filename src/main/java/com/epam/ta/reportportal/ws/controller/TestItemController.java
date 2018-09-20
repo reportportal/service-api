@@ -52,7 +52,7 @@ import static org.springframework.http.HttpStatus.OK;
 
 @Controller
 @RequestMapping("/{projectName}/item")
-@PreAuthorize(ASSIGNED_TO_PROJECT)
+//@PreAuthorize(ASSIGNED_TO_PROJECT)
 public class TestItemController {
 
 	public static final String DEFAULT_HISTORY_DEPTH = "5";
@@ -84,7 +84,7 @@ public class TestItemController {
 	@ResponseStatus(CREATED)
 	@Transactional
 	@ApiOperation("Start a root test item")
-	@PreAuthorize(ALLOWED_TO_REPORT)
+	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS startRootItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
 			@RequestBody @Validated StartTestItemRQ startTestItemRQ, @AuthenticationPrincipal ReportPortalUser user) {
 		return startTestItemHandler.startRootItem(user, projectDetails, startTestItemRQ);
@@ -105,7 +105,7 @@ public class TestItemController {
 	@ResponseStatus(CREATED)
 	@Transactional
 	@ApiOperation("Start a child test item")
-	@PreAuthorize(ALLOWED_TO_REPORT)
+	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS startChildItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long parentItem,
 			@RequestBody @Validated StartTestItemRQ startTestItemRQ, @AuthenticationPrincipal ReportPortalUser user) {
 		return startTestItemHandler.startChildItem(user, projectDetails, startTestItemRQ, parentItem);
@@ -116,7 +116,7 @@ public class TestItemController {
 	@ResponseStatus(OK)
 	@Transactional
 	@ApiOperation("Finish test item")
-	@PreAuthorize(ALLOWED_TO_REPORT)
+	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public OperationCompletionRS finishTestItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
 			@PathVariable Long testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {

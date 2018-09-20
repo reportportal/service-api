@@ -32,10 +32,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * Generates the unique identifier for test item based
@@ -71,10 +70,7 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 	private String prepareForEncoding(TestItem testItem, Launch launch) {
 		Long projectId = launch.getProjectId();
 		String launchName = launch.getName();
-		List<String> pathNames = new ArrayList<>();
-		Optional.ofNullable(testItem.getItemStructure().getParent())
-				.ifPresent(it -> pathNames.addAll(
-						testItemRepository.selectPathNames(it.getItemId()).entrySet().stream().map(Map.Entry::getValue).collect(toList())));
+		List<String> pathNames = testItemRepository.selectPathNames(testItem.getItemId(), testItem.getPath());
 		String itemName = testItem.getName();
 		StringJoiner joiner = new StringJoiner(";");
 		joiner.add(projectId.toString()).add(launchName);

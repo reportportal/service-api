@@ -1,24 +1,3 @@
-/*
- * Copyright 2017 EPAM Systems
- *
- *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package com.epam.ta.reportportal.core.widget.content.loader;
 
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -26,11 +5,11 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.core.widget.util.ContentFieldMatcherUtil;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
-import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
+import com.epam.ta.reportportal.entity.widget.content.PassingRateStatisticsResult;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,17 +22,19 @@ import java.util.Map;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LAUNCH_NAME_FIELD;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
-import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.COMBINED_CONTENT_FIELDS_REGEX;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.NAME;
 import static java.util.Collections.singletonMap;
 
 /**
- * @author Pavel Bortnik
+ * @author Ivan Budayeu
  */
 @Service
-public class LaunchesComparisonContentLoader implements LoadContentStrategy {
+public class PassingRatePerLaunchContentLoader implements LoadContentStrategy {
+
+	@Autowired
+	private LaunchRepository launchRepository;
 
 	@Autowired
 	private WidgetContentRepository widgetContentRepository;
@@ -66,16 +47,23 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 
 		validateWidgetOptions(widgetOptions);
 
-		validateContentFields(contentFields);
+		String launchName = widgetOptions.get(LAUNCH_NAME_FIELD);
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		filter.withCondition(new FilterCondition(Condition.EQUALS, false, widgetOptions.get(LAUNCH_NAME_FIELD), NAME));
+		filter.withCondition(new FilterCondition(
+				Condition.EQUALS,
+				false,
+				launchRepository.findLatestByNameAndFilter(launchName, filter)
+						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName))
+						.getName(),
+				NAME
+		));
 
-		List<LaunchesStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter, contentFields, sort, limit);
-		return singletonMap(RESULT, result);
+		PassingRateStatisticsResult content = widgetContentRepository.passingRateStatistics(filter, sort, limit);
+		return singletonMap(RESULT, content);
 	}
 
 	/**
@@ -96,24 +84,8 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 	private void validateWidgetOptions(Map<String, String> widgetOptions) {
 		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should not be null.");
-
-		String launchName = widgetOptions.get(LAUNCH_NAME_FIELD);
-		BusinessRule.expect(launchName, StringUtils::isNotEmpty)
+		BusinessRule.expect(widgetOptions.get(LAUNCH_NAME_FIELD), StringUtils::isNotEmpty)
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LAUNCH_NAME_FIELD + " should be specified for widget.");
-	}
-
-	/**
-	 * Validate provided content fields.
-	 * The value of content field should not be empty
-	 * All content fields should match the pattern {@link com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants#COMBINED_CONTENT_FIELDS_REGEX}
-	 *
-	 * @param contentFields List of provided content.
-	 */
-	private void validateContentFields(List<String> contentFields) {
-		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
-		BusinessRule.expect(ContentFieldMatcherUtil.match(COMBINED_CONTENT_FIELDS_REGEX, contentFields), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Bad content fields format");
 	}
 
 }

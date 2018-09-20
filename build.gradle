@@ -99,9 +99,9 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:ef4f5eea'
+        compile 'com.github.reportportal:commons-dao:d729b07'
         compile 'com.github.reportportal:commons-rules:spb2-SNAPSHOT'
-        compile 'com.github.reportportal:commons-model:25d88e7'
+        compile 'com.github.reportportal:commons-model:dc8a02a'
         compile 'com.github.reportportal:commons-bugtracking:496a571'
         compile('com.github.reportportal:commons:71d4aca')
     }
@@ -116,8 +116,9 @@ dependencies {
     compile 'javax.persistence:javax.persistence-api:2.2'
     compile 'org.hibernate:hibernate-validator'
     compile 'org.postgresql:postgresql'
-    compile 'org.jooq:jooq'
-    compile 'org.jooq:jooq-codegen:3.10.5'
+    compile 'org.jooq:jooq:3.11.4'
+    compile 'org.jooq:jooq-codegen:3.11.4'
+    compile 'org.jooq:jooq-meta:3.11.4'
     compile 'org.jasypt:jasypt:1.9.2'
     compile("org.springframework.boot:spring-boot-starter-amqp")
 
@@ -219,7 +220,6 @@ jar.dependsOn gitInfo
 //End section for external jacoco test report
 
 build.dependsOn jacocoTestReport
-
 
 //task resolveDependencies() {
 //    doLast {

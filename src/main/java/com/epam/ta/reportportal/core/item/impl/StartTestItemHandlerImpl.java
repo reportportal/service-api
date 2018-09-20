@@ -22,18 +22,16 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.item.UniqueIdGenerator;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.dao.TestItemStructureRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.util.ProjectUtils;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
@@ -41,9 +39,9 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -55,23 +53,40 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Service
 class StartTestItemHandlerImpl implements StartTestItemHandler {
 
-	@Autowired
 	private TestItemRepository testItemRepository;
 
-	@Autowired
-	private TestItemStructureRepository structureRepository;
-
-	@Autowired
 	private LaunchRepository launchRepository;
 
-	@Autowired
 	private LogRepository logRepository;
 
-	@Autowired
 	private UniqueIdGenerator identifierGenerator;
 
-	@Autowired
 	private RabbitTemplate rabbitTemplate;
+
+	@Autowired
+	public void setTestItemRepository(TestItemRepository testItemRepository) {
+		this.testItemRepository = testItemRepository;
+	}
+
+	@Autowired
+	public void setLaunchRepository(LaunchRepository launchRepository) {
+		this.launchRepository = launchRepository;
+	}
+
+	@Autowired
+	public void setLogRepository(LogRepository logRepository) {
+		this.logRepository = logRepository;
+	}
+
+	@Autowired
+	public void setIdentifierGenerator(UniqueIdGenerator identifierGenerator) {
+		this.identifierGenerator = identifierGenerator;
+	}
+
+	@Autowired
+	public void setRabbitTemplate(RabbitTemplate rabbitTemplate) {
+		this.rabbitTemplate = rabbitTemplate;
+	}
 
 	@Override
 	public ItemCreatedRS startRootItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq) {
@@ -79,27 +94,33 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId().toString()));
 		validate(user, projectDetails, rq, launch);
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addLaunch(launch).get();
+		testItemRepository.save(item);
+
+		item.setPath(String.valueOf(item.getItemId()));
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
-		structureRepository.save(item.getItemStructure());
+
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
 
 	@Override
-	public ItemCreatedRS startChildItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq, Long parentId) {
+	public ItemCreatedRS startChildItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq,
+			Long parentId) {
 		TestItem parentItem = testItemRepository.findById(parentId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId.toString()));
 		Launch launch = launchRepository.findById(rq.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
 		validate(rq, parentItem);
 
-		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addLaunch(launch).addParent(parentItem.getItemStructure()).get();
+		//TODO retries
+		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addLaunch(launch).addParent(parentItem).get();
+		testItemRepository.save(item);
+
+		item.setPath(parentItem.getPath() + "." + item.getItemId());
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
-		//TODO retries
-		structureRepository.save(item.getItemStructure());
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
 
@@ -117,7 +138,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId())
 		);
 		expect(rq.getStartTime(), Preconditions.sameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(), launch.getStartTime(), launch.getId()
+				rq.getStartTime(),
+				launch.getStartTime(),
+				launch.getId()
 		);
 	}
 
@@ -132,10 +155,13 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 */
 	private void validate(StartTestItemRQ rq, TestItem parent) {
 		expect(rq.getStartTime(), Preconditions.sameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(), parent.getStartTime(), parent.getItemId()
+				rq.getStartTime(),
+				parent.getStartTime(),
+				parent.getItemId()
 		);
-		expect(parent.getItemStructure().getItemResults().getStatus(), Preconditions.statusIn(StatusEnum.IN_PROGRESS)).verify(
-				START_ITEM_NOT_ALLOWED, formattedSupplier("Parent Item '{}' is not in progress", parent.getItemId()));
+		expect(parent.getItemResults().getStatus(), Preconditions.statusIn(StatusEnum.IN_PROGRESS)).verify(START_ITEM_NOT_ALLOWED,
+				formattedSupplier("Parent Item '{}' is not in progress", parent.getItemId())
+		);
 		expect(logRepository.hasLogs(parent.getItemId()), equalTo(false)).verify(START_ITEM_NOT_ALLOWED,
 				formattedSupplier("Parent Item '{}' already has log items", parent.getItemId())
 		);

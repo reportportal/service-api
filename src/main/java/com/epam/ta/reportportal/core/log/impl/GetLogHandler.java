@@ -101,7 +101,7 @@ public class GetLogHandler implements IGetLogHandler {
 		expect(log, notNull()).verify(LOG_NOT_FOUND, logId);
 
 		final TestItem testItem = log.getTestItem();
-		Launch launch = testItem.getItemStructure().getLaunch();
+		Launch launch = testItem.getLaunch();
 
 		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
 				formattedSupplier("Log '{}' not under specified '{}' project", logId, projectDetails.getProjectId())

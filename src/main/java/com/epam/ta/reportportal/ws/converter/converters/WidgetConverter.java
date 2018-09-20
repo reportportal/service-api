@@ -24,7 +24,6 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidgetId;
-import com.epam.ta.reportportal.entity.widget.ContentField;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.Position;
 import com.epam.ta.reportportal.ws.model.Size;
@@ -34,7 +33,6 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * @author Pavel Bortnik
@@ -54,15 +52,12 @@ public class WidgetConverter {
 		widgetResource.setWidgetId(widget.getId());
 		widgetResource.setName(widget.getName());
 		widgetResource.setDescription(widget.getDescription());
-		Optional.ofNullable(widget.getFilter())
-				.ifPresent(filter -> widgetResource.setAppliedFilters(UserFilterConverter.TO_FILTER_RESOURCE.apply(filter)));
+		Optional.ofNullable(widget.getFilters())
+				.ifPresent(filter -> widgetResource.setAppliedFilters(UserFilterConverter.FILTER_SET_TO_FILTER_RESOURCE.apply(filter)));
 		ContentParameters contentParameters = new ContentParameters();
 		contentParameters.setItemsCount(widget.getItemsCount());
 		contentParameters.setWidgetOptions(widget.getWidgetOptions());
-		contentParameters.setContentFields(widget.getContentFields()
-				.stream()
-				.collect(Collectors.toMap(ContentField::getFieldName, ContentField::getValues)));
-		contentParameters.setWidgetOptions(widget.getWidgetOptions());
+		contentParameters.setContentFields(widget.getContentFields());
 		widgetResource.setContentParameters(contentParameters);
 		return widgetResource;
 	};

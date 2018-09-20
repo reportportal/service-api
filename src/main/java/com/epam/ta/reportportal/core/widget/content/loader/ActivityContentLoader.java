@@ -21,14 +21,14 @@
 
 package com.epam.ta.reportportal.core.widget.content.loader;
 
+import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.core.widget.content.WidgetContentUtils;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.entity.widget.ContentField;
 import com.epam.ta.reportportal.entity.widget.content.ActivityContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -36,14 +36,16 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants.ACTIVITY_TYPE;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
+import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
+import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -52,49 +54,71 @@ import static java.util.Collections.singletonMap;
 @Service
 public class ActivityContentLoader implements LoadContentStrategy {
 
-	@Autowired
-	private UserRepository userRepository;
+	public static final String CONTENT_FIELDS_DELIMITER = ",";
+
+	private final UserRepository userRepository;
+
+	private final WidgetContentRepository widgetContentRepository;
 
 	@Autowired
-	private WidgetContentRepository widgetContentRepository;
+	public ActivityContentLoader(UserRepository userRepository, WidgetContentRepository widgetContentRepository) {
+		this.userRepository = userRepository;
+		this.widgetContentRepository = widgetContentRepository;
+	}
 
 	@Override
-	public Map<String, ?> loadContent(Set<ContentField> contentFields, Filter filter, Map<String, String> widgetOptions, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,
+			int limit) {
+
+		validateFilterSortMapping(filterSortMapping);
 
 		validateWidgetOptions(widgetOptions);
 
-		Map<String, List<String>> fields = WidgetContentUtils.GROUP_CONTENT_FIELDS.apply(contentFields);
-		validateContentFields(fields);
+		validateContentFields(contentFields);
 
 		String login = widgetOptions.get(LOGIN);
 		User user = userRepository.findByLogin(login)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, "User with login " + login + " was not found"));
 
-		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, user.getLogin(), fields, limit);
+		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
+
+		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
+
+		filter.withCondition(new FilterCondition(Condition.EQUALS, false, user.getLogin(), LOGIN))
+				.withCondition(new FilterCondition(Condition.IN, false, String.join(CONTENT_FIELDS_DELIMITER, contentFields), "action"));
+
+		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, sort, limit);
 
 		return singletonMap(RESULT, activityContents);
 	}
 
 	/**
+	 * Mapping should not be empty
+	 *
+	 * @param filterSortMapping Map of ${@link Filter} for query building as key and ${@link Sort} as value for each filter
+	 */
+	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
+		BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Filter-Sort mapping should not be empty");
+	}
+
+	/**
 	 * Validate provided content fields.
-	 * For this widget content field only with {@link com.epam.ta.reportportal.dao.WidgetContentRepositoryConstants#ACTIVITY_TYPE}
-	 * key should be specified
+	 *
 	 * <p>
 	 * The value of content field should not be empty
 	 *
-	 * @param contentFields Map of provided content.
+	 * @param contentFields List of provided content.
 	 */
-	private void validateContentFields(Map<String, List<String>> contentFields) {
-		BusinessRule.expect(MapUtils.isNotEmpty(contentFields), equalTo(true))
+	private void validateContentFields(List<String> contentFields) {
+		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
-		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields.get(ACTIVITY_TYPE)), equalTo(true))
-				.verify(ErrorType.ACTIVITY_NOT_FOUND, "Activities list should not be empty");
 	}
 
 	/**
 	 * Validate provided widget options. For current widget user login should be specified for activity tracking.
 	 *
-	 * @param widgetOptions Set of stored widget options.
+	 * @param widgetOptions Map of stored widget options.
 	 */
 	private void validateWidgetOptions(Map<String, String> widgetOptions) {
 		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))

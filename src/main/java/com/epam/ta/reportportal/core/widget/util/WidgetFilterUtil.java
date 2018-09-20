@@ -19,32 +19,38 @@
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.core.widget.content;
+package com.epam.ta.reportportal.core.widget.util;
 
-import com.epam.ta.reportportal.entity.widget.ContentField;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.Lists;
+import org.springframework.data.domain.Sort;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.Collection;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.ofNullable;
+
 /**
  * @author Pavel Bortnik
  */
-public final class WidgetContentUtils {
+public class WidgetFilterUtil {
 
-	private WidgetContentUtils() {
-		//static only
-	}
+	public static final Function<Set<Filter>, Filter> GROUP_FILTERS = filters -> {
+		Filter filter = ofNullable(filters).map(Collection::stream)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Filters set should not be empty"))
+				.findFirst()
+				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "No filters for widget were found"));
+		filters.stream().flatMap(f -> f.getFilterConditions().stream()).forEach(filter::withCondition);
 
-	public static final Function<Set<ContentField>, Map<String, List<String>>> GROUP_CONTENT_FIELDS = contentFields -> Optional.ofNullable(
-			contentFields)
-			.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Content fields shouldn't be null"))
-			.stream().collect(Collectors.toMap(ContentField::getFieldName, v -> Lists.newArrayList(v.getValues())));
+		return filter;
+	};
+
+	public static final Function<Collection<Sort>, Sort> GROUP_SORTS = sorts -> Sort.by(ofNullable(sorts).map(s -> s.stream()
+			.flatMap(sortStream -> Lists.newArrayList(sortStream.iterator()).stream())
+			.collect(Collectors.toList())).orElseGet(Lists::newArrayList));
 
 }

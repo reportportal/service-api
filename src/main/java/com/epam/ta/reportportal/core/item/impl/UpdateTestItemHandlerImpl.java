@@ -226,9 +226,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	/**
 	 * TODO document this
 	 *
-	 * @param rq
-	 * @param userId
-	 * @return
+	 * @param rq     {@link LinkExternalIssueRQ}
+	 * @param userId {@link ReportPortalUser#userId}
+	 * @return {@link Set} of the {@link Ticket}
 	 */
 	private Set<Ticket> collectTickets(LinkExternalIssueRQ rq, Long userId) {
 		return rq.getIssues().stream().map(it -> {
@@ -286,8 +286,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @throws BusinessRuleViolationException when business rule violation
 	 */
 	private void verifyTestItem(TestItem item, Long id) throws BusinessRuleViolationException {
-		expect(
-				item.getItemResults(),
+		expect(item.getItemResults(),
 				notNull(),
 				Suppliers.formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
 		).verify();

@@ -83,22 +83,24 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	}
 
 	/**
-	 * TODO document this
+	 * Validate {@link ReportPortalUser} credentials, {@link com.epam.ta.reportportal.entity.item.TestItemResults#status},
+	 * {@link Launch#status} and {@link Launch} affiliation to the {@link com.epam.ta.reportportal.entity.project.Project}
 	 *
-	 * @param testItem
-	 * @param user
-	 * @param projectDetails
+	 * @param testItem       {@link TestItem}
+	 * @param user           {@link ReportPortalUser}
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 */
 	private void validate(TestItem testItem, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		expect(testItem.getItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(TEST_ITEM_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId())
 		);
 		Launch launch = testItem.getLaunch();
-		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED, formattedSupplier(
-				"Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
-				testItem.getItemId(),
-				launch.getId()
-		));
+		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
+				formattedSupplier("Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
+						testItem.getItemId(),
+						launch.getId()
+				)
+		);
 		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
 				formattedSupplier("Deleting testItem '{}' is not under specified project '{}'",
 						testItem.getItemId(),

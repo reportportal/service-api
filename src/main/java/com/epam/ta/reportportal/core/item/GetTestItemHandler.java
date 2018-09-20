@@ -38,28 +38,32 @@ public interface GetTestItemHandler {
 	/**
 	 * Get {@link TestItem} instance
 	 *
-	 * @param testItemId
-	 * @return
+	 * @param testItemId {@link TestItem#itemId}
+	 * @return {@link TestItemResource}
 	 */
 	TestItemResource getTestItem(Long testItemId);
 
 	/**
 	 * Gets {@link TestItem} instances
 	 *
-	 * @param filter
-	 * @param pageable
-	 * @return
+	 * @param filter   {@link Filter}
+	 * @param pageable {@link Pageable}
+	 * @return {@link Iterable} of the {@link TestItemResource}
 	 */
 	Iterable<TestItemResource> getTestItems(Filter filter, Pageable pageable);
 
 	/**
 	 * Get specified tags
 	 *
-	 * @param launchId
-	 * @param value
-	 * @return
+	 * @param launchId {@link com.epam.ta.reportportal.entity.launch.Launch#id}
+	 * @param value    part of the {@link com.epam.ta.reportportal.entity.item.TestItemTag#value} to search
+	 * @return {@link List} of the {@link com.epam.ta.reportportal.entity.item.TestItemTag#value}
 	 */
 	List<String> getTags(Long launchId, String value);
 
+	/**
+	 * @param ids array of the {@link com.epam.ta.reportportal.entity.launch.Launch#id}
+	 * @return {@link List} of the {@link TestItemResource}
+	 */
 	List<TestItemResource> getTestItems(Long[] ids);
 }

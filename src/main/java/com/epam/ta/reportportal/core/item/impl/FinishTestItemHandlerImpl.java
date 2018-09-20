@@ -21,7 +21,6 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -34,6 +33,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
+import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
@@ -86,7 +87,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId));
 
 		boolean hasChildren = testItemRepository.hasChildren(testItem.getItemId(), testItem.getPath());
-		verifyTestItem(user, testItem, fromValue(finishExecutionRQ.getStatus()), hasChildren);
+		verifyTestItem(user, finishExecutionRQ, testItem, fromValue(finishExecutionRQ.getStatus()), hasChildren);
 
 		TestItemResults testItemResults = processItemResults(projectDetails.getProjectId(), testItem, finishExecutionRQ, hasChildren);
 
@@ -109,7 +110,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @return TestItemResults object
 	 */
 	private TestItemResults processItemResults(Long projectId, TestItem testItem, FinishTestItemRQ finishExecutionRQ, boolean hasChildren) {
-		TestItemResults testItemResults = Optional.ofNullable(testItem.getItemResults()).orElse(new TestItemResults());
+		TestItemResults testItemResults = Optional.ofNullable(testItem.getItemResults()).orElseGet(TestItemResults::new);
 		Optional<StatusEnum> actualStatus = fromValue(finishExecutionRQ.getStatus());
 		Issue providedIssue = finishExecutionRQ.getIssue();
 
@@ -136,7 +137,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			issueEntity.setIssueId(testItem.getItemId());
 			testItemResults.setIssue(issueEntity);
 		}
-		testItemResults.setEndTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()));
+		testItemResults.setEndTime(TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()));
 		return testItemResults;
 	}
 
@@ -149,7 +150,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param actualStatus Actual status of item
 	 * @param hasChildren  Does item contain children
 	 */
-	private void verifyTestItem(ReportPortalUser user, TestItem testItem, Optional<StatusEnum> actualStatus, boolean hasChildren) {
+	private void verifyTestItem(ReportPortalUser user, FinishExecutionRQ finishExecutionRQ, TestItem testItem,
+			Optional<StatusEnum> actualStatus, boolean hasChildren) {
 		Launch launch = Optional.ofNullable(testItem.getLaunch()).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
 		expect(user.getUserId(), equalTo(launch.getUserId())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
 
@@ -161,5 +163,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
 				testItem.getItemId()
 		));
+
+		expect(finishExecutionRQ.getEndTime(), date -> TO_LOCAL_DATE_TIME.apply(date).isAfter(testItem.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
+				"The finish time should not be earlier than the start time."
+		);
 	}
 }

@@ -50,6 +50,7 @@ import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -110,7 +111,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			ReportPortalUser user) {
 		List<String> errors = new ArrayList<>();
 		List<IssueDefinition> definitions = defineIssue.getIssues();
-		expect(definitions.isEmpty(), equalTo(false)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION);
+		expect(CollectionUtils.isEmpty(definitions), equalTo(false)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION);
 		List<Issue> updated = new ArrayList<>(defineIssue.getIssues().size());
 
 		definitions.forEach(issueDefinition -> {
@@ -285,7 +286,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @throws BusinessRuleViolationException when business rule violation
 	 */
 	private void verifyTestItem(TestItem item, Long id) throws BusinessRuleViolationException {
-		// TODO possible npe
+		expect(
+				item.getItemResults(),
+				notNull(),
+				Suppliers.formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
+		).verify();
+
 		expect(
 				item.getItemResults().getStatus(),
 				not(equalTo(StatusEnum.PASSED)),
@@ -293,6 +299,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						StatusEnum.PASSED.name()
 				)
 		).verify();
+
 		expect(testItemRepository.hasChildren(item.getItemId(), item.getPath()),
 				equalTo(false),
 				Suppliers.formattedSupplier(

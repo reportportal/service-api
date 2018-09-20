@@ -148,10 +148,10 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 	}
 
 	/**
-	 * TODO document this
+	 * Validate {@link Launch#status} and value of the {@link Launch#endTime}
 	 *
-	 * @param launch
-	 * @param finishExecutionRQ
+	 * @param launch            {@link Launch}
+	 * @param finishExecutionRQ {@link FinishExecutionRQ}
 	 */
 	private void validate(Launch launch, FinishExecutionRQ finishExecutionRQ) {
 		expect(launch.getStatus(), equalTo(IN_PROGRESS)).verify(FINISH_LAUNCH_NOT_ALLOWED,
@@ -166,11 +166,11 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 	}
 
 	/**
-	 * TODO dociment this
+	 * Validate {@link ReportPortalUser} credentials and {@link Launch} affiliation to the {@link com.epam.ta.reportportal.entity.project.Project}
 	 *
-	 * @param launch
-	 * @param user
-	 * @param projectDetails
+	 * @param launch         {@link Launch}
+	 * @param user           {@link ReportPortalUser}
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 */
 	private void validateRoles(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(launch.getUserId(), user.getUserId())) {
@@ -180,11 +180,11 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 	}
 
 	/**
-	 * TODO document this
+	 * Validate {@link Launch#status}
 	 *
-	 * @param launch
-	 * @param providedStatus
-	 * @param fromStatisticsStatus
+	 * @param launch               {@link Launch}
+	 * @param providedStatus       {@link StatusEnum} launch status from {@link FinishExecutionRQ}
+	 * @param fromStatisticsStatus {@link StatusEnum} identified launch status
 	 */
 	private void validateProvidedStatus(Launch launch, StatusEnum providedStatus, StatusEnum fromStatisticsStatus) {
 		/* Validate provided status */

@@ -102,15 +102,18 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 	}
 
 	/**
-	 * TODO document this
+	 * Validate user credentials and {@link Launch#status}
 	 *
-	 * @param launch
-	 * @param user
-	 * @param projectDetails
+	 * @param launch         {@link Launch}
+	 * @param user           {@link ReportPortalUser}
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 */
 	private void validate(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-				formattedSupplier("FilterTarget launch '{}' not under specified project '{}'", launch.getId(), projectDetails.getProjectId())
+				formattedSupplier("FilterTarget launch '{}' not under specified project '{}'",
+						launch.getId(),
+						projectDetails.getProjectId()
+				)
 		);
 		expect(launch, not(l -> l.getStatus().equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId())

@@ -183,6 +183,13 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		return launchRepository.getStatuses(projectDetails.getProjectId(), ids);
 	}
 
+	/**
+	 * Validate user credentials and launch affiliation to the project
+	 *
+	 * @param launch         {@link Launch}
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param username       User name
+	 */
 	private void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails, String username) {
 		expect(launch.getProjectId(), Predicates.equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
 		if (launch.getMode() == LaunchModeEnum.DEBUG) {

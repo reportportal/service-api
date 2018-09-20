@@ -69,11 +69,11 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 	}
 
 	/**
-	 * TODO document this
+	 * Validate {@link ReportPortalUser} credentials
 	 *
-	 * @param user
-	 * @param projectDetails
-	 * @param startLaunchRQ
+	 * @param user           {@link ReportPortalUser}
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param startLaunchRQ  {@link StartLaunchRQ}
 	 */
 	private void validateRoles(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ) {
 		if (startLaunchRQ.getMode() == Mode.DEBUG) {

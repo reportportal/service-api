@@ -137,7 +137,9 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 	/**
 	 * Validations for merge launches request parameters and data
 	 *
-	 * @param launches
+	 * @param launches       {@link List} of the {@link Launch}
+	 * @param user           {@link ReportPortalUser}
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 */
 	private void validateMergingLaunches(List<Launch> launches, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		expect(launches.size(), not(equalTo(0))).verify(BAD_REQUEST_ERROR, launches);
@@ -170,6 +172,11 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 
 	/**
 	 * Update test-items of specified launches with new LaunchID
+	 *
+	 * @param newLaunch         {@link Launch}
+	 * @param launches          {@link Set} of the {@link Launch}
+	 * @param extendDescription additional description for suite indicator
+	 * @param isNameChanged     launch name change indicator
 	 */
 	private void updateChildrenOfLaunches(Launch newLaunch, Set<Long> launches, boolean extendDescription, boolean isNameChanged) {
 		List<TestItem> testItems = launches.stream().flatMap(id -> {
@@ -197,10 +204,10 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 	/**
 	 * Create launch that will be the result of merge
 	 *
-	 * @param projectId
-	 * @param userId
-	 * @param mergeLaunchesRQ
-	 * @param launches
+	 * @param projectId       {@link Project#id}
+	 * @param userId          {@link ReportPortalUser#userId}
+	 * @param mergeLaunchesRQ {@link MergeLaunchesRQ}
+	 * @param launches        {@link List} of the {@link Launch}
 	 * @return launch
 	 */
 	private Launch createResultedLaunch(Long projectId, Long userId, MergeLaunchesRQ mergeLaunchesRQ, List<Launch> launches) {

@@ -145,11 +145,11 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 	//	}
 
 	/**
-	 * TODO document this
+	 * Valide {@link ReportPortalUser} credentials
 	 *
-	 * @param launch
-	 * @param user
-	 * @param mode
+	 * @param launch {@link Launch}
+	 * @param user   {@link ReportPortalUser}
+	 * @param mode   {@link Launch#mode}
 	 */
 	private void validate(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Mode mode) {
 		if (projectDetails.getProjectRole() == ProjectRole.CUSTOMER && null != mode) {

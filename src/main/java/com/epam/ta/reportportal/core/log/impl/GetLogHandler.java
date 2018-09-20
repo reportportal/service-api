@@ -24,9 +24,7 @@ package com.epam.ta.reportportal.core.log.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.log.IGetLogHandler;
-import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
@@ -55,14 +53,8 @@ public class GetLogHandler implements IGetLogHandler {
 
 	private final LogRepository logRepository;
 
-	private final TestItemRepository testItemRepository;
-
-	private final LaunchRepository launchRepository;
-
-	public GetLogHandler(LogRepository logRepository, TestItemRepository testItemRepository, LaunchRepository launchRepository) {
+	public GetLogHandler(LogRepository logRepository) {
 		this.logRepository = logRepository;
-		this.testItemRepository = testItemRepository;
-		this.launchRepository = launchRepository;
 	}
 
 	@Override

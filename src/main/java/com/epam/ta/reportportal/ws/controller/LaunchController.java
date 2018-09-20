@@ -198,7 +198,7 @@ public class LaunchController {
 	@ApiOperation("Get specified launch")
 	public LaunchResource getLaunch(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long launchId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getLaunch(launchId, projectDetails);
+		return getLaunchMessageHandler.getLaunch(launchId, projectDetails, user.getUsername());
 	}
 
 	@GetMapping

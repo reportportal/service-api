@@ -81,7 +81,8 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 	}
 
 	@Override
-	public OperationCompletionRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	public OperationCompletionRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ,
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
 
@@ -98,22 +99,22 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 				.get();
 
 		Optional<StatusEnum> statusEnum = fromValue(finishLaunchRQ.getStatus());
-		StatusEnum fromStatistics = PASSED;
+		StatusEnum fromStatisticsStatus = PASSED;
 		if (launchRepository.identifyStatus(launchId)) {
-			fromStatistics = StatusEnum.FAILED;
+			fromStatisticsStatus = StatusEnum.FAILED;
 		}
-		StatusEnum fromStatisticsStatus = fromStatistics;
 		if (statusEnum.isPresent()) {
 			validateProvidedStatus(launch, statusEnum.get(), fromStatisticsStatus);
 		}
-		launch.setStatus(statusEnum.orElse(fromStatistics));
+		launch.setStatus(statusEnum.orElse(fromStatisticsStatus));
 		launchRepository.save(launch);
 		messageBus.publishActivity(new LaunchFinishedEvent(launch));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully finished.");
 	}
 
 	@Override
-	public OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	public OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 
@@ -137,7 +138,8 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 	}
 
 	@Override
-	public List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	public List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
 		return bulkRQ.getEntities()
 				.entrySet()
 				.stream()

@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -33,6 +34,8 @@ import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -51,6 +54,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.querygen.Condition.EQUALS;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -58,9 +62,7 @@ import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSup
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_RESOURCE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_FILTER_PARAMETERS;
-import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
-import static com.google.common.base.Predicates.equalTo;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -86,11 +88,10 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	}
 
 	@Override
-	public LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails) {
-		//TODO: fix this
-		return launchRepository.findById(launchId)
-				.map(TO_RESOURCE)
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+	public LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, String username) {
+		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+		validate(launch, projectDetails, username);
+		return TO_RESOURCE.apply(launch);
 	}
 
 	public LaunchResource getLaunchByProjectName(String projectName, Pageable pageable, Filter filter, String username) {
@@ -137,7 +138,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 
 	@Override
 	public List<String> getOwners(ReportPortalUser.ProjectDetails projectDetails, String value, String mode) {
-		expect(value.length() > 2, equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
+		expect(value.length() > 2, Predicates.equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
 				formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
 		);
 		return launchRepository.getOwnerNames(projectDetails.getProjectId(), value, mode);
@@ -180,6 +181,20 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	@Override
 	public Map<String, String> getStatuses(ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {
 		return launchRepository.getStatuses(projectDetails.getProjectId(), ids);
+	}
+
+	private void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails, String username) {
+		expect(launch.getProjectId(), Predicates.equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
+		if (launch.getMode() == LaunchModeEnum.DEBUG) {
+			Project project = projectRepository.findById(launch.getProjectId())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
+							"Project with id = " + launch.getProjectId() + " not found"
+					));
+			Project.UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, username);
+
+			expect(userConfig, notNull()).verify(ErrorType.ACCESS_DENIED);
+			expect(userConfig.getProjectRole(), not(Predicates.equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
+		}
 	}
 
 }

@@ -24,25 +24,24 @@ package com.epam.ta.reportportal.core.widget.content.filter;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.widget.Widget;
 import com.google.common.collect.Sets;
 import org.springframework.stereotype.Service;
-
-import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.PROJECT_ID;
 
 /**
  * @author Pavel Bortnik
  */
-@Service
-public class ProjectFilterStrategy extends AbstractStatisticsFilterStrategy {
+@Service("projectFilterStrategy")
+public class ProjectFilterStrategy extends AbstractStatisticsFilterStrategy implements BuildFilterStrategy {
 
-	protected Filter updateWithDefaultConditions(Filter filter, Long projectId) {
-		Set<FilterCondition> defaultConditions = Sets.newHashSet(new FilterCondition(Condition.EQUALS,
-				false,
-				String.valueOf(projectId),
-				PROJECT_ID
-		));
-		return filter.withConditions(defaultConditions);
+	@Override
+	protected Filter buildDefaultFilter(Widget widget, Long projectId) {
+		return new Filter(Launch.class,
+				Sets.newHashSet(new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), PROJECT_ID))
+		);
 	}
 }

@@ -4,7 +4,6 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.MapUtils;
@@ -21,7 +20,7 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
  * @author Pavel Bortnik
  */
 @Service("launchHistoryFilterStrategy")
-public class LaunchHistoryFilterStrategy extends GeneralLaunchFilterStrategy implements BuildFilterStrategy {
+public class LaunchHistoryFilterStrategy extends GeneralLaunchFilterStrategy {
 
 	@Override
 	protected Filter buildDefaultFilter(Widget widget, Long projectId) {

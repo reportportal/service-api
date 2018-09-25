@@ -7,6 +7,7 @@ import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.entity.filter.FilterSort;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.springframework.data.domain.Sort;
@@ -28,7 +29,12 @@ public abstract class AbstractStatisticsFilterStrategy implements BuildFilterStr
 	public Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, ReportPortalUser.ProjectDetails projectDetails,
 			Widget widget) {
 		Map<Filter, Sort> filterSortMap = buildFilterSortMap(widget, projectDetails.getProjectId());
-		return loadContentStrategy.loadContent(widget.getContentFields(), filterSortMap, widget.getWidgetOptions(), widget.getItemsCount());
+		return loadContentStrategy.loadContent(
+				Lists.newArrayList(widget.getContentFields()),
+				filterSortMap,
+				widget.getWidgetOptions(),
+				widget.getItemsCount()
+		);
 	}
 
 	protected Map<Filter, Sort> buildFilterSortMap(Widget widget, Long projectId) {

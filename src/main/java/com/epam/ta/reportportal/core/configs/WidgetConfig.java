@@ -110,7 +110,7 @@ public class WidgetConfig implements ApplicationContextAware {
 		mapping.put(WidgetType.PASSING_RATE_PER_LAUNCH,
 				(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
 		);
-		mapping.put(WidgetType.FLAKY_TEST_CASES, (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy"));
+		mapping.put(WidgetType.FLAKY_TEST_CASES, (GeneralLaunchFilterStrategy) applicationContext.getBean("launchHistoryFilterStrategy"));
 		mapping.put(WidgetType.MOST_TIME_CONSUMING,
 				(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
 		);

@@ -24,7 +24,6 @@ package com.epam.ta.reportportal.core.widget.content.filter;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.google.common.collect.Sets;
@@ -36,7 +35,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
  * @author Pavel Bortnik
  */
 @Service("projectFilterStrategy")
-public class ProjectFilterStrategy extends AbstractStatisticsFilterStrategy implements BuildFilterStrategy {
+public class ProjectFilterStrategy extends AbstractStatisticsFilterStrategy {
 
 	@Override
 	protected Filter buildDefaultFilter(Widget widget, Long projectId) {

@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -74,7 +75,11 @@ public class TopTestCasesContentLoader implements LoadContentStrategy {
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 		Launch latestByName = launchRepository.findLatestByNameAndFilter(widgetOptions.get(LAUNCH_NAME_FIELD), filter)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, widgetOptions.get(LAUNCH_NAME_FIELD)));
-		List<CriteraHistoryItem> content = widgetContentRepository.topItemsByCriteria(filter, contentField, limit);
+		List<CriteraHistoryItem> content = widgetContentRepository.topItemsByCriteria(filter,
+				contentField,
+				limit,
+				BooleanUtils.toBoolean(widgetOptions.get(INCLUDE_METHODS))
+		);
 		return ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, LaunchConverter.TO_RESOURCE.apply(latestByName))
 				.put(RESULT, content)
 				.build();

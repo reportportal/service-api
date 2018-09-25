@@ -20,38 +20,35 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.dashboard.Dashboard;
+
+import java.time.LocalDateTime;
 
 /**
  * @author pavel_bortnik
  */
-public class DashboardCreatedEvent {
+public class DashboardCreatedEvent implements ActivityEvent {
 
-	private final CreateDashboardRQ createDashboardRQ;
-	private final String createdBy;
-	private final String projectRef;
-	private final String dashboardId;
+	private Dashboard dashboard;
 
-	public DashboardCreatedEvent(CreateDashboardRQ createDashboardRQ, String createdBy, String projectRef, String dashboardId) {
-		this.createDashboardRQ = createDashboardRQ;
-		this.createdBy = createdBy;
-		this.projectRef = projectRef;
-		this.dashboardId = dashboardId;
+	public DashboardCreatedEvent(Dashboard dashboard) {
+		this.dashboard = dashboard;
 	}
 
-	public CreateDashboardRQ getCreateDashboardRQ() {
-		return createDashboardRQ;
+	public Dashboard getDashboard() {
+		return dashboard;
 	}
 
-	public String getCreatedBy() {
-		return createdBy;
-	}
-
-	public String getProjectRef() {
-		return projectRef;
-	}
-
-	public String getDashboardId() {
-		return dashboardId;
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		//add user id after acl implementation
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setEntity(Activity.Entity.DASHBOARD);
+		activity.setAction(ActivityAction.CREATE_DASHBOARD.getValue());
+		activity.setProjectId(dashboard.getProjectId());
+		return activity;
 	}
 }

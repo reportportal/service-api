@@ -20,33 +20,35 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
-import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
+
+import java.time.LocalDateTime;
 
 /**
  * @author Andrei Varabyeu
  */
-public class DashboardUpdatedEvent {
+public class DashboardUpdatedEvent implements ActivityEvent {
 
 	private final Dashboard dashboard;
-	private final UpdateDashboardRQ updateRQ;
-	private final String updatedBy;
 
-	public DashboardUpdatedEvent(Dashboard dashboard, UpdateDashboardRQ updateRQ, String updatedBy) {
+	public DashboardUpdatedEvent(Dashboard dashboard) {
 		this.dashboard = dashboard;
-		this.updateRQ = updateRQ;
-		this.updatedBy = updatedBy;
 	}
 
 	public Dashboard getDashboard() {
 		return dashboard;
 	}
 
-	public UpdateDashboardRQ getUpdateRQ() {
-		return updateRQ;
-	}
-
-	public String getUpdatedBy() {
-		return updatedBy;
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		//add user id after acl implementation
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setEntity(Activity.Entity.DASHBOARD);
+		activity.setAction(ActivityAction.UPDATE_DASHBOARD.getValue());
+		activity.setProjectId(dashboard.getProjectId());
+		return activity;
 	}
 }

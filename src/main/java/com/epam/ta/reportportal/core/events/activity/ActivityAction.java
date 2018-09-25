@@ -37,7 +37,8 @@ public enum ActivityAction {
 	DELETE_INDEX("delete_index"),
 	GENERATE_INDEX("generate_index"),
 	START_IMPORT("start_import"),
-	FINISH_IMPORT("finish_import");
+	FINISH_IMPORT("finish_import"),
+	DELETE_EXTERNAL_SYSTEM("delete_external_system");
 
 	private String value;
 

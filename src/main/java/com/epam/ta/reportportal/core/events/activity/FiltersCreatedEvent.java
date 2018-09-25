@@ -21,34 +21,31 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 /**
  * @author pavel_bortnik
  */
-public class FiltersCreatedEvent {
+public class FiltersCreatedEvent implements ActivityEvent {
 
-	private final List<UserFilter> createdFilters;
-	private final String createdBy;
-	private final String projectRef;
+	private UserFilter userFilter;
 
-	public FiltersCreatedEvent(List<UserFilter> createdFilters, String createdBy, String projectRef) {
-		this.createdFilters = createdFilters;
-		this.createdBy = createdBy;
-		this.projectRef = projectRef;
+	public FiltersCreatedEvent(UserFilter userFilter) {
+		this.userFilter = userFilter;
 	}
 
-	public List<UserFilter> getCreatedFilters() {
-		return createdFilters;
-	}
-
-	public String getCreatedBy() {
-		return createdBy;
-	}
-
-	public String getProjectRef() {
-		return projectRef;
+	@Override
+	public Activity toActivity() {
+		;
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setEntity(Activity.Entity.FILTER);
+		activity.setAction(ActivityAction.CREATE_FILTER.getValue());
+		activity.setProjectId(userFilter.getProject().getId());
+		return activity;
 	}
 }

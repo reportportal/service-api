@@ -20,26 +20,34 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.integration.Integration;
+
+import java.time.LocalDateTime;
 
 /**
  * @author Andrei Varabyeu
  */
-public class ExternalSystemDeletedEvent {
+public class ExternalSystemDeletedEvent implements ActivityEvent {
 
 	private final Integration integration;
-	private final String deletedBy;
 
-	public ExternalSystemDeletedEvent(Integration integration, String deletedBy) {
+	public ExternalSystemDeletedEvent(Integration integration) {
 		this.integration = integration;
-		this.deletedBy = deletedBy;
 	}
 
 	public Integration getIntegration() {
 		return integration;
 	}
 
-	public String getDeletedBy() {
-		return deletedBy;
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setEntity(Activity.Entity.EXTERNAL_SYSTEM);
+		activity.setAction(ActivityAction.DELETE_EXTERNAL_SYSTEM.getValue());
+		activity.setProjectId(integration.getProject().getId());
+		return activity;
 	}
 }

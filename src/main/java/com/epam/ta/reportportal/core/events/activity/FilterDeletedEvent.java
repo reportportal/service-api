@@ -21,21 +21,28 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+
+import java.time.LocalDateTime;
 
 /**
  * @author pavel_bortnik
  */
-public class FilterDeletedEvent extends BeforeEvent<UserFilter> {
+public class FilterDeletedEvent extends BeforeEvent<UserFilter> implements ActivityEvent {
 
-	private final String removedBy;
-
-	public FilterDeletedEvent(UserFilter before, String removedBy) {
+	public FilterDeletedEvent(UserFilter before) {
 		super(before);
-		this.removedBy = removedBy;
 	}
 
-	public String getRemovedBy() {
-		return removedBy;
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setEntity(Activity.Entity.FILTER);
+		activity.setAction(ActivityAction.DELETE_FILTER.getValue());
+		activity.setProjectId(getBefore().getProject().getId());
+		return activity;
 	}
 }

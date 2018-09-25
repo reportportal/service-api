@@ -33,10 +33,6 @@ public class LaunchStartedEvent implements ActivityEvent {
 
 	private Launch launch;
 
-	LaunchStartedEvent() {
-
-	}
-
 	public LaunchStartedEvent(Launch launch) {
 		this.launch = launch;
 	}

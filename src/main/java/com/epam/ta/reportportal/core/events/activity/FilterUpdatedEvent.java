@@ -21,12 +21,26 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
-//import com.epam.ta.reportportal.database.entity.filter.UserFilter;
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.filter.UserFilter;
 
 /**
  * @author Pavel Bortnik
  */
-public class FilterUpdatedEvent {//extends AroundEvent<UserFilter> {
+public class FilterUpdatedEvent extends AroundEvent<UserFilter> implements ActivityEvent {
+	public FilterUpdatedEvent(UserFilter before, UserFilter after) {
+		super(before, after);
+	}
+
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		return null;
+	}
+
+	public static class FilterActivityDetails {
+	}
 
 	//	private final String updatedBy;
 	//

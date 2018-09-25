@@ -26,7 +26,6 @@ import javax.inject.Provider;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.concurrent.CompletableFuture;
 
 import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTENSION;
 import static java.util.Optional.ofNullable;
@@ -36,7 +35,6 @@ import static java.util.Optional.ofNullable;
  */
 @Service
 public class XmlImportStrategy extends AbstractImportStrategy {
-
 
 	@Autowired
 	private Provider<XunitParseJob> xmlParseJobProvider;
@@ -61,8 +59,7 @@ public class XmlImportStrategy extends AbstractImportStrategy {
 			Long launchId = startLaunch(projectDetails, user, xml.getName().substring(0, xml.getName().indexOf(XML_EXTENSION)));
 			savedLaunchId = launchId;
 			XunitParseJob job = xmlParseJobProvider.get().withParameters(projectDetails, launchId, user, xmlStream);
-			CompletableFuture future = CompletableFuture.supplyAsync(job::call, service);
-			ParseResults parseResults = processResults(future);
+			ParseResults parseResults = job.call();
 			finishLaunch(launchId, projectDetails, user, parseResults);
 			return launchId;
 		} catch (Exception e) {

@@ -75,7 +75,7 @@ public class ZipImportStrategy extends AbstractImportStrategy {
 			return launchId;
 		} catch (Exception e) {
 			e.printStackTrace();
-//			updateBrokenLaunch(savedLaunchId);
+			updateBrokenLaunch(savedLaunchId);
 
 			throw new ReportPortalException(ErrorType.IMPORT_FILE_ERROR, cleanMessage(e));
 		}

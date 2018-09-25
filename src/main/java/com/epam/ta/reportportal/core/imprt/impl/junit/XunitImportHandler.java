@@ -102,8 +102,6 @@ public class XunitImportHandler extends DefaultHandler {
 	@Override
 	public void startElement(String uri, String localName, String qName, Attributes attributes) {
 		switch (XunitReportTag.fromString(qName)) {
-			case TESTSUITES:
-				//TODO: implement parsing single xml
 			case TESTSUITE:
 				if (itemsIds.isEmpty()) {
 					startRootItem(attributes.getValue(XunitReportTag.ATTR_NAME.getValue()),

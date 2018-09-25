@@ -29,6 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -76,6 +78,7 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
 		return results;
 	}
 
+	@Transactional(propagation = Propagation.MANDATORY)
 	protected Long startLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String launchName) {
 		StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
 		startLaunchRQ.setStartTime(initialStartTime);
@@ -84,6 +87,7 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
 		return startLaunchHandler.startLaunch(user, projectDetails, startLaunchRQ).getId();
 	}
 
+	@Transactional(propagation = Propagation.MANDATORY)
 	protected void finishLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			ParseResults results) {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
@@ -114,11 +118,10 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
 	 * the statistics
 	 */
 	protected void updateBrokenLaunch(Long savedLaunchId) {
-		//TODO: update after new schema release(statistics)
 		if (savedLaunchId != null) {
 			Launch launch = new Launch();
 			launch.setId(savedLaunchId);
-			//			launch.setStatistics(null);
+			launch.setStatistics(null);
 			launch.setStartTime(LocalDateTime.now());
 			launchRepository.save(launch);
 		}

@@ -1,36 +1,40 @@
 /*
- * Copyright 2016 EPAM Systems
  *
+ *  * Copyright (C) 2018 EPAM Systems
+ *  *
+ *  * Licensed under the Apache License, Version 2.0 (the "License");
+ *  * you may not use this file except in compliance with the License.
+ *  * You may obtain a copy of the License at
+ *  *
+ *  * http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  * Unless required by applicable law or agreed to in writing, software
+ *  * distributed under the License is distributed on an "AS IS" BASIS,
+ *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  * See the License for the specific language governing permissions and
+ *  * limitations under the License.
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package com.epam.ta.reportportal.core.item.impl.merge.strategy;
 
 import com.epam.ta.reportportal.core.item.merge.MergeStrategy;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.item.TestItemTag;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import javax.annotation.Nullable;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -49,7 +53,6 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
 	@Override
 	public TestItem mergeTestItems(TestItem itemTarget, List<TestItem> items) {
 		TestItem result = items.stream().reduce(itemTarget, this::moveAllChildTestItems);
-		TestItem result1 = items.stream().reduce(itemTarget, (prev, curr) -> moveAllChildTestItems(prev, curr));
 		this.mergeAllChildItems(result);
 		return result;
 	}
@@ -94,14 +97,27 @@ public abstract class AbstractSuiteMergeStrategy implements MergeStrategy {
 	 */
 	private void updateTargetItemInfo(TestItem target, TestItem source) {
 		target = updateTime(target, source);
-		source.getTags().removeAll(target.getTags());
-		target.getTags().addAll(source.getTags());
+
+		Set<TestItemTag> sourceTags = ofNullable(source.getTags()).orElseGet(Sets::newHashSet);
+		Set<TestItemTag> targetTags = ofNullable(target.getTags()).orElseGet(Sets::newHashSet);
+
+		sourceTags.removeAll(targetTags);
+		targetTags.addAll(sourceTags);
+
+		target.setTags(targetTags);
+
 		String result = mergeDescriptions(target.getDescription(), source.getDescription());
 		if (!result.isEmpty()) {
 			target.setDescription(result);
 		}
-		source.getParameters().removeAll(target.getParameters());
-		target.getParameters().addAll(source.getParameters());
+
+		List<Parameter> sourceParameters = ofNullable(source.getParameters()).orElseGet(Lists::newArrayList);
+		List<Parameter> targetParameters = ofNullable(target.getParameters()).orElseGet(Lists::newArrayList);
+
+		sourceParameters.removeAll(targetParameters);
+		targetParameters.addAll(sourceParameters);
+
+		target.setParameters(targetParameters);
 
 		//since merge based on unique id
 		//there are no difference for deep merging since only items with the same uniqueId merged

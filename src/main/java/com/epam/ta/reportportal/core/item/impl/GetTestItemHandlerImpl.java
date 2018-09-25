@@ -40,8 +40,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.dao.TestItemRepositoryCustomImpl.TEST_ITEM_FETCH;
-
 /**
  * GET operations for {@link TestItem}<br>
  * Default implementation
@@ -83,7 +81,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	 */
 	@Override
 	public Iterable<TestItemResource> getTestItems(Filter filter, Pageable pageable) {
-		Page<TestItem> testItems = testItemRepository.findByFilter(filter, pageable, TEST_ITEM_FETCH);
+		Page<TestItem> testItems = testItemRepository.findByFilter(filter, pageable);
 		return PagedResourcesAssembler.pageConverter(TestItemConverter.TO_RESOURCE).apply(testItems);
 	}
 

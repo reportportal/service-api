@@ -30,8 +30,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.HashMap;
 import java.util.Map;
+
+import static java.util.Collections.singletonMap;
 
 /**
  * @author Ivan Budaev
@@ -48,9 +49,7 @@ public class MergeStrategyConfig {
 
 	@Bean
 	public Map<MergeStrategyType, MergeStrategy> mergeStrategyMapping() {
-		Map<MergeStrategyType, MergeStrategy> mapping = new HashMap<>();
-		mapping.put(MergeStrategyType.DEEP, new DeepMergeStrategy(testItemRepository));
-		return mapping;
+		return singletonMap(MergeStrategyType.DEEP, new DeepMergeStrategy(testItemRepository));
 	}
 
 	@Bean

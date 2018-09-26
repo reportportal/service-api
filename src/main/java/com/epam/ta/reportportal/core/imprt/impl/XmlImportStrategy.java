@@ -31,7 +31,7 @@ import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTE
 import static java.util.Optional.ofNullable;
 
 /**
- * @author Anton Machulski
+ * @author Ivan Budaev
  */
 @Service
 public class XmlImportStrategy extends AbstractImportStrategy {

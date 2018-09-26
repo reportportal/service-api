@@ -19,6 +19,7 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -40,7 +41,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * @author Anton Machulski
+ * @author Ivan Budaev
  */
 @Component
 public abstract class AbstractImportStrategy implements ImportStrategy {
@@ -121,8 +122,8 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
 		if (savedLaunchId != null) {
 			Launch launch = new Launch();
 			launch.setId(savedLaunchId);
-			launch.setStatistics(null);
 			launch.setStartTime(LocalDateTime.now());
+			launch.setStatus(StatusEnum.INTERRUPTED);
 			launchRepository.save(launch);
 		}
 	}

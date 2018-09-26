@@ -36,7 +36,7 @@ import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.ZIP_EXTE
 import static java.util.Optional.ofNullable;
 
 /**
- * @author Anton Machulski
+ * @author Ivan Budaev
  */
 @Service
 public class ZipImportStrategy extends AbstractImportStrategy {

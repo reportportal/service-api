@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.ta.reportportal.core.imprt;
-
-import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import org.springframework.web.multipart.MultipartFile;
+package com.epam.ta.reportportal.core.imprt.impl;
 
 /**
+ * Factory for launch import handlers.
+ * Could be implemented other imports in future versions.
+ *
  * @author Pavel_Bortnik
  */
-public interface ImportLaunchHandler {
 
+public interface ImportStrategyFactory {
 	/**
-	 * Import launch from file with specified format.
+	 * Return import handler for specified type of import.
 	 *
-	 * @param projectDetails Project Details
-	 * @param user  user
-	 * @param format    report format
-	 * @param file      file with report
-	 * @return OperationCompletionRS
+	 * @param type     import type
+	 * @param fileName file name with extension
+	 * @return handler
 	 */
-	OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String format, MultipartFile file);
+	ImportStrategy getImportStrategy(ImportType type, String fileName);
 }

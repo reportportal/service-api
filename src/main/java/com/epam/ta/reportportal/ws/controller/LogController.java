@@ -76,7 +76,7 @@ import static org.springframework.http.HttpStatus.CREATED;
  */
 @Controller
 @RequestMapping("/{projectName}/log")
-@PreAuthorize(ASSIGNED_TO_PROJECT)
+//@PreAuthorize(ASSIGNED_TO_PROJECT)
 public class LogController {
 
 	private final CreateLogHandler createLogMessageHandler;
@@ -98,7 +98,7 @@ public class LogController {
 	@ResponseStatus(CREATED)
 	@Transactional
 	@ApiOperation("Create log")
-	@PreAuthorize(ALLOWED_TO_REPORT)
+	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS createLog(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		validateSaveRQ(createLogRQ);
@@ -112,7 +112,7 @@ public class LogController {
 	// Specific handler should be added for springfox in case of similar POST
 	// request mappings
 	//	@Async
-	@PreAuthorize(ALLOWED_TO_REPORT)
+	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public ResponseEntity<BatchSaveOperatingRS> createLog(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
 			@RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs, HttpServletRequest request,
 			@AuthenticationPrincipal ReportPortalUser user) {

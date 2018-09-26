@@ -18,27 +18,29 @@
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.epam.ta.reportportal.core.configs;
+package com.epam.ta.reportportal.core.imprt.impl;
 
 /**
- * Configs for beans that are related to
- * importing xml report for junit tests
- * and SAX-parsing handler
- *
- * @author Pavel_Bortnik
+ * @author Pavel Bortnik
  */
-//@Configuration
-public class XunitImportConfiguration {
+public final class DateUtils {
 
-	//	@Bean(name = "junitParseJob")
-	//	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	//	public XunitParseJob junitParseJob() {
-	//		return new XunitParseJob();
-	//	}
-	//
-	//	@Bean(name = "junitImportHandler")
-	//	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	//	public XunitImportHandler junitImportHandler() {
-	//		return new XunitImportHandler();
-	//	}
+	private DateUtils() {
+		//static only
+	}
+
+	/**
+	 * Converts string representation of seconds to millis
+	 *
+	 * @param duration String seconds
+	 * @return long millis
+	 */
+	public static long toMillis(String duration) {
+		if (null != duration) {
+			Double value = Double.valueOf(duration) * 1000;
+			return value.longValue();
+		}
+		return 0;
+	}
+
 }

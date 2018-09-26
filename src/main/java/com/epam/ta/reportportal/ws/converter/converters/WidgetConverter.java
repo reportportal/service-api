@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.ws.model.Size;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
+import com.google.common.collect.Lists;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -57,7 +58,7 @@ public class WidgetConverter {
 		ContentParameters contentParameters = new ContentParameters();
 		contentParameters.setItemsCount(widget.getItemsCount());
 		contentParameters.setWidgetOptions(widget.getWidgetOptions());
-		contentParameters.setContentFields(widget.getContentFields());
+		contentParameters.setContentFields(Lists.newArrayList(widget.getContentFields()));
 		widgetResource.setContentParameters(contentParameters);
 		return widgetResource;
 	};

@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -32,7 +33,6 @@ import com.epam.ta.reportportal.core.log.impl.DeleteLogHandler;
 import com.epam.ta.reportportal.core.log.impl.GetLogHandler;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
@@ -49,10 +49,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.SortDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -65,8 +62,6 @@ import javax.validation.Validator;
 import java.io.Serializable;
 import java.util.*;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.TEST_ITEM_ID;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -74,7 +69,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 /**
  * @author Pavel Bortnik
  */
-@Controller
+@RestController
 @RequestMapping("/{projectName}/log")
 //@PreAuthorize(ASSIGNED_TO_PROJECT)
 public class LogController {
@@ -93,10 +88,8 @@ public class LogController {
 		this.validator = validator;
 	}
 
-	@RequestMapping(method = RequestMethod.POST, consumes = { MediaType.APPLICATION_JSON_VALUE })
-	@ResponseBody
+	@PostMapping(consumes = { MediaType.APPLICATION_JSON_VALUE })
 	@ResponseStatus(CREATED)
-	@Transactional
 	@ApiOperation("Create log")
 	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS createLog(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @RequestBody SaveLogRQ createLogRQ,
@@ -105,9 +98,7 @@ public class LogController {
 		return createLogMessageHandler.createLog(createLogRQ, null, projectDetails);
 	}
 
-	@RequestMapping(method = RequestMethod.POST, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-	@ResponseBody
-	@Transactional
+	@PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	// @ApiOperation("Create log (batching operation)")
 	// Specific handler should be added for springfox in case of similar POST
 	// request mappings
@@ -159,8 +150,6 @@ public class LogController {
 	}
 
 	@RequestMapping(value = "/{logId}", method = RequestMethod.DELETE)
-	@ResponseBody
-	@Transactional
 	@ApiOperation("Delete log")
 	public OperationCompletionRS deleteLog(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long logId,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -168,7 +157,6 @@ public class LogController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
-	@ResponseBody
 	@ApiOperation("Get logs by filter")
 	public Iterable<LogResource> getLogs(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
 			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ + TEST_ITEM_ID) Long testStepId,
@@ -177,8 +165,7 @@ public class LogController {
 		return getLogHandler.getLogs(testStepId, projectDetails, filter, pageable);
 	}
 
-	@RequestMapping(value = "/{logId}/page", method = RequestMethod.GET)
-	@ResponseBody
+	@GetMapping(value = "/{logId}/page")
 	@ApiOperation("Get logs by filter")
 	public Map<String, Serializable> getPageNumber(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long logId,
 			@FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
@@ -187,8 +174,7 @@ public class LogController {
 		).build();
 	}
 
-	@RequestMapping(value = "/{logId}", method = RequestMethod.GET)
-	@ResponseBody
+	@GetMapping(value = "/{logId}")
 	@ApiOperation("Get log")
 	public LogResource getLog(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long logId,
 			@AuthenticationPrincipal ReportPortalUser user) {

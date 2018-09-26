@@ -22,16 +22,19 @@
 package com.epam.ta.reportportal.core.filter.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.filter.IGetUserFilterHandler;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -39,6 +42,7 @@ import java.util.List;
  * @author Pavel Bortnik
  */
 @Service
+@Transactional(readOnly = true)
 public class GetUserFilterHandlerImpl implements IGetUserFilterHandler {
 
 	private UserFilterRepository filterRepository;
@@ -56,12 +60,28 @@ public class GetUserFilterHandlerImpl implements IGetUserFilterHandler {
 	}
 
 	@Override
-	public Iterable<SharedEntity> getFiltersNames(String userName, String projectName, boolean isShared) {
+	public Iterable<UserFilterResource> getFilters(Filter filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
 		return null;
 	}
 
 	@Override
-	public List<UserFilterResource> getFilters(String projectName, String[] ids, String userName) {
+	public List<UserFilterResource> getOwnFilters(Filter filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		return null;
+	}
+
+	@Override
+	public List<UserFilterResource> getSharedFilters(Filter filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		return null;
+	}
+
+	@Override
+	public Iterable<SharedEntity> getFiltersNames(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean isShared) {
+		return null;
+	}
+
+	@Override
+	public List<UserFilterResource> getFilters(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		return null;
 	}
 }

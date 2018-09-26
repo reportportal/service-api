@@ -35,7 +35,6 @@ import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -46,35 +45,25 @@ import static org.springframework.http.HttpStatus.OK;
 /**
  * @author Pavel Bortnik
  */
-@Controller
+@RestController
 @RequestMapping("/{projectName}/dashboard")
 public class DashboardController {
 
-	private ICreateDashboardHandler createDashboardHandler;
-
-	private IUpdateDashboardHandler updateDashboardHandler;
-
-	private IGetDashboardHandler getDashboardHandler;
+	private final ICreateDashboardHandler createDashboardHandler;
+	private final IUpdateDashboardHandler updateDashboardHandler;
+	private final IGetDashboardHandler getDashboardHandler;
 
 	@Autowired
-	public void setCreateDashboardHandler(ICreateDashboardHandler createDashboardHandler) {
+	public DashboardController(ICreateDashboardHandler createDashboardHandler, IUpdateDashboardHandler updateDashboardHandler,
+			IGetDashboardHandler getDashboardHandler) {
 		this.createDashboardHandler = createDashboardHandler;
-	}
-
-	@Autowired
-	public void setUpdateDashboardHandler(IUpdateDashboardHandler updateDashboardHandler) {
 		this.updateDashboardHandler = updateDashboardHandler;
-	}
-
-	@Autowired
-	public void setGetHandler(IGetDashboardHandler getDashboardHandler) {
 		this.getDashboardHandler = getDashboardHandler;
 	}
 
 	@Transactional
 	@PostMapping
 	@ResponseStatus(CREATED)
-	@ResponseBody
 	@ApiOperation("Create dashboard for specified project")
 	public EntryCreatedRS createDashboard(@PathVariable String projectName, @RequestBody @Validated CreateDashboardRQ createRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -84,7 +73,6 @@ public class DashboardController {
 	@Transactional
 	@PutMapping("/{dashboardId}/add")
 	@ResponseStatus(CREATED)
-	@ResponseBody
 	@ApiOperation("Add widget to specified dashboard")
 	public OperationCompletionRS addWidget(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@RequestBody @Validated AddWidgetRq addWidgetRq, @AuthenticationPrincipal ReportPortalUser user) {
@@ -94,7 +82,6 @@ public class DashboardController {
 	@Transactional
 	@DeleteMapping("/{dashboardId}/{widgetId}")
 	@ResponseStatus(OK)
-	@ResponseBody
 	@ApiOperation("Remove widget from specified dashboard")
 	public OperationCompletionRS removeWidget(@PathVariable String projectName, @PathVariable Long dashboardId, @PathVariable Long widgetId,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -102,8 +89,7 @@ public class DashboardController {
 	}
 
 	@Transactional
-	@RequestMapping(value = "/{dashboardId}", method = RequestMethod.PUT)
-	@ResponseBody
+	@PutMapping(value = "/{dashboardId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Update specified dashboard for specified project")
 	public OperationCompletionRS updateDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
@@ -111,9 +97,9 @@ public class DashboardController {
 		return updateDashboardHandler.updateDashboard(ProjectUtils.extractProjectDetails(user, projectName), updateRQ, dashboardId, user);
 	}
 
-	@RequestMapping(value = "/{dashboardId}", method = RequestMethod.GET)
+	@Transactional
+	@GetMapping(value = "/{dashboardId}")
 	@ResponseStatus(OK)
-	@ResponseBody
 	@ApiOperation("Get specified dashboard by ID for specified project")
 	public DashboardResource getDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@AuthenticationPrincipal ReportPortalUser user) {

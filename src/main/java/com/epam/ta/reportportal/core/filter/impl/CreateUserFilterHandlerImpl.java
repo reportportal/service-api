@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -37,16 +36,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class CreateUserFilterHandlerImpl implements ICreateUserFilterHandler {
 
-	@Autowired
-	private UserFilterRepository userFilterRepository;
+	private final UserFilterRepository userFilterRepository;
+
+	public CreateUserFilterHandlerImpl(UserFilterRepository userFilterRepository) {
+		this.userFilterRepository = userFilterRepository;
+	}
 
 	@Override
 	public EntryCreatedRS createFilter(CreateUserFilterRQ createFilterRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-
 		UserFilter filter = new UserFilterBuilder().addCreateRq(createFilterRQ).addProject(projectDetails.getProjectId()).get();
 		userFilterRepository.save(filter);
-
 		return new EntryCreatedRS(filter.getId());
 	}
 }

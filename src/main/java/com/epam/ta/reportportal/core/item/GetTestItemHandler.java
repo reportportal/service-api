@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.item;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
@@ -38,19 +39,24 @@ public interface GetTestItemHandler {
 	/**
 	 * Get {@link TestItem} instance
 	 *
-	 * @param testItemId {@link TestItem#itemId}
+	 * @param testItemId     {@link TestItem#itemId}
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param user           {@link ReportPortalUser}
 	 * @return {@link TestItemResource}
 	 */
-	TestItemResource getTestItem(Long testItemId);
+	TestItemResource getTestItem(Long testItemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
 	 * Gets {@link TestItem} instances
 	 *
-	 * @param filter   {@link Filter}
-	 * @param pageable {@link Pageable}
+	 * @param filter         {@link Filter}
+	 * @param pageable       {@link Pageable}
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param user           {@link ReportPortalUser}
 	 * @return {@link Iterable} of the {@link TestItemResource}
 	 */
-	Iterable<TestItemResource> getTestItems(Filter filter, Pageable pageable);
+	Iterable<TestItemResource> getTestItems(Filter filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user);
 
 	/**
 	 * Get specified tags
@@ -59,11 +65,11 @@ public interface GetTestItemHandler {
 	 * @param value    part of the {@link com.epam.ta.reportportal.entity.item.TestItemTag#value} to search
 	 * @return {@link List} of the {@link com.epam.ta.reportportal.entity.item.TestItemTag#value}
 	 */
-	List<String> getTags(Long launchId, String value);
+	List<String> getTags(Long launchId, String value, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
 	 * @param ids array of the {@link com.epam.ta.reportportal.entity.launch.Launch#id}
 	 * @return {@link List} of the {@link TestItemResource}
 	 */
-	List<TestItemResource> getTestItems(Long[] ids);
+	List<TestItemResource> getTestItems(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 }

@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.widget.ICreateWidgetHandler;
 import com.epam.ta.reportportal.core.widget.IGetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
-import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
@@ -33,72 +32,58 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import static com.epam.ta.reportportal.util.ProjectUtils.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 /**
  * @author Pavel Bortnik
  */
-@Controller
+@RestController
 @RequestMapping("/{projectName}/widget")
 public class WidgetController {
 
-	private ICreateWidgetHandler createWidgetHandler;
-
-	private IUpdateWidgetHandler updateWidgetHandler;
-
-	private IGetWidgetHandler getWidgetHandler;
+	private final ICreateWidgetHandler createWidgetHandler;
+	private final IUpdateWidgetHandler updateWidgetHandler;
+	private final IGetWidgetHandler getWidgetHandler;
 
 	@Autowired
-	public void setCreateWidgetHandler(ICreateWidgetHandler createWidgetHandler) {
+	public WidgetController(ICreateWidgetHandler createWidgetHandler, IUpdateWidgetHandler updateWidgetHandler,
+			IGetWidgetHandler getWidgetHandler) {
 		this.createWidgetHandler = createWidgetHandler;
-	}
-
-	@Autowired
-	public void setUpdateWidgetHandler(IUpdateWidgetHandler updateWidgetHandler) {
 		this.updateWidgetHandler = updateWidgetHandler;
-	}
-
-	@Autowired
-	public void setGetWidgetHandler(IGetWidgetHandler getWidgetHandler) {
 		this.getWidgetHandler = getWidgetHandler;
 	}
 
 	@Transactional
 	@PostMapping
-	@ResponseBody
 	@ResponseStatus(CREATED)
 	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS createWidget(@RequestBody WidgetRQ createWidget, @AuthenticationPrincipal ReportPortalUser user,
 			@PathVariable String projectName) {
-		return createWidgetHandler.createWidget(createWidget, ProjectUtils.extractProjectDetails(user, projectName), user);
+		return createWidgetHandler.createWidget(createWidget, extractProjectDetails(user, projectName), user);
 	}
 
-	@Transactional
-	@RequestMapping(value = "/{widgetId}", method = GET)
+	@Transactional(readOnly = true)
+	@GetMapping(value = "/{widgetId}")
 	@ResponseStatus(OK)
-	@ResponseBody
 	@ApiOperation("Get widget by ID")
 	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidget(widgetId, ProjectUtils.extractProjectDetails(user, projectName), user);
+		return getWidgetHandler.getWidget(widgetId, extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional
-	@RequestMapping(value = "/{widgetId}", method = PUT)
+	@PutMapping(value = "/{widgetId}")
 	@ResponseStatus(OK)
-	@ResponseBody
 	@ApiOperation("Update specified widget")
 	public OperationCompletionRS updateWidget(@PathVariable String projectName, @PathVariable Long widgetId,
 			@RequestBody @Validated WidgetRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateWidgetHandler.updateWidget(widgetId, updateRQ, ProjectUtils.extractProjectDetails(user, projectName), user);
+		return updateWidgetHandler.updateWidget(widgetId, updateRQ, extractProjectDetails(user, projectName), user);
 	}
 
 }

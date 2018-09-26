@@ -22,15 +22,18 @@
 package com.epam.ta.reportportal.core.filter;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.ws.model.CollectionsRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
+
+import java.util.List;
 
 /**
  * Update user filter handler
  *
  * @author Aliaksei_Makayed
  */
-
 public interface IUpdateUserFilterHandler {
 
 	/**
@@ -40,21 +43,20 @@ public interface IUpdateUserFilterHandler {
 	 * @param updateRQ       Update filter details
 	 * @param projectDetails Project details
 	 * @param user           User
-	 * @return
+	 * @return {@link OperationCompletionRS}
 	 */
-	OperationCompletionRS updateUserFilter(String userFilterId, UpdateUserFilterRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
+	OperationCompletionRS updateUserFilter(Long userFilterId, UpdateUserFilterRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user);
 
-	//	/**
-	//	 * Update user filter
-	//	 *
-	//	 * @param updateRQ
-	//	 * @param userName
-	//	 * @param projectName
-	//	 * @param userRole
-	//	 * @return
-	//	 */
-	//	List<OperationCompletionRS> updateUserFilter(CollectionsRQ<BulkUpdateFilterRQ> updateRQ, String userName, String projectName,
-	//			UserRole userRole);
+	/**
+	 * Update user filter
+	 *
+	 * @param updateRQ
+	 * @param projectDetails
+	 * @param user
+	 * @return List of {@link OperationCompletionRS}
+	 */
+	List<OperationCompletionRS> updateUserFilter(CollectionsRQ<BulkUpdateFilterRQ> updateRQ, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user);
 
 }

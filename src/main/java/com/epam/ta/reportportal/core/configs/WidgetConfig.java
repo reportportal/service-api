@@ -97,7 +97,7 @@ public class WidgetConfig implements ApplicationContextAware {
 		mapping.put(WidgetType.PASSING_RATE_SUMMARY, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
 //		mapping.put(WidgetType.CUMULATIVE, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
 		mapping.put(WidgetType.PRODUCT_STATUS, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.UNIQUE_BUG_TABLE, applicationContext.getBean(ProjectFilterStrategy.class));
+		mapping.put(WidgetType.UNIQUE_BUG_TABLE, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
 		mapping.put(WidgetType.ACTIVITY, applicationContext.getBean(ProjectFilterStrategy.class));
 		mapping.put(WidgetType.LAUNCHES_COMPARISON_CHART, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
 		mapping.put(WidgetType.LAUNCHES_DURATION_CHART, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));

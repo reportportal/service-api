@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LATEST_OPTION;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
@@ -56,11 +57,18 @@ public class LaunchesDurationContentLoader implements LoadContentStrategy {
 
 		validateFilterSortMapping(filterSortMapping);
 
+		validateWidgetOptions(widgetOptions);
+
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		List<LaunchesDurationContent> result = widgetContentRepository.launchesDurationStatistics(filter, sort, false, limit);
+		List<LaunchesDurationContent> result = widgetContentRepository.launchesDurationStatistics(
+				filter,
+				sort,
+				widgetOptions.containsKey(LATEST_OPTION),
+				limit
+		);
 		return singletonMap(RESULT, result);
 	}
 
@@ -72,6 +80,16 @@ public class LaunchesDurationContentLoader implements LoadContentStrategy {
 	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
 		BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Filter-Sort mapping should not be empty");
+	}
+
+	/**
+	 * Validate provided widget options. For current widget launch name should be specified.
+	 *
+	 * @param widgetOptions Map of stored widget options.
+	 */
+	private void validateWidgetOptions(Map<String, String> widgetOptions) {
+		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should not be null.");
 	}
 
 }

@@ -13,6 +13,7 @@ public final class ContentLoaderConstants {
 	public static final String PREFIX = "prefix";
 	public static final String ITEM_TYPE = "type";
 	public static final String INCLUDE_METHODS = "include_methods";
+	public static final String FLAKY = "flaky";
 
 	private ContentLoaderConstants() {
 		//static only

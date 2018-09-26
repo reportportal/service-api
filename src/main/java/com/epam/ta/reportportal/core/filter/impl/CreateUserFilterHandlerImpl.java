@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.filter.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -37,16 +38,22 @@ import org.springframework.stereotype.Service;
 @Service
 public class CreateUserFilterHandlerImpl implements ICreateUserFilterHandler {
 
+	private final UserFilterRepository userFilterRepository;
+
+	private final MessageBus messageBus;
+
 	@Autowired
-	private UserFilterRepository userFilterRepository;
+	public CreateUserFilterHandlerImpl(UserFilterRepository userFilterRepository, MessageBus messageBus) {
+		this.userFilterRepository = userFilterRepository;
+		this.messageBus = messageBus;
+	}
 
 	@Override
 	public EntryCreatedRS createFilter(CreateUserFilterRQ createFilterRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-
 		UserFilter filter = new UserFilterBuilder().addCreateRq(createFilterRQ).addProject(projectDetails.getProjectId()).get();
 		userFilterRepository.save(filter);
-
+		//messageBus.publishActivity(null);
 		return new EntryCreatedRS(filter.getId());
 	}
 }

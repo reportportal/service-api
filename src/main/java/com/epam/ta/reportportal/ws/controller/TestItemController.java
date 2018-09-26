@@ -40,11 +40,9 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 
@@ -52,21 +50,18 @@ import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
-@Controller
+@RestController
 @RequestMapping("/{projectName}/item")
 //@PreAuthorize(ASSIGNED_TO_PROJECT)
 public class TestItemController {
 
-	public static final String DEFAULT_HISTORY_DEPTH = "5";
-	public static final String DEFAULT_HISTORY_FULL = "true";
-
-	private StartTestItemHandler startTestItemHandler;
-	private DeleteTestItemHandler deleteTestItemHandler;
-	private FinishTestItemHandler finishTestItemHandler;
-	private UpdateTestItemHandler updateTestItemHandler;
-	private GetTestItemHandler getTestItemHandler;
-	private TestItemsHistoryHandler testItemsHistoryHandler;
-	private MergeTestItemHandler mergeTestItemHandler;
+	private final StartTestItemHandler startTestItemHandler;
+	private final DeleteTestItemHandler deleteTestItemHandler;
+	private final FinishTestItemHandler finishTestItemHandler;
+	private final UpdateTestItemHandler updateTestItemHandler;
+	private final GetTestItemHandler getTestItemHandler;
+	private final TestItemsHistoryHandler testItemsHistoryHandler;
+	private final MergeTestItemHandler mergeTestItemHandler;
 
 	@Autowired
 	public TestItemController(StartTestItemHandler startTestItemHandler, DeleteTestItemHandler deleteTestItemHandler,
@@ -81,10 +76,9 @@ public class TestItemController {
 		this.mergeTestItemHandler = mergeTestItemHandler;
 	}
 
-	@PostMapping
-	@ResponseBody
-	@ResponseStatus(CREATED)
 	@Transactional
+	@PostMapping
+	@ResponseStatus(CREATED)
 	@ApiOperation("Start a root test item")
 	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS startRootItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
@@ -92,20 +86,19 @@ public class TestItemController {
 		return startTestItemHandler.startRootItem(user, projectDetails, startTestItemRQ);
 	}
 
+	@Transactional(readOnly = true)
 	@GetMapping("/{itemId}")
-	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Find test item by ID")
 	public TestItemResource getTestItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long itemId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getTestItemHandler.getTestItem(itemId);
+		return getTestItemHandler.getTestItem(itemId, projectDetails, user);
 
 	}
 
-	@PostMapping("/{parentItem}")
-	@ResponseBody
-	@ResponseStatus(CREATED)
 	@Transactional
+	@PostMapping("/{parentItem}")
+	@ResponseStatus(CREATED)
 	@ApiOperation("Start a child test item")
 	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS startChildItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long parentItem,
@@ -113,10 +106,9 @@ public class TestItemController {
 		return startTestItemHandler.startChildItem(user, projectDetails, startTestItemRQ, parentItem);
 	}
 
-	@PutMapping("/{testItemId}")
-	@ResponseBody
-	@ResponseStatus(OK)
 	@Transactional
+	@PutMapping("/{testItemId}")
+	@ResponseStatus(OK)
 	@ApiOperation("Finish test item")
 	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public OperationCompletionRS finishTestItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
@@ -126,19 +118,18 @@ public class TestItemController {
 	}
 
 	//TODO check pre-defined filter
+	@Transactional(readOnly = true)
 	@GetMapping
-	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Find test items by specified filter")
-	public Iterable<TestItemResource> getTestItems(@PathVariable String projectName, @FilterFor(TestItem.class) Filter filter,
-			@FilterFor(TestItem.class) Filter predefinedFilter, @SortFor(TestItem.class) Pageable pageable,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getTestItemHandler.getTestItems(new Filter(filter, predefinedFilter), pageable);
+	public Iterable<TestItemResource> getTestItems(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+			@FilterFor(TestItem.class) Filter filter, @FilterFor(TestItem.class) Filter predefinedFilter,
+			@SortFor(TestItem.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+		return getTestItemHandler.getTestItems(new Filter(filter, predefinedFilter), pageable, projectDetails, user);
 	}
 
-	@DeleteMapping("/{itemId}")
 	@Transactional
-	@ResponseBody
+	@DeleteMapping("/{itemId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Delete test item")
 	public OperationCompletionRS deleteTestItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long itemId,
@@ -146,50 +137,47 @@ public class TestItemController {
 		return deleteTestItemHandler.deleteTestItem(itemId, projectDetails, user);
 	}
 
-	@DeleteMapping
-	@ResponseBody
-	@ResponseStatus(OK)
 	@Transactional
+	@DeleteMapping
+	@ResponseStatus(OK)
 	@ApiOperation("Delete test items by specified ids")
 	public List<OperationCompletionRS> deleteTestItems(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
 			@RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
 		return deleteTestItemHandler.deleteTestItem(ids, projectDetails, user);
 	}
 
-	@PutMapping
-	@ResponseBody
-	@ResponseStatus(OK)
 	@Transactional
+	@PutMapping
+	@ResponseStatus(OK)
 	@ApiOperation("Update issues of specified test items")
 	public List<Issue> defineTestItemIssueType(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
 			@RequestBody @Validated DefineIssueRQ request, @AuthenticationPrincipal ReportPortalUser user) {
 		return updateTestItemHandler.defineTestItemsIssues(projectDetails, request, user);
 	}
 
+	@Transactional(readOnly = true)
 	@GetMapping("/history")
-	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Load history of test items")
 	public List<TestItemHistoryElement> getItemsHistory(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
-			@RequestParam(value = "history_depth", required = false, defaultValue = DEFAULT_HISTORY_DEPTH) int historyDepth,
+			@RequestParam(value = "history_depth", required = false, defaultValue = "5") int historyDepth,
 			@RequestParam(value = "ids") Long[] ids,
-			@RequestParam(value = "is_full", required = false, defaultValue = DEFAULT_HISTORY_FULL) boolean showBrokenLaunches,
+			@RequestParam(value = "is_full", required = false, defaultValue = "") boolean showBrokenLaunches,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return testItemsHistoryHandler.getItemsHistory(projectDetails, ids, historyDepth, showBrokenLaunches);
 	}
 
+	@Transactional(readOnly = true)
 	@GetMapping("/tags")
-	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique tags of specified launch")
 	public List<String> getAllTags(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @RequestParam(value = "launch") Long id,
 			@RequestParam(value = "filter." + "cnt." + "tags") String value, @AuthenticationPrincipal ReportPortalUser user) {
-		return getTestItemHandler.getTags(id, value);
+		return getTestItemHandler.getTags(id, value, projectDetails, user);
 	}
 
-	@PutMapping("/{itemId}/update")
 	@Transactional
-	@ResponseBody
+	@PutMapping("/{itemId}/update")
 	@ResponseStatus(OK)
 	@ApiOperation("Update test item")
 	public OperationCompletionRS updateTestItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long itemId,
@@ -197,9 +185,8 @@ public class TestItemController {
 		return updateTestItemHandler.updateTestItem(projectDetails, itemId, rq, user);
 	}
 
-	@PutMapping("/issue/link")
 	@Transactional
-	@ResponseBody
+	@PutMapping("/issue/link")
 	@ResponseStatus(OK)
 	@ApiOperation("Attach external issue for specified test items")
 	public List<OperationCompletionRS> addExternalIssues(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
@@ -207,9 +194,8 @@ public class TestItemController {
 		return updateTestItemHandler.linkExternalIssues(projectDetails, rq, user);
 	}
 
-	@PutMapping("/issue/unlink")
 	@Transactional
-	@ResponseBody
+	@PutMapping("/issue/unlink")
 	@ResponseStatus(OK)
 	@ApiOperation("Unlink external issue for specified test items")
 	public List<OperationCompletionRS> unlinkExternalIssues(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
@@ -217,20 +203,19 @@ public class TestItemController {
 		return updateTestItemHandler.unlinkExternalIssues(projectDetails, rq, user);
 	}
 
+	@Transactional(readOnly = true)
 	@GetMapping("/items")
-	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Get test items by specified ids")
 	public List<TestItemResource> getTestItems(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
 			@RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
-		return getTestItemHandler.getTestItems(ids);
+		return getTestItemHandler.getTestItems(ids, projectDetails, user);
 	}
 
+	@Transactional
 	@PutMapping("/{item}/merge")
-	@ResponseBody
 	@ResponseStatus(OK)
-	//    @ApiOperation("Merge test item")
-	@ApiIgnore
+	@ApiOperation("Merge test item")
 	public OperationCompletionRS mergeTestItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long item,
 			@RequestBody @Validated MergeTestItemRQ rq, @AuthenticationPrincipal ReportPortalUser user) {
 		return mergeTestItemHandler.mergeTestItem(projectDetails, item, rq, user.getUsername());

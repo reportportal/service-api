@@ -45,9 +45,9 @@ public final class UserFilterConverter {
 		//static only
 	}
 
-	public static final Function<Set<UserFilter>, List<UserFilterResource>> FILTER_SET_TO_FILTER_RESOURCE = filters -> {
-		return filters.stream().map(UserFilterConverter::buildFilterResource).collect(Collectors.toList());
-	};
+	public static final Function<Set<UserFilter>, List<UserFilterResource>> FILTER_SET_TO_FILTER_RESOURCE = filters -> filters.stream()
+			.map(UserFilterConverter::buildFilterResource)
+			.collect(Collectors.toList());
 
 	public static final Function<UserFilter, UserFilterResource> TO_FILTER_RESOURCE = UserFilterConverter::buildFilterResource;
 

@@ -59,7 +59,6 @@ import net.sf.jasperreports.engine.JasperPrint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -88,9 +87,8 @@ import static org.springframework.http.HttpStatus.OK;
  * @author Andrei Kliashchonak
  * @author Andrei_Ramanchuk
  */
-@Controller
+@RestController
 @RequestMapping("/{projectName}/launch")
-//@PreAuthorize(ASSIGNED_TO_PROJECT)
 public class LaunchController {
 
 	private final StartLaunchHandler createLaunchMessageHandler;
@@ -122,7 +120,6 @@ public class LaunchController {
 	@ResponseBody
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
-	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS startLaunch(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -133,7 +130,6 @@ public class LaunchController {
 	@Transactional
 	@ResponseBody
 	@ResponseStatus(OK)
-	//@PreAuthorize(ALLOWED_TO_REPORT)
 	@ApiOperation("Finish launch for specified project")
 	public OperationCompletionRS finishLaunch(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,

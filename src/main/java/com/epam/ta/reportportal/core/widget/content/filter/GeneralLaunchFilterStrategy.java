@@ -25,31 +25,27 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.collect.Sets;
 import org.springframework.stereotype.Service;
 
-import java.util.Set;
-
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.MODE;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.STATUS;
 
 /**
  * @author Pavel Bortnik
  */
-@Service
-public class GeneralStatisticsFilterStrategy extends AbstractStatisticsFilterStrategy {
+@Service("generalLaunchFilterStrategy")
+public class GeneralLaunchFilterStrategy extends ProjectFilterStrategy {
 
-	protected Filter updateWithDefaultConditions(Filter filter, Long projectId) {
-		Set<FilterCondition> defaultConditions = Sets.newHashSet(new FilterCondition(Condition.EQUALS,
-						false,
-						String.valueOf(projectId),
-						PROJECT_ID
-				),
+	@Override
+	protected Filter buildDefaultFilter(Widget widget, Long projectId) {
+		Filter filter = super.buildDefaultFilter(widget, projectId);
+		filter.withConditions(Sets.newHashSet(
 				new FilterCondition(Condition.NOT_EQUALS, false, StatusEnum.IN_PROGRESS.name(), STATUS),
 				new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.toString(), MODE)
-		);
-		return filter.withConditions(defaultConditions);
+		));
+		return filter;
 	}
 }

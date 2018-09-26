@@ -24,6 +24,7 @@ package com.epam.ta.reportportal.core.launch;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 //import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
+import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
 import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import org.springframework.data.domain.Pageable;
@@ -44,19 +45,20 @@ public interface GetLaunchHandler {
 	 *
 	 * @param launchId       Launch id
 	 * @param projectDetails Project Details
+	 * @param username		 User name
 	 * @return
 	 */
-	LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails);
+	LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, String username);
 
-	//	/**
-	//	 * Get Launch resource by specified Name (for Jenkins Plugin)
-	//	 *
-	//	 * @param project  Project Name
-	//	 * @param pageable Page details
-	//	 * @param username User name
-	//	 * @return Response Data
-	//	 */
-	//	LaunchResource getLaunchByName(String project, Pageable pageable, Filter filter, String username);
+	/**
+	 * Get Launch resource by specified Name (for Jenkins Plugin)
+	 *
+	 * @param project  Project Name
+	 * @param pageable Page details
+	 * @param username User name
+	 * @return Response Data
+	 */
+	LaunchResource getLaunchByProjectName(String project, Pageable pageable, Filter filter, String username);
 
 	/**
 	 * Get list of Launch resources for specified project
@@ -104,8 +106,9 @@ public interface GetLaunchHandler {
 	 * @param projectDetails Project Details
 	 * @param ids            IDs to be looked up
 	 * @return Response Data
-//	 */
-//	List<ComparisonStatisticsContent> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids);
+	 * //
+	 */
+	Map<String, List<LaunchesStatisticsContent>> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids);
 
 	/**
 	 * Get statuses of specified launches

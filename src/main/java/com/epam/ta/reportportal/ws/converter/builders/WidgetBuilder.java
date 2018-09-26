@@ -27,6 +27,8 @@ import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.google.common.collect.Sets;
 
+import java.util.Collections;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -54,7 +56,8 @@ public class WidgetBuilder implements Supplier<Widget> {
 		widget.setItemsCount(widgetRQ.getContentParameters().getItemsCount());
 
 		widget.getContentFields().clear();
-		widget.getContentFields().addAll(widgetRQ.getContentParameters().getContentFields());
+		widget.getContentFields()
+				.addAll(Optional.ofNullable(widgetRQ.getContentParameters().getContentFields()).orElse(Collections.emptyList()));
 		return this;
 	}
 
@@ -66,7 +69,7 @@ public class WidgetBuilder implements Supplier<Widget> {
 	}
 
 	public WidgetBuilder addFilters(Iterable<UserFilter> userFilters) {
-		widget.setFilters(Sets.newHashSet(userFilters));
+		Optional.ofNullable(userFilters).ifPresent(it -> widget.setFilters(Sets.newHashSet(it)));
 		return this;
 	}
 

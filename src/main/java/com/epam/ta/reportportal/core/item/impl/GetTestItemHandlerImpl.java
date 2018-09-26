@@ -21,20 +21,24 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
-import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.item.GetTestItemHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.TestItemTagRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
+import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
-import org.hibernate.persister.entity.Queryable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * GET operations for {@link TestItem}<br>
@@ -45,14 +49,14 @@ import java.util.List;
  */
 @Service
 class GetTestItemHandlerImpl implements GetTestItemHandler {
-//	private final TestItemRepository testItemRepository;
-//	private final TestItemResourceAssembler itemAssembler;
-//
-//	@Autowired
-//	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, TestItemResourceAssembler itemAssembler) {
-//		this.testItemRepository = testItemRepository;
-//		this.itemAssembler = itemAssembler;
-//	}
+	private final TestItemRepository testItemRepository;
+	private final TestItemTagRepository testItemTagRepository;
+
+	@Autowired
+	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, TestItemTagRepository testItemTagRepository) {
+		this.testItemRepository = testItemRepository;
+		this.testItemTagRepository = testItemTagRepository;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -63,10 +67,9 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	 */
 	@Override
 	public TestItemResource getTestItem(Long testItemId) {
-//		TestItem testItem = testItemRepository.findOne(testItemId);
-//		BusinessRule.expect(testItem, Predicates.notNull()).verify(ErrorType.TEST_ITEM_NOT_FOUND, testItemId);
-//		return itemAssembler.toResource(testItem);
-		throw new UnsupportedOperationException("No implementation");
+		TestItem testItem = testItemRepository.findById(testItemId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
+		return TestItemConverter.TO_RESOURCE.apply(testItem);
 	}
 
 	/*
@@ -77,21 +80,19 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	 * .lang.String, java.util.Set, org.springframework.data.domain.Pageable)
 	 */
 	@Override
-	public Iterable<TestItemResource> getTestItems(Queryable filterable, Pageable pageable) {
-//		return itemAssembler.toPagedResources(testItemRepository.findByFilter(filterable, pageable));
-		throw new UnsupportedOperationException("No implementation");
+	public Iterable<TestItemResource> getTestItems(Filter filter, Pageable pageable) {
+		Page<TestItem> testItems = testItemRepository.findByFilter(filter, pageable);
+		return PagedResourcesAssembler.pageConverter(TestItemConverter.TO_RESOURCE).apply(testItems);
 	}
 
 	@Override
 	public List<String> getTags(Long launchId, String value) {
-//		return testItemRepository.findDistinctValues(launchId, value, "tags");
-		throw new UnsupportedOperationException("No implementation");
+		return testItemTagRepository.findDistinctByLaunchIdAndValue(launchId, value);
 	}
 
 	@Override
 	public List<TestItemResource> getTestItems(Long[] ids) {
-//		Iterable<TestItem> testItems = testItemRepository.findAll(Arrays.asList(ids));
-//		return itemAssembler.toResources(testItems);
-		throw new UnsupportedOperationException("No implementation");
+		List<TestItem> testItems = testItemRepository.findAllById(Arrays.asList(ids));
+		return testItems.stream().map(TestItemConverter.TO_RESOURCE).collect(Collectors.toList());
 	}
 }

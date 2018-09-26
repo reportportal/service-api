@@ -125,12 +125,13 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	}
 
 	/**
-	 * TODO document this
+	 * Validate {@link ReportPortalUser} credentials, {@link Launch#status}
+	 * and {@link Launch} affiliation to the {@link com.epam.ta.reportportal.entity.project.Project}
 	 *
-	 * @param user
-	 * @param projectDetails
-	 * @param rq
-	 * @param launch
+	 * @param user           {@link ReportPortalUser}
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param rq             {@link StartTestItemRQ}
+	 * @param launch         {@link Launch}
 	 */
 	private void validate(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq, Launch launch) {
 		expect(projectDetails.getProjectId(), equalTo(launch.getProjectId())).verify(ACCESS_DENIED);

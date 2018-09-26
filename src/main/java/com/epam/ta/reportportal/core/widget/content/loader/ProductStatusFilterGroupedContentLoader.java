@@ -36,7 +36,7 @@ public class ProductStatusFilterGroupedContentLoader implements ProductStatusCon
 
 		validateFilterSortMapping(filterSortMapping);
 
-		boolean latestMode = widgetOptions.entrySet().stream().anyMatch(entry -> LATEST_OPTION.equalsIgnoreCase(entry.getKey()));
+		validateWidgetOptions(widgetOptions);
 
 		//in separate method for testing
 		List<String> tags = fields.stream()
@@ -48,9 +48,13 @@ public class ProductStatusFilterGroupedContentLoader implements ProductStatusCon
 
 		validateContentFields(contentFields);
 
-		return singletonMap(
-				RESULT,
-				widgetContentRepository.productStatusGroupedByFilterStatistics(filterSortMapping, contentFields, tags, latestMode, limit)
+		return singletonMap(RESULT,
+				widgetContentRepository.productStatusGroupedByFilterStatistics(filterSortMapping,
+						contentFields,
+						tags,
+						widgetOptions.containsKey(LATEST_OPTION),
+						limit
+				)
 		);
 	}
 
@@ -62,6 +66,16 @@ public class ProductStatusFilterGroupedContentLoader implements ProductStatusCon
 	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
 		BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Filter-Sort mapping should not be empty");
+	}
+
+	/**
+	 * Validate provided widget options.
+	 *
+	 * @param widgetOptions Map of stored widget options.
+	 */
+	private void validateWidgetOptions(Map<String, String> widgetOptions) {
+		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should not be null.");
 	}
 
 	/**

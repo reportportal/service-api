@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
-import com.epam.ta.reportportal.entity.widget.content.StatisticsContent;
+import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +40,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LATEST_OPTION;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
+import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
 
 /**
  * @author Pavel Bortnik
@@ -54,12 +55,15 @@ public class OverallStatisticsContentLoader implements LoadContentStrategy {
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,
 			int limit) {
 		boolean latestMode = widgetOptions.entrySet().stream().anyMatch(it -> it.getKey().equalsIgnoreCase(LATEST_OPTION));
-
 		validateContentFields(contentFields);
-
+		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
-
-		List<StatisticsContent> content = widgetContentRepository.overallStatisticsContent(filter, contentFields, latestMode, limit);
+		List<LaunchesStatisticsContent> content = widgetContentRepository.overallStatisticsContent(filter,
+				sort,
+				contentFields,
+				latestMode,
+				limit
+		);
 		return Collections.singletonMap(RESULT, content);
 	}
 

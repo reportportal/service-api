@@ -40,7 +40,7 @@ public interface DeleteTestItemHandler {
 	 * @param itemId         Item id
 	 * @param projectDetails Project Details
 	 * @param user           User
-	 * @return
+	 * @return {@link OperationCompletionRS}
 	 */
 	OperationCompletionRS deleteTestItem(Long itemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
@@ -50,7 +50,7 @@ public interface DeleteTestItemHandler {
 	 * @param ids            Test item ids
 	 * @param projectDetails Project Details
 	 * @param user           User
-	 * @return
+	 * @return {@link OperationCompletionRS}
 	 */
 	List<OperationCompletionRS> deleteTestItem(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 }

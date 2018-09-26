@@ -50,14 +50,14 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 
 	private WidgetRepository widgetRepository;
 
-	private Map<WidgetType, BuildFilterStrategy> buildFilterStrategy;
+	private Map<WidgetType, BuildFilterStrategy> buildFilterStrategyMapping;
 
 	private Map<WidgetType, LoadContentStrategy> loadContentStrategy;
 
 	@Autowired
-	@Qualifier("buildFilterStrategy")
-	public void setBuildFilterStrategy(Map<WidgetType, BuildFilterStrategy> buildFilterStrategy) {
-		this.buildFilterStrategy = buildFilterStrategy;
+	@Qualifier("buildFilterStrategyMapping")
+	public void setBuildFilterStrategy(Map<WidgetType, BuildFilterStrategy> buildFilterStrategyMapping) {
+		this.buildFilterStrategyMapping = buildFilterStrategyMapping;
 	}
 
 	@Autowired
@@ -81,7 +81,7 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 						"Unsupported widget type {}" + widget.getWidgetType()
 				));
 
-		Map<String, ?> content = buildFilterStrategy.get(widgetType)
+		Map<String, ?> content = buildFilterStrategyMapping.get(widgetType)
 				.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget);
 		WidgetResource resource = WidgetConverter.TO_WIDGET_RESOURCE.apply(widget);
 		resource.setContent(content);

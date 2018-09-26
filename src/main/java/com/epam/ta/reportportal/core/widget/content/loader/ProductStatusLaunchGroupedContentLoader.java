@@ -38,8 +38,6 @@ public class ProductStatusLaunchGroupedContentLoader implements ProductStatusCon
 
 		validateFilterSortMapping(filterSortMapping);
 
-		boolean latestMode = widgetOptions.entrySet().stream().anyMatch(entry -> LATEST_OPTION.equalsIgnoreCase(entry.getKey()));
-
 		List<String> tags = fields.stream()
 				.filter(f -> f.startsWith("tag"))
 				.map(field -> field.split("\\$")[1])
@@ -53,9 +51,14 @@ public class ProductStatusLaunchGroupedContentLoader implements ProductStatusCon
 
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		return singletonMap(
-				RESULT,
-				widgetContentRepository.productStatusGroupedByLaunchesStatistics(filter, contentFields, tags, sort, latestMode, limit)
+		return singletonMap(RESULT,
+				widgetContentRepository.productStatusGroupedByLaunchesStatistics(filter,
+						contentFields,
+						tags,
+						sort,
+						widgetOptions.containsKey(LATEST_OPTION),
+						limit
+				)
 		);
 	}
 

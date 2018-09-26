@@ -22,12 +22,11 @@ package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.core.widget.content.filter.GeneralStatisticsFilterStrategy;
+import com.epam.ta.reportportal.core.widget.content.filter.GeneralLaunchFilterStrategy;
+import com.epam.ta.reportportal.core.widget.content.filter.LaunchHistoryFilterStrategy;
+import com.epam.ta.reportportal.core.widget.content.filter.ProductStatusFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.filter.ProjectFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.loader.*;
-import com.epam.ta.reportportal.core.widget.content.loader.ProductStatusContentLoader;
-import com.epam.ta.reportportal.core.widget.content.loader.ProductStatusFilterGroupedContentLoader;
-import com.epam.ta.reportportal.core.widget.content.loader.ProductStatusLaunchGroupedContentLoader;
 import com.epam.ta.reportportal.core.widget.content.loader.util.ProductStatusContentLoaderManager;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import org.springframework.beans.BeansException;
@@ -74,37 +73,47 @@ public class WidgetConfig implements ApplicationContextAware {
 		mapping.put(WidgetType.LAUNCHES_COMPARISON_CHART, applicationContext.getBean(LaunchesComparisonContentLoader.class));
 		mapping.put(WidgetType.LAUNCHES_DURATION_CHART, applicationContext.getBean(LaunchesDurationContentLoader.class));
 		mapping.put(WidgetType.LAUNCHES_TABLE, applicationContext.getBean(LaunchesTableContentLoader.class));
-		mapping.put(WidgetType.MOST_FAILED_TEST_CASES, applicationContext.getBean(MostFailedContentLoader.class));
+		mapping.put(WidgetType.TOP_TEST_CASES, applicationContext.getBean(TopTestCasesContentLoader.class));
 		mapping.put(WidgetType.PASSING_RATE_PER_LAUNCH, applicationContext.getBean(PassingRatePerLaunchContentLoader.class));
 		mapping.put(WidgetType.PRODUCT_STATUS, applicationContext.getBean(ProductStatusContentLoaderManager.class));
-//		mapping.put(WidgetType.CUMULATIVE, applicationContext.getBean(CumulativeTrendChartLoader.class));
+		//		mapping.put(WidgetType.CUMULATIVE, applicationContext.getBean(CumulativeTrendChartLoader.class));
 		mapping.put(WidgetType.MOST_TIME_CONSUMING, applicationContext.getBean(MostTimeConsumingContentLoader.class));
 		return mapping;
 	}
 
-	@Bean("buildFilterStrategy")
+	@Bean("buildFilterStrategyMapping")
 	public Map<WidgetType, BuildFilterStrategy> buildFilterStrategyMapping() {
 		Map<WidgetType, BuildFilterStrategy> mapping = new HashMap<>();
-		mapping.put(WidgetType.OLD_LINE_CHART, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.INVESTIGATED_TREND, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.STATISTIC_TREND, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.LAUNCH_STATISTICS, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.OVERALL_STATISTICS, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.CASES_TREND, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.NOT_PASSED, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.BUG_TREND, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.LAUNCHES_TABLE, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.PASSING_RATE_SUMMARY, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-//		mapping.put(WidgetType.CUMULATIVE, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.PRODUCT_STATUS, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.UNIQUE_BUG_TABLE, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.ACTIVITY, applicationContext.getBean(ProjectFilterStrategy.class));
-		mapping.put(WidgetType.LAUNCHES_COMPARISON_CHART, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.LAUNCHES_DURATION_CHART, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.MOST_FAILED_TEST_CASES, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.PASSING_RATE_PER_LAUNCH, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.FLAKY_TEST_CASES, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
-		mapping.put(WidgetType.MOST_TIME_CONSUMING, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
+		mapping.put(WidgetType.OLD_LINE_CHART, (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy"));
+		mapping.put(WidgetType.INVESTIGATED_TREND, (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy"));
+		mapping.put(WidgetType.STATISTIC_TREND, (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy"));
+		mapping.put(WidgetType.LAUNCH_STATISTICS, (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy"));
+		mapping.put(WidgetType.OVERALL_STATISTICS, (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy"));
+		mapping.put(WidgetType.CASES_TREND, (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy"));
+		mapping.put(WidgetType.NOT_PASSED, (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy"));
+		mapping.put(WidgetType.BUG_TREND, (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy"));
+		mapping.put(WidgetType.LAUNCHES_TABLE, (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy"));
+		mapping.put(WidgetType.PASSING_RATE_SUMMARY,
+				(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
+		);
+		//		mapping.put(WidgetType.CUMULATIVE, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
+		mapping.put(WidgetType.PRODUCT_STATUS, (ProductStatusFilterStrategy) applicationContext.getBean("productStatusFilterStrategy"));
+		mapping.put(WidgetType.UNIQUE_BUG_TABLE, (ProjectFilterStrategy) applicationContext.getBean("projectFilterStrategy"));
+		mapping.put(WidgetType.ACTIVITY, (ProjectFilterStrategy) applicationContext.getBean("projectFilterStrategy"));
+		mapping.put(WidgetType.LAUNCHES_COMPARISON_CHART,
+				(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
+		);
+		mapping.put(WidgetType.LAUNCHES_DURATION_CHART,
+				(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
+		);
+		mapping.put(WidgetType.TOP_TEST_CASES, (LaunchHistoryFilterStrategy) applicationContext.getBean("launchHistoryFilterStrategy"));
+		mapping.put(WidgetType.PASSING_RATE_PER_LAUNCH,
+				(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
+		);
+		mapping.put(WidgetType.FLAKY_TEST_CASES, (GeneralLaunchFilterStrategy) applicationContext.getBean("launchHistoryFilterStrategy"));
+		mapping.put(WidgetType.MOST_TIME_CONSUMING,
+				(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
+		);
 		return mapping;
 	}
 

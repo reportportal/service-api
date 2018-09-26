@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.service.DataStoreService;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -69,21 +70,20 @@ public class DeleteLogHandler implements IDeleteLogHandler {
 	@Override
 	public OperationCompletionRS deleteLog(Long logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 
-		//		Project project = projectRepository.findByName(projectName).orElse(null);
-		//		expect(project, notNull()).verify(ErrorType.PROJECT_NOT_FOUND, projectName);
-		//
-		//		Log log = validate(logId, user, projectName);
-		//
-		//		try {
-		//
-		//			logRepository.delete(log);
-		//			cleanUpLogData(log);
-		//		} catch (Exception exc) {
-		//			throw new ReportPortalException("Error while Log instance deleting.", exc);
-		//		}
-		//
-		//		return new OperationCompletionRS("Log with ID = '" + logId + "' successfully deleted.");
-		throw new UnsupportedOperationException("No implementation");
+		Long projectId = projectDetails.getProjectId();
+		projectRepository.findById(projectId).orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
+
+		Log log = validate(logId, user, projectDetails);
+
+		try {
+			logRepository.delete(log);
+			cleanUpLogData(log);
+		} catch (Exception exc) {
+			throw new ReportPortalException("Error while Log instance deleting.", exc);
+		}
+
+		return new OperationCompletionRS("Log with ID = '" + logId + "' successfully deleted.");
+
 	}
 
 	private void cleanUpLogData(Log log) {
@@ -105,10 +105,9 @@ public class DeleteLogHandler implements IDeleteLogHandler {
 	 * @param projectDetails Project details
 	 * @return Log
 	 */
-	private Log validate(String logId, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
+	private Log validate(Long logId, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 
-		Log log = logRepository.findById(Long.valueOf(logId)).orElse(null);
-		expect(log, notNull()).verify(ErrorType.LOG_NOT_FOUND, logId);
+		Log log = logRepository.findById(logId).orElseThrow(() -> new ReportPortalException(ErrorType.LOG_NOT_FOUND, logId));
 
 		final TestItem testItem = log.getTestItem();
 

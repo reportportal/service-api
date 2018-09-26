@@ -61,16 +61,24 @@ public interface UpdateTestItemHandler {
 			ReportPortalUser user);
 
 	/**
-	 * Add external system issue link directly to test items
+	 * Add external system issue link directly to the {@link com.epam.ta.reportportal.entity.item.TestItem}
 	 *
-	 * @param projectDetails
-	 * @param rq
-	 * @param user
-	 * @return
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param rq             {@link LinkExternalIssueRQ}
+	 * @param user           {@link ReportPortalUser}
+	 * @return {@link List} of the {@link OperationCompletionRS}
 	 */
 	List<OperationCompletionRS> linkExternalIssues(ReportPortalUser.ProjectDetails projectDetails, LinkExternalIssueRQ rq,
 			ReportPortalUser user);
 
+	/**
+	 * Remove external system issue link from the  {@link com.epam.ta.reportportal.entity.item.TestItem}
+	 *
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param rq             {@link UnlinkExternalIssueRq}
+	 * @param user           {@link ReportPortalUser}
+	 * @return {@link List} of the {@link OperationCompletionRS}
+	 */
 	List<OperationCompletionRS> unlinkExternalIssues(ReportPortalUser.ProjectDetails projectDetails, UnlinkExternalIssueRq rq,
 			ReportPortalUser user);
 }

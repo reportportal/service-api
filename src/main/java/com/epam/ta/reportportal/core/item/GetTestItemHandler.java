@@ -21,9 +21,9 @@
 
 package com.epam.ta.reportportal.core.item;
 
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
-import org.hibernate.persister.entity.Queryable;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -38,28 +38,32 @@ public interface GetTestItemHandler {
 	/**
 	 * Get {@link TestItem} instance
 	 *
-	 * @param testItemId
-	 * @return
+	 * @param testItemId {@link TestItem#itemId}
+	 * @return {@link TestItemResource}
 	 */
 	TestItemResource getTestItem(Long testItemId);
 
 	/**
 	 * Gets {@link TestItem} instances
 	 *
-	 * @param filterable
-	 * @param pageable
-	 * @return
+	 * @param filter   {@link Filter}
+	 * @param pageable {@link Pageable}
+	 * @return {@link Iterable} of the {@link TestItemResource}
 	 */
-	Iterable<TestItemResource> getTestItems(Queryable filterable, Pageable pageable);
+	Iterable<TestItemResource> getTestItems(Filter filter, Pageable pageable);
 
 	/**
 	 * Get specified tags
 	 *
-	 * @param launchId
-	 * @param value
-	 * @return
+	 * @param launchId {@link com.epam.ta.reportportal.entity.launch.Launch#id}
+	 * @param value    part of the {@link com.epam.ta.reportportal.entity.item.TestItemTag#value} to search
+	 * @return {@link List} of the {@link com.epam.ta.reportportal.entity.item.TestItemTag#value}
 	 */
 	List<String> getTags(Long launchId, String value);
 
+	/**
+	 * @param ids array of the {@link com.epam.ta.reportportal.entity.launch.Launch#id}
+	 * @return {@link List} of the {@link TestItemResource}
+	 */
 	List<TestItemResource> getTestItems(Long[] ids);
 }

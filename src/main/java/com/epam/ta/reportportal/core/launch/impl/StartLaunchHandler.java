@@ -60,7 +60,7 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 				.addUser(user.getUserId())
 				.addTags(startLaunchRQ.getTags())
 				.get();
-		launchRepository.saveAndFlush(launch);
+		launchRepository.save(launch);
 		launchRepository.refresh(launch);
 
 		messageBus.publishActivity(new LaunchStartedEvent(launch));

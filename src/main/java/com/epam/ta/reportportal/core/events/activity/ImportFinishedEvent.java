@@ -26,24 +26,24 @@ package com.epam.ta.reportportal.core.events.activity;
  */
 public class ImportFinishedEvent {
 
-	private String projectId;
+	private Long projectId;
 
-	private String userName;
+	private Long userId;
 
 	private String fileName;
 
-	public ImportFinishedEvent(String projectId, String userName, String fileName) {
+	public ImportFinishedEvent(Long projectId, Long userId, String fileName) {
 		this.projectId = projectId;
-		this.userName = userName;
+		this.userId = userId;
 		this.fileName = fileName;
 	}
 
-	public String getProjectId() {
+	public Long getProjectId() {
 		return projectId;
 	}
 
-	public String getUserName() {
-		return userName;
+	public Long getUserId() {
+		return userId;
 	}
 
 	public String getFileName() {

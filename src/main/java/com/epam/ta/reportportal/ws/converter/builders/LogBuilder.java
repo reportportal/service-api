@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
@@ -41,7 +42,7 @@ public class LogBuilder implements Supplier<Log> {
 	}
 
 	public LogBuilder addSaveLogRq(SaveLogRQ createLogRQ) {
-		log.setLogLevel(Integer.parseInt(createLogRQ.getLevel()));
+		log.setLogLevel(LogLevel.toLevelOrUnknown(createLogRQ.getLevel()).toInt());
 		log.setLogMessage(Optional.ofNullable(createLogRQ.getMessage()).orElse("NULL"));
 		log.setLogTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(createLogRQ.getLogTime()));
 		return this;

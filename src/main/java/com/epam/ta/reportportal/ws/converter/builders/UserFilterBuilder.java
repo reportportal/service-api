@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.Order;
+import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
 import org.springframework.data.domain.Sort;
 
@@ -64,6 +65,15 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 		return this;
 	}
 
+	public UserFilterBuilder addUpdateFilterRQ(UpdateUserFilterRQ rq) {
+		userFilter.setName(rq.getName());
+		userFilter.setDescription(rq.getDescription());
+		userFilter.setTargetClass(ObjectType.getTypeByName(rq.getObjectType()));
+		addFilterConditions(rq.getEntities());
+		addSelectionParameters(rq.getOrders());
+		return this;
+	}
+
 	/**
 	 * Convert provided conditions into db and add them to filter object
 	 *
@@ -71,6 +81,7 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 	 * @return UserFilterBuilder
 	 */
 	public UserFilterBuilder addFilterConditions(Set<UserFilterCondition> conditions) {
+		userFilter.getFilterCondition().clear();
 		userFilter.getFilterCondition()
 				.addAll(conditions.stream()
 						.map(entity -> FilterCondition.builder()
@@ -91,6 +102,7 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 	 * @return UserFilterBuilder
 	 */
 	public UserFilterBuilder addSelectionParameters(List<Order> orders) {
+		userFilter.getFilterSorts().clear();
 		orders.forEach(order -> {
 			FilterSort filterSort = new FilterSort();
 			filterSort.setField(order.getSortingColumnName());

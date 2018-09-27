@@ -60,9 +60,9 @@ springfox:
 ##########################################
 rp:
   amqp:
-    addresses: amqp://guest:guest@rabbitmq:5672
+    addresses: amqp://guest:guest@localhost:5672
   db:
-    url: jdbc:postgresql://postgresql:5432/reportportal?user=rpuser&password=rppass
+    url: jdbc:postgresql://localhost:5432/reportportal?user=rpuser&password=rppass
   upload:
     maxUploadSize: 128MB
     maxFileSize: 64MB

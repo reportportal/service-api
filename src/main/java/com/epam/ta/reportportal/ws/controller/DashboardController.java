@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.dashboard.ICreateDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.IGetDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.IUpdateDashboardHandler;
-import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.dashboard.AddWidgetRq;
@@ -39,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import static com.epam.ta.reportportal.util.ProjectUtils.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -67,7 +67,15 @@ public class DashboardController {
 	@ApiOperation("Create dashboard for specified project")
 	public EntryCreatedRS createDashboard(@PathVariable String projectName, @RequestBody @Validated CreateDashboardRQ createRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return createDashboardHandler.createDashboard(ProjectUtils.extractProjectDetails(user, projectName), createRQ, user);
+		return createDashboardHandler.createDashboard(extractProjectDetails(user, projectName), createRQ, user);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping
+	@ResponseStatus(OK)
+	@ApiOperation("Get all dashboard resources for specified project")
+	public Iterable<DashboardResource> getAllDashboards(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
+		return getDashboardHandler.getAllDashboards(extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional
@@ -76,7 +84,7 @@ public class DashboardController {
 	@ApiOperation("Add widget to specified dashboard")
 	public OperationCompletionRS addWidget(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@RequestBody @Validated AddWidgetRq addWidgetRq, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateDashboardHandler.addWidget(dashboardId, ProjectUtils.extractProjectDetails(user, projectName), addWidgetRq, user);
+		return updateDashboardHandler.addWidget(dashboardId, extractProjectDetails(user, projectName), addWidgetRq, user);
 	}
 
 	@Transactional
@@ -85,7 +93,7 @@ public class DashboardController {
 	@ApiOperation("Remove widget from specified dashboard")
 	public OperationCompletionRS removeWidget(@PathVariable String projectName, @PathVariable Long dashboardId, @PathVariable Long widgetId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateDashboardHandler.removeWidget(widgetId, dashboardId, ProjectUtils.extractProjectDetails(user, projectName));
+		return updateDashboardHandler.removeWidget(widgetId, dashboardId, extractProjectDetails(user, projectName));
 	}
 
 	@Transactional
@@ -94,7 +102,7 @@ public class DashboardController {
 	@ApiOperation("Update specified dashboard for specified project")
 	public OperationCompletionRS updateDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@RequestBody @Validated UpdateDashboardRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateDashboardHandler.updateDashboard(ProjectUtils.extractProjectDetails(user, projectName), updateRQ, dashboardId, user);
+		return updateDashboardHandler.updateDashboard(extractProjectDetails(user, projectName), updateRQ, dashboardId, user);
 	}
 
 	@Transactional
@@ -103,7 +111,7 @@ public class DashboardController {
 	@ApiOperation("Get specified dashboard by ID for specified project")
 	public DashboardResource getDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getDashboardHandler.getDashboard(dashboardId, ProjectUtils.extractProjectDetails(user, projectName), user);
+		return getDashboardHandler.getDashboard(dashboardId, extractProjectDetails(user, projectName), user);
 	}
 
 }

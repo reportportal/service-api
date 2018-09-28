@@ -39,6 +39,7 @@ import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -46,13 +47,15 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @RequestMapping("/{projectName}/item")
-//@PreAuthorize(ASSIGNED_TO_PROJECT)
+@PreAuthorize(ASSIGNED_TO_PROJECT)
 public class TestItemController {
 
 	private final StartTestItemHandler startTestItemHandler;
@@ -80,7 +83,7 @@ public class TestItemController {
 	@PostMapping
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a root test item")
-	//@PreAuthorize(ALLOWED_TO_REPORT)
+	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS startRootItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
 			@RequestBody @Validated StartTestItemRQ startTestItemRQ, @AuthenticationPrincipal ReportPortalUser user) {
 		return startTestItemHandler.startRootItem(user, projectDetails, startTestItemRQ);
@@ -100,7 +103,7 @@ public class TestItemController {
 	@PostMapping("/{parentItem}")
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a child test item")
-	//@PreAuthorize(ALLOWED_TO_REPORT)
+	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS startChildItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long parentItem,
 			@RequestBody @Validated StartTestItemRQ startTestItemRQ, @AuthenticationPrincipal ReportPortalUser user) {
 		return startTestItemHandler.startChildItem(user, projectDetails, startTestItemRQ, parentItem);
@@ -110,7 +113,7 @@ public class TestItemController {
 	@PutMapping("/{testItemId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Finish test item")
-	//@PreAuthorize(ALLOWED_TO_REPORT)
+	@PreAuthorize(ALLOWED_TO_REPORT)
 	public OperationCompletionRS finishTestItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
 			@PathVariable Long testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {

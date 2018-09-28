@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -42,6 +43,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.util.ProjectUtils.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -51,6 +53,7 @@ import static org.springframework.http.HttpStatus.OK;
  * @author Pavel Bortnik
  */
 @RestController
+@PreAuthorize(ASSIGNED_TO_PROJECT)
 @RequestMapping("/{projectName}/widget")
 public class WidgetController {
 
@@ -69,7 +72,6 @@ public class WidgetController {
 	@Transactional
 	@PostMapping
 	@ResponseStatus(CREATED)
-	//@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS createWidget(@RequestBody WidgetRQ createWidget, @AuthenticationPrincipal ReportPortalUser user,
 			@PathVariable String projectName) {
 		return createWidgetHandler.createWidget(createWidget, extractProjectDetails(user, projectName), user);

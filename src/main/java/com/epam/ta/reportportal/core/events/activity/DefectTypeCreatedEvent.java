@@ -20,30 +20,38 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.details.SimpleActivityDetails;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
+
+import java.time.LocalDateTime;
+
 /**
  * @author Andrei Varabyeu
  */
-public class DefectTypeCreatedEvent {
+public class DefectTypeCreatedEvent implements ActivityEvent {
 
-//	private final String project;
-	//	private final String user;
-	//	private final Sta statisticSubType;
-	//
-	//	public DefectTypeCreatedEvent(String project, String user, StatisticSubType statisticSubType) {
-	//		this.project = project;
-	//		this.user = user;
-	//		this.statisticSubType = statisticSubType;
-	//	}
-	//
-	//	public String getProject() {
-	//		return project;
-	//	}
-	//
-	//	public String getUser() {
-	//		return user;
-	//	}
-	//
-	//	public StatisticSubType getStatisticSubType() {
-	//		return statisticSubType;
-	//	}
+	private IssueType issueType;
+	private Long projectId;
+	private Long updatedBy;
+
+	public DefectTypeCreatedEvent(IssueType issueType, Long projectId, Long updatedBy) {
+		this.issueType = issueType;
+		this.projectId = projectId;
+		this.updatedBy = updatedBy;
+	}
+
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		// why post_issue?
+		activity.setAction(ActivityAction.POST_ISSUE.toString());
+		activity.setEntity(Activity.Entity.DEFECT_TYPE);
+		activity.setUserId(updatedBy);
+		activity.setProjectId(projectId);
+		activity.setDetails(new SimpleActivityDetails<>(issueType.getId()));
+		return null;
+	}
 }

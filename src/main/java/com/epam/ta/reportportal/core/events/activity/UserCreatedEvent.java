@@ -20,26 +20,36 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.details.SimpleActivityDetails;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.JsonbObject;
 import com.epam.ta.reportportal.entity.user.User;
+
+import java.time.LocalDateTime;
 
 /**
  * @author Andrei Varabyeu
  */
-public class UserCreatedEvent {
+public class UserCreatedEvent implements ActivityEvent {
 
 	private final User user;
-	private final String createdBy;
+	private final Long createdBy;
 
-	public UserCreatedEvent(User user, String createdBy) {
+	public UserCreatedEvent(User user, Long createdBy) {
 		this.user = user;
 		this.createdBy = createdBy;
 	}
 
-	public User getUser() {
-		return user;
-	}
-
-	public String getCreatedBy() {
-		return createdBy;
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.CREATE_USER.toString());
+		activity.setEntity(Activity.Entity.USER);
+		activity.setUserId(createdBy);
+		activity.setProjectId(user.getDefaultProject().getId());
+		activity.setDetails(new SimpleActivityDetails<>(user.getId()));
+		return activity;
 	}
 }

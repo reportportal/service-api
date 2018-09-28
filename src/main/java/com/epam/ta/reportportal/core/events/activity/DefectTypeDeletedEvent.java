@@ -20,31 +20,36 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.details.SimpleActivityDetails;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
+
+import java.time.LocalDateTime;
 
 /**
  * @author Andrei Varabyeu
  */
-public class DefectTypeDeletedEvent {
-	private final Project before;
-	private final String updatedBy;
-	private final String id;
+public class DefectTypeDeletedEvent implements ActivityEvent {
+	private IssueType issueType;
+	private Long projectId;
+	private Long deletedBy;
 
-	public DefectTypeDeletedEvent(String id, Project before, String updatedBy) {
-		this.before = before;
-		this.updatedBy = updatedBy;
-		this.id = id;
+	public DefectTypeDeletedEvent(IssueType issueType, Long projectId, Long deletedBy) {
+		this.issueType = issueType;
+		this.projectId = projectId;
+		this.deletedBy = deletedBy;
 	}
 
-	public Project getBefore() {
-		return before;
-	}
-
-	public String getUpdatedBy() {
-		return updatedBy;
-	}
-
-	public String getId() {
-		return id;
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.DELETE_DEFECT.toString());
+		activity.setEntity(Activity.Entity.DEFECT_TYPE);
+		activity.setUserId(deletedBy);
+		activity.setProjectId(projectId);
+		activity.setDetails(new SimpleActivityDetails<>(issueType.getId()));
+		return activity;
 	}
 }

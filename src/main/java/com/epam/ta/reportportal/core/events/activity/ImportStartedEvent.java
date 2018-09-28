@@ -21,10 +21,16 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.details.SimpleActivityDetails;
+import com.epam.ta.reportportal.entity.Activity;
+
+import java.time.LocalDateTime;
+
 /**
  * @author Pavel Bortnik
  */
-public class ImportStartedEvent {
+public class ImportStartedEvent implements ActivityEvent {
 
 	private Long projectId;
 
@@ -38,15 +44,15 @@ public class ImportStartedEvent {
 		this.fileName = fileName;
 	}
 
-	public Long getProjectId() {
-		return projectId;
-	}
-
-	public Long getUserId() {
-		return userId;
-	}
-
-	public String getFileName() {
-		return fileName;
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.START_IMPORT.toString());
+		activity.setEntity(Activity.Entity.IMPORT);
+		activity.setUserId(userId);
+		activity.setProjectId(projectId);
+		activity.setDetails(new SimpleActivityDetails<>(fileName));
+		return activity;
 	}
 }

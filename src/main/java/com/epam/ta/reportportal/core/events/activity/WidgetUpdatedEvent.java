@@ -20,28 +20,48 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.details.ActivityDetails;
+import com.epam.ta.reportportal.core.events.activity.details.HistoryField;
+import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.widget.Widget;
-import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import com.google.common.base.Strings;
+
+import javax.annotation.Nullable;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.processDescription;
+import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.processName;
 
 /**
  * @author Andrei Varabyeu
  */
-public class WidgetUpdatedEvent extends BeforeEvent<Widget> {
+public class WidgetUpdatedEvent extends BeforeEvent<Widget> implements ActivityEvent {
 
-	private final WidgetRQ widgetRQ;
-	private final String updatedBy;
+	private final Widget updated;
+	private final Long updatedBy;
 
-	public WidgetUpdatedEvent(Widget before, WidgetRQ widgetRQ, String updatedBy) {
+	public WidgetUpdatedEvent(Widget before, Widget updated, Long updatedBy) {
 		super(before);
-		this.widgetRQ = widgetRQ;
+		this.updated = updated;
 		this.updatedBy = updatedBy;
 	}
 
-	public WidgetRQ getWidgetRQ() {
-		return widgetRQ;
-	}
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.UPDATE_WIDGET.toString());
+		activity.setEntity(Activity.Entity.WIDGET);
+		activity.setUserId(updatedBy);
+		activity.setProjectId(updated.getId());
 
-	public String getUpdatedBy() {
-		return updatedBy;
+		ActivityDetails details = new ActivityDetails();
+		processName(details, getBefore().getName(), updated.getName());
+		processDescription(details, getBefore().getDescription(), updated.getDescription());
+
+		activity.setDetails(details);
+		return activity;
 	}
 }

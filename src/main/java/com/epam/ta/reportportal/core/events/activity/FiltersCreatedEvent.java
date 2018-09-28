@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.details.SimpleActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 
@@ -30,22 +31,24 @@ import java.time.LocalDateTime;
 /**
  * @author pavel_bortnik
  */
-public class FiltersCreatedEvent implements ActivityEvent {
+public class FiltersCreatedEvent extends BeforeEvent<UserFilter> implements ActivityEvent {
 
-	private UserFilter userFilter;
+	private Long createdBy;
 
-	public FiltersCreatedEvent(UserFilter userFilter) {
-		this.userFilter = userFilter;
+	public FiltersCreatedEvent(UserFilter before, Long createdBy) {
+		super(before);
+		this.createdBy = createdBy;
 	}
 
 	@Override
 	public Activity toActivity() {
-		;
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setEntity(Activity.Entity.FILTER);
 		activity.setAction(ActivityAction.CREATE_FILTER.getValue());
-		activity.setProjectId(userFilter.getProject().getId());
+		activity.setProjectId(getBefore().getProject().getId());
+		activity.setUserId(createdBy);
+		activity.setDetails(new SimpleActivityDetails<>(getBefore().getId()));
 		return activity;
 	}
 }

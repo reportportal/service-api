@@ -21,24 +21,27 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.details.ActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 
 import java.time.LocalDateTime;
 
+import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.processDescription;
+import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.processName;
+
 /**
  * @author Andrei Varabyeu
  */
-public class DashboardUpdatedEvent implements ActivityEvent {
+public class DashboardUpdatedEvent extends BeforeEvent<Dashboard> implements ActivityEvent {
 
-	private final Dashboard dashboard;
+	private final Dashboard updated;
+	private Long updateBy;
 
-	public DashboardUpdatedEvent(Dashboard dashboard) {
-		this.dashboard = dashboard;
-	}
-
-	public Dashboard getDashboard() {
-		return dashboard;
+	public DashboardUpdatedEvent(Dashboard before, Dashboard updated, Long updateBy) {
+		super(before);
+		this.updated = updated;
+		this.updateBy = updateBy;
 	}
 
 	@Override
@@ -48,7 +51,14 @@ public class DashboardUpdatedEvent implements ActivityEvent {
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setEntity(Activity.Entity.DASHBOARD);
 		activity.setAction(ActivityAction.UPDATE_DASHBOARD.getValue());
-		activity.setProjectId(dashboard.getProjectId());
+		activity.setProjectId(updated.getProjectId());
+		activity.setUserId(updateBy);
+
+		ActivityDetails details = new ActivityDetails();
+		processName(details, getBefore().getName(), updated.getName());
+		processDescription(details, getBefore().getDescription(), updated.getDescription());
+
+		activity.setDetails(details);
 		return activity;
 	}
 }

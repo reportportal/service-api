@@ -39,18 +39,6 @@ public class LaunchFinishForcedEvent implements ActivityEvent {
 		this.forcedBy = forcedBy;
 	}
 
-	LaunchFinishForcedEvent() {
-
-	}
-
-	public Launch getLaunch() {
-		return launch;
-	}
-
-	public Long getForcedBy() {
-		return forcedBy;
-	}
-
 	@Override
 	public Activity toActivity() {
 		Activity activity = new Activity();

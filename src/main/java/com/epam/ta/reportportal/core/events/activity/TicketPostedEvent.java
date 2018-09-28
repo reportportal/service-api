@@ -20,44 +20,66 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.details.ActivityDetails;
+import com.epam.ta.reportportal.core.events.activity.details.HistoryField;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
+
+import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 /**
  * @author Andrei Varabyeu
  */
-public class TicketPostedEvent {
+public class TicketPostedEvent implements ActivityEvent {
 
 	private final Ticket ticket;
-	private final String itemName;
-	private final String postedBy;
-	private final String testItemId;
-	private final String project;
+	private final Long postedBy;
+	private final TestItem testItem;
+	private final Long projectId;
 
-	public TicketPostedEvent(Ticket ticket, String testItemId, String postedBy, String project, String itemName) {
+	public TicketPostedEvent(Ticket ticket, TestItem testItem, Long postedBy, Long projectId, String itemName) {
 		this.ticket = ticket;
 		this.postedBy = postedBy;
-		this.testItemId = testItemId;
-		this.project = project;
-		this.itemName = itemName;
+		this.testItem = testItem;
+		this.projectId = projectId;
 	}
 
-	public Ticket getTicket() {
-		return ticket;
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.POST_ISSUE.toString());
+		activity.setEntity(Activity.Entity.TICKET);
+		activity.setUserId(postedBy);
+		activity.setProjectId(projectId);
+
+		ActivityDetails details = new ActivityDetails();
+		processTicketId(details);
+		activity.setDetails(details);
+
+		return activity;
 	}
 
-	public String getPostedBy() {
-		return postedBy;
+	private void processTicketId(ActivityDetails details) {
+		String oldValue = null;
+		if (testItem != null && testItem.getItemResults() != null) {
+			oldValue = testItem.getItemResults()
+					.getIssue()
+					.getTickets()
+					.stream()
+					.map(t -> t.getTicketId() + ":" + t.getUrl())
+					.collect(Collectors.joining(","));
+		}
+
+		String newValue = ticket.getId() + ":" + ticket.getTicketUrl();
+		if (null != oldValue) {
+			newValue = oldValue + "," + newValue;
+		}
+
+		details.addHistoryField("ticketId", new HistoryField<String>(oldValue, newValue));
 	}
 
-	public String getTestItemId() {
-		return testItemId;
-	}
-
-	public String getProject() {
-		return project;
-	}
-
-	public String getItemName() {
-		return itemName;
-	}
 }

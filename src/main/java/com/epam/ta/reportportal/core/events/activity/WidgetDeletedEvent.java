@@ -21,21 +21,34 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.details.SimpleActivityDetails;
+import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.widget.Widget;
+
+import java.time.LocalDateTime;
 
 /**
  * @author pavel_bortnik
  */
-public class WidgetDeletedEvent extends BeforeEvent<Widget> {
+public class WidgetDeletedEvent extends BeforeEvent<Widget> implements ActivityEvent {
 
-	private final String removedBy;
+	private final Long removedBy;
 
-	public WidgetDeletedEvent(Widget widget, String removerId) {
+	public WidgetDeletedEvent(Widget widget, Long removerId) {
 		super(widget);
 		this.removedBy = removerId;
 	}
 
-	public String getRemovedBy() {
-		return removedBy;
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.DELETE_WIDGET.toString());
+		activity.setEntity(Activity.Entity.WIDGET);
+		activity.setUserId(removedBy);
+		activity.setProjectId(super.getBefore().getProject().getId());
+		activity.setDetails(new SimpleActivityDetails<>(super.getBefore().getId()));
+		return activity;
 	}
 }

@@ -20,29 +20,36 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.item.TestItem;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
  * @author Andrei Varabyeu
  */
-public class TicketAttachedEvent extends AroundEvent<List<TestItem>> {
+public class TicketAttachedEvent extends AroundEvent<List<TestItem>> implements ActivityEvent {
 
-	private final String postedBy;
-	private final String project;
+	private final Long attachedBy;
+	private final Long projectId;
 
-	public TicketAttachedEvent(List<TestItem> before, List<TestItem> after, String postedBy, String project) {
+	public TicketAttachedEvent(List<TestItem> before, List<TestItem> after, Long attachedBy, Long projectId) {
 		super(before, after);
-		this.postedBy = postedBy;
-		this.project = project;
+		this.attachedBy = attachedBy;
+		this.projectId = projectId;
 	}
 
-	public String getPostedBy() {
-		return postedBy;
-	}
-
-	public String getProject() {
-		return project;
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		//		No activity action
+		//		activity.setAction(ActivityAction.);
+		activity.setEntity(Activity.Entity.TICKET);
+		activity.setUserId(attachedBy);
+		activity.setProjectId(projectId);
+		return activity;
 	}
 }

@@ -21,38 +21,37 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.details.SimpleActivityDetails;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.JsonbObject;
+import com.epam.ta.reportportal.entity.widget.Widget;
+
+import java.time.LocalDateTime;
 
 /**
  * @author pavel_bortnik
  */
-public class WidgetCreatedEvent {
+public class WidgetCreatedEvent implements ActivityEvent {
 
-	private final WidgetRQ widgetRQ;
-	private final String createdBy;
-	private final String projectRef;
-	private final String widgetId;
+	private final Widget widget;
+	private final Long createdBy;
 
-	public WidgetCreatedEvent(WidgetRQ widgetRQ, String createdBy, String projectRef, String widgetId) {
-		this.widgetRQ = widgetRQ;
+	public WidgetCreatedEvent(Widget widget, Long createdBy, Long projectRef, Long widgetId) {
+		this.widget = widget;
 		this.createdBy = createdBy;
-		this.projectRef = projectRef;
-		this.widgetId = widgetId;
 	}
 
-	public String getWidgetId() {
-		return widgetId;
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.CREATE_WIDGET.toString());
+		activity.setEntity(Activity.Entity.WIDGET);
+		activity.setUserId(createdBy);
+		activity.setProjectId(widget.getProject().getId());
+		activity.setDetails(new SimpleActivityDetails<>(widget.getId()));
+		return activity;
 	}
 
-	public WidgetRQ getWidgetRQ() {
-		return widgetRQ;
-	}
-
-	public String getCreatedBy() {
-		return createdBy;
-	}
-
-	public String getProjectRef() {
-		return projectRef;
-	}
 }

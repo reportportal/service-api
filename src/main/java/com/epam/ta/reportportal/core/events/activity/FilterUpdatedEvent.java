@@ -22,34 +22,43 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.details.ActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+import org.apache.tomcat.jni.Local;
+
+import java.time.LocalDateTime;
+
+import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.processDescription;
+import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.processName;
 
 /**
  * @author Pavel Bortnik
  */
 public class FilterUpdatedEvent extends AroundEvent<UserFilter> implements ActivityEvent {
-	public FilterUpdatedEvent(UserFilter before, UserFilter after) {
+
+	private Long updatedBy;
+
+	public FilterUpdatedEvent(UserFilter before, UserFilter after, Long updatedBy) {
 		super(before, after);
+		this.updatedBy = updatedBy;
 	}
 
 	@Override
 	public Activity toActivity() {
 		Activity activity = new Activity();
-		return null;
-	}
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.UPDATE_FILTER.toString());
+		activity.setEntity(Activity.Entity.FILTER);
+		// before or after?
+		activity.setProjectId(getAfter().getId());
+		activity.setUserId(updatedBy);
 
-	public static class FilterActivityDetails {
-	}
+		ActivityDetails details = new ActivityDetails();
+		processName(details, getBefore().getName(), getAfter().getName());
+		processDescription(details, getBefore().getDescription(), getAfter().getDescription());
 
-	//	private final String updatedBy;
-	//
-	//	public FilterUpdatedEvent(UserFilter before, UserFilter after, String updatedBy) {
-	//		super(before, after);
-	//		this.updatedBy = updatedBy;
-	//	}
-	//
-	//	public String getUpdatedBy() {
-	//		return updatedBy;
-	//	}
+		activity.setDetails(details);
+		return activity;
+	}
 }

@@ -21,6 +21,7 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.details.SimpleActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 
@@ -31,25 +32,23 @@ import java.time.LocalDateTime;
  */
 public class DashboardDeletedEvent extends BeforeEvent<Dashboard> implements ActivityEvent {
 
-	private final String removedBy;
+	private final Long removedBy;
 
-	public DashboardDeletedEvent(Dashboard before, String removedBy) {
+	public DashboardDeletedEvent(Dashboard before, Long removedBy) {
 		super(before);
 		this.removedBy = removedBy;
-	}
-
-	public String getRemovedBy() {
-		return removedBy;
 	}
 
 	@Override
 	public Activity toActivity() {
 		Activity activity = new Activity();
-		//add user id after acl implementation
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setEntity(Activity.Entity.DASHBOARD);
 		activity.setAction(ActivityAction.DELETE_DASHBOARD.getValue());
 		activity.setProjectId(getBefore().getProjectId());
+		//add user id after acl implementation
+		activity.setUserId(removedBy);
+		activity.setDetails(new SimpleActivityDetails<>(super.getBefore().getId()));
 		return activity;
 	}
 }

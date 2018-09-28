@@ -21,6 +21,7 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.details.SimpleActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 
@@ -32,23 +33,23 @@ import java.time.LocalDateTime;
 public class DashboardCreatedEvent implements ActivityEvent {
 
 	private Dashboard dashboard;
+	private Long createdBy;
 
-	public DashboardCreatedEvent(Dashboard dashboard) {
+	public DashboardCreatedEvent(Dashboard dashboard, Long createdBy) {
 		this.dashboard = dashboard;
-	}
-
-	public Dashboard getDashboard() {
-		return dashboard;
+		this.createdBy = createdBy;
 	}
 
 	@Override
 	public Activity toActivity() {
 		Activity activity = new Activity();
-		//add user id after acl implementation
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setEntity(Activity.Entity.DASHBOARD);
 		activity.setAction(ActivityAction.CREATE_DASHBOARD.getValue());
 		activity.setProjectId(dashboard.getProjectId());
+		//add user id after acl implementation
+		activity.setUserId(createdBy);
+		activity.setDetails(new SimpleActivityDetails<>(dashboard.getId()));
 		return activity;
 	}
 }

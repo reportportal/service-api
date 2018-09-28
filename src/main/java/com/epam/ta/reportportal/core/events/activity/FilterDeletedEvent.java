@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.details.SimpleActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 
@@ -32,8 +33,11 @@ import java.time.LocalDateTime;
  */
 public class FilterDeletedEvent extends BeforeEvent<UserFilter> implements ActivityEvent {
 
-	public FilterDeletedEvent(UserFilter before) {
+	private Long deletedBy;
+
+	public FilterDeletedEvent(UserFilter before, Long deletedBy) {
 		super(before);
+		this.deletedBy = deletedBy;
 	}
 
 	@Override
@@ -43,6 +47,8 @@ public class FilterDeletedEvent extends BeforeEvent<UserFilter> implements Activ
 		activity.setEntity(Activity.Entity.FILTER);
 		activity.setAction(ActivityAction.DELETE_FILTER.getValue());
 		activity.setProjectId(getBefore().getProject().getId());
+		activity.setUserId(deletedBy);
+		activity.setDetails(new SimpleActivityDetails<>(getBefore().getId()));
 		return activity;
 	}
 }

@@ -20,25 +20,33 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.launch.Launch;
+
+import java.time.LocalDateTime;
 
 /**
  * @author Andrei Varabyeu
  */
-public class LaunchDeletedEvent {
+public class LaunchDeletedEvent implements ActivityEvent {
 	private final Launch launch;
-	private final String deletedBy;
+	private final Long deletedBy;
 
-	public LaunchDeletedEvent(Launch launch, String deletedBy) {
+	public LaunchDeletedEvent(Launch launch, Long deletedBy) {
 		this.launch = launch;
 		this.deletedBy = deletedBy;
 	}
 
-	public Launch getLaunch() {
-		return launch;
-	}
-
-	public String getDeletedBy() {
-		return deletedBy;
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.DELETE_LAUNCH.toString());
+		activity.setEntity(Activity.Entity.LAUNCH);
+		activity.setUserId(launch.getUserId());
+		activity.setProjectId(launch.getProjectId());
+		activity.setDetails(new LaunchFinishedEvent.LaunchActivityDetails(launch.getId()));
+		return activity;
 	}
 }

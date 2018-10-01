@@ -47,12 +47,12 @@ public interface IGetDashboardHandler {
 	/**
 	 * Get all dashboards.
 	 *
-	 * @param userName
-	 * @param projectName
+	 * @param projectDetails Project details
+	 * @param user           User
 	 * @return {@link Iterable}
 	 * @throws ReportPortalException
 	 */
-	Iterable<DashboardResource> getAllDashboards(String userName, String projectName);
+	Iterable<DashboardResource> getAllDashboards(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
 	 * Get dashboards names shared for current project.

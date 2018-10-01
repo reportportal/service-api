@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.item.GetTestItemHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -66,7 +67,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	 * .lang.String)
 	 */
 	@Override
-	public TestItemResource getTestItem(Long testItemId) {
+	public TestItemResource getTestItem(Long testItemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		TestItem testItem = testItemRepository.findById(testItemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
 		return TestItemConverter.TO_RESOURCE.apply(testItem);
@@ -80,18 +81,19 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	 * .lang.String, java.util.Set, org.springframework.data.domain.Pageable)
 	 */
 	@Override
-	public Iterable<TestItemResource> getTestItems(Filter filter, Pageable pageable) {
+	public Iterable<TestItemResource> getTestItems(Filter filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
 		Page<TestItem> testItems = testItemRepository.findByFilter(filter, pageable);
 		return PagedResourcesAssembler.pageConverter(TestItemConverter.TO_RESOURCE).apply(testItems);
 	}
 
 	@Override
-	public List<String> getTags(Long launchId, String value) {
+	public List<String> getTags(Long launchId, String value, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		return testItemTagRepository.findDistinctByLaunchIdAndValue(launchId, value);
 	}
 
 	@Override
-	public List<TestItemResource> getTestItems(Long[] ids) {
+	public List<TestItemResource> getTestItems(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		List<TestItem> testItems = testItemRepository.findAllById(Arrays.asList(ids));
 		return testItems.stream().map(TestItemConverter.TO_RESOURCE).collect(Collectors.toList());
 	}

@@ -34,11 +34,11 @@ public interface IDeleteUserFilterHandler {
 	/**
 	 * Delete complex filter by id
 	 *
-	 * @param id
-	 * @param user
-	 * @param projectDetails
+	 * @param id             Filter id
+	 * @param projectDetails Project details
+	 * @param user           User
 	 * @return {@link OperationCompletionRS}
 	 */
-	OperationCompletionRS deleteFilter(String id, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails);
+	OperationCompletionRS deleteFilter(Long id, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 }

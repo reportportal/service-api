@@ -58,8 +58,8 @@ public class TicketPostedEvent implements ActivityEvent {
 
 		ActivityDetails details = new ActivityDetails();
 		processTicketId(details);
-		activity.setDetails(details);
 
+		activity.setDetails(details);
 		return activity;
 	}
 

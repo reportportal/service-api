@@ -21,7 +21,7 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.core.events.activity.details.SimpleActivityDetails;
+import com.epam.ta.reportportal.core.events.activity.details.SimpleDefectTypeActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 
@@ -32,9 +32,9 @@ import java.time.LocalDateTime;
  */
 public class DefectTypeCreatedEvent implements ActivityEvent {
 
-	private IssueType issueType;
-	private Long projectId;
-	private Long updatedBy;
+	private final IssueType issueType;
+	private final Long projectId;
+	private final Long updatedBy;
 
 	public DefectTypeCreatedEvent(IssueType issueType, Long projectId, Long updatedBy) {
 		this.issueType = issueType;
@@ -46,12 +46,12 @@ public class DefectTypeCreatedEvent implements ActivityEvent {
 	public Activity toActivity() {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
-		// why post_issue?
-		activity.setAction(ActivityAction.POST_ISSUE.toString());
+		// why UPDATE_DEFECT?
+		activity.setAction(ActivityAction.UPDATE_DEFECT.getValue());
 		activity.setEntity(Activity.Entity.DEFECT_TYPE);
 		activity.setUserId(updatedBy);
 		activity.setProjectId(projectId);
-		activity.setDetails(new SimpleActivityDetails<>(issueType.getId()));
+		activity.setDetails(new SimpleDefectTypeActivityDetails(issueType.getId()));
 		return null;
 	}
 }

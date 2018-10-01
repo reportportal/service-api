@@ -21,6 +21,7 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.details.SimpleLaunchActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.launch.Launch;
 
@@ -31,8 +32,8 @@ import java.time.LocalDateTime;
  */
 public class LaunchFinishForcedEvent implements ActivityEvent {
 
-	private Launch launch;
-	private Long forcedBy;
+	private final Launch launch;
+	private final Long forcedBy;
 
 	public LaunchFinishForcedEvent(Launch launch, Long forcedBy) {
 		this.launch = launch;
@@ -42,11 +43,13 @@ public class LaunchFinishForcedEvent implements ActivityEvent {
 	@Override
 	public Activity toActivity() {
 		Activity activity = new Activity();
-		//		activity.setAction();
 		activity.setCreatedAt(LocalDateTime.now());
+		// No FORCED_FINISH_LAUNCH action
+		activity.setAction(ActivityAction.FINISH_LAUNCH.getValue());
 		activity.setEntity(Activity.Entity.LAUNCH);
+		activity.setProjectId(launch.getProjectId());
 		activity.setUserId(forcedBy);
-		activity.setDetails(new LaunchFinishedEvent.LaunchActivityDetails(launch.getId()));
+		activity.setDetails(new SimpleLaunchActivityDetails(launch.getId()));
 		return activity;
 	}
 }

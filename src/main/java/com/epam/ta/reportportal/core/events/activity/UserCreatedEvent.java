@@ -21,9 +21,8 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.core.events.activity.details.SimpleActivityDetails;
+import com.epam.ta.reportportal.core.events.activity.details.SimpleUserActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.JsonbObject;
 import com.epam.ta.reportportal.entity.user.User;
 
 import java.time.LocalDateTime;
@@ -45,11 +44,11 @@ public class UserCreatedEvent implements ActivityEvent {
 	public Activity toActivity() {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.CREATE_USER.toString());
+		activity.setAction(ActivityAction.CREATE_USER.getValue());
 		activity.setEntity(Activity.Entity.USER);
 		activity.setUserId(createdBy);
 		activity.setProjectId(user.getDefaultProject().getId());
-		activity.setDetails(new SimpleActivityDetails<>(user.getId()));
+		activity.setDetails(new SimpleUserActivityDetails(user.getId()));
 		return activity;
 	}
 }

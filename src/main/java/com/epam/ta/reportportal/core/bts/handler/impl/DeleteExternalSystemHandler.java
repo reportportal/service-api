@@ -61,7 +61,7 @@ public class DeleteExternalSystemHandler implements IDeleteExternalSystemHandler
 
 		bugTrackingSystemRepository.delete(bugTrackingSystem);
 
-		//eventPublisher.publishEvent(new ExternalSystemDeletedEvent(exist, username));
+		//eventPublisher.publishEvent(new IntegrationDeletedEvent(exist, username));
 		return new OperationCompletionRS("ExternalSystem with ID = '" + id + "' is successfully deleted.");
 	}
 

@@ -30,12 +30,12 @@ import java.util.List;
 /**
  * @author Andrei Varabyeu
  */
-public class TicketAttachedEvent extends AroundEvent<List<TestItem>> implements ActivityEvent {
+public class LinkTicketEvent extends AroundEvent<List<TestItem>> implements ActivityEvent {
 
 	private final Long attachedBy;
 	private final Long projectId;
 
-	public TicketAttachedEvent(List<TestItem> before, List<TestItem> after, Long attachedBy, Long projectId) {
+	public LinkTicketEvent(List<TestItem> before, List<TestItem> after, Long attachedBy, Long projectId) {
 		super(before, after);
 		this.attachedBy = attachedBy;
 		this.projectId = projectId;
@@ -45,11 +45,11 @@ public class TicketAttachedEvent extends AroundEvent<List<TestItem>> implements 
 	public Activity toActivity() {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
-		//		No activity action
-		//		activity.setAction(ActivityAction.);
+		activity.setAction(ActivityAction.LINK_ISSUE.getValue());
 		activity.setEntity(Activity.Entity.TICKET);
 		activity.setUserId(attachedBy);
 		activity.setProjectId(projectId);
+		//TODO add details
 		return activity;
 	}
 }

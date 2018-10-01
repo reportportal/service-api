@@ -19,4 +19,8 @@ public class ActivityDetails extends JsonbObject {
 	public void addHistoryField(String field, HistoryField historyField) {
 		history.put(field, historyField);
 	}
+
+	public boolean isEmpty() {
+		return history.isEmpty();
+	}
 }

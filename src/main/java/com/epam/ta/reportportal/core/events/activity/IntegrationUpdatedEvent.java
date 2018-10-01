@@ -20,26 +20,33 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.integration.Integration;
+
+import java.time.LocalDateTime;
 
 /**
  * @author Andrei Varabyeu
  */
-public class IntegrationUpdatedEvent {
+public class IntegrationUpdatedEvent implements ActivityEvent {
 
 	private final Integration integration;
-	private final String updatedBy;
+	private final Long updatedBy;
 
-	public IntegrationUpdatedEvent(Integration integration, String updatedBy) {
+	public IntegrationUpdatedEvent(Integration integration, Long updatedBy) {
 		this.integration = integration;
 		this.updatedBy = updatedBy;
 	}
 
-	public Integration getIntegration() {
-		return integration;
-	}
-
-	public String getUpdatedBy() {
-		return updatedBy;
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.UPDATE_BTS.getValue());
+		activity.setEntity(Activity.Entity.INTEGRATION);
+		activity.setProjectId(integration.getProject().getId());
+		activity.setUserId(updatedBy);
+		return activity;
 	}
 }

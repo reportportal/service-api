@@ -21,44 +21,34 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
+
+import java.time.LocalDateTime;
+
 /**
  * @author Pavel Bortnik
  */
-public class ProjectIndexEvent {
+public class ProjectIndexEvent implements ActivityEvent {
 
-	private String projectName;
+	private final Long projectId;
+	private final Long userId;
+	private final boolean indexing;
 
-	private String userRef;
-
-	private boolean indexing;
-
-	public ProjectIndexEvent(String projectName, String userRef, boolean indexing) {
-		this.projectName = projectName;
-		this.userRef = userRef;
+	public ProjectIndexEvent(Long projectId, Long userId, boolean indexing) {
+		this.projectId = projectId;
+		this.userId = userId;
 		this.indexing = indexing;
 	}
 
-	public String getProjectName() {
-		return projectName;
-	}
-
-	public void setProjectName(String projectName) {
-		this.projectName = projectName;
-	}
-
-	public String getUserRef() {
-		return userRef;
-	}
-
-	public void setUserRef(String userRef) {
-		this.userRef = userRef;
-	}
-
-	public boolean isIndexing() {
-		return indexing;
-	}
-
-	public void setIndexing(boolean indexing) {
-		this.indexing = indexing;
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(indexing ? ActivityAction.GENERATE_INDEX.getValue() : ActivityAction.DELETE_INDEX.getValue());
+		activity.setEntity(Activity.Entity.PROJECT);
+		activity.setProjectId(projectId);
+		activity.setUserId(userId);
+		return activity;
 	}
 }

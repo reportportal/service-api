@@ -20,32 +20,36 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
+import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
+
+import java.time.LocalDateTime;
 
 /**
  * @author Andrei Varabyeu
  */
-public class DefectTypeUpdatedEvent {
+public class DefectTypeUpdatedEvent implements ActivityEvent {
 
-	private final String project;
-	private final String updatedBy;
-	private final UpdateIssueSubTypeRQ request;
+	private final Long projectId;
+	private final Long updatedBy;
+	private final UpdateOneIssueSubTypeRQ request;
 
-	public DefectTypeUpdatedEvent(String project, String updatedBy, UpdateIssueSubTypeRQ request) {
-		this.project = project;
+	public DefectTypeUpdatedEvent(Long projectId, Long updatedBy, UpdateOneIssueSubTypeRQ request) {
+		this.projectId = projectId;
 		this.updatedBy = updatedBy;
 		this.request = request;
 	}
 
-	public String getProject() {
-		return project;
-	}
-
-	public String getUpdatedBy() {
-		return updatedBy;
-	}
-
-	public UpdateIssueSubTypeRQ getRequest() {
-		return request;
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.UPDATE_DEFECT.toString());
+		activity.setEntity(Activity.Entity.DEFECT_TYPE);
+		activity.setProjectId(projectId);
+		activity.setUserId(updatedBy);
+		return activity;
 	}
 }

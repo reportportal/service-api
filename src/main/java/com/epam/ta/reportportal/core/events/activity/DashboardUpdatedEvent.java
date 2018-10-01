@@ -36,7 +36,7 @@ import static com.epam.ta.reportportal.core.events.activity.details.ActivityDeta
 public class DashboardUpdatedEvent extends BeforeEvent<Dashboard> implements ActivityEvent {
 
 	private final Dashboard updated;
-	private Long updateBy;
+	private final Long updateBy;
 
 	public DashboardUpdatedEvent(Dashboard before, Dashboard updated, Long updateBy) {
 		super(before);

@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.core.events.activity.details.ActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
-import org.apache.tomcat.jni.Local;
 
 import java.time.LocalDateTime;
 
@@ -37,7 +36,7 @@ import static com.epam.ta.reportportal.core.events.activity.details.ActivityDeta
  */
 public class FilterUpdatedEvent extends AroundEvent<UserFilter> implements ActivityEvent {
 
-	private Long updatedBy;
+	private final Long updatedBy;
 
 	public FilterUpdatedEvent(UserFilter before, UserFilter after, Long updatedBy) {
 		super(before, after);
@@ -48,7 +47,7 @@ public class FilterUpdatedEvent extends AroundEvent<UserFilter> implements Activ
 	public Activity toActivity() {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.UPDATE_FILTER.toString());
+		activity.setAction(ActivityAction.UPDATE_FILTER.getValue());
 		activity.setEntity(Activity.Entity.FILTER);
 		// before or after?
 		activity.setProjectId(getAfter().getId());

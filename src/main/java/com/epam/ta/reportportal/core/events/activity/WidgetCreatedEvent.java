@@ -22,9 +22,8 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.core.events.activity.details.SimpleActivityDetails;
+import com.epam.ta.reportportal.core.events.activity.details.SimpleWidgetActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.JsonbObject;
 import com.epam.ta.reportportal.entity.widget.Widget;
 
 import java.time.LocalDateTime;
@@ -46,11 +45,11 @@ public class WidgetCreatedEvent implements ActivityEvent {
 	public Activity toActivity() {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.CREATE_WIDGET.toString());
+		activity.setAction(ActivityAction.CREATE_WIDGET.getValue());
 		activity.setEntity(Activity.Entity.WIDGET);
 		activity.setUserId(createdBy);
 		activity.setProjectId(widget.getProject().getId());
-		activity.setDetails(new SimpleActivityDetails<>(widget.getId()));
+		activity.setDetails(new SimpleWidgetActivityDetails(widget.getId()));
 		return activity;
 	}
 

@@ -21,7 +21,7 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.core.events.activity.details.SimpleActivityDetails;
+import com.epam.ta.reportportal.core.events.activity.details.SimpleDefectTypeActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 
@@ -31,9 +31,9 @@ import java.time.LocalDateTime;
  * @author Andrei Varabyeu
  */
 public class DefectTypeDeletedEvent implements ActivityEvent {
-	private IssueType issueType;
-	private Long projectId;
-	private Long deletedBy;
+	private final IssueType issueType;
+	private final Long projectId;
+	private final Long deletedBy;
 
 	public DefectTypeDeletedEvent(IssueType issueType, Long projectId, Long deletedBy) {
 		this.issueType = issueType;
@@ -45,11 +45,11 @@ public class DefectTypeDeletedEvent implements ActivityEvent {
 	public Activity toActivity() {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.DELETE_DEFECT.toString());
+		activity.setAction(ActivityAction.DELETE_DEFECT.getValue());
 		activity.setEntity(Activity.Entity.DEFECT_TYPE);
 		activity.setUserId(deletedBy);
 		activity.setProjectId(projectId);
-		activity.setDetails(new SimpleActivityDetails<>(issueType.getId()));
+		activity.setDetails(new SimpleDefectTypeActivityDetails(issueType.getId()));
 		return activity;
 	}
 }

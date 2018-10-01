@@ -22,7 +22,7 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.core.events.activity.details.SimpleActivityDetails;
+import com.epam.ta.reportportal.core.events.activity.details.SimpleWidgetActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.widget.Widget;
 
@@ -44,11 +44,11 @@ public class WidgetDeletedEvent extends BeforeEvent<Widget> implements ActivityE
 	public Activity toActivity() {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.DELETE_WIDGET.toString());
+		activity.setAction(ActivityAction.DELETE_WIDGET.getValue());
 		activity.setEntity(Activity.Entity.WIDGET);
 		activity.setUserId(removedBy);
 		activity.setProjectId(super.getBefore().getProject().getId());
-		activity.setDetails(new SimpleActivityDetails<>(super.getBefore().getId()));
+		activity.setDetails(new SimpleWidgetActivityDetails(super.getBefore().getId()));
 		return activity;
 	}
 }

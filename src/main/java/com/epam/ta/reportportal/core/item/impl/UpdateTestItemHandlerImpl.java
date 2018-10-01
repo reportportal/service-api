@@ -182,7 +182,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		expect(!errors.isEmpty(), equalTo(FALSE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 		ticketRepository.saveAll(existedTickets);
 		ticketRepository.saveAll(ticketsFromRq);
-		//eventPublisher.publishEvent(new TicketAttachedEvent(before, Lists.newArrayList(testItems), userName, projectName));
+		//eventPublisher.publishEvent(new LinkTicketEvent(before, Lists.newArrayList(testItems), userName, projectName));
 		return stream(testItems.spliterator(), false).map(testItem -> new OperationCompletionRS(
 				"TestItem with ID = '" + testItem.getItemId() + "' successfully updated.")).collect(toList());
 	}

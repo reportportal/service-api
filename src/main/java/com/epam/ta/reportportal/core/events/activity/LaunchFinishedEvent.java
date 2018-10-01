@@ -21,8 +21,8 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.details.SimpleLaunchActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.JsonbObject;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.google.common.base.Preconditions;
 
@@ -35,11 +35,7 @@ import java.time.LocalDateTime;
  */
 public class LaunchFinishedEvent implements ActivityEvent {
 
-	private Launch launch;
-
-	LaunchFinishedEvent() {
-
-	}
+	private final Launch launch;
 
 	public LaunchFinishedEvent(Launch launch) {
 		this.launch = Preconditions.checkNotNull(launch, "Should not be null");
@@ -52,31 +48,12 @@ public class LaunchFinishedEvent implements ActivityEvent {
 	@Override
 	public Activity toActivity() {
 		Activity activity = new Activity();
-		activity.setUserId(this.launch.getUserId());
-		activity.setEntity(Activity.Entity.LAUNCH);
 		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.FINISH_LAUNCH.getValue());
+		activity.setEntity(Activity.Entity.LAUNCH);
+		activity.setUserId(launch.getUserId());
 		activity.setProjectId(launch.getProjectId());
-		activity.setDetails(new LaunchActivityDetails(launch.getId()));
+		activity.setDetails(new SimpleLaunchActivityDetails(launch.getId()));
 		return activity;
-	}
-
-	public static class LaunchActivityDetails extends JsonbObject {
-		private Long launchId;
-
-		public LaunchActivityDetails() {
-
-		}
-
-		public LaunchActivityDetails(Long launchId) {
-			this.launchId = launchId;
-		}
-
-		public Long getLaunchId() {
-			return launchId;
-		}
-
-		public void setLaunchId(Long launchId) {
-			this.launchId = launchId;
-		}
 	}
 }

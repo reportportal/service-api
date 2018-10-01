@@ -22,14 +22,10 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.core.events.activity.details.ActivityDetails;
-import com.epam.ta.reportportal.core.events.activity.details.HistoryField;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.widget.Widget;
-import com.google.common.base.Strings;
 
-import javax.annotation.Nullable;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.processDescription;
 import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.processName;

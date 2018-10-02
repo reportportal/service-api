@@ -73,6 +73,16 @@ public interface GetLaunchHandler {
 			String userName);
 
 	/**
+	 * Get debug launches
+	 *
+	 * @param projectDetails Project Details
+	 * @param filter      Filter data
+	 * @param pageable    Page details
+	 * @return Response Data
+	 */
+	Iterable<LaunchResource> getDebugLaunches(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable);
+
+	/**
 	 * Get specified launch tags (auto-complete functionality)
 	 *
 	 * @param projectDetails Project Details

@@ -40,6 +40,7 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LAUNCH_NAME_FIELD;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
+import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -61,7 +62,9 @@ public class UniqueBugContentLoader implements LoadContentStrategy {
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 
-		return singletonMap(RESULT, widgetRepository.uniqueBugStatistics(filter, widgetOptions.containsKey(LATEST_OPTION), limit));
+		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
+
+		return singletonMap(RESULT, widgetRepository.uniqueBugStatistics(filter, sort, widgetOptions.containsKey(LATEST_OPTION), limit));
 	}
 
 	/**

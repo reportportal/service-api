@@ -224,6 +224,15 @@ public class LaunchController {
 		return getLaunchMessageHandler.getLatestLaunches(extractProjectDetails(user, normalizeId(projectName)), filter, pageable);
 	}
 
+	@GetMapping(value = "/mode")
+	@ResponseBody
+	@ResponseStatus(OK)
+	@ApiOperation("Get launches of specified project from DEBUG mode")
+	public Iterable<LaunchResource> getDebugLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
+			@SortFor(Launch.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getDebugLaunches(extractProjectDetails(user, normalizeId(projectName)), filter, pageable);
+	}
+
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/tags")
 	@ResponseStatus(OK)

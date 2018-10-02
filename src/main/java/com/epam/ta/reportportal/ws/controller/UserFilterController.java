@@ -42,6 +42,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -49,6 +50,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.util.ProjectUtils.extractProjectDetails;
 
 /**
@@ -56,6 +58,7 @@ import static com.epam.ta.reportportal.util.ProjectUtils.extractProjectDetails;
  */
 
 @RestController
+@PreAuthorize(ASSIGNED_TO_PROJECT)
 @RequestMapping("/{projectName}/filter")
 public class UserFilterController {
 

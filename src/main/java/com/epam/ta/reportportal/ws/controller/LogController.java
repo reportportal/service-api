@@ -49,6 +49,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.SortDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
@@ -62,6 +63,8 @@ import javax.validation.Validator;
 import java.io.Serializable;
 import java.util.*;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.TEST_ITEM_ID;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -71,7 +74,7 @@ import static org.springframework.http.HttpStatus.CREATED;
  */
 @RestController
 @RequestMapping("/{projectName}/log")
-//@PreAuthorize(ASSIGNED_TO_PROJECT)
+@PreAuthorize(ASSIGNED_TO_PROJECT)
 public class LogController {
 
 	private final CreateLogHandler createLogMessageHandler;
@@ -91,7 +94,7 @@ public class LogController {
 	@PostMapping(consumes = { MediaType.APPLICATION_JSON_VALUE })
 	@ResponseStatus(CREATED)
 	@ApiOperation("Create log")
-	//@PreAuthorize(ALLOWED_TO_REPORT)
+	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS createLog(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		validateSaveRQ(createLogRQ);
@@ -103,7 +106,7 @@ public class LogController {
 	// Specific handler should be added for springfox in case of similar POST
 	// request mappings
 	//	@Async
-	//@PreAuthorize(ALLOWED_TO_REPORT)
+	@PreAuthorize(ALLOWED_TO_REPORT)
 	public ResponseEntity<BatchSaveOperatingRS> createLog(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
 			@RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs, HttpServletRequest request,
 			@AuthenticationPrincipal ReportPortalUser user) {

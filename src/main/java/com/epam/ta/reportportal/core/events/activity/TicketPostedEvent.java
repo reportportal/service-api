@@ -35,6 +35,8 @@ import java.util.stream.Collectors;
  */
 public class TicketPostedEvent implements ActivityEvent {
 
+	public static final String TICKET_ID = "ticketId";
+
 	private final Ticket ticket;
 	private final Long postedBy;
 	private final TestItem testItem;
@@ -66,12 +68,7 @@ public class TicketPostedEvent implements ActivityEvent {
 	private void processTicketId(ActivityDetails details) {
 		String oldValue = null;
 		if (testItem != null && testItem.getItemResults() != null) {
-			oldValue = testItem.getItemResults()
-					.getIssue()
-					.getTickets()
-					.stream()
-					.map(t -> t.getTicketId() + ":" + t.getUrl())
-					.collect(Collectors.joining(","));
+			oldValue = issuesIdsToString(testItem);
 		}
 
 		String newValue = ticket.getId() + ":" + ticket.getTicketUrl();
@@ -80,6 +77,15 @@ public class TicketPostedEvent implements ActivityEvent {
 		}
 
 		details.addHistoryField("ticketId", new HistoryField(oldValue, newValue));
+	}
+
+	static String issuesIdsToString(TestItem testItem) {
+		return testItem.getItemResults()
+				.getIssue()
+				.getTickets()
+				.stream()
+				.map(t -> t.getTicketId().concat(":").concat(t.getUrl()))
+				.collect(Collectors.joining(","));
 	}
 
 }

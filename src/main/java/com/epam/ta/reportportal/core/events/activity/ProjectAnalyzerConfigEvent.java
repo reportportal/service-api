@@ -21,45 +21,31 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
+import com.epam.ta.reportportal.entity.project.ProjectAttribute;
+
+import java.util.Set;
+
 /**
  * @author Pavel Bortnik
  */
-public class ProjectAnalyzerConfigEvent {//extends BeforeEvent<ProjectAnalyzerConfig> {
+public class ProjectAnalyzerConfigEvent extends AroundEvent<Set<ProjectAttribute>> implements ActivityEvent {
 
-//	private String projectRef;
-	//
-	//	private String updatedBy;
-	//
-	//	private AnalyzerConfig analyzerConfig;
-	//
-	//	public ProjectAnalyzerConfigEvent(ProjectAnalyzerConfig before, String projectRef, String updatedBy, AnalyzerConfig analyzerConfig) {
-	//		super(before);
-	//		this.projectRef = projectRef;
-	//		this.updatedBy = updatedBy;
-	//		this.analyzerConfig = analyzerConfig;
-	//	}
-	//
-	//	public String getUpdatedBy() {
-	//		return updatedBy;
-	//	}
-	//
-	//	public void setUpdatedBy(String updatedBy) {
-	//		this.updatedBy = updatedBy;
-	//	}
-	//
-	//	public AnalyzerConfig getAnalyzerConfig() {
-	//		return analyzerConfig;
-	//	}
-	//
-	//	public void setAnalyzerConfig(AnalyzerConfig analyzerConfig) {
-	//		this.analyzerConfig = analyzerConfig;
-	//	}
-	//
-	//	public String getProjectRef() {
-	//		return projectRef;
-	//	}
-	//
-	//	public void setProjectRef(String projectRef) {
-	//		this.projectRef = projectRef;
-	//	}
+	private final Long updatedBy;
+	private final Long projectId;
+
+	public ProjectAnalyzerConfigEvent(Set<ProjectAttribute> before, Set<ProjectAttribute> after, Long updatedBy, Long projectId) {
+		super(before, after);
+		this.updatedBy = updatedBy;
+		this.projectId = projectId;
+	}
+
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+
+		return null;
+	}
 }

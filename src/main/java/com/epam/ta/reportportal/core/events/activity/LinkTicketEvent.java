@@ -21,21 +21,27 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.activity.details.ActivityDetails;
+import com.epam.ta.reportportal.core.events.activity.details.HistoryField;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.google.common.base.Strings;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.epam.ta.reportportal.core.events.activity.TicketPostedEvent.TICKET_ID;
+import static com.epam.ta.reportportal.core.events.activity.TicketPostedEvent.issuesIdsToString;
+
 /**
  * @author Andrei Varabyeu
  */
-public class LinkTicketEvent extends AroundEvent<List<TestItem>> implements ActivityEvent {
+public class LinkTicketEvent extends AroundEvent<TestItem> implements ActivityEvent {
 
 	private final Long attachedBy;
 	private final Long projectId;
 
-	public LinkTicketEvent(List<TestItem> before, List<TestItem> after, Long attachedBy, Long projectId) {
+	public LinkTicketEvent(TestItem before, TestItem after, Long attachedBy, Long projectId) {
 		super(before, after);
 		this.attachedBy = attachedBy;
 		this.projectId = projectId;
@@ -45,11 +51,27 @@ public class LinkTicketEvent extends AroundEvent<List<TestItem>> implements Acti
 	public Activity toActivity() {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.LINK_ISSUE.getValue());
+		activity.setAction(getAfter().getItemResults().getIssue().getAutoAnalyzed() ?
+				ActivityAction.LINK_ISSUE_AA.getValue() :
+				ActivityAction.LINK_ISSUE.getValue());
 		activity.setEntity(Activity.Entity.TICKET);
 		activity.setUserId(attachedBy);
 		activity.setProjectId(projectId);
-		//TODO add details
+
+		ActivityDetails details = new ActivityDetails();
+
+		if (getAfter().getItemResults().getIssue() != null) {
+			String oldValue = issuesIdsToString(getBefore());
+			String newValue = issuesIdsToString(getAfter());
+			if (!oldValue.isEmpty() && !newValue.isEmpty() || !oldValue.equalsIgnoreCase(newValue)){
+				if (oldValue.length() > newValue.length()){
+					activity.setAction(ActivityAction.UNLINK_ISSUE.getValue());
+				}
+				details.addHistoryField(TICKET_ID, new HistoryField(oldValue, newValue));
+			}
+		}
+
+		activity.setDetails(details);
 		return activity;
 	}
 }

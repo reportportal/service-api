@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.database.entity.user.*;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.personal.PersonalProjectService;
@@ -67,8 +68,8 @@ import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.database.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
+import static com.epam.ta.reportportal.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -118,7 +119,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 		User administrator = userRepository.findByLogin(creator.getUsername())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND,
-						StringFormatter.format("Administrator with login - {} was not found.", creatorUsername)
+						StringFormatter.format("Administrator with login - {} was not found.", creator.getUsername())
 				));
 
 		expect(administrator.getRole(), equalTo(UserRole.ADMINISTRATOR)).verify(ACCESS_DENIED,
@@ -192,23 +193,23 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 	}
 
 	@Override
-	public CreateUserBidRS createUserBid(CreateUserRQ request, Principal principal, String emailURL) {
+	public CreateUserBidRS createUserBid(CreateUserRQ request, ReportPortalUser user, String emailURL) {
 		EmailService emailService = emailServiceFactory.getDefaultEmailService(true);
 
-		User creator = userRepository.findOne(principal.getName());
+		User creator = userRepository.findByLogin(user.getUsername());
 		expect(creator, notNull()).verify(ACCESS_DENIED);
 
 		String email = EntityUtils.normalizeId(request.getEmail());
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 
-		User email_user = userRepository.findByEmail(request.getEmail());
-		expect(email_user, isNull()).verify(USER_ALREADY_EXISTS, formattedSupplier("email={}", request.getEmail()));
+		User emailUser = userRepository.findByEmail(request.getEmail());
+		expect(emailUser, isNull()).verify(USER_ALREADY_EXISTS, formattedSupplier("email={}", request.getEmail()));
 
-		Project defaultProject = projectRepository.findOne(EntityUtils.normalizeId(request.getDefaultProject()));
+		Project defaultProject = projectRepository.findByName(EntityUtils.normalizeId(request.getDefaultProject()));
 
 		expect(defaultProject, notNull()).verify(PROJECT_NOT_FOUND, request.getDefaultProject());
-		UserConfig userConfig = findUserConfigByLogin(defaultProject, principal.getName());
-		List<Project> projects = projectRepository.findUserProjects(principal.getName());
+		Project.UserConfig userConfig = findUserConfigByLogin(defaultProject, user.getUsername());
+		List<Project> projects = projectRepository.findUserProjects(user.getUsername());
 		expect(defaultProject, not(in(projects))).verify(ACCESS_DENIED);
 
 		Optional<ProjectRole> role = forName(request.getRole());

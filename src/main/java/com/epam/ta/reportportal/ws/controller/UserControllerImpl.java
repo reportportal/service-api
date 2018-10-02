@@ -59,21 +59,20 @@ public class UserController {
 	@Autowired
 	private GetUserHandler getUserHandler;
 
-
 	@RequestMapping(method = POST)
 	@ResponseBody
 	@ResponseStatus(CREATED)
-//	@PreAuthorize(ADMIN_ONLY)
+	//	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Create specified user", notes = "Allowable only for users with administrator role")
-	public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq, @AuthenticationPrincipal ReportPortalUser user, HttpServletRequest request) {
+	public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq, @AuthenticationPrincipal ReportPortalUser user,
+			HttpServletRequest request) {
 		String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
 				.replacePath(null)
 				.replaceQuery(null)
 				.build()
 				.toUriString();
-		return createUserMessageHandler.createUserByAdmin(rq, user.getUsername(), basicURL);
+		return createUserMessageHandler.createUserByAdmin(rq, user, basicURL);
 	}
-
 
 	@RequestMapping(value = "/bid", method = POST)
 	@ResponseBody
@@ -93,7 +92,6 @@ public class UserController {
 		return createUserMessageHandler.createUserBid(createUserRQ, principal, rqUrl.toASCIIString());
 	}
 
-
 	@RequestMapping(value = "/registration", method = POST)
 	@ResponseStatus(CREATED)
 	@ResponseBody
@@ -103,7 +101,6 @@ public class UserController {
 		return createUserMessageHandler.createUser(request, uuid, principal);
 	}
 
-
 	@RequestMapping(value = "/registration", method = GET)
 	@ResponseBody
 	@ApiIgnore
@@ -111,15 +108,13 @@ public class UserController {
 		return getUserHandler.getBidInformation(uuid);
 	}
 
-
 	@RequestMapping(value = "/{login}", method = DELETE)
 	@ResponseBody
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Delete specified user", notes = "Allowable only for users with administrator role")
 	public OperationCompletionRS deleteUser(@PathVariable String login, @AuthenticationPrincipal ReportPortalUser user) {
-		return deleteUserMessageHandler.deleteUser(EntityUtils.normalizeId(login), principal.getName());
+		return deleteUserMessageHandler.deleteUser(EntityUtils.normalizeId(login), user.getUsername());
 	}
-
 
 	@RequestMapping(value = "/{login}", method = PUT)
 	@ResponseBody
@@ -130,7 +125,6 @@ public class UserController {
 		return editUserMessageHandler.editUser(EntityUtils.normalizeId(login), editUserRQ, role);
 	}
 
-
 	@RequestMapping(value = "/{login}", method = GET)
 	@ResponseBody
 	@ResponseView(ModelViews.FullUserView.class)
@@ -140,7 +134,6 @@ public class UserController {
 		return getUserHandler.getUser(EntityUtils.normalizeId(login), principal);
 	}
 
-
 	@RequestMapping(value = { "", "/" }, method = GET)
 	@ResponseBody
 	@ResponseView(ModelViews.FullUserView.class)
@@ -148,7 +141,6 @@ public class UserController {
 	public UserResource getMyself(@AuthenticationPrincipal ReportPortalUser user) {
 		return getUserHandler.getUser(EntityUtils.normalizeId(principal.getName()), principal);
 	}
-
 
 	@RequestMapping(value = "/all", method = GET)
 	@ResponseBody
@@ -160,7 +152,6 @@ public class UserController {
 		return getUserHandler.getAllUsers(filter, pageable);
 	}
 
-
 	@RequestMapping(value = "/registration/info", method = GET)
 	@ResponseBody
 	@ApiIgnore
@@ -168,7 +159,6 @@ public class UserController {
 			@RequestParam(value = "email", required = false) String email) {
 		return getUserHandler.validateInfo(username, email);
 	}
-
 
 	@RequestMapping(value = "/password/restore", method = POST)
 	@ResponseStatus(OK)
@@ -186,7 +176,6 @@ public class UserController {
 		return createUserMessageHandler.createRestorePasswordBid(rq, baseUrl);
 	}
 
-
 	@RequestMapping(value = "/password/reset", method = POST)
 	@ResponseStatus(OK)
 	@ResponseBody
@@ -194,7 +183,6 @@ public class UserController {
 	public OperationCompletionRS resetPassword(@RequestBody @Validated ResetPasswordRQ rq) {
 		return createUserMessageHandler.resetPassword(rq);
 	}
-
 
 	@RequestMapping(value = "/password/reset/{id}", method = GET)
 	@ResponseStatus(OK)
@@ -204,12 +192,12 @@ public class UserController {
 		return createUserMessageHandler.isResetPasswordBidExist(id);
 	}
 
-
 	@RequestMapping(value = "/password/change", method = POST)
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Change own password")
-	public OperationCompletionRS changePassword(@RequestBody @Validated ChangePasswordRQ changePasswordRQ, @AuthenticationPrincipal ReportPortalUser user) {
+	public OperationCompletionRS changePassword(@RequestBody @Validated ChangePasswordRQ changePasswordRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
 		return editUserMessageHandler.changePassword(principal.getName(), changePasswordRQ);
 	}
 
@@ -217,17 +205,18 @@ public class UserController {
 	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiIgnore
-	public Map<String, UserResource.AssignedProject> getUserProjects(@PathVariable String userName, @AuthenticationPrincipal ReportPortalUser user) {
+	public Map<String, UserResource.AssignedProject> getUserProjects(@PathVariable String userName,
+			@AuthenticationPrincipal ReportPortalUser user) {
 		return getUserHandler.getUserProjects(userName);
 	}
-
 
 	@RequestMapping(value = "/search", method = GET)
 	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiIgnore
 	@PreAuthorize(ADMIN_ONLY)
-	public Iterable<UserResource> findUsers(@RequestParam(value = "term") String term, Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+	public Iterable<UserResource> findUsers(@RequestParam(value = "term") String term, Pageable pageable,
+			@AuthenticationPrincipal ReportPortalUser user) {
 		return getUserHandler.searchUsers(term, pageable);
 	}
 

@@ -1,20 +1,20 @@
 /*
  * Copyright 2016 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -27,7 +27,6 @@ import com.epam.ta.reportportal.core.user.event.UpdateUserRoleEvent;
 import com.epam.ta.reportportal.core.user.event.UpdatedRole;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.database.entity.user.UserUtils;
 import com.epam.ta.reportportal.entity.enums.ImageFormat;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
@@ -35,10 +34,13 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
+import com.epam.ta.reportportal.util.UserUtils;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.user.ChangePasswordRQ;
 import com.epam.ta.reportportal.ws.model.user.EditUserRQ;
 import com.google.common.base.Charsets;
+import com.sun.javafx.binding.StringFormatter;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
@@ -108,7 +110,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 	@Override
 	public OperationCompletionRS deletePhoto(String login) {
-		User user = userRepository.findByLogin(login);
+		User user = userRepository.findByLogin(login).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, login));
 		expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change photo for external user");
 		if (null != user.getAttachment()) {
 			dataStore.delete(user.getAttachment());
@@ -118,18 +120,19 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 	@Override
 	public OperationCompletionRS changePassword(String userName, ChangePasswordRQ changePasswordRQ) {
-		User user = userRepository.findByLogin(userName);
+		User user = userRepository.findByLogin(userName).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userName));
 		expect(user.getUserType(), equalTo(INTERNAL)).verify(FORBIDDEN_OPERATION, "Impossible to change password for external users.");
 
-		expect(user.getPassword(), equalTo(HASH_FUNCTION.hashString(changePasswordRQ.getOldPassword(), Charsets.UTF_8).toString())).verify(
-				FORBIDDEN_OPERATION, "Old password not match with stored.");
+		expect(user.getPassword(), equalTo(HASH_FUNCTION.hashString(changePasswordRQ.getOldPassword(), Charsets.UTF_8).toString())).verify(FORBIDDEN_OPERATION,
+				"Old password not match with stored."
+		);
 		user.setPassword(HASH_FUNCTION.hashString(changePasswordRQ.getNewPassword(), Charsets.UTF_8).toString());
 		userRepository.save(user);
 		return new OperationCompletionRS("Password has been changed successfully");
 	}
 
 	private OperationCompletionRS editUser(String username, EditUserRQ editUserRQ, boolean isAdmin) {
-		User user = userRepository.findByLogin(username);
+		User user = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
 		expect(user, notNull()).verify(USER_NOT_FOUND, username);
 		boolean isRoleChanged = false;
 		UpdatedRole source = null;
@@ -145,8 +148,8 @@ public class EditUserHandlerImpl implements EditUserHandler {
 		}
 
 		if (null != editUserRQ.getDefaultProject()) {
-			Project defaultProject = projectRepository.findByName(editUserRQ.getDefaultProject().toLowerCase());
-			expect(defaultProject, notNull()).verify(PROJECT_NOT_FOUND, editUserRQ.getDefaultProject());
+			Project defaultProject = projectRepository.findByName(editUserRQ.getDefaultProject().toLowerCase())
+					.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, editUserRQ.getDefaultProject()));
 			//TODO check if user is owner
 			user.setDefaultProject(defaultProject);
 		}
@@ -155,10 +158,13 @@ public class EditUserHandlerImpl implements EditUserHandler {
 			String updEmail = editUserRQ.getEmail().toLowerCase().trim();
 			expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change email for external user");
 			expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR, " wrong email: " + updEmail);
-			User byEmail = userRepository.findByEmail(updEmail);
-			if (null != byEmail) {
-				expect(username, equalTo(byEmail.getId())).verify(USER_ALREADY_EXISTS, updEmail);
-			}
+			User byEmail = userRepository.findByEmail(updEmail)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND,
+							StringFormatter.format("User with email - {} was not found", updEmail)
+					));
+
+			expect(username, equalTo(byEmail.getLogin())).verify(USER_ALREADY_EXISTS, updEmail);
+
 			expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR, updEmail);
 
 			List<Project> userProjects = projectRepository.findUserProjects(username);
@@ -196,7 +202,8 @@ public class EditUserHandlerImpl implements EditUserHandler {
 				"Image format should be " + ImageFormat.getValues()
 		);
 		BufferedImage read = ImageIO.read(file.getInputStream());
-		expect((read.getHeight() <= MAX_PHOTO_HEIGHT) && (read.getWidth() <= MAX_PHOTO_WIDTH), equalTo(true)).verify(
-				BINARY_DATA_CANNOT_BE_SAVED, "Image size should be 300x500px or less");
+		expect((read.getHeight() <= MAX_PHOTO_HEIGHT) && (read.getWidth() <= MAX_PHOTO_WIDTH), equalTo(true)).verify(BINARY_DATA_CANNOT_BE_SAVED,
+				"Image size should be 300x500px or less"
+		);
 	}
 }

@@ -26,8 +26,8 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -54,23 +54,22 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 	@Autowired
 	private ProjectRepository projectRepository;
 
-//	@Autowired
-//	private UatClient uatClient;
-//
-//	@Autowired
-//	private ILogIndexer logIndexer;
+	//	@Autowired
+	//	private UatClient uatClient;
+	//
+	//	@Autowired
+	//	private ILogIndexer logIndexer;
 
 	@Override
-	public OperationCompletionRS deleteUser(String userId, String principal) {
-		User user = userRepository.findOne(userId);
-		BusinessRule.expect(user, Predicates.notNull()).verify(ErrorType.USER_NOT_FOUND, userId);
-		BusinessRule.expect(userId.equalsIgnoreCase(principal), Predicates.equalTo(false))
+	public OperationCompletionRS deleteUser(String login, String principal) {
+		User user = userRepository.findByLogin(login).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, login));
+		BusinessRule.expect(login.equalsIgnoreCase(principal), Predicates.equalTo(false))
 				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
 		try {
-			List<Project> userProjects = projectRepository.findUserProjects(userId);
+			List<Project> userProjects = projectRepository.findUserProjects(login);
 			userProjects.forEach(project -> ProjectUtils.excludeProjectRecipients(Lists.newArrayList(user), project));
-			projectRepository.removeUserFromProjects(userId);
-			projectRepository.save(userProjects);
+			projectRepository.removeUserFromProjects(login);
+			projectRepository.saveAll(userProjects);
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while updating projects", exp);
 		}
@@ -78,7 +77,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		Optional<String> personalProjectName = projectRepository.findPersonalProjectName(user.getLogin());
 
 		try {
-			uatClient.revokeUserTokens(userId);
+			uatClient.revokeUserTokens(login);
 			userRepository.delete(user);
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while deleting user", exp);
@@ -86,6 +85,6 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 		personalProjectName.ifPresent(s -> logIndexer.deleteIndex(s));
 
-		return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
+		return new OperationCompletionRS("User with ID = '" + login + "' successfully deleted.");
 	}
 }

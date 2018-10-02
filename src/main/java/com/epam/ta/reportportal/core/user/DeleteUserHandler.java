@@ -37,5 +37,5 @@ public interface DeleteUserHandler {
 	 * @return
 	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS deleteUser(String userId, String principal);
+	OperationCompletionRS deleteUser(String login, String principal);
 }

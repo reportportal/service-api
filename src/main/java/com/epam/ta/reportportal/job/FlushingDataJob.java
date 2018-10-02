@@ -2,15 +2,14 @@ package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.database.DataStorage;
 import com.epam.ta.reportportal.database.dao.*;
+import com.epam.ta.reportportal.events.handler.AddDemoProjectEventHandler;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +36,7 @@ public class FlushingDataJob implements Job {
 	private ApplicationContext applicationContext;
 
 	@Autowired
-	private ApplicationEventPublisher eventPublisher;
+	private AddDemoProjectEventHandler addDemoProjectEventHandler;
 
 	@Autowired
 	private DataStorage dataStorage;
@@ -57,7 +56,7 @@ public class FlushingDataJob implements Job {
 		projectRepository.delete(projectRepository.findAllProjectNames());
 		userRepository.deleteAll();
 		dataStorage.deleteAll();
-		eventPublisher.publishEvent(new ContextRefreshedEvent(applicationContext));
+		addDemoProjectEventHandler.onApplicationEvent(null);
 		LOGGER.info("Finish flushing all existing data!");
 	}
 }

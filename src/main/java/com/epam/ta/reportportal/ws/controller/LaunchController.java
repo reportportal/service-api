@@ -228,9 +228,9 @@ public class LaunchController {
 	@ResponseBody
 	@ResponseStatus(OK)
 	@ApiOperation("Get launches of specified project from DEBUG mode")
-	public Iterable<LaunchResource> getDebugLaunches(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @FilterFor(Launch.class) Filter filter,
+	public Iterable<LaunchResource> getDebugLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
 			@SortFor(Launch.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getDebugLaunches(projectDetails, filter, pageable);
+		return getLaunchMessageHandler.getDebugLaunches(extractProjectDetails(user, normalizeId(projectName)), filter, pageable);
 	}
 
 	@Transactional(readOnly = true)

@@ -82,7 +82,7 @@ public class ProjectUpdatedEvent extends AroundEvent<Project> implements Activit
 	private void processLaunchInactivityTimeout(ActivityDetails details, Project project, ProjectConfiguration configuration) {
 		if ((null != configuration.getInterruptJobTime()) && (!configuration.getInterruptJobTime()
 				.equals(project.getConfiguration().getInterruptJobTime()))) {
-			HistoryField<String> historyField = new HistoryField<>(project.getConfiguration().getInterruptJobTime(),
+			HistoryField historyField = new HistoryField(project.getConfiguration().getInterruptJobTime(),
 					configuration.getInterruptJobTime()
 			);
 			details.addHistoryField(LAUNCH_INACTIVITY, historyField);
@@ -92,7 +92,7 @@ public class ProjectUpdatedEvent extends AroundEvent<Project> implements Activit
 	private void processKeepScreenshots(ActivityDetails details, Project project, ProjectConfiguration configuration) {
 		if ((null != configuration.getKeepScreenshots()) && (!configuration.getKeepScreenshots()
 				.equals(project.getConfiguration().getKeepScreenshots()))) {
-			HistoryField<String> historyField = new HistoryField<>(project.getConfiguration().getKeepScreenshots(),
+			HistoryField historyField = new HistoryField(project.getConfiguration().getKeepScreenshots(),
 					configuration.getKeepScreenshots()
 			);
 			details.addHistoryField(KEEP_SCREENSHOTS.getValue(), historyField);
@@ -101,7 +101,7 @@ public class ProjectUpdatedEvent extends AroundEvent<Project> implements Activit
 
 	private void processKeepLogs(ActivityDetails details, Project project, ProjectConfiguration configuration) {
 		if ((null != configuration.getKeepLogs()) && (!configuration.getKeepLogs().equals(project.getConfiguration().getKeepLogs()))) {
-			HistoryField<String> historyField = new HistoryField<>(project.getConfiguration().getKeepLogs(), configuration.getKeepLogs());
+			HistoryField historyField = new HistoryField(project.getConfiguration().getKeepLogs(), configuration.getKeepLogs());
 			details.addHistoryField(KEEP_LOGS.getValue(), historyField);
 		}
 	}

@@ -11,7 +11,7 @@ public class ActivityDetailsUtil {
 
 	public static void processName(ActivityDetails details, String oldName, String newName) {
 		if (!Strings.isNullOrEmpty(newName) && !oldName.equals(newName)) {
-			details.addHistoryField(NAME, new HistoryField<String>(oldName, newName));
+			details.addHistoryField(NAME, new HistoryField(oldName, newName));
 		}
 	}
 

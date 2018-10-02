@@ -79,7 +79,7 @@ public class TicketPostedEvent implements ActivityEvent {
 			newValue = oldValue + "," + newValue;
 		}
 
-		details.addHistoryField("ticketId", new HistoryField<String>(oldValue, newValue));
+		details.addHistoryField("ticketId", new HistoryField(oldValue, newValue));
 	}
 
 }

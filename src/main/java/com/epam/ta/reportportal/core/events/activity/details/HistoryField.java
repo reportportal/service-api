@@ -1,27 +1,34 @@
 package com.epam.ta.reportportal.core.events.activity.details;
 
-public class HistoryField<T> {
-	private T oldValue;
-	private T newValue;
+public class HistoryField {
+	private String oldValue;
+	private String newValue;
 
-	public HistoryField(T oldValue, T newValue) {
+	public HistoryField(String oldValue, String newValue) {
 		this.oldValue = oldValue;
 		this.newValue = newValue;
 	}
 
-	public T getOldValue() {
+	public HistoryField() {
+	}
+
+	public String getOldValue() {
 		return oldValue;
 	}
 
-	public void setOldValue(T oldValue) {
+	public void setOldValue(String oldValue) {
 		this.oldValue = oldValue;
 	}
 
-	public T getNewValue() {
+	public String getNewValue() {
 		return newValue;
 	}
 
-	public void setNewValue(T newValue) {
+	public void setNewValue(String newValue) {
 		this.newValue = newValue;
+	}
+
+	public boolean isEmpty(){
+		return null == oldValue || null == newValue;
 	}
 }

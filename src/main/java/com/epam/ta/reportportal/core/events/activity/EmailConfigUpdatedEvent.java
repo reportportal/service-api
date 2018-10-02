@@ -87,17 +87,17 @@ public class EmailConfigUpdatedEvent extends BeforeEvent<Project> implements Act
 				null != configuration.getEmailCases() && !configuration.getEmailCases().equals(builtProjectEmailConfig.getEmailCases());
 
 		if (isEmailOptionChanged) {
-			HistoryField<String> historyField = new HistoryField<>(String.valueOf(project.getConfiguration()
+			HistoryField historyField = new HistoryField(String.valueOf(project.getConfiguration()
 					.getProjectEmailConfig().getEmailEnabled()),
 					String.valueOf(configuration.getEmailEnabled())
 			);
 			details.addHistoryField(EMAIL_STATUS, historyField);
 		} else {
 			if (isEmailCasesChanged) {
-				details.addHistoryField(EMAIL_CASES, new HistoryField<String>(EMPTY_FIELD, EMPTY_FIELD));
+				details.addHistoryField(EMAIL_CASES, new HistoryField(EMPTY_FIELD, EMPTY_FIELD));
 			}
 			if (isEmailFromChanged) {
-				HistoryField<String> historyField = new HistoryField<String>(project.getConfiguration().getProjectEmailConfig().getFrom(),
+				HistoryField historyField = new HistoryField(project.getConfiguration().getProjectEmailConfig().getFrom(),
 						configuration.getFrom()
 				);
 				details.addHistoryField(EMAIL_FROM, historyField);

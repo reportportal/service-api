@@ -24,11 +24,9 @@ import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.core.events.activity.details.ActivityDetails;
 import com.epam.ta.reportportal.core.events.activity.details.HistoryField;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.item.TestItem;
-import com.google.common.base.Strings;
+import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import static com.epam.ta.reportportal.core.events.activity.TicketPostedEvent.TICKET_ID;
 import static com.epam.ta.reportportal.core.events.activity.TicketPostedEvent.issuesIdsToString;
@@ -36,12 +34,12 @@ import static com.epam.ta.reportportal.core.events.activity.TicketPostedEvent.is
 /**
  * @author Andrei Varabyeu
  */
-public class LinkTicketEvent extends AroundEvent<TestItem> implements ActivityEvent {
+public class LinkTicketEvent extends AroundEvent<IssueEntity> implements ActivityEvent {
 
 	private final Long attachedBy;
 	private final Long projectId;
 
-	public LinkTicketEvent(TestItem before, TestItem after, Long attachedBy, Long projectId) {
+	public LinkTicketEvent(IssueEntity before, IssueEntity after, Long attachedBy, Long projectId) {
 		super(before, after);
 		this.attachedBy = attachedBy;
 		this.projectId = projectId;
@@ -51,7 +49,7 @@ public class LinkTicketEvent extends AroundEvent<TestItem> implements ActivityEv
 	public Activity toActivity() {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(getAfter().getItemResults().getIssue().getAutoAnalyzed() ?
+		activity.setAction(getAfter().getAutoAnalyzed() ?
 				ActivityAction.LINK_ISSUE_AA.getValue() :
 				ActivityAction.LINK_ISSUE.getValue());
 		activity.setEntity(Activity.Entity.TICKET);
@@ -60,7 +58,7 @@ public class LinkTicketEvent extends AroundEvent<TestItem> implements ActivityEv
 
 		ActivityDetails details = new ActivityDetails();
 
-		if (getAfter().getItemResults().getIssue() != null) {
+		if (getAfter() != null) {
 			String oldValue = issuesIdsToString(getBefore());
 			String newValue = issuesIdsToString(getAfter());
 			if (!oldValue.isEmpty() && !newValue.isEmpty() || !oldValue.equalsIgnoreCase(newValue)){

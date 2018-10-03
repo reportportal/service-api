@@ -33,14 +33,12 @@ import static com.epam.ta.reportportal.core.events.activity.details.ActivityDeta
 /**
  * @author Andrei Varabyeu
  */
-public class DashboardUpdatedEvent extends BeforeEvent<Dashboard> implements ActivityEvent {
+public class DashboardUpdatedEvent extends AroundEvent<Dashboard> implements ActivityEvent {
 
-	private final Dashboard updated;
 	private final Long updateBy;
 
-	public DashboardUpdatedEvent(Dashboard before, Dashboard updated, Long updateBy) {
-		super(before);
-		this.updated = updated;
+	public DashboardUpdatedEvent(Dashboard before, Dashboard after, Long updateBy) {
+		super(before, after);
 		this.updateBy = updateBy;
 	}
 
@@ -51,12 +49,13 @@ public class DashboardUpdatedEvent extends BeforeEvent<Dashboard> implements Act
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setEntity(Activity.Entity.DASHBOARD);
 		activity.setAction(ActivityAction.UPDATE_DASHBOARD.getValue());
-		activity.setProjectId(updated.getProjectId());
+		activity.setProjectId(getBefore().getProjectId());
 		activity.setUserId(updateBy);
 
 		ActivityDetails details = new ActivityDetails();
-		processName(details, getBefore().getName(), updated.getName());
-		processDescription(details, getBefore().getDescription(), updated.getDescription());
+		//processShare
+		processName(details, getBefore().getName(), getAfter().getName());
+		processDescription(details, getBefore().getDescription(), getAfter().getDescription());
 
 		activity.setDetails(details);
 		return activity;

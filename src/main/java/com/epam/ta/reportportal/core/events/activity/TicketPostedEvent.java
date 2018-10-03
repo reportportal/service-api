@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.core.events.activity.details.ActivityDetails;
 import com.epam.ta.reportportal.core.events.activity.details.HistoryField;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 
 import java.time.LocalDateTime;
@@ -68,7 +69,7 @@ public class TicketPostedEvent implements ActivityEvent {
 	private void processTicketId(ActivityDetails details) {
 		String oldValue = null;
 		if (testItem != null && testItem.getItemResults() != null) {
-			oldValue = issuesIdsToString(testItem);
+			oldValue = issuesIdsToString(testItem.getItemResults().getIssue());
 		}
 
 		String newValue = ticket.getId() + ":" + ticket.getTicketUrl();
@@ -79,10 +80,8 @@ public class TicketPostedEvent implements ActivityEvent {
 		details.addHistoryField("ticketId", new HistoryField(oldValue, newValue));
 	}
 
-	static String issuesIdsToString(TestItem testItem) {
-		return testItem.getItemResults()
-				.getIssue()
-				.getTickets()
+	static String issuesIdsToString(IssueEntity issue) {
+		return issue.getTickets()
 				.stream()
 				.map(t -> t.getTicketId().concat(":").concat(t.getUrl()))
 				.collect(Collectors.joining(","));

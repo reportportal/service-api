@@ -40,13 +40,6 @@ import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
  */
 public class ProjectAnalyzerConfigEvent extends AroundEvent<Set<ProjectAttribute>> implements ActivityEvent {
 
-	private static final String ANALYZE_MODE_FIELD = "analyze_mode";
-	private static final String AUTO_ANALYZE_FIELD = "auto_analyze";
-	private static final String MIN_DOC_FREQ_FIELD = "min_doc_freq";
-	private static final String MIN_TERM_FREQ_FIELD = "min_term_freq";
-	private static final String MIN_SHOULD_MATCH_FIELD = "min_should_match";
-	private static final String NUMBER_OF_LOG_LINES_FIELD = "number_of_log_lines";
-
 	private final Long updatedBy;
 	private final Long projectId;
 
@@ -70,23 +63,23 @@ public class ProjectAnalyzerConfigEvent extends AroundEvent<Set<ProjectAttribute
 		Map<ProjectAttributeEnum, String> oldAnalyzerConfig = extractAnalyzerConfig(getBefore());
 		Map<ProjectAttributeEnum, String> newAnalyzerConfig = extractAnalyzerConfig(getAfter());
 
-		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, ANALYZE_MODE, ANALYZE_MODE_FIELD);
-		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, MIN_DOC_FREQ, MIN_DOC_FREQ_FIELD);
-		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, MIN_TERM_FREQ, MIN_TERM_FREQ_FIELD);
-		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, MIN_SHOULD_MATCH, MIN_SHOULD_MATCH_FIELD);
-		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, NUMBER_OF_LOG_LINES, NUMBER_OF_LOG_LINES_FIELD);
-		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, AUTO_ANALYZER_ENABLED, AUTO_ANALYZE_FIELD);
+		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, ANALYZE_MODE);
+		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, MIN_DOC_FREQ);
+		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, MIN_TERM_FREQ);
+		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, MIN_SHOULD_MATCH);
+		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, NUMBER_OF_LOG_LINES);
+		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, AUTO_ANALYZER_ENABLED);
 
 		activity.setDetails(details);
 		return activity;
 	}
 
 	private void processConfigAttribute(ActivityDetails details, Map<ProjectAttributeEnum, String> oldAnalyzerConfig,
-			Map<ProjectAttributeEnum, String> newAnalyzerConfig, ProjectAttributeEnum attribute, String field) {
+			Map<ProjectAttributeEnum, String> newAnalyzerConfig, ProjectAttributeEnum attribute) {
 		String oldValue = oldAnalyzerConfig.get(attribute);
 		String newValue = newAnalyzerConfig.get(attribute);
 		if (null != newValue && !newValue.equalsIgnoreCase(oldValue)) {
-			details.addHistoryField(field, new HistoryField(oldValue, newValue));
+			details.addHistoryField(attribute.getValue(), new HistoryField(oldValue, newValue));
 		}
 	}
 

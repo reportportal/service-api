@@ -57,7 +57,7 @@ public final class LaunchConverter {
 		resource.setEndTime(db.getEndTime() == null ? null : EntityUtils.TO_DATE.apply(db.getEndTime()));
 		resource.setTags(getTags(db));
 		resource.setMode(db.getMode() == null ? null : Mode.valueOf(db.getMode().name()));
-		resource.setOwner(String.valueOf(db.getUserId()));
+		resource.setOwner(db.getUser().getLogin());
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
 		return resource;
 	};

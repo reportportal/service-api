@@ -48,7 +48,7 @@ public class LaunchStartedEvent implements ActivityEvent {
 	@Override
 	public Activity toActivity() {
 		Activity activity = new Activity();
-		activity.setUserId(this.launch.getUserId());
+		activity.setUserId(this.launch.getUser().getId());
 		activity.setEntity(Activity.Entity.LAUNCH);
 		activity.setProjectId(launch.getProjectId());
 		activity.setAction(ActivityAction.START_LAUNCH.getValue());

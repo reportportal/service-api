@@ -52,7 +52,7 @@ public class LaunchFinishedEvent implements ActivityEvent {
 	@Override
 	public Activity toActivity() {
 		Activity activity = new Activity();
-		activity.setUserId(this.launch.getUserId());
+		activity.setUserId(this.launch.getUser().getId());
 		activity.setEntity(Activity.Entity.LAUNCH);
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setProjectId(launch.getProjectId());

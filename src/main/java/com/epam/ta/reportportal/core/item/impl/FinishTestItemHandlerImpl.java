@@ -151,7 +151,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private void verifyTestItem(ReportPortalUser user, FinishExecutionRQ finishExecutionRQ, TestItem testItem,
 			Optional<StatusEnum> actualStatus, boolean hasChildren) {
 		Launch launch = Optional.ofNullable(testItem.getLaunch()).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
-		expect(user.getUserId(), equalTo(launch.getUserId())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
+		expect(user.getUsername(), equalTo(launch.getUser().getLogin())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
 
 		expect(testItem.getItemResults().getStatus(), Preconditions.statusIn(IN_PROGRESS)).verify(REPORTING_ITEM_ALREADY_FINISHED,
 				testItem.getItemId()

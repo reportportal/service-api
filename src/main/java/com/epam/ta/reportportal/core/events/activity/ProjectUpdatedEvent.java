@@ -73,7 +73,7 @@ public class ProjectUpdatedEvent extends AroundEvent<Project> implements Activit
 			processKeepScreenshots(details, getBefore(), configuration);
 			processLaunchInactivityTimeout(details, getBefore(), configuration);
 		}
-		if (!details.isEmpty()) {
+		if (!details.getHistory().isEmpty()) {
 			activity.setDetails(details);
 		}
 		return activity;

@@ -1,5 +1,7 @@
 package com.epam.ta.reportportal.core.events.activity.details;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class HistoryField {
 	private String oldValue;
 	private String newValue;
@@ -28,6 +30,7 @@ public class HistoryField {
 		this.newValue = newValue;
 	}
 
+	@JsonIgnore
 	public boolean isEmpty(){
 		return null == oldValue || null == newValue;
 	}

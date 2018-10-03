@@ -130,6 +130,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			} else {
 				IssueType toInvestigate = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, TO_INVESTIGATE.getLocator());
 				issueEntity.setIssueType(toInvestigate);
+				issueEntity.setAutoAnalyzed(false);
+				issueEntity.setIgnoreAnalyzer(false);
 			}
 			issueEntity.setIssueId(testItem.getItemId());
 			testItemResults.setIssue(issueEntity);

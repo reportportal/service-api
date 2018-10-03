@@ -59,7 +59,7 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 	public UserFilterBuilder addCreateRq(CreateUserFilterRQ rq) {
 		userFilter.setName(rq.getName());
 		userFilter.setDescription(rq.getDescription());
-		userFilter.setTargetClass(ObjectType.getTypeByName(rq.getObjectType()));
+		userFilter.setTargetClass(ObjectType.getObjectTypeByName(rq.getObjectType()));
 		addFilterConditions(rq.getEntities());
 		addSelectionParameters(rq.getOrders());
 		return this;
@@ -68,7 +68,7 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 	public UserFilterBuilder addUpdateFilterRQ(UpdateUserFilterRQ rq) {
 		userFilter.setName(rq.getName());
 		userFilter.setDescription(rq.getDescription());
-		userFilter.setTargetClass(ObjectType.getTypeByName(rq.getObjectType()));
+		userFilter.setTargetClass(ObjectType.getObjectTypeByName(rq.getObjectType()));
 		addFilterConditions(rq.getEntities());
 		addSelectionParameters(rq.getOrders());
 		return this;

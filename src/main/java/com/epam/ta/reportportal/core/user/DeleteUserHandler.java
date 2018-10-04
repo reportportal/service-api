@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.user;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
@@ -37,5 +38,5 @@ public interface DeleteUserHandler {
 	 * @return
 	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS deleteUser(String login, String principal);
+	OperationCompletionRS deleteUser(String login, ReportPortalUser currentUser);
 }

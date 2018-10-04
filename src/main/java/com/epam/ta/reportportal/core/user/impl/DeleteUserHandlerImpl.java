@@ -21,6 +21,8 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.auth.UatClient;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
@@ -54,21 +56,20 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 	@Autowired
 	private ProjectRepository projectRepository;
 
-	//	@Autowired
-	//	private UatClient uatClient;
-	//
-	//	@Autowired
-	//	private ILogIndexer logIndexer;
+	@Autowired
+	private UatClient uatClient;
+
+//	@Autowired
+//	private ILogIndexer logIndexer;
 
 	@Override
-	public OperationCompletionRS deleteUser(String login, String principal) {
+	public OperationCompletionRS deleteUser(String login, ReportPortalUser loggedInUser) {
 		User user = userRepository.findByLogin(login).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, login));
-		BusinessRule.expect(login.equalsIgnoreCase(principal), Predicates.equalTo(false))
+		BusinessRule.expect(login.equalsIgnoreCase(loggedInUser.getUsername()), Predicates.equalTo(false))
 				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
 		try {
 			List<Project> userProjects = projectRepository.findUserProjects(login);
 			userProjects.forEach(project -> ProjectUtils.excludeProjectRecipients(Lists.newArrayList(user), project));
-			projectRepository.removeUserFromProjects(login);
 			projectRepository.saveAll(userProjects);
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while updating projects", exp);
@@ -83,7 +84,8 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 			throw new ReportPortalException("Error while deleting user", exp);
 		}
 
-		personalProjectName.ifPresent(s -> logIndexer.deleteIndex(s));
+		//TODO analyzer
+//		personalProjectName.ifPresent(s -> logIndexer.deleteIndex(s));
 
 		return new OperationCompletionRS("User with ID = '" + login + "' successfully deleted.");
 	}

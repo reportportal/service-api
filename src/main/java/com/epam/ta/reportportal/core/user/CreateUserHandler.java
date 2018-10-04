@@ -27,8 +27,6 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.*;
 
-import java.security.Principal;
-
 /**
  * Post request handler
  *
@@ -49,7 +47,7 @@ public interface CreateUserHandler {
 	 *
 	 * @param request
 	 * @param uuid
-	 * @param principal
+	 * @param user
 	 * @return
 	 * @throws ReportPortalException
 	 */
@@ -59,10 +57,10 @@ public interface CreateUserHandler {
 	 * Create user bid (send invitation)
 	 *
 	 * @param request
-	 * @param principal
+	 * @param username
 	 * @return
 	 */
-	CreateUserBidRS createUserBid(CreateUserRQ request, Principal principal, ReportPortalUser user);
+	CreateUserBidRS createUserBid(CreateUserRQ request, ReportPortalUser username, String userRegURL);
 
 	/**
 	 * Create restore password bid
@@ -84,8 +82,8 @@ public interface CreateUserHandler {
 	/**
 	 * Verify reset password bid exist
 	 *
-	 * @param id
+	 * @param uuid
 	 * @return
 	 */
-	YesNoRS isResetPasswordBidExist(String id);
+	YesNoRS isResetPasswordBidExist(String uuid);
 }

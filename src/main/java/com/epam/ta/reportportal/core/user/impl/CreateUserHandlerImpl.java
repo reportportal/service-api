@@ -30,13 +30,9 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.RestorePasswordBidRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.database.entity.Project.UserConfig;
-import com.epam.ta.reportportal.database.entity.user.*;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.entity.user.UserCreationBid;
-import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.entity.user.*;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.personal.PersonalProjectService;
 import com.epam.ta.reportportal.util.Predicates;
@@ -59,9 +55,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
-import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.epam.reportportal.commons.Safe.safe;
 import static com.epam.ta.reportportal.commons.Predicates.*;
@@ -71,6 +67,7 @@ import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSup
 import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
 import static com.epam.ta.reportportal.entity.project.ProjectUtils.findUserConfigByLogin;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.Optional.ofNullable;
 
 /**
  * Implementation of Create User handler
@@ -136,6 +133,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 				formattedSupplier("Username '{}' consists only of special characters", newUsername)
 		);
 
+		//todo rename method normalizedId
 		String projectName = EntityUtils.normalizeId(request.getDefaultProject());
 		Project defaultProject = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
@@ -151,15 +149,15 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		req.setPassword(request.getPassword());
 
 		final Optional<UserRole> userRole = UserRole.findByName(request.getAccountRole());
-		expect(userRole.isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter.");
+		expect(userRole, Preconditions.IS_PRESENT).verify(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter.");
 		//noinspection ConstantConditions
 		User user = new UserBuilder().addCreateUserRQ(req).addUserRole(userRole.get()).get();
 		Optional<ProjectRole> projectRole = forName(request.getProjectRole());
 		expect(projectRole, Preconditions.IS_PRESENT).verify(ROLE_NOT_FOUND, request.getProjectRole());
 
-		List<Project.UserConfig> projectUsers = defaultProject.getUsers();
+		Set<ProjectUser> projectUsers = defaultProject.getUsers();
 		//noinspection ConstantConditions
-		projectUsers.add(Project.UserConfig.newOne().withProjectRole(projectRole.get()).withProposedRole(projectRole.get()).withUser(user));
+		projectUsers.add(new ProjectUser().withProjectRole(projectRole.get()).withUser(user).withProject(defaultProject));
 		defaultProject.setUsers(projectUsers);
 
 		CreateUserRS response = new CreateUserRS();
@@ -193,34 +191,37 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 	}
 
 	@Override
-	public CreateUserBidRS createUserBid(CreateUserRQ request, ReportPortalUser user, String emailURL) {
+	public CreateUserBidRS createUserBid(CreateUserRQ request, ReportPortalUser loggedInUser, String emailURL) {
 		EmailService emailService = emailServiceFactory.getDefaultEmailService(true);
 
-		User creator = userRepository.findByLogin(user.getUsername());
-		expect(creator, notNull()).verify(ACCESS_DENIED);
+		User creator = userRepository.findByLogin(loggedInUser.getUsername()).orElseThrow(() -> new ReportPortalException(ACCESS_DENIED));
 
 		String email = EntityUtils.normalizeId(request.getEmail());
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 
-		User emailUser = userRepository.findByEmail(request.getEmail());
-		expect(emailUser, isNull()).verify(USER_ALREADY_EXISTS, formattedSupplier("email={}", request.getEmail()));
+		Optional<User> emailUser = userRepository.findByEmail(request.getEmail());
+		//TODO replace with more convenient expression
+		expect(emailUser.isPresent(), equalTo(Boolean.FALSE)).verify(USER_ALREADY_EXISTS,
+				formattedSupplier("email={}", request.getEmail())
+		);
 
-		Project defaultProject = projectRepository.findByName(EntityUtils.normalizeId(request.getDefaultProject()));
+		Project defaultProject = projectRepository.findByName(EntityUtils.normalizeId(request.getDefaultProject()))
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, request.getDefaultProject()));
 
-		expect(defaultProject, notNull()).verify(PROJECT_NOT_FOUND, request.getDefaultProject());
-		Project.UserConfig userConfig = findUserConfigByLogin(defaultProject, user.getUsername());
-		List<Project> projects = projectRepository.findUserProjects(user.getUsername());
+		ProjectUser projectUser = findUserConfigByLogin(defaultProject, loggedInUser.getUsername());
+		List<Project> projects = projectRepository.findUserProjects(loggedInUser.getUsername());
 		expect(defaultProject, not(in(projects))).verify(ACCESS_DENIED);
 
-		Optional<ProjectRole> role = forName(request.getRole());
-		expect(role, Preconditions.IS_PRESENT).verify(ROLE_NOT_FOUND, request.getRole());
+		ProjectRole role = forName(request.getRole()).orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, request.getRole()));
 
 		// FIXME move to controller level
 		if (creator.getRole() != UserRole.ADMINISTRATOR) {
-			expect(userConfig.getProjectRole().sameOrHigherThan(role.get()), equalTo(Boolean.TRUE)).verify(ACCESS_DENIED);
+			expect(ofNullable(projectUser).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND))
+					.getProjectRole()
+					.sameOrHigherThan(role), equalTo(Boolean.TRUE)).verify(ACCESS_DENIED);
 		}
 
-		UserCreationBid bid = UserCreationBidConverter.TO_USER.apply(request);
+		UserCreationBid bid = UserCreationBidConverter.TO_USER.apply(request, defaultProject);
 		try {
 			userCreationBidRepository.save(bid);
 		} catch (Exception e) {
@@ -230,14 +231,14 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		StringBuilder emailLink = new StringBuilder(emailURL);
 		try {
 			emailLink.append("/ui/#registration?uuid=");
-			emailLink.append(bid.getId());
+			emailLink.append(bid.getUuid());
 			emailService.sendCreateUserConfirmationEmail("User registration confirmation",
 					new String[] { bid.getEmail() },
 					emailLink.toString()
 			);
 		} catch (Exception e) {
 			fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
-					formattedSupplier("Unable to send email for bid '{}'." + e.getMessage(), bid.getId())
+					formattedSupplier("Unable to send email for bid '{}'." + e.getMessage(), bid.getUuid())
 			);
 		}
 
@@ -246,74 +247,77 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 				+ "' is successfully registered. Confirmation info will be send on provided email. Expiration: 1 day.";
 
 		response.setMessage(msg);
-		response.setBid(bid.getId());
+		response.setBid(bid.getUuid());
 		response.setBackLink(emailLink.toString());
 		return response;
 	}
 
 	@Override
-	public CreateUserRS createUser(CreateUserRQConfirm request, String uuid, Principal principal) {
-		UserCreationBid bid = userCreationBidRepository.findOne(uuid);
-		expect(bid, notNull()).verify(INCORRECT_REQUEST, "Impossible to register user. UUID expired or already registered.");
+	public CreateUserRS createUser(CreateUserRQConfirm request, String uuid, ReportPortalUser loggedInUser) {
+		UserCreationBid bid = userCreationBidRepository.findById(uuid)
+				.orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST,
+						"Impossible to register user. UUID expired or already registered."
+				));
 
-		User user = userRepository.findOne(request.getLogin().toLowerCase());
-		expect(user, isNull()).verify(USER_ALREADY_EXISTS, formattedSupplier("login='{}'", request.getLogin()));
+		Optional<User> user = userRepository.findByLogin(request.getLogin().toLowerCase());
+		expect(user.isPresent(), equalTo(Boolean.FALSE)).verify(USER_ALREADY_EXISTS, formattedSupplier("login='{}'", request.getLogin()));
 
 		expect(request.getLogin(), Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
 				formattedSupplier("Username '{}' consists only of special characters", request.getLogin())
 		);
 
 		// synchronized (this)
-		Project defaultProject = projectRepository.findOne(bid.getDefaultProject());
-		expect(defaultProject, notNull()).verify(PROJECT_NOT_FOUND, bid.getDefaultProject());
+		Project defaultProject = projectRepository.findByName(bid.getDefaultProject().getName())
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, bid.getDefaultProject()));
 
 		// populate field from existing bid record
-		request.setDefaultProject(bid.getDefaultProject());
+		request.setDefaultProject(bid.getDefaultProject().getName());
 
 		String email = request.getEmail();
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 
-		User email_user = userRepository.findByEmail(request.getEmail());
-		expect(email_user, isNull()).verify(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
+		Optional<User> emailUser = userRepository.findByEmail(request.getEmail());
+		expect(emailUser.isPresent(), equalTo(Boolean.FALSE)).verify(USER_ALREADY_EXISTS,
+				formattedSupplier("email='{}'", request.getEmail())
+		);
 
-		user = userBuilder.get().addCreateUserRQ(request).addUserRole(UserRole.USER).build();
-		Optional<ProjectRole> projectRole = forName(bid.getRole());
-		expect(projectRole, Preconditions.IS_PRESENT).verify(ROLE_NOT_FOUND, bid.getRole());
+		User newUser = new UserBuilder().addCreateUserRQ(request).addUserRole(UserRole.USER).get();
 
-		List<UserConfig> projectUsers = defaultProject.getUsers();
+		ProjectRole projectRole = forName(bid.getRole()).orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, bid.getRole()));
+
+		Set<ProjectUser> projectUsers = defaultProject.getUsers();
 
 		//@formatter:off
 		projectUsers
-				.add(UserConfig.newOne()
-						.withProjectRole(projectRole.get())
-						.withProposedRole(projectRole.get())
-						.withLogin(user.getId()));
+				.add(new ProjectUser()
+						.withProjectRole(projectRole)
+						.withProject(defaultProject)
+						.withUser(newUser));
 		//@formatter:on
 
 		defaultProject.setUsers(projectUsers);
 
 		try {
-			userRepository.save(user);
-			projectRepository.addUsers(request.getDefaultProject(), projectUsers);
+			userRepository.save(newUser);
 
 			/*
 			 * Generate personal project for the user
 			 */
-			Project personalProject = personalProjectService.generatePersonalProject(user);
+			Project personalProject = personalProjectService.generatePersonalProject(newUser);
 			if (!defaultProject.getId().equals(personalProject.getId())) {
 				projectRepository.save(personalProject);
 			}
 
-			userCreationBidRepository.delete(uuid);
+			userCreationBidRepository.deleteById(uuid);
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while User creating.", exp);
 		}
 
-		eventPublisher.publishEvent(new UserCreatedEvent(user, user.getLogin()));
+		eventPublisher.publishEvent(new UserCreatedEvent(newUser, newUser.getLogin()));
 		CreateUserRS response = new CreateUserRS();
-		response.setLogin(user.getLogin());
+		response.setLogin(newUser.getLogin());
 		return response;
 	}
 
@@ -322,45 +326,43 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		EmailService emailService = emailServiceFactory.getDefaultEmailService(true);
 		String email = EntityUtils.normalizeId(rq.getEmail());
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
-		User user = userRepository.findByEmail(email);
-		expect(user, notNull()).verify(USER_NOT_FOUND, email);
-		expect(user.getType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR, "Unable to change password for external user");
+		User user = userRepository.findByEmail(email).orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, email));
+		expect(user.getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR, "Unable to change password for external user");
 		RestorePasswordBid bid = RestorePasswordBidConverter.TO_BID.apply(rq);
 		restorePasswordBidRepository.save(bid);
 		try {
 			// TODO use default 'from' param or project specified?
 			emailService.sendRestorePasswordEmail("Password recovery",
 					new String[] { email },
-					baseUrl + "#login?reset=" + bid.getId(),
+					baseUrl + "#login?reset=" + bid.getUuid(),
 					user.getLogin()
 			);
 		} catch (Exception e) {
-			fail().withError(FORBIDDEN_OPERATION, formattedSupplier("Unable to send email for bid '{}'.", bid.getId()));
+			fail().withError(FORBIDDEN_OPERATION, formattedSupplier("Unable to send email for bid '{}'.", bid.getUuid()));
 		}
 		return new OperationCompletionRS("Email has been sent");
 	}
 
 	@Override
 	public OperationCompletionRS resetPassword(ResetPasswordRQ rq) {
-		RestorePasswordBid bid = restorePasswordBidRepository.findOne(rq.getUuid());
-		expect(bid, notNull()).verify(ACCESS_DENIED, "The password change link is no longer valid.");
+		RestorePasswordBid bid = restorePasswordBidRepository.findById(rq.getUuid())
+				.orElseThrow(() -> new ReportPortalException(ACCESS_DENIED, "The password change link is no longer valid."));
 		String email = bid.getEmail();
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
-		User byEmail = userRepository.findByEmail(email);
-		expect(byEmail, notNull()).verify(USER_NOT_FOUND);
-		expect(byEmail.getType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR, "Unable to change password for external user");
+		User byEmail = userRepository.findByEmail(email).orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND));
+		expect(byEmail.getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR, "Unable to change password for external user");
 		byEmail.setPassword(HASH_FUNCTION.hashString(rq.getPassword(), Charsets.UTF_8).toString());
 		userRepository.save(byEmail);
-		restorePasswordBidRepository.delete(rq.getUuid());
+		restorePasswordBidRepository.deleteById(rq.getUuid());
 		OperationCompletionRS rs = new OperationCompletionRS();
 		rs.setResultMessage("Password has been changed");
 		return rs;
 	}
 
 	@Override
-	public YesNoRS isResetPasswordBidExist(String id) {
-		RestorePasswordBid bid = restorePasswordBidRepository.findOne(id);
-		return new YesNoRS(null != bid);
+	public YesNoRS isResetPasswordBidExist(String uuid) {
+		Optional<RestorePasswordBid> bid = restorePasswordBidRepository.findById(uuid);
+		return new YesNoRS(bid.isPresent());
 	}
 
 }

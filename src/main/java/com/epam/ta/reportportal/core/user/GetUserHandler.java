@@ -21,13 +21,13 @@
 
 package com.epam.ta.reportportal.core.user;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.UserBidRS;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import org.springframework.data.domain.Pageable;
 
-import java.security.Principal;
 import java.util.Map;
 
 /**
@@ -39,18 +39,26 @@ public interface GetUserHandler {
 	 * Get specified user info
 	 *
 	 * @param username  Username
-	 * @param principal Logged-in user
+	 * @param currentUser Logged-in username
 	 * @return
 	 */
-	UserResource getUser(String username, Principal principal);
+	UserResource getUser(String username, ReportPortalUser currentUser);
+
+	/**
+	 * Get logged-in user info
+	 *
+	 * @param currentUser Logged-in username
+	 * @return
+	 */
+	UserResource getUser(ReportPortalUser currentUser);
 
 	/**
 	 * Get information about user registration bid
 	 *
-	 * @param id
+	 * @param uuid
 	 * @return
 	 */
-	UserBidRS getBidInformation(Long id);
+	UserBidRS getBidInformation(String uuid);
 
 	/**
 	 * Validate existence of username or email

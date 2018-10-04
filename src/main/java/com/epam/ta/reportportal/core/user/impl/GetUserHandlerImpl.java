@@ -21,6 +21,7 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -29,8 +30,10 @@ import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -46,7 +49,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.security.Principal;
 import java.util.Map;
 import java.util.Optional;
 
@@ -77,8 +79,18 @@ public class GetUserHandlerImpl implements GetUserHandler {
 	}
 
 	@Override
-	public UserResource getUser(String username, Principal principal) {
+	public UserResource getUser(String username, ReportPortalUser loggedInUser) {
+
+		//todo validate permissions
 		User user = userRepository.findByLogin(username.toLowerCase())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND));
+		return UserConverter.TO_RESOURCE.apply(user);
+	}
+
+	@Override
+	public UserResource getUser(ReportPortalUser loggedInUser) {
+		//todo check for lower case if necessary
+		User user = userRepository.findByLogin(loggedInUser.getUsername()/*.toLowerCase()*/)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND));
 		return UserConverter.TO_RESOURCE.apply(user);
 	}
@@ -89,20 +101,20 @@ public class GetUserHandlerImpl implements GetUserHandler {
 		filter.withCondition(new FilterCondition(Condition.EQUALS, false, "false", EXPIRED));
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND));
-		String criteria = project.getUsers().stream().map(Project.UserConfig::getUser).map(User::getLogin).collect(joining(","));
+		String criteria = project.getUsers().stream().map(ProjectUser::getUser).map(User::getLogin).collect(joining(","));
 		filter.withCondition(new FilterCondition(Condition.IN, true, criteria, LOGIN));
 		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE)
 				.apply(userRepository.findByFilterExcluding(filter, pageable, "email"));
 	}
 
 	@Override
-	public UserBidRS getBidInformation(Long id) {
-		Optional<UserCreationBid> bid = userCreationBidRepository.findById(id);
+	public UserBidRS getBidInformation(String uuid) {
+		Optional<UserCreationBid> bid = userCreationBidRepository.findById(uuid);
 		return bid.map(b -> {
 			UserBidRS rs = new UserBidRS();
 			rs.setIsActive(true);
 			rs.setEmail(b.getEmail());
-			rs.setId(b.getId());
+			rs.setUuid(b.getUuid());
 			return rs;
 		}).orElseGet(() -> {
 			UserBidRS rs = new UserBidRS();
@@ -127,11 +139,11 @@ public class GetUserHandlerImpl implements GetUserHandler {
 	public Map<String, UserResource.AssignedProject> getUserProjects(String userName) {
 		return projectRepository.findUserProjects(userName).stream().collect(toMap(Project::getName, it -> {
 			UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-			assignedProject.setEntryType(it.getConfiguration().getEntryType().name());
-			Project.UserConfig userConfig = ProjectUtils.findUserConfigByLogin(it, userName);
+			assignedProject.setEntryType(it.getConfiguration().get(ProjectAttributeEnum.ENTRY_TYPE.getAttribute()));
+			ProjectUser projectUser = ProjectUtils.findUserConfigByLogin(it, userName);
 
-			ofNullable(userConfig.getProjectRole()).ifPresent(role -> assignedProject.setProjectRole(role.name()));
-			ofNullable(userConfig.getProposedRole()).ifPresent(role -> assignedProject.setProposedRole(role.name()));
+			ofNullable(ofNullable(projectUser).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userName))
+					.getProjectRole()).ifPresent(role -> assignedProject.setProjectRole(role.name()));
 
 			return assignedProject;
 		}));

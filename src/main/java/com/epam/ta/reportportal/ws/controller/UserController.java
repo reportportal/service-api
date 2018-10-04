@@ -9,9 +9,6 @@ import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.ModelViews;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
@@ -34,7 +31,6 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
-import java.security.Principal;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
@@ -64,14 +60,14 @@ public class UserController {
 	@ResponseStatus(CREATED)
 	//	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Create specified user", notes = "Allowable only for users with administrator role")
-	public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq, @AuthenticationPrincipal ReportPortalUser user,
+	public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq, @AuthenticationPrincipal ReportPortalUser currentUser,
 			HttpServletRequest request) {
 		String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
 				.replacePath(null)
 				.replaceQuery(null)
 				.build()
 				.toUriString();
-		return createUserMessageHandler.createUserByAdmin(rq, user, basicURL);
+		return createUserMessageHandler.createUserByAdmin(rq, currentUser, basicURL);
 	}
 
 	@RequestMapping(value = "/bid", method = POST)
@@ -79,7 +75,7 @@ public class UserController {
 	@ResponseStatus(CREATED)
 	@PreAuthorize("hasPermission(#createUserRQ.getDefaultProject(), 'projectManagerPermission')")
 	@ApiOperation("Register invitation for user who will be created")
-	public CreateUserBidRS createUserBid(@RequestBody @Validated CreateUserRQ createUserRQ, @AuthenticationPrincipal ReportPortalUser user,
+	public CreateUserBidRS createUserBid(@RequestBody @Validated CreateUserRQ createUserRQ, @AuthenticationPrincipal ReportPortalUser currentUser,
 			HttpServletRequest request) {
 		/*
 		 * Use Uri components since they are aware of x-forwarded-host headers
@@ -89,7 +85,7 @@ public class UserController {
 				.replaceQuery(null)
 				.build()
 				.toUri();
-		return createUserMessageHandler.createUserBid(createUserRQ, principal, rqUrl.toASCIIString());
+		return createUserMessageHandler.createUserBid(createUserRQ, currentUser, rqUrl.toASCIIString());
 	}
 
 	@RequestMapping(value = "/registration", method = POST)
@@ -97,8 +93,8 @@ public class UserController {
 	@ResponseBody
 	@ApiOperation("Activate invitation and create user in system")
 	public CreateUserRS createUser(@RequestBody @Validated CreateUserRQConfirm request, @RequestParam(value = "uuid") String uuid,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return createUserMessageHandler.createUser(request, uuid, principal);
+			@AuthenticationPrincipal ReportPortalUser currentUser) {
+		return createUserMessageHandler.createUser(request, uuid, currentUser);
 	}
 
 	@RequestMapping(value = "/registration", method = GET)
@@ -112,8 +108,8 @@ public class UserController {
 	@ResponseBody
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Delete specified user", notes = "Allowable only for users with administrator role")
-	public OperationCompletionRS deleteUser(@PathVariable String login, @AuthenticationPrincipal ReportPortalUser user) {
-		return deleteUserMessageHandler.deleteUser(EntityUtils.normalizeId(login), user.getUsername());
+	public OperationCompletionRS deleteUser(@PathVariable String login, @AuthenticationPrincipal ReportPortalUser currentUser) {
+		return deleteUserMessageHandler.deleteUser(EntityUtils.normalizeId(login), currentUser);
 	}
 
 	@RequestMapping(value = "/{login}", method = PUT)
@@ -121,7 +117,7 @@ public class UserController {
 	@PreAuthorize(ALLOWED_TO_EDIT_USER)
 	@ApiOperation(value = "Edit specified user", notes = "Only for administrators and profile's owner")
 	public OperationCompletionRS editUser(@PathVariable String login, @RequestBody @Validated EditUserRQ editUserRQ,
-			@ActiveRole UserRole role, @AuthenticationPrincipal ReportPortalUser user) {
+			@ActiveRole UserRole role, @AuthenticationPrincipal ReportPortalUser currentUser) {
 		return editUserMessageHandler.editUser(EntityUtils.normalizeId(login), editUserRQ, role);
 	}
 
@@ -130,16 +126,15 @@ public class UserController {
 	@ResponseView(ModelViews.FullUserView.class)
 	@PreAuthorize(ALLOWED_TO_EDIT_USER)
 	@ApiOperation(value = "Return information about specified user", notes = "Only for administrators and profile's owner")
-	public UserResource getUser(@PathVariable String login, @AuthenticationPrincipal ReportPortalUser user) {
-		return getUserHandler.getUser(EntityUtils.normalizeId(login), principal);
+	public UserResource getUser(@PathVariable String login, @AuthenticationPrincipal ReportPortalUser currentUser) {
+		return getUserHandler.getUser(EntityUtils.normalizeId(login), currentUser);
 	}
 
-	@RequestMapping(value = { "", "/" }, method = GET)
-	@ResponseBody
-	@ResponseView(ModelViews.FullUserView.class)
+	@Transactional(readOnly = true)
+	@GetMapping(value = { "", "/" })
 	@ApiOperation("Return information about current logged-in user")
-	public UserResource getMyself(@AuthenticationPrincipal ReportPortalUser user) {
-		return getUserHandler.getUser(EntityUtils.normalizeId(principal.getName()), principal);
+	public UserResource getMyself(@AuthenticationPrincipal ReportPortalUser currentUser) {
+		return getUserHandler.getUser(currentUser);
 	}
 
 	@RequestMapping(value = "/all", method = GET)
@@ -148,7 +143,7 @@ public class UserController {
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Return information about all users", notes = "Allowable only for users with administrator role")
 	public Iterable<UserResource> getUsers(@FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
-			@AuthenticationPrincipal ReportPortalUser user) {
+			@AuthenticationPrincipal ReportPortalUser currentUser) {
 		return getUserHandler.getAllUsers(filter, pageable);
 	}
 
@@ -188,8 +183,8 @@ public class UserController {
 	@ResponseStatus(OK)
 	@ResponseBody
 	@ApiOperation("Check if a restore password bid exists")
-	public YesNoRS isRestorePasswordBidExist(@PathVariable String id) {
-		return createUserMessageHandler.isResetPasswordBidExist(id);
+	public YesNoRS isRestorePasswordBidExist(@PathVariable String uuid) {
+		return createUserMessageHandler.isResetPasswordBidExist(uuid);
 	}
 
 	@RequestMapping(value = "/password/change", method = POST)
@@ -197,8 +192,8 @@ public class UserController {
 	@ResponseStatus(OK)
 	@ApiOperation("Change own password")
 	public OperationCompletionRS changePassword(@RequestBody @Validated ChangePasswordRQ changePasswordRQ,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return editUserMessageHandler.changePassword(principal.getName(), changePasswordRQ);
+			@AuthenticationPrincipal ReportPortalUser currentUser) {
+		return editUserMessageHandler.changePassword(currentUser, changePasswordRQ);
 	}
 
 	@RequestMapping(value = "/{userName}/projects", method = GET)
@@ -206,7 +201,7 @@ public class UserController {
 	@ResponseBody
 	@ApiIgnore
 	public Map<String, UserResource.AssignedProject> getUserProjects(@PathVariable String userName,
-			@AuthenticationPrincipal ReportPortalUser user) {
+			@AuthenticationPrincipal ReportPortalUser currentUser) {
 		return getUserHandler.getUserProjects(userName);
 	}
 
@@ -216,16 +211,8 @@ public class UserController {
 	@ApiIgnore
 	@PreAuthorize(ADMIN_ONLY)
 	public Iterable<UserResource> findUsers(@RequestParam(value = "term") String term, Pageable pageable,
-			@AuthenticationPrincipal ReportPortalUser user) {
+			@AuthenticationPrincipal ReportPortalUser currentUser) {
 		return getUserHandler.searchUsers(term, pageable);
-	}
-
-	@Transactional(readOnly = true)
-	@GetMapping(value = { "", "/" })
-	@ApiOperation("Return information about current logged-in user")
-	public UserResource getMyself(@AuthenticationPrincipal ReportPortalUser user) {
-		return UserConverter.TO_RESOURCE.apply(userRepository.findByLogin(EntityUtils.normalizeId(user.getUsername()))
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUsername())));
 	}
 
 }

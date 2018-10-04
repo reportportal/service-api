@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.user.impl;
 
 import com.epam.ta.reportportal.BinaryData;
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.event.UpdateUserRoleEvent;
 import com.epam.ta.reportportal.core.user.event.UpdatedRole;
@@ -119,8 +120,9 @@ public class EditUserHandlerImpl implements EditUserHandler {
 	}
 
 	@Override
-	public OperationCompletionRS changePassword(String userName, ChangePasswordRQ changePasswordRQ) {
-		User user = userRepository.findByLogin(userName).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userName));
+	public OperationCompletionRS changePassword(ReportPortalUser loggedInUser, ChangePasswordRQ changePasswordRQ) {
+		User user = userRepository.findByLogin(loggedInUser.getUsername())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
 		expect(user.getUserType(), equalTo(INTERNAL)).verify(FORBIDDEN_OPERATION, "Impossible to change password for external users.");
 
 		expect(user.getPassword(), equalTo(HASH_FUNCTION.hashString(changePasswordRQ.getOldPassword(), Charsets.UTF_8).toString())).verify(FORBIDDEN_OPERATION,

@@ -134,7 +134,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
 	public Map<String, UserResource.AssignedProject> getUserProjects(String userName) {
 		return projectRepository.findUserProjects(userName).stream().collect(toMap(Project::getName, it -> {
 			UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-			Map<String, String> config = ProjectUtils.createConfigurationFromProjectAttributes(it.getProjectAttributes());
+			Map<String, String> config = ProjectUtils.getConfigParameters(it.getProjectAttributes());
 			assignedProject.setEntryType(config.get(ProjectAttributeEnum.ENTRY_TYPE.getAttribute()));
 			ProjectUser projectUser = ProjectUtils.findUserConfigByLogin(it, userName);
 

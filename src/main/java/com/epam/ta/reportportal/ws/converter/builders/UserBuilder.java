@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.entity.meta.MetaData;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -11,6 +12,8 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -38,7 +41,9 @@ public class UserBuilder implements Supplier<User> {
 			user.setFullName(request.getFullName());
 			user.setUserType(UserType.INTERNAL);
 			user.setExpired(false);
-			user.getMetadata().put("last_login", String.valueOf(LocalDateTime.now()));
+			Map<String, Object> lastLoginData = new HashMap<>();
+			lastLoginData.put("last_login", LocalDateTime.now());
+			user.setMetadata(new MetaData(lastLoginData));
 		}
 		return this;
 	}

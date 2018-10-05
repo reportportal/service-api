@@ -69,7 +69,7 @@ public class MailServiceFactory {
 	 */
 	public Optional<EmailService> getEmailService(Set<ProjectAttribute> projectAttributes, List<ServerSettings> serverSettings) {
 
-		Map<String, String> configuration = ProjectUtils.createConfigurationFromProjectAttributes(projectAttributes);
+		Map<String, String> configuration = ProjectUtils.getConfigParameters(projectAttributes);
 
 		return getEmailService(serverSettings).flatMap(service -> {
 			// if there is server email config, let's check project config

@@ -34,6 +34,7 @@ import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.http.MediaType;
@@ -46,14 +47,14 @@ import java.util.stream.Collectors;
 @Profile("demo")
 public class FlushingDataJob implements Job {
 
+	@Value("${rp.demo.data}")
+	private Integer launchesCount;
+
 	@Autowired
 	private UserCreationBidRepository creationBidRepository;
 
 	@Autowired
 	private RestorePasswordBidRepository passwordBidRepository;
-
-	@Autowired
-	private ServerSettingsRepository serverSettingsRepository;
 
 	@Autowired
 	private ProjectRepository projectRepository;
@@ -117,9 +118,9 @@ public class FlushingDataJob implements Job {
 
 		addDemoProjectEventHandler.addDefaultUser();
 		DemoDataRq demoDataRq = new DemoDataRq();
-		demoDataRq.setPostfix("default");
+		demoDataRq.setPostfix("Demo");
 		demoDataRq.setCreateDashboard(true);
-		demoDataRq.setLaunchesQuantity(5);
+		demoDataRq.setLaunchesQuantity(launchesCount);
 		demoDataService.generate(demoDataRq, Constants.DEFAULT_USER.toString() + "_" + "personal", Constants.DEFAULT_USER.toString());
 		LOGGER.info("Finish flushing all existing data!");
 	}

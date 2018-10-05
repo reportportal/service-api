@@ -150,6 +150,9 @@ dependencies {
     compile 'org.springframework.cloud:spring-cloud-starter-oauth2'
     compile 'org.springframework.security:spring-security-oauth2-client'
     compile 'org.springframework.security:spring-security-jwt'
+    compile 'org.springframework.security:spring-security-acl'
+    compile 'com.github.ben-manes.caffeine:caffeine:2.6.2'
+
 ///// end of Security
 
     compile 'org.apache.tika:tika-core'

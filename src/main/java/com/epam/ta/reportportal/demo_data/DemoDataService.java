@@ -40,7 +40,7 @@ import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 @Service
-class DemoDataService {
+public class DemoDataService {
 
 	private final DemoDashboardsService demoDashboardsService;
 	private final DemoDataFacadeFactory demoDataFacadeFactory;
@@ -54,7 +54,7 @@ class DemoDataService {
 		this.demoDataFacadeFactory = demoDataFacadeFactory;
 	}
 
-	DemoDataRs generate(DemoDataRq rq, String projectName, String user) {
+	public DemoDataRs generate(DemoDataRq rq, String projectName, String user) {
 		DemoDataRs demoDataRs = new DemoDataRs();
 		Project project = projectRepository.findOne(projectName);
 		BusinessRule.expect(project, Predicates.notNull()).verify(ErrorType.PROJECT_NOT_FOUND, projectName);

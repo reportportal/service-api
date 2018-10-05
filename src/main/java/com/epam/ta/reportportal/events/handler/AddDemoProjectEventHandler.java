@@ -121,8 +121,17 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		ServerSettings settings = new ServerSettings();
 		settings.setId(DEFAULT_PROFILE_ID);
 		settings.setActive(true);
-		settings.setServerEmailDetails(
-				new ServerEmailDetails(true, host, port, protocol, isEnable, false, false, username, password, "rp@epam.com"));
+		settings.setServerEmailDetails(new ServerEmailDetails(true,
+				host,
+				port,
+				protocol,
+				isEnable,
+				false,
+				false,
+				username,
+				password,
+				"rp@epam.com"
+		));
 		settings.setAnalyticsDetails(ImmutableMap.<String, AnalyticsDetails>builder().put("all", new AnalyticsDetails(true)).build());
 		settings.setInstanceId(UUID.randomUUID().toString());
 		return settings;
@@ -146,11 +155,6 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		 * if we didn't import default setting import them and set flag
 		 */
 		if (null == serverSettingsRepository.findOne(DEFAULT_PROFILE.get().getId())) {
-			// Save non-existing user photo
-			userRepository.uploadUserPhoto(Constants.NONAME_USER.toString(), new BinaryData(MediaType.IMAGE_JPEG_VALUE,
-					null,
-					AddDemoProjectEventHandler.class.getClassLoader().getResourceAsStream("nonameUserPhoto.jpg")
-			));
 
 			// Super administrator
 			if (null == userRepository.findOne(DEFAULT_ADMIN.get().getLogin())) {
@@ -165,18 +169,7 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 				userRepository.save(user);
 			}
 
-			// Down-graded user (previous administrator)
-			if (null == userRepository.findOne(DEFAULT_USER.get().getLogin())) {
-				User user = DEFAULT_USER.get();
-				String photoId = userRepository.uploadUserPhoto(user.getLogin(), new BinaryData(MediaType.IMAGE_JPEG_VALUE,
-						null,
-						AddDemoProjectEventHandler.class.getClassLoader().getResourceAsStream("defaultUserPhoto.jpg")
-				));
-				user.setPhotoId(photoId);
-
-				projectRepository.save(personalProjectService.generatePersonalProject(user));
-				userRepository.save(user);
-			}
+			addDefaultUser();
 
 			/* Create server settings repository with default profile */
 			ServerSettings serverSettings = DEFAULT_PROFILE.get();
@@ -189,5 +182,27 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 				serverSettingsRepository.save(serverSettings);
 			}
 		}
+	}
+
+	public void addDefaultUser() {
+		// Save non-existing user photo
+		userRepository.uploadUserPhoto(Constants.NONAME_USER.toString(), new BinaryData(MediaType.IMAGE_JPEG_VALUE,
+				null,
+				AddDemoProjectEventHandler.class.getClassLoader().getResourceAsStream("nonameUserPhoto.jpg")
+		));
+
+		// Down-graded user (previous administrator)
+		if (null == userRepository.findOne(DEFAULT_USER.get().getLogin())) {
+			User user = DEFAULT_USER.get();
+			String photoId = userRepository.uploadUserPhoto(user.getLogin(), new BinaryData(MediaType.IMAGE_JPEG_VALUE,
+					null,
+					AddDemoProjectEventHandler.class.getClassLoader().getResourceAsStream("defaultUserPhoto.jpg")
+			));
+			user.setPhotoId(photoId);
+
+			projectRepository.save(personalProjectService.generatePersonalProject(user));
+			userRepository.save(user);
+		}
+
 	}
 }

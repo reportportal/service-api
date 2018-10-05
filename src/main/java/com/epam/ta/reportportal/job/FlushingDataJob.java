@@ -20,9 +20,14 @@
  */
 package com.epam.ta.reportportal.job;
 
+import com.epam.ta.reportportal.commons.Constants;
 import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
+import com.epam.ta.reportportal.database.BinaryData;
 import com.epam.ta.reportportal.database.DataStorage;
 import com.epam.ta.reportportal.database.dao.*;
+import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.demo_data.DemoDataRq;
+import com.epam.ta.reportportal.demo_data.DemoDataService;
 import com.epam.ta.reportportal.events.handler.AddDemoProjectEventHandler;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -31,9 +36,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Profile("demo")
@@ -67,6 +74,9 @@ public class FlushingDataJob implements Job {
 	private DataStorage dataStorage;
 
 	@Autowired
+	private DemoDataService demoDataService;
+
+	@Autowired
 	private MongoOperations mongoOperations;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FlushingDataJob.class);
@@ -74,23 +84,43 @@ public class FlushingDataJob implements Job {
 	@Override
 	public void execute(JobExecutionContext context) {
 		LOGGER.info("Start flushing all existing data!");
-
 		mongoOperations.dropCollection("launchMetaInfo");
 		mongoOperations.dropCollection("oauth_access_token");
 		mongoOperations.dropCollection("oauth_refresh_token");
 		mongoOperations.dropCollection("sessions");
-
 		passwordBidRepository.deleteAll();
 		creationBidRepository.deleteAll();
-
-		List<String> allProjectNames = projectRepository.findAllProjectNames();
-		projectRepository.delete(allProjectNames);
-		allProjectNames.forEach(name -> logIndexer.deleteIndex(name));
-		serverSettingsRepository.deleteAll();
-		userRepository.deleteAll();
+		List<String> projectNames = projectRepository.findAllProjectNames()
+				.stream()
+				.filter(it -> !it.startsWith(Constants.DEFAULT_ADMIN.toString() + "_personal"))
+				.collect(Collectors.toList());
+		projectRepository.delete(projectNames);
+		projectNames.forEach(name -> logIndexer.deleteIndex(name));
+		List<String> users = userRepository.findAll()
+				.stream()
+				.map(User::getLogin)
+				.filter(it -> !it.equalsIgnoreCase(Constants.DEFAULT_ADMIN.toString()))
+				.collect(Collectors.toList());
+		userRepository.delete(users);
 		preferenceRepository.deleteAll();
 		dataStorage.deleteAll();
-		addDemoProjectEventHandler.onApplicationEvent(null);
+
+		User superadmin = userRepository.findOne(Constants.DEFAULT_ADMIN.toString());
+		String photoId = userRepository.uploadUserPhoto(superadmin.getLogin(),
+				new BinaryData(MediaType.IMAGE_JPEG_VALUE,
+						null,
+						FlushingDataJob.class.getClassLoader().getResourceAsStream("superAdminPhoto.jpg")
+				)
+		);
+		superadmin.setPhotoId(photoId);
+		userRepository.save(superadmin);
+
+		addDemoProjectEventHandler.addDefaultUser();
+		DemoDataRq demoDataRq = new DemoDataRq();
+		demoDataRq.setPostfix("default");
+		demoDataRq.setCreateDashboard(true);
+		demoDataRq.setLaunchesQuantity(5);
+		demoDataService.generate(demoDataRq, Constants.DEFAULT_USER.toString() + "_" + "personal", Constants.DEFAULT_USER.toString());
 		LOGGER.info("Finish flushing all existing data!");
 	}
 }

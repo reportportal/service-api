@@ -21,10 +21,14 @@
 package com.epam.ta.reportportal.util.email;
 
 import com.epam.reportportal.commons.template.TemplateEngine;
-import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
-import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig;
-import com.epam.ta.reportportal.database.entity.settings.ServerEmailDetails;
+import com.epam.ta.reportportal.dao.ServerSettingsRepository;
+import com.epam.ta.reportportal.entity.ServerSettings;
+import com.epam.ta.reportportal.entity.ServerSettingsEnum;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
+import com.epam.ta.reportportal.entity.project.ProjectAttribute;
+import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
@@ -32,8 +36,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Nullable;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.ws.model.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
 import static java.util.Optional.ofNullable;
@@ -47,7 +51,6 @@ public class MailServiceFactory {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailServiceFactory.class);
 	private static final int DEFAULT_CONNECTION_TIMEOUT = 5000;
-	private static final String DEFAULT_SETTINGS_PROFILE = "default";
 
 	private final TemplateEngine templateEngine;
 	private final BasicTextEncryptor encryptor;
@@ -63,64 +66,70 @@ public class MailServiceFactory {
 	/**
 	 * Build mail service based on provided configs
 	 *
-	 * @param projectConfig Project-level configuration
-	 * @param serverConfig  Server-level configuration
+	 * @param projectAttributes Project configuration attributes
+	 * @param serverSettings    Server-level configuration
 	 * @return Built email service
 	 */
-	public Optional<EmailService> getEmailService(ProjectEmailConfig projectConfig, ServerEmailDetails serverConfig) {
+	public Optional<EmailService> getEmailService(Set<ProjectAttribute> projectAttributes, List<ServerSettings> serverSettings) {
 
-		return getEmailService(serverConfig).flatMap(service -> {
+		Map<String, String> configuration = ProjectUtils.createConfigurationFromProjectAttributes(projectAttributes);
+
+		return getEmailService(serverSettings).flatMap(service -> {
 			// if there is server email config, let's check project config
-			Optional<ProjectEmailConfig> projectConf = ofNullable(projectConfig);
-			if (projectConf.isPresent()) {
+			if (MapUtils.isNotEmpty(configuration)) {
 				// if project config is present, check whether sending emails is enabled and replace server properties with project properties
-				return projectConf.filter(ProjectEmailConfig::getEmailEnabled).flatMap(pc -> {
+				if (BooleanUtils.toBoolean(configuration.get(ProjectAttributeEnum.EMAIL_ENABLED.getAttribute()))) {
 					//update of present on project level
-					Optional.ofNullable(pc.getFrom()).ifPresent(service::setFrom);
-					return Optional.of(service);
-				});
+					ofNullable(configuration.get(ProjectAttributeEnum.EMAIL_FROM.getAttribute())).ifPresent(service::setFrom);
+				}
 
-			} else {
-				return Optional.of(service);
 			}
+			return Optional.of(service);
 		});
 	}
 
 	/**
 	 * Build mail service based on provided configs
 	 *
-	 * @param serverConfig Server-level configuration
+	 * @param serverSettings Server-level configuration
 	 * @return Built email service
 	 */
-	public Optional<EmailService> getEmailService(ServerEmailDetails serverConfig) {
-		return ofNullable(serverConfig).flatMap(serverConf -> {
-			if (BooleanUtils.isFalse(serverConf.getEnabled())) {
-				return Optional.empty();
-			}
-			boolean authRequired = (null != serverConf.getAuthEnabled() && serverConf.getAuthEnabled());
+	public Optional<EmailService> getEmailService(List<ServerSettings> serverSettings) {
+
+		Map<String, String> config = serverSettings.stream()
+				.collect(Collectors.toMap(ServerSettings::getKey, ServerSettings::getValue, (prev, curr) -> prev));
+
+		if (MapUtils.isNotEmpty(config) && BooleanUtils.toBoolean(config.get(ServerSettingsEnum.ENABLED.getAttribute()))) {
+
+			boolean authRequired = BooleanUtils.toBoolean(config.get(ServerSettingsEnum.AUTH_ENABLED.getAttribute()));
 
 			Properties javaMailProperties = new Properties();
 			javaMailProperties.put("mail.smtp.connectiontimeout", DEFAULT_CONNECTION_TIMEOUT);
 			javaMailProperties.put("mail.smtp.auth", authRequired);
-			javaMailProperties.put("mail.smtp.starttls.enable", authRequired && BooleanUtils.toBoolean(serverConf.getStarTlsEnabled()));
+			javaMailProperties.put("mail.smtp.starttls.enable",
+					authRequired && BooleanUtils.toBoolean(config.get(ServerSettingsEnum.START_TLS_ENABLED.getAttribute()))
+			);
 
-			if (BooleanUtils.toBoolean(serverConf.getSslEnabled())) {
+			if (BooleanUtils.toBoolean(ServerSettingsEnum.SSL_ENABLED.getAttribute())) {
 				javaMailProperties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
 				javaMailProperties.put("mail.smtp.socketFactory.fallback", "false");
 			}
 
 			EmailService service = new EmailService(javaMailProperties);
 			service.setTemplateEngine(templateEngine);
-			service.setHost(serverConf.getHost());
-			service.setPort(serverConf.getPort());
-			service.setProtocol(serverConf.getProtocol());
-			service.setFrom(serverConf.getFrom());
+			service.setHost(ServerSettingsEnum.HOST.getAttribute());
+			service.setPort(Integer.parseInt(ServerSettingsEnum.PORT.getAttribute()));
+			service.setProtocol(ServerSettingsEnum.PROTOCOL.getAttribute());
+			service.setFrom(ServerSettingsEnum.FROM.getAttribute());
 			if (authRequired) {
-				service.setUsername(serverConf.getUsername());
-				service.setPassword(encryptor.decrypt(serverConf.getPassword()));
+				service.setUsername(ServerSettingsEnum.USERNAME.getAttribute());
+				service.setPassword(encryptor.decrypt(ServerSettingsEnum.PASSWORD.getAttribute()));
 			}
 			return Optional.of(service);
-		});
+
+		}
+
+		return Optional.empty();
 	}
 
 	/**
@@ -129,9 +138,7 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	public Optional<EmailService> getDefaultEmailService() {
-		return ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE)).flatMap(
-				serverSettings -> getEmailService(serverSettings.getServerEmailDetails()));
-
+		return getEmailService(settingsRepository.findAll());
 	}
 
 	/**
@@ -139,9 +146,8 @@ public class MailServiceFactory {
 	 *
 	 * @return Built email service
 	 */
-	public Optional<EmailService> getDefaultEmailService(ProjectEmailConfig projectEmailConfig) {
-		return ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE)).flatMap(
-				serverSettings -> getEmailService(projectEmailConfig, serverSettings.getServerEmailDetails()));
+	public Optional<EmailService> getDefaultEmailService(Set<ProjectAttribute> projectAttributes) {
+		return getEmailService(projectAttributes, settingsRepository.findAll());
 	}
 
 	/**
@@ -149,10 +155,10 @@ public class MailServiceFactory {
 	 *
 	 * @return Built email service
 	 */
-	public EmailService getDefaultEmailService(ProjectEmailConfig projectEmailConfig, boolean checkConnection) {
-		EmailService emailService = ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE)).flatMap(
-				serverSettings -> getEmailService(projectEmailConfig, serverSettings.getServerEmailDetails()))
-				.orElseThrow(() -> emailConfigurationFail(null));
+	public EmailService getDefaultEmailService(Set<ProjectAttribute> projectAttributes, boolean checkConnection) {
+		EmailService emailService = getEmailService(projectAttributes,
+				settingsRepository.findAll()
+		).orElseThrow(() -> emailConfigurationFail(null));
 
 		if (checkConnection) {
 			checkConnection(emailService);
@@ -166,8 +172,7 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	public EmailService getDefaultEmailService(boolean checkConnection) {
-		EmailService emailService = ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE)).flatMap(
-				serverSettings -> getEmailService(serverSettings.getServerEmailDetails())).orElseThrow(() -> emailConfigurationFail(null));
+		EmailService emailService = getEmailService(settingsRepository.findAll()).orElseThrow(() -> emailConfigurationFail(null));
 
 		if (checkConnection) {
 			checkConnection(emailService);

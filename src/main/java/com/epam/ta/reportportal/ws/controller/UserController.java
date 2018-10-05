@@ -21,7 +21,6 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.server.ServletServerHttpRequest;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -33,11 +32,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 @RestController
 @RequestMapping("/user")
@@ -55,13 +51,12 @@ public class UserController {
 	@Autowired
 	private GetUserHandler getUserHandler;
 
-	@RequestMapping(method = POST)
-	@ResponseBody
+	@PostMapping
 	@ResponseStatus(CREATED)
 	//	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Create specified user", notes = "Allowable only for users with administrator role")
-	public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq, @AuthenticationPrincipal ReportPortalUser currentUser,
-			HttpServletRequest request) {
+	public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq,
+			@AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
 		String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
 				.replacePath(null)
 				.replaceQuery(null)
@@ -70,13 +65,12 @@ public class UserController {
 		return createUserMessageHandler.createUserByAdmin(rq, currentUser, basicURL);
 	}
 
-	@RequestMapping(value = "/bid", method = POST)
-	@ResponseBody
+	@PostMapping(value = "/bid")
 	@ResponseStatus(CREATED)
-	@PreAuthorize("hasPermission(#createUserRQ.getDefaultProject(), 'projectManagerPermission')")
+	//@PreAuthorize("hasPermission(#createUserRQ.getDefaultProject(), 'projectManagerPermission')")
 	@ApiOperation("Register invitation for user who will be created")
-	public CreateUserBidRS createUserBid(@RequestBody @Validated CreateUserRQ createUserRQ, @AuthenticationPrincipal ReportPortalUser currentUser,
-			HttpServletRequest request) {
+	public CreateUserBidRS createUserBid(@RequestBody @Validated CreateUserRQ createUserRQ,
+			@AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
 		/*
 		 * Use Uri components since they are aware of x-forwarded-host headers
 		 */
@@ -88,43 +82,38 @@ public class UserController {
 		return createUserMessageHandler.createUserBid(createUserRQ, currentUser, rqUrl.toASCIIString());
 	}
 
-	@RequestMapping(value = "/registration", method = POST)
+	@PostMapping(value = "/registration")
 	@ResponseStatus(CREATED)
-	@ResponseBody
 	@ApiOperation("Activate invitation and create user in system")
 	public CreateUserRS createUser(@RequestBody @Validated CreateUserRQConfirm request, @RequestParam(value = "uuid") String uuid,
 			@AuthenticationPrincipal ReportPortalUser currentUser) {
 		return createUserMessageHandler.createUser(request, uuid, currentUser);
 	}
 
-	@RequestMapping(value = "/registration", method = GET)
-	@ResponseBody
+	@GetMapping(value = "/registration")
 	@ApiIgnore
 	public UserBidRS getUserBidInfo(@RequestParam(value = "uuid") String uuid) {
 		return getUserHandler.getBidInformation(uuid);
 	}
 
-	@RequestMapping(value = "/{login}", method = DELETE)
-	@ResponseBody
-	@PreAuthorize(ADMIN_ONLY)
+	@DeleteMapping(value = "/{login}")
+	//@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Delete specified user", notes = "Allowable only for users with administrator role")
 	public OperationCompletionRS deleteUser(@PathVariable String login, @AuthenticationPrincipal ReportPortalUser currentUser) {
 		return deleteUserMessageHandler.deleteUser(EntityUtils.normalizeId(login), currentUser);
 	}
 
-	@RequestMapping(value = "/{login}", method = PUT)
-	@ResponseBody
-	@PreAuthorize(ALLOWED_TO_EDIT_USER)
+	@PutMapping(value = "/{login}")
+	//@PreAuthorize(ALLOWED_TO_EDIT_USER)
 	@ApiOperation(value = "Edit specified user", notes = "Only for administrators and profile's owner")
 	public OperationCompletionRS editUser(@PathVariable String login, @RequestBody @Validated EditUserRQ editUserRQ,
 			@ActiveRole UserRole role, @AuthenticationPrincipal ReportPortalUser currentUser) {
 		return editUserMessageHandler.editUser(EntityUtils.normalizeId(login), editUserRQ, role);
 	}
 
-	@RequestMapping(value = "/{login}", method = GET)
-	@ResponseBody
+	@GetMapping(value = "/{login}")
 	@ResponseView(ModelViews.FullUserView.class)
-	@PreAuthorize(ALLOWED_TO_EDIT_USER)
+	//@PreAuthorize(ALLOWED_TO_EDIT_USER)
 	@ApiOperation(value = "Return information about specified user", notes = "Only for administrators and profile's owner")
 	public UserResource getUser(@PathVariable String login, @AuthenticationPrincipal ReportPortalUser currentUser) {
 		return getUserHandler.getUser(EntityUtils.normalizeId(login), currentUser);
@@ -137,27 +126,24 @@ public class UserController {
 		return getUserHandler.getUser(currentUser);
 	}
 
-	@RequestMapping(value = "/all", method = GET)
-	@ResponseBody
+	@GetMapping(value = "/all")
 	@ResponseView(ModelViews.FullUserView.class)
-	@PreAuthorize(ADMIN_ONLY)
+	//@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Return information about all users", notes = "Allowable only for users with administrator role")
 	public Iterable<UserResource> getUsers(@FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
 			@AuthenticationPrincipal ReportPortalUser currentUser) {
 		return getUserHandler.getAllUsers(filter, pageable);
 	}
 
-	@RequestMapping(value = "/registration/info", method = GET)
-	@ResponseBody
+	@GetMapping(value = "/registration/info")
 	@ApiIgnore
 	public YesNoRS validateInfo(@RequestParam(value = "username", required = false) String username,
 			@RequestParam(value = "email", required = false) String email) {
 		return getUserHandler.validateInfo(username, email);
 	}
 
-	@RequestMapping(value = "/password/restore", method = POST)
+	@PostMapping(value = "/password/restore")
 	@ResponseStatus(OK)
-	@ResponseBody
 	@ApiOperation("Create a restore password request")
 	public OperationCompletionRS restorePassword(@RequestBody @Validated RestorePasswordRQ rq, HttpServletRequest request) {
 		/*
@@ -171,24 +157,21 @@ public class UserController {
 		return createUserMessageHandler.createRestorePasswordBid(rq, baseUrl);
 	}
 
-	@RequestMapping(value = "/password/reset", method = POST)
+	@PostMapping(value = "/password/reset")
 	@ResponseStatus(OK)
-	@ResponseBody
 	@ApiOperation("Reset password")
 	public OperationCompletionRS resetPassword(@RequestBody @Validated ResetPasswordRQ rq) {
 		return createUserMessageHandler.resetPassword(rq);
 	}
 
-	@RequestMapping(value = "/password/reset/{id}", method = GET)
+	@GetMapping(value = "/password/reset/{uuid}")
 	@ResponseStatus(OK)
-	@ResponseBody
 	@ApiOperation("Check if a restore password bid exists")
 	public YesNoRS isRestorePasswordBidExist(@PathVariable String uuid) {
 		return createUserMessageHandler.isResetPasswordBidExist(uuid);
 	}
 
-	@RequestMapping(value = "/password/change", method = POST)
-	@ResponseBody
+	@PostMapping(value = "/password/change")
 	@ResponseStatus(OK)
 	@ApiOperation("Change own password")
 	public OperationCompletionRS changePassword(@RequestBody @Validated ChangePasswordRQ changePasswordRQ,
@@ -196,20 +179,18 @@ public class UserController {
 		return editUserMessageHandler.changePassword(currentUser, changePasswordRQ);
 	}
 
-	@RequestMapping(value = "/{userName}/projects", method = GET)
+	@GetMapping(value = "/{userName}/projects")
 	@ResponseStatus(OK)
-	@ResponseBody
 	@ApiIgnore
 	public Map<String, UserResource.AssignedProject> getUserProjects(@PathVariable String userName,
 			@AuthenticationPrincipal ReportPortalUser currentUser) {
 		return getUserHandler.getUserProjects(userName);
 	}
 
-	@RequestMapping(value = "/search", method = GET)
+	@GetMapping(value = "/search")
 	@ResponseStatus(OK)
-	@ResponseBody
 	@ApiIgnore
-	@PreAuthorize(ADMIN_ONLY)
+	//@PreAuthorize(ADMIN_ONLY)
 	public Iterable<UserResource> findUsers(@RequestParam(value = "term") String term, Pageable pageable,
 			@AuthenticationPrincipal ReportPortalUser currentUser) {
 		return getUserHandler.searchUsers(term, pageable);

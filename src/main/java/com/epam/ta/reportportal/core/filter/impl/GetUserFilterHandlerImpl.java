@@ -16,7 +16,11 @@
 
 package com.epam.ta.reportportal.core.filter.impl;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_READ_OBJECT;
+import static com.epam.ta.reportportal.util.ProjectUtils.extractProjectDetails;
+
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.filter.IGetUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
@@ -31,6 +35,7 @@ import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,27 +57,18 @@ public class GetUserFilterHandlerImpl implements IGetUserFilterHandler {
 	}
 
 	@Override
-	public UserFilterResource getFilter(Long filterId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		UserFilter filter = filterRepository.findById(filterId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, filterId, user.getUsername()));
-		return UserFilterConverter.TO_FILTER_RESOURCE.apply(filter);
+	@PostAuthorize(CAN_READ_OBJECT)
+	public UserFilter getFilter(Long filterId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		return filterRepository.findById(filterId)
+			.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, filterId, user.getUsername()));
 	}
 
 	@Override
-	public Iterable<UserFilterResource> getFilters(Filter filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user) {
-		Page<UserFilter> filters = filterRepository.findByFilter(filter, pageable);
+	public Iterable<UserFilterResource> getOwnFilters(String projectName, Pageable pageable,
+		Filter filter, ReportPortalUser user) {
+		ProjectDetails projectDetails = extractProjectDetails(user, projectName);
+		Page<UserFilter> filters = filterRepository.getOwnFilters(projectDetails.getProjectId(), filter, pageable, user.getUsername());
 		return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_FILTER_RESOURCE).apply(filters);
-	}
-
-	@Override
-	public List<UserFilterResource> getOwnFilters(Filter filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		throw new UnsupportedOperationException("Not implemented until acl logic");
-	}
-
-	@Override
-	public List<UserFilterResource> getSharedFilters(Filter filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		throw new UnsupportedOperationException("Not implemented until acl logic");
 	}
 
 	@Override

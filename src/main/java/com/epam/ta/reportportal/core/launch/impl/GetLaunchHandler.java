@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -232,7 +233,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
 							"Project with id = " + launch.getProjectId() + " not found"
 					));
-			Project.UserConfig userConfig = ProjectUtils.findUserConfigByLogin(project, username);
+			ProjectUser userConfig = ProjectUtils.findUserConfigByLogin(project, username);
 
 			expect(userConfig, notNull()).verify(ErrorType.ACCESS_DENIED);
 			expect(userConfig.getProjectRole(), not(Predicates.equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);

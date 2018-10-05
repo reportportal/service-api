@@ -139,7 +139,8 @@ public class GetUserHandlerImpl implements GetUserHandler {
 	public Map<String, UserResource.AssignedProject> getUserProjects(String userName) {
 		return projectRepository.findUserProjects(userName).stream().collect(toMap(Project::getName, it -> {
 			UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-			assignedProject.setEntryType(it.getConfiguration().get(ProjectAttributeEnum.ENTRY_TYPE.getAttribute()));
+			Map<String, String> config = ProjectUtils.createConfigurationFromProjectAttributes(it.getProjectAttributes());
+			assignedProject.setEntryType(config.get(ProjectAttributeEnum.ENTRY_TYPE.getAttribute()));
 			ProjectUser projectUser = ProjectUtils.findUserConfigByLogin(it, userName);
 
 			ofNullable(ofNullable(projectUser).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userName))

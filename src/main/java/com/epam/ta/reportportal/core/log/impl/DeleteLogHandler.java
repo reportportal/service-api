@@ -122,7 +122,7 @@ public class DeleteLogHandler implements IDeleteLogHandler {
 				formattedSupplier("Log '{}' not under specified '{}' project", logId, projectDetails.getProjectId())
 		);
 
-		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUserId(), launch.getUserId())) {
+		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUsername(), launch.getUser().getLogin())) {
 			/*
 			 * Only PROJECT_MANAGER roles could delete logs
 			 */

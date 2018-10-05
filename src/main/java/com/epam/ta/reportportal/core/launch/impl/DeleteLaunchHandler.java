@@ -118,7 +118,7 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 		expect(launch, not(l -> l.getStatus().equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId())
 		);
-		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUserId(), launch.getUserId())) {
+		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUsername(), launch.getUser().getLogin())) {
 			/* Only PROJECT_MANAGER roles could delete launches */
 			expect(projectDetails.getProjectRole(), equalTo(PROJECT_MANAGER)).verify(ACCESS_DENIED);
 		}

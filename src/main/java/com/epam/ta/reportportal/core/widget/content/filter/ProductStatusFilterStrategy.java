@@ -31,10 +31,10 @@ public class ProductStatusFilterStrategy extends AbstractStatisticsFilterStrateg
 	protected Map<Filter, Sort> buildFilterSortMap(Widget widget, Long projectId) {
 		Map<Filter, Sort> filterSortMap = Maps.newLinkedHashMap();
 		Optional.ofNullable(widget.getFilters()).orElse(Collections.emptySet()).forEach(f -> {
-			Filter filter = GROUP_FILTERS.apply(Sets.newHashSet(new Filter(f.getId(),
-					f.getTargetClass(),
-					Sets.newLinkedHashSet(f.getFilterCondition())
-			), buildDefaultFilter(widget, projectId)));
+			Filter filter = GROUP_FILTERS.apply(Sets.newHashSet(
+					new Filter(f.getId(), f.getTargetClass().getClassObject(), Sets.newLinkedHashSet(f.getFilterCondition())),
+					buildDefaultFilter(widget, projectId)
+			));
 			Optional<Set<FilterSort>> filterSorts = ofNullable(f.getFilterSorts());
 
 			Sort sort = Sort.by(filterSorts.map(fs -> fs.stream()

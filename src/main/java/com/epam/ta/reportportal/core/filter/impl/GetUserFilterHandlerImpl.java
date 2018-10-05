@@ -59,7 +59,7 @@ public class GetUserFilterHandlerImpl implements IGetUserFilterHandler {
 	@Override
 	public UserFilterResource getFilter(Long filterId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		UserFilter filter = filterRepository.findById(filterId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, filterId));
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, filterId, user.getUsername()));
 		return UserFilterConverter.TO_FILTER_RESOURCE.apply(filter);
 	}
 

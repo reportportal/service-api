@@ -49,11 +49,7 @@ public final class TestItemConverter {
 		resource.setEndTime(EntityUtils.TO_DATE.apply(item.getItemResults().getEndTime()));
 		resource.setItemId(String.valueOf(item.getItemId()));
 		if (null != item.getParameters()) {
-			resource.setParameters(item
-					.getParameters()
-					.stream()
-					.map(ParametersConverter.TO_RESOURCE)
-					.collect(Collectors.toList()));
+			resource.setParameters(item.getParameters().stream().map(ParametersConverter.TO_RESOURCE).collect(Collectors.toList()));
 		}
 		Optional.ofNullable(item.getItemResults().getIssue()).ifPresent(i -> resource.setIssue(IssueConverter.TO_MODEL.apply(i)));
 		resource.setName(item.getName());

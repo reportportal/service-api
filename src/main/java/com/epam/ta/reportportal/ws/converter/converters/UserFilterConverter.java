@@ -71,7 +71,7 @@ public final class UserFilterConverter {
 		userFilterResource.setFilterId(filter.getId());
 		userFilterResource.setName(filter.getName());
 		userFilterResource.setDescription(filter.getDescription());
-		userFilterResource.setObjectType(filter.getTargetClass().getSimpleName());
+		userFilterResource.setObjectType(filter.getTargetClass().getClassObject().getSimpleName());
 		userFilterResource.setConditions(filter.getFilterCondition()
 				.stream()
 				.map(UserFilterConverter.TO_FILTER_CONDITION)

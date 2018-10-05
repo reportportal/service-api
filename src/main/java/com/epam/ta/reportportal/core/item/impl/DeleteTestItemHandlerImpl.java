@@ -95,19 +95,18 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId())
 		);
 		Launch launch = testItem.getLaunch();
-		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
-				formattedSupplier("Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
-						testItem.getItemId(),
-						launch.getId()
-				)
-		);
+		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED, formattedSupplier(
+				"Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
+				testItem.getItemId(),
+				launch.getId()
+		));
 		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
 				formattedSupplier("Deleting testItem '{}' is not under specified project '{}'",
 						testItem.getItemId(),
 						projectDetails.getProjectId()
 				)
 		);
-		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUserId(), launch.getUserId())) {
+		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUsername(), launch.getUser().getLogin())) {
 			/*
 			 * Only PROJECT_MANAGER roles could delete testItems
 			 */

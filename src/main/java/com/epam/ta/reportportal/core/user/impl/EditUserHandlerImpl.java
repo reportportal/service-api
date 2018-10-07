@@ -71,20 +71,21 @@ import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
 @Service
 public class EditUserHandlerImpl implements EditUserHandler {
 
-	private UserRepository userRepository;
+	private final UserRepository userRepository;
+
+	private final ProjectRepository projectRepository;
+
+	private final ApplicationEventPublisher eventPublisher;
+
+	private final DataStore dataStore;
 
 	@Autowired
-	private ProjectRepository projectRepository;
-
-	@Autowired
-	private ApplicationEventPublisher eventPublisher;
-
-	@Autowired
-	private DataStore dataStore;
-
-	@Autowired
-	public void setUserRepository(UserRepository userRepository) {
+	public EditUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository, ApplicationEventPublisher eventPublisher,
+			DataStore dataStore) {
 		this.userRepository = userRepository;
+		this.projectRepository = projectRepository;
+		this.eventPublisher = eventPublisher;
+		this.dataStore = dataStore;
 	}
 
 	@Override

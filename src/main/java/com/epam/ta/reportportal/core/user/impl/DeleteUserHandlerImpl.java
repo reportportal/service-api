@@ -45,16 +45,20 @@ import java.util.Optional;
 @Service
 public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
-	@Autowired
-	private UserRepository userRepository;
+	private final UserRepository userRepository;
+
+	private final ProjectRepository projectRepository;
+
+	private final UatClient uatClient;
 
 	@Autowired
-	private ProjectRepository projectRepository;
+	public DeleteUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository, UatClient uatClient) {
+		this.userRepository = userRepository;
+		this.projectRepository = projectRepository;
+		this.uatClient = uatClient;
+	}
 
-	@Autowired
-	private UatClient uatClient;
-
-//	@Autowired
+	//	@Autowired
 //	private ILogIndexer logIndexer;
 
 	@Override

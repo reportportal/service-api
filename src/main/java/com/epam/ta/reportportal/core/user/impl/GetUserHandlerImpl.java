@@ -61,16 +61,18 @@ import static java.util.stream.Collectors.toMap;
 @Service
 public class GetUserHandlerImpl implements GetUserHandler {
 
-	private UserRepository userRepository;
-	private UserCreationBidRepository userCreationBidRepository;
+	private final UserRepository userRepository;
+
+	private final UserCreationBidRepository userCreationBidRepository;
+
+	private final ProjectRepository projectRepository;
 
 	@Autowired
-	private ProjectRepository projectRepository;
-
-	@Autowired
-	public GetUserHandlerImpl(UserRepository userRepo, UserCreationBidRepository userCreationBidRepository) {
+	public GetUserHandlerImpl(UserRepository userRepo, UserCreationBidRepository userCreationBidRepository,
+			ProjectRepository projectRepository) {
 		this.userRepository = Preconditions.checkNotNull(userRepo);
 		this.userCreationBidRepository = Preconditions.checkNotNull(userCreationBidRepository);
+		this.projectRepository = projectRepository;
 	}
 
 	@Override

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
@@ -39,17 +55,22 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/user")
 public class UserController {
 
-	@Autowired
-	private CreateUserHandler createUserMessageHandler;
+	private final CreateUserHandler createUserMessageHandler;
+
+	private final EditUserHandler editUserMessageHandler;
+
+	private final DeleteUserHandler deleteUserMessageHandler;
+
+	private final GetUserHandler getUserHandler;
 
 	@Autowired
-	private EditUserHandler editUserMessageHandler;
-
-	@Autowired
-	private DeleteUserHandler deleteUserMessageHandler;
-
-	@Autowired
-	private GetUserHandler getUserHandler;
+	public UserController(CreateUserHandler createUserMessageHandler, EditUserHandler editUserMessageHandler,
+			DeleteUserHandler deleteUserMessageHandler, GetUserHandler getUserHandler) {
+		this.createUserMessageHandler = createUserMessageHandler;
+		this.editUserMessageHandler = editUserMessageHandler;
+		this.deleteUserMessageHandler = deleteUserMessageHandler;
+		this.getUserHandler = getUserHandler;
+	}
 
 	@PostMapping
 	@ResponseStatus(CREATED)
@@ -90,6 +111,7 @@ public class UserController {
 		return createUserMessageHandler.createUser(request, uuid, currentUser);
 	}
 
+	@Transactional(readOnly = true)
 	@GetMapping(value = "/registration")
 	@ApiIgnore
 	public UserBidRS getUserBidInfo(@RequestParam(value = "uuid") String uuid) {
@@ -111,6 +133,7 @@ public class UserController {
 		return editUserMessageHandler.editUser(EntityUtils.normalizeId(login), editUserRQ, role);
 	}
 
+	@Transactional(readOnly = true)
 	@GetMapping(value = "/{login}")
 	@ResponseView(ModelViews.FullUserView.class)
 	//@PreAuthorize(ALLOWED_TO_EDIT_USER)
@@ -126,6 +149,7 @@ public class UserController {
 		return getUserHandler.getUser(currentUser);
 	}
 
+	@Transactional(readOnly = true)
 	@GetMapping(value = "/all")
 	@ResponseView(ModelViews.FullUserView.class)
 	//@PreAuthorize(ADMIN_ONLY)
@@ -135,6 +159,7 @@ public class UserController {
 		return getUserHandler.getAllUsers(filter, pageable);
 	}
 
+	@Transactional(readOnly = true)
 	@GetMapping(value = "/registration/info")
 	@ApiIgnore
 	public YesNoRS validateInfo(@RequestParam(value = "username", required = false) String username,
@@ -164,6 +189,7 @@ public class UserController {
 		return createUserMessageHandler.resetPassword(rq);
 	}
 
+	@Transactional(readOnly = true)
 	@GetMapping(value = "/password/reset/{uuid}")
 	@ResponseStatus(OK)
 	@ApiOperation("Check if a restore password bid exists")
@@ -179,6 +205,7 @@ public class UserController {
 		return editUserMessageHandler.changePassword(currentUser, changePasswordRQ);
 	}
 
+	@Transactional(readOnly = true)
 	@GetMapping(value = "/{userName}/projects")
 	@ResponseStatus(OK)
 	@ApiIgnore
@@ -187,6 +214,7 @@ public class UserController {
 		return getUserHandler.getUserProjects(userName);
 	}
 
+	@Transactional(readOnly = true)
 	@GetMapping(value = "/search")
 	@ResponseStatus(OK)
 	@ApiIgnore

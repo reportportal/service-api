@@ -74,35 +74,31 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 	static final HashFunction HASH_FUNCTION = Hashing.md5();
 
-	private UserRepository userRepository;
-	private ProjectRepository projectRepository;
+	private final UserRepository userRepository;
+
+	private final ProjectRepository projectRepository;
+
+	private final PersonalProjectService personalProjectService;
+
+	private final MailServiceFactory emailServiceFactory;
+
+	private final UserCreationBidRepository userCreationBidRepository;
+
+	private final RestorePasswordBidRepository restorePasswordBidRepository;
+
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	private PersonalProjectService personalProjectService;
-
-	@Autowired
-	private MailServiceFactory emailServiceFactory;
-
-	@Autowired
-	private UserCreationBidRepository userCreationBidRepository;
-
-	@Autowired
-	private RestorePasswordBidRepository restorePasswordBidRepository;
-
-	private ApplicationEventPublisher eventPublisher;
-
-	@Autowired
-	public void setUserRepository(UserRepository userRepository) {
+	public CreateUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository,
+			PersonalProjectService personalProjectService, MailServiceFactory emailServiceFactory,
+			UserCreationBidRepository userCreationBidRepository, RestorePasswordBidRepository restorePasswordBidRepository,
+			ApplicationEventPublisher eventPublisher) {
 		this.userRepository = userRepository;
-	}
-
-	@Autowired
-	public void setProjectRepository(ProjectRepository projectRepository) {
 		this.projectRepository = projectRepository;
-	}
-
-	@Autowired
-	public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
+		this.personalProjectService = personalProjectService;
+		this.emailServiceFactory = emailServiceFactory;
+		this.userCreationBidRepository = userCreationBidRepository;
+		this.restorePasswordBidRepository = restorePasswordBidRepository;
 		this.eventPublisher = eventPublisher;
 	}
 

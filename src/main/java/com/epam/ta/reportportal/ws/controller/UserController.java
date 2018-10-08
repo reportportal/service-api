@@ -72,6 +72,7 @@ public class UserController {
 		this.getUserHandler = getUserHandler;
 	}
 
+	@Transactional
 	@PostMapping
 	@ResponseStatus(CREATED)
 	//	@PreAuthorize(ADMIN_ONLY)
@@ -86,6 +87,7 @@ public class UserController {
 		return createUserMessageHandler.createUserByAdmin(rq, currentUser, basicURL);
 	}
 
+	@Transactional
 	@PostMapping(value = "/bid")
 	@ResponseStatus(CREATED)
 	//@PreAuthorize("hasPermission(#createUserRQ.getDefaultProject(), 'projectManagerPermission')")
@@ -103,6 +105,7 @@ public class UserController {
 		return createUserMessageHandler.createUserBid(createUserRQ, currentUser, rqUrl.toASCIIString());
 	}
 
+	@Transactional
 	@PostMapping(value = "/registration")
 	@ResponseStatus(CREATED)
 	@ApiOperation("Activate invitation and create user in system")
@@ -118,6 +121,7 @@ public class UserController {
 		return getUserHandler.getBidInformation(uuid);
 	}
 
+	@Transactional
 	@DeleteMapping(value = "/{login}")
 	//@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Delete specified user", notes = "Allowable only for users with administrator role")
@@ -125,6 +129,7 @@ public class UserController {
 		return deleteUserMessageHandler.deleteUser(EntityUtils.normalizeId(login), currentUser);
 	}
 
+	@Transactional
 	@PutMapping(value = "/{login}")
 	//@PreAuthorize(ALLOWED_TO_EDIT_USER)
 	@ApiOperation(value = "Edit specified user", notes = "Only for administrators and profile's owner")
@@ -167,6 +172,7 @@ public class UserController {
 		return getUserHandler.validateInfo(username, email);
 	}
 
+	@Transactional
 	@PostMapping(value = "/password/restore")
 	@ResponseStatus(OK)
 	@ApiOperation("Create a restore password request")
@@ -182,6 +188,7 @@ public class UserController {
 		return createUserMessageHandler.createRestorePasswordBid(rq, baseUrl);
 	}
 
+	@Transactional
 	@PostMapping(value = "/password/reset")
 	@ResponseStatus(OK)
 	@ApiOperation("Reset password")
@@ -197,6 +204,7 @@ public class UserController {
 		return createUserMessageHandler.isResetPasswordBidExist(uuid);
 	}
 
+	@Transactional
 	@PostMapping(value = "/password/change")
 	@ResponseStatus(OK)
 	@ApiOperation("Change own password")

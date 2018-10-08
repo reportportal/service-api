@@ -36,34 +36,30 @@ public interface ServerAdminHandler {
 	/**
 	 * Get server settings for specified profile
 	 *
-	 * @param profileId Profile ID
 	 * @return Settings
 	 */
-	ServerSettingsResource getServerSettings(Long profileId);
+	ServerSettingsResource getServerSettings();
 
 	/**
 	 * Updates email settings for specified profile
 	 *
-	 * @param profileId Profile ID
 	 * @param request   Update data
 	 * @return Operation results
 	 */
-	OperationCompletionRS saveEmailSettings(Long profileId, ServerEmailResource request);
+	OperationCompletionRS saveEmailSettings(ServerEmailResource request);
 
 	/**
 	 * Deletes email settings for specified profile
 	 *
-	 * @param profileId Profile ID
 	 * @return Operation results
 	 */
-	OperationCompletionRS deleteEmailSettings(Long profileId);
+	OperationCompletionRS deleteEmailSettings();
 
 	/**
 	 * Updates analytics settings for specified profile
 	 *
-	 * @param profileId Profile ID
 	 * @param analyticsResource   Analytics settings
 	 * @return Operation results
 	 */
-	OperationCompletionRS saveAnalyticsSettings(Long profileId, AnalyticsResource analyticsResource);
+	OperationCompletionRS saveAnalyticsSettings(AnalyticsResource analyticsResource);
 }

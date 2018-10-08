@@ -21,13 +21,21 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.entity.ServerSettings;
+import com.epam.ta.reportportal.entity.ServerSettingsEnum;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
-import com.google.common.base.Preconditions;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Converts internal DB model to DTO
@@ -40,27 +48,30 @@ public final class ServerSettingsConverter {
 		//static only
 	}
 
-	public static final Function<ServerSettings, ServerSettingsResource> TO_RESOURCE = settings -> {
-		Preconditions.checkNotNull(settings);
+	public static final Function<List<ServerSettings>, ServerSettingsResource> TO_RESOURCE = serverSettings -> {
+		BusinessRule.expect(CollectionUtils.isNotEmpty(serverSettings), equalTo(true))
+				.verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, "Server settings should not be empty");
+		Map<ServerSettingsEnum, String> settings = serverSettings.stream()
+				.collect(toMap(s -> ServerSettingsEnum.valueOf(s.getKey()), ServerSettings::getValue, (prev, curr) -> prev));
 		ServerSettingsResource resource = new ServerSettingsResource();
-		resource.setProfile(settings.getId());
-		resource.setActive(settings.getActive());
-		ServerEmailDetails serverEmailDetails = settings.getServerEmailDetails();
-		if (null != serverEmailDetails) {
-			ServerEmailResource output = new ServerEmailResource();
-			output.setHost(serverEmailDetails.getHost());
-			output.setPort(serverEmailDetails.getPort());
-			output.setProtocol(serverEmailDetails.getProtocol());
-			output.setAuthEnabled(serverEmailDetails.getAuthEnabled());
-			output.setSslEnabled(BooleanUtils.isTrue(serverEmailDetails.getSslEnabled()));
-			output.setStarTlsEnabled(BooleanUtils.isTrue(serverEmailDetails.getStarTlsEnabled()));
-			output.setFrom(serverEmailDetails.getFrom());
-			if (serverEmailDetails.getAuthEnabled()) {
-				output.setUsername(serverEmailDetails.getUsername());
-				/* Password field not provided in response */
-			}
-			resource.setServerEmailResource(output);
+		//TODO check profile
+		//resource.setProfile(settings.getId());
+		resource.setActive(BooleanUtils.toBoolean(settings.get(ServerSettingsEnum.ENABLED)));
+
+		ServerEmailResource output = new ServerEmailResource();
+		output.setHost(settings.get(ServerSettingsEnum.HOST));
+		output.setPort(Integer.valueOf(settings.get(ServerSettingsEnum.PORT)));
+		output.setProtocol(settings.get(ServerSettingsEnum.PROTOCOL));
+		output.setAuthEnabled(BooleanUtils.toBoolean(settings.get(ServerSettingsEnum.AUTH_ENABLED)));
+		output.setSslEnabled(BooleanUtils.toBoolean(settings.get(ServerSettingsEnum.SSL_ENABLED)));
+		output.setStarTlsEnabled(BooleanUtils.toBoolean(settings.get(ServerSettingsEnum.START_TLS_ENABLED)));
+		output.setFrom(settings.get(ServerSettingsEnum.FROM));
+		if (BooleanUtils.toBoolean(settings.get(ServerSettingsEnum.AUTH_ENABLED))) {
+			output.setUsername(settings.get(ServerSettingsEnum.USERNAME));
+			/* Password field not provided in response */
 		}
+		resource.setServerEmailResource(output);
+
 		return resource;
 	};
 

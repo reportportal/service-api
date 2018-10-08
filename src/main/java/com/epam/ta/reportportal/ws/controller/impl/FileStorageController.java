@@ -21,6 +21,7 @@ package com.epam.ta.reportportal.ws.controller.impl;
 import com.epam.ta.reportportal.BinaryData;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.core.file.GetFileHandler;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.store.service.DataStoreService;
@@ -56,6 +57,8 @@ public class FileStorageControllerImpl implements FileStorageController {
 
 	private final DataStoreService dataStoreService;
 
+	private GetFileHandler getFileHandler;
+
 	@Autowired
 	public FileStorageControllerImpl(DataStoreService dataStoreService) {
 		this.dataStoreService = dataStoreService;
@@ -79,7 +82,7 @@ public class FileStorageControllerImpl implements FileStorageController {
 	@Override
 	@ApiOperation("Get photo of current user")
 	public void getMyPhoto(@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
-		toResponse(response, userRepository.findUserPhoto(user.getName()));
+		toResponse(response, getFileHandler.getUserPhoto(user));
 	}
 
 	/**
@@ -93,7 +96,7 @@ public class FileStorageControllerImpl implements FileStorageController {
 	@ApiOperation("Get user's photo")
 	public void getUserPhoto(@RequestParam(value = "id") String username, HttpServletResponse response,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		toResponse(response, userRepository.findUserPhoto(EntityUtils.normalizeId(username)));
+		toResponse(response, getFileHandler.getUserPhoto(EntityUtils.normalizeId(username), user));
 	}
 
 	@Override

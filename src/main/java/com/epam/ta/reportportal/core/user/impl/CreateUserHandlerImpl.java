@@ -155,8 +155,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 		try {
 			userRepository.save(user);
-			//todo to check if this is necessary
-			//			projectRepository.addUsers(projectName, projectUsers);
 
 			/*
 			 * Generate personal project for the user

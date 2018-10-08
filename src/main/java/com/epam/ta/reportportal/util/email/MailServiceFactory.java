@@ -30,6 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -67,7 +69,7 @@ public class MailServiceFactory {
 	 * @param serverSettings    Server-level configuration
 	 * @return Built email service
 	 */
-	public Optional<EmailService> getEmailService(Set<ProjectAttribute> projectAttributes, List<ServerSettings> serverSettings) {
+	private Optional<EmailService> getEmailService(Set<ProjectAttribute> projectAttributes, List<ServerSettings> serverSettings) {
 
 		Map<String, String> configuration = ProjectUtils.getConfigParameters(projectAttributes);
 
@@ -91,7 +93,7 @@ public class MailServiceFactory {
 	 * @param serverSettings Server-level configuration
 	 * @return Built email service
 	 */
-	public Optional<EmailService> getEmailService(List<ServerSettings> serverSettings) {
+	private Optional<EmailService> getEmailService(List<ServerSettings> serverSettings) {
 
 		Map<String, String> config = serverSettings.stream()
 				.collect(Collectors.toMap(ServerSettings::getKey, ServerSettings::getValue, (prev, curr) -> prev));
@@ -129,6 +131,7 @@ public class MailServiceFactory {
 		return Optional.empty();
 	}
 
+	//TODO refactor docs
 	/**
 	 * Build mail service based on default server configs and checks connection
 	 *
@@ -152,6 +155,7 @@ public class MailServiceFactory {
 	 *
 	 * @return Built email service
 	 */
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public EmailService getDefaultEmailService(Set<ProjectAttribute> projectAttributes, boolean checkConnection) {
 		EmailService emailService = getEmailService(projectAttributes,
 				settingsRepository.findAll()
@@ -168,6 +172,7 @@ public class MailServiceFactory {
 	 *
 	 * @return Built email service
 	 */
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public EmailService getDefaultEmailService(boolean checkConnection) {
 		EmailService emailService = getEmailService(settingsRepository.findAll()).orElseThrow(() -> emailConfigurationFail(null));
 

@@ -11,7 +11,7 @@ import com.google.common.base.Charsets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -42,7 +42,7 @@ public class UserBuilder implements Supplier<User> {
 			user.setUserType(UserType.INTERNAL);
 			user.setExpired(false);
 			Map<String, Object> lastLoginData = new HashMap<>();
-			lastLoginData.put("last_login", LocalDateTime.now());
+			lastLoginData.put("last_login", new Date());
 			user.setMetadata(new MetaData(lastLoginData));
 		}
 		return this;

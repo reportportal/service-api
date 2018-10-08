@@ -23,6 +23,7 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
 
 import java.time.LocalDateTime;
 
@@ -32,11 +33,13 @@ import java.time.LocalDateTime;
 public class ProjectIndexEvent implements ActivityEvent {
 
 	private final Long projectId;
+	private final String projectName;
 	private final Long userId;
 	private final boolean indexing;
 
-	public ProjectIndexEvent(Long projectId, Long userId, boolean indexing) {
+	public ProjectIndexEvent(Long projectId, String projectName, Long userId, boolean indexing) {
 		this.projectId = projectId;
+		this.projectName = projectName;
 		this.userId = userId;
 		this.indexing = indexing;
 	}
@@ -49,6 +52,11 @@ public class ProjectIndexEvent implements ActivityEvent {
 		activity.setEntity(Activity.Entity.PROJECT);
 		activity.setProjectId(projectId);
 		activity.setUserId(userId);
+
+		ActivityDetails details = new ActivityDetails();
+		details.setObjectName(projectName);
+
+		activity.setDetails(details);
 		return activity;
 	}
 }

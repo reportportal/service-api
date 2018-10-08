@@ -22,7 +22,7 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
+import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
 
 import java.time.LocalDateTime;
@@ -50,6 +50,7 @@ public class DefectTypeUpdatedEvent implements ActivityEvent {
 		activity.setEntity(Activity.Entity.DEFECT_TYPE);
 		activity.setProjectId(projectId);
 		activity.setUserId(updatedBy);
+		activity.setDetails(new ActivityDetails(Long.valueOf(request.getId()), request.getLongName()));
 		return activity;
 	}
 }

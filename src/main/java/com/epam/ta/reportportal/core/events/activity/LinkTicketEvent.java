@@ -21,15 +21,15 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.core.events.activity.details.ActivityDetails;
-import com.epam.ta.reportportal.core.events.activity.details.HistoryField;
 import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
+import com.epam.ta.reportportal.entity.HistoryField;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 
 import java.time.LocalDateTime;
 
-import static com.epam.ta.reportportal.core.events.activity.TicketPostedEvent.TICKET_ID;
 import static com.epam.ta.reportportal.core.events.activity.TicketPostedEvent.issuesIdsToString;
+import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.TICKET_ID;
 
 /**
  * @author Andrei Varabyeu
@@ -65,7 +65,7 @@ public class LinkTicketEvent extends AroundEvent<IssueEntity> implements Activit
 				if (oldValue.length() > newValue.length()){
 					activity.setAction(ActivityAction.UNLINK_ISSUE.getValue());
 				}
-				details.addHistoryField(TICKET_ID, new HistoryField(oldValue, newValue));
+				details.addHistoryField(HistoryField.of(TICKET_ID, oldValue, newValue));
 			}
 		}
 

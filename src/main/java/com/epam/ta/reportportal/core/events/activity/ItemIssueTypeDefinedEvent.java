@@ -21,9 +21,9 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.core.events.activity.details.ActivityDetails;
-import com.epam.ta.reportportal.core.events.activity.details.HistoryField;
 import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
+import com.epam.ta.reportportal.entity.HistoryField;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -31,15 +31,12 @@ import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 
 import java.time.LocalDateTime;
 
+import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.*;
+
 /**
  * @author Andrei Varabyeu
  */
 public class ItemIssueTypeDefinedEvent implements ActivityEvent {
-
-	private static final String EMPTY_STRING = "";
-	private static final String COMMENT = "comment";
-	private static final String ISSUE_TYPE = "issueType";
-	private static final String IGNORE_ANALYZER = "ignoreAnalyzer";
 
 	private final Long postedBy;
 	private final IssueDefinition issueDefinition;
@@ -69,17 +66,17 @@ public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 
 		HistoryField descriptionField = processIssueDescription(issueEntity.getIssueDescription());
 		if (!descriptionField.isEmpty()){
-			details.addHistoryField(COMMENT, descriptionField);
+			details.addHistoryField(descriptionField);
 		}
 
 		HistoryField issueTypeField = processIssueTypes(issueEntity);
 		if (!issueTypeField.isEmpty() && issueTypeField.getOldValue().equalsIgnoreCase(issueTypeField.getNewValue())){
-			details.addHistoryField(ISSUE_TYPE, issueTypeField);
+			details.addHistoryField(issueTypeField);
 		}
 
 		HistoryField ignoredAnalyzerField = processIgnoredAnalyzer(issueEntity.getIgnoreAnalyzer());
 		if (!ignoredAnalyzerField.isEmpty()){
-			details.addHistoryField(IGNORE_ANALYZER, ignoredAnalyzerField);
+			details.addHistoryField(ignoredAnalyzerField);
 		}
 
 		activity.setDetails(details);
@@ -97,13 +94,14 @@ public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 		}
 
 		if (!oldIssueDescription.equals(comment)) {
-			historyField = new HistoryField(oldIssueDescription, comment);
+			historyField = HistoryField.of(COMMENT, oldIssueDescription, issueDefinition.getIssue().getComment());
 		}
 		return historyField;
 	}
 
 	private HistoryField processIssueTypes(IssueEntity issueEntity) {
 		HistoryField historyField = new HistoryField();
+		historyField.setField(ISSUE_TYPE);
 		project.getIssueTypes()
 				.stream()
 				.filter(i -> i.getLocator().equalsIgnoreCase(issueEntity.getIssueType().getLocator()))
@@ -119,6 +117,7 @@ public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 
 	private HistoryField processIgnoredAnalyzer(boolean oldIgnoredAnalyser) {
 		HistoryField historyField = new HistoryField();
+		historyField.setField(IGNORE_ANALYZER);
 		boolean newIgnoreAnalyzer = issueDefinition.getIssue().getIgnoreAnalyzer();
 		if (oldIgnoredAnalyser != newIgnoreAnalyzer){
 			historyField.setOldValue(String.valueOf(oldIgnoredAnalyser));

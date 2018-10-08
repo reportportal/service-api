@@ -22,8 +22,8 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.core.events.activity.details.SimpleWidgetActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.widget.Widget;
 
 import java.time.LocalDateTime;
@@ -48,7 +48,7 @@ public class WidgetDeletedEvent extends BeforeEvent<Widget> implements ActivityE
 		activity.setEntity(Activity.Entity.WIDGET);
 		activity.setUserId(removedBy);
 		activity.setProjectId(super.getBefore().getProject().getId());
-		activity.setDetails(new SimpleWidgetActivityDetails(super.getBefore().getId()));
+		activity.setDetails(new ActivityDetails(getBefore().getId(), getBefore().getName()));
 		return activity;
 	}
 }

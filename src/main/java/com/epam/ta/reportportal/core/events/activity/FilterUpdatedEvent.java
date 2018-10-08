@@ -22,8 +22,8 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.core.events.activity.details.ActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 
 import java.time.LocalDateTime;
@@ -53,7 +53,7 @@ public class FilterUpdatedEvent extends AroundEvent<UserFilter> implements Activ
 		activity.setProjectId(getBefore().getId());
 		activity.setUserId(updatedBy);
 
-		ActivityDetails details = new ActivityDetails();
+		ActivityDetails details = new ActivityDetails(getAfter().getId(), getAfter().getName());
 		processName(details, getBefore().getName(), getAfter().getName());
 		processDescription(details, getBefore().getDescription(), getAfter().getDescription());
 

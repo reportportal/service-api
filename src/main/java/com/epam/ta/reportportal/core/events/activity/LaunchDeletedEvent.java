@@ -21,8 +21,8 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.core.events.activity.details.SimpleLaunchActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.launch.Launch;
 
 import java.time.LocalDateTime;
@@ -45,9 +45,9 @@ public class LaunchDeletedEvent implements ActivityEvent {
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setAction(ActivityAction.DELETE_LAUNCH.getValue());
 		activity.setEntity(Activity.Entity.LAUNCH);
-		activity.setUserId(launch.getUserId());
+		activity.setUserId(launch.getUser().getId());
 		activity.setProjectId(launch.getProjectId());
-		activity.setDetails(new SimpleLaunchActivityDetails(launch.getId()));
+		activity.setDetails(new ActivityDetails(launch.getId(), launch.getName()));
 		return activity;
 	}
 }

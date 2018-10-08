@@ -22,18 +22,14 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.core.events.activity.details.ActivityDetails;
-import com.epam.ta.reportportal.core.events.activity.details.HistoryField;
 import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
 
 /**
  * @author Pavel Bortnik
@@ -60,7 +56,7 @@ public class ProjectAnalyzerConfigEvent extends AroundEvent<Set<ProjectAttribute
 
 		ActivityDetails details = new ActivityDetails();
 
-		Map<ProjectAttributeEnum, String> oldAnalyzerConfig = extractAnalyzerConfig(getBefore());
+/*		Map<ProjectAttributeEnum, String> oldAnalyzerConfig = extractAnalyzerConfig(getBefore());
 		Map<ProjectAttributeEnum, String> newAnalyzerConfig = extractAnalyzerConfig(getAfter());
 
 		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, ANALYZE_MODE);
@@ -68,7 +64,7 @@ public class ProjectAnalyzerConfigEvent extends AroundEvent<Set<ProjectAttribute
 		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, MIN_TERM_FREQ);
 		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, MIN_SHOULD_MATCH);
 		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, NUMBER_OF_LOG_LINES);
-		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, AUTO_ANALYZER_ENABLED);
+		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, AUTO_ANALYZER_ENABLED);*/
 
 		activity.setDetails(details);
 		return activity;
@@ -76,7 +72,7 @@ public class ProjectAnalyzerConfigEvent extends AroundEvent<Set<ProjectAttribute
 
 	private void processConfigAttribute(ActivityDetails details, Map<ProjectAttributeEnum, String> oldAnalyzerConfig,
 			Map<ProjectAttributeEnum, String> newAnalyzerConfig, ProjectAttributeEnum attribute) {
-		String oldValue = oldAnalyzerConfig.get(attribute);
+	/*	String oldValue = oldAnalyzerConfig.get(attribute);
 		String newValue = newAnalyzerConfig.get(attribute);
 		if (null != newValue && !newValue.equalsIgnoreCase(oldValue)) {
 			details.addHistoryField(attribute.getValue(), new HistoryField(oldValue, newValue));
@@ -101,5 +97,6 @@ public class ProjectAnalyzerConfigEvent extends AroundEvent<Set<ProjectAttribute
 				.filter(attr -> attr.getAttribute().getName().equalsIgnoreCase(attributeEnum.getValue()))
 				.findFirst()
 				.ifPresent(attr -> analyzerConfigAttributes.put(attributeEnum, attr.getValue()));
+				*/
 	}
 }

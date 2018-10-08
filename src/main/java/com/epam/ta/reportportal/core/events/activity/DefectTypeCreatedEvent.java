@@ -21,8 +21,8 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.core.events.activity.details.SimpleDefectTypeActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 
 import java.time.LocalDateTime;
@@ -51,7 +51,7 @@ public class DefectTypeCreatedEvent implements ActivityEvent {
 		activity.setEntity(Activity.Entity.DEFECT_TYPE);
 		activity.setUserId(updatedBy);
 		activity.setProjectId(projectId);
-		activity.setDetails(new SimpleDefectTypeActivityDetails(issueType.getId()));
+		activity.setDetails(new ActivityDetails(issueType.getId(), issueType.getLongName()));
 		return activity;
 	}
 }

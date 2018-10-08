@@ -21,8 +21,8 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.core.events.activity.details.SimpleDashboardActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 
 import java.time.LocalDateTime;
@@ -49,7 +49,7 @@ public class DashboardCreatedEvent implements ActivityEvent {
 		activity.setProjectId(dashboard.getProjectId());
 		//add user id after acl implementation
 		activity.setUserId(createdBy);
-		activity.setDetails(new SimpleDashboardActivityDetails(dashboard.getId()));
+		activity.setDetails(new ActivityDetails(dashboard.getId(), dashboard.getName()));
 		return activity;
 	}
 }

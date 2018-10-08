@@ -21,8 +21,8 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.core.events.activity.details.ActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 
 import java.time.LocalDateTime;
@@ -52,7 +52,7 @@ public class DashboardUpdatedEvent extends AroundEvent<Dashboard> implements Act
 		activity.setProjectId(getBefore().getProjectId());
 		activity.setUserId(updateBy);
 
-		ActivityDetails details = new ActivityDetails();
+		ActivityDetails details = new ActivityDetails(getAfter().getId(), getAfter().getDescription());
 		//processShare
 		processName(details, getBefore().getName(), getAfter().getName());
 		processDescription(details, getBefore().getDescription(), getAfter().getDescription());

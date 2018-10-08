@@ -1,17 +1,14 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
-import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.launch.LaunchTag;
+import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.email.EmailSenderCase;
-import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
+import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
-import org.apache.commons.lang3.BooleanUtils;
 
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 public class EmailConfigConverter {
 
@@ -22,7 +19,7 @@ public class EmailConfigConverter {
 	public static BiFunction<Set<ProjectAttribute>, Set<EmailSenderCase>, ProjectEmailConfigDTO> TO_RESOURCE = (pa, es) -> {
 		ProjectEmailConfigDTO dto = new ProjectEmailConfigDTO();
 
-		pa.stream()
+		/*pa.stream()
 				.filter(attr -> attr.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.EMAIL_FROM.getValue()))
 				.findFirst().ifPresent(it -> dto.setFrom(it.getValue()));
 
@@ -38,8 +35,13 @@ public class EmailConfigConverter {
 				item.getSendCase().toString(),
 				item.getLaunches().stream().map(Launch::getName).collect(Collectors.toList()),
 				item.getTags().stream().map(LaunchTag::getValue).collect(Collectors.toList())
-		)).collect(Collectors.toList()));
+		)).collect(Collectors.toList()));*/
 
 		return dto;
 	};
+
+	public static Function<Activity, ActivityResource> c = t -> {
+		ActivityResource activityResource = new ActivityResource();
+		activityResource.setDetails(t.getDetails());
+	}
 }

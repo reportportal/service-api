@@ -21,8 +21,8 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.core.events.activity.details.ActivityDetails;
 import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.widget.Widget;
 
 import java.time.LocalDateTime;
@@ -33,14 +33,12 @@ import static com.epam.ta.reportportal.core.events.activity.details.ActivityDeta
 /**
  * @author Andrei Varabyeu
  */
-public class WidgetUpdatedEvent extends BeforeEvent<Widget> implements ActivityEvent {
+public class WidgetUpdatedEvent extends AroundEvent<Widget> implements ActivityEvent {
 
-	private final Widget updated;
 	private final Long updatedBy;
 
-	public WidgetUpdatedEvent(Widget before, Widget updated, Long updatedBy) {
-		super(before);
-		this.updated = updated;
+	public WidgetUpdatedEvent(Widget before, Widget after, Long updatedBy) {
+		super(before, after);
 		this.updatedBy = updatedBy;
 	}
 
@@ -51,11 +49,11 @@ public class WidgetUpdatedEvent extends BeforeEvent<Widget> implements ActivityE
 		activity.setAction(ActivityAction.UPDATE_WIDGET.toString());
 		activity.setEntity(Activity.Entity.WIDGET);
 		activity.setUserId(updatedBy);
-		activity.setProjectId(updated.getId());
+		activity.setProjectId(getAfter().getProject().getId());
 
-		ActivityDetails details = new ActivityDetails();
-		processName(details, getBefore().getName(), updated.getName());
-		processDescription(details, getBefore().getDescription(), updated.getDescription());
+		ActivityDetails details = new ActivityDetails(getAfter().getId(), getAfter().getName());
+		processName(details, getBefore().getName(), getAfter().getName());
+		processDescription(details, getBefore().getDescription(), getAfter().getDescription());
 
 		activity.setDetails(details);
 		return activity;

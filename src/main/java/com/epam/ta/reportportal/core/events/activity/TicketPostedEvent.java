@@ -21,9 +21,9 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.core.events.activity.details.ActivityDetails;
-import com.epam.ta.reportportal.core.events.activity.details.HistoryField;
 import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
+import com.epam.ta.reportportal.entity.HistoryField;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
@@ -31,12 +31,12 @@ import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.TICKET_ID;
+
 /**
  * @author Andrei Varabyeu
  */
 public class TicketPostedEvent implements ActivityEvent {
-
-	public static final String TICKET_ID = "ticketId";
 
 	private final Ticket ticket;
 	private final Long postedBy;
@@ -77,7 +77,7 @@ public class TicketPostedEvent implements ActivityEvent {
 			newValue = oldValue + "," + newValue;
 		}
 
-		details.addHistoryField("ticketId", new HistoryField(oldValue, newValue));
+		details.addHistoryField(HistoryField.of(TICKET_ID, oldValue, newValue));
 	}
 
 	static String issuesIdsToString(IssueEntity issue) {

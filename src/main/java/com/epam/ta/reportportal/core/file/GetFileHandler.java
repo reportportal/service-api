@@ -12,4 +12,6 @@ public interface GetFileHandler {
 	InputStream getUserPhoto(ReportPortalUser loggedInUser);
 
 	InputStream getUserPhoto(String username, ReportPortalUser loggedInUser);
+
+	InputStream loadFileById(String fileId);
 }

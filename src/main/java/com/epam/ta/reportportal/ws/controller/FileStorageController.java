@@ -72,7 +72,7 @@ public class FileStorageController {
 	 *
 	 */
 	@Transactional(readOnly = true)
-	@GetMapping(value = "/data/photo")
+	@GetMapping(value = "/photo")
 	@ApiOperation("Get photo of current user")
 	public void getMyPhoto(@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
 		toResponse(response, getFileHandler.getUserPhoto(user));
@@ -83,7 +83,7 @@ public class FileStorageController {
 	 *
 	 */
 	@Transactional(readOnly = true)
-	@GetMapping(value = "/data/userphoto")
+	@GetMapping(value = "/userphoto")
 	@ApiOperation("Get user's photo")
 	public void getUserPhoto(@RequestParam(value = "id") String username, HttpServletResponse response,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -91,14 +91,14 @@ public class FileStorageController {
 	}
 
 	@Transactional
-	@PostMapping(value = "/data/photo")
+	@PostMapping(value = "/photo")
 	@ApiOperation("Upload user's photo")
 	public OperationCompletionRS uploadPhoto(@RequestParam("file") MultipartFile file, @AuthenticationPrincipal ReportPortalUser user) {
 		return editUserHandler.uploadPhoto(EntityUtils.normalizeId(user.getUsername()), file);
 	}
 
 	@Transactional
-	@DeleteMapping(value = "/data/photo")
+	@DeleteMapping(value = "/photo")
 	@ApiOperation("Delete user's photo")
 	public OperationCompletionRS deletePhoto(@AuthenticationPrincipal ReportPortalUser user) {
 		return editUserHandler.deletePhoto(EntityUtils.normalizeId(user.getUsername()));

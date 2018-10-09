@@ -48,7 +48,8 @@ public class FilterDeletedEvent extends BeforeEvent<UserFilter> implements Activ
 		activity.setAction(ActivityAction.DELETE_FILTER.getValue());
 		activity.setProjectId(getBefore().getProject().getId());
 		activity.setUserId(deletedBy);
-		activity.setDetails(new ActivityDetails(getBefore().getId(), getBefore().getDescription()));
+		activity.setObjectId(getBefore().getId());
+		activity.setDetails(new ActivityDetails(getBefore().getDescription()));
 		return activity;
 	}
 }

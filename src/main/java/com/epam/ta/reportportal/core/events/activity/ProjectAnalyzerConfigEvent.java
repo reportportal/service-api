@@ -38,11 +38,14 @@ public class ProjectAnalyzerConfigEvent extends AroundEvent<Set<ProjectAttribute
 
 	private final Long updatedBy;
 	private final Long projectId;
+	private final String projectName;
 
-	public ProjectAnalyzerConfigEvent(Set<ProjectAttribute> before, Set<ProjectAttribute> after, Long updatedBy, Long projectId) {
+	public ProjectAnalyzerConfigEvent(Set<ProjectAttribute> before, Set<ProjectAttribute> after, Long updatedBy, Long projectId,
+			String projectName) {
 		super(before, after);
 		this.updatedBy = updatedBy;
 		this.projectId = projectId;
+		this.projectName = projectName;
 	}
 
 	@Override
@@ -54,7 +57,7 @@ public class ProjectAnalyzerConfigEvent extends AroundEvent<Set<ProjectAttribute
 		activity.setProjectId(projectId);
 		activity.setUserId(updatedBy);
 
-		ActivityDetails details = new ActivityDetails();
+		ActivityDetails details = new ActivityDetails(projectName);
 
 /*		Map<ProjectAttributeEnum, String> oldAnalyzerConfig = extractAnalyzerConfig(getBefore());
 		Map<ProjectAttributeEnum, String> newAnalyzerConfig = extractAnalyzerConfig(getAfter());

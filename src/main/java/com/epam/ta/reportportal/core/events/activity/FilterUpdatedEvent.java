@@ -52,8 +52,9 @@ public class FilterUpdatedEvent extends AroundEvent<UserFilter> implements Activ
 		// before or after?
 		activity.setProjectId(getBefore().getId());
 		activity.setUserId(updatedBy);
+		activity.setObjectId(getAfter().getId());
 
-		ActivityDetails details = new ActivityDetails(getAfter().getId(), getAfter().getName());
+		ActivityDetails details = new ActivityDetails(getAfter().getName());
 		processName(details, getBefore().getName(), getAfter().getName());
 		processDescription(details, getBefore().getDescription(), getAfter().getDescription());
 

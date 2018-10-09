@@ -27,8 +27,6 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 
 import java.time.LocalDateTime;
 
-import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.EMPTY_FIELD;
-
 /**
  * @author Andrei Varabyeu
  */
@@ -50,7 +48,8 @@ public class IntegrationUpdatedEvent implements ActivityEvent {
 		activity.setEntity(Activity.Entity.INTEGRATION);
 		activity.setProjectId(integration.getProject().getId());
 		activity.setUserId(updatedBy);
-		activity.setDetails(new ActivityDetails(integration.getId(), EMPTY_FIELD));
+		activity.setObjectId(integration.getId());
+		activity.setDetails(new ActivityDetails(integration.getType().getName() + ":" + integration.getProject().getName()));
 		return activity;
 	}
 }

@@ -48,7 +48,8 @@ public class FiltersCreatedEvent extends BeforeEvent<UserFilter> implements Acti
 		activity.setAction(ActivityAction.CREATE_FILTER.getValue());
 		activity.setProjectId(getBefore().getProject().getId());
 		activity.setUserId(createdBy);
-		activity.setDetails(new ActivityDetails(getBefore().getId(), getBefore().getName()));
+		activity.setObjectId(getBefore().getId());
+		activity.setDetails(new ActivityDetails(getBefore().getName()));
 		return activity;
 	}
 }

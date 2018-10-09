@@ -60,8 +60,9 @@ public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 		activity.setEntity(Activity.Entity.ITEM_ISSUE);
 		activity.setProjectId(project.getId());
 		activity.setUserId(postedBy);
+		activity.setObjectId(issueDefinition.getId());
 
-		ActivityDetails details = new ActivityDetails();
+		ActivityDetails details = new ActivityDetails(testItem.getName());
 		IssueEntity issueEntity = testItem.getItemResults().getIssue();
 
 		HistoryField descriptionField = processIssueDescription(issueEntity.getIssueDescription());

@@ -50,7 +50,8 @@ public class LaunchStartedEvent implements ActivityEvent {
 		activity.setProjectId(launch.getProjectId());
 		activity.setAction(ActivityAction.START_LAUNCH.getValue());
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails(launch.getId(), launch.getName()));
+		activity.setObjectId(launch.getId());
+		activity.setDetails(new ActivityDetails(launch.getName()));
 		return activity;
 	}
 }

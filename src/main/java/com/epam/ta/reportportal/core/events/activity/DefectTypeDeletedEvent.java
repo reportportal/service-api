@@ -50,7 +50,8 @@ public class DefectTypeDeletedEvent implements ActivityEvent {
 		activity.setEntity(Activity.Entity.DEFECT_TYPE);
 		activity.setUserId(deletedBy);
 		activity.setProjectId(projectId);
-		activity.setDetails(new ActivityDetails(issueType.getId(), issueType.getLongName()));
+		activity.setObjectId(issueType.getId());
+		activity.setDetails(new ActivityDetails(issueType.getLongName()));
 		return activity;
 	}
 }

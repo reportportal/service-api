@@ -48,7 +48,8 @@ public class UserCreatedEvent implements ActivityEvent {
 		activity.setEntity(Activity.Entity.USER);
 		activity.setUserId(createdBy);
 		activity.setProjectId(user.getDefaultProject().getId());
-		activity.setDetails(new ActivityDetails(user.getId(), user.getFullName()));
+		activity.setObjectId(user.getId());
+		activity.setDetails(new ActivityDetails(user.getFullName()));
 		return activity;
 	}
 }

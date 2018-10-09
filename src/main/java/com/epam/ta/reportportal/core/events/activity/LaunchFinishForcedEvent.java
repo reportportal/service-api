@@ -49,7 +49,8 @@ public class LaunchFinishForcedEvent implements ActivityEvent {
 		activity.setEntity(Activity.Entity.LAUNCH);
 		activity.setProjectId(launch.getProjectId());
 		activity.setUserId(forcedBy);
-		activity.setDetails(new ActivityDetails(launch.getId(), launch.getName()));
+		activity.setObjectId(launch.getId());
+		activity.setDetails(new ActivityDetails(launch.getName()));
 		return activity;
 	}
 }

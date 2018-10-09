@@ -23,16 +23,11 @@ package com.epam.ta.reportportal.core.events.activity;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.HistoryField;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 
 import java.time.LocalDateTime;
-
-import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.LAUNCH_INACTIVITY;
-import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.KEEP_LOGS;
-import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.KEEP_SCREENSHOTS;
 
 /**
  * Being triggered on after project update
@@ -65,7 +60,7 @@ public class ProjectUpdatedEvent extends AroundEvent<Project> implements Activit
 		activity.setProjectId(getAfter().getId());
 		activity.setUserId(updatedBy);
 
-		ActivityDetails details = new ActivityDetails();
+		ActivityDetails details = new ActivityDetails(getAfter().getName());
 		ProjectConfiguration configuration = updateProjectRQ.getConfiguration();
 		if (null != configuration) {
 			processKeepLogs(details, getBefore(), configuration);
@@ -79,29 +74,29 @@ public class ProjectUpdatedEvent extends AroundEvent<Project> implements Activit
 	}
 
 	private void processLaunchInactivityTimeout(ActivityDetails details, Project project, ProjectConfiguration configuration) {
-		if ((null != configuration.getInterruptJobTime()) && (!configuration.getInterruptJobTime()
+		/*if ((null != configuration.getInterruptJobTime()) && (!configuration.getInterruptJobTime()
 				.equals(project.getConfiguration().getInterruptJobTime()))) {
 			details.addHistoryField(HistoryField.of(LAUNCH_INACTIVITY, project.getConfiguration().getInterruptJobTime(),
 					configuration.getInterruptJobTime()
 			));
-		}
+		}*/
 	}
 
 	private void processKeepScreenshots(ActivityDetails details, Project project, ProjectConfiguration configuration) {
-		if ((null != configuration.getKeepScreenshots()) && (!configuration.getKeepScreenshots()
+		/*if ((null != configuration.getKeepScreenshots()) && (!configuration.getKeepScreenshots()
 				.equals(project.getConfiguration().getKeepScreenshots()))) {
 			details.addHistoryField(HistoryField.of(KEEP_SCREENSHOTS.getValue(), project.getConfiguration().getKeepScreenshots(),
 					configuration.getKeepScreenshots()
 			));
-		}
+		}*/
 	}
 
 	private void processKeepLogs(ActivityDetails details, Project project, ProjectConfiguration configuration) {
-		if ((null != configuration.getKeepLogs()) && (!configuration.getKeepLogs().equals(project.getConfiguration().getKeepLogs()))) {
+		/*if ((null != configuration.getKeepLogs()) && (!configuration.getKeepLogs().equals(project.getConfiguration().getKeepLogs()))) {
 			details.addHistoryField(HistoryField.of(KEEP_LOGS.getValue(),
 					project.getConfiguration().getKeepLogs(),
 					configuration.getKeepLogs()
 			));
-		}
+		}*/
 	}
 }

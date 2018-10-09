@@ -50,8 +50,9 @@ public class EmailConfigUpdatedEvent extends BeforeEvent<Project> implements Act
 		activity.setEntity(Activity.Entity.EMAIL_CONFIG);
 		activity.setProjectId(getBefore().getId());
 		activity.setUserId(updatedBy);
+		activity.setObjectId(getBefore().getId());
 
-		ActivityDetails details = new ActivityDetails(getBefore().getId(), getBefore().getName());
+		ActivityDetails details = new ActivityDetails(getBefore().getName());
 		//		processEmailConfiguration(details, getBefore(), updateProjectEmailRQ);
 
 		activity.setDetails(details);

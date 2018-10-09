@@ -24,12 +24,8 @@ package com.epam.ta.reportportal.core.events.activity;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.HistoryField;
 
 import java.time.LocalDateTime;
-
-import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.EMPTY_FIELD;
-import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.NAME;
 
 /**
  * @author Pavel Bortnik
@@ -55,10 +51,7 @@ public class ImportStartedEvent implements ActivityEvent {
 		activity.setUserId(userId);
 		activity.setProjectId(projectId);
 
-		ActivityDetails details = new ActivityDetails();
-		details.addHistoryField(HistoryField.of(NAME, EMPTY_FIELD, fileName));
-
-		activity.setDetails(details);
+		activity.setDetails(new ActivityDetails(fileName));
 		return activity;
 	}
 }

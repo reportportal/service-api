@@ -51,8 +51,9 @@ public class DashboardUpdatedEvent extends AroundEvent<Dashboard> implements Act
 		activity.setAction(ActivityAction.UPDATE_DASHBOARD.getValue());
 		activity.setProjectId(getBefore().getProjectId());
 		activity.setUserId(updateBy);
+		activity.setObjectId(getAfter().getId());
 
-		ActivityDetails details = new ActivityDetails(getAfter().getId(), getAfter().getDescription());
+		ActivityDetails details = new ActivityDetails(getAfter().getDescription());
 		//processShare
 		processName(details, getBefore().getName(), getAfter().getName());
 		processDescription(details, getBefore().getDescription(), getAfter().getDescription());

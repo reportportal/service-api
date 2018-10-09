@@ -38,11 +38,15 @@ public class LinkTicketEvent extends AroundEvent<IssueEntity> implements Activit
 
 	private final Long attachedBy;
 	private final Long projectId;
+	private final Long testItemId;
+	private final String testItemName;
 
-	public LinkTicketEvent(IssueEntity before, IssueEntity after, Long attachedBy, Long projectId) {
+	public LinkTicketEvent(IssueEntity before, IssueEntity after, Long attachedBy, Long projectId, Long testItemId, String testItemName) {
 		super(before, after);
 		this.attachedBy = attachedBy;
 		this.projectId = projectId;
+		this.testItemId = testItemId;
+		this.testItemName = testItemName;
 	}
 
 	@Override
@@ -55,8 +59,9 @@ public class LinkTicketEvent extends AroundEvent<IssueEntity> implements Activit
 		activity.setEntity(Activity.Entity.TICKET);
 		activity.setUserId(attachedBy);
 		activity.setProjectId(projectId);
+		activity.setObjectId(testItemId);
 
-		ActivityDetails details = new ActivityDetails();
+		ActivityDetails details = new ActivityDetails(testItemName);
 
 		if (getAfter() != null) {
 			String oldValue = issuesIdsToString(getBefore());

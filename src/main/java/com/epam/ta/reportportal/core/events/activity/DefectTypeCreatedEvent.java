@@ -51,7 +51,8 @@ public class DefectTypeCreatedEvent implements ActivityEvent {
 		activity.setEntity(Activity.Entity.DEFECT_TYPE);
 		activity.setUserId(updatedBy);
 		activity.setProjectId(projectId);
-		activity.setDetails(new ActivityDetails(issueType.getId(), issueType.getLongName()));
+		activity.setObjectId(issueType.getId());
+		activity.setDetails(new ActivityDetails(issueType.getLongName()));
 		return activity;
 	}
 }

@@ -49,7 +49,8 @@ public class WidgetCreatedEvent implements ActivityEvent {
 		activity.setEntity(Activity.Entity.WIDGET);
 		activity.setUserId(createdBy);
 		activity.setProjectId(widget.getProject().getId());
-		activity.setDetails(new ActivityDetails(widget.getId(), widget.getName()));
+		activity.setObjectId(widget.getId());
+		activity.setDetails(new ActivityDetails(widget.getName()));
 		return activity;
 	}
 

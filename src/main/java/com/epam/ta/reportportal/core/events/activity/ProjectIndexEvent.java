@@ -52,11 +52,7 @@ public class ProjectIndexEvent implements ActivityEvent {
 		activity.setEntity(Activity.Entity.PROJECT);
 		activity.setProjectId(projectId);
 		activity.setUserId(userId);
-
-		ActivityDetails details = new ActivityDetails();
-		details.setObjectName(projectName);
-
-		activity.setDetails(details);
+		activity.setDetails(new ActivityDetails(projectName));
 		return activity;
 	}
 }

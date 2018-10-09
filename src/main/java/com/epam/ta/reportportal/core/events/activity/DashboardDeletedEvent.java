@@ -48,7 +48,8 @@ public class DashboardDeletedEvent extends BeforeEvent<Dashboard> implements Act
 		activity.setProjectId(getBefore().getProjectId());
 		//add user id after acl implementation
 		activity.setUserId(removedBy);
-		activity.setDetails(new ActivityDetails(getBefore().getId(), getBefore().getDescription()));
+		activity.setObjectId(getBefore().getId());
+		activity.setDetails(new ActivityDetails(getBefore().getDescription()));
 		return activity;
 	}
 }

@@ -49,7 +49,8 @@ public class DashboardCreatedEvent implements ActivityEvent {
 		activity.setProjectId(dashboard.getProjectId());
 		//add user id after acl implementation
 		activity.setUserId(createdBy);
-		activity.setDetails(new ActivityDetails(dashboard.getId(), dashboard.getName()));
+		activity.setObjectId(dashboard.getId());
+		activity.setDetails(new ActivityDetails(dashboard.getName()));
 		return activity;
 	}
 }

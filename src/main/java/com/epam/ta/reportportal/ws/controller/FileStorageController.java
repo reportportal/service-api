@@ -1,80 +1,124 @@
 /*
- * Copyright 2016 EPAM Systems
  *
+ *  * Copyright (C) 2018 EPAM Systems
+ *  *
+ *  * Licensed under the Apache License, Version 2.0 (the "License");
+ *  * you may not use this file except in compliance with the License.
+ *  * You may obtain a copy of the License at
+ *  *
+ *  * http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  * Unless required by applicable law or agreed to in writing, software
+ *  * distributed under the License is distributed on an "AS IS" BASIS,
+ *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  * See the License for the specific language governing permissions and
+ *  * limitations under the License.
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.epam.ta.reportportal.ws.controller;
+package com.epam.ta.reportportal.ws.controller.impl;
 
+import com.epam.ta.reportportal.BinaryData;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.core.file.GetFileHandler;
+import com.epam.ta.reportportal.core.user.EditUserHandler;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.store.service.DataStoreService;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import io.swagger.annotations.ApiOperation;
+import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 
 /**
- * Controller for Internal File System
- *
- * @author Andrei Varabyeu
+ * @author Dzianis_Shybeka
  */
-public interface FileStorageController {
+@RestController
+@RequestMapping("/data")
+public class FileStorageController {
+
+	private final EditUserHandler editUserHandler;
+
+	private final DataStoreService dataStoreService;
+
+	private final GetFileHandler getFileHandler;
+
+	@Autowired
+	public FileStorageController(EditUserHandler editUserHandler, DataStoreService dataStoreService, GetFileHandler getFileHandler) {
+		this.editUserHandler = editUserHandler;
+		this.dataStoreService = dataStoreService;
+		this.getFileHandler = getFileHandler;
+	}
+
+	@GetMapping(value = "/{dataId}")
+	//@PreAuthorize(ASSIGNED_TO_PROJECT)
+	public void getFile(@PathVariable("dataId") String dataId, HttpServletResponse response,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		toResponse(response, dataStoreService.load(dataId));
+	}
 
 	/**
-	 * Retrieves file from file system
+	 * (non-Javadoc)
 	 *
-	 * @param dataId
-	 * @param httpServletResponse
-	 * @param user
 	 */
-	void getFile(String dataId, HttpServletResponse httpServletResponse, ReportPortalUser user);
+	@GetMapping(value = "/data/photo")
+	@ApiOperation("Get photo of current user")
+	public void getMyPhoto(@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
+		toResponse(response, getFileHandler.getUserPhoto(user));
+	}
 
 	/**
-	 * Retrieves avatar for current login user
+	 * (non-Javadoc)
 	 *
-	 * @param user
-	 * @param response
 	 */
-	void getMyPhoto(ReportPortalUser user, HttpServletResponse response);
+	@RequestMapping(value = "/data/userphoto", method = RequestMethod.GET)
+	@ApiOperation("Get user's photo")
+	public void getUserPhoto(@RequestParam(value = "id") String username, HttpServletResponse response,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		toResponse(response, getFileHandler.getUserPhoto(EntityUtils.normalizeId(username), user));
+	}
+
+	@RequestMapping(value = "/data/photo", method = RequestMethod.POST)
+	@ResponseBody
+	@ApiOperation("Upload user's photo")
+	public OperationCompletionRS uploadPhoto(@RequestParam("file") MultipartFile file, @AuthenticationPrincipal ReportPortalUser user) {
+		return editUserHandler.uploadPhoto(EntityUtils.normalizeId(user.getUsername()), file);
+	}
+
+	@RequestMapping(value = "/data/photo", method = RequestMethod.DELETE)
+	@ResponseBody
+	@ApiOperation("Delete user's photo")
+	public OperationCompletionRS deletePhoto(@AuthenticationPrincipal ReportPortalUser user) {
+		return editUserHandler.deletePhoto(EntityUtils.normalizeId(user.getUsername()));
+	}
 
 	/**
-	 * Get specified user photo as binary data from storage
+	 * Copies provided {@link BinaryData} to Response
 	 *
-	 * @param username
-	 * @param response
-	 * @param user
+	 * @param response    Response
+	 * @param inputStream Stored data
 	 */
-	void getUserPhoto(String username, HttpServletResponse response, ReportPortalUser user);
+	private void toResponse(HttpServletResponse response, InputStream inputStream) {
+		if (inputStream != null) {
 
-	/**
-	 * Upload user's photo
-	 *
-	 * @param file
-	 * @param user
-	 * @return
-	 */
-	OperationCompletionRS uploadPhoto(MultipartFile file, ReportPortalUser user);
-
-	/**
-	 * Delete user's photo
-	 *
-	 * @param user
-	 * @return
-	 */
-	OperationCompletionRS deletePhoto(ReportPortalUser user);
-
+			try {
+				IOUtils.copy(inputStream, response.getOutputStream());
+			} catch (IOException e) {
+				throw new ReportPortalException("Unable to retrieve binary data from data storage", e);
+			}
+		} else {
+			response.setStatus(HttpStatus.NO_CONTENT.value());
+		}
+	}
 }

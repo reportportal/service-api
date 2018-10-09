@@ -1,22 +1,17 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.ws.controller;
@@ -33,7 +28,6 @@ import com.epam.ta.reportportal.core.log.impl.DeleteLogHandler;
 import com.epam.ta.reportportal.core.log.impl.GetLogHandler;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
@@ -65,8 +59,8 @@ import java.util.*;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.TEST_ITEM_ID;
+import static com.epam.ta.reportportal.util.ProjectUtils.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 
 /**
@@ -95,10 +89,10 @@ public class LogController {
 	@ResponseStatus(CREATED)
 	@ApiOperation("Create log")
 	@PreAuthorize(ALLOWED_TO_REPORT)
-	public EntryCreatedRS createLog(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @RequestBody SaveLogRQ createLogRQ,
+	public EntryCreatedRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		validateSaveRQ(createLogRQ);
-		return createLogMessageHandler.createLog(createLogRQ, null, projectDetails);
+		return createLogMessageHandler.createLog(createLogRQ, null, extractProjectDetails(user, projectName));
 	}
 
 	@PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
@@ -107,7 +101,7 @@ public class LogController {
 	// request mappings
 	//	@Async
 	@PreAuthorize(ALLOWED_TO_REPORT)
-	public ResponseEntity<BatchSaveOperatingRS> createLog(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+	public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectName,
 			@RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs, HttpServletRequest request,
 			@AuthenticationPrincipal ReportPortalUser user) {
 
@@ -128,7 +122,7 @@ public class LogController {
 					 * There is no filename in request. Use simple save
 					 * method
 					 */
-					responseItem = createLog(projectDetails, createLogRq, user);
+					responseItem = createLog(projectName, createLogRq, user);
 
 				} else {
 					/* Find by request part */
@@ -142,7 +136,7 @@ public class LogController {
 					 * data
 					 */
 					//noinspection ConstantConditions
-					responseItem = createLogMessageHandler.createLog(createLogRq, data, projectDetails);
+					responseItem = createLogMessageHandler.createLog(createLogRq, data, extractProjectDetails(user, projectName));
 				}
 				response.addResponse(new BatchElementCreatedRS(responseItem.getId()));
 			} catch (Exception e) {
@@ -154,40 +148,33 @@ public class LogController {
 
 	@RequestMapping(value = "/{logId}", method = RequestMethod.DELETE)
 	@ApiOperation("Delete log")
-	public OperationCompletionRS deleteLog(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long logId,
+	public OperationCompletionRS deleteLog(@PathVariable String projectName, @PathVariable Long logId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteLogHandler.deleteLog(logId, projectDetails, user);
+		return deleteLogHandler.deleteLog(logId, extractProjectDetails(user, projectName), user);
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
 	@ApiOperation("Get logs by filter")
-	public Iterable<LogResource> getLogs(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+	public Iterable<LogResource> getLogs(@PathVariable String projectName,
 			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ + TEST_ITEM_ID) Long testStepId,
 			@FilterFor(Log.class) Filter filter, @SortDefault({ "time" }) @SortFor(Log.class) Pageable pageable,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLogHandler.getLogs(testStepId, projectDetails, filter, pageable);
+		return getLogHandler.getLogs(testStepId, extractProjectDetails(user, projectName), filter, pageable);
 	}
 
 	@GetMapping(value = "/{logId}/page")
 	@ApiOperation("Get logs by filter")
-	public Map<String, Serializable> getPageNumber(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long logId,
+	public Map<String, Serializable> getPageNumber(@PathVariable String projectName, @PathVariable Long logId,
 			@FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
 		return ImmutableMap.<String, Serializable>builder().put("number",
-				getLogHandler.getPageNumber(logId, projectDetails, filter, pageable)
+				getLogHandler.getPageNumber(logId, extractProjectDetails(user, projectName), filter, pageable)
 		).build();
 	}
 
 	@GetMapping(value = "/{logId}")
 	@ApiOperation("Get log")
-	public LogResource getLog(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long logId,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLogHandler.getLog(logId, projectDetails, user);
-	}
-
-	@ModelAttribute
-	private ReportPortalUser.ProjectDetails projectDetails(@PathVariable String projectName,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return ProjectUtils.extractProjectDetails(user, normalizeId(projectName));
+	public LogResource getLog(@PathVariable String projectName, @PathVariable Long logId, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLogHandler.getLog(logId, extractProjectDetails(user, projectName), user);
 	}
 
 	/**

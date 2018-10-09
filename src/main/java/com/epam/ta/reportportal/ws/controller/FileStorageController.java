@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.store.service.DataStoreService;
+import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
@@ -34,6 +34,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -61,7 +65,6 @@ public class FileStorageController {
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/{dataId}")
-	//@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public void getFile(@PathVariable("dataId") String dataId, HttpServletResponse response,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		toResponse(response, dataStoreService.load(dataId));

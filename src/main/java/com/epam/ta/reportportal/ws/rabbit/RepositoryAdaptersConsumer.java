@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.ws.rabbit;
 
 import com.epam.reportportal.extension.constants.RabbitConstants;
+import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -9,7 +10,6 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.store.service.DataStoreService;
 import com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
@@ -102,7 +102,7 @@ public class RepositoryAdaptersConsumer {
 	public List<LogResource> findLogsByTestItem(@Header(RabbitConstants.MessageHeaders.ITEM_REF) Long itemRef,
 			@Header(RabbitConstants.MessageHeaders.LIMIT) Integer limit,
 			@Header(RabbitConstants.MessageHeaders.IS_LOAD_BINARY_DATA) boolean loadBinaryData) {
-		List<Log> logs = logRepository.findByTestItemId(itemRef, limit, loadBinaryData);
+		List<Log> logs = logRepository.findByTestItemId(itemRef, limit /*, loadBinaryData*/);
 		return logs.stream().map(LogConverter.TO_RESOURCE).collect(Collectors.toList());
 	}
 

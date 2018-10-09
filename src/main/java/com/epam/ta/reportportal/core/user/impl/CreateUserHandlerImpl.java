@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.user.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -44,7 +45,6 @@ import com.epam.ta.reportportal.ws.model.user.*;
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
-import com.sun.javafx.binding.StringFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
@@ -107,11 +107,11 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 		User administrator = userRepository.findByLogin(creator.getUsername())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND,
-						StringFormatter.format("Administrator with login - {} was not found.", creator.getUsername())
+						Suppliers.formattedSupplier("Administrator with login - {} was not found.", creator.getUsername())
 				));
 
 		expect(administrator.getRole(), equalTo(UserRole.ADMINISTRATOR)).verify(ACCESS_DENIED,
-				StringFormatter.format("Only administrator can create new user. Your role is - {}", administrator.getRole())
+				Suppliers.formattedSupplier("Only administrator can create new user. Your role is - {}", administrator.getRole())
 		);
 
 		String newUsername = EntityUtils.normalizeId(request.getLogin());

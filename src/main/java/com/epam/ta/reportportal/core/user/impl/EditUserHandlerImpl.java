@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.user.impl;
 
 import com.epam.ta.reportportal.BinaryData;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.event.UpdateUserRoleEvent;
 import com.epam.ta.reportportal.core.user.event.UpdatedRole;
@@ -36,7 +37,6 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.user.ChangePasswordRQ;
 import com.epam.ta.reportportal.ws.model.user.EditUserRQ;
 import com.google.common.base.Charsets;
-import com.sun.javafx.binding.StringFormatter;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
@@ -158,7 +158,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
 			expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR, " wrong email: " + updEmail);
 			User byEmail = userRepository.findByEmail(updEmail)
 					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND,
-							StringFormatter.format("User with email - {} was not found", updEmail)
+							Suppliers.formattedSupplier("User with email - {} was not found", updEmail)
 					));
 
 			expect(username, equalTo(byEmail.getLogin())).verify(USER_ALREADY_EXISTS, updEmail);

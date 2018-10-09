@@ -1,22 +1,17 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.ws.controller;
@@ -26,7 +21,6 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.item.*;
 import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -49,7 +43,7 @@ import java.util.List;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static com.epam.ta.reportportal.util.ProjectUtils.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -84,18 +78,18 @@ public class TestItemController {
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a root test item")
 	@PreAuthorize(ALLOWED_TO_REPORT)
-	public EntryCreatedRS startRootItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
-			@RequestBody @Validated StartTestItemRQ startTestItemRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return startTestItemHandler.startRootItem(user, projectDetails, startTestItemRQ);
+	public EntryCreatedRS startRootItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestBody @Validated StartTestItemRQ startTestItemRQ) {
+		return startTestItemHandler.startRootItem(user, extractProjectDetails(user, projectName), startTestItemRQ);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping("/{itemId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Find test item by ID")
-	public TestItemResource getTestItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long itemId,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getTestItemHandler.getTestItem(itemId, projectDetails, user);
+	public TestItemResource getTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@PathVariable Long itemId) {
+		return getTestItemHandler.getTestItem(itemId, extractProjectDetails(user, projectName), user);
 
 	}
 
@@ -104,9 +98,9 @@ public class TestItemController {
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a child test item")
 	@PreAuthorize(ALLOWED_TO_REPORT)
-	public EntryCreatedRS startChildItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long parentItem,
-			@RequestBody @Validated StartTestItemRQ startTestItemRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return startTestItemHandler.startChildItem(user, projectDetails, startTestItemRQ, parentItem);
+	public EntryCreatedRS startChildItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@PathVariable Long parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
+		return startTestItemHandler.startChildItem(user, extractProjectDetails(user, projectName), startTestItemRQ, parentItem);
 	}
 
 	@Transactional
@@ -114,10 +108,9 @@ public class TestItemController {
 	@ResponseStatus(OK)
 	@ApiOperation("Finish test item")
 	@PreAuthorize(ALLOWED_TO_REPORT)
-	public OperationCompletionRS finishTestItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
-			@PathVariable Long testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return finishTestItemHandler.finishTestItem(user, projectDetails, testItemId, finishExecutionRQ);
+	public OperationCompletionRS finishTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@PathVariable Long testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
+		return finishTestItemHandler.finishTestItem(user, extractProjectDetails(user, projectName), testItemId, finishExecutionRQ);
 	}
 
 	//TODO check pre-defined filter
@@ -125,108 +118,105 @@ public class TestItemController {
 	@GetMapping
 	@ResponseStatus(OK)
 	@ApiOperation("Find test items by specified filter")
-	public Iterable<TestItemResource> getTestItems(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+	public Iterable<TestItemResource> getTestItems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@FilterFor(TestItem.class) Filter filter, @FilterFor(TestItem.class) Filter predefinedFilter,
-			@SortFor(TestItem.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return getTestItemHandler.getTestItems(new Filter(filter, predefinedFilter), pageable, projectDetails, user);
+			@SortFor(TestItem.class) Pageable pageable) {
+		return getTestItemHandler.getTestItems(new Filter(filter, predefinedFilter),
+				pageable,
+				extractProjectDetails(user, projectName),
+				user
+		);
 	}
 
 	@Transactional
 	@DeleteMapping("/{itemId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Delete test item")
-	public OperationCompletionRS deleteTestItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long itemId,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteTestItemHandler.deleteTestItem(itemId, projectDetails, user);
+	public OperationCompletionRS deleteTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@PathVariable Long itemId) {
+		return deleteTestItemHandler.deleteTestItem(itemId, extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional
 	@DeleteMapping
 	@ResponseStatus(OK)
 	@ApiOperation("Delete test items by specified ids")
-	public List<OperationCompletionRS> deleteTestItems(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
-			@RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
-		return deleteTestItemHandler.deleteTestItem(ids, projectDetails, user);
+	public List<OperationCompletionRS> deleteTestItems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestParam(value = "ids") Long[] ids) {
+		return deleteTestItemHandler.deleteTestItem(ids, extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional
 	@PutMapping
 	@ResponseStatus(OK)
 	@ApiOperation("Update issues of specified test items")
-	public List<Issue> defineTestItemIssueType(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
-			@RequestBody @Validated DefineIssueRQ request, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateTestItemHandler.defineTestItemsIssues(projectDetails, request, user);
+	public List<Issue> defineTestItemIssueType(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestBody @Validated DefineIssueRQ request) {
+		return updateTestItemHandler.defineTestItemsIssues(extractProjectDetails(user, projectName), request, user);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping("/history")
 	@ResponseStatus(OK)
 	@ApiOperation("Load history of test items")
-	public List<TestItemHistoryElement> getItemsHistory(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
+	public List<TestItemHistoryElement> getItemsHistory(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@RequestParam(value = "history_depth", required = false, defaultValue = "5") int historyDepth,
 			@RequestParam(value = "ids") Long[] ids,
-			@RequestParam(value = "is_full", required = false, defaultValue = "") boolean showBrokenLaunches,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return testItemsHistoryHandler.getItemsHistory(projectDetails, ids, historyDepth, showBrokenLaunches);
+			@RequestParam(value = "is_full", required = false, defaultValue = "") boolean showBrokenLaunches) {
+		return testItemsHistoryHandler.getItemsHistory(extractProjectDetails(user, projectName), ids, historyDepth, showBrokenLaunches);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping("/tags")
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique tags of specified launch")
-	public List<String> getAllTags(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @RequestParam(value = "launch") Long id,
-			@RequestParam(value = "filter." + "cnt." + "tags") String value, @AuthenticationPrincipal ReportPortalUser user) {
-		return getTestItemHandler.getTags(id, value, projectDetails, user);
+	public List<String> getAllTags(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestParam(value = "launch") Long id, @RequestParam(value = "filter." + "cnt." + "tags") String value) {
+		return getTestItemHandler.getTags(id, value, extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional
 	@PutMapping("/{itemId}/update")
 	@ResponseStatus(OK)
 	@ApiOperation("Update test item")
-	public OperationCompletionRS updateTestItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long itemId,
-			@RequestBody @Validated UpdateTestItemRQ rq, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateTestItemHandler.updateTestItem(projectDetails, itemId, rq, user);
+	public OperationCompletionRS updateTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@PathVariable Long itemId, @RequestBody @Validated UpdateTestItemRQ rq) {
+		return updateTestItemHandler.updateTestItem(extractProjectDetails(user, projectName), itemId, rq, user);
 	}
 
 	@Transactional
 	@PutMapping("/issue/link")
 	@ResponseStatus(OK)
 	@ApiOperation("Attach external issue for specified test items")
-	public List<OperationCompletionRS> addExternalIssues(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
-			@RequestBody @Validated LinkExternalIssueRQ rq, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateTestItemHandler.linkExternalIssues(projectDetails, rq, user);
+	public List<OperationCompletionRS> addExternalIssues(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestBody @Validated LinkExternalIssueRQ rq) {
+		return updateTestItemHandler.linkExternalIssues(extractProjectDetails(user, projectName), rq, user);
 	}
 
 	@Transactional
 	@PutMapping("/issue/unlink")
 	@ResponseStatus(OK)
 	@ApiOperation("Unlink external issue for specified test items")
-	public List<OperationCompletionRS> unlinkExternalIssues(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
-			@RequestBody @Validated UnlinkExternalIssueRq rq, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateTestItemHandler.unlinkExternalIssues(projectDetails, rq, user);
+	public List<OperationCompletionRS> unlinkExternalIssues(@PathVariable String projectName,
+			@AuthenticationPrincipal ReportPortalUser user, @RequestBody @Validated UnlinkExternalIssueRq rq) {
+		return updateTestItemHandler.unlinkExternalIssues(extractProjectDetails(user, projectName), rq, user);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping("/items")
 	@ResponseStatus(OK)
 	@ApiOperation("Get test items by specified ids")
-	public List<TestItemResource> getTestItems(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails,
-			@RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
-		return getTestItemHandler.getTestItems(ids, projectDetails, user);
+	public List<TestItemResource> getTestItems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestParam(value = "ids") Long[] ids) {
+		return getTestItemHandler.getTestItems(ids, extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional
 	@PutMapping("/{item}/merge")
 	@ResponseStatus(OK)
 	@ApiOperation("Merge test item")
-	public OperationCompletionRS mergeTestItem(@ModelAttribute ReportPortalUser.ProjectDetails projectDetails, @PathVariable Long item,
-			@RequestBody @Validated MergeTestItemRQ rq, @AuthenticationPrincipal ReportPortalUser user) {
-		return mergeTestItemHandler.mergeTestItem(projectDetails, item, rq, user.getUsername());
-	}
-
-	@ModelAttribute
-	private ReportPortalUser.ProjectDetails projectDetails(@PathVariable String projectName,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return ProjectUtils.extractProjectDetails(user, normalizeId(projectName));
+	public OperationCompletionRS mergeTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@PathVariable Long item, @RequestBody @Validated MergeTestItemRQ rq) {
+		return mergeTestItemHandler.mergeTestItem(extractProjectDetails(user, projectName), item, rq, user.getUsername());
 	}
 }

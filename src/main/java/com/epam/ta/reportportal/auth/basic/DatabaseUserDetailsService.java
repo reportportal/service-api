@@ -67,7 +67,7 @@ public class DatabaseUserDetailsService implements UserDetailsService {
 				.getProjects()
 				.stream()
 				.collect(Collectors.toMap(p -> p.getProject().getName(),
-						p -> new ReportPortalUser.ProjectDetails(p.getProject().getId(), p.getRole())
+						p -> new ReportPortalUser.ProjectDetails(p.getProject().getId(), p.getProjectRole())
 				)));
 	}
 

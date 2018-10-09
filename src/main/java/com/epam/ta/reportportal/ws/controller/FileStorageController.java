@@ -16,7 +16,7 @@
  *
  */
 
-package com.epam.ta.reportportal.ws.controller.impl;
+package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.BinaryData;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
@@ -30,16 +30,14 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 
 /**
  * @author Dzianis_Shybeka
@@ -61,6 +59,7 @@ public class FileStorageController {
 		this.getFileHandler = getFileHandler;
 	}
 
+	@Transactional(readOnly = true)
 	@GetMapping(value = "/{dataId}")
 	//@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public void getFile(@PathVariable("dataId") String dataId, HttpServletResponse response,
@@ -72,6 +71,7 @@ public class FileStorageController {
 	 * (non-Javadoc)
 	 *
 	 */
+	@Transactional(readOnly = true)
 	@GetMapping(value = "/data/photo")
 	@ApiOperation("Get photo of current user")
 	public void getMyPhoto(@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
@@ -82,22 +82,23 @@ public class FileStorageController {
 	 * (non-Javadoc)
 	 *
 	 */
-	@RequestMapping(value = "/data/userphoto", method = RequestMethod.GET)
+	@Transactional(readOnly = true)
+	@GetMapping(value = "/data/userphoto")
 	@ApiOperation("Get user's photo")
 	public void getUserPhoto(@RequestParam(value = "id") String username, HttpServletResponse response,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		toResponse(response, getFileHandler.getUserPhoto(EntityUtils.normalizeId(username), user));
 	}
 
-	@RequestMapping(value = "/data/photo", method = RequestMethod.POST)
-	@ResponseBody
+	@Transactional
+	@PostMapping(value = "/data/photo")
 	@ApiOperation("Upload user's photo")
 	public OperationCompletionRS uploadPhoto(@RequestParam("file") MultipartFile file, @AuthenticationPrincipal ReportPortalUser user) {
 		return editUserHandler.uploadPhoto(EntityUtils.normalizeId(user.getUsername()), file);
 	}
 
-	@RequestMapping(value = "/data/photo", method = RequestMethod.DELETE)
-	@ResponseBody
+	@Transactional
+	@DeleteMapping(value = "/data/photo")
 	@ApiOperation("Delete user's photo")
 	public OperationCompletionRS deletePhoto(@AuthenticationPrincipal ReportPortalUser user) {
 		return editUserHandler.deletePhoto(EntityUtils.normalizeId(user.getUsername()));

@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,8 +31,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 
 /**
  * @author Dzianis_Shybeka
@@ -49,7 +46,6 @@ public class FileStorageController {
 	}
 
 	@GetMapping(value = "/{dataId}")
-	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public void getFile(@PathVariable("dataId") String dataId, HttpServletResponse response) {
 		toResponse(response, dataStoreService.load(dataId));
 	}

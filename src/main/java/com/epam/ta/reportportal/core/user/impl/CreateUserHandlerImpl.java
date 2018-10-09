@@ -173,7 +173,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
 		}
 
-		eventPublisher.publishEvent(new UserCreatedEvent(user, administrator.getLogin()));
+		eventPublisher.publishEvent(new UserCreatedEvent(user, administrator.getId()));
 
 		response.setLogin(user.getLogin());
 		return response;
@@ -304,7 +304,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			throw new ReportPortalException("Error while User creating.", exp);
 		}
 
-		eventPublisher.publishEvent(new UserCreatedEvent(newUser, newUser.getLogin()));
+		eventPublisher.publishEvent(new UserCreatedEvent(newUser, newUser.getId()));
 		CreateUserRS response = new CreateUserRS();
 		response.setLogin(newUser.getLogin());
 		return response;

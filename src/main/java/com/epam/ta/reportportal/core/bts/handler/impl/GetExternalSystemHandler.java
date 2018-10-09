@@ -17,9 +17,9 @@
 package com.epam.ta.reportportal.core.bts.handler.impl;
 
 import com.epam.ta.reportportal.core.bts.handler.IGetExternalSystemHandler;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.dao.BugTrackingSystemRepository;
 import com.epam.ta.reportportal.entity.bts.BugTrackingSystem;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;

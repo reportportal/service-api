@@ -6,7 +6,7 @@ import com.epam.ta.reportportal.entity.user.UserRole;
  * @author Ivan Budaev
  */
 public class UpdatedRole {
-	
+
 	private String username;
 	private UserRole role;
 

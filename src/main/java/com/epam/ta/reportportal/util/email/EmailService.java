@@ -133,9 +133,8 @@ public class EmailService extends JavaMailSenderImpl {
 			email.put(
 					"tags",
 					launch.getTags()
-							.stream()
-							.collect(toMap(
-									tag -> tag,
+							.stream().collect(toMap(
+							tag -> tag,
 									tag -> format(FILTER_TAG_FORMAT, basicUrl, urlPathSegmentEscaper().escape(tag.getValue()))
 							))
 			);

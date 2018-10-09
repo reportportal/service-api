@@ -132,6 +132,7 @@ public class MailServiceFactory {
 	}
 
 	//TODO refactor docs
+
 	/**
 	 * Build mail service based on default server configs and checks connection
 	 *

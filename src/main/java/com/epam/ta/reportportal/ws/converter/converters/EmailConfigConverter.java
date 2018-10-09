@@ -1,14 +1,11 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.email.EmailSenderCase;
-import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public class EmailConfigConverter {
 
@@ -40,8 +37,8 @@ public class EmailConfigConverter {
 		return dto;
 	};
 
-	public static Function<Activity, ActivityResource> c = t -> {
+/*	public static Function<Activity, ActivityResource> c = t -> {
 		ActivityResource activityResource = new ActivityResource();
 		activityResource.setDetails(t.getDetails());
-	}
+	};*/
 }

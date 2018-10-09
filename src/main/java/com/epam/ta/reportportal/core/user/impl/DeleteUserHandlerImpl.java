@@ -59,7 +59,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 	}
 
 	//	@Autowired
-//	private ILogIndexer logIndexer;
+	//	private ILogIndexer logIndexer;
 
 	@Override
 	public OperationCompletionRS deleteUser(String login, ReportPortalUser loggedInUser) {
@@ -84,7 +84,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		}
 
 		//TODO analyzer
-//		personalProjectName.ifPresent(s -> logIndexer.deleteIndex(s));
+		//		personalProjectName.ifPresent(s -> logIndexer.deleteIndex(s));
 
 		return new OperationCompletionRS("User with ID = '" + login + "' successfully deleted.");
 	}

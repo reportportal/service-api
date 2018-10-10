@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.project;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
@@ -24,7 +25,7 @@ import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 
 /**
- * Update {@link Project} request handler
+ * Update {@link com.epam.ta.reportportal.entity.project.Project} request handler
  *
  * @author Hanna_Sukhadolava
  */
@@ -33,13 +34,14 @@ public interface IUpdateProjectHandler {
 	/**
 	 * Update specified project(projectName, customer and addInfo)
 	 *
-	 * @param projectName     Project Name
+	 * @param projectDetails  Project Details
 	 * @param updateProjectRQ Project data
-	 * @param principalName   Login
+	 * @param user            ReportPortal user
 	 * @return Operation result
 	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS updateProject(String projectName, UpdateProjectRQ updateProjectRQ, String principalName);
+	OperationCompletionRS updateProject(ReportPortalUser.ProjectDetails projectDetails, UpdateProjectRQ updateProjectRQ,
+			ReportPortalUser user);
 
 	/**
 	 * Update specified project email configuration

@@ -27,11 +27,30 @@ import java.time.LocalDateTime;
  */
 public class DashboardCreatedEvent implements ActivityEvent {
 
-	private final Dashboard dashboard;
-	private final Long createdBy;
+	private Dashboard dashboard;
+	private Long createdBy;
+
+	public DashboardCreatedEvent() {
+	}
 
 	public DashboardCreatedEvent(Dashboard dashboard, Long createdBy) {
 		this.dashboard = dashboard;
+		this.createdBy = createdBy;
+	}
+
+	public Dashboard getDashboard() {
+		return dashboard;
+	}
+
+	public void setDashboard(Dashboard dashboard) {
+		this.dashboard = dashboard;
+	}
+
+	public Long getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(Long createdBy) {
 		this.createdBy = createdBy;
 	}
 

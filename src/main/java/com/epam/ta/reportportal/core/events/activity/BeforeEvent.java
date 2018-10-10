@@ -9,9 +9,12 @@ import com.google.common.base.Preconditions;
  */
 public class BeforeEvent<T> {
 
-	private final T before;
+	private T before;
 
-	public BeforeEvent(T before) {
+	BeforeEvent() {
+	}
+
+	BeforeEvent(T before) {
 		this.before = Preconditions.checkNotNull(before);
 	}
 
@@ -19,4 +22,7 @@ public class BeforeEvent<T> {
 		return before;
 	}
 
+	public void setBefore(T before) {
+		this.before = before;
+	}
 }

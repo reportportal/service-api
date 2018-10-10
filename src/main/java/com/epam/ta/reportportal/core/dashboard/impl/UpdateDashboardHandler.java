@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.core.dashboard.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.dashboard.IUpdateDashboardHandler;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.DashboardUpdatedEvent;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
@@ -30,6 +32,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.dashboard.AddWidgetRq;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +50,8 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 
 	private WidgetRepository widgetRepository;
 
+	private MessageBus messageBus;
+
 	@Autowired
 	public void setDashboardRepository(DashboardRepository dashboardRepository) {
 		this.dashboardRepository = dashboardRepository;
@@ -57,15 +62,22 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 		this.widgetRepository = widgetRepository;
 	}
 
+	@Autowired
+	public void setMessageBus(MessageBus messageBus) {
+		this.messageBus = messageBus;
+	}
+
 	@Override
 	public OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails, UpdateDashboardRQ rq, Long dashboardId,
 			ReportPortalUser user) {
 
 		Dashboard dashboard = dashboardRepository.findById(dashboardId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND));
+		Dashboard before = SerializationUtils.clone(dashboard);
 
 		dashboard = new DashboardBuilder(dashboard).addUpdateRq(rq).get();
 		dashboardRepository.save(dashboard);
+		messageBus.publishActivity(new DashboardUpdatedEvent(before, dashboard, user.getUserId()));
 
 		return new OperationCompletionRS("Dashboard with ID = '" + dashboard.getId() + "' successfully updated");
 	}

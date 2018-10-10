@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.project.ICreateProjectHandler;
+import com.epam.ta.reportportal.core.project.IDeleteProjectHandler;
 import com.epam.ta.reportportal.core.project.IGetProjectHandler;
 import com.epam.ta.reportportal.core.project.IUpdateProjectHandler;
 import com.epam.ta.reportportal.util.ProjectUtils;
@@ -35,8 +36,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 
 @RestController
 @RequestMapping("/project")
@@ -45,13 +48,15 @@ public class ProjectController {
 	private final ICreateProjectHandler createProjectHandler;
 	private final IGetProjectHandler getProjectHandler;
 	private final IUpdateProjectHandler updateProjectHandler;
+	private final IDeleteProjectHandler deleteProjectHandler;
 
 	@Autowired
 	public ProjectController(ICreateProjectHandler createProjectHandler, IGetProjectHandler getProjectHandler,
-			IUpdateProjectHandler updateProject) {
+			IUpdateProjectHandler updateProjectHandler, IDeleteProjectHandler deleteProjectHandler) {
 		this.createProjectHandler = createProjectHandler;
 		this.getProjectHandler = getProjectHandler;
-		this.updateProjectHandler = updateProject;
+		this.updateProjectHandler = updateProjectHandler;
+		this.deleteProjectHandler = deleteProjectHandler;
 	}
 
 	@Transactional
@@ -80,6 +85,16 @@ public class ProjectController {
 	@ApiOperation(value = "Get information about project", notes = "Only for users that are assigned to the project")
 	public ProjectResource getProject(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
 		return getProjectHandler.getProject(projectName);
+	}
+
+	@DeleteMapping
+	@RequestMapping(value = "/{projectName}", method = DELETE)
+	@ResponseBody
+	@ResponseStatus(OK)
+	@PreAuthorize(ADMIN_ONLY)
+	@ApiOperation(value = "Delete project", notes = "Could be deleted only by users with administrator role")
+	public OperationCompletionRS deleteProject(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
+		return deleteProjectHandler.deleteProject(normalizeId(projectName));
 	}
 
 }

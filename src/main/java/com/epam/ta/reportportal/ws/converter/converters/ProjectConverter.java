@@ -48,7 +48,8 @@ public final class ProjectConverter {
 		}
 
 		ProjectResource projectResource = new ProjectResource();
-		projectResource.setProjectId(project.getName());
+		projectResource.setProjectId(project.getId());
+		projectResource.setProjectName(project.getName());
 		projectResource.setCreationDate(project.getCreationDate());
 		projectResource.setUsers(project.getUsers().stream().map(user -> {
 			ProjectResource.ProjectUser projectUser = new ProjectResource.ProjectUser();

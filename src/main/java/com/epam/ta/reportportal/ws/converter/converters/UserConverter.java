@@ -56,10 +56,10 @@ public final class UserConverter {
 						p.getProject()
 								.getProjectAttributes()
 								.stream()
-								.filter(a -> ProjectAttributeEnum.ENTRY_TYPE.getValue().equalsIgnoreCase(a.getAttribute().getName()))
+								.filter(a -> ProjectAttributeEnum.ENTRY_TYPE.getAttribute().equalsIgnoreCase(a.getAttribute().getName()))
 								.findFirst()
 								.ifPresent(attr -> assignedProject.setEntryType(attr.getValue()));
-						assignedProject.setProjectRole(p.getRole().toString());
+						assignedProject.setProjectRole(p.getProjectRole().toString());
 						return assignedProject;
 					}));
 			resource.setDefaultProject(user.getDefaultProject().getName());

@@ -93,7 +93,7 @@ public class MailServiceFactory {
 	 * @param serverSettings Server-level configuration
 	 * @return Built email service
 	 */
-	private Optional<EmailService> getEmailService(List<ServerSettings> serverSettings) {
+	public Optional<EmailService> getEmailService(List<ServerSettings> serverSettings) {
 
 		Map<String, String> config = serverSettings.stream()
 				.collect(Collectors.toMap(ServerSettings::getKey, ServerSettings::getValue, (prev, curr) -> prev));
@@ -106,7 +106,7 @@ public class MailServiceFactory {
 			javaMailProperties.put("mail.smtp.connectiontimeout", DEFAULT_CONNECTION_TIMEOUT);
 			javaMailProperties.put("mail.smtp.auth", authRequired);
 			javaMailProperties.put("mail.smtp.starttls.enable",
-					authRequired && BooleanUtils.toBoolean(config.get(ServerSettingsEnum.START_TLS_ENABLED.getAttribute()))
+					authRequired && BooleanUtils.toBoolean(config.get(ServerSettingsEnum.STAR_TLS_ENABLED.getAttribute()))
 			);
 
 			if (BooleanUtils.toBoolean(ServerSettingsEnum.SSL_ENABLED.getAttribute())) {
@@ -116,13 +116,13 @@ public class MailServiceFactory {
 
 			EmailService service = new EmailService(javaMailProperties);
 			service.setTemplateEngine(templateEngine);
-			service.setHost(ServerSettingsEnum.HOST.getAttribute());
-			service.setPort(Integer.parseInt(ServerSettingsEnum.PORT.getAttribute()));
-			service.setProtocol(ServerSettingsEnum.PROTOCOL.getAttribute());
-			service.setFrom(ServerSettingsEnum.FROM.getAttribute());
+			service.setHost(config.get(ServerSettingsEnum.HOST.getAttribute()));
+			service.setPort(Integer.parseInt(config.get(ServerSettingsEnum.PORT.getAttribute())));
+			service.setProtocol(config.get(ServerSettingsEnum.PROTOCOL.getAttribute()));
+			service.setFrom(config.get(ServerSettingsEnum.FROM.getAttribute()));
 			if (authRequired) {
-				service.setUsername(ServerSettingsEnum.USERNAME.getAttribute());
-				service.setPassword(encryptor.decrypt(ServerSettingsEnum.PASSWORD.getAttribute()));
+				service.setUsername(config.get(ServerSettingsEnum.USERNAME.getAttribute()));
+				service.setPassword(encryptor.decrypt(config.get(ServerSettingsEnum.PASSWORD.getAttribute())));
 			}
 			return Optional.of(service);
 
@@ -132,6 +132,7 @@ public class MailServiceFactory {
 	}
 
 	//TODO refactor docs
+
 	/**
 	 * Build mail service based on default server configs and checks connection
 	 *

@@ -1,26 +1,27 @@
 /*
  * Copyright 2016 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandler;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
@@ -30,57 +31,55 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 
 /**
- *
  * @author Andrei_Ramanchuk
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
  */
-@Controller
+@RestController
 @RequestMapping("/settings")
 @PreAuthorize(ADMIN_ONLY)
 public class SettingsController {
 
+	private final ServerAdminHandler serverHandler;
+
 	@Autowired
-	private ServerAdminHandler serverHandler;
-
-	@RequestMapping(value = "/{profileId}", method = RequestMethod.GET)
-	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation(value = "Get server email settings for specified profile", notes = "'default' profile is using till additional UI implementations")
-	public ServerSettingsResource getServerSettings(@PathVariable Long profileId, Principal principal) {
-		return serverHandler.getServerSettings(profileId);
+	public SettingsController(ServerAdminHandler serverHandler) {
+		this.serverHandler = serverHandler;
 	}
 
-	@RequestMapping(value = "/{profileId}/email", method = { RequestMethod.POST, RequestMethod.PUT })
-	@ResponseBody
+	@GetMapping
 	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation(value = "Set server email settings for specified profile", notes = "'default' profile is using till additional UI implementations")
-	public OperationCompletionRS saveEmailSettings(@PathVariable Long profileId, @RequestBody @Validated ServerEmailResource request,
-			Principal principal) {
-		return serverHandler.saveEmailSettings(profileId, request);
+	@ApiOperation(value = "Get server email settings")
+	public ServerSettingsResource getServerSettings(@AuthenticationPrincipal ReportPortalUser user) {
+		return serverHandler.getServerSettings();
 	}
 
-	@RequestMapping(value = "/{profileId}/email", method = RequestMethod.DELETE)
-	@ResponseBody
+	@RequestMapping(value = "/email", method = { RequestMethod.POST, RequestMethod.PUT })
 	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation(value = "Deletes email settings for specified profile", notes = "'default' profile is using till additional UI implementations")
-	public OperationCompletionRS deleteEmailSettings(@PathVariable Long profileId) {
-		return serverHandler.deleteEmailSettings(profileId);
+	@ApiOperation(value = "Set server email settings")
+	public OperationCompletionRS saveEmailSettings(@RequestBody @Validated ServerEmailResource request,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return serverHandler.saveEmailSettings(request);
 	}
 
-	@RequestMapping(value = "/{profileId}/analytics", method = { RequestMethod.PUT, RequestMethod.POST })
-	@ResponseBody
+	@DeleteMapping(value = "/email")
 	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation(value = "Updates analytics settings for specified profile")
-	public OperationCompletionRS saveAnalyticsSettings(@PathVariable Long profileId, @RequestBody @Validated AnalyticsResource request) {
-		return serverHandler.saveAnalyticsSettings(profileId, request);
+	@ApiOperation(value = "Delete email settings for specified profile")
+	public OperationCompletionRS deleteEmailSettings(@AuthenticationPrincipal ReportPortalUser user) {
+		return serverHandler.deleteEmailSettings();
+	}
+
+	@RequestMapping(value = "/analytics", method = { RequestMethod.PUT, RequestMethod.POST })
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation(value = "Update analytics settings")
+	public OperationCompletionRS saveAnalyticsSettings(@RequestBody @Validated AnalyticsResource request,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return serverHandler.saveAnalyticsSettings(request);
 	}
 }

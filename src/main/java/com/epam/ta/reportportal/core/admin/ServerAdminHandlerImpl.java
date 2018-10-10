@@ -23,10 +23,9 @@ package com.epam.ta.reportportal.core.admin;
 
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
-import com.epam.ta.reportportal.database.entity.settings.AnalyticsDetails;
 import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.entity.ServerSettingsEnum;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.converters.ServerSettingsConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -34,26 +33,25 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
-import com.mongodb.WriteResult;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.entity.ServerSettingsConstants.ANALYTICS_CONFIG_PREFIX;
+import static com.epam.ta.reportportal.entity.ServerSettingsConstants.EMAIL_CONFIG_PREFIX;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
-import static org.springframework.data.mongodb.core.query.Query.query;
 
 /**
  * Basic implementation of server administration interface
@@ -66,14 +64,19 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerAdminHandlerImpl.class);
 
-	@Autowired
-	private BasicTextEncryptor simpleEncryptor;
+	private final BasicTextEncryptor simpleEncryptor;
+
+	private final ServerSettingsRepository serverSettingsRepository;
+
+	private final MailServiceFactory emailServiceFactory;
 
 	@Autowired
-	private ServerSettingsRepository serverSettingsRepository;
-
-	@Autowired
-	private MailServiceFactory emailServiceFactory;
+	public ServerAdminHandlerImpl(BasicTextEncryptor simpleEncryptor, ServerSettingsRepository serverSettingsRepository,
+			MailServiceFactory emailServiceFactory) {
+		this.simpleEncryptor = simpleEncryptor;
+		this.serverSettingsRepository = serverSettingsRepository;
+		this.emailServiceFactory = emailServiceFactory;
+	}
 
 	@Override
 	public ServerSettingsResource getServerSettings() {
@@ -83,107 +86,114 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 	@Override
 	public OperationCompletionRS saveEmailSettings(ServerEmailResource request) {
 		List<ServerSettings> serverSettings = findServerSettings();
-		Map<ServerSettingsEnum, ServerSettings> settings = serverSettings.stream()
-				.collect(toMap(s -> ServerSettingsEnum.valueOf(s.getKey()), s -> s, (prev, curr) -> prev));
+		Map<String, ServerSettings> settings = serverSettings.stream().collect(toMap(ServerSettings::getKey, s -> s, (prev, curr) -> prev));
 		if (null != request) {
-			addOrUpdateServerSettings(settings, ServerSettingsEnum.ENABLED, String.valueOf(request.isEnabled()));
+			addOrUpdateServerSettings(settings, ServerSettingsEnum.ENABLED.getAttribute(), String.valueOf(request.isEnabled()));
 			if (request.isEnabled()) {
-				ofNullable(request.getHost()).ifPresent(host -> addOrUpdateServerSettings(settings, ServerSettingsEnum.HOST, host));
+				ofNullable(request.getHost()).ifPresent(host -> addOrUpdateServerSettings(settings,
+						ServerSettingsEnum.HOST.getAttribute(),
+						host
+				));
 
 				int port = Optional.ofNullable(request.getPort()).orElse(25);
 				if ((port <= 0) || (port > 65535)) {
 					BusinessRule.fail().withError(ErrorType.INCORRECT_REQUEST, "Incorrect 'Port' value. Allowed value is [1..65535]");
 				}
-				addOrUpdateServerSettings(settings, ServerSettingsEnum.PORT, String.valueOf(port));
+				addOrUpdateServerSettings(settings, ServerSettingsEnum.PORT.getAttribute(), String.valueOf(port));
 
-				addOrUpdateServerSettings(settings, ServerSettingsEnum.PROTOCOL, ofNullable(request.getProtocol()).orElse("smtp"));
+				addOrUpdateServerSettings(settings,
+						ServerSettingsEnum.PROTOCOL.getAttribute(),
+						ofNullable(request.getProtocol()).orElse("smtp")
+				);
 
 				ofNullable(request.getAuthEnabled()).ifPresent(authEnabled -> {
-					addOrUpdateServerSettings(settings, ServerSettingsEnum.AUTH_ENABLED, String.valueOf(authEnabled));
+					addOrUpdateServerSettings(settings, ServerSettingsEnum.AUTH_ENABLED.getAttribute(), String.valueOf(authEnabled));
 					if (authEnabled) {
 						ofNullable(request.getUsername()).ifPresent(username -> addOrUpdateServerSettings(settings,
-								ServerSettingsEnum.USERNAME,
+								ServerSettingsEnum.USERNAME.getAttribute(),
 								username
 						));
 						ofNullable(request.getPassword()).ifPresent(pass -> addOrUpdateServerSettings(settings,
-								ServerSettingsEnum.PASSWORD,
-								pass
+								ServerSettingsEnum.PASSWORD.getAttribute(),
+								simpleEncryptor.encrypt(pass)
 						));
 					} else {
 						/* Auto-drop values on switched-off authentication */
-						serverEmailConfig.setUsername(null);
-						serverEmailConfig.setPassword(null);
+						addOrUpdateServerSettings(settings, ServerSettingsEnum.USERNAME.getAttribute(), null);
+						addOrUpdateServerSettings(settings, ServerSettingsEnum.PASSWORD.getAttribute(), null);
 					}
 				});
 
 				addOrUpdateServerSettings(settings,
-						ServerSettingsEnum.START_TLS_ENABLED,
+						ServerSettingsEnum.STAR_TLS_ENABLED.getAttribute(),
 						String.valueOf(Boolean.TRUE.equals(request.getStarTlsEnabled()))
 				);
 				addOrUpdateServerSettings(settings,
-						ServerSettingsEnum.SSL_ENABLED,
+						ServerSettingsEnum.SSL_ENABLED.getAttribute(),
 						String.valueOf(Boolean.TRUE.equals(request.getSslEnabled()))
 				);
 
-				ofNullable(request.getFrom()).ifPresent(from -> addOrUpdateServerSettings(settings, ServerSettingsEnum.FROM, from));
+				ofNullable(request.getFrom()).ifPresent(from -> addOrUpdateServerSettings(settings,
+						ServerSettingsEnum.FROM.getAttribute(),
+						from
+				));
 
-				try {
-					emailServiceFactory.getEmailService(settings).get().testConnection();
-				} catch (MessagingException ex) {
-					LOGGER.error("Cannot send email to user", ex);
-					fail().withError(FORBIDDEN_OPERATION,
-							"Email configuration is incorrect. Please, check your configuration. " + ex.getMessage()
-					);
+				Optional<EmailService> emailService = emailServiceFactory.getEmailService(new ArrayList<>(settings.values()));
+				if (emailService.isPresent()) {
+					try {
+						emailService.get().testConnection();
+					} catch (MessagingException ex) {
+						LOGGER.error("Cannot send email to user", ex);
+						fail().withError(FORBIDDEN_OPERATION,
+								"Email configuration is incorrect. Please, check your configuration. " + ex.getMessage()
+						);
+					}
 				}
 
 			}
 
 			serverSettingsRepository.saveAll(settings.values());
 		}
-		return new OperationCompletionRS("Server Settings with are successfully updated.");
+		return new OperationCompletionRS("Server Settings are successfully updated.");
 	}
 
 	public OperationCompletionRS deleteEmailSettings() {
-		WriteResult result = mongoOperations.updateFirst(query(Criteria.where("_id").is(profileId)),
-				Update.update("serverEmailDetails", null),
-				ServerSettings.class
-		);
-		BusinessRule.expect(result.getN(), not(equalTo(0))).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, profileId);
 
-		return new OperationCompletionRS("Server Settings with profile '" + profileId + "' is successfully updated.");
+		serverSettingsRepository.deleteAllByTerm(EMAIL_CONFIG_PREFIX);
+
+		return new OperationCompletionRS("Server Settings are successfully removed.");
 	}
 
 	@Override
 	public OperationCompletionRS saveAnalyticsSettings(AnalyticsResource analyticsResource) {
 		String analyticsType = analyticsResource.getType();
 		List<ServerSettings> serverSettings = findServerSettings();
-		Map<String, AnalyticsDetails> serverAnalyticsDetails = ofNullable(settings.getAnalyticsDetails()).orElse(Collections.emptyMap());
+		Map<String, ServerSettings> settings = serverSettings.stream().collect(toMap(ServerSettings::getKey, s -> s, (prev, curr) -> prev));
+		Map<String, ServerSettings> serverAnalyticsDetails = settings.entrySet()
+				.stream()
+				.filter(entry -> entry.getKey().startsWith(ANALYTICS_CONFIG_PREFIX))
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-		AnalyticsDetails analyticsDetails = ofNullable(serverAnalyticsDetails.get(analyticsType)).orElse(new AnalyticsDetails());
-		analyticsDetails.setEnabled(ofNullable(analyticsResource.getEnabled()).orElse(false));
-		serverAnalyticsDetails.put(analyticsType, analyticsDetails);
-		settings.setAnalyticsDetails(serverAnalyticsDetails);
+		ServerSettings analyticsDetails = ofNullable(serverAnalyticsDetails.get(analyticsType)).orElseGet(ServerSettings::new);
+		analyticsDetails.setKey(analyticsType);
+		analyticsDetails.setValue(String.valueOf((ofNullable(analyticsResource.getEnabled()).orElse(false))));
 
-		repository.save(settings);
-		return new OperationCompletionRS("Server Settings with profile '" + profileId + "' is successfully updated.");
+		serverSettingsRepository.save(analyticsDetails);
+		return new OperationCompletionRS("Server Settings were successfully updated.");
 	}
 
 	private List<ServerSettings> findServerSettings() {
 		return serverSettingsRepository.findAll();
 	}
 
-	private void addOrUpdateServerSettings(Map<ServerSettingsEnum, ServerSettings> serverSettings, ServerSettingsEnum serverSettingsEnum,
-			String value) {
-		if (serverSettings.containsKey(serverSettingsEnum)) {
-			serverSettings.get(serverSettingsEnum).setValue(value);
-		} else {
-			serverSettings.put(serverSettingsEnum, createServerSettings(serverSettingsEnum, value));
-		}
+	private void addOrUpdateServerSettings(Map<String, ServerSettings> serverSettings, String settingsName, String value) {
+
+		serverSettings.put(settingsName, createServerSettings(settingsName, value));
 	}
 
-	private ServerSettings createServerSettings(ServerSettingsEnum settingsEnum, String value) {
+	private ServerSettings createServerSettings(String settingsName, String value) {
 		ServerSettings serverSettings = new ServerSettings();
-		serverSettings.setKey(settingsEnum.getAttribute());
+		serverSettings.setKey(settingsName);
 		serverSettings.setValue(value);
 
 		return serverSettings;

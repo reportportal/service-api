@@ -18,7 +18,6 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.BinaryData;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
@@ -98,7 +97,7 @@ public class FileStorageController {
 	}
 
 	/**
-	 * Copies provided {@link BinaryData} to Response
+	 * Copies data from provided {@link InputStream} to Response
 	 *
 	 * @param response    Response
 	 * @param inputStream Stored data

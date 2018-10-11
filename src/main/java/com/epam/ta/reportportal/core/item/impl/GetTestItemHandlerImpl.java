@@ -23,12 +23,10 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.TestItemTagRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -78,8 +76,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	@Override
 	public Iterable<TestItemResource> getTestItems(Filter filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		Page<TestItem> testItems = testItemRepository.findByFilter(filter, pageable);
-		return PagedResourcesAssembler.pageConverter(TestItemConverter.TO_RESOURCE).apply(testItems);
+		return testItemRepository.findByFilter(filter, pageable).map(TestItemConverter.TO_RESOURCE);
 	}
 
 	@Override

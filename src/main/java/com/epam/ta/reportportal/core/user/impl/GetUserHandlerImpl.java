@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
@@ -136,8 +135,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
 	public Map<String, UserResource.AssignedProject> getUserProjects(String userName) {
 		return projectRepository.findUserProjects(userName).stream().collect(toMap(Project::getName, it -> {
 			UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-			Map<String, String> config = ProjectUtils.getConfigParameters(it.getProjectAttributes());
-			assignedProject.setEntryType(config.get(ProjectAttributeEnum.ENTRY_TYPE.getAttribute()));
+			assignedProject.setEntryType(it.getProjectType().name());
 			ProjectUser projectUser = ProjectUtils.findUserConfigByLogin(it, userName);
 
 			ofNullable(ofNullable(projectUser).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userName))

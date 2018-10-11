@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -58,7 +57,7 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 		launchRepository.save(launch);
 		launchRepository.refresh(launch);
 
-		messageBus.publishActivity(new LaunchStartedEvent(launch));
+		//messageBus.publishActivity(new LaunchStartedEvent(launch));
 
 		return new StartLaunchRS(launch.getId(), launch.getNumber());
 	}

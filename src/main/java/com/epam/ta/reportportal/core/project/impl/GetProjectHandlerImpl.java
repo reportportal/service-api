@@ -54,7 +54,7 @@ public class GetProjectHandlerImpl implements IGetProjectHandler {
 	@Override
 	public ProjectResource getProject(String projectName) {
 		return ProjectConverter.TO_PROJECT_RESOURCE.apply(projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND)));
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName)));
 	}
 
 	@Override

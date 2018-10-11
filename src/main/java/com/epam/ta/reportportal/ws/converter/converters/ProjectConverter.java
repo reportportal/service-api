@@ -16,20 +16,25 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
+import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.project.config.IssueSubTypeResource;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.BooleanUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -41,6 +46,19 @@ public final class ProjectConverter {
 	private ProjectConverter() {
 		//static only
 	}
+
+	public static final Function<ProjectInfo, ProjectInfoResource> TO_PROJECT_INFO_RESOURCE = project -> {
+		Preconditions.checkNotNull(project);
+		ProjectInfoResource resource = new ProjectInfoResource();
+		resource.setUsersQuantity(project.getUsersQuantity());
+		resource.setLaunchesQuantity(project.getLaunchesQuantity().longValue());
+		resource.setProjectId(project.getId());
+		resource.setProjectName(project.getName());
+		resource.setCreationDate(EntityUtils.TO_DATE.apply(project.getCreationDate()));
+		resource.setLastRun(Optional.ofNullable(project.getLastRun()).map(EntityUtils.TO_DATE).orElse(null));
+		resource.setEntryType(project.getProjectType());
+		return resource;
+	};
 
 	public static final Function<Project, ProjectResource> TO_PROJECT_RESOURCE = project -> {
 		if (project == null) {

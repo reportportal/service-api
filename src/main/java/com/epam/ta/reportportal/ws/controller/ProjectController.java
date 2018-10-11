@@ -17,23 +17,30 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.project.ICreateProjectHandler;
-import com.epam.ta.reportportal.core.project.IDeleteProjectHandler;
-import com.epam.ta.reportportal.core.project.IGetProjectHandler;
-import com.epam.ta.reportportal.core.project.IUpdateProjectHandler;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.core.project.*;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
+import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
+import com.epam.ta.reportportal.ws.model.user.UserResource;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
+import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -45,16 +52,19 @@ import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 @RequestMapping("/project")
 public class ProjectController {
 
+	private final IGetProjectHandler projectHandler;
+	private final IGetProjectInfoHandler projectInfoHandler;
 	private final ICreateProjectHandler createProjectHandler;
-	private final IGetProjectHandler getProjectHandler;
 	private final IUpdateProjectHandler updateProjectHandler;
 	private final IDeleteProjectHandler deleteProjectHandler;
 
 	@Autowired
-	public ProjectController(ICreateProjectHandler createProjectHandler, IGetProjectHandler getProjectHandler,
-			IUpdateProjectHandler updateProjectHandler, IDeleteProjectHandler deleteProjectHandler) {
+	public ProjectController(IGetProjectHandler projectHandler, IGetProjectInfoHandler projectInfoHandler,
+			ICreateProjectHandler createProjectHandler, IUpdateProjectHandler updateProjectHandler,
+			IDeleteProjectHandler deleteProjectHandler) {
+		this.projectHandler = projectHandler;
+		this.projectInfoHandler = projectInfoHandler;
 		this.createProjectHandler = createProjectHandler;
-		this.getProjectHandler = getProjectHandler;
 		this.updateProjectHandler = updateProjectHandler;
 		this.deleteProjectHandler = deleteProjectHandler;
 	}
@@ -84,7 +94,26 @@ public class ProjectController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation(value = "Get information about project", notes = "Only for users that are assigned to the project")
 	public ProjectResource getProject(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return getProjectHandler.getProject(projectName);
+		return projectHandler.getProject(projectName);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping(value = "/{projectName}/users")
+	@PreAuthorize(NOT_CUSTOMER)
+	@ApiOperation("Get users from project")
+	public Iterable<UserResource> getProjectUsers(@PathVariable String projectName, @FilterFor(User.class) Filter filter,
+			@SortFor(User.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+		return projectHandler.getProjectUsers(normalizeId(projectName), filter, pageable);
+	}
+
+	@Transactional(readOnly = true)
+	@PreAuthorize(ADMIN_ONLY)
+	@GetMapping(value = "/list")
+	@ResponseStatus(HttpStatus.OK)
+	@ApiIgnore
+	public Iterable<ProjectInfoResource> getAllProjectsInfo(@FilterFor(Project.class) Filter filter,
+			@SortFor(Project.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+		return projectInfoHandler.getAllProjectsInfo(filter, pageable);
 	}
 
 	@DeleteMapping

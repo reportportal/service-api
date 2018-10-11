@@ -23,8 +23,7 @@ import com.epam.ta.reportportal.dao.AttributeRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.entity.enums.EntryType;
-import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
+import com.epam.ta.reportportal.entity.enums.ProjectType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -78,9 +77,11 @@ public class CreateProjectHandlerImpl implements ICreateProjectHandler {
 		Optional<Project> existProject = projectRepository.findByName(projectName);
 		expect(existProject, not(isPresent())).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectName);
 
-		EntryType entryType = EntryType.findByName(createProjectRQ.getEntryType())
+		ProjectType projectType = ProjectType.findByName(createProjectRQ.getEntryType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, createProjectRQ.getEntryType()));
-		expect(entryType, equalTo(EntryType.INTERNAL)).verify(ErrorType.BAD_REQUEST_ERROR, "Only internal projects can be created via API");
+		expect(projectType, equalTo(ProjectType.INTERNAL)).verify(ErrorType.BAD_REQUEST_ERROR,
+				"Only internal projects can be created via API"
+		);
 
 		Project project = new Project();
 		project.setName(projectName);
@@ -90,11 +91,8 @@ public class CreateProjectHandlerImpl implements ICreateProjectHandler {
 		Set<ProjectAttribute> projectAttributes = ProjectUtils.defaultProjectAttributes(project,
 				attributeRepository.getDefaultProjectAttributes()
 		);
-
-		projectAttributes.stream()
-				.filter(it -> it.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.ENTRY_TYPE.getAttribute()))
-				.findFirst()
-				.ifPresent(it -> it.setValue(entryType.name()));
+		
+		project.setProjectType(projectType);
 
 		project.setProjectAttributes(projectAttributes);
 		ProjectUtils.setDefaultEmailConfiguration(project);

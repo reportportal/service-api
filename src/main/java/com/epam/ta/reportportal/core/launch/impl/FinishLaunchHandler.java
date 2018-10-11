@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishForcedEvent;
-import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -103,7 +102,7 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 		}
 		launch.setStatus(statusEnum.orElse(fromStatisticsStatus));
 		launchRepository.save(launch);
-		messageBus.publishActivity(new LaunchFinishedEvent(launch));
+		//messageBus.publishActivity(new LaunchFinishedEvent(launch));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully finished.");
 	}
 

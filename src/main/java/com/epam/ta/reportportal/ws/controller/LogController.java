@@ -59,7 +59,7 @@ import java.util.*;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.TEST_ITEM_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.CRITERIA_TEST_ITEM_ID;
 import static com.epam.ta.reportportal.util.ProjectUtils.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 
@@ -156,7 +156,7 @@ public class LogController {
 	@RequestMapping(method = RequestMethod.GET)
 	@ApiOperation("Get logs by filter")
 	public Iterable<LogResource> getLogs(@PathVariable String projectName,
-			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ + TEST_ITEM_ID) Long testStepId,
+			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_TEST_ITEM_ID) Long testStepId,
 			@FilterFor(Log.class) Filter filter, @SortDefault({ "time" }) @SortFor(Log.class) Pageable pageable,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return getLogHandler.getLogs(testStepId, extractProjectDetails(user, projectName), filter, pageable);

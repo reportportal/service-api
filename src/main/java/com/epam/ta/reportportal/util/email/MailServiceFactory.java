@@ -131,10 +131,8 @@ public class MailServiceFactory {
 		return Optional.empty();
 	}
 
-	//TODO refactor docs
-
 	/**
-	 * Build mail service based on default server configs and checks connection
+	 * Build mail service based on default server configs
 	 *
 	 * @return Built email service
 	 */
@@ -143,7 +141,7 @@ public class MailServiceFactory {
 	}
 
 	/**
-	 * Build mail service based on default server configs and checks connection
+	 * Build mail service based on default server configs
 	 *
 	 * @return Built email service
 	 */
@@ -152,7 +150,7 @@ public class MailServiceFactory {
 	}
 
 	/**
-	 * Build mail service based on default server configs and checks connection
+	 * Build mail service based on default server configs and check connection
 	 *
 	 * @return Built email service
 	 */
@@ -169,7 +167,7 @@ public class MailServiceFactory {
 	}
 
 	/**
-	 * Build mail service based on default server configs and checks connection
+	 * Build mail service based on default server configs and check connection
 	 *
 	 * @return Built email service
 	 */

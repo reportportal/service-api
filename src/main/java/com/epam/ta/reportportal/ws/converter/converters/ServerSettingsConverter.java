@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.entity.ServerSettingsEnum;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -30,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.ServerSettingsConstants.EMAIL_CONFIG_PREFIX;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
@@ -47,8 +46,7 @@ public final class ServerSettingsConverter {
 	}
 
 	public static final Function<List<ServerSettings>, ServerSettingsResource> TO_RESOURCE = serverSettings -> {
-		BusinessRule.expect(CollectionUtils.isNotEmpty(serverSettings), equalTo(true))
-				.verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, "default");
+		expect(serverSettings, CollectionUtils::isNotEmpty).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, "default");
 		Map<String, String> settings = serverSettings.stream()
 				.filter(s -> s.getKey().startsWith(EMAIL_CONFIG_PREFIX))
 				.collect(toMap(ServerSettings::getKey, ServerSettings::getValue, (prev, curr) -> prev));

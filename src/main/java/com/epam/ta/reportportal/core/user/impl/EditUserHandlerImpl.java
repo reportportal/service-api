@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.user.impl;
 
 import com.epam.ta.reportportal.BinaryData;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.event.UpdateUserRoleEvent;
@@ -30,7 +31,7 @@ import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.filesystem.DataStore;
+import com.epam.ta.reportportal.filesystem.DataEncoder;
 import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -61,6 +62,7 @@ import static com.epam.ta.reportportal.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.entity.user.UserType.INTERNAL;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
+import static java.util.Optional.ofNullable;
 
 /**
  * Edit user handler
@@ -77,15 +79,18 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 	private final ApplicationEventPublisher eventPublisher;
 
-	private final DataStore dataStore;
+	private final DataStoreService dataStoreService;
+
+	private final DataEncoder dataEncoder;
 
 	@Autowired
 	public EditUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository, ApplicationEventPublisher eventPublisher,
-			DataStore dataStore) {
+			DataStoreService dataStoreService, DataEncoder dataEncoder) {
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.eventPublisher = eventPublisher;
-		this.dataStore = dataStore;
+		this.dataStoreService = dataStoreService;
+		this.dataEncoder = dataEncoder;
 	}
 
 	@Override
@@ -95,10 +100,12 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 	@Override
 	public OperationCompletionRS uploadPhoto(String username, MultipartFile file) {
+		User user = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
 		try {
 			validatePhoto(file);
 			BinaryData binaryData = new BinaryData(file.getContentType(), file.getSize(), file.getInputStream());
-			userRepository.replaceUserPhoto(username, binaryData);
+			String path = userRepository.replaceUserPhoto(username, binaryData);
+			user.setAttachment(dataEncoder.encode(path));
 		} catch (IOException e) {
 			fail().withError(BINARY_DATA_CANNOT_BE_SAVED);
 		}
@@ -109,9 +116,11 @@ public class EditUserHandlerImpl implements EditUserHandler {
 	public OperationCompletionRS deletePhoto(String login) {
 		User user = userRepository.findByLogin(login).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, login));
 		expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change photo for external user");
-		if (null != user.getAttachment()) {
-			dataStore.delete(user.getAttachment());
-		}
+		ofNullable(user.getAttachment()).ifPresent(attachment -> {
+			dataStoreService.delete(attachment);
+			user.setAttachment(null);
+			user.setAttachmentThumbnail(null);
+		});
 		return new OperationCompletionRS("Profile photo has been deleted successfully");
 	}
 

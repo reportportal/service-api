@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.store;
 
-import com.epam.ta.reportportal.dao.ServerSettingRepository;
+import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ServerSettingsRepositoryTest extends BaseDBTest {
 
 	@Autowired
-	private ServerSettingRepository serverSettingRepository;
+	private ServerSettingsRepository serverSettingRepository;
 
 	@Test
 	public void shouldDeleteUser() throws Exception {

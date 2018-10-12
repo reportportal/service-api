@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
@@ -42,6 +41,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.entity.ServerSettingsConstants.ANALYTICS_CONFIG_PREFIX;
@@ -181,7 +181,7 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 	}
 
 	private void updateServerSettings(Map<String, ServerSettings> serverSettings, String settingsName, String value) {
-		expect(serverSettings, MapUtils::isNotEmpty).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, "default");
+		expect(serverSettings, notNull()).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, "default");
 		serverSettings.put(settingsName, buildServerSettings(serverSettings.get(settingsName), settingsName, value));
 	}
 

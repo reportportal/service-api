@@ -311,7 +311,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			throw new ReportPortalException("Error while User creating.", exp);
 		}
 
-		//		eventPublisher.publishEvent(new UserCreatedEvent(newUser, newUser.getLogin()));
+		eventPublisher.publishEvent(new UserCreatedEvent(newUser, newUser.getLogin()));
 		CreateUserRS response = new CreateUserRS();
 		response.setLogin(newUser.getLogin());
 		return response;

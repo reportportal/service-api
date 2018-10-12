@@ -50,15 +50,15 @@ public class IssueTypeHandler {
 	 * @return verified issue type
 	 */
 	public IssueType defineIssueType(Long testItemId, Long projectId, String locator) {
-		return testItemRepository.selectIssueTypeByLocator(
-				projectId,
-				ofNullable(locator).orElseThrow(() -> new ReportPortalException("Locator should not be null")).toUpperCase()
-		).orElseThrow(() -> new ReportPortalException(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
-				"Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types locators are: {}",
-				locator,
-				testItemId,
-				testItemRepository.selectIssueLocatorsByProject(projectId).stream().map(IssueType::getLocator).collect(toList())
-		)));
+		return testItemRepository.selectIssueTypeByLocator(projectId,
+				ofNullable(locator).orElseThrow(() -> new ReportPortalException("Locator should not be null"))
+		)
+				.orElseThrow(() -> new ReportPortalException(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
+						"Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types locators are: {}",
+						locator,
+						testItemId,
+						testItemRepository.selectIssueLocatorsByProject(projectId).stream().map(IssueType::getLocator).collect(toList())
+				)));
 	}
 
 }

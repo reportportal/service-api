@@ -43,6 +43,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.*;
 import com.google.common.base.Charsets;
+import com.google.common.collect.Sets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -199,6 +200,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 		ProjectUser projectUser = findUserConfigByLogin(defaultProject, loggedInUser.getUsername());
 		List<Project> projects = projectRepository.findUserProjects(loggedInUser.getUsername());
+
+		//TODO change validation
 		expect(defaultProject, not(in(projects))).verify(ACCESS_DENIED);
 
 		ProjectRole role = forName(request.getRole()).orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, request.getRole()));
@@ -242,7 +245,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 	}
 
 	@Override
-	public CreateUserRS createUser(CreateUserRQConfirm request, String uuid, ReportPortalUser loggedInUser) {
+	public CreateUserRS createUser(CreateUserRQConfirm request, String uuid) {
 		UserCreationBid bid = userCreationBidRepository.findById(uuid)
 				.orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST,
 						"Impossible to register user. UUID expired or already registered."
@@ -277,17 +280,20 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		Set<ProjectUser> projectUsers = defaultProject.getUsers();
 
 		//@formatter:off
-		projectUsers
-				.add(new ProjectUser()
-						.withProjectRole(projectRole)
-						.withProject(defaultProject)
-						.withUser(newUser));
-		//@formatter:on
+		ProjectUser projectUser = new ProjectUser()
+				.withProjectRole(projectRole)
+				.withProject(defaultProject)
+				.withUser(newUser);
 
-		defaultProject.setUsers(projectUsers);
+		projectUsers
+				.add(projectUser);
+
+		newUser.setProjects(Sets.newHashSet(projectUser));
+		//@formatter:on
 
 		try {
 			userRepository.save(newUser);
+			projectRepository.save(defaultProject);
 
 			/*
 			 * Generate personal project for the user
@@ -295,6 +301,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			Project personalProject = personalProjectService.generatePersonalProject(newUser);
 			if (!defaultProject.getId().equals(personalProject.getId())) {
 				projectRepository.save(personalProject);
+				newUser.setDefaultProject(personalProject);
 			}
 
 			userCreationBidRepository.deleteById(uuid);
@@ -304,7 +311,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			throw new ReportPortalException("Error while User creating.", exp);
 		}
 
-		eventPublisher.publishEvent(new UserCreatedEvent(newUser, newUser.getLogin()));
+		//		eventPublisher.publishEvent(new UserCreatedEvent(newUser, newUser.getLogin()));
 		CreateUserRS response = new CreateUserRS();
 		response.setLogin(newUser.getLogin());
 		return response;

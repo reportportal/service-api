@@ -37,6 +37,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -48,6 +49,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.Map;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -75,7 +78,7 @@ public class UserController {
 	@Transactional
 	@PostMapping
 	@ResponseStatus(CREATED)
-	//	@PreAuthorize(ADMIN_ONLY)
+	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Create specified user", notes = "Allowable only for users with administrator role")
 	public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq,
 			@AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
@@ -90,7 +93,7 @@ public class UserController {
 	@Transactional
 	@PostMapping(value = "/bid")
 	@ResponseStatus(CREATED)
-	//@PreAuthorize("hasPermission(#createUserRQ.getDefaultProject(), 'projectManagerPermission')")
+	@PreAuthorize("hasPermission(#createUserRQ.getDefaultProject(), 'projectManagerPermission')")
 	@ApiOperation("Register invitation for user who will be created")
 	public CreateUserBidRS createUserBid(@RequestBody @Validated CreateUserRQ createUserRQ,
 			@AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
@@ -109,9 +112,8 @@ public class UserController {
 	@PostMapping(value = "/registration")
 	@ResponseStatus(CREATED)
 	@ApiOperation("Activate invitation and create user in system")
-	public CreateUserRS createUser(@RequestBody @Validated CreateUserRQConfirm request, @RequestParam(value = "uuid") String uuid,
-			@AuthenticationPrincipal ReportPortalUser currentUser) {
-		return createUserMessageHandler.createUser(request, uuid, currentUser);
+	public CreateUserRS createUser(@RequestBody @Validated CreateUserRQConfirm request, @RequestParam(value = "uuid") String uuid) {
+		return createUserMessageHandler.createUser(request, uuid);
 	}
 
 	@Transactional(readOnly = true)
@@ -123,7 +125,7 @@ public class UserController {
 
 	@Transactional
 	@DeleteMapping(value = "/{login}")
-	//@PreAuthorize(ADMIN_ONLY)
+	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Delete specified user", notes = "Allowable only for users with administrator role")
 	public OperationCompletionRS deleteUser(@PathVariable String login, @AuthenticationPrincipal ReportPortalUser currentUser) {
 		return deleteUserMessageHandler.deleteUser(EntityUtils.normalizeId(login), currentUser);
@@ -131,7 +133,7 @@ public class UserController {
 
 	@Transactional
 	@PutMapping(value = "/{login}")
-	//@PreAuthorize(ALLOWED_TO_EDIT_USER)
+	@PreAuthorize(ALLOWED_TO_EDIT_USER)
 	@ApiOperation(value = "Edit specified user", notes = "Only for administrators and profile's owner")
 	public OperationCompletionRS editUser(@PathVariable String login, @RequestBody @Validated EditUserRQ editUserRQ,
 			@ActiveRole UserRole role, @AuthenticationPrincipal ReportPortalUser currentUser) {
@@ -141,7 +143,7 @@ public class UserController {
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/{login}")
 	@ResponseView(ModelViews.FullUserView.class)
-	//@PreAuthorize(ALLOWED_TO_EDIT_USER)
+	@PreAuthorize(ALLOWED_TO_EDIT_USER)
 	@ApiOperation(value = "Return information about specified user", notes = "Only for administrators and profile's owner")
 	public UserResource getUser(@PathVariable String login, @AuthenticationPrincipal ReportPortalUser currentUser) {
 		return getUserHandler.getUser(EntityUtils.normalizeId(login), currentUser);
@@ -157,7 +159,7 @@ public class UserController {
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/all")
 	@ResponseView(ModelViews.FullUserView.class)
-	//@PreAuthorize(ADMIN_ONLY)
+	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Return information about all users", notes = "Allowable only for users with administrator role")
 	public Iterable<UserResource> getUsers(@FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
 			@AuthenticationPrincipal ReportPortalUser currentUser) {
@@ -226,7 +228,7 @@ public class UserController {
 	@GetMapping(value = "/search")
 	@ResponseStatus(OK)
 	@ApiIgnore
-	//@PreAuthorize(ADMIN_ONLY)
+	@PreAuthorize(ADMIN_ONLY)
 	public Iterable<UserResource> findUsers(@RequestParam(value = "term") String term, Pageable pageable,
 			@AuthenticationPrincipal ReportPortalUser currentUser) {
 		return getUserHandler.searchUsers(term, pageable);

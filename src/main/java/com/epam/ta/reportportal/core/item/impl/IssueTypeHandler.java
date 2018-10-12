@@ -16,14 +16,15 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.AMBIGUOUS_TEST_ITEM_STATUS;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -49,13 +50,15 @@ public class IssueTypeHandler {
 	 * @return verified issue type
 	 */
 	public IssueType defineIssueType(Long testItemId, Long projectId, String locator) {
-		return testItemRepository.selectIssueTypeByLocator(projectId, locator)
-				.orElseThrow(() -> new ReportPortalException(
-						AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
-						"Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types locators are: {}",
-						locator, testItemId,
-						testItemRepository.selectIssueLocatorsByProject(projectId).stream().map(IssueType::getLocator).collect(toList())
-				)));
+		return testItemRepository.selectIssueTypeByLocator(
+				projectId,
+				ofNullable(locator).orElseThrow(() -> new ReportPortalException("Locator should not be null")).toUpperCase()
+		).orElseThrow(() -> new ReportPortalException(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
+				"Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types locators are: {}",
+				locator,
+				testItemId,
+				testItemRepository.selectIssueLocatorsByProject(projectId).stream().map(IssueType::getLocator).collect(toList())
+		)));
 	}
 
 }

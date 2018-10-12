@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Default implementation of {@link com.epam.ta.reportportal.core.launch.StartLaunchHandler}
@@ -47,6 +48,7 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 	}
 
 	@Override
+	@Transactional
 	public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ) {
 		validateRoles(user, projectDetails, startLaunchRQ);
 
@@ -55,7 +57,7 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 				.addUser(user.getUserId())
 				.addTags(startLaunchRQ.getTags())
 				.get();
-		launchRepository.save(launch);
+		launch = launchRepository.save(launch);
 		launchRepository.refresh(launch);
 
 		messageBus.publishActivity(new LaunchStartedEvent(launch));

@@ -302,7 +302,6 @@ public class LaunchController {
 		return deleteLaunchMessageHandler.deleteLaunches(ids, extractProjectDetails(user, normalizeId(projectName)), user);
 	}
 
-	@Transactional
 	@PostMapping(value = "/import")
 	@ResponseStatus(OK)
 	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip.")

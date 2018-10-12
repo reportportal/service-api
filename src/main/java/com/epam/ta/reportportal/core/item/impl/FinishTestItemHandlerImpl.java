@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -78,6 +79,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	//	}
 
 	@Override
+	@Transactional
 	public OperationCompletionRS finishTestItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Long testItemId,
 			FinishTestItemRQ finishExecutionRQ) {
 		TestItem testItem = testItemRepository.findById(testItemId)

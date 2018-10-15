@@ -100,18 +100,19 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 	}
 
 	private void checkItemsIsSiblings(List<TestItem> itemsForHistory) {
-		Long parentId = itemsForHistory.get(0).getParent().getItemId();
 		/*
 		 * If parent field is present check it - for example step, test if
 		 * parent is empty check launch id - for example suite
 		 */
-		if (parentId == null) {
+		if (null == itemsForHistory.get(0).getParent()) {
 			Long launchId = itemsForHistory.get(0).getLaunch().getId();
 			itemsForHistory.forEach(it -> BusinessRule.expect(it.getLaunch().getId(), launch -> Objects.equals(launch, launchId))
 					.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "All test items should be siblings."));
 		} else {
 			/* Validate that items do not contains different parents */
-			itemsForHistory.forEach(it -> BusinessRule.expect(it.getParent().getItemId(), parent -> Objects.equals(parent, parentId))
+			itemsForHistory.forEach(it -> BusinessRule.expect(it.getParent().getItemId(),
+					parent -> Objects.equals(parent, itemsForHistory.get(0).getParent().getItemId())
+			)
 					.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "All test items should be siblings."));
 		}
 	}

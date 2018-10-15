@@ -70,6 +70,7 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 		List<TestItem> itemsForHistory = testItemRepository.findAllById(itemIds);
 		validateItems(itemsForHistory, itemIds, projectDetails.getProjectId());
 		List<Launch> launchesHistory = launchRepository.findLaunchesHistory(historyDepth,
+				itemsForHistory.get(0).getLaunch().getId(),
 				itemsForHistory.get(0).getLaunch().getName(),
 				projectDetails.getProjectId()
 		);

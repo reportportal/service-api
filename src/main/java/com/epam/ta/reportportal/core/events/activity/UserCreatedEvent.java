@@ -27,11 +27,30 @@ import java.time.LocalDateTime;
  */
 public class UserCreatedEvent implements ActivityEvent {
 
-	private final User user;
-	private final Long createdBy;
+	private User user;
+	private Long createdBy;
+
+	public UserCreatedEvent() {
+	}
 
 	public UserCreatedEvent(User user, Long createdBy) {
 		this.user = user;
+		this.createdBy = createdBy;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	public Long getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(Long createdBy) {
 		this.createdBy = createdBy;
 	}
 

@@ -27,13 +27,40 @@ import java.time.LocalDateTime;
  */
 public class DefectTypeCreatedEvent implements ActivityEvent {
 
-	private final IssueType issueType;
-	private final Long projectId;
-	private final Long updatedBy;
+	private IssueType issueType;
+	private Long projectId;
+	private Long updatedBy;
+
+	public DefectTypeCreatedEvent() {
+	}
 
 	public DefectTypeCreatedEvent(IssueType issueType, Long projectId, Long updatedBy) {
 		this.issueType = issueType;
 		this.projectId = projectId;
+		this.updatedBy = updatedBy;
+	}
+
+	public IssueType getIssueType() {
+		return issueType;
+	}
+
+	public void setIssueType(IssueType issueType) {
+		this.issueType = issueType;
+	}
+
+	public Long getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(Long projectId) {
+		this.projectId = projectId;
+	}
+
+	public Long getUpdatedBy() {
+		return updatedBy;
+	}
+
+	public void setUpdatedBy(Long updatedBy) {
 		this.updatedBy = updatedBy;
 	}
 

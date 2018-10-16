@@ -25,15 +25,42 @@ import java.time.LocalDateTime;
 /**
  * @author Andrei Varabyeu
  */
-public class DefectTypeDeletedEvent implements ActivityEvent {
+public class DefectTypeDeletedEvent extends BeforeEvent<IssueType> implements ActivityEvent {
 
-	private final IssueType issueType;
-	private final Long projectId;
-	private final Long deletedBy;
+	private IssueType issueType;
+	private Long projectId;
+	private Long deletedBy;
+
+	public DefectTypeDeletedEvent() {
+	}
 
 	public DefectTypeDeletedEvent(IssueType issueType, Long projectId, Long deletedBy) {
 		this.issueType = issueType;
 		this.projectId = projectId;
+		this.deletedBy = deletedBy;
+	}
+
+	public IssueType getIssueType() {
+		return issueType;
+	}
+
+	public void setIssueType(IssueType issueType) {
+		this.issueType = issueType;
+	}
+
+	public Long getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(Long projectId) {
+		this.projectId = projectId;
+	}
+
+	public Long getDeletedBy() {
+		return deletedBy;
+	}
+
+	public void setDeletedBy(Long deletedBy) {
 		this.deletedBy = deletedBy;
 	}
 

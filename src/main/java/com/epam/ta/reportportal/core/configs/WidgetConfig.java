@@ -17,10 +17,7 @@ package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.core.widget.content.filter.GeneralLaunchFilterStrategy;
-import com.epam.ta.reportportal.core.widget.content.filter.LaunchHistoryFilterStrategy;
-import com.epam.ta.reportportal.core.widget.content.filter.ProductStatusFilterStrategy;
-import com.epam.ta.reportportal.core.widget.content.filter.ProjectFilterStrategy;
+import com.epam.ta.reportportal.core.widget.content.filter.*;
 import com.epam.ta.reportportal.core.widget.content.loader.*;
 import com.epam.ta.reportportal.core.widget.content.loader.util.ProductStatusContentLoaderManager;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
@@ -93,8 +90,8 @@ public class WidgetConfig implements ApplicationContextAware {
 		);
 		//		mapping.put(WidgetType.CUMULATIVE, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
 		mapping.put(WidgetType.PRODUCT_STATUS, (ProductStatusFilterStrategy) applicationContext.getBean("productStatusFilterStrategy"));
-		mapping.put(WidgetType.UNIQUE_BUG_TABLE, (ProjectFilterStrategy) applicationContext.getBean("projectFilterStrategy"));
-		mapping.put(WidgetType.ACTIVITY, (ProjectFilterStrategy) applicationContext.getBean("projectFilterStrategy"));
+		mapping.put(WidgetType.UNIQUE_BUG_TABLE, (TestItemFilterStrategy) applicationContext.getBean("testItemFilterStrategy"));
+		mapping.put(WidgetType.ACTIVITY, (ActivityFilterStrategy) applicationContext.getBean("activityFilterStrategy"));
 		mapping.put(WidgetType.LAUNCHES_COMPARISON_CHART,
 				(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
 		);
@@ -106,9 +103,7 @@ public class WidgetConfig implements ApplicationContextAware {
 				(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
 		);
 		mapping.put(WidgetType.FLAKY_TEST_CASES, (GeneralLaunchFilterStrategy) applicationContext.getBean("launchHistoryFilterStrategy"));
-		mapping.put(WidgetType.MOST_TIME_CONSUMING,
-				(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
-		);
+		mapping.put(WidgetType.MOST_TIME_CONSUMING, (TestItemFilterStrategy) applicationContext.getBean("testItemFilterStrategy"));
 		return mapping;
 	}
 

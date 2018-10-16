@@ -32,15 +32,50 @@ import java.time.LocalDateTime;
  */
 public class ProjectIndexEvent implements ActivityEvent {
 
-	private final Long projectId;
-	private final String projectName;
-	private final Long userId;
-	private final boolean indexing;
+	private Long projectId;
+	private String projectName;
+	private Long userId;
+	private boolean indexing;
+
+	public ProjectIndexEvent() {
+	}
 
 	public ProjectIndexEvent(Long projectId, String projectName, Long userId, boolean indexing) {
 		this.projectId = projectId;
 		this.projectName = projectName;
 		this.userId = userId;
+		this.indexing = indexing;
+	}
+
+	public Long getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(Long projectId) {
+		this.projectId = projectId;
+	}
+
+	public String getProjectName() {
+		return projectName;
+	}
+
+	public void setProjectName(String projectName) {
+		this.projectName = projectName;
+	}
+
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public boolean isIndexing() {
+		return indexing;
+	}
+
+	public void setIndexing(boolean indexing) {
 		this.indexing = indexing;
 	}
 

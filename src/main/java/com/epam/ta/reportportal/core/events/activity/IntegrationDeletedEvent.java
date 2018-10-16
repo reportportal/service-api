@@ -27,8 +27,27 @@ import java.time.LocalDateTime;
  */
 public class IntegrationDeletedEvent implements ActivityEvent {
 
-	private final Integration integration;
-	private final Long deletedBy;
+	private Integration integration;
+	private Long deletedBy;
+
+	public IntegrationDeletedEvent() {
+	}
+
+	public Integration getIntegration() {
+		return integration;
+	}
+
+	public void setIntegration(Integration integration) {
+		this.integration = integration;
+	}
+
+	public Long getDeletedBy() {
+		return deletedBy;
+	}
+
+	public void setDeletedBy(Long deletedBy) {
+		this.deletedBy = deletedBy;
+	}
 
 	public IntegrationDeletedEvent(Integration integration, Long deletedBy) {
 		this.integration = integration;

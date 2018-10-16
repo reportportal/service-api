@@ -27,11 +27,30 @@ import java.time.LocalDateTime;
  */
 public class IntegrationUpdatedEvent implements ActivityEvent {
 
-	private final Integration integration;
-	private final Long updatedBy;
+	private Integration integration;
+	private Long updatedBy;
+
+	public IntegrationUpdatedEvent() {
+	}
 
 	public IntegrationUpdatedEvent(Integration integration, Long updatedBy) {
 		this.integration = integration;
+		this.updatedBy = updatedBy;
+	}
+
+	public Integration getIntegration() {
+		return integration;
+	}
+
+	public void setIntegration(Integration integration) {
+		this.integration = integration;
+	}
+
+	public Long getUpdatedBy() {
+		return updatedBy;
+	}
+
+	public void setUpdatedBy(Long updatedBy) {
 		this.updatedBy = updatedBy;
 	}
 

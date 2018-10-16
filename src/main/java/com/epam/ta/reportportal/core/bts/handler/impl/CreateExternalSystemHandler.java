@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.bts.handler.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.ICreateExternalSystemHandler;
+import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.dao.BugTrackingSystemRepository;
 import com.epam.ta.reportportal.entity.bts.BugTrackingSystem;
 import com.epam.ta.reportportal.entity.bts.BugTrackingSystemAuthFactory;
@@ -28,7 +29,6 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -50,7 +50,7 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 	private BugTrackingSystemAuthFactory bugTrackingSystemAuthFactory;
 
 	@Autowired
-	private ApplicationEventPublisher eventPublisher;
+	private MessageBus messageBus;
 
 	@Override
 	public EntryCreatedRS createExternalSystem(CreateExternalSystemRQ createRQ, String projectName, ReportPortalUser user) {
@@ -70,7 +70,7 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 		//expect(externalSystemStrategy.connectionTest(externalSystem), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, projectName);
 
 		bugTrackingSystemRepository.save(bugTrackingSystem);
-		//eventPublisher.publishEvent(new IntegrationCreatedEvent(createOne, username));
+		//messageBus.publishActivity(new IntegrationCreatedEvent(integration, user.getUserId()));
 		return new EntryCreatedRS(bugTrackingSystem.getId());
 	}
 

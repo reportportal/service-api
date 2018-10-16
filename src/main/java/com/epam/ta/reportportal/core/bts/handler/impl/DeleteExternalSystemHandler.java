@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.bts.handler.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.IDeleteExternalSystemHandler;
+import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.dao.BugTrackingSystemRepository;
 import com.epam.ta.reportportal.entity.bts.BugTrackingSystem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -25,7 +26,6 @@ import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -45,7 +45,7 @@ public class DeleteExternalSystemHandler implements IDeleteExternalSystemHandler
 	private BugTrackingSystemRepository bugTrackingSystemRepository;
 
 	@Autowired
-	private ApplicationEventPublisher eventPublisher;
+	private MessageBus messageBus;
 
 	@Override
 	public synchronized OperationCompletionRS deleteExternalSystem(String projectName, Long id, ReportPortalUser user) {
@@ -56,7 +56,7 @@ public class DeleteExternalSystemHandler implements IDeleteExternalSystemHandler
 
 		bugTrackingSystemRepository.delete(bugTrackingSystem);
 
-		//eventPublisher.publishEvent(new IntegrationDeletedEvent(exist, username));
+		//messageBus.publishActivity(new IntegrationDeletedEvent(exist, user.getUserId()));
 		return new OperationCompletionRS("ExternalSystem with ID = '" + id + "' is successfully deleted.");
 	}
 
@@ -67,7 +67,7 @@ public class DeleteExternalSystemHandler implements IDeleteExternalSystemHandler
 		if (!CollectionUtils.isEmpty(btsSystems)) {
 			bugTrackingSystemRepository.deleteAll(btsSystems);
 		}
-		//eventPublisher.publishEvent(new ProjectExternalSystemsDeletedEvent(exist, projectName, username));
+		//integrations.forEach(i -> messageBus.publishActivity(new IntegrationDeletedEvent(i, user.getUserId())));
 		return new OperationCompletionRS("All ExternalSystems for project '" + projectName + "' successfully removed");
 	}
 }

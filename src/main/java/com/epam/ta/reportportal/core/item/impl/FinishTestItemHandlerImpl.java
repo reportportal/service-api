@@ -88,6 +88,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		boolean hasChildren = testItemRepository.hasChildren(testItem.getItemId(), testItem.getPath());
 		verifyTestItem(user, finishExecutionRQ, testItem, fromValue(finishExecutionRQ.getStatus()), hasChildren);
 
+		testItem.setHasChildren(hasChildren);
+
 		TestItemResults testItemResults = processItemResults(projectDetails.getProjectId(), testItem, finishExecutionRQ, hasChildren);
 
 		testItem = new TestItemBuilder(testItem).addDescription(finishExecutionRQ.getDescription())

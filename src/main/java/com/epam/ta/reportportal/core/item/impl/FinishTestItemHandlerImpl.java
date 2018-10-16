@@ -85,7 +85,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		TestItem testItem = testItemRepository.findById(testItemId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId));
 
-		boolean hasChildren = testItemRepository.hasChildren(testItem.getItemId(), testItem.getPath());
+		boolean hasChildren = testItem.getHasChildren();
 		verifyTestItem(user, finishExecutionRQ, testItem, fromValue(finishExecutionRQ.getStatus()), hasChildren);
 
 		TestItemResults testItemResults = processItemResults(projectDetails.getProjectId(), testItem, finishExecutionRQ, hasChildren);

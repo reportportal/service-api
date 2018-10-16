@@ -18,8 +18,6 @@ package com.epam.ta.reportportal.core.events.activity;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.JsonbObject;
-import com.epam.ta.reportportal.entity.launch.Launch;
-import com.google.common.base.Preconditions;
 
 import java.time.LocalDateTime;
 
@@ -30,28 +28,52 @@ import java.time.LocalDateTime;
  */
 public class LaunchFinishedEvent implements ActivityEvent {
 
-	private Launch launch;
+	private Long launchId;
+	private Long userId;
+	private Long projectId;
 
-	LaunchFinishedEvent() {
-
+	public LaunchFinishedEvent() {
 	}
 
-	public LaunchFinishedEvent(Launch launch) {
-		this.launch = Preconditions.checkNotNull(launch, "Should not be null");
+	public LaunchFinishedEvent(Long launchId, Long userId, Long projectId) {
+		this.launchId = launchId;
+		this.userId = userId;
+		this.projectId = projectId;
 	}
 
-	public Launch getLaunch() {
-		return launch;
+	public Long getLaunchId() {
+		return launchId;
+	}
+
+	public void setLaunchId(Long launchId) {
+		this.launchId = launchId;
+	}
+
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public Long getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(Long projectId) {
+		this.projectId = projectId;
 	}
 
 	@Override
 	public Activity toActivity() {
 		Activity activity = new Activity();
-		activity.setUserId(this.launch.getUser().getId());
+		activity.setUserId(userId);
 		activity.setEntity(Activity.Entity.LAUNCH);
+		activity.setAction(ActivityAction.FINISH_LAUNCH.getValue());
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setProjectId(launch.getProjectId());
-		activity.setDetails(new LaunchActivityDetails(launch.getId()));
+		activity.setProjectId(projectId);
+		activity.setDetails(new LaunchActivityDetails(launchId));
 		return activity;
 	}
 

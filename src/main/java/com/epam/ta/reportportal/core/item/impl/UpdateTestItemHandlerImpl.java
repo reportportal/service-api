@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationExceptio
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
+import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.dao.BugTrackingSystemRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;

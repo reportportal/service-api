@@ -28,11 +28,22 @@ import java.time.LocalDateTime;
  */
 public class WidgetDeletedEvent extends BeforeEvent<Widget> implements ActivityEvent {
 
-	private final Long removedBy;
+	private Long removedBy;
+
+	public WidgetDeletedEvent() {
+	}
 
 	public WidgetDeletedEvent(Widget widget, Long removerId) {
 		super(widget);
 		this.removedBy = removerId;
+	}
+
+	public Long getRemovedBy() {
+		return removedBy;
+	}
+
+	public void setRemovedBy(Long removedBy) {
+		this.removedBy = removedBy;
 	}
 
 	@Override

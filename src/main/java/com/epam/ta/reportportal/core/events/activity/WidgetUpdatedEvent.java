@@ -30,10 +30,21 @@ import static com.epam.ta.reportportal.core.events.activity.details.ActivityDeta
  */
 public class WidgetUpdatedEvent extends AroundEvent<Widget> implements ActivityEvent {
 
-	private final Long updatedBy;
+	private Long updatedBy;
+
+	public WidgetUpdatedEvent() {
+	}
 
 	public WidgetUpdatedEvent(Widget before, Widget after, Long updatedBy) {
 		super(before, after);
+		this.updatedBy = updatedBy;
+	}
+
+	public Long getUpdatedBy() {
+		return updatedBy;
+	}
+
+	public void setUpdatedBy(Long updatedBy) {
 		this.updatedBy = updatedBy;
 	}
 

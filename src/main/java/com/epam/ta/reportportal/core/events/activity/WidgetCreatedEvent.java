@@ -28,11 +28,30 @@ import java.time.LocalDateTime;
  */
 public class WidgetCreatedEvent implements ActivityEvent {
 
-	private final Widget widget;
-	private final Long createdBy;
+	private Widget widget;
+	private Long createdBy;
 
-	public WidgetCreatedEvent(Widget widget, Long createdBy, Long projectRef, Long widgetId) {
+	public WidgetCreatedEvent() {
+	}
+
+	public WidgetCreatedEvent(Widget widget, Long createdBy) {
 		this.widget = widget;
+		this.createdBy = createdBy;
+	}
+
+	public Widget getWidget() {
+		return widget;
+	}
+
+	public void setWidget(Widget widget) {
+		this.widget = widget;
+	}
+
+	public Long getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(Long createdBy) {
 		this.createdBy = createdBy;
 	}
 

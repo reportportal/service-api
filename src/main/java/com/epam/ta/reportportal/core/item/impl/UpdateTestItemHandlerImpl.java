@@ -47,7 +47,9 @@ import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -65,7 +67,6 @@ import static java.lang.Boolean.FALSE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static java.util.stream.StreamSupport.stream;
 
 /**
  * Default implementation of {@link UpdateTestItemHandler}
@@ -180,7 +181,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			ReportPortalUser user) {
 		List<String> errors = new ArrayList<>();
 
-		Iterable<TestItem> testItems = testItemRepository.findAllById(rq.getTestItemIds());
+		List<TestItem> testItems = testItemRepository.findAllById(rq.getTestItemIds());
+		ArrayList<TestItem> cloned = SerializationUtils.clone(Lists.newArrayList(testItems));
+
 		List<Ticket> existedTickets = collectExistedTickets(rq);
 		Set<Ticket> ticketsFromRq = collectTickets(rq, user.getUserId());
 
@@ -188,17 +191,29 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			try {
 				verifyTestItem(testItem, testItem.getItemId());
 				IssueEntity issue = testItem.getItemResults().getIssue();
-				existedTickets.forEach(it -> it.getIssues().add(issue));
-				ticketsFromRq.forEach(it -> it.getIssues().add(issue));
+				issue.getTickets().addAll(existedTickets);
+				issue.getTickets().addAll(ticketsFromRq);
 			} catch (Exception e) {
 				errors.add(e.getMessage());
 			}
 		});
 		expect(!errors.isEmpty(), equalTo(FALSE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
-		ticketRepository.saveAll(existedTickets);
-		ticketRepository.saveAll(ticketsFromRq);
-		//eventPublisher.publishEvent(new LinkTicketEvent(before, Lists.newArrayList(testItems), userName, projectName));
-		return stream(testItems.spliterator(), false).map(testItem -> new OperationCompletionRS(
+		testItemRepository.saveAll(testItems);
+
+		cloned.forEach(testItemNew -> messageBus.publishActivity(new LinkTicketEvent(
+				testItemNew.getItemResults().getIssue(),
+				testItems.stream()
+						.map(testItemOld -> testItemOld.getItemResults().getIssue())
+						.filter(is -> is.getIssueId().equals(testItemNew.getItemResults().getIssue().getIssueId()))
+						.findFirst()
+						.get(),
+				user.getUserId(),
+				projectDetails.getProjectId(),
+				testItemNew.getItemId(),
+				testItemNew.getName()
+		)));
+
+		return testItems.stream().map(testItem -> new OperationCompletionRS(
 				"TestItem with ID = '" + testItem.getItemId() + "' successfully updated.")).collect(toList());
 	}
 

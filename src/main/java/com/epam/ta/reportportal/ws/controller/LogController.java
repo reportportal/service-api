@@ -157,7 +157,7 @@ public class LogController {
 	@ApiOperation("Get logs by filter")
 	public Iterable<LogResource> getLogs(@PathVariable String projectName,
 			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_TEST_ITEM_ID) Long testStepId,
-			@FilterFor(Log.class) Filter filter, @SortDefault({ "time" }) @SortFor(Log.class) Pageable pageable,
+			@FilterFor(Log.class) Filter filter, @SortDefault({ "log_time" }) @SortFor(Log.class) Pageable pageable,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return getLogHandler.getLogs(testStepId, extractProjectDetails(user, projectName), filter, pageable);
 	}

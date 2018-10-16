@@ -24,12 +24,16 @@ package com.epam.ta.reportportal.core.events.activity;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
+import com.epam.ta.reportportal.entity.HistoryField;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
+import com.epam.ta.reportportal.entity.project.ProjectUtils;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Set;
+
+import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
@@ -59,47 +63,28 @@ public class ProjectAnalyzerConfigEvent extends AroundEvent<Set<ProjectAttribute
 
 		ActivityDetails details = new ActivityDetails(projectName);
 
-/*		Map<ProjectAttributeEnum, String> oldAnalyzerConfig = extractAnalyzerConfig(getBefore());
-		Map<ProjectAttributeEnum, String> newAnalyzerConfig = extractAnalyzerConfig(getAfter());
+		Map<String, String> oldConfig = ProjectUtils.getConfigParameters(getBefore());
+		Map<String, String> newConfig = ProjectUtils.getConfigParameters(getAfter());
 
-		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, ANALYZE_MODE);
-		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, MIN_DOC_FREQ);
-		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, MIN_TERM_FREQ);
-		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, MIN_SHOULD_MATCH);
-		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, NUMBER_OF_LOG_LINES);
-		processConfigAttribute(details, oldAnalyzerConfig, newAnalyzerConfig, AUTO_ANALYZER_ENABLED);*/
+		processParameter(details, oldConfig, newConfig, AUTO_ANALYZER_MODE.getAttribute());
+		processParameter(details, oldConfig, newConfig, MIN_DOC_FREQ.getAttribute());
+		processParameter(details, oldConfig, newConfig, MIN_TERM_FREQ.getAttribute());
+		processParameter(details, oldConfig, newConfig, MIN_SHOULD_MATCH.getAttribute());
+		processParameter(details, oldConfig, newConfig, NUMBER_OF_LOG_LINES.getAttribute());
+		processParameter(details, oldConfig, newConfig, AUTO_ANALYZER_ENABLED.getAttribute());
 
 		activity.setDetails(details);
 		return activity;
 	}
 
-	private void processConfigAttribute(ActivityDetails details, Map<ProjectAttributeEnum, String> oldAnalyzerConfig,
-			Map<ProjectAttributeEnum, String> newAnalyzerConfig, ProjectAttributeEnum attribute) {
-	/*	String oldValue = oldAnalyzerConfig.get(attribute);
-		String newValue = newAnalyzerConfig.get(attribute);
-		if (null != newValue && !newValue.equalsIgnoreCase(oldValue)) {
-			details.addHistoryField(attribute.getValue(), new HistoryField(oldValue, newValue));
-		}
-	}
-
-	private Map<ProjectAttributeEnum, String> extractAnalyzerConfig(Set<ProjectAttribute> attributes) {
-		Map<ProjectAttributeEnum, String> analyzerConfigAttributes = new HashMap<>();
-
-		extractConfigProperty(attributes, analyzerConfigAttributes, ANALYZE_MODE);
-		extractConfigProperty(attributes, analyzerConfigAttributes, MIN_DOC_FREQ);
-		extractConfigProperty(attributes, analyzerConfigAttributes, MIN_TERM_FREQ);
-		extractConfigProperty(attributes, analyzerConfigAttributes, MIN_SHOULD_MATCH);
-		extractConfigProperty(attributes, analyzerConfigAttributes, NUMBER_OF_LOG_LINES);
-		extractConfigProperty(attributes, analyzerConfigAttributes, AUTO_ANALYZER_ENABLED);
-		return analyzerConfigAttributes;
-	}
-
-	private void extractConfigProperty(Set<ProjectAttribute> attributes, Map<ProjectAttributeEnum, String> analyzerConfigAttributes,
-			ProjectAttributeEnum attributeEnum) {
-		attributes.stream()
-				.filter(attr -> attr.getAttribute().getName().equalsIgnoreCase(attributeEnum.getValue()))
-				.findFirst()
-				.ifPresent(attr -> analyzerConfigAttributes.put(attributeEnum, attr.getValue()));
-				*/
+	private void processParameter(ActivityDetails details, Map<String, String> oldConfig, Map<String, String> newConfig,
+			String parameterName) {
+		String oldValue = oldConfig.get(parameterName);
+		String newValue = newConfig.get(parameterName);
+		ofNullable(newValue).ifPresent(param -> {
+			if (!param.equals(oldValue)) {
+				details.addHistoryField(HistoryField.of(parameterName, oldValue, param));
+			}
+		});
 	}
 }

@@ -27,13 +27,40 @@ import java.time.LocalDateTime;
  */
 public class ImportFinishedEvent implements ActivityEvent {
 
-	private final Long projectId;
-	private final Long userId;
-	private final String fileName;
+	private Long projectId;
+	private Long userId;
+	private String fileName;
+
+	public ImportFinishedEvent() {
+	}
 
 	public ImportFinishedEvent(Long projectId, Long userId, String fileName) {
 		this.projectId = projectId;
 		this.userId = userId;
+		this.fileName = fileName;
+	}
+
+	public Long getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(Long projectId) {
+		this.projectId = projectId;
+	}
+
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public String getFileName() {
+		return fileName;
+	}
+
+	public void setFileName(String fileName) {
 		this.fileName = fileName;
 	}
 

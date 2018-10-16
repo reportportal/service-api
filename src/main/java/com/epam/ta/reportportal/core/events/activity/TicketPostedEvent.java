@@ -33,15 +33,50 @@ import static com.epam.ta.reportportal.core.events.activity.details.ActivityDeta
  */
 public class TicketPostedEvent implements ActivityEvent {
 
-	private final Ticket ticket;
-	private final Long postedBy;
-	private final TestItem testItem;
-	private final Long projectId;
+	private Ticket ticket;
+	private Long postedBy;
+	private TestItem testItem;
+	private Long projectId;
+
+	public TicketPostedEvent() {
+	}
 
 	public TicketPostedEvent(Ticket ticket, TestItem testItem, Long postedBy, Long projectId, String itemName) {
 		this.ticket = ticket;
 		this.postedBy = postedBy;
 		this.testItem = testItem;
+		this.projectId = projectId;
+	}
+
+	public Ticket getTicket() {
+		return ticket;
+	}
+
+	public void setTicket(Ticket ticket) {
+		this.ticket = ticket;
+	}
+
+	public Long getPostedBy() {
+		return postedBy;
+	}
+
+	public void setPostedBy(Long postedBy) {
+		this.postedBy = postedBy;
+	}
+
+	public TestItem getTestItem() {
+		return testItem;
+	}
+
+	public void setTestItem(TestItem testItem) {
+		this.testItem = testItem;
+	}
+
+	public Long getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(Long projectId) {
 		this.projectId = projectId;
 	}
 

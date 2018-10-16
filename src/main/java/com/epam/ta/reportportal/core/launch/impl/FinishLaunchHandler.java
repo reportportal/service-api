@@ -102,8 +102,7 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 			validateProvidedStatus(launch, statusEnum.get(), fromStatisticsStatus);
 		}
 		launch.setStatus(statusEnum.orElse(fromStatisticsStatus));
-		launchRepository.save(launch);
-		messageBus.publishActivity(new LaunchFinishedEvent(launch));
+		messageBus.publishActivity(new LaunchFinishedEvent(launch.getId(), launch.getUser().getId(), launch.getProjectId()));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully finished.");
 	}
 

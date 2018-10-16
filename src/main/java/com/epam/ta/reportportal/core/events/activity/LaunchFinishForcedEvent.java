@@ -27,11 +27,30 @@ import java.time.LocalDateTime;
  */
 public class LaunchFinishForcedEvent implements ActivityEvent {
 
-	private final Launch launch;
-	private final Long forcedBy;
+	private Launch launch;
+	private Long forcedBy;
+
+	public LaunchFinishForcedEvent() {
+	}
 
 	public LaunchFinishForcedEvent(Launch launch, Long forcedBy) {
 		this.launch = launch;
+		this.forcedBy = forcedBy;
+	}
+
+	public Launch getLaunch() {
+		return launch;
+	}
+
+	public void setLaunch(Launch launch) {
+		this.launch = launch;
+	}
+
+	public Long getForcedBy() {
+		return forcedBy;
+	}
+
+	public void setForcedBy(Long forcedBy) {
 		this.forcedBy = forcedBy;
 	}
 

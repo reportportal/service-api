@@ -35,7 +35,10 @@ import java.time.LocalDateTime;
  */
 public class LaunchFinishedEvent implements ActivityEvent {
 
-	private final Launch launch;
+	private Launch launch;
+
+	public LaunchFinishedEvent() {
+	}
 
 	public LaunchFinishedEvent(Launch launch) {
 		this.launch = Preconditions.checkNotNull(launch, "Should not be null");
@@ -43,6 +46,10 @@ public class LaunchFinishedEvent implements ActivityEvent {
 
 	public Launch getLaunch() {
 		return launch;
+	}
+
+	public void setLaunch(Launch launch) {
+		this.launch = launch;
 	}
 
 	@Override

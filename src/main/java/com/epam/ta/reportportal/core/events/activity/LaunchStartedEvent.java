@@ -17,7 +17,6 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.launch.Launch;
 
 import java.time.LocalDateTime;
 
@@ -26,29 +25,52 @@ import java.time.LocalDateTime;
  */
 public class LaunchStartedEvent implements ActivityEvent {
 
-	private Launch launch;
+	private Long launchId;
+	private Long userId;
+	private Long projectId;
 
-	LaunchStartedEvent() {
-
+	public LaunchStartedEvent() {
 	}
 
-	public LaunchStartedEvent(Launch launch) {
-		this.launch = launch;
+	public LaunchStartedEvent(Long launchId, Long userId, Long projectId) {
+		this.launchId = launchId;
+		this.userId = userId;
+		this.projectId = projectId;
 	}
 
-	public Launch getLaunch() {
-		return launch;
+	public Long getLaunchId() {
+		return launchId;
+	}
+
+	public void setLaunchId(Long launchId) {
+		this.launchId = launchId;
+	}
+
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public Long getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(Long projectId) {
+		this.projectId = projectId;
 	}
 
 	@Override
 	public Activity toActivity() {
 		Activity activity = new Activity();
-		activity.setUserId(this.launch.getUser().getId());
+		activity.setUserId(userId);
 		activity.setEntity(Activity.Entity.LAUNCH);
-		activity.setProjectId(launch.getProjectId());
+		activity.setProjectId(projectId);
 		activity.setAction(ActivityAction.START_LAUNCH.getValue());
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new LaunchFinishedEvent.LaunchActivityDetails(launch.getId()));
+		activity.setDetails(new LaunchFinishedEvent.LaunchActivityDetails(launchId));
 		return activity;
 	}
 }

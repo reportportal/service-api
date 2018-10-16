@@ -31,10 +31,21 @@ import static com.epam.ta.reportportal.core.events.activity.details.ActivityDeta
  */
 public class FilterUpdatedEvent extends AroundEvent<UserFilter> implements ActivityEvent {
 
-	private final Long updatedBy;
+	private Long updatedBy;
+
+	public FilterUpdatedEvent() {
+	}
 
 	public FilterUpdatedEvent(UserFilter before, UserFilter after, Long updatedBy) {
 		super(before, after);
+		this.updatedBy = updatedBy;
+	}
+
+	public Long getUpdatedBy() {
+		return updatedBy;
+	}
+
+	public void setUpdatedBy(Long updatedBy) {
 		this.updatedBy = updatedBy;
 	}
 

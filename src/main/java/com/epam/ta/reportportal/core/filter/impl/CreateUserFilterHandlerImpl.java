@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.filter.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.FilterCreatedEvent;
 import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -48,7 +49,7 @@ public class CreateUserFilterHandlerImpl implements ICreateUserFilterHandler {
 			ReportPortalUser user) {
 		UserFilter filter = new UserFilterBuilder().addCreateRq(createFilterRQ).addProject(projectDetails.getProjectId()).get();
 		userFilterRepository.save(filter);
-		//messageBus.publishActivity(null);
+		messageBus.publishActivity(new FilterCreatedEvent(filter, user.getUserId()));
 		return new EntryCreatedRS(filter.getId());
 	}
 }

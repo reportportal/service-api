@@ -26,12 +26,32 @@ import java.time.LocalDateTime;
 /**
  * @author pavel_bortnik
  */
-public class FiltersCreatedEvent extends BeforeEvent<UserFilter> implements ActivityEvent {
+public class FilterCreatedEvent implements ActivityEvent {
 
-	private final Long createdBy;
+	private UserFilter filter;
+	private Long createdBy;
 
-	public FiltersCreatedEvent(UserFilter before, Long createdBy) {
-		super(before);
+	public FilterCreatedEvent() {
+	}
+
+	public FilterCreatedEvent(UserFilter filter, Long createdBy) {
+		this.filter = filter;
+		this.createdBy = createdBy;
+	}
+
+	public UserFilter getFilter() {
+		return filter;
+	}
+
+	public void setFilter(UserFilter filter) {
+		this.filter = filter;
+	}
+
+	public Long getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(Long createdBy) {
 		this.createdBy = createdBy;
 	}
 
@@ -41,10 +61,10 @@ public class FiltersCreatedEvent extends BeforeEvent<UserFilter> implements Acti
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setEntity(Activity.Entity.FILTER);
 		activity.setAction(ActivityAction.CREATE_FILTER.getValue());
-		activity.setProjectId(getBefore().getProject().getId());
+		activity.setProjectId(filter.getProject().getId());
 		activity.setUserId(createdBy);
-		activity.setObjectId(getBefore().getId());
-		activity.setDetails(new ActivityDetails(getBefore().getName()));
+		activity.setObjectId(filter.getId());
+		activity.setDetails(new ActivityDetails(filter.getName()));
 		return activity;
 	}
 }

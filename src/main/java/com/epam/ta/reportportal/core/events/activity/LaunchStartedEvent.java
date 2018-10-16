@@ -32,7 +32,10 @@ import java.time.LocalDateTime;
  */
 public class LaunchStartedEvent implements ActivityEvent {
 
-	private final Launch launch;
+	private Launch launch;
+
+	public LaunchStartedEvent() {
+	}
 
 	public LaunchStartedEvent(Launch launch) {
 		this.launch = launch;
@@ -40,6 +43,10 @@ public class LaunchStartedEvent implements ActivityEvent {
 
 	public Launch getLaunch() {
 		return launch;
+	}
+
+	public void setLaunch(Launch launch) {
+		this.launch = launch;
 	}
 
 	@Override

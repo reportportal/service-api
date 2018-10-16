@@ -28,10 +28,21 @@ import java.time.LocalDateTime;
  */
 public class FilterDeletedEvent extends BeforeEvent<UserFilter> implements ActivityEvent {
 
-	private final Long deletedBy;
+	private Long deletedBy;
+
+	public FilterDeletedEvent() {
+	}
 
 	public FilterDeletedEvent(UserFilter before, Long deletedBy) {
 		super(before);
+		this.deletedBy = deletedBy;
+	}
+
+	public Long getDeletedBy() {
+		return deletedBy;
+	}
+
+	public void setDeletedBy(Long deletedBy) {
 		this.deletedBy = deletedBy;
 	}
 

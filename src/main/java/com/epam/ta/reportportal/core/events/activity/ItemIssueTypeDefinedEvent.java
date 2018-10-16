@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import java.time.LocalDateTime;
 
 import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.*;
+import static java.util.Objects.isNull;
 
 /**
  * @author Andrei Varabyeu
@@ -66,17 +67,17 @@ public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 		IssueEntity issueEntity = testItem.getItemResults().getIssue();
 
 		HistoryField descriptionField = processIssueDescription(issueEntity.getIssueDescription());
-		if (!descriptionField.isEmpty()){
+		if (!isNull(descriptionField)) {
 			details.addHistoryField(descriptionField);
 		}
 
 		HistoryField issueTypeField = processIssueTypes(issueEntity);
-		if (!issueTypeField.isEmpty() && issueTypeField.getOldValue().equalsIgnoreCase(issueTypeField.getNewValue())){
+		if (!isNull(issueTypeField) && issueTypeField.getOldValue().equalsIgnoreCase(issueTypeField.getNewValue())) {
 			details.addHistoryField(issueTypeField);
 		}
 
 		HistoryField ignoredAnalyzerField = processIgnoredAnalyzer(issueEntity.getIgnoreAnalyzer());
-		if (!ignoredAnalyzerField.isEmpty()){
+		if (!isNull(ignoredAnalyzerField)) {
 			details.addHistoryField(ignoredAnalyzerField);
 		}
 
@@ -85,7 +86,7 @@ public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 	}
 
 	private HistoryField processIssueDescription(String oldIssueDescription) {
-		HistoryField historyField = new HistoryField();
+		HistoryField historyField = null;
 
 		String initialComment = issueDefinition.getIssue().getComment();
 		String comment = (null != initialComment) ? initialComment.trim() : EMPTY_STRING;
@@ -101,7 +102,7 @@ public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 	}
 
 	private HistoryField processIssueTypes(IssueEntity issueEntity) {
-		HistoryField historyField = new HistoryField();
+		HistoryField historyField = null;
 		historyField.setField(ISSUE_TYPE);
 		project.getIssueTypes()
 				.stream()
@@ -117,12 +118,10 @@ public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 	}
 
 	private HistoryField processIgnoredAnalyzer(boolean oldIgnoredAnalyser) {
-		HistoryField historyField = new HistoryField();
-		historyField.setField(IGNORE_ANALYZER);
+		HistoryField historyField = null;
 		boolean newIgnoreAnalyzer = issueDefinition.getIssue().getIgnoreAnalyzer();
 		if (oldIgnoredAnalyser != newIgnoreAnalyzer){
-			historyField.setOldValue(String.valueOf(oldIgnoredAnalyser));
-			historyField.setNewValue(String.valueOf(newIgnoreAnalyzer));
+			historyField = HistoryField.of(IGNORE_ANALYZER, String.valueOf(oldIgnoredAnalyser), String.valueOf(newIgnoreAnalyzer));
 		}
 		return historyField;
 	}

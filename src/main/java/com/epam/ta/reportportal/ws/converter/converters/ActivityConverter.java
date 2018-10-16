@@ -21,7 +21,8 @@ public final class ActivityConverter {
 		resource.setActionType(activity.getAction());
 		resource.setProjectRef(activity.getProjectId().toString());
 		resource.setUserRef(activity.getUserId().toString());
-		resource.setHistory(activity.getDetails());
+		resource.setLoggedObjectRef(activity.getObjectId().toString());
+		resource.setDetails(activity.getDetails());
 		return resource;
 	};
 }

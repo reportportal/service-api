@@ -115,6 +115,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addLaunch(launch).addParent(parentItem).get();
 		testItemRepository.save(item);
 
+		parentItem.setHasChildren(true);
+
 		item.setPath(parentItem.getPath() + "." + item.getItemId());
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));

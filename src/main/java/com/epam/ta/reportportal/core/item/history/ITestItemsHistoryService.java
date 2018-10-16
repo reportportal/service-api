@@ -55,7 +55,12 @@ public interface ITestItemsHistoryService {
 	 */
 	TestItemHistoryElement buildHistoryElement(Launch launch, List<TestItem> testItems);
 
-	void validateHistoryRequest(String projectName, Long[] startPointsIds, int historyDepth);
+	/**
+	 * Validate size of history depth
+	 *
+	 * @param historyDepth history depth
+	 */
+	void validateHistoryDepth(int historyDepth);
 
 	void validateItems(List<TestItem> itemsForHistory, List<String> ids, String projectName);
 

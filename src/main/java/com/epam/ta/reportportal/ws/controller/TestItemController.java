@@ -162,7 +162,7 @@ public class TestItemController {
 	public List<TestItemHistoryElement> getItemsHistory(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@RequestParam(value = "history_depth", required = false, defaultValue = "5") int historyDepth,
 			@RequestParam(value = "ids") Long[] ids,
-			@RequestParam(value = "is_full", required = false, defaultValue = "") boolean showBrokenLaunches) {
+			@RequestParam(value = "is_full", required = false, defaultValue = "false") boolean showBrokenLaunches) {
 		return testItemsHistoryHandler.getItemsHistory(extractProjectDetails(user, projectName), ids, historyDepth, showBrokenLaunches);
 	}
 

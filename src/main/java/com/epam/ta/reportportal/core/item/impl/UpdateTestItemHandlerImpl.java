@@ -19,6 +19,8 @@ package com.epam.ta.reportportal.core.item.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.dao.BugTrackingSystemRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -81,6 +83,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private IssueTypeHandler issueTypeHandler;
 
+	private MessageBus messageBus;
+
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
 		this.testItemRepository = testItemRepository;
@@ -101,6 +105,11 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		this.ticketRepository = ticketRepository;
 	}
 
+	@Autowired
+	public void setMessageBus(MessageBus messageBus) {
+		this.messageBus = messageBus;
+	}
+
 	@Override
 	public List<Issue> defineTestItemsIssues(ReportPortalUser.ProjectDetails projectDetails, DefineIssueRQ defineIssue,
 			ReportPortalUser user) {
@@ -108,6 +117,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		List<IssueDefinition> definitions = defineIssue.getIssues();
 		expect(CollectionUtils.isEmpty(definitions), equalTo(false)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION);
 		List<Issue> updated = new ArrayList<>(defineIssue.getIssues().size());
+		List<ItemIssueTypeDefinedEvent> events = new ArrayList<>();
 
 		definitions.forEach(issueDefinition -> {
 			try {
@@ -136,11 +146,21 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				//TODO EXTERNAL SYSTEM LOGIC, ANALYZER LOGIC
 				testItemRepository.save(testItem);
 				updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
+
+				List<IssueType> issueTypes = testItemRepository.selectIssueLocatorsByProject(projectDetails.getProjectId());
+				events.add(new ItemIssueTypeDefinedEvent(
+						user.getUserId(),
+						issueDefinition,
+						testItem,
+						issueTypes,
+						projectDetails.getProjectId()
+				));
 			} catch (BusinessRuleViolationException e) {
 				errors.add(e.getMessage());
 			}
 		});
 		expect(!errors.isEmpty(), equalTo(false)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
+		events.forEach(e -> messageBus.publishActivity(e));
 		return updated;
 	}
 

@@ -26,10 +26,11 @@ import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.HistoryField;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
-import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.*;
 import static java.util.Objects.isNull;
@@ -39,16 +40,62 @@ import static java.util.Objects.isNull;
  */
 public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 
-	private final Long postedBy;
-	private final IssueDefinition issueDefinition;
-	private final TestItem testItem;
-	private final Project project;
+	private Long postedBy;
+	private IssueDefinition issueDefinition;
+	private TestItem testItem;
+	List<IssueType> issueTypes;
+	private Long projectId;
 
-	public ItemIssueTypeDefinedEvent(Long postedBy, IssueDefinition issueDefinition, TestItem testItem, Project project) {
+	public ItemIssueTypeDefinedEvent() {
+	}
+
+	public ItemIssueTypeDefinedEvent(Long postedBy, IssueDefinition issueDefinition, TestItem testItem, List<IssueType> issueTypes,
+			Long projectId) {
 		this.postedBy = postedBy;
 		this.issueDefinition = issueDefinition;
 		this.testItem = testItem;
-		this.project = project;
+		this.issueTypes = issueTypes;
+		this.projectId = projectId;
+	}
+
+	public Long getPostedBy() {
+		return postedBy;
+	}
+
+	public void setPostedBy(Long postedBy) {
+		this.postedBy = postedBy;
+	}
+
+	public IssueDefinition getIssueDefinition() {
+		return issueDefinition;
+	}
+
+	public void setIssueDefinition(IssueDefinition issueDefinition) {
+		this.issueDefinition = issueDefinition;
+	}
+
+	public TestItem getTestItem() {
+		return testItem;
+	}
+
+	public void setTestItem(TestItem testItem) {
+		this.testItem = testItem;
+	}
+
+	public List<IssueType> getIssueTypes() {
+		return issueTypes;
+	}
+
+	public void setIssueTypes(List<IssueType> issueTypes) {
+		this.issueTypes = issueTypes;
+	}
+
+	public Long getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(Long projectId) {
+		this.projectId = projectId;
 	}
 
 	@Override
@@ -59,7 +106,7 @@ public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 				ActivityAction.ANALYZE_ITEM.getValue() :
 				ActivityAction.UPDATE_ITEM.getValue());
 		activity.setEntity(Activity.Entity.ITEM_ISSUE);
-		activity.setProjectId(project.getId());
+		activity.setProjectId(projectId);
 		activity.setUserId(postedBy);
 		activity.setObjectId(issueDefinition.getId());
 
@@ -104,12 +151,12 @@ public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 	private HistoryField processIssueTypes(IssueEntity issueEntity) {
 		HistoryField historyField = null;
 		historyField.setField(ISSUE_TYPE);
-		project.getIssueTypes()
+		issueTypes
 				.stream()
 				.filter(i -> i.getLocator().equalsIgnoreCase(issueEntity.getIssueType().getLocator()))
 				.findFirst()
 				.ifPresent(it -> historyField.setOldValue(it.getLongName()));
-		project.getIssueTypes()
+		issueTypes
 				.stream()
 				.filter(i -> i.getLocator().equalsIgnoreCase(issueDefinition.getIssue().getIssueType()))
 				.findFirst()

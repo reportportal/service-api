@@ -59,7 +59,7 @@ public class UserCreatedEvent implements ActivityEvent {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setAction(ActivityAction.CREATE_USER.getValue());
-		activity.setEntity(Activity.Entity.USER);
+		activity.setActivityEntityType(Activity.ActivityEntityType.USER);
 		activity.setUserId(createdBy);
 		activity.setProjectId(user.getDefaultProject().getId());
 		activity.setObjectId(user.getId());

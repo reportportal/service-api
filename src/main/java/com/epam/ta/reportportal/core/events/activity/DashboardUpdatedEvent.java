@@ -53,7 +53,7 @@ public class DashboardUpdatedEvent extends AroundEvent<Dashboard> implements Act
 		Activity activity = new Activity();
 		//add user id after acl implementation
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setEntity(Activity.Entity.DASHBOARD);
+		activity.setActivityEntityType(Activity.ActivityEntityType.DASHBOARD);
 		activity.setAction(ActivityAction.UPDATE_DASHBOARD.getValue());
 		activity.setProjectId(getBefore().getProjectId());
 		activity.setUserId(updateBy);

@@ -59,7 +59,7 @@ public class FilterCreatedEvent implements ActivityEvent {
 	public Activity toActivity() {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setEntity(Activity.Entity.FILTER);
+		activity.setActivityEntityType(Activity.ActivityEntityType.FILTER);
 		activity.setAction(ActivityAction.CREATE_FILTER.getValue());
 		activity.setProjectId(filter.getProject().getId());
 		activity.setUserId(createdBy);

@@ -58,7 +58,7 @@ public class DashboardCreatedEvent implements ActivityEvent {
 	public Activity toActivity() {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setEntity(Activity.Entity.DASHBOARD);
+		activity.setActivityEntityType(Activity.ActivityEntityType.DASHBOARD);
 		activity.setAction(ActivityAction.CREATE_DASHBOARD.getValue());
 		activity.setProjectId(dashboard.getProjectId());
 		//add user id after acl implementation

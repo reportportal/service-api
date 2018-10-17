@@ -60,7 +60,7 @@ public class LaunchFinishForcedEvent implements ActivityEvent {
 		activity.setCreatedAt(LocalDateTime.now());
 		// No FORCED_FINISH_LAUNCH action
 		activity.setAction(ActivityAction.FINISH_LAUNCH.getValue());
-		activity.setEntity(Activity.Entity.LAUNCH);
+		activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH);
 		activity.setProjectId(launch.getProjectId());
 		activity.setUserId(forcedBy);
 		activity.setObjectId(launch.getId());

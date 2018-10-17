@@ -59,7 +59,7 @@ public class IntegrationCreatedEvent implements ActivityEvent {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setAction(ActivityAction.CREATE_BTS.getValue());
-		activity.setEntity(Activity.Entity.INTEGRATION);
+		activity.setActivityEntityType(Activity.ActivityEntityType.INTEGRATION);
 		activity.setProjectId(integration.getProject().getId());
 		activity.setUserId(createdBy);
 		activity.setObjectId(integration.getId());

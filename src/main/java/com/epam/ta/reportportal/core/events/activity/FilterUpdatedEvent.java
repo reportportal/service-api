@@ -54,7 +54,7 @@ public class FilterUpdatedEvent extends AroundEvent<UserFilter> implements Activ
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setAction(ActivityAction.UPDATE_FILTER.getValue());
-		activity.setEntity(Activity.Entity.FILTER);
+		activity.setActivityEntityType(Activity.ActivityEntityType.FILTER);
 		// before or after?
 		activity.setProjectId(getBefore().getId());
 		activity.setUserId(updatedBy);

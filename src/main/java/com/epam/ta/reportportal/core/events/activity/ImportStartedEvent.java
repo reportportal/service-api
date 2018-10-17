@@ -69,7 +69,7 @@ public class ImportStartedEvent implements ActivityEvent {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setAction(ActivityAction.START_IMPORT.getValue());
-		activity.setEntity(Activity.Entity.IMPORT);
+		activity.setActivityEntityType(Activity.ActivityEntityType.IMPORT);
 		activity.setUserId(userId);
 		activity.setProjectId(projectId);
 

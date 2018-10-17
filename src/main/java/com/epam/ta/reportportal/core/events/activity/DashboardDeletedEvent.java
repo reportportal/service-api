@@ -49,7 +49,7 @@ public class DashboardDeletedEvent extends BeforeEvent<Dashboard> implements Act
 	public Activity toActivity() {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setEntity(Activity.Entity.DASHBOARD);
+		activity.setActivityEntityType(Activity.ActivityEntityType.DASHBOARD);
 		activity.setAction(ActivityAction.DELETE_DASHBOARD.getValue());
 		activity.setProjectId(getBefore().getProjectId());
 		//add user id after acl implementation

@@ -58,7 +58,7 @@ public class IntegrationDeletedEvent implements ActivityEvent {
 	public Activity toActivity() {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setEntity(Activity.Entity.INTEGRATION);
+		activity.setActivityEntityType(Activity.ActivityEntityType.INTEGRATION);
 		activity.setAction(ActivityAction.DELETE_BTS.getValue());
 		activity.setProjectId(integration.getProject().getId());
 		activity.setUserId(deletedBy);

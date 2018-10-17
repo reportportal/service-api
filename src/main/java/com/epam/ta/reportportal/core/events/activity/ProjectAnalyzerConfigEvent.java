@@ -57,7 +57,7 @@ public class ProjectAnalyzerConfigEvent extends AroundEvent<Set<ProjectAttribute
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setAction(ActivityAction.UPDATE_ANALYZER.getValue());
-		activity.setEntity(Activity.Entity.PROJECT);
+		activity.setActivityEntityType(Activity.ActivityEntityType.PROJECT);
 		activity.setProjectId(projectId);
 		activity.setUserId(updatedBy);
 

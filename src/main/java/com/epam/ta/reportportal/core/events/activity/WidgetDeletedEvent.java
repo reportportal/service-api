@@ -51,7 +51,7 @@ public class WidgetDeletedEvent extends BeforeEvent<Widget> implements ActivityE
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setAction(ActivityAction.DELETE_WIDGET.getValue());
-		activity.setEntity(Activity.Entity.WIDGET);
+		activity.setActivityEntityType(Activity.ActivityEntityType.WIDGET);
 		activity.setUserId(removedBy);
 		activity.setProjectId(getBefore().getProject().getId());
 		activity.setObjectId(getBefore().getId());

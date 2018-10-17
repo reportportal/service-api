@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.*;
 import static java.util.Objects.isNull;
@@ -105,7 +106,7 @@ public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 		activity.setAction(issueDefinition.getIssue().getAutoAnalyzed() ?
 				ActivityAction.ANALYZE_ITEM.getValue() :
 				ActivityAction.UPDATE_ITEM.getValue());
-		activity.setEntity(Activity.Entity.ITEM_ISSUE);
+		activity.setActivityEntityType(Activity.ActivityEntityType.ITEM_ISSUE);
 		activity.setProjectId(projectId);
 		activity.setUserId(postedBy);
 		activity.setObjectId(issueDefinition.getId());
@@ -119,7 +120,7 @@ public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 		}
 
 		HistoryField issueTypeField = processIssueTypes(issueEntity);
-		if (!isNull(issueTypeField) && issueTypeField.getOldValue().equalsIgnoreCase(issueTypeField.getNewValue())) {
+		if (issueTypeField.getOldValue().equalsIgnoreCase(issueTypeField.getNewValue())) {
 			details.addHistoryField(issueTypeField);
 		}
 
@@ -149,25 +150,24 @@ public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 	}
 
 	private HistoryField processIssueTypes(IssueEntity issueEntity) {
-		HistoryField historyField = null;
-		historyField.setField(ISSUE_TYPE);
-		issueTypes
-				.stream()
-				.filter(i -> i.getLocator().equalsIgnoreCase(issueEntity.getIssueType().getLocator()))
-				.findFirst()
-				.ifPresent(it -> historyField.setOldValue(it.getLongName()));
-		issueTypes
-				.stream()
-				.filter(i -> i.getLocator().equalsIgnoreCase(issueDefinition.getIssue().getIssueType()))
-				.findFirst()
-				.ifPresent(it -> historyField.setNewValue(it.getLongName()));
-		return historyField;
+		String oldValue;
+		String newValue;
+
+		Optional<IssueType> oldIssue = issueTypes.stream()
+				.filter(i -> i.getLocator().equalsIgnoreCase(issueEntity.getIssueType().getLocator())).findFirst();
+		oldValue = oldIssue.isPresent() ? oldIssue.get().getLongName() : EMPTY_STRING;
+
+		Optional<IssueType> newIssue = issueTypes.stream()
+				.filter(i -> i.getLocator().equalsIgnoreCase(issueDefinition.getIssue().getIssueType())).findFirst();
+		newValue = newIssue.isPresent() ? newIssue.get().getLongName() : EMPTY_STRING;
+
+		return HistoryField.of(ISSUE_TYPE, oldValue, newValue);
 	}
 
 	private HistoryField processIgnoredAnalyzer(boolean oldIgnoredAnalyser) {
 		HistoryField historyField = null;
 		boolean newIgnoreAnalyzer = issueDefinition.getIssue().getIgnoreAnalyzer();
-		if (oldIgnoredAnalyser != newIgnoreAnalyzer){
+		if (oldIgnoredAnalyser != newIgnoreAnalyzer) {
 			historyField = HistoryField.of(IGNORE_ANALYZER, String.valueOf(oldIgnoredAnalyser), String.valueOf(newIgnoreAnalyzer));
 		}
 		return historyField;

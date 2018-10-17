@@ -69,7 +69,7 @@ public class DefectTypeDeletedEvent extends BeforeEvent<IssueType> implements Ac
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setAction(ActivityAction.DELETE_DEFECT.getValue());
-		activity.setEntity(Activity.Entity.DEFECT_TYPE);
+		activity.setActivityEntityType(Activity.ActivityEntityType.DEFECT_TYPE);
 		activity.setUserId(deletedBy);
 		activity.setProjectId(projectId);
 		activity.setObjectId(issueType.getId());

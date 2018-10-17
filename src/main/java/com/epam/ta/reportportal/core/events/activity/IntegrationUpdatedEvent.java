@@ -59,7 +59,7 @@ public class IntegrationUpdatedEvent implements ActivityEvent {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setAction(ActivityAction.UPDATE_BTS.getValue());
-		activity.setEntity(Activity.Entity.INTEGRATION);
+		activity.setActivityEntityType(Activity.ActivityEntityType.INTEGRATION);
 		activity.setProjectId(integration.getProject().getId());
 		activity.setUserId(updatedBy);
 		activity.setObjectId(integration.getId());

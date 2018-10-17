@@ -69,7 +69,7 @@ public class DefectTypeUpdatedEvent implements ActivityEvent {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setAction(ActivityAction.UPDATE_DEFECT.toString());
-		activity.setEntity(Activity.Entity.DEFECT_TYPE);
+		activity.setActivityEntityType(Activity.ActivityEntityType.DEFECT_TYPE);
 		activity.setProjectId(projectId);
 		activity.setUserId(updatedBy);
 		activity.setObjectId(Long.valueOf(request.getId()));

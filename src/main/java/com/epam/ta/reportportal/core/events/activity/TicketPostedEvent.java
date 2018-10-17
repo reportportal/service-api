@@ -85,7 +85,7 @@ public class TicketPostedEvent implements ActivityEvent {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setAction(ActivityAction.POST_ISSUE.toString());
-		activity.setEntity(Activity.Entity.TICKET);
+		activity.setActivityEntityType(Activity.ActivityEntityType.TICKET);
 		activity.setUserId(postedBy);
 		activity.setProjectId(projectId);
 		activity.setObjectId(testItem.getItemId());

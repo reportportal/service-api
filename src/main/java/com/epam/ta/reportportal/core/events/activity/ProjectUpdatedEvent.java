@@ -51,7 +51,7 @@ public class ProjectUpdatedEvent extends AroundEvent<Project> implements Activit
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setAction(ActivityAction.UPDATE_PROJECT.getValue());
-		activity.setEntity(Activity.Entity.PROJECT);
+		activity.setActivityEntityType(Activity.ActivityEntityType.PROJECT);
 		activity.setProjectId(getAfter().getId());
 		activity.setUserId(updatedBy);
 

@@ -84,7 +84,7 @@ public class ProjectIndexEvent implements ActivityEvent {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setAction(indexing ? ActivityAction.GENERATE_INDEX.getValue() : ActivityAction.DELETE_INDEX.getValue());
-		activity.setEntity(Activity.Entity.PROJECT);
+		activity.setActivityEntityType(Activity.ActivityEntityType.PROJECT);
 		activity.setProjectId(projectId);
 		activity.setUserId(userId);
 		activity.setDetails(new ActivityDetails(projectName));

@@ -53,7 +53,7 @@ public class WidgetUpdatedEvent extends AroundEvent<Widget> implements ActivityE
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setAction(ActivityAction.UPDATE_WIDGET.toString());
-		activity.setEntity(Activity.Entity.WIDGET);
+		activity.setActivityEntityType(Activity.ActivityEntityType.WIDGET);
 		activity.setUserId(updatedBy);
 		activity.setProjectId(getAfter().getProject().getId());
 		activity.setObjectId(getAfter().getId());

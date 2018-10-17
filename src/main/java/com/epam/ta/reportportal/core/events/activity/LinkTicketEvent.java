@@ -56,7 +56,7 @@ public class LinkTicketEvent extends AroundEvent<IssueEntity> implements Activit
 		activity.setAction(getAfter().getAutoAnalyzed() ?
 				ActivityAction.LINK_ISSUE_AA.getValue() :
 				ActivityAction.LINK_ISSUE.getValue());
-		activity.setEntity(Activity.Entity.TICKET);
+		activity.setActivityEntityType(Activity.ActivityEntityType.TICKET);
 		activity.setUserId(attachedBy);
 		activity.setProjectId(projectId);
 		activity.setObjectId(testItemId);

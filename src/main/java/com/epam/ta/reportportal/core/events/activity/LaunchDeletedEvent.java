@@ -49,7 +49,7 @@ public class LaunchDeletedEvent extends BeforeEvent<Launch> implements ActivityE
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setAction(ActivityAction.DELETE_LAUNCH.getValue());
-		activity.setEntity(Activity.Entity.LAUNCH);
+		activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH);
 		activity.setUserId(getBefore().getUser().getId());
 		activity.setProjectId(getBefore().getProjectId());
 		activity.setObjectId(getBefore().getId());

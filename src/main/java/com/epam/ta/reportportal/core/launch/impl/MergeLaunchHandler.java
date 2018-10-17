@@ -234,6 +234,8 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 				.addUser(userId)
 				.addEndTime(endTime)
 				.get();
-		return launchRepository.save(launch);
+		launchRepository.save(launch);
+		launchRepository.refresh(launch);
+		return launch;
 	}
 }

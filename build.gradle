@@ -101,7 +101,7 @@ dependencies {
     } else {
         compile 'com.github.reportportal:commons-rules:spb2-SNAPSHOT'
         compile 'com.github.reportportal:commons-model:d9e245f'
-        compile 'com.github.reportportal:commons-dao:3000005'
+        compile 'com.github.reportportal:commons-dao:58aac6b'
         compile 'com.github.reportportal:commons-bugtracking:496a571'
         compile('com.github.reportportal:commons:71d4aca')
     }

@@ -78,6 +78,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	}
 
 	public TestItemBuilder addParent(TestItem parent) {
+		parent.setHasChildren(true);
 		testItem.setParent(parent);
 		return this;
 	}

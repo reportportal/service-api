@@ -30,7 +30,6 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -85,10 +84,13 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		TestItem testItem = testItemRepository.findById(testItemId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId));
 
-		boolean hasChildren = testItem.getHasChildren();
-		verifyTestItem(user, finishExecutionRQ, testItem, fromValue(finishExecutionRQ.getStatus()), hasChildren);
+		verifyTestItem(user, testItem, fromValue(finishExecutionRQ.getStatus()), testItem.isHasChildren());
 
-		TestItemResults testItemResults = processItemResults(projectDetails.getProjectId(), testItem, finishExecutionRQ, hasChildren);
+		TestItemResults testItemResults = processItemResults(projectDetails.getProjectId(),
+				testItem,
+				finishExecutionRQ,
+				testItem.isHasChildren()
+		);
 
 		testItem = new TestItemBuilder(testItem).addDescription(finishExecutionRQ.getDescription())
 				.addTags(finishExecutionRQ.getTags())
@@ -132,8 +134,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			} else {
 				IssueType toInvestigate = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, TO_INVESTIGATE.getLocator());
 				issueEntity.setIssueType(toInvestigate);
-				issueEntity.setAutoAnalyzed(false);
-				issueEntity.setIgnoreAnalyzer(false);
 			}
 			issueEntity.setIssueId(testItem.getItemId());
 			testItemResults.setIssue(issueEntity);
@@ -150,8 +150,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param actualStatus Actual status of item
 	 * @param hasChildren  Does item contain children
 	 */
-	private void verifyTestItem(ReportPortalUser user, FinishExecutionRQ finishExecutionRQ, TestItem testItem,
-			Optional<StatusEnum> actualStatus, boolean hasChildren) {
+	private void verifyTestItem(ReportPortalUser user, TestItem testItem, Optional<StatusEnum> actualStatus, boolean hasChildren) {
 		Launch launch = Optional.ofNullable(testItem.getLaunch()).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
 		expect(user.getUsername(), equalTo(launch.getUser().getLogin())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
 

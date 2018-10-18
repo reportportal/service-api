@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
@@ -42,11 +43,13 @@ import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.Predicates.*;
@@ -102,6 +105,11 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 		expect(projectOptional, isPresent()).verify(PROJECT_NOT_FOUND, projectDetails.getProjectId());
 
 		Set<Long> launchesIds = rq.getLaunches();
+
+		expect(CollectionUtils.isNotEmpty(launchesIds), equalTo(true)).verify(ErrorType.BAD_REQUEST_ERROR,
+				"At least one launch id should be  specified for merging"
+		);
+
 		List<Launch> launchesList = launchRepository.findAllById(launchesIds);
 		validateMergingLaunches(launchesList, user, projectDetails);
 
@@ -115,6 +123,16 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 		// deep merge strategies
 		if (type.equals(MergeStrategyType.DEEP)) {
 			launchRepository.mergeLaunchTestItems(newLaunch.getId());
+		}
+		if (type.equals(MergeStrategyType.BASIC)) {
+			newLaunch.setStatistics(launchesList.stream()
+					.filter(l -> ofNullable(l.getStatistics()).isPresent())
+					.flatMap(l -> l.getStatistics().stream())
+					.collect(toMap(Statistics::getField, Statistics::getCounter, (prev, curr) -> prev + curr))
+					.entrySet()
+					.stream()
+					.map(entry -> new Statistics(entry.getKey(), entry.getValue()))
+					.collect(Collectors.toSet()));
 		}
 
 		newLaunch = launchRepository.findById(newLaunch.getId()).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));

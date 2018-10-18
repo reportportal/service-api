@@ -121,21 +121,25 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 		expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
 
 		// deep merge strategies
+		Long newLaunchId = newLaunch.getId();
+
 		if (type.equals(MergeStrategyType.DEEP)) {
-			launchRepository.mergeLaunchTestItems(newLaunch.getId());
+			launchRepository.mergeLaunchTestItems(newLaunchId);
 		}
+
+		newLaunch = launchRepository.findById(newLaunchId).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
+
 		if (type.equals(MergeStrategyType.BASIC)) {
 			newLaunch.setStatistics(launchesList.stream()
 					.filter(l -> ofNullable(l.getStatistics()).isPresent())
 					.flatMap(l -> l.getStatistics().stream())
-					.collect(toMap(Statistics::getField, Statistics::getCounter, (prev, curr) -> prev + curr))
+					.collect(toMap(Statistics::getField, Statistics::getCounter, Integer::sum))
 					.entrySet()
 					.stream()
-					.map(entry -> new Statistics(entry.getKey(), entry.getValue()))
+					.map(entry -> new Statistics(entry.getKey(), entry.getValue(), newLaunchId))
 					.collect(Collectors.toSet()));
 		}
 
-		newLaunch = launchRepository.findById(newLaunch.getId()).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
 		newLaunch.setStatus(StatisticsHelper.getStatusFromStatistics(newLaunch.getStatistics()));
 		newLaunch.setEndTime(TO_LOCAL_DATE_TIME.apply(rq.getEndTime()));
 

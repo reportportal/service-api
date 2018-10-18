@@ -44,7 +44,7 @@ public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 	private Long postedBy;
 	private IssueDefinition issueDefinition;
 	private TestItem testItem;
-	List<IssueType> issueTypes;
+	private List<IssueType> issueTypes;
 	private Long projectId;
 
 	public ItemIssueTypeDefinedEvent() {

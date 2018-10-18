@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.user.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.auth.UatClient;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
@@ -49,17 +48,14 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 	private final ProjectRepository projectRepository;
 
-	private final UatClient uatClient;
-
 	@Autowired
-	public DeleteUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository, UatClient uatClient) {
+	public DeleteUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository) {
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
-		this.uatClient = uatClient;
 	}
 
 	//	@Autowired
-//	private ILogIndexer logIndexer;
+	//	private ILogIndexer logIndexer;
 
 	@Override
 	public OperationCompletionRS deleteUser(String login, ReportPortalUser loggedInUser) {
@@ -76,15 +72,10 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 		Optional<String> personalProjectName = projectRepository.findPersonalProjectName(user.getLogin());
 
-		try {
-			uatClient.revokeUserTokens(login);
-			userRepository.delete(user);
-		} catch (Exception exp) {
-			throw new ReportPortalException("Error while deleting user", exp);
-		}
+		userRepository.delete(user);
 
 		//TODO analyzer
-//		personalProjectName.ifPresent(s -> logIndexer.deleteIndex(s));
+		//		personalProjectName.ifPresent(s -> logIndexer.deleteIndex(s));
 
 		return new OperationCompletionRS("User with ID = '" + login + "' successfully deleted.");
 	}

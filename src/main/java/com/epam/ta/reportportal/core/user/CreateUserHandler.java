@@ -47,11 +47,10 @@ public interface CreateUserHandler {
 	 *
 	 * @param request
 	 * @param uuid
-	 * @param user
 	 * @return
 	 * @throws ReportPortalException
 	 */
-	CreateUserRS createUser(CreateUserRQConfirm request, String uuid, ReportPortalUser user);
+	CreateUserRS createUser(CreateUserRQConfirm request, String uuid);
 
 	/**
 	 * Create user bid (send invitation)

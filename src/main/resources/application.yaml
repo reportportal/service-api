@@ -60,7 +60,7 @@ springfox:
 ##########################################
 rp:
   amqp:
-    addresses: amqp://guest:guest@rabbitmq:5672
+    addresses: amqp://rabbitmq:rabbitmq@rabbitmq:5672
   db:
     url: jdbc:postgresql://postgres:5432/reportportal?user=rpuser&password=rppass
   upload:

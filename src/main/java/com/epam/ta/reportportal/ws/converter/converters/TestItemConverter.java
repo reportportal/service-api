@@ -42,7 +42,7 @@ public final class TestItemConverter {
 		resource.setUniqueId(item.getUniqueId());
 		resource.setTags(item.getTags().stream().map(TestItemTag::getValue).collect(Collectors.toSet()));
 		resource.setEndTime(EntityUtils.TO_DATE.apply(item.getItemResults().getEndTime()));
-		resource.setItemId(String.valueOf(item.getItemId()));
+		resource.setItemId(item.getItemId());
 		if (null != item.getParameters()) {
 			resource.setParameters(item.getParameters().stream().map(ParametersConverter.TO_RESOURCE).collect(Collectors.toList()));
 		}

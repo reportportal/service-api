@@ -18,11 +18,17 @@ package com.epam.ta.reportportal.core.events.activity;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.ActivityDetails;
+import com.epam.ta.reportportal.entity.HistoryField;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
+import com.google.common.base.Strings;
 
 import java.time.LocalDateTime;
+
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.LAUNCH_INACTIVITY;
+import static com.epam.ta.reportportal.core.events.activity.util.ProjectAttributeUtil.extractAttributeValue;
+import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
 
 /**
  * Being triggered on after project update
@@ -58,9 +64,9 @@ public class ProjectUpdatedEvent extends AroundEvent<Project> implements Activit
 		ActivityDetails details = new ActivityDetails(getAfter().getName());
 		ProjectConfiguration configuration = updateProjectRQ.getConfiguration();
 		if (null != configuration) {
-			processKeepLogs(details, getBefore(), configuration);
-			processKeepScreenshots(details, getBefore(), configuration);
-			processLaunchInactivityTimeout(details, getBefore(), configuration);
+			processKeepLogs(details, configuration);
+			processKeepScreenshots(details, configuration);
+			processLaunchInactivityTimeout(details, configuration);
 		}
 		if (!details.getHistory().isEmpty()) {
 			activity.setDetails(details);
@@ -68,30 +74,26 @@ public class ProjectUpdatedEvent extends AroundEvent<Project> implements Activit
 		return activity;
 	}
 
-	private void processLaunchInactivityTimeout(ActivityDetails details, Project project, ProjectConfiguration configuration) {
-		/*if ((null != configuration.getInterruptJobTime()) && (!configuration.getInterruptJobTime()
-				.equals(project.getConfiguration().getInterruptJobTime()))) {
-			details.addHistoryField(HistoryField.of(LAUNCH_INACTIVITY, project.getConfiguration().getInterruptJobTime(),
-					configuration.getInterruptJobTime()
-			));
-		}*/
+	private void processLaunchInactivityTimeout(ActivityDetails details, ProjectConfiguration configuration) {
+		String oldValue = extractAttributeValue(getBefore(), INTERRUPT_JOB_TIME.getAttribute());
+		if ((null != configuration.getInterruptJobTime()) && !Strings.isNullOrEmpty(oldValue) && (!configuration.getInterruptJobTime()
+				.equals(oldValue))) {
+			details.addHistoryField(HistoryField.of(LAUNCH_INACTIVITY, oldValue, configuration.getInterruptJobTime()));
+		}
 	}
 
-	private void processKeepScreenshots(ActivityDetails details, Project project, ProjectConfiguration configuration) {
-		/*if ((null != configuration.getKeepScreenshots()) && (!configuration.getKeepScreenshots()
-				.equals(project.getConfiguration().getKeepScreenshots()))) {
-			details.addHistoryField(HistoryField.of(KEEP_SCREENSHOTS.getValue(), project.getConfiguration().getKeepScreenshots(),
-					configuration.getKeepScreenshots()
-			));
-		}*/
+	private void processKeepScreenshots(ActivityDetails details, ProjectConfiguration configuration) {
+		String oldValue = extractAttributeValue(getBefore(), KEEP_SCREENSHOTS.getAttribute());
+		if ((null != configuration.getKeepScreenshots()) && !Strings.isNullOrEmpty(oldValue) && (!configuration.getKeepScreenshots()
+				.equals(oldValue))) {
+			details.addHistoryField(HistoryField.of(KEEP_SCREENSHOTS.getAttribute(), oldValue, configuration.getKeepScreenshots()));
+		}
 	}
 
-	private void processKeepLogs(ActivityDetails details, Project project, ProjectConfiguration configuration) {
-		/*if ((null != configuration.getKeepLogs()) && (!configuration.getKeepLogs().equals(project.getConfiguration().getKeepLogs()))) {
-			details.addHistoryField(HistoryField.of(KEEP_LOGS.getValue(),
-					project.getConfiguration().getKeepLogs(),
-					configuration.getKeepLogs()
-			));
-		}*/
+	private void processKeepLogs(ActivityDetails details, ProjectConfiguration configuration) {
+		String oldValue = extractAttributeValue(getBefore(), KEEP_LOGS.getAttribute());
+		if ((null != configuration.getKeepLogs()) && !Strings.isNullOrEmpty(oldValue) && (!configuration.getKeepLogs().equals(oldValue))) {
+			details.addHistoryField(HistoryField.of(KEEP_LOGS.getAttribute(), oldValue, configuration.getKeepLogs()));
+		}
 	}
 }

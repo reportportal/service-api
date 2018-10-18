@@ -33,7 +33,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.*;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.*;
 import static java.util.Objects.isNull;
 
 /**

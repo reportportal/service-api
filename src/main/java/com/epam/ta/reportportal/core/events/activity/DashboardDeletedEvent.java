@@ -27,22 +27,22 @@ import java.time.LocalDateTime;
  */
 public class DashboardDeletedEvent extends BeforeEvent<Dashboard> implements ActivityEvent {
 
-	private Long removedBy;
+	private Long deletedBy;
 
 	public DashboardDeletedEvent() {
 	}
 
-	public DashboardDeletedEvent(Dashboard before, Long removedBy) {
+	public DashboardDeletedEvent(Dashboard before, Long deletedBy) {
 		super(before);
-		this.removedBy = removedBy;
+		this.deletedBy = deletedBy;
 	}
 
-	public Long getRemovedBy() {
-		return removedBy;
+	public Long getDeletedBy() {
+		return deletedBy;
 	}
 
-	public void setRemovedBy(Long removedBy) {
-		this.removedBy = removedBy;
+	public void setDeletedBy(Long deletedBy) {
+		this.deletedBy = deletedBy;
 	}
 
 	@Override
@@ -52,8 +52,7 @@ public class DashboardDeletedEvent extends BeforeEvent<Dashboard> implements Act
 		activity.setActivityEntityType(Activity.ActivityEntityType.DASHBOARD);
 		activity.setAction(ActivityAction.DELETE_DASHBOARD.getValue());
 		activity.setProjectId(getBefore().getProjectId());
-		//add user id after acl implementation
-		activity.setUserId(removedBy);
+		activity.setUserId(deletedBy);
 		activity.setObjectId(getBefore().getId());
 		activity.setDetails(new ActivityDetails(getBefore().getName()));
 		return activity;

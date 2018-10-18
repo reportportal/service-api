@@ -23,8 +23,8 @@ import com.epam.ta.reportportal.entity.filter.UserFilter;
 
 import java.time.LocalDateTime;
 
-import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.processDescription;
-import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.processName;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processDescription;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
 
 /**
  * @author Pavel Bortnik
@@ -55,8 +55,7 @@ public class FilterUpdatedEvent extends AroundEvent<UserFilter> implements Activ
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setAction(ActivityAction.UPDATE_FILTER.getValue());
 		activity.setActivityEntityType(Activity.ActivityEntityType.FILTER);
-		// before or after?
-		activity.setProjectId(getBefore().getId());
+		activity.setProjectId(getAfter().getId());
 		activity.setUserId(updatedBy);
 		activity.setObjectId(getAfter().getId());
 

@@ -22,8 +22,8 @@ import com.epam.ta.reportportal.entity.widget.Widget;
 
 import java.time.LocalDateTime;
 
-import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.processDescription;
-import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.processName;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processDescription;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
 
 /**
  * @author Andrei Varabyeu

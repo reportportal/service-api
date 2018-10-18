@@ -26,7 +26,7 @@ import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.TICKET_ID;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.TICKET_ID;
 
 /**
  * @author Andrei Varabyeu
@@ -85,6 +85,7 @@ public class TicketPostedEvent implements ActivityEvent {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setAction(ActivityAction.POST_ISSUE.toString());
+		activity.setActivityEntityType(Activity.ActivityEntityType.TICKET);
 		activity.setActivityEntityType(Activity.ActivityEntityType.TICKET);
 		activity.setUserId(postedBy);
 		activity.setProjectId(projectId);

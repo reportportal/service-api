@@ -28,22 +28,22 @@ import java.time.LocalDateTime;
  */
 public class WidgetDeletedEvent extends BeforeEvent<Widget> implements ActivityEvent {
 
-	private Long removedBy;
+	private Long deletedBy;
 
 	public WidgetDeletedEvent() {
 	}
 
 	public WidgetDeletedEvent(Widget widget, Long removerId) {
 		super(widget);
-		this.removedBy = removerId;
+		this.deletedBy = removerId;
 	}
 
-	public Long getRemovedBy() {
-		return removedBy;
+	public Long getDeletedBy() {
+		return deletedBy;
 	}
 
-	public void setRemovedBy(Long removedBy) {
-		this.removedBy = removedBy;
+	public void setDeletedBy(Long deletedBy) {
+		this.deletedBy = deletedBy;
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class WidgetDeletedEvent extends BeforeEvent<Widget> implements ActivityE
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setAction(ActivityAction.DELETE_WIDGET.getValue());
 		activity.setActivityEntityType(Activity.ActivityEntityType.WIDGET);
-		activity.setUserId(removedBy);
+		activity.setUserId(deletedBy);
 		activity.setProjectId(getBefore().getProject().getId());
 		activity.setObjectId(getBefore().getId());
 		activity.setDetails(new ActivityDetails(getBefore().getName()));

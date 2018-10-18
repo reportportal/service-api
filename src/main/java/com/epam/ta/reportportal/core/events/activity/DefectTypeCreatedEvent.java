@@ -29,15 +29,15 @@ public class DefectTypeCreatedEvent implements ActivityEvent {
 
 	private IssueType issueType;
 	private Long projectId;
-	private Long updatedBy;
+	private Long createdBy;
 
 	public DefectTypeCreatedEvent() {
 	}
 
-	public DefectTypeCreatedEvent(IssueType issueType, Long projectId, Long updatedBy) {
+	public DefectTypeCreatedEvent(IssueType issueType, Long projectId, Long createdBy) {
 		this.issueType = issueType;
 		this.projectId = projectId;
-		this.updatedBy = updatedBy;
+		this.createdBy = createdBy;
 	}
 
 	public IssueType getIssueType() {
@@ -56,22 +56,21 @@ public class DefectTypeCreatedEvent implements ActivityEvent {
 		this.projectId = projectId;
 	}
 
-	public Long getUpdatedBy() {
-		return updatedBy;
+	public Long getCreatedBy() {
+		return createdBy;
 	}
 
-	public void setUpdatedBy(Long updatedBy) {
-		this.updatedBy = updatedBy;
+	public void setCreatedBy(Long createdBy) {
+		this.createdBy = createdBy;
 	}
 
 	@Override
 	public Activity toActivity() {
 		Activity activity = new Activity();
 		activity.setCreatedAt(LocalDateTime.now());
-		// why UPDATE_DEFECT?
-		activity.setAction(ActivityAction.UPDATE_DEFECT.getValue());
+		activity.setAction(ActivityAction.CREATE_DEFECT.getValue());
 		activity.setActivityEntityType(Activity.ActivityEntityType.DEFECT_TYPE);
-		activity.setUserId(updatedBy);
+		activity.setUserId(createdBy);
 		activity.setProjectId(projectId);
 		activity.setObjectId(issueType.getId());
 		activity.setDetails(new ActivityDetails(issueType.getLongName()));

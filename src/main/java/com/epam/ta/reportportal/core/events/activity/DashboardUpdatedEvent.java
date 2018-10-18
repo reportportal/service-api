@@ -22,41 +22,40 @@ import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 
 import java.time.LocalDateTime;
 
-import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.processDescription;
-import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.processName;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processDescription;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
 
 /**
  * @author Andrei Varabyeu
  */
 public class DashboardUpdatedEvent extends AroundEvent<Dashboard> implements ActivityEvent {
 
-	private Long updateBy;
+	private Long updatedBy;
 
 	public DashboardUpdatedEvent() {
 	}
 
-	public DashboardUpdatedEvent(Dashboard before, Dashboard after, Long updateBy) {
+	public DashboardUpdatedEvent(Dashboard before, Dashboard after, Long updatedBy) {
 		super(before, after);
-		this.updateBy = updateBy;
+		this.updatedBy = updatedBy;
 	}
 
-	public Long getUpdateBy() {
-		return updateBy;
+	public Long getUpdatedBy() {
+		return updatedBy;
 	}
 
-	public void setUpdateBy(Long updateBy) {
-		this.updateBy = updateBy;
+	public void setUpdatedBy(Long updatedBy) {
+		this.updatedBy = updatedBy;
 	}
 
 	@Override
 	public Activity toActivity() {
 		Activity activity = new Activity();
-		//add user id after acl implementation
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setActivityEntityType(Activity.ActivityEntityType.DASHBOARD);
 		activity.setAction(ActivityAction.UPDATE_DASHBOARD.getValue());
 		activity.setProjectId(getBefore().getProjectId());
-		activity.setUserId(updateBy);
+		activity.setUserId(updatedBy);
 		activity.setObjectId(getAfter().getId());
 
 		ActivityDetails details = new ActivityDetails(getAfter().getName());

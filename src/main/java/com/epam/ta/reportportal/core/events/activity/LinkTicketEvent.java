@@ -29,7 +29,7 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import java.time.LocalDateTime;
 
 import static com.epam.ta.reportportal.core.events.activity.TicketPostedEvent.issuesIdsToString;
-import static com.epam.ta.reportportal.core.events.activity.details.ActivityDetailsUtil.TICKET_ID;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.TICKET_ID;
 
 /**
  * @author Andrei Varabyeu

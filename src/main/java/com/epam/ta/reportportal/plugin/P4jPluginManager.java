@@ -1,27 +1,32 @@
 package com.epam.ta.reportportal.plugin;
 
-import com.epam.reportportal.extension.bugtracking.BtsExtension;
+import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.ta.reportportal.core.plugin.Plugin;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.google.common.util.concurrent.AbstractIdleService;
 import org.pf4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 
 import java.nio.file.FileSystems;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class P4jPluginManager extends AbstractIdleService implements PluginBox {
 
 	@Autowired
 	private AutowireCapableBeanFactory context;
+
+	@Autowired
+	@Value("${rp.plugins.path}")
+	private String pluginsPath;
+
 	private final org.pf4j.PluginManager pluginManager;
 
-
 	public P4jPluginManager() {
-		pluginManager = new DefaultPluginManager(FileSystems.getDefault()
-				.getPath("/Users/andrei_varabyeu/work/sources/reportportal/plugin-bts-jira/build/plugins")) {
+		pluginManager = new DefaultPluginManager(FileSystems.getDefault().getPath(this.pluginsPath)) {
 			@Override
 			protected CompoundPluginDescriptorFinder createPluginDescriptorFinder() {
 				return new CompoundPluginDescriptorFinder()
@@ -50,7 +55,14 @@ public class P4jPluginManager extends AbstractIdleService implements PluginBox {
 
 	@Override
 	public List<Plugin> getPlugins() {
-		return null;
+		return this.pluginManager.getPlugins()
+				.stream()
+				.flatMap(plugin -> pluginManager.getExtensionClasses(plugin.getPluginId())
+						.stream()
+						.map(ExtensionPoint::findByExtension)
+						.filter(Optional::isPresent)
+						.map(it -> new Plugin(plugin.getPluginId(), it.get())))
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -58,14 +70,15 @@ public class P4jPluginManager extends AbstractIdleService implements PluginBox {
 		return Optional.empty();
 	}
 
+	public <T> Optional<T> getInstance(Class<T> extension) {
+		return pluginManager.getExtensions(extension).stream().findFirst();
+	}
+
 	@Override
 	protected void startUp() {
 		// start and load all plugins of application
 		pluginManager.loadPlugins();
 		pluginManager.startPlugins();
-
-		System.out.println(pluginManager.getExtensions(BtsExtension.class).get(0));
-		System.out.println(pluginManager.getExtensions("jira-bts").get(0));
 
 	}
 

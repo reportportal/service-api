@@ -173,7 +173,7 @@ dependencies {
     compile "com.querydsl:querydsl-jpa:4.2.1"
 
     //plugins
-    compile('com.github.reportportal:plugin-api:c01be9b340')
+    compile('com.github.reportportal:plugin-api:5dc955e808')
 
     testCompile 'org.hamcrest:hamcrest-all:1.3'
     testCompile 'junit:junit:4.12'

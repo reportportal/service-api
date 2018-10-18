@@ -53,7 +53,7 @@ public final class TestItemConverter {
 		resource.setType(item.getType() != null ? item.getType().name() : null);
 
 		//FIXME: provide correct parameters
-		resource.setHasChilds(false);
+		resource.setHasChildren(false);
 
 		if (item.getParent() != null) {
 			resource.setParent(item.getParent().getItemId());

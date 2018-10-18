@@ -1,8 +1,8 @@
 package com.epam.ta.reportportal.store;
 
-import com.epam.ta.reportportal.core.events.activity.details.SimpleUserActivityDetails;
 import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
 import org.assertj.core.api.Assertions;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -22,8 +22,9 @@ public class ActivityRepositoryTest extends BaseDBTest {
 		Activity activity = new Activity();
 		activity.setAction("some action");
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new SimpleUserActivityDetails(100L));
-		activity.setEntity(Activity.Entity.ITEM);
+		activity.setObjectId(100L);
+		activity.setDetails(new ActivityDetails("some name"));
+		activity.setActivityEntityType(Activity.ActivityEntityType.ITEM);
 		activity.setUserId(1L);
 
 		activity = activityRepository.save(activity);

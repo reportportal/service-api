@@ -1,3 +1,21 @@
+/*
+ *
+ *  * Copyright 2018 EPAM Systems
+ *  *
+ *  * Licensed under the Apache License, Version 2.0 (the "License");
+ *  * you may not use this file except in compliance with the License.
+ *  * You may obtain a copy of the License at
+ *  *
+ *  *     http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  * Unless required by applicable law or agreed to in writing, software
+ *  * distributed under the License is distributed on an "AS IS" BASIS,
+ *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  * See the License for the specific language governing permissions and
+ *  * limitations under the License.
+ *
+ */
+
 package com.epam.ta.reportportal.core.activity.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
@@ -6,7 +24,6 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.activity.IActivityHandler;
 import com.epam.ta.reportportal.dao.ActivityRepository;
-import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.Activity;
@@ -16,70 +33,91 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ActivityConverter;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.Page;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.PROJECT_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static java.util.Optional.ofNullable;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
+/**
+ * @author Ihar Kahadouski
+ */
 @Service
 public class ActivityHandler implements IActivityHandler {
 
+	private static final String CREATION_DATE_COLUMN = "creation_date";
+
 	private final ActivityRepository activityRepository;
 	private final TestItemRepository testItemRepository;
-	private final LaunchRepository launchRepository;
 	private final ProjectRepository projectRepository;
 
-	public ActivityHandler(ActivityRepository activityRepository, TestItemRepository testItemRepository, LaunchRepository launchRepository,
+	@Autowired
+	public ActivityHandler(ActivityRepository activityRepository, TestItemRepository testItemRepository,
 			ProjectRepository projectRepository) {
 		this.activityRepository = activityRepository;
 		this.testItemRepository = testItemRepository;
-		this.launchRepository = launchRepository;
 		this.projectRepository = projectRepository;
 	}
 
 	@Override
-	public List<ActivityResource> getActivitiesHistory(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
-		Long projectId = projectDetails.getProjectId();
-		projectRepository.findById(projectId).orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
-		List<Activity> activities = activityRepository.findActivitiesByProjectId(projectId, filter, pageable);
-		return activities.stream().map(ActivityConverter.TO_RESOURCE).collect(Collectors.toList());
+	public Iterable<ActivityResource> getActivitiesHistory(ReportPortalUser.ProjectDetails projectDetails, Filter filter,
+			Pageable pageable) {
+		projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+
+		FilterCondition projectCondition = new FilterCondition(Condition.EQUALS,
+				false,
+				projectDetails.getProjectId().toString(),
+				CRITERIA_PROJECT_ID
+		);
+
+		org.springframework.data.domain.Page<Activity> page = activityRepository.findByFilter(filter.withCondition(projectCondition),
+				pageable
+		);
+		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page).getContent();
 	}
 
 	@Override
 	public ActivityResource getActivity(ReportPortalUser.ProjectDetails projectDetails, Long activityId) {
-		ofNullable(activityId).orElseThrow(() -> new ReportPortalException(ErrorType.ACTIVITY_NOT_FOUND, activityId));
 		Activity activity = activityRepository.findById(activityId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.ACTIVITY_NOT_FOUND, activityId));
-		expect(projectDetails.getProjectId(), Predicate.isEqual(activity.getProjectId())).verify(ErrorType.TEST_ITEM_NOT_FOUND, activityId);
+				.orElseThrow(() -> new ReportPortalException(ACTIVITY_NOT_FOUND, activityId));
+		expect(projectDetails.getProjectId(), Predicate.isEqual(activity.getProjectId())).verify(ACCESS_DENIED, activityId);
 		return ActivityConverter.TO_RESOURCE.apply(activity);
 	}
 
 	@Override
-	public List<ActivityResource> getItemActivities(ReportPortalUser.ProjectDetails projectDetails, Long itemId, Filter filter,
+	public Iterable<ActivityResource> getItemActivities(ReportPortalUser.ProjectDetails projectDetails, Long itemId, Filter filter,
 			Pageable pageable) {
-		TestItem testItem = testItemRepository.findById(itemId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
-		Launch launch = launchRepository.findById(testItem.getLaunch().getId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
-		expect(projectDetails.getProjectId(), Predicate.isEqual(launch.getProjectId())).verify(ErrorType.TEST_ITEM_NOT_FOUND, itemId);
-		List<Activity> activities = activityRepository.findActivitiesByTestItemId(itemId, filter, pageable);
-		return activities.stream().map(ActivityConverter.TO_RESOURCE).collect(Collectors.toList());
+		TestItem testItem = testItemRepository.findById(itemId).orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, itemId));
+		Launch launch = testItem.getLaunch();
+		expect(projectDetails.getProjectId(), Predicate.isEqual(launch.getProjectId())).verify(ACCESS_DENIED, itemId);
+
+		Sort sortByCreationDateDesc = new Sort(Sort.Direction.DESC, CREATION_DATE_COLUMN);
+		FilterCondition testItemCondition = new FilterCondition(Condition.EQUALS, false, itemId.toString(), CRITERIA_OBJECT_ID);
+
+		org.springframework.data.domain.Page<Activity> page = activityRepository.findByFilter(filter.withCondition(testItemCondition),
+				PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreationDateDesc)
+		);
+		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page).getContent();
 	}
 
 	@Override
 	public Page<ActivityResource> getItemActivities(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
-		Long projectId = projectDetails.getProjectId();
-		projectRepository.findById(projectId).orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
-		filter.withCondition(new FilterCondition(Condition.EQUALS, false, projectId.toString(), PROJECT_ID));
-		org.springframework.data.domain.Page<Activity> activityPage = activityRepository.findByFilter(filter, pageable);
+		projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+		org.springframework.data.domain.Page<Activity> activityPage = activityRepository.findByFilter(filter.withCondition(new FilterCondition(Condition.EQUALS,
+				false,
+				projectDetails.getProjectId().toString(),
+				CRITERIA_PROJECT_ID
+		)), pageable);
 		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(activityPage);
 	}
 }

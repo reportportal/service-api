@@ -23,8 +23,7 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.TestItemTagRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
-import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
+import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,41 +44,33 @@ import java.util.stream.Collectors;
  */
 @Service
 class GetTestItemHandlerImpl implements GetTestItemHandler {
+
 	private final TestItemRepository testItemRepository;
+
 	private final TestItemTagRepository testItemTagRepository;
 
+	private final TestItemResourceAssembler itemResourceAssembler;
+
 	@Autowired
-	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, TestItemTagRepository testItemTagRepository) {
+	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, TestItemTagRepository testItemTagRepository,
+			TestItemResourceAssembler itemResourceAssembler) {
 		this.testItemRepository = testItemRepository;
 		this.testItemTagRepository = testItemTagRepository;
+		this.itemResourceAssembler = itemResourceAssembler;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * com.epam.ta.reportportal.core.item.GetTestItemHandler#getTestItem(java
-	 * .lang.String)
-	 */
 	@Override
 	public TestItemResource getTestItem(Long testItemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		TestItem testItem = testItemRepository.findById(testItemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
-		return TestItemConverter.TO_RESOURCE.apply(testItem);
+		return itemResourceAssembler.toResource(testItem);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * com.epam.ta.reportportal.core.item.GetTestItemHandler#getTestItems(java
-	 * .lang.String, java.util.Set, org.springframework.data.domain.Pageable)
-	 */
 	@Override
 	public Iterable<TestItemResource> getTestItems(Filter filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		Page<TestItem> testItems = testItemRepository.findByFilter(filter, pageable);
-		return PagedResourcesAssembler.pageConverter(TestItemConverter.TO_RESOURCE).apply(testItems);
+		Page<TestItem> page = testItemRepository.findByFilter(filter, pageable);
+		return itemResourceAssembler.toPagedResources(page);
 	}
 
 	@Override
@@ -90,6 +81,6 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	@Override
 	public List<TestItemResource> getTestItems(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		List<TestItem> testItems = testItemRepository.findAllById(Arrays.asList(ids));
-		return testItems.stream().map(TestItemConverter.TO_RESOURCE).collect(Collectors.toList());
+		return testItems.stream().map(itemResourceAssembler::toResource).collect(Collectors.toList());
 	}
 }

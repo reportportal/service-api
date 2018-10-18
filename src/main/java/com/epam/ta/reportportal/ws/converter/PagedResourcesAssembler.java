@@ -46,7 +46,7 @@ public abstract class PagedResourcesAssembler<T, R> extends ResourceAssembler<T,
 	}
 
 	public static <T, R> Function<Page<T>, com.epam.ta.reportportal.ws.model.Page<R>> pageConverter(Function<T, R> modelConverter) {
-		return page -> PagedResourcesAssembler.<R>pageConverter().apply(page.map(modelConverter::apply));
+		return page -> PagedResourcesAssembler.<R>pageConverter().apply(page.map(modelConverter));
 	}
 
 	/**

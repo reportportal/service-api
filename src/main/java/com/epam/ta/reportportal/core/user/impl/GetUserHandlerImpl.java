@@ -47,8 +47,8 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.EXPIRED;
-import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.LOGIN;
+import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EXPIRED;
+import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_LOGIN;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
@@ -95,11 +95,11 @@ public class GetUserHandlerImpl implements GetUserHandler {
 	@Override
 	public Iterable<UserResource> getUsers(Filter filter, Pageable pageable, String projectName) {
 		// Active users only
-		filter.withCondition(new FilterCondition(Condition.EQUALS, false, "false", EXPIRED));
+		filter.withCondition(new FilterCondition(Condition.EQUALS, false, "false", CRITERIA_EXPIRED));
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND));
 		String criteria = project.getUsers().stream().map(ProjectUser::getUser).map(User::getLogin).collect(joining(","));
-		filter.withCondition(new FilterCondition(Condition.IN, true, criteria, LOGIN));
+		filter.withCondition(new FilterCondition(Condition.IN, true, criteria, CRITERIA_LOGIN));
 		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE)
 				.apply(userRepository.findByFilterExcluding(filter, pageable, "email"));
 	}

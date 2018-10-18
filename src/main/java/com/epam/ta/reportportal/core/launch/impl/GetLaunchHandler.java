@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Preconditions.HAS_ANY_MODE;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.querygen.Condition.EQUALS;
-import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_MODE;
+import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
@@ -243,8 +243,12 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	 */
 	private Filter addLaunchCommonCriteria(Mode mode, Filter filter, Long projectId) {
 
-		List<FilterCondition> filterConditions = Lists.newArrayList(
-				new FilterCondition(EQUALS, false, mode.toString(), CRITERIA_MODE),
+		List<FilterCondition> filterConditions = Lists.newArrayList(new FilterCondition(
+						EQUALS,
+						false,
+						mode.toString(),
+						CRITERIA_LAUNCH_MODE
+				),
 				new FilterCondition(EQUALS, false, String.valueOf(projectId), PROJECT_ID)
 		);
 

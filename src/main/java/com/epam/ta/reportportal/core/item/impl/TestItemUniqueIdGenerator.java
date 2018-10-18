@@ -70,7 +70,7 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 		StringJoiner joiner = new StringJoiner(";");
 		joiner.add(projectId.toString()).add(launchName);
 		if (!CollectionUtils.isEmpty(pathNames)) {
-			joiner.add(pathNames.stream().collect(Collectors.joining(",")));
+			joiner.add(pathNames.stream().collect(Collectors.joining(";")));
 		}
 		joiner.add(itemName);
 		List<Parameter> parameters = testItem.getParameters();

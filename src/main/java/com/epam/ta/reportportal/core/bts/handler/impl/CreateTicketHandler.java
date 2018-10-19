@@ -66,7 +66,7 @@ public class CreateTicketHandler implements ICreateTicketHandler {
 		List<TestItem> testItems = testItemRepository.findAllById(postTicketRQ.getBackLinks().keySet());
 		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		BugTrackingSystem bugTrackingSystem = bugTrackingSystemRepository.findById(systemId)
-				.orElseThrow(() -> new ReportPortalException(EXTERNAL_SYSTEM_NOT_FOUND, systemId));
+				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, systemId));
 
 		expect(bugTrackingSystem.getDefectFormFields(), notNull()).verify(BAD_REQUEST_ERROR, "There aren't any submitted BTS fields!");
 //		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType());

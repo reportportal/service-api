@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.epam.ta.reportportal.ws.model.ErrorType.EXTERNAL_SYSTEM_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
 
 /**
  * Basic implementation for {@link IDeleteExternalSystemHandler} interface
@@ -52,7 +52,7 @@ public class DeleteExternalSystemHandler implements IDeleteExternalSystemHandler
 		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 
 		BugTrackingSystem bugTrackingSystem = bugTrackingSystemRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(EXTERNAL_SYSTEM_NOT_FOUND, id));
+				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, id));
 
 		bugTrackingSystemRepository.delete(bugTrackingSystem);
 

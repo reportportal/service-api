@@ -67,11 +67,15 @@ public class P4jPluginManager extends AbstractIdleService implements PluginBox {
 
 	@Override
 	public Optional<Plugin> getPlugin(String type) {
-		return Optional.empty();
+		return getPlugins().stream().filter(p -> p.getType().name().equalsIgnoreCase(type)).findAny();
 	}
 
 	public <T> Optional<T> getInstance(Class<T> extension) {
 		return pluginManager.getExtensions(extension).stream().findFirst();
+	}
+
+	public <T> Optional<T> getInstance(String name, Class<T> extension) {
+		return pluginManager.getExtensions(extension, name).stream().findFirst();
 	}
 
 	@Override

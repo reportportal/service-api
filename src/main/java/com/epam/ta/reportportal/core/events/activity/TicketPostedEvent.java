@@ -25,10 +25,10 @@ public class TicketPostedEvent {
 	private final Ticket ticket;
 	private final String itemName;
 	private final String postedBy;
-	private final String testItemId;
+	private final Long testItemId;
 	private final String project;
 
-	public TicketPostedEvent(Ticket ticket, String testItemId, String postedBy, String project, String itemName) {
+	public TicketPostedEvent(Ticket ticket, Long testItemId, String postedBy, String project, String itemName) {
 		this.ticket = ticket;
 		this.postedBy = postedBy;
 		this.testItemId = testItemId;
@@ -44,7 +44,7 @@ public class TicketPostedEvent {
 		return postedBy;
 	}
 
-	public String getTestItemId() {
+	public Long getTestItemId() {
 		return testItemId;
 	}
 

@@ -18,8 +18,7 @@ package com.epam.ta.reportportal.core.bts.handler.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.IUpdateExternalSystemHandler;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.dao.BugTrackingSystemRepository;
+import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.bts.BugTrackingSystem;
 import com.epam.ta.reportportal.entity.bts.BugTrackingSystemAuthFactory;
 import com.epam.ta.reportportal.util.ProjectUtils;
@@ -33,7 +32,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.ws.model.ErrorType.EXTERNAL_SYSTEM_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
 
 /**
  * Initial realization for {@link IUpdateExternalSystemHandler} interface
@@ -48,7 +47,7 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 	//	private StrategyProvider strategyProvider;
 
 	@Autowired
-	private BugTrackingSystemRepository bugTrackingSystemRepository;
+	private IntegrationRepository integrationRepository;
 
 	@Autowired
 	private BugTrackingSystemAuthFactory bugTrackingSystemAuthFactory;
@@ -59,8 +58,8 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 	@Override
 	public OperationCompletionRS updateExternalSystem(UpdateExternalSystemRQ request, String projectName, Long id, ReportPortalUser user) {
 		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
-		BugTrackingSystem bugTrackingSystem = bugTrackingSystemRepository.findById(id)
-				.orElseThrow(() -> new ReportPortalException(EXTERNAL_SYSTEM_NOT_FOUND, id));
+		BugTrackingSystem bugTrackingSystem = integrationRepository.findById(id)
+				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, id));
 
 		BugTrackingSystemBuilder builder = new BugTrackingSystemBuilder(bugTrackingSystem);
 
@@ -95,7 +94,7 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 		//						UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, projectName);
 		//			}
 
-		bugTrackingSystemRepository.save(bugTrackingSystem);
+		integrationRepository.save(bugTrackingSystem);
 
 		//eventPublisher.publishEvent(new IntegrationUpdatedEvent(exist, principalName));
 		return new OperationCompletionRS("ExternalSystem with ID = '" + id + "' is successfully updated.");
@@ -105,8 +104,8 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 	public OperationCompletionRS externalSystemConnect(UpdateExternalSystemRQ updateRQ, String projectName, Long systemId,
 			ReportPortalUser user) {
 		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
-		BugTrackingSystem bugTrackingSystem = bugTrackingSystemRepository.findById(systemId)
-				.orElseThrow(() -> new ReportPortalException(EXTERNAL_SYSTEM_NOT_FOUND, systemId));
+		BugTrackingSystem bugTrackingSystem = integrationRepository.findById(systemId)
+				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, systemId));
 
 		//ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(updateRQ.getExternalSystemType());
 

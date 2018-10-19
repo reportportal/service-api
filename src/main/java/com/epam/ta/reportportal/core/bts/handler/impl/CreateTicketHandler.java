@@ -16,14 +16,16 @@
 
 package com.epam.ta.reportportal.core.bts.handler.impl;
 
+import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.ICreateTicketHandler;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.dao.BugTrackingSystemRepository;
+import com.epam.ta.reportportal.core.events.activity.TicketPostedEvent;
+import com.epam.ta.reportportal.core.plugin.PluginBox;
+import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.bts.BugTrackingSystem;
+import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.util.ProjectUtils;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,9 +33,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -45,34 +48,47 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Service
 public class CreateTicketHandler implements ICreateTicketHandler {
 
-//	@Autowired
-//	private StrategyProvider strategyProvider;
-//
-//	@Autowired
-//	private ProjectRepository projectRepository;
+	//	@Autowired
+	//	private StrategyProvider strategyProvider;
+	//
+	//	@Autowired
+	//	private ProjectRepository projectRepository;
 
 	@Autowired
 	private TestItemRepository testItemRepository;
 
 	@Autowired
-	private BugTrackingSystemRepository bugTrackingSystemRepository;
+	private IntegrationRepository integrationRepository;
 
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
+
+	@Autowired
+	private PluginBox pluginBox;
 
 	@Override
 	public Ticket createIssue(PostTicketRQ postTicketRQ, String projectName, Long systemId, ReportPortalUser user) {
 		validatePostTicketRQ(postTicketRQ);
 		List<TestItem> testItems = testItemRepository.findAllById(postTicketRQ.getBackLinks().keySet());
-		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
-		BugTrackingSystem bugTrackingSystem = bugTrackingSystemRepository.findById(systemId)
-				.orElseThrow(() -> new ReportPortalException(EXTERNAL_SYSTEM_NOT_FOUND, systemId));
+		//		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
+
+		Integration bugTrackingSystem = integrationRepository.findById(systemId)
+				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, systemId));
 
 		expect(bugTrackingSystem.getDefectFormFields(), notNull()).verify(BAD_REQUEST_ERROR, "There aren't any submitted BTS fields!");
-//		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType());
-//		Ticket ticket = externalSystemStrategy.submitTicket(postTicketRQ, system);
-//		testItems.forEach(
-//				item -> eventPublisher.publishEvent(new TicketPostedEvent(ticket, item.getId(), username, projectName, item.getName())));
+		Optional<BtsExtension> btsExtension = pluginBox.getInstance(bugTrackingSystem.getBtsType(), BtsExtension.class);
+		expect(btsExtension, Optional::isPresent).verify(BAD_REQUEST_ERROR,
+				"BugTracking plugin for {} isn't installed",
+				bugTrackingSystem.getBtsProject()
+		);
+
+		Ticket ticket = btsExtension.get().submitTicket(postTicketRQ, system);
+		testItems.forEach(item -> eventPublisher.publishEvent(new TicketPostedEvent(ticket,
+				item.getItemId(),
+				user.getUsername(),
+				projectName,
+				item.getName()
+		)));
 		return null;
 	}
 

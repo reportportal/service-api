@@ -33,7 +33,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.ws.model.ErrorType.EXTERNAL_SYSTEM_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
 
 /**
  * Initial realization for {@link IUpdateExternalSystemHandler} interface
@@ -60,7 +60,7 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 	public OperationCompletionRS updateExternalSystem(UpdateExternalSystemRQ request, String projectName, Long id, ReportPortalUser user) {
 		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		BugTrackingSystem bugTrackingSystem = bugTrackingSystemRepository.findById(id)
-				.orElseThrow(() -> new ReportPortalException(EXTERNAL_SYSTEM_NOT_FOUND, id));
+				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, id));
 
 		BugTrackingSystemBuilder builder = new BugTrackingSystemBuilder(bugTrackingSystem);
 
@@ -106,7 +106,7 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 			ReportPortalUser user) {
 		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		BugTrackingSystem bugTrackingSystem = bugTrackingSystemRepository.findById(systemId)
-				.orElseThrow(() -> new ReportPortalException(EXTERNAL_SYSTEM_NOT_FOUND, systemId));
+				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, systemId));
 
 		//ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(updateRQ.getExternalSystemType());
 

@@ -78,7 +78,7 @@ public class CreateExternalSystemHandler implements ICreateExternalSystemHandler
 	private void checkUnique(BugTrackingSystem bugTrackingSystem, Long projectId) {
 		bugTrackingSystemRepository.findByUrlAndBtsProjectAndProjectId(
 				bugTrackingSystem.getUrl(), bugTrackingSystem.getBtsProject(), projectId)
-				.ifPresent(it -> new ReportPortalException(ErrorType.EXTERNAL_SYSTEM_ALREADY_EXISTS,
+				.ifPresent(it -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND,
 						bugTrackingSystem.getUrl() + " & " + bugTrackingSystem.getBtsProject()
 				));
 	}

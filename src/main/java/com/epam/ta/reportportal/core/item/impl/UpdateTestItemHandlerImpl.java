@@ -57,8 +57,8 @@ import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.EXTERNAL_SYSTEM_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
 import static java.lang.Boolean.FALSE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -231,7 +231,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			apply.setSubmitterId(ofNullable(it.getSubmitter()).orElse(userId));
 			apply.setSubmitDate(LocalDateTime.now());
 			Optional<BugTrackingSystem> bts = bugTrackingSystemRepository.findById(it.getExternalSystemId());
-			expect(bts, isPresent()).verify(EXTERNAL_SYSTEM_NOT_FOUND, it.getExternalSystemId());
+			expect(bts, isPresent()).verify(INTEGRATION_NOT_FOUND, it.getExternalSystemId());
 			apply.setBugTrackingSystemId(it.getExternalSystemId());
 			return apply;
 		}).collect(toSet());

@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.ws.model.statistics.StatisticsResource;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Set;
 import java.util.function.Function;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.DEFECTS_KEY;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_KEY;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
@@ -38,14 +40,19 @@ public final class StatisticsConverter {
 	public static final Function<Set<Statistics>, StatisticsResource> TO_RESOURCE = statistics -> {
 		StatisticsResource statisticsResource = new StatisticsResource();
 		statisticsResource.setDefects(statistics.stream()
-				.filter(it -> it.getCounter() > 0 && it.getField().contains(DEFECTS_KEY))
-				.collect(Collectors.groupingBy(
-						it -> it.getField().split("\\$")[2],
-						Collectors.groupingBy(it -> it.getField().split("\\$")[3], Collectors.summingInt(Statistics::getCounter))
+				.filter(it -> ofNullable(it.getStatisticsField()).isPresent() && StringUtils.isNotEmpty(it.getStatisticsField().getName()))
+				.filter(it -> it.getCounter() > 0 && it.getStatisticsField().getName().contains(DEFECTS_KEY))
+				.collect(Collectors.groupingBy(it -> it.getStatisticsField().getName().split("\\$")[2],
+						Collectors.groupingBy(it -> it.getStatisticsField().getName().split("\\$")[3],
+								Collectors.summingInt(Statistics::getCounter)
+						)
 				)));
 		statisticsResource.setExecutions(statistics.stream()
-				.filter(it -> it.getCounter() > 0 && it.getField().contains(EXECUTIONS_KEY))
-				.collect(Collectors.groupingBy(it -> it.getField().split("\\$")[2], Collectors.summingInt(Statistics::getCounter))));
+				.filter(it -> ofNullable(it.getStatisticsField()).isPresent() && StringUtils.isNotEmpty(it.getStatisticsField().getName()))
+				.filter(it -> it.getCounter() > 0 && it.getStatisticsField().getName().contains(EXECUTIONS_KEY))
+				.collect(Collectors.groupingBy(it -> it.getStatisticsField().getName().split("\\$")[2],
+						Collectors.summingInt(Statistics::getCounter)
+				)));
 		return statisticsResource;
 
 	};

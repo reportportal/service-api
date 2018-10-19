@@ -20,12 +20,12 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
-import com.epam.ta.reportportal.dao.BugTrackingSystemRepository;
+import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.TicketRepository;
-import com.epam.ta.reportportal.entity.bts.BugTrackingSystem;
 import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
@@ -57,8 +57,8 @@ import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.EXTERNAL_SYSTEM_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
 import static java.lang.Boolean.FALSE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -75,7 +75,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private TestItemRepository testItemRepository;
 
-	private BugTrackingSystemRepository bugTrackingSystemRepository;
+	private IntegrationRepository integrationRepository;
 
 	private TicketRepository ticketRepository;
 
@@ -92,8 +92,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	}
 
 	@Autowired
-	public void setBugTrackingSystemRepository(BugTrackingSystemRepository bugTrackingSystemRepository) {
-		this.bugTrackingSystemRepository = bugTrackingSystemRepository;
+	public void setBugTrackingSystemRepository(IntegrationRepository integrationRepository) {
+		this.integrationRepository = integrationRepository;
 	}
 
 	@Autowired
@@ -230,8 +230,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			Ticket apply = ExternalSystemIssueConverter.TO_TICKET.apply(it);
 			apply.setSubmitterId(ofNullable(it.getSubmitter()).orElse(userId));
 			apply.setSubmitDate(LocalDateTime.now());
-			Optional<BugTrackingSystem> bts = bugTrackingSystemRepository.findById(it.getExternalSystemId());
-			expect(bts, isPresent()).verify(EXTERNAL_SYSTEM_NOT_FOUND, it.getExternalSystemId());
+			Optional<Integration> bts = integrationRepository.findById(it.getExternalSystemId());
+			expect(bts, isPresent()).verify(INTEGRATION_NOT_FOUND, it.getExternalSystemId());
 			apply.setBugTrackingSystemId(it.getExternalSystemId());
 			return apply;
 		}).collect(toSet());
@@ -251,7 +251,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 					"Launch is not under the specified project."
 			);
 			if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
-				expect(user.getUsername(), equalTo(launch.getUser().getLogin())).verify(ErrorType.ACCESS_DENIED, "You are not a launch owner.");
+				expect(user.getUsername(), equalTo(launch.getUser().getLogin())).verify(
+						ErrorType.ACCESS_DENIED,
+						"You are not a launch owner."
+				);
 			}
 		}
 	}
@@ -286,13 +289,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				Suppliers.formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
 		).verify();
 
-		expect(
-				item.getItemResults().getStatus(),
-				not(equalTo(StatusEnum.PASSED)),
-				Suppliers.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
-						StatusEnum.PASSED.name()
-				)
-		).verify();
+		expect(item.getItemResults().getStatus(), not(equalTo(StatusEnum.PASSED)), Suppliers.formattedSupplier(
+				"Issue status update cannot be applied on {} test items, cause it is not allowed.",
+				StatusEnum.PASSED.name()
+		)).verify();
 
 		expect(testItemRepository.hasChildren(item.getItemId(), item.getPath()),
 				equalTo(false),

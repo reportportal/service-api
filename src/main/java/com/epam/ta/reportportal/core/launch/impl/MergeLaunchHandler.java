@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.impl.TestItemUniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.MergeStrategyFactory;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.MergeStrategyType;
+import com.epam.ta.reportportal.core.item.impl.merge.strategy.StatisticsCalculationFactory;
 import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -34,7 +35,6 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
@@ -49,7 +49,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.Predicates.*;
@@ -68,8 +67,10 @@ import static java.util.stream.Collectors.*;
 @Service
 public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.MergeLaunchHandler {
 
+	@Autowired
 	private TestItemRepository testItemRepository;
 
+	@Autowired
 	private LaunchRepository launchRepository;
 
 	@Autowired
@@ -84,18 +85,11 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 	@Autowired
 	private TestItemUniqueIdGenerator identifierGenerator;
 
+	@Autowired
+	private StatisticsCalculationFactory statisticsCalculationFactory;
+
 	//	@Autowired
 	//	private ILogIndexer logIndexer;
-
-	@Autowired
-	public void setLaunchRepository(LaunchRepository launchRepository) {
-		this.launchRepository = launchRepository;
-	}
-
-	@Autowired
-	public void setTestItemRepository(TestItemRepository testItemRepository) {
-		this.testItemRepository = testItemRepository;
-	}
 
 	@Override
 	public LaunchResource mergeLaunches(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, MergeLaunchesRQ rq) {
@@ -138,16 +132,8 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 
 		newLaunch = launchRepository.findById(newLaunchId).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
 
-		if (type.equals(MergeStrategyType.BASIC)) {
-			newLaunch.setStatistics(launchesList.stream()
-					.filter(l -> ofNullable(l.getStatistics()).isPresent())
-					.flatMap(l -> l.getStatistics().stream())
-					.filter(s -> ofNullable(s.getStatisticsField()).isPresent())
-					.collect(toMap(Statistics::getStatisticsField, Statistics::getCounter, Integer::sum))
-					.entrySet()
-					.stream()
-					.map(entry -> new Statistics(entry.getKey(), entry.getValue(), newLaunchId))
-					.collect(Collectors.toSet()));
+		if (!type.equals(MergeStrategyType.DEEP)) {
+			newLaunch.setStatistics(statisticsCalculationFactory.getStrategy(type).recalculateLaunchStatistics(newLaunch, launchesList));
 		}
 
 		newLaunch.setStatus(StatisticsHelper.getStatusFromStatistics(newLaunch.getStatistics()));

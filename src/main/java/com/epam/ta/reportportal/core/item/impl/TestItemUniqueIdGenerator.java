@@ -27,6 +27,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
@@ -65,7 +66,7 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 	private String prepareForEncoding(TestItem testItem, Launch launch) {
 		Long projectId = launch.getProjectId();
 		String launchName = launch.getName();
-		List<String> pathNames = testItemRepository.selectPathNames(testItem.getItemId(), testItem.getPath());
+		List<String> pathNames = new ArrayList<>(testItemRepository.selectPathNames(testItem.getPath()).values());
 		String itemName = testItem.getName();
 		StringJoiner joiner = new StringJoiner(";");
 		joiner.add(projectId.toString()).add(launchName);

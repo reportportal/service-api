@@ -1,3 +1,23 @@
+/*
+ * Copyright 2016 EPAM Systems
+ *
+ *
+ * This file is part of EPAM Report Portal.
+ * https://github.com/reportportal/service-api
+ *
+ * Report Portal is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Report Portal is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package com.epam.ta.reportportal.auth.acl;
 
 import java.util.List;
@@ -11,17 +31,20 @@ import org.springframework.security.acls.model.AccessControlEntry;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.security.acls.model.MutableAcl;
 
+/**
+ * @author Ivan Nikitsenka
+ */
 public class ReportPortalAclService extends JdbcMutableAclService {
 
-    public static final String IDENTITY_QUERY = "select currval(pg_get_serial_sequence('acl_class', 'id'))";
-    public static final String SID_IDENTITY_QUERY = "select currval(pg_get_serial_sequence('acl_sid', 'id'))";
-    public static final String OBJECT_IDENTITY_PRIMARY_KEY_QUERY = "select acl_object_identity.id\n"
+    private static final String IDENTITY_QUERY = "select currval(pg_get_serial_sequence('acl_class', 'id'))";
+    private static final String SID_IDENTITY_QUERY = "select currval(pg_get_serial_sequence('acl_sid', 'id'))";
+    private static final String OBJECT_IDENTITY_PRIMARY_KEY_QUERY = "select acl_object_identity.id\n"
         + "from acl_object_identity,\n"
         + "     acl_class\n"
         + "where acl_object_identity.object_id_class = acl_class.id\n"
         + "  and acl_class.class= ? \n"
         + "  and acl_object_identity.object_id_identity = ? ::varchar";
-    public static final String FIND_CHILDREN_QUERY =
+    private static final String FIND_CHILDREN_QUERY =
         "select obj.object_id_identity as obj_id, class.class as class"
             + " from acl_object_identity obj, acl_object_identity parent, acl_class class "
             + "where obj.parent_object = parent.id and obj.object_id_class = class.id "

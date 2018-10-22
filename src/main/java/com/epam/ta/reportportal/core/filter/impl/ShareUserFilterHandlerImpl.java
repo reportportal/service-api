@@ -54,7 +54,8 @@ public class ShareUserFilterHandlerImpl implements IShareUserFilterHandler {
 
     @Override
     public void shareFilter(String projectName, Long filterId) {
-        UserFilter filter = userFilterRepository.getOne(filterId);
+        UserFilter filter = userFilterRepository.findById(filterId)
+            .orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND));
         Project project = projectRepository.findByName(projectName)
             .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND));
         project.getUsers()

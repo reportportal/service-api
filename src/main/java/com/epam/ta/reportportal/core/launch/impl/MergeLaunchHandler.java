@@ -110,7 +110,16 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 				"At least one launch id should be  specified for merging"
 		);
 
+		expect(launchesIds.size() > 1, equalTo(true)).verify(ErrorType.BAD_REQUEST_ERROR,
+				"At least 2 launch id should be provided for merging"
+		);
+
 		List<Launch> launchesList = launchRepository.findAllById(launchesIds);
+
+		expect(launchesIds.size(), equalTo(launchesList.size())).verify(ErrorType.BAD_REQUEST_ERROR,
+				"Not all launches with provided ids were found"
+		);
+
 		validateMergingLaunches(launchesList, user, projectDetails);
 
 		Launch newLaunch = createResultedLaunch(projectDetails.getProjectId(), user.getUserId(), rq, launchesList);
@@ -133,7 +142,8 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 			newLaunch.setStatistics(launchesList.stream()
 					.filter(l -> ofNullable(l.getStatistics()).isPresent())
 					.flatMap(l -> l.getStatistics().stream())
-					.collect(toMap(Statistics::getField, Statistics::getCounter, Integer::sum))
+					.filter(s -> ofNullable(s.getStatisticsField()).isPresent() && ofNullable(s.getStatisticsField().getName()).isPresent())
+					.collect(toMap(s -> s.getStatisticsField().getName(), Statistics::getCounter, Integer::sum))
 					.entrySet()
 					.stream()
 					.map(entry -> new Statistics(entry.getKey(), entry.getValue(), newLaunchId))

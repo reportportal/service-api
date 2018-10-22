@@ -42,7 +42,7 @@ import java.util.Map;
 import static java.util.stream.Collectors.groupingBy;
 
 /**
- * @author Ivan Budaev
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class DeepMergeStrategy extends AbstractSuiteMergeStrategy {
 

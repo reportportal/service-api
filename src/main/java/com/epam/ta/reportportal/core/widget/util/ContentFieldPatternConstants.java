@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
 
 /**
- * @author Ivan Budaev
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  * <p>
  * Regex patterns for @{@link com.epam.ta.reportportal.entity.widget.Widget#contentFields} validation
  */

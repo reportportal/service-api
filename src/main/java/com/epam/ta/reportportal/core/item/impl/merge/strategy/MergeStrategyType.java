@@ -21,7 +21,7 @@ package com.epam.ta.reportportal.core.item.impl.merge.strategy;
 import java.util.Arrays;
 
 /**
- * @author Ivan Budaev
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public enum MergeStrategyType {
 	DEEP,

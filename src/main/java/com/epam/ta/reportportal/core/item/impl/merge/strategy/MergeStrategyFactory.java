@@ -23,7 +23,7 @@ import com.epam.ta.reportportal.core.item.merge.MergeStrategy;
 import java.util.Map;
 
 /**
- * @author Ivan Budaev
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class MergeStrategyFactory {
 	private Map<MergeStrategyType, MergeStrategy> mergeStrategyMapping;

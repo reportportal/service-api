@@ -17,6 +17,7 @@ import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +29,7 @@ import static com.google.common.base.Predicates.equalTo;
 /**
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
  */
+@Service
 public class IntegrationsHandler {
 
 	@Autowired

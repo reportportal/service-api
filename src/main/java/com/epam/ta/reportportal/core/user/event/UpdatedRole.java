@@ -3,7 +3,7 @@ package com.epam.ta.reportportal.core.user.event;
 import com.epam.ta.reportportal.entity.user.UserRole;
 
 /**
- * @author Ivan Budaev
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class UpdatedRole {
 	

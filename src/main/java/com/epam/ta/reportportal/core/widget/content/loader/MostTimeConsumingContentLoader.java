@@ -27,7 +27,7 @@ import static com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum.*;
 import static java.util.Collections.singletonMap;
 
 /**
- * @author Ivan Budaev
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
 public class MostTimeConsumingContentLoader implements LoadContentStrategy {

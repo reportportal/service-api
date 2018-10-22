@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.converter.builders;
 import com.epam.ta.reportportal.entity.bts.DefectFormField;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -54,10 +55,8 @@ public class BugTrackingSystemBuilder implements Supplier<Integration> {
 		return this;
 	}
 
-	public BugTrackingSystemBuilder addBugTrackingSystemType(String systemType) {
-		if (!StringUtils.isEmpty(systemType)) {
-			BtsConstants.TYPE.setParam(parameters, systemType);
-		}
+	public BugTrackingSystemBuilder addIntegrationType(IntegrationType type) {
+		this.bugTrackingSystem.setType(type);
 		return this;
 	}
 

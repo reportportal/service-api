@@ -130,11 +130,10 @@ public class EmailService extends JavaMailSenderImpl {
 
 		/* Tags with links */
 		if (!CollectionUtils.isEmpty(launch.getTags())) {
-			email.put(
-					"tags",
+			email.put("tags",
 					launch.getTags()
-							.stream().collect(toMap(
-							tag -> tag,
+							.stream()
+							.collect(toMap(tag -> tag,
 									tag -> format(FILTER_TAG_FORMAT, basicUrl, urlPathSegmentEscaper().escape(tag.getValue()))
 							))
 			);
@@ -144,8 +143,8 @@ public class EmailService extends JavaMailSenderImpl {
 
 		Map<String, Integer> statistics = launch.getStatistics()
 				.stream()
-				.filter(s -> StringUtils.isNotEmpty(s.getField()))
-				.collect(Collectors.toMap(Statistics::getField, Statistics::getCounter, (prev, curr) -> prev));
+				.filter(s -> ofNullable(s.getStatisticsField()).isPresent() && StringUtils.isNotEmpty(s.getStatisticsField().getName()))
+				.collect(Collectors.toMap(s -> s.getStatisticsField().getName(), Statistics::getCounter, (prev, curr) -> prev));
 
 		email.put("total", statistics.get("statistics$executions$total"));
 		email.put("passed", statistics.get("statistics$executions$passed"));

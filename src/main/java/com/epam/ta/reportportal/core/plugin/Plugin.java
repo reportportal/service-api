@@ -1,5 +1,7 @@
 package com.epam.ta.reportportal.core.plugin;
 
+import com.epam.reportportal.extension.common.ExtensionPoint;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -11,13 +13,13 @@ import java.util.Objects;
 public class Plugin implements Serializable {
 
 	private String id;
-	private String type;
+	private ExtensionPoint type;
 
 	public Plugin() {
 
 	}
 
-	public Plugin(String id, String type) {
+	public Plugin(String id, ExtensionPoint type) {
 		this.id = id;
 		this.type = type;
 	}
@@ -30,11 +32,11 @@ public class Plugin implements Serializable {
 		this.id = id;
 	}
 
-	public String getType() {
+	public ExtensionPoint getType() {
 		return type;
 	}
 
-	public void setType(String type) {
+	public void setType(ExtensionPoint type) {
 		this.type = type;
 	}
 

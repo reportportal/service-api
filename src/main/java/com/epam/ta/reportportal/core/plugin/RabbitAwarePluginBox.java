@@ -41,6 +41,17 @@ public class RabbitAwarePluginBox extends AbstractScheduledService implements Pl
 	}
 
 	@Override
+	public <T> Optional<T> getInstance(String name, Class<T> type) {
+		return Optional.empty();
+	}
+
+	@Override
+	public <T> Optional<T> getInstance(Class<T> type) {
+		//TODO implement
+		return Optional.empty();
+	}
+
+	@Override
 	protected void runOneIteration() {
 		try {
 			this.messageBus.publish(
@@ -61,7 +72,7 @@ public class RabbitAwarePluginBox extends AbstractScheduledService implements Pl
 
 	@RabbitListener(queues = "#{ @pluginsPongQueue.name }")
 	void fulfillPluginsList(@Payload Plugin plugin) {
-		this.plugins.put(plugin.getType(), plugin);
+//		this.plugins.put(plugin.getType(), plugin);
 	}
 
 }

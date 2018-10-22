@@ -1,11 +1,11 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.auth.acl.ReportPortalAclService;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.cache.ehcache.EhCacheFactoryBean;
-import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
+import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.acls.AclPermissionEvaluator;
@@ -13,7 +13,7 @@ import org.springframework.security.acls.domain.AclAuthorizationStrategy;
 import org.springframework.security.acls.domain.AclAuthorizationStrategyImpl;
 import org.springframework.security.acls.domain.ConsoleAuditLogger;
 import org.springframework.security.acls.domain.DefaultPermissionGrantingStrategy;
-import org.springframework.security.acls.domain.EhCacheBasedAclCache;
+import org.springframework.security.acls.domain.SpringCacheBasedAclCache;
 import org.springframework.security.acls.jdbc.BasicLookupStrategy;
 import org.springframework.security.acls.jdbc.LookupStrategy;
 import org.springframework.security.acls.model.PermissionGrantingStrategy;
@@ -27,21 +27,13 @@ public class ACLContext {
     DataSource dataSource;
 
     @Bean
-    public EhCacheBasedAclCache aclCache() {
-        return new EhCacheBasedAclCache(aclEhCacheFactoryBean().getObject(), permissionGrantingStrategy(), aclAuthorizationStrategy());
+    public SpringCacheBasedAclCache aclCache() {
+        return new SpringCacheBasedAclCache(coffeinCache(), permissionGrantingStrategy(), aclAuthorizationStrategy());
     }
 
     @Bean
-    public EhCacheFactoryBean aclEhCacheFactoryBean() {
-        EhCacheFactoryBean ehCacheFactoryBean = new EhCacheFactoryBean();
-        ehCacheFactoryBean.setCacheManager(aclCacheManager().getObject());
-        ehCacheFactoryBean.setCacheName("aclCache");
-        return ehCacheFactoryBean;
-    }
-
-    @Bean
-    public EhCacheManagerFactoryBean aclCacheManager() {
-        return new EhCacheManagerFactoryBean();
+    public CaffeineCache coffeinCache(){
+        return new CaffeineCache("aclCache", Caffeine.newBuilder().build());
     }
 
     @Bean

@@ -169,6 +169,7 @@ public class DemoDataCommonService {
 		rq.setLaunchId(launchId);
 		rq.setStartTime(EntityUtils.TO_DATE.apply(LocalDateTime.now()));
 		rq.setName(name);
+		rq.setType(type.name());
 
 		return startTestItemHandler.startChildItem(user, projectDetails, rq, rootItemId).getId();
 	}

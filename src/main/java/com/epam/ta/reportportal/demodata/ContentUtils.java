@@ -104,28 +104,28 @@ final class ContentUtils {
 
 	static Issue getProductBug() {
 		Issue issue = new Issue();
-		issue.setIssueType(PRODUCT_BUG.getValue());
+		issue.setIssueType(PRODUCT_BUG.getLocator());
 		issue.setComment(bugDescription("demo/content/comments/product.txt"));
 		return issue;
 	}
 
 	static Issue getAutomationBug() {
 		Issue issue = new Issue();
-		issue.setIssueType(AUTOMATION_BUG.getValue());
+		issue.setIssueType(AUTOMATION_BUG.getLocator());
 		issue.setComment(bugDescription("demo/content/comments/automation.txt"));
 		return issue;
 	}
 
 	static Issue getSystemIssue() {
 		Issue issue = new Issue();
-		issue.setIssueType(SYSTEM_ISSUE.getValue());
+		issue.setIssueType(SYSTEM_ISSUE.getLocator());
 		issue.setComment(bugDescription("demo/content/comments/system.txt"));
 		return issue;
 	}
 
 	static Issue getInvestigate() {
 		Issue issue = new Issue();
-		issue.setIssueType(TO_INVESTIGATE.getValue());
+		issue.setIssueType(TO_INVESTIGATE.getLocator());
 		issue.setComment(bugDescription("demo/content/comments/investigate.txt"));
 		return issue;
 	}

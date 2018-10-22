@@ -47,6 +47,7 @@ import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -128,9 +129,16 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
 		Set<String> launchesIds = rq.getLaunches();
+		launchesIds.forEach(id -> expect(StringUtils.isNotEmpty(id), equalTo(true)).verify(BAD_REQUEST_ERROR,
+				"Launch id should not be empty."
+		));
+
 		expect(launchesIds.size() > 1, equalTo(true)).verify(BAD_REQUEST_ERROR, rq.getLaunches());
+
 		List<Launch> launchesList = launchRepository.find(launchesIds);
-		
+
+		expect(launchesList.size(), equalTo(launchesIds.size())).verify(BAD_REQUEST_ERROR, "Not all launches with provided ids were found");
+
 		validateMergingLaunches(launchesList, user, project);
 		boolean hasRetries = launchesList.stream().anyMatch(it -> it.getHasRetries() != null);
 
@@ -159,8 +167,8 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 					.forEach(items -> strategy.mergeTestItems(items.get(0), items.subList(1, items.size())));
 		}
 
-		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(
-				project.getConfiguration().getStatisticsCalculationStrategy());
+		StatisticsFacade statisticsFacade = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration()
+				.getStatisticsCalculationStrategy());
 		statisticsFacade.recalculateStatistics(launch);
 
 		launch = launchRepository.findOne(launch.getId());
@@ -182,7 +190,6 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 	 * @param launches
 	 */
 	private void validateMergingLaunches(List<Launch> launches, User user, Project project) {
-		expect(launches.size(), not(equalTo(0))).verify(BAD_REQUEST_ERROR, launches);
 
 		/*
 		 * ADMINISTRATOR and PROJECT_MANAGER+ users have permission to merge not-only-own
@@ -222,10 +229,12 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 				}
 				if (item.getType().sameLevel(TestItemType.SUITE)) {
 					// Add launch reference description for top level items
-					Supplier<String> newDescription = Suppliers.formattedSupplier(
-							((null != item.getItemDescription()) ? item.getItemDescription() : "") + (extendDescription ?
+					Supplier<String> newDescription = Suppliers.formattedSupplier(((null != item.getItemDescription()) ? item.getItemDescription() : "") + (extendDescription ?
 									"\r\n@launch '{} #{}'" :
-									""), launch.getName(), launch.getNumber());
+									""),
+							launch.getName(),
+							launch.getNumber()
+					);
 					item.setItemDescription(newDescription.get());
 				}
 				return item;
@@ -254,12 +263,15 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 
 		StartLaunchRQ startRQ = new StartLaunchRQ();
 		startRQ.setMode(ofNullable(mergeLaunchesRQ.getMode()).orElse(Mode.DEFAULT));
-		startRQ.setDescription(ofNullable(mergeLaunchesRQ.getDescription()).orElse(
-				launches.stream().map(Launch::getDescription).filter(Objects::nonNull).collect(joining("\n"))));
+		startRQ.setDescription(ofNullable(mergeLaunchesRQ.getDescription()).orElse(launches.stream()
+				.map(Launch::getDescription)
+				.filter(Objects::nonNull)
+				.collect(joining("\n"))));
 		startRQ.setName(ofNullable(mergeLaunchesRQ.getName()).orElse(
 				"Merged: " + launches.stream().map(Launch::getName).distinct().collect(joining(", "))));
-		startRQ.setTags(ofNullable(mergeLaunchesRQ.getTags()).orElse(
-				launches.stream().flatMap(it -> ofNullable(it.getTags()).orElse(Collections.emptySet()).stream()).collect(toSet())));
+		startRQ.setTags(ofNullable(mergeLaunchesRQ.getTags()).orElse(launches.stream()
+				.flatMap(it -> ofNullable(it.getTags()).orElse(Collections.emptySet()).stream())
+				.collect(toSet())));
 		startRQ.setStartTime(startTime);
 		Launch launch = new LaunchBuilder().addStartRQ(startRQ).addProject(projectName).addStatus(IN_PROGRESS).addUser(userName).get();
 		launch.setNumber(launchCounter.getLaunchNumber(launch.getName(), projectName));

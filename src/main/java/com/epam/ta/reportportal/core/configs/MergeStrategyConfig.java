@@ -16,10 +16,9 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.core.item.impl.merge.strategy.DeepMergeStrategy;
-import com.epam.ta.reportportal.core.item.impl.merge.strategy.MergeStrategyFactory;
-import com.epam.ta.reportportal.core.item.impl.merge.strategy.MergeStrategyType;
+import com.epam.ta.reportportal.core.item.impl.merge.strategy.*;
 import com.epam.ta.reportportal.core.item.merge.MergeStrategy;
+import com.epam.ta.reportportal.core.item.merge.StatisticsCalculationStrategy;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -48,7 +47,17 @@ public class MergeStrategyConfig {
 	}
 
 	@Bean
+	public Map<MergeStrategyType, StatisticsCalculationStrategy> statisticsCalculationStrategyMaping() {
+		return singletonMap(MergeStrategyType.BASIC, new BasicStatisticsCalculationStrategy());
+	}
+
+	@Bean
 	public MergeStrategyFactory mergeStrategyFactory() {
 		return new MergeStrategyFactory(mergeStrategyMapping());
+	}
+
+	@Bean
+	public StatisticsCalculationFactory statisticsCalculationFactory() {
+		return new StatisticsCalculationFactory(statisticsCalculationStrategyMaping());
 	}
 }

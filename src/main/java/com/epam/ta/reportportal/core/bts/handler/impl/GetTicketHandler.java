@@ -18,9 +18,9 @@ package com.epam.ta.reportportal.core.bts.handler.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.IGetTicketHandler;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.dao.BugTrackingSystemRepository;
 import com.epam.ta.reportportal.entity.bts.BugTrackingSystem;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
@@ -31,9 +31,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.ws.model.ErrorType.EXTERNAL_SYSTEM_NOT_FOUND;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_CONFIGURED;
 
 /**
@@ -60,7 +60,7 @@ public class GetTicketHandler implements IGetTicketHandler {
 		BugTrackingSystem bugTrackingSystem = btsList.stream()
 				.filter(it -> Objects.equals(it.getId(), systemId))
 				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(EXTERNAL_SYSTEM_NOT_FOUND, systemId));
+				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, systemId));
 		//ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(system.getExternalSystemType());
 		//return externalSystemStrategy.getTicket(ticketId, system).orElse(null);
 		//TODO after rewrite of bts
@@ -89,6 +89,6 @@ public class GetTicketHandler implements IGetTicketHandler {
 
 	private BugTrackingSystem validateExternalSystem(Long systemId) {
 		return externalSystemRepository.findById(systemId)
-				.orElseThrow(() -> new ReportPortalException(EXTERNAL_SYSTEM_NOT_FOUND, systemId));
+				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, systemId));
 	}
 }

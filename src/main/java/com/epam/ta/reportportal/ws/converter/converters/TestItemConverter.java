@@ -51,14 +51,12 @@ public final class TestItemConverter {
 		resource.setStartTime(EntityUtils.TO_DATE.apply(item.getStartTime()));
 		resource.setStatus(item.getItemResults().getStatus() != null ? item.getItemResults().getStatus().toString() : null);
 		resource.setType(item.getType() != null ? item.getType().name() : null);
-
-		//FIXME: provide correct parameters
-		resource.setHasChilds(false);
-
+		resource.setHasChildren(item.isHasChildren());
 		if (item.getParent() != null) {
 			resource.setParent(item.getParent().getItemId());
 		}
 		resource.setLaunchId(item.getLaunch().getId());
+		resource.setPath(item.getPath());
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults().getStatistics()));
 		return resource;
 	};

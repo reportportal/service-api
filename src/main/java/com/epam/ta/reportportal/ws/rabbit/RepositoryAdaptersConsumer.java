@@ -10,10 +10,10 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
-import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
@@ -45,6 +45,8 @@ public class RepositoryAdaptersConsumer {
 	private TestItemRepository testItemRepository;
 
 	private DataStoreService dataStoreService;
+
+	private TestItemResourceAssembler itemResourceAssembler;
 
 	@Autowired
 	public void setIntegrationRepository(IntegrationRepository integrationRepository) {
@@ -93,7 +95,7 @@ public class RepositoryAdaptersConsumer {
 	public TestItemResource findTestItem(@Payload Long itemId) {
 		TestItem testItem = testItemRepository.findById(itemId).orElse(null);
 		if (testItem != null) {
-			return TestItemConverter.TO_RESOURCE.apply(testItem);
+			return itemResourceAssembler.toResource(testItem);
 		}
 		return null;
 	}

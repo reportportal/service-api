@@ -18,10 +18,10 @@ package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.annotation.Regular;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.job.SaveBinaryDataJob;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.job.SaveBinaryDataJob;
 import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;

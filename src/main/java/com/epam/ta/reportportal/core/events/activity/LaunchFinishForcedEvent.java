@@ -17,6 +17,7 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.launch.Launch;
 
 import java.time.LocalDateTime;
@@ -29,31 +30,41 @@ public class LaunchFinishForcedEvent implements ActivityEvent {
 	private Launch launch;
 	private Long forcedBy;
 
+	public LaunchFinishForcedEvent() {
+	}
+
 	public LaunchFinishForcedEvent(Launch launch, Long forcedBy) {
 		this.launch = launch;
 		this.forcedBy = forcedBy;
-	}
-
-	LaunchFinishForcedEvent() {
-
 	}
 
 	public Launch getLaunch() {
 		return launch;
 	}
 
+	public void setLaunch(Launch launch) {
+		this.launch = launch;
+	}
+
 	public Long getForcedBy() {
 		return forcedBy;
+	}
+
+	public void setForcedBy(Long forcedBy) {
+		this.forcedBy = forcedBy;
 	}
 
 	@Override
 	public Activity toActivity() {
 		Activity activity = new Activity();
-		//		activity.setAction();
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setEntity(Activity.Entity.LAUNCH);
+		// No FORCED_FINISH_LAUNCH action
+		activity.setAction(ActivityAction.FINISH_LAUNCH.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH);
+		activity.setProjectId(launch.getProjectId());
 		activity.setUserId(forcedBy);
-		activity.setDetails(new LaunchFinishedEvent.LaunchActivityDetails(launch.getId()));
+		activity.setObjectId(launch.getId());
+		activity.setDetails(new ActivityDetails(launch.getName()));
 		return activity;
 	}
 }

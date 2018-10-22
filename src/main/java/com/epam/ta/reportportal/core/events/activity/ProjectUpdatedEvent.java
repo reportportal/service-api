@@ -15,19 +15,30 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
+import com.epam.ta.reportportal.entity.HistoryField;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+
+import java.time.LocalDateTime;
+import java.util.Map;
+
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.LAUNCH_INACTIVITY;
+import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
 
 /**
  * Being triggered on after project update
  *
  * @author Andrei Varabyeu
  */
-public class ProjectUpdatedEvent extends AroundEvent<Project> {
+public class ProjectUpdatedEvent extends AroundEvent<Project> implements ActivityEvent {
 
-	private final String updatedBy;
+	private final Long updatedBy;
 	private final UpdateProjectRQ updateProjectRQ;
 
 	/**
@@ -36,18 +47,56 @@ public class ProjectUpdatedEvent extends AroundEvent<Project> {
 	 * @param before Project before update
 	 * @param after  Project after update
 	 */
-	public ProjectUpdatedEvent(Project before, Project after, String updatedBy, UpdateProjectRQ updateProjectRQ) {
+	public ProjectUpdatedEvent(Project before, Project after, Long updatedBy, UpdateProjectRQ updateProjectRQ) {
 		super(before, after);
-		Preconditions.checkArgument(!Strings.isNullOrEmpty(updatedBy));
 		this.updatedBy = updatedBy;
 		this.updateProjectRQ = updateProjectRQ;
 	}
 
-	public String getUpdatedBy() {
-		return updatedBy;
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.UPDATE_PROJECT.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.PROJECT);
+		activity.setProjectId(getAfter().getId());
+		activity.setUserId(updatedBy);
+
+		ActivityDetails details = new ActivityDetails(getAfter().getName());
+		Map<String, String> existedConfig = ProjectUtils.getConfigParameters(getAfter().getProjectAttributes());
+		ProjectConfiguration updatedConfig = updateProjectRQ.getConfiguration();
+		if (null != updatedConfig) {
+			processKeepLogs(details, existedConfig, updatedConfig);
+			processKeepScreenshots(details, existedConfig, updatedConfig);
+			processLaunchInactivityTimeout(details, existedConfig, updatedConfig);
+		}
+		if (!details.getHistory().isEmpty()) {
+			activity.setDetails(details);
+		}
+		return activity;
 	}
 
-	public UpdateProjectRQ getUpdateProjectRQ() {
-		return updateProjectRQ;
+	private void processLaunchInactivityTimeout(ActivityDetails details, Map<String, String> existedConfig,
+			ProjectConfiguration updatedConfig) {
+		String oldValue = existedConfig.get(INTERRUPT_JOB_TIME.getAttribute());
+		if ((null != updatedConfig.getInterruptJobTime()) && !Strings.isNullOrEmpty(oldValue) && (!updatedConfig.getInterruptJobTime()
+				.equals(oldValue))) {
+			details.addHistoryField(HistoryField.of(LAUNCH_INACTIVITY, oldValue, updatedConfig.getInterruptJobTime()));
+		}
+	}
+
+	private void processKeepScreenshots(ActivityDetails details, Map<String, String> existedConfig, ProjectConfiguration configuration) {
+		String oldValue = existedConfig.get(KEEP_SCREENSHOTS.getAttribute());
+		if ((null != configuration.getKeepScreenshots()) && !Strings.isNullOrEmpty(oldValue) && (!configuration.getKeepScreenshots()
+				.equals(oldValue))) {
+			details.addHistoryField(HistoryField.of(KEEP_SCREENSHOTS.getAttribute(), oldValue, configuration.getKeepScreenshots()));
+		}
+	}
+
+	private void processKeepLogs(ActivityDetails details, Map<String, String> existedConfig, ProjectConfiguration configuration) {
+		String oldValue = existedConfig.get(KEEP_LOGS.getAttribute());
+		if ((null != configuration.getKeepLogs()) && !Strings.isNullOrEmpty(oldValue) && (!configuration.getKeepLogs().equals(oldValue))) {
+			details.addHistoryField(HistoryField.of(KEEP_LOGS.getAttribute(), oldValue, configuration.getKeepLogs()));
+		}
 	}
 }

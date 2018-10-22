@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.filter.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.FilterDeletedEvent;
 import com.epam.ta.reportportal.core.filter.IDeleteUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -25,10 +26,10 @@ public class DeleteUserFilterHandlerImpl implements IDeleteUserFilterHandler {
 
 	@Override
 	public OperationCompletionRS deleteFilter(Long id, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		UserFilter userFilter = userFilterRepository.findById(id)
+		UserFilter filter = userFilterRepository.findById(id)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, id));
-		userFilterRepository.delete(userFilter);
-		//messageBus.publishActivity();
+		userFilterRepository.delete(filter);
+		messageBus.publishActivity(new FilterDeletedEvent(filter, user.getUserId()));
 		return new OperationCompletionRS("User filter with ID = '" + id + "' successfully deleted.");
 	}
 }

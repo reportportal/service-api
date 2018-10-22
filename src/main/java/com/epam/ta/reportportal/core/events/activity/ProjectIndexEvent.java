@@ -21,21 +21,38 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
+
+import java.time.LocalDateTime;
+
 /**
  * @author Pavel Bortnik
  */
-public class ProjectIndexEvent {
+public class ProjectIndexEvent implements ActivityEvent {
 
+	private Long projectId;
 	private String projectName;
-
-	private String userRef;
-
+	private Long userId;
 	private boolean indexing;
 
-	public ProjectIndexEvent(String projectName, String userRef, boolean indexing) {
+	public ProjectIndexEvent() {
+	}
+
+	public ProjectIndexEvent(Long projectId, String projectName, Long userId, boolean indexing) {
+		this.projectId = projectId;
 		this.projectName = projectName;
-		this.userRef = userRef;
+		this.userId = userId;
 		this.indexing = indexing;
+	}
+
+	public Long getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(Long projectId) {
+		this.projectId = projectId;
 	}
 
 	public String getProjectName() {
@@ -46,12 +63,12 @@ public class ProjectIndexEvent {
 		this.projectName = projectName;
 	}
 
-	public String getUserRef() {
-		return userRef;
+	public Long getUserId() {
+		return userId;
 	}
 
-	public void setUserRef(String userRef) {
-		this.userRef = userRef;
+	public void setUserId(Long userId) {
+		this.userId = userId;
 	}
 
 	public boolean isIndexing() {
@@ -60,5 +77,17 @@ public class ProjectIndexEvent {
 
 	public void setIndexing(boolean indexing) {
 		this.indexing = indexing;
+	}
+
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(indexing ? ActivityAction.GENERATE_INDEX.getValue() : ActivityAction.DELETE_INDEX.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.PROJECT);
+		activity.setProjectId(projectId);
+		activity.setUserId(userId);
+		activity.setDetails(new ActivityDetails(projectName));
+		return activity;
 	}
 }

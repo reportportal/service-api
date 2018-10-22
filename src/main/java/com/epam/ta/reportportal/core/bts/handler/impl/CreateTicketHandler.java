@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.builders.BtsConstants;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,23 +49,22 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Service
 public class CreateTicketHandler implements ICreateTicketHandler {
 
-	//	@Autowired
-	//	private StrategyProvider strategyProvider;
-	//
-	//	@Autowired
-	//	private ProjectRepository projectRepository;
+	private final TestItemRepository testItemRepository;
+
+	private final IntegrationRepository integrationRepository;
+
+	private final ApplicationEventPublisher eventPublisher;
+
+	private final PluginBox pluginBox;
 
 	@Autowired
-	private TestItemRepository testItemRepository;
-
-	@Autowired
-	private IntegrationRepository integrationRepository;
-
-	@Autowired
-	private ApplicationEventPublisher eventPublisher;
-
-	@Autowired
-	private PluginBox pluginBox;
+	public CreateTicketHandler(TestItemRepository testItemRepository, IntegrationRepository integrationRepository,
+			ApplicationEventPublisher eventPublisher, PluginBox pluginBox) {
+		this.testItemRepository = testItemRepository;
+		this.integrationRepository = integrationRepository;
+		this.eventPublisher = eventPublisher;
+		this.pluginBox = pluginBox;
+	}
 
 	@Override
 	public Ticket createIssue(PostTicketRQ postTicketRQ, String projectName, Long systemId, ReportPortalUser user) {
@@ -72,24 +72,26 @@ public class CreateTicketHandler implements ICreateTicketHandler {
 		List<TestItem> testItems = testItemRepository.findAllById(postTicketRQ.getBackLinks().keySet());
 		//		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 
-		Integration bugTrackingSystem = integrationRepository.findById(systemId)
+		Integration integration = integrationRepository.findById(systemId)
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, systemId));
 
-		expect(bugTrackingSystem.getDefectFormFields(), notNull()).verify(BAD_REQUEST_ERROR, "There aren't any submitted BTS fields!");
-		Optional<BtsExtension> btsExtension = pluginBox.getInstance(bugTrackingSystem.getBtsType(), BtsExtension.class);
+		expect(BtsConstants.DEFECT_FORM_FIELDS.getParam(integration.getParams()), notNull()).verify(BAD_REQUEST_ERROR,
+				"There aren't any submitted BTS fields!"
+		);
+		Optional<BtsExtension> btsExtension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class);
 		expect(btsExtension, Optional::isPresent).verify(BAD_REQUEST_ERROR,
 				"BugTracking plugin for {} isn't installed",
-				bugTrackingSystem.getBtsProject()
+				BtsConstants.PROJECT.getParam(integration.getParams())
 		);
 
-		Ticket ticket = btsExtension.get().submitTicket(postTicketRQ, system);
+		Ticket ticket = btsExtension.get().submitTicket(postTicketRQ, integration);
 		testItems.forEach(item -> eventPublisher.publishEvent(new TicketPostedEvent(ticket,
 				item.getItemId(),
 				user.getUsername(),
 				projectName,
 				item.getName()
 		)));
-		return null;
+		return ticket;
 	}
 
 	/**

@@ -71,7 +71,7 @@ public class GetTicketHandler implements IGetTicketHandler {
 				"BugTracking plugin for {} isn't installed",
 				integration.getType().getName()
 		);
-		return btsExtension.get().getTicket(ticketId, integration)
+		return btsExtension.get().getTicket(ticketId, integration).get();
 	}
 
 	@Override

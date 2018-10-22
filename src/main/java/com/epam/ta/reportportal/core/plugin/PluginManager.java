@@ -31,6 +31,11 @@ public class PluginManager extends AbstractIdleService implements PluginBox {
 	}
 
 	@Override
+	public <T> Optional<T> getInstance(String name, Class<T> type) {
+		return Optional.empty();
+	}
+
+	@Override
 	public <T> Optional<T> getInstance(Class<T> type) {
 		return Optional.empty();
 	}

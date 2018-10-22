@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.reportportal.extension.constants.RabbitConstants;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.MessageBusImpl;
 import com.epam.ta.reportportal.core.plugin.RabbitAwarePluginBox;

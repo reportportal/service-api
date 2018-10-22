@@ -4,24 +4,24 @@ info:
 spring:
   application:
     name: api
-#  quartz:
-#    # Use the MongoDB store
-#    org.quartz.jobStore.class: com.novemberain.quartz.mongodb.MongoDBJobStore
-#    # MongoDB URI (optional if 'org.quartz.jobStore.addresses' is set)
-#    org.quartz.jobStore.mongoUri: ${rp.mongo.uri}
-#    # comma separated list of mongodb hosts/replica set seeds (optional if 'org.quartz.jobStore.mongoUri' is set)
-#    #- org.quartz.jobStore.addresses: host1,host2
-#    # database name
-#    org.quartz.jobStore.dbName: reportportal
-#    # Will be used to create collections like mycol_jobs, mycol_triggers, mycol_calendars, mycol_locks
-#    org.quartz.jobStore.collectionPrefix: scheduler
-#    # thread count setting is ignored by the MongoDB store but Quartz requries it
-#    org.quartz.threadPool.threadCount: "1"
-#
-#    org.quartz.jobStore.isClustered: "true"
-#    org.quartz.jobStore.clusterCheckinInterval: "180000"
-#    org.quartz.scheduler.instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
-#    org.quartz.scheduler.instanceName: reportportal
+  #  quartz:
+  #    # Use the MongoDB store
+  #    org.quartz.jobStore.class: com.novemberain.quartz.mongodb.MongoDBJobStore
+  #    # MongoDB URI (optional if 'org.quartz.jobStore.addresses' is set)
+  #    org.quartz.jobStore.mongoUri: ${rp.mongo.uri}
+  #    # comma separated list of mongodb hosts/replica set seeds (optional if 'org.quartz.jobStore.mongoUri' is set)
+  #    #- org.quartz.jobStore.addresses: host1,host2
+  #    # database name
+  #    org.quartz.jobStore.dbName: reportportal
+  #    # Will be used to create collections like mycol_jobs, mycol_triggers, mycol_calendars, mycol_locks
+  #    org.quartz.jobStore.collectionPrefix: scheduler
+  #    # thread count setting is ignored by the MongoDB store but Quartz requries it
+  #    org.quartz.threadPool.threadCount: "1"
+  #
+  #    org.quartz.jobStore.isClustered: "true"
+  #    org.quartz.jobStore.clusterCheckinInterval: "180000"
+  #    org.quartz.scheduler.instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+  #    org.quartz.scheduler.instanceName: reportportal
 
   datasource:
     driver-class-name: org.postgresql.Driver
@@ -39,13 +39,13 @@ spring:
     addresses: ${rp.amqp.addresses}
 logging:
   level:
-#    org.springframework.context.support: warn
-#    com.novemberain.quartz : debug
+    #    org.springframework.context.support: warn
+    #    com.novemberain.quartz : debug
     org.springframework.security: debug
-#    com.epam.ta.reportportal.exception.ReportPortalException: fatal
+    #    com.epam.ta.reportportal.exception.ReportPortalException: fatal
     org.springframework.web.bind: fatal
-#    com.epam.ta.reportportal.commons.exception.rest: fatal
-#    org.jooq.tools.LoggerListener: debug
+    #    com.epam.ta.reportportal.commons.exception.rest: fatal
+    #    org.jooq.tools.LoggerListener: debug
     root: info
 
 
@@ -68,3 +68,5 @@ rp:
     maxFileSize: 64MB
   analytics:
     enableByDefault: true
+  plugins:
+    path: /Users/andrei_varabyeu/work/sources/reportportal/plugin-bts-jira/build/plugins

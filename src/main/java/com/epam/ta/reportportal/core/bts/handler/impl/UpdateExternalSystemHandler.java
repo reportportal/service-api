@@ -16,12 +16,14 @@
 
 package com.epam.ta.reportportal.core.bts.handler.impl;
 
+import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.IUpdateExternalSystemHandler;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.dao.BugTrackingSystemRepository;
-import com.epam.ta.reportportal.entity.bts.BugTrackingSystem;
+import com.epam.ta.reportportal.core.plugin.PluginBox;
+import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.bts.BugTrackingSystemAuthFactory;
+import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemFieldsConverter;
@@ -31,9 +33,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 
 /**
  * Initial realization for {@link IUpdateExternalSystemHandler} interface
@@ -48,7 +54,7 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 	//	private StrategyProvider strategyProvider;
 
 	@Autowired
-	private BugTrackingSystemRepository bugTrackingSystemRepository;
+	private IntegrationRepository integrationRepository;
 
 	@Autowired
 	private BugTrackingSystemAuthFactory bugTrackingSystemAuthFactory;
@@ -56,10 +62,13 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
 
+	@Autowired
+	private PluginBox pluginBox;
+
 	@Override
 	public OperationCompletionRS updateExternalSystem(UpdateExternalSystemRQ request, String projectName, Long id, ReportPortalUser user) {
 		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
-		BugTrackingSystem bugTrackingSystem = bugTrackingSystemRepository.findById(id)
+		Integration bugTrackingSystem = integrationRepository.findById(id)
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, id));
 
 		BugTrackingSystemBuilder builder = new BugTrackingSystemBuilder(bugTrackingSystem);
@@ -72,14 +81,14 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 				.get();
 
 		//TODO probably could be handled by database
-//				/* Check input params for avoid external system duplication */
-//		if (!sysUrl.equalsIgnoreCase(bugTrackingSystem.getUrl()) || !sysProject.equalsIgnoreCase(bugTrackingSystem.getBtsProject())
-//				|| !Objects.equals(rpProject, projectDetails.getProjectId())) {
-//			bugTrackingSystemRepository.findByUrlAndBtsProjectAndProjectId(
-//					request.getUrl(), request.getProject(), projectDetails.getProjectId()).ifPresent(it -> {
-//				throw new ReportPortalException(EXTERNAL_SYSTEM_ALREADY_EXISTS, request.getUrl() + " & " + request.getProject());
-//			});
-//		}
+		//				/* Check input params for avoid external system duplication */
+		//		if (!sysUrl.equalsIgnoreCase(bugTrackingSystem.getUrl()) || !sysProject.equalsIgnoreCase(bugTrackingSystem.getBtsProject())
+		//				|| !Objects.equals(rpProject, projectDetails.getProjectId())) {
+		//			bugTrackingSystemRepository.findByUrlAndBtsProjectAndProjectId(
+		//					request.getUrl(), request.getProject(), projectDetails.getProjectId()).ifPresent(it -> {
+		//				throw new ReportPortalException(EXTERNAL_SYSTEM_ALREADY_EXISTS, request.getUrl() + " & " + request.getProject());
+		//			});
+		//		}
 
 		//		ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(bugTrackingSystem.getBtsType());
 
@@ -95,7 +104,7 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 		//						UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, projectName);
 		//			}
 
-		bugTrackingSystemRepository.save(bugTrackingSystem);
+		integrationRepository.save(bugTrackingSystem);
 
 		//eventPublisher.publishEvent(new IntegrationUpdatedEvent(exist, principalName));
 		return new OperationCompletionRS("ExternalSystem with ID = '" + id + "' is successfully updated.");
@@ -104,19 +113,17 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 	@Override
 	public OperationCompletionRS externalSystemConnect(UpdateExternalSystemRQ updateRQ, String projectName, Long systemId,
 			ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
-		BugTrackingSystem bugTrackingSystem = bugTrackingSystemRepository.findById(systemId)
+		Integration bugTrackingSystem = integrationRepository.findById(systemId)
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, systemId));
 
-		//ExternalSystemStrategy externalSystemStrategy = strategyProvider.getStrategy(updateRQ.getExternalSystemType());
+		Integration details = new BugTrackingSystemBuilder().addUrl(updateRQ.getUrl()).addBugTrackingProject(updateRQ.getProject()).get();
 
-		BugTrackingSystem details = new BugTrackingSystemBuilder().addUrl(updateRQ.getUrl())
-				.addBugTrackingProject(updateRQ.getProject())
-				.get();
+		Optional<BtsExtension> extension = pluginBox.getInstance(details.getType().getName(), BtsExtension.class);
 
-		//		expect(externalSystemStrategy.connectionTest(details), equalTo(true)).verify(UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM,
-		//				system.getProjectRef()
-		//		);
+		expect(extension, Optional::isPresent).verify(UNABLE_INTERACT_WITH_INTEGRATION, bugTrackingSystem.getProject().getId());
+		expect(extension.get().connectionTest(details), equalTo(true)).verify(UNABLE_INTERACT_WITH_INTEGRATION,
+				bugTrackingSystem.getProject().getId()
+		);
 
 		return new OperationCompletionRS("Connection to ExternalSystem with ID = '" + systemId + "' is successfully performed.");
 	}

@@ -57,7 +57,7 @@ public class DataStoreServiceTest {
 	private DataStoreService dataStoreService;
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 
 		dataStore = mock(DataStore.class);
 		thumbnailator = mock(Thumbnailator.class);

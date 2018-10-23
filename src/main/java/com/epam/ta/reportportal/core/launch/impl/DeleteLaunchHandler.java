@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.LaunchDeletedEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -25,7 +27,6 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -49,15 +50,15 @@ import static java.util.Arrays.asList;
 @Service
 public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch.DeleteLaunchHandler {
 
-	private ApplicationEventPublisher eventPublisher;
+	private MessageBus messageBus;
 
 	private LaunchRepository launchRepository;
 
 	//	private ILogIndexer logIndexer;
 
 	@Autowired
-	public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
-		this.eventPublisher = eventPublisher;
+	public void setMessageBus(MessageBus messageBus) {
+		this.messageBus = messageBus;
 	}
 
 	@Autowired
@@ -79,7 +80,7 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 
 		//		logIndexer.cleanIndex(
 		//				projectName, itemRepository.selectIdsNotInIssueByLaunch(launchId, TestItemIssueType.TO_INVESTIGATE.getLocator()));
-		//		eventPublisher.publishEvent(new LaunchDeletedEvent(launch, principal));
+		messageBus.publishActivity(new LaunchDeletedEvent(launch, user.getUserId()));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully deleted.");
 	}
 
@@ -92,7 +93,7 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 		//		));
 		launchRepository.deleteAll(launches);
 
-		//		launches.forEach(launch -> eventPublisher.publishEvent(new LaunchDeletedEvent(launch, userName)));
+		launches.forEach(l -> messageBus.publishActivity(new LaunchDeletedEvent(l, user.getUserId())));
 		return new OperationCompletionRS("All selected launches have been successfully deleted");
 	}
 

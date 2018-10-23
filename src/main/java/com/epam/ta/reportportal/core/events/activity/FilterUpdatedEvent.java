@@ -16,21 +16,54 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
-//import com.epam.ta.reportportal.database.entity.filter.UserFilter;
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
+import com.epam.ta.reportportal.entity.filter.UserFilter;
+
+import java.time.LocalDateTime;
+
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processDescription;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
 
 /**
  * @author Pavel Bortnik
  */
-public class FilterUpdatedEvent {//extends AroundEvent<UserFilter> {
+public class FilterUpdatedEvent extends AroundEvent<UserFilter> implements ActivityEvent {
 
-	//	private final String updatedBy;
-	//
-	//	public FilterUpdatedEvent(UserFilter before, UserFilter after, String updatedBy) {
-	//		super(before, after);
-	//		this.updatedBy = updatedBy;
-	//	}
-	//
-	//	public String getUpdatedBy() {
-	//		return updatedBy;
-	//	}
+	private Long updatedBy;
+
+	public FilterUpdatedEvent() {
+	}
+
+	public FilterUpdatedEvent(UserFilter before, UserFilter after, Long updatedBy) {
+		super(before, after);
+		this.updatedBy = updatedBy;
+	}
+
+	public Long getUpdatedBy() {
+		return updatedBy;
+	}
+
+	public void setUpdatedBy(Long updatedBy) {
+		this.updatedBy = updatedBy;
+	}
+
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.UPDATE_FILTER.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.FILTER);
+		activity.setProjectId(getAfter().getId());
+		activity.setUserId(updatedBy);
+		activity.setObjectId(getAfter().getId());
+
+		ActivityDetails details = new ActivityDetails(getAfter().getName());
+		processName(details, getBefore().getName(), getAfter().getName());
+		processDescription(details, getBefore().getDescription(), getAfter().getDescription());
+
+		activity.setDetails(details);
+		return activity;
+	}
 }

@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.WidgetUpdatedEvent;
 import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
@@ -28,6 +30,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +46,8 @@ public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
 
 	private UserFilterRepository filterRepository;
 
+	private MessageBus messageBus;
+
 	@Autowired
 	public void setWidgetRepository(WidgetRepository widgetRepository) {
 		this.widgetRepository = widgetRepository;
@@ -53,11 +58,17 @@ public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
 		this.filterRepository = filterRepository;
 	}
 
+	@Autowired
+	public void setMessageBus(MessageBus messageBus) {
+		this.messageBus = messageBus;
+	}
+
 	@Override
 	public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 		Widget widget = widgetRepository.findById(widgetId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND, widgetId));
+		Widget before = SerializationUtils.clone(widget);
 		List<UserFilter> userFilter = null;
 		List<Long> filterIds = updateRQ.getFilterIds();
 
@@ -68,6 +79,7 @@ public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
 		}
 		widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilters(userFilter).get();
 		widgetRepository.save(widget);
+		messageBus.publishActivity(new WidgetUpdatedEvent(before, widget, user.getUserId()));
 		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
 	}
 }

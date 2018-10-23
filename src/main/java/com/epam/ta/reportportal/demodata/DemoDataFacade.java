@@ -13,28 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.entity.integration.Integration;
+package com.epam.ta.reportportal.demodata;
+
+import com.epam.ta.reportportal.auth.ReportPortalUser;
+
+import java.util.List;
 
 /**
- * @author Andrei Varabyeu
+ * @author Pavel Bortnik
  */
-public class ExternalSystemDeletedEvent {
-
-	private final Integration integration;
-	private final String deletedBy;
-
-	public ExternalSystemDeletedEvent(Integration integration, String deletedBy) {
-		this.integration = integration;
-		this.deletedBy = deletedBy;
-	}
-
-	public Integration getIntegration() {
-		return integration;
-	}
-
-	public String getDeletedBy() {
-		return deletedBy;
-	}
+public interface DemoDataFacade {
+	/**
+	 * Generates demo launches
+	 *
+	 * @param demoDataRq
+	 * @param user
+	 * @param projectDetails
+	 * @return
+	 */
+	List<Long> generateDemoLaunches(DemoDataRq demoDataRq, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails);
 }

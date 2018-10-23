@@ -22,9 +22,7 @@
 package com.epam.ta.reportportal.core.item.impl.history;
 
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -67,7 +65,5 @@ public class TestItemsHistoryService {
 		//		return launchRepository.findIdsByFilter(filter, new Sort(DESC, "number"), quantity);
 		throw new UnsupportedOperationException("No implementation");
 	}
-
-
 
 }

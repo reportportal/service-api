@@ -19,6 +19,9 @@ package com.epam.ta.reportportal.core.item.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
+import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -45,7 +48,9 @@ import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -63,7 +68,6 @@ import static java.lang.Boolean.FALSE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static java.util.stream.StreamSupport.stream;
 
 /**
  * Default implementation of {@link UpdateTestItemHandler}
@@ -80,6 +84,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	private TicketRepository ticketRepository;
 
 	private IssueTypeHandler issueTypeHandler;
+
+	private MessageBus messageBus;
 
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
@@ -101,6 +107,11 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		this.ticketRepository = ticketRepository;
 	}
 
+	@Autowired
+	public void setMessageBus(MessageBus messageBus) {
+		this.messageBus = messageBus;
+	}
+
 	@Override
 	public List<Issue> defineTestItemsIssues(ReportPortalUser.ProjectDetails projectDetails, DefineIssueRQ defineIssue,
 			ReportPortalUser user) {
@@ -108,6 +119,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		List<IssueDefinition> definitions = defineIssue.getIssues();
 		expect(CollectionUtils.isEmpty(definitions), equalTo(false)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION);
 		List<Issue> updated = new ArrayList<>(defineIssue.getIssues().size());
+		List<ItemIssueTypeDefinedEvent> events = new ArrayList<>();
 
 		definitions.forEach(issueDefinition -> {
 			try {
@@ -136,11 +148,21 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				//TODO EXTERNAL SYSTEM LOGIC, ANALYZER LOGIC
 				testItemRepository.save(testItem);
 				updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
+
+				List<IssueType> issueTypes = testItemRepository.selectIssueLocatorsByProject(projectDetails.getProjectId());
+				events.add(new ItemIssueTypeDefinedEvent(
+						user.getUserId(),
+						issueDefinition,
+						testItem,
+						issueTypes,
+						projectDetails.getProjectId()
+				));
 			} catch (BusinessRuleViolationException e) {
 				errors.add(e.getMessage());
 			}
 		});
 		expect(!errors.isEmpty(), equalTo(false)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
+		events.forEach(e -> messageBus.publishActivity(e));
 		return updated;
 	}
 
@@ -160,7 +182,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			ReportPortalUser user) {
 		List<String> errors = new ArrayList<>();
 
-		Iterable<TestItem> testItems = testItemRepository.findAllById(rq.getTestItemIds());
+		List<TestItem> testItems = testItemRepository.findAllById(rq.getTestItemIds());
+		ArrayList<TestItem> cloned = SerializationUtils.clone(Lists.newArrayList(testItems));
+
 		List<Ticket> existedTickets = collectExistedTickets(rq);
 		Set<Ticket> ticketsFromRq = collectTickets(rq, user.getUserId());
 
@@ -168,17 +192,29 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			try {
 				verifyTestItem(testItem, testItem.getItemId());
 				IssueEntity issue = testItem.getItemResults().getIssue();
-				existedTickets.forEach(it -> it.getIssues().add(issue));
-				ticketsFromRq.forEach(it -> it.getIssues().add(issue));
+				issue.getTickets().addAll(existedTickets);
+				issue.getTickets().addAll(ticketsFromRq);
 			} catch (Exception e) {
 				errors.add(e.getMessage());
 			}
 		});
 		expect(!errors.isEmpty(), equalTo(FALSE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
-		ticketRepository.saveAll(existedTickets);
-		ticketRepository.saveAll(ticketsFromRq);
-		//eventPublisher.publishEvent(new TicketAttachedEvent(before, Lists.newArrayList(testItems), userName, projectName));
-		return stream(testItems.spliterator(), false).map(testItem -> new OperationCompletionRS(
+		testItemRepository.saveAll(testItems);
+
+		cloned.forEach(testItemNew -> messageBus.publishActivity(new LinkTicketEvent(
+				testItemNew.getItemResults().getIssue(),
+				testItems.stream()
+						.map(testItemOld -> testItemOld.getItemResults().getIssue())
+						.filter(is -> is.getIssueId().equals(testItemNew.getItemResults().getIssue().getIssueId()))
+						.findFirst()
+						.get(),
+				user.getUserId(),
+				projectDetails.getProjectId(),
+				testItemNew.getItemId(),
+				testItemNew.getName()
+		)));
+
+		return testItems.stream().map(testItem -> new OperationCompletionRS(
 				"TestItem with ID = '" + testItem.getItemId() + "' successfully updated.")).collect(toList());
 	}
 

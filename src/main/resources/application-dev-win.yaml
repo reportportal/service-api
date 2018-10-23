@@ -10,6 +10,6 @@ rp:
   analyzer:
     url: http://localhost:8080/analyzer
   db:
-    url: jdbc:postgresql://localhost:5432/reportportal?user=postgres&password=root
+    url: jdbc:postgresql://localhost:5432/reportportal?user=postgres&password=pass
   amqp:
     url: amqp://guest:guest@localhost:5672

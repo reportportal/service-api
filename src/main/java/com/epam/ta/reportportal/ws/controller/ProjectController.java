@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.core.filter.IShareUserFilterHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -26,12 +27,15 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
@@ -42,6 +46,9 @@ public class ProjectController {
 
 	@Autowired
 	private ProjectRepository projectRepository;
+
+	@Autowired
+	private IShareUserFilterHandler shareFilterHandler;
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/{projectName}")
@@ -54,4 +61,12 @@ public class ProjectController {
 		return ProjectConverter.TO_PROJECT_RESOURCE.apply(project);
 	}
 
+
+	@Transactional
+	@PostMapping(value = "/{projectName}/shared/{filterId}")
+	@ResponseStatus(HttpStatus.CREATED)
+	@ApiOperation("Share user filter to project")
+	public void shareFilter(@PathVariable String projectName, @PathVariable Long filterId) {
+		shareFilterHandler.shareFilter(projectName, filterId);
+	}
 }

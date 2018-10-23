@@ -63,6 +63,7 @@ public final class ProjectConverter {
 				}, Collectors.toList())));
 		ProjectConfiguration projectConfiguration = new ProjectConfiguration();
 		projectConfiguration.setSubTypes(subTypes);
+		projectConfiguration.setEmailConfig(EmailConfigConverter.TO_RESOURCE.apply(project.getProjectAttributes(), project.getEmailCases()));
 		projectResource.setConfiguration(projectConfiguration);
 		return projectResource;
 	};

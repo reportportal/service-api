@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -47,7 +48,6 @@ import com.google.common.collect.Sets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
@@ -87,20 +87,20 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 	private final RestorePasswordBidRepository restorePasswordBidRepository;
 
-	private final ApplicationEventPublisher eventPublisher;
+	private final MessageBus messageBus;
 
 	@Autowired
 	public CreateUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository,
 			PersonalProjectService personalProjectService, MailServiceFactory emailServiceFactory,
 			UserCreationBidRepository userCreationBidRepository, RestorePasswordBidRepository restorePasswordBidRepository,
-			ApplicationEventPublisher eventPublisher) {
+			MessageBus messageBus) {
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.personalProjectService = personalProjectService;
 		this.emailServiceFactory = emailServiceFactory;
 		this.userCreationBidRepository = userCreationBidRepository;
 		this.restorePasswordBidRepository = restorePasswordBidRepository;
-		this.eventPublisher = eventPublisher;
+		this.messageBus = messageBus;
 	}
 
 	@Override
@@ -174,7 +174,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
 		}
 
-		eventPublisher.publishEvent(new UserCreatedEvent(user, administrator.getLogin()));
+		messageBus.publishActivity(new UserCreatedEvent(user, administrator.getId()));
 
 		response.setLogin(user.getLogin());
 		return response;
@@ -311,7 +311,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			throw new ReportPortalException("Error while User creating.", exp);
 		}
 
-		eventPublisher.publishEvent(new UserCreatedEvent(newUser, newUser.getLogin()));
+		messageBus.publishActivity(new UserCreatedEvent(newUser, newUser.getId()));
 		CreateUserRS response = new CreateUserRS();
 		response.setLogin(newUser.getLogin());
 		return response;

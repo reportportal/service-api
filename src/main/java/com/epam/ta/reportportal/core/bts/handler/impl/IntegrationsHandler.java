@@ -1,4 +1,4 @@
-package com.epam.ta.reportportal.core.bts.handler;
+package com.epam.ta.reportportal.core.bts.handler.impl;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.auth.ReportPortalUser;

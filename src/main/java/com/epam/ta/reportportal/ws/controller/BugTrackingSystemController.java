@@ -21,7 +21,7 @@ import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.bts.handler.ICreateTicketHandler;
 import com.epam.ta.reportportal.core.bts.handler.IGetTicketHandler;
 import com.epam.ta.reportportal.core.bts.handler.IUpdateExternalSystemHandler;
-import com.epam.ta.reportportal.core.bts.handler.IntegrationsHandler;
+import com.epam.ta.reportportal.core.bts.handler.impl.IntegrationsHandler;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.*;

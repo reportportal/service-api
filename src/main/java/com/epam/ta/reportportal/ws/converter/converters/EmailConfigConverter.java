@@ -19,17 +19,18 @@ public class EmailConfigConverter {
 		//static only
 	}
 
-	public static BiFunction<Set<ProjectAttribute>, Set<EmailSenderCase>, ProjectEmailConfigDTO> TO_RESOURCE = (pa, es) -> {
+	public final static BiFunction<Set<ProjectAttribute>, Set<EmailSenderCase>, ProjectEmailConfigDTO> TO_RESOURCE = (pa, es) -> {
 		ProjectEmailConfigDTO dto = new ProjectEmailConfigDTO();
 
-		pa.stream().filter(attr -> attr.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.EMAIL_FROM.getAttribute()))
-				.findFirst().ifPresent(it -> dto.setFrom(it.getValue()));
+		pa.stream()
+				.filter(attr -> attr.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.EMAIL_FROM.getAttribute()))
+				.findFirst()
+				.ifPresent(it -> dto.setFrom(it.getValue()));
 
-
-		pa.stream().filter(attr -> attr.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.EMAIL_ENABLED.getAttribute()))
+		pa.stream()
+				.filter(attr -> attr.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.EMAIL_ENABLED.getAttribute()))
 				.findFirst()
 				.ifPresent(it -> dto.setEmailEnabled(BooleanUtils.toBoolean(it.getValue())));
-
 
 		dto.setEmailCases(es.stream().map(item -> new EmailSenderCaseDTO(
 				item.getRecipients(),

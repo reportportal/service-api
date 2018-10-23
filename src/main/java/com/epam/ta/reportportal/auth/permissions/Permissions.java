@@ -46,4 +46,8 @@ public final class Permissions {
 			"hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')" + "||" + ADMIN_ONLY;
 
 	public static final String ASSIGNED_TO_PROJECT = "hasPermission(#projectName.toLowerCase(), 'isAssignedToProject')";
+
+	public static final String CAN_READ_OBJECT = "hasPermission(returnObject, 'aclReadPermission')";
+
+	public static final String CAN_READ_OBJECT_FILTER = "hasPermission(filterObject, 'aclReadPermission')";
 }

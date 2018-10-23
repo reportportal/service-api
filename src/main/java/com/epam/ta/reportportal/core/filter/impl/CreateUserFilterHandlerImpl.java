@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.filter.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.auth.acl.ReportPortalAclService;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.FilterCreatedEvent;
 import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
@@ -34,6 +35,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class CreateUserFilterHandlerImpl implements ICreateUserFilterHandler {
 
+
+	@Autowired
+	private ReportPortalAclService aclService;
+
 	private final UserFilterRepository userFilterRepository;
 
 	private final MessageBus messageBus;
@@ -49,6 +54,8 @@ public class CreateUserFilterHandlerImpl implements ICreateUserFilterHandler {
 			ReportPortalUser user) {
 		UserFilter filter = new UserFilterBuilder().addCreateRq(createFilterRQ).addProject(projectDetails.getProjectId()).get();
 		userFilterRepository.save(filter);
+        aclService.createAcl(filter);
+        aclService.addReadPermissions(filter, user.getUsername());
 		messageBus.publishActivity(new FilterCreatedEvent(filter, user.getUserId()));
 		return new EntryCreatedRS(filter.getId());
 	}

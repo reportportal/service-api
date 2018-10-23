@@ -18,13 +18,16 @@ package com.epam.ta.reportportal.core.events.activity.util;
 /**
  * @author Ihar Kahadouski
  */
+
 import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.HistoryField;
 import com.google.common.base.Strings;
 
-import javax.annotation.Nullable;
-
 public class ActivityDetailsUtil {
+
+	private ActivityDetailsUtil() {
+		//static only
+	}
 
 	public static final String NAME = "name";
 	public static final String DESCRIPTION = "description";
@@ -45,7 +48,7 @@ public class ActivityDetailsUtil {
 		}
 	}
 
-	public static void processDescription(ActivityDetails details, @Nullable String oldDescription, @Nullable String newDescription) {
+	public static void processDescription(ActivityDetails details, String oldDescription, String newDescription) {
 		oldDescription = Strings.nullToEmpty(oldDescription);
 		newDescription = Strings.nullToEmpty(newDescription);
 		if (!newDescription.equals(oldDescription)) {

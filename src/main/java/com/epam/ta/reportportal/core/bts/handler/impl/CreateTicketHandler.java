@@ -22,14 +22,11 @@ import com.epam.ta.reportportal.core.bts.handler.ICreateTicketHandler;
 import com.epam.ta.reportportal.core.events.activity.TicketPostedEvent;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.BtsConstants;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,8 +49,6 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Service
 public class CreateTicketHandler implements ICreateTicketHandler {
 
-	private final ProjectRepository projectRepository;
-
 	private final TestItemRepository testItemRepository;
 
 	private final IntegrationRepository integrationRepository;
@@ -63,9 +58,8 @@ public class CreateTicketHandler implements ICreateTicketHandler {
 	private final PluginBox pluginBox;
 
 	@Autowired
-	public CreateTicketHandler(ProjectRepository projectRepository, TestItemRepository testItemRepository,
-			IntegrationRepository integrationRepository, ApplicationEventPublisher eventPublisher, PluginBox pluginBox) {
-		this.projectRepository = projectRepository;
+	public CreateTicketHandler(TestItemRepository testItemRepository, IntegrationRepository integrationRepository,
+			ApplicationEventPublisher eventPublisher, PluginBox pluginBox) {
 		this.testItemRepository = testItemRepository;
 		this.integrationRepository = integrationRepository;
 		this.eventPublisher = eventPublisher;
@@ -75,10 +69,6 @@ public class CreateTicketHandler implements ICreateTicketHandler {
 	@Override
 	public Ticket createIssue(PostTicketRQ postTicketRQ, String projectName, Long systemId, ReportPortalUser user) {
 		validatePostTicketRQ(postTicketRQ);
-
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
-
 		List<TestItem> testItems = testItemRepository.findAllById(postTicketRQ.getBackLinks().keySet());
 		//		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 
@@ -95,11 +85,11 @@ public class CreateTicketHandler implements ICreateTicketHandler {
 		);
 
 		Ticket ticket = btsExtension.get().submitTicket(postTicketRQ, integration);
-		testItems.forEach(item -> eventPublisher.publishEvent(new TicketPostedEvent(ticket,
+		testItems.forEach(item -> eventPublisher.publishEvent(new TicketPostedEvent(
+				ticket,
 				item,
 				user.getUserId(),
-				project.getId(),
-				item.getName()
+				user.getProjectDetails().get(projectName).getProjectId()
 		)));
 		return ticket;
 	}

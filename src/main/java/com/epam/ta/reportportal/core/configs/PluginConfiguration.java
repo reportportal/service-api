@@ -14,12 +14,13 @@ public class PluginConfiguration {
 	@Autowired
 	private AutowireCapableBeanFactory context;
 
+	@Autowired
 	@Value("${rp.plugins.path}")
 	private String pluginsPath;
 
 	@Bean
-	public PluginBox p4jPluginBox(){
-		P4jPluginManager manager = new P4jPluginManager(context, pluginsPath);
+	public PluginBox p4jPluginBox() {
+		P4jPluginManager manager = new P4jPluginManager(pluginsPath, context);
 		manager.startAsync();
 		return manager;
 	}

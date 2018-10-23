@@ -41,7 +41,7 @@ public class TicketPostedEvent implements ActivityEvent {
 	public TicketPostedEvent() {
 	}
 
-	public TicketPostedEvent(Ticket ticket, TestItem testItem, Long postedBy, Long projectId, String itemName) {
+	public TicketPostedEvent(Ticket ticket, TestItem testItem, Long postedBy, Long projectId) {
 		this.ticket = ticket;
 		this.postedBy = postedBy;
 		this.testItem = testItem;

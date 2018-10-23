@@ -1,21 +1,3 @@
-/*
- *
- *  Copyright (C) 2018 EPAM Systems
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- */
-
 package com.epam.ta.reportportal.core.bts.handler.impl;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
@@ -52,22 +34,17 @@ import static com.google.common.base.Predicates.equalTo;
 @Service
 public class IntegrationsHandler {
 
-	private final IntegrationRepository integrationRepository;
-
-	private final IntegrationTypeRepository integrationTypeRepository;
-
-	private final ApplicationEventPublisher eventPublisher;
-
-	private final PluginBox pluginBox;
+	@Autowired
+	private IntegrationRepository integrationRepository;
 
 	@Autowired
-	public IntegrationsHandler(IntegrationRepository integrationRepository, IntegrationTypeRepository integrationTypeRepository,
-			ApplicationEventPublisher eventPublisher, PluginBox pluginBox) {
-		this.integrationRepository = integrationRepository;
-		this.integrationTypeRepository = integrationTypeRepository;
-		this.eventPublisher = eventPublisher;
-		this.pluginBox = pluginBox;
-	}
+	private IntegrationTypeRepository integrationTypeRepository;
+
+	@Autowired
+	private ApplicationEventPublisher eventPublisher;
+
+	@Autowired
+	private PluginBox pluginBox;
 
 	public IntegrationResource getIntegrationByID(Long projectId, Long id) {
 		Integration integration = integrationRepository.findByIdAndProjectId(id, projectId)

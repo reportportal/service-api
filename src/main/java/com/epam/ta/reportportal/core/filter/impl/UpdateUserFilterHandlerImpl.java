@@ -3,6 +3,7 @@ package com.epam.ta.reportportal.core.filter.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.FilterUpdatedEvent;
+import com.epam.ta.reportportal.core.filter.IGetUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.IUpdateUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -23,20 +24,22 @@ import java.util.List;
 public class UpdateUserFilterHandlerImpl implements IUpdateUserFilterHandler {
 
 	private final UserFilterRepository userFilterRepository;
+	private final IGetUserFilterHandler getFilterHandler;
+
 
 	private final MessageBus messageBus;
 
 	@Autowired
-	public UpdateUserFilterHandlerImpl(UserFilterRepository userFilterRepository, MessageBus messageBus) {
+	public UpdateUserFilterHandlerImpl(UserFilterRepository userFilterRepository, MessageBus messageBus, IGetUserFilterHandler getFilterHandler) {
 		this.userFilterRepository = userFilterRepository;
 		this.messageBus = messageBus;
+        this.getFilterHandler = getFilterHandler;
 	}
 
 	@Override
 	public OperationCompletionRS updateUserFilter(Long userFilterId, UpdateUserFilterRQ updateRQ,
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		UserFilter userFilter = userFilterRepository.findById(userFilterId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, userFilterId));
+        UserFilter userFilter = getFilterHandler.getFilter(userFilterId, projectDetails, user);
 		UserFilter before = SerializationUtils.clone(userFilter);
 		UserFilter updated = new UserFilterBuilder(userFilter).addUpdateFilterRQ(updateRQ).get();
 		messageBus.publishActivity(new FilterUpdatedEvent(before, updated, user.getUserId()));

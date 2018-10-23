@@ -14,10 +14,8 @@ import java.util.stream.Collectors;
 
 public class P4jPluginManager extends AbstractIdleService implements PluginBox {
 
-	private AutowireCapableBeanFactory context;
-
-	private String pluginsPath;
-
+	private final AutowireCapableBeanFactory context;
+	private final String pluginsPath;
 	private final org.pf4j.PluginManager pluginManager;
 
 	public P4jPluginManager(String pluginsPath, AutowireCapableBeanFactory context) {

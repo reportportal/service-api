@@ -14,16 +14,15 @@ import java.util.stream.Collectors;
 
 public class P4jPluginManager extends AbstractIdleService implements PluginBox {
 
-	@Autowired
 	private AutowireCapableBeanFactory context;
 
-	@Autowired
-	@Value("${rp.plugins.path}")
 	private String pluginsPath;
 
 	private final org.pf4j.PluginManager pluginManager;
 
-	public P4jPluginManager() {
+	public P4jPluginManager(String pluginsPath, AutowireCapableBeanFactory context) {
+		this.context = context;
+		this.pluginsPath = pluginsPath;
 		pluginManager = new DefaultPluginManager(FileSystems.getDefault().getPath(this.pluginsPath)) {
 			@Override
 			protected CompoundPluginDescriptorFinder createPluginDescriptorFinder() {

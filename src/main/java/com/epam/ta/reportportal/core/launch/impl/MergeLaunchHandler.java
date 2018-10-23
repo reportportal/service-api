@@ -17,38 +17,28 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.item.impl.TestItemUniqueIdGenerator;
-import com.epam.ta.reportportal.core.item.impl.merge.strategy.MergeStrategyFactory;
+import com.epam.ta.reportportal.core.item.impl.merge.strategy.LaunchMergeFactory;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.MergeStrategyType;
-import com.epam.ta.reportportal.core.item.impl.merge.strategy.StatisticsCalculationFactory;
 import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
-import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.function.Supplier;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.Predicates.*;
@@ -56,8 +46,6 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.ta.reportportal.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.*;
 
 /**
  * @author Aliaksei_Makayed
@@ -67,33 +55,29 @@ import static java.util.stream.Collectors.*;
 @Service
 public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.MergeLaunchHandler {
 
-	@Autowired
-	private TestItemRepository testItemRepository;
+	private final LaunchRepository launchRepository;
+
+	private final UserRepository userRepository;
+
+	private final ProjectRepository projectRepository;
+
+	private final LaunchMergeFactory launchMergeFactory;
 
 	@Autowired
-	private LaunchRepository launchRepository;
-
-	@Autowired
-	private UserRepository userRepository;
-
-	@Autowired
-	private ProjectRepository projectRepository;
-
-	@Autowired
-	private MergeStrategyFactory mergeStrategyFactory;
-
-	@Autowired
-	private TestItemUniqueIdGenerator identifierGenerator;
-
-	@Autowired
-	private StatisticsCalculationFactory statisticsCalculationFactory;
+	public MergeLaunchHandler(LaunchRepository launchRepository, UserRepository userRepository, ProjectRepository projectRepository,
+			LaunchMergeFactory launchMergeFactory) {
+		this.launchRepository = launchRepository;
+		this.userRepository = userRepository;
+		this.projectRepository = projectRepository;
+		this.launchMergeFactory = launchMergeFactory;
+	}
 
 	//	@Autowired
 	//	private ILogIndexer logIndexer;
 
 	@Override
 	public LaunchResource mergeLaunches(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, MergeLaunchesRQ rq) {
-		//TODO: analyzer, statistics
+		//TODO: analyzer
 		//		User user = userRepository.findByLogin(user.getLogin());
 		Optional<Project> projectOptional = projectRepository.findById(projectDetails.getProjectId());
 		expect(projectOptional, isPresent()).verify(PROJECT_NOT_FOUND, projectDetails.getProjectId());
@@ -116,25 +100,10 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 
 		validateMergingLaunches(launchesList, user, projectDetails);
 
-		Launch newLaunch = createResultedLaunch(projectDetails.getProjectId(), user.getUserId(), rq, launchesList);
-		boolean isNameChanged = !newLaunch.getName().equals(launchesList.get(0).getName());
-		updateChildrenOfLaunches(newLaunch, rq.getLaunches(), rq.isExtendSuitesDescription(), isNameChanged);
-
 		MergeStrategyType type = MergeStrategyType.fromValue(rq.getMergeStrategyType());
 		expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
 
-		// deep merge strategies
-		Long newLaunchId = newLaunch.getId();
-
-		if (type.equals(MergeStrategyType.DEEP)) {
-			launchRepository.mergeLaunchTestItems(newLaunchId);
-		}
-
-		newLaunch = launchRepository.findById(newLaunchId).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
-
-		if (!type.equals(MergeStrategyType.DEEP)) {
-			newLaunch.setStatistics(statisticsCalculationFactory.getStrategy(type).recalculateLaunchStatistics(newLaunch, launchesList));
-		}
+		Launch newLaunch = launchMergeFactory.getLaunchMergeStrategy(type).mergeLaunches(projectDetails, user, rq, launchesList);
 
 		newLaunch.setStatus(StatisticsHelper.getStatusFromStatistics(newLaunch.getStatistics()));
 		newLaunch.setEndTime(TO_LOCAL_DATE_TIME.apply(rq.getEndTime()));
@@ -176,85 +145,11 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 			);
 
 			if (isUserValidate) {
-				expect(launch.getUser().getLogin(), equalTo(user.getUsername())).verify(
-						ACCESS_DENIED,
+				expect(launch.getUser().getLogin(), equalTo(user.getUsername())).verify(ACCESS_DENIED,
 						"You are not an owner of launches or have less than PROJECT_MANAGER project role."
 				);
 			}
 		});
 	}
 
-	/**
-	 * Update test-items of specified launches with new LaunchID
-	 *
-	 * @param newLaunch         {@link Launch}
-	 * @param launches          {@link Set} of the {@link Launch}
-	 * @param extendDescription additional description for suite indicator
-	 * @param isNameChanged     launch name change indicator
-	 */
-	private void updateChildrenOfLaunches(Launch newLaunch, Set<Long> launches, boolean extendDescription, boolean isNameChanged) {
-		List<TestItem> testItems = launches.stream().flatMap(id -> {
-			Launch launch = launchRepository.findById(id).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, id));
-			return testItemRepository.findTestItemsByLaunchId(launch.getId()).stream().peek(testItem -> {
-				testItem.setLaunch(newLaunch);
-				if (isNameChanged && identifierGenerator.validate(testItem.getUniqueId())) {
-					testItem.setUniqueId(identifierGenerator.generate(testItem, newLaunch));
-				}
-				if (testItem.getType().sameLevel(TestItemTypeEnum.SUITE)) {
-					// Add launch reference description for top level items
-					Supplier<String> newDescription = Suppliers.formattedSupplier(((null != testItem.getDescription()) ? testItem.getDescription() : "") + (extendDescription ?
-									"\r\n@launch '{} #{}'" :
-									""),
-							launch.getName(),
-							launch.getNumber()
-					);
-					testItem.setDescription(newDescription.get());
-				}
-			});
-		}).collect(toList());
-		testItemRepository.saveAll(testItems);
-	}
-
-	/**
-	 * Create launch that will be the result of merge
-	 *
-	 * @param projectId       {@link Project#id}
-	 * @param userId          {@link ReportPortalUser#userId}
-	 * @param mergeLaunchesRQ {@link MergeLaunchesRQ}
-	 * @param launches        {@link List} of the {@link Launch}
-	 * @return launch
-	 */
-	private Launch createResultedLaunch(Long projectId, Long userId, MergeLaunchesRQ mergeLaunchesRQ, List<Launch> launches) {
-		Date startTime = ofNullable(mergeLaunchesRQ.getStartTime()).orElse(EntityUtils.TO_DATE.apply(launches.stream()
-				.min(Comparator.comparing(Launch::getStartTime))
-				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Invalid launches"))
-				.getStartTime()));
-		Date endTime = ofNullable(mergeLaunchesRQ.getEndTime()).orElse(EntityUtils.TO_DATE.apply(launches.stream()
-				.max(Comparator.comparing(Launch::getEndTime))
-				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Invalid launches"))
-				.getStartTime()));
-		expect(endTime, time -> !time.before(startTime)).verify(ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME);
-
-		StartLaunchRQ startRQ = new StartLaunchRQ();
-		startRQ.setMode(ofNullable(mergeLaunchesRQ.getMode()).orElse(Mode.DEFAULT));
-		startRQ.setDescription(ofNullable(mergeLaunchesRQ.getDescription()).orElse(launches.stream()
-				.map(Launch::getDescription)
-				.collect(joining("\n"))));
-		startRQ.setName(ofNullable(mergeLaunchesRQ.getName()).orElse(
-				"Merged: " + launches.stream().map(Launch::getName).distinct().collect(joining(", "))));
-		startRQ.setTags(ofNullable(mergeLaunchesRQ.getTags()).orElse(launches.stream()
-				.flatMap(launch -> ofNullable(launch.getTags()).orElse(Collections.emptySet()).stream())
-				.map(LaunchTag::getValue)
-				.collect(toSet())));
-		startRQ.setStartTime(startTime);
-		Launch launch = new LaunchBuilder().addStartRQ(startRQ)
-				.addProject(projectId)
-				.addStatus(IN_PROGRESS.name())
-				.addUser(userId)
-				.addEndTime(endTime)
-				.get();
-		launchRepository.save(launch);
-		launchRepository.refresh(launch);
-		return launch;
-	}
 }

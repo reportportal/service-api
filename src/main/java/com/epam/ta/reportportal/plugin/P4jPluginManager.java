@@ -5,8 +5,6 @@ import com.epam.ta.reportportal.core.plugin.Plugin;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.google.common.util.concurrent.AbstractIdleService;
 import org.pf4j.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 
 import java.nio.file.FileSystems;
@@ -16,16 +14,12 @@ import java.util.stream.Collectors;
 
 public class P4jPluginManager extends AbstractIdleService implements PluginBox {
 
-	@Autowired
-	private AutowireCapableBeanFactory context;
-
-	@Autowired
-	@Value("${rp.plugins.path}")
 	private String pluginsPath;
 
 	private final org.pf4j.PluginManager pluginManager;
 
-	public P4jPluginManager() {
+	public P4jPluginManager(AutowireCapableBeanFactory context, String pluginsPath) {
+		this.pluginsPath = pluginsPath;
 		pluginManager = new DefaultPluginManager(FileSystems.getDefault().getPath(this.pluginsPath)) {
 			@Override
 			protected CompoundPluginDescriptorFinder createPluginDescriptorFinder() {

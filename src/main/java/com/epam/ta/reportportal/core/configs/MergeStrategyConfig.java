@@ -16,10 +16,13 @@
 
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.core.item.impl.TestItemUniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.*;
-import com.epam.ta.reportportal.core.item.merge.MergeStrategy;
+import com.epam.ta.reportportal.core.item.merge.LaunchMergeStrategy;
 import com.epam.ta.reportportal.core.item.merge.StatisticsCalculationStrategy;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,14 +39,16 @@ public class MergeStrategyConfig {
 
 	private final TestItemRepository testItemRepository;
 
-	@Autowired
-	public MergeStrategyConfig(TestItemRepository testItemRepository) {
-		this.testItemRepository = testItemRepository;
-	}
+	private final LaunchRepository launchRepository;
 
-	@Bean
-	public Map<MergeStrategyType, MergeStrategy> mergeStrategyMapping() {
-		return singletonMap(MergeStrategyType.DEEP, new DeepMergeStrategy(testItemRepository));
+	private final TestItemUniqueIdGenerator testItemUniqueIdGenerator;
+
+	@Autowired
+	public MergeStrategyConfig(TestItemRepository testItemRepository, LaunchRepository launchRepository,
+			TestItemUniqueIdGenerator testItemUniqueIdGenerator) {
+		this.testItemRepository = testItemRepository;
+		this.launchRepository = launchRepository;
+		this.testItemUniqueIdGenerator = testItemUniqueIdGenerator;
 	}
 
 	@Bean
@@ -52,12 +57,25 @@ public class MergeStrategyConfig {
 	}
 
 	@Bean
-	public MergeStrategyFactory mergeStrategyFactory() {
-		return new MergeStrategyFactory(mergeStrategyMapping());
+	public StatisticsCalculationFactory statisticsCalculationFactory() {
+		return new StatisticsCalculationFactory(statisticsCalculationStrategyMaping());
 	}
 
 	@Bean
-	public StatisticsCalculationFactory statisticsCalculationFactory() {
-		return new StatisticsCalculationFactory(statisticsCalculationStrategyMaping());
+	public Map<MergeStrategyType, LaunchMergeStrategy> launchMergeStrategyMapping() {
+		return ImmutableMap.<MergeStrategyType, LaunchMergeStrategy>builder().put(MergeStrategyType.BASIC,
+				new BasicLaunchMergeStrategy(testItemRepository,
+						testItemUniqueIdGenerator,
+						launchRepository,
+						statisticsCalculationFactory()
+				)
+		)
+				.put(MergeStrategyType.DEEP, new DeepLaunchMergeStrategy(testItemRepository, testItemUniqueIdGenerator, launchRepository))
+				.build();
+	}
+
+	@Bean
+	public LaunchMergeFactory launchMergeFactory() {
+		return new LaunchMergeFactory(launchMergeStrategyMapping());
 	}
 }

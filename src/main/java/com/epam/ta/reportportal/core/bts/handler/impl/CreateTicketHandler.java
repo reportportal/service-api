@@ -85,11 +85,11 @@ public class CreateTicketHandler implements ICreateTicketHandler {
 		);
 
 		Ticket ticket = btsExtension.get().submitTicket(postTicketRQ, integration);
-		testItems.forEach(item -> eventPublisher.publishEvent(new TicketPostedEvent(ticket,
-				item.getItemId(),
-				user.getUsername(),
-				projectName,
-				item.getName()
+		testItems.forEach(item -> eventPublisher.publishEvent(new TicketPostedEvent(
+				ticket,
+				item,
+				user.getUserId(),
+				user.getProjectDetails().get(projectName).getProjectId()
 		)));
 		return ticket;
 	}

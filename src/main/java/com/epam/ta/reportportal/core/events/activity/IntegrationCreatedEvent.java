@@ -15,26 +15,55 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.integration.Integration;
+
+import java.time.LocalDateTime;
 
 /**
  * @author Andrei Varabyeu
  */
-public class IntegrationCreatedEvent {
+public class IntegrationCreatedEvent implements ActivityEvent {
 
-	private final Integration externalSystem;
-	private final String createdBy;
+	private Integration integration;
+	private Long createdBy;
 
-	public IntegrationCreatedEvent(Integration externalSystem, String createdBy) {
-		this.externalSystem = externalSystem;
+	public IntegrationCreatedEvent() {
+	}
+
+	public IntegrationCreatedEvent(Integration integration, Long createdBy) {
+		this.integration = integration;
 		this.createdBy = createdBy;
 	}
 
-	public Integration getExternalSystem() {
-		return externalSystem;
+	public Integration getIntegration() {
+		return integration;
 	}
 
-	public String getCreatedBy() {
+	public void setIntegration(Integration integration) {
+		this.integration = integration;
+	}
+
+	public Long getCreatedBy() {
 		return createdBy;
+	}
+
+	public void setCreatedBy(Long createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.CREATE_BTS.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.INTEGRATION);
+		activity.setProjectId(integration.getProject().getId());
+		activity.setUserId(createdBy);
+		activity.setObjectId(integration.getId());
+		activity.setDetails(new ActivityDetails(integration.getType().getName() + ":" + integration.getProject().getName()));
+		return activity;
 	}
 }

@@ -1,10 +1,12 @@
-package com.epam.ta.reportportal.core.bts.handler;
+package com.epam.ta.reportportal.core.bts.handler.impl;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
+import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
@@ -34,6 +36,9 @@ public class IntegrationsHandler {
 
 	@Autowired
 	private IntegrationRepository integrationRepository;
+
+	@Autowired
+	private IntegrationTypeRepository integrationTypeRepository;
 
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
@@ -75,8 +80,11 @@ public class IntegrationsHandler {
 		//		Integration externalSystemStrategy = strategyProvider.getStrategy(createRQ.getExternalSystemType());
 		//		expect(externalSystemStrategy, notNull()).verify(INTEGRATION_NOT_FOUND, createRQ.getExternalSystemType());
 
+		Optional<IntegrationType> type = integrationTypeRepository.findByName(createRQ.getExternalSystemType());
+		expect(type, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, projectName);
+
 		Integration bugTrackingSystem = new BugTrackingSystemBuilder().addUrl(createRQ.getUrl())
-				.addBugTrackingSystemType(createRQ.getExternalSystemType())
+				.addIntegrationType(type.get())
 				.addBugTrackingProject(createRQ.getProject())
 				.addProject(projectDetails.getProjectId())
 				.get();

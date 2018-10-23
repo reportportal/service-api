@@ -90,8 +90,7 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 				false,
 				String.valueOf(launchRepository.findLatestByNameAndFilter(launchName, filter)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName))
-						.getId()),
-				CRITERIA_LAUNCH_ID
+						.getId()), CRITERIA_LAUNCH_ID
 		));
 	}
 

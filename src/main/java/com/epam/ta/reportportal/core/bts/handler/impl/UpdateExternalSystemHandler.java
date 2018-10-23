@@ -21,12 +21,15 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.IUpdateExternalSystemHandler;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
+import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.bts.BugTrackingSystemAuthFactory;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemFieldsConverter;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.UpdateExternalSystemRQ;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +60,9 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 	private IntegrationRepository integrationRepository;
 
 	@Autowired
+	private IntegrationTypeRepository integrationTypeRepository;
+
+	@Autowired
 	private BugTrackingSystemAuthFactory bugTrackingSystemAuthFactory;
 
 	@Autowired
@@ -73,8 +79,11 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 
 		BugTrackingSystemBuilder builder = new BugTrackingSystemBuilder(bugTrackingSystem);
 
+		Optional<IntegrationType> type = integrationTypeRepository.findByName(request.getExternalSystemType());
+		expect(type, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, projectName);
+
 		bugTrackingSystem = builder.addUrl(request.getUrl())
-				.addBugTrackingSystemType(request.getExternalSystemType())
+				.addIntegrationType(type.get())
 				.addBugTrackingProject(request.getProject())
 				.addProject(projectDetails.getProjectId())
 				.addFields(request.getFields().stream().map(ExternalSystemFieldsConverter.FIELD_TO_DB).collect(Collectors.toSet()))

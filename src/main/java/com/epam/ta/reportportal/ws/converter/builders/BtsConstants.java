@@ -11,7 +11,6 @@ import java.util.Optional;
 public enum BtsConstants {
 	PROJECT("project"),
 	URL("url"),
-	TYPE("btsType"),
 	DEFECT_FORM_FIELDS("defectFormFields");
 
 	private final String name;

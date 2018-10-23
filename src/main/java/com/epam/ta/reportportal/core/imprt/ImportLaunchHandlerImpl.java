@@ -16,18 +16,17 @@
 package com.epam.ta.reportportal.core.imprt;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ImportFinishedEvent;
 import com.epam.ta.reportportal.core.events.activity.ImportStartedEvent;
 import com.epam.ta.reportportal.core.imprt.impl.ImportStrategy;
 import com.epam.ta.reportportal.core.imprt.impl.ImportStrategyFactory;
-import com.epam.ta.reportportal.core.imprt.impl.ImportStrategyFactoryImpl;
 import com.epam.ta.reportportal.core.imprt.impl.ImportType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,12 +42,12 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 @Service
 public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 	private ImportStrategyFactory importStrategyFactory;
-	private ApplicationEventPublisher eventPublisher;
+	private MessageBus messageBus;
 
 	@Autowired
-	public ImportLaunchHandlerImpl(ImportStrategyFactoryImpl importStrategyFactory, ApplicationEventPublisher eventPublisher) {
-		this.eventPublisher = eventPublisher;
+	public ImportLaunchHandlerImpl(ImportStrategyFactory importStrategyFactory, MessageBus messageBus) {
 		this.importStrategyFactory = importStrategyFactory;
+		this.messageBus = messageBus;
 	}
 
 	@Override
@@ -61,10 +60,10 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unknown import type - " + format));
 
 		File tempFile = transferToTempFile(file);
-		eventPublisher.publishEvent(new ImportStartedEvent(projectDetails.getProjectId(), user.getUserId(), file.getOriginalFilename()));
+		messageBus.publishActivity(new ImportStartedEvent(projectDetails.getProjectId(), user.getUserId(), file.getOriginalFilename()));
 		ImportStrategy strategy = importStrategyFactory.getImportStrategy(type, file.getOriginalFilename());
 		Long launchId = strategy.importLaunch(projectDetails, user, tempFile);
-		eventPublisher.publishEvent(new ImportFinishedEvent(projectDetails.getProjectId(), user.getUserId(), file.getOriginalFilename()));
+		messageBus.publishActivity(new ImportFinishedEvent(projectDetails.getProjectId(), user.getUserId(), file.getOriginalFilename()));
 		return new OperationCompletionRS("Launch with id = " + launchId + " is successfully imported.");
 	}
 

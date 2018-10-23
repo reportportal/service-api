@@ -1,15 +1,12 @@
 package com.epam.ta.reportportal.store;
 
-import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
-import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
 import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.JsonMap;
+import com.epam.ta.reportportal.entity.ActivityDetails;
 import org.assertj.core.api.Assertions;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
 import java.time.LocalDateTime;
 
@@ -25,8 +22,9 @@ public class ActivityRepositoryTest extends BaseDBTest {
 		Activity activity = new Activity();
 		activity.setAction("some action");
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new LaunchFinishedEvent.LaunchActivityDetails(100L));
-		activity.setEntity(Activity.Entity.ITEM);
+		activity.setObjectId(100L);
+		activity.setDetails(new ActivityDetails("some name"));
+		activity.setActivityEntityType(Activity.ActivityEntityType.ITEM);
 		activity.setUserId(1L);
 
 		activity = activityRepository.save(activity);

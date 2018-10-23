@@ -21,45 +21,70 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
+import com.epam.ta.reportportal.entity.HistoryField;
+import com.epam.ta.reportportal.entity.project.ProjectAttribute;
+import com.epam.ta.reportportal.entity.project.ProjectUtils;
+
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.Set;
+
+import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
+import static java.util.Optional.ofNullable;
+
 /**
  * @author Pavel Bortnik
  */
-public class ProjectAnalyzerConfigEvent {//extends BeforeEvent<ProjectAnalyzerConfig> {
+public class ProjectAnalyzerConfigEvent extends AroundEvent<Set<ProjectAttribute>> implements ActivityEvent {
 
-//	private String projectRef;
-	//
-	//	private String updatedBy;
-	//
-	//	private AnalyzerConfig analyzerConfig;
-	//
-	//	public ProjectAnalyzerConfigEvent(ProjectAnalyzerConfig before, String projectRef, String updatedBy, AnalyzerConfig analyzerConfig) {
-	//		super(before);
-	//		this.projectRef = projectRef;
-	//		this.updatedBy = updatedBy;
-	//		this.analyzerConfig = analyzerConfig;
-	//	}
-	//
-	//	public String getUpdatedBy() {
-	//		return updatedBy;
-	//	}
-	//
-	//	public void setUpdatedBy(String updatedBy) {
-	//		this.updatedBy = updatedBy;
-	//	}
-	//
-	//	public AnalyzerConfig getAnalyzerConfig() {
-	//		return analyzerConfig;
-	//	}
-	//
-	//	public void setAnalyzerConfig(AnalyzerConfig analyzerConfig) {
-	//		this.analyzerConfig = analyzerConfig;
-	//	}
-	//
-	//	public String getProjectRef() {
-	//		return projectRef;
-	//	}
-	//
-	//	public void setProjectRef(String projectRef) {
-	//		this.projectRef = projectRef;
-	//	}
+	private final Long updatedBy;
+	private final Long projectId;
+	private final String projectName;
+
+	public ProjectAnalyzerConfigEvent(Set<ProjectAttribute> before, Set<ProjectAttribute> after, Long updatedBy, Long projectId,
+			String projectName) {
+		super(before, after);
+		this.updatedBy = updatedBy;
+		this.projectId = projectId;
+		this.projectName = projectName;
+	}
+
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.UPDATE_ANALYZER.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.PROJECT);
+		activity.setProjectId(projectId);
+		activity.setUserId(updatedBy);
+
+		ActivityDetails details = new ActivityDetails(projectName);
+
+		Map<String, String> oldConfig = ProjectUtils.getConfigParameters(getBefore());
+		Map<String, String> newConfig = ProjectUtils.getConfigParameters(getAfter());
+
+		processParameter(details, oldConfig, newConfig, AUTO_ANALYZER_MODE.getAttribute());
+		processParameter(details, oldConfig, newConfig, MIN_DOC_FREQ.getAttribute());
+		processParameter(details, oldConfig, newConfig, MIN_TERM_FREQ.getAttribute());
+		processParameter(details, oldConfig, newConfig, MIN_SHOULD_MATCH.getAttribute());
+		processParameter(details, oldConfig, newConfig, NUMBER_OF_LOG_LINES.getAttribute());
+		processParameter(details, oldConfig, newConfig, AUTO_ANALYZER_ENABLED.getAttribute());
+
+		activity.setDetails(details);
+		return activity;
+	}
+
+	private void processParameter(ActivityDetails details, Map<String, String> oldConfig, Map<String, String> newConfig,
+			String parameterName) {
+		String oldValue = oldConfig.get(parameterName);
+		String newValue = newConfig.get(parameterName);
+		ofNullable(newValue).ifPresent(param -> {
+			if (!param.equals(oldValue)) {
+				details.addHistoryField(HistoryField.of(parameterName, oldValue, param));
+			}
+		});
+	}
 }

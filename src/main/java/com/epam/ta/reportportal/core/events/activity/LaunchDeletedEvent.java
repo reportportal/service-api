@@ -15,25 +15,45 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.launch.Launch;
+
+import java.time.LocalDateTime;
 
 /**
  * @author Andrei Varabyeu
  */
-public class LaunchDeletedEvent {
-	private final Launch launch;
-	private final String deletedBy;
+public class LaunchDeletedEvent extends BeforeEvent<Launch> implements ActivityEvent {
+	private Long deletedBy;
 
-	public LaunchDeletedEvent(Launch launch, String deletedBy) {
-		this.launch = launch;
+	public LaunchDeletedEvent() {
+	}
+
+	public LaunchDeletedEvent(Launch before, Long deletedBy) {
+		super(before);
 		this.deletedBy = deletedBy;
 	}
 
-	public Launch getLaunch() {
-		return launch;
+	public Long getDeletedBy() {
+		return deletedBy;
 	}
 
-	public String getDeletedBy() {
-		return deletedBy;
+	public void setDeletedBy(Long deletedBy) {
+		this.deletedBy = deletedBy;
+	}
+
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.DELETE_LAUNCH.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH);
+		activity.setUserId(getBefore().getUser().getId());
+		activity.setProjectId(getBefore().getProjectId());
+		activity.setObjectId(getBefore().getId());
+		activity.setDetails(new ActivityDetails(getBefore().getName()));
+		return activity;
 	}
 }

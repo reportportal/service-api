@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.PROJECT_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static java.util.Optional.ofNullable;
 
@@ -48,7 +48,7 @@ public class ProductStatusFilterStrategy extends AbstractStatisticsFilterStrateg
 
 	protected Filter buildDefaultFilter(Widget widget, Long projectId) {
 		return new Filter(Launch.class,
-				Sets.newHashSet(new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), PROJECT_ID))
+				Sets.newHashSet(new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID))
 		);
 	}
 }

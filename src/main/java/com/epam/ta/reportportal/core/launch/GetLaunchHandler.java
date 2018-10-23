@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-//import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
 import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
 import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
@@ -26,6 +25,8 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
+
+//import com.epam.ta.reportportal.entity.widget.content.ComparisonStatisticsContent;
 
 /**
  * Get Launch operation handler
@@ -71,8 +72,8 @@ public interface GetLaunchHandler {
 	 * Get debug launches
 	 *
 	 * @param projectDetails Project Details
-	 * @param filter      Filter data
-	 * @param pageable    Page details
+	 * @param filter         Filter data
+	 * @param pageable       Page details
 	 * @return Response Data
 	 */
 	Iterable<LaunchResource> getDebugLaunches(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable);

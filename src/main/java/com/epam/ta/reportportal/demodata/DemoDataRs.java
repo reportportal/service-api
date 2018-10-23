@@ -13,31 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.entity.item.TestItem;
+package com.epam.ta.reportportal.demodata;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
 /**
- * @author Andrei Varabyeu
+ * @author Ihar Kahadouski
  */
-public class TicketAttachedEvent extends AroundEvent<List<TestItem>> {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+class DemoDataRs {
 
-	private final String postedBy;
-	private final String project;
+	@JsonProperty
+	private List<Long> dashboards;
+	@JsonProperty
+	private List<Long> launches;
 
-	public TicketAttachedEvent(List<TestItem> before, List<TestItem> after, String postedBy, String project) {
-		super(before, after);
-		this.postedBy = postedBy;
-		this.project = project;
+	public List<Long> getDashboards() {
+		return dashboards;
 	}
 
-	public String getPostedBy() {
-		return postedBy;
+	public void setDashboards(List<Long> dashboards) {
+		this.dashboards = dashboards;
 	}
 
-	public String getProject() {
-		return project;
+	public List<Long> getLaunches() {
+		return launches;
+	}
+
+	public void setLaunches(List<Long> launches) {
+		this.launches = launches;
 	}
 }

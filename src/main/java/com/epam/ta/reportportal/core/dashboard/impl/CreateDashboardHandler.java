@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.core.dashboard.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.dashboard.ICreateDashboardHandler;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.DashboardCreatedEvent;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.ws.converter.builders.DashboardBuilder;
@@ -33,16 +35,19 @@ import org.springframework.stereotype.Service;
 public class CreateDashboardHandler implements ICreateDashboardHandler {
 
 	private DashboardRepository dashboardRepository;
+	private MessageBus messageBus;
 
 	@Autowired
-	public void setDashboardRepository(DashboardRepository dashboardRepository) {
+	public CreateDashboardHandler(DashboardRepository dashboardRepository, MessageBus messageBus) {
 		this.dashboardRepository = dashboardRepository;
+		this.messageBus = messageBus;
 	}
 
 	@Override
 	public EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails, CreateDashboardRQ rq, ReportPortalUser user) {
 		Dashboard dashboard = new DashboardBuilder().addDashboardRq(rq).addProject(projectDetails.getProjectId()).get();
 		dashboardRepository.save(dashboard);
+		messageBus.publishActivity(new DashboardCreatedEvent(dashboard, user.getUserId()));
 		return new EntryCreatedRS(dashboard.getId());
 	}
 }

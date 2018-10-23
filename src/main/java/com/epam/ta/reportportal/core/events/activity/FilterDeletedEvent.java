@@ -16,21 +16,46 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+
+import java.time.LocalDateTime;
 
 /**
  * @author pavel_bortnik
  */
-public class FilterDeletedEvent extends BeforeEvent<UserFilter> {
+public class FilterDeletedEvent extends BeforeEvent<UserFilter> implements ActivityEvent {
 
-	private final String removedBy;
+	private Long deletedBy;
 
-	public FilterDeletedEvent(UserFilter before, String removedBy) {
-		super(before);
-		this.removedBy = removedBy;
+	public FilterDeletedEvent() {
 	}
 
-	public String getRemovedBy() {
-		return removedBy;
+	public FilterDeletedEvent(UserFilter before, Long deletedBy) {
+		super(before);
+		this.deletedBy = deletedBy;
+	}
+
+	public Long getDeletedBy() {
+		return deletedBy;
+	}
+
+	public void setDeletedBy(Long deletedBy) {
+		this.deletedBy = deletedBy;
+	}
+
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setActivityEntityType(Activity.ActivityEntityType.FILTER);
+		activity.setAction(ActivityAction.DELETE_FILTER.getValue());
+		activity.setProjectId(getBefore().getProject().getId());
+		activity.setUserId(deletedBy);
+		activity.setObjectId(getBefore().getId());
+		activity.setDetails(new ActivityDetails(getBefore().getDescription()));
+		return activity;
 	}
 }

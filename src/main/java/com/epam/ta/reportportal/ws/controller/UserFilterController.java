@@ -21,8 +21,10 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.IDeleteUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.IGetUserFilterHandler;
+import com.epam.ta.reportportal.core.filter.IShareUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.IUpdateUserFilterHandler;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -34,6 +36,7 @@ import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -61,14 +64,21 @@ public class UserFilterController {
 	private final IGetUserFilterHandler getFilterHandler;
 	private final IDeleteUserFilterHandler deleteFilterHandler;
 	private final IUpdateUserFilterHandler updateUserFilterHandler;
+	private IShareUserFilterHandler shareFilterHandler;
 
 	@Autowired
-	public UserFilterController(ICreateUserFilterHandler createFilterHandler, IGetUserFilterHandler getFilterHandler,
-			IDeleteUserFilterHandler deleteFilterHandler, IUpdateUserFilterHandler updateUserFilterHandler) {
+	public UserFilterController(
+		ICreateUserFilterHandler createFilterHandler,
+		IGetUserFilterHandler getFilterHandler,
+		IDeleteUserFilterHandler deleteFilterHandler,
+		IUpdateUserFilterHandler updateUserFilterHandler,
+		IShareUserFilterHandler shareFilterHandler) {
+
 		this.createFilterHandler = createFilterHandler;
 		this.getFilterHandler = getFilterHandler;
 		this.deleteFilterHandler = deleteFilterHandler;
 		this.updateUserFilterHandler = updateUserFilterHandler;
+		this.shareFilterHandler = shareFilterHandler;
 	}
 
 	@Transactional
@@ -86,7 +96,9 @@ public class UserFilterController {
 	@ApiOperation("Get specified user filter by id")
 	public UserFilterResource getFilter(@PathVariable String projectName, @PathVariable Long filterId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getFilterHandler.getFilter(filterId, extractProjectDetails(user, projectName), user);
+		UserFilter filter = getFilterHandler
+			.getFilter(filterId, extractProjectDetails(user, projectName), user);
+		return UserFilterConverter.TO_FILTER_RESOURCE.apply(filter);
 	}
 
 	@Transactional(readOnly = true)
@@ -95,7 +107,7 @@ public class UserFilterController {
 	@ApiOperation("Get all filters")
 	public Iterable<UserFilterResource> getAllFilters(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
 			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getFilterHandler.getFilters(filter, pageable, extractProjectDetails(user, projectName), user);
+		return shareFilterHandler.getAllFilters(projectName, pageable, filter, user);
 	}
 
 	// filter/own
@@ -103,9 +115,9 @@ public class UserFilterController {
 	@GetMapping(value = "/own")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get all filters for specified user who own them")
-	public List<UserFilterResource> getOwnFilters(@PathVariable String projectName, @FilterFor(UserFilter.class) Filter filter,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getFilterHandler.getOwnFilters(filter, extractProjectDetails(user, projectName), user);
+	public Iterable<UserFilterResource> getOwnFilters(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
+		@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
+		return getFilterHandler.getOwnFilters(projectName, pageable, filter, user);
 	}
 
 	// filter/shared
@@ -113,9 +125,9 @@ public class UserFilterController {
 	@GetMapping(value = "/shared")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get all available shared filters (except own shared filters)")
-	public List<UserFilterResource> getSharedFilters(@PathVariable String projectName, @FilterFor(UserFilter.class) Filter filter,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getFilterHandler.getSharedFilters(filter, extractProjectDetails(user, projectName), user);
+	public Iterable<UserFilterResource> getSharedFilters(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
+		@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
+		return shareFilterHandler.getSharedFilters(projectName, pageable, filter, user);
 	}
 
 	@Transactional
@@ -151,7 +163,8 @@ public class UserFilterController {
 	@ApiOperation("Get list of specified user filters")
 	public List<UserFilterResource> getUserFilters(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getFilterHandler.getFilters(ids, extractProjectDetails(user, projectName), user);
+		List<UserFilter> filters = getFilterHandler.getFilters(ids, extractProjectDetails(user, projectName), user);
+		return filters.stream().map(UserFilterConverter.TO_FILTER_RESOURCE).collect(Collectors.toList());
 	}
 
 	@Transactional

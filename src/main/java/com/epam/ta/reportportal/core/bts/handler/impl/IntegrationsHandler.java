@@ -84,7 +84,7 @@ public class IntegrationsHandler {
 		expect(type, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, projectName);
 
 		Integration bugTrackingSystem = new BugTrackingSystemBuilder().addUrl(createRQ.getUrl())
-				.addIntegrationType(type.get())
+				.addIntegrationType(type.get()).addAuthKey(createRQ.getAccessKey())
 				.addBugTrackingProject(createRQ.getProject())
 				.addProject(projectDetails.getProjectId())
 				.get();

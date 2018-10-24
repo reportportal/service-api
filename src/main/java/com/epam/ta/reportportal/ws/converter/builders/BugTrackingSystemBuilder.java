@@ -56,21 +56,6 @@ public class BugTrackingSystemBuilder implements Supplier<Integration> {
 		return this;
 	}
 
-	public BugTrackingSystemBuilder addUsername(String username) {
-		BtsConstants.USER_NAME.setParam(parameters, username);
-		return this;
-	}
-
-	public BugTrackingSystemBuilder addPassword(String password) {
-		BtsConstants.PASSWORD.setParam(parameters, password);
-		return this;
-	}
-
-	public BugTrackingSystemBuilder addAuthType(String authType) {
-		BtsConstants.AUTH_TYPE.setParam(parameters, authType);
-		return this;
-	}
-
 	public BugTrackingSystemBuilder addIntegrationType(IntegrationType type) {
 		this.bugTrackingSystem.setType(type);
 		return this;

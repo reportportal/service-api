@@ -99,9 +99,7 @@ public class IntegrationsHandler {
 				.addIntegrationType(type.get()).addAuthKey(createRQ.getAccessKey())
 				.addBugTrackingProject(createRQ.getProject())
 				.addProject(project)
-				.addUsername(createRQ.getUsername())
-				.addPassword(createRQ.getPassword())
-				.addAuthType(createRQ.getExternalSystemAuth())
+				.addAuthKey(createRQ.getAccessKey())
 				.get();
 
 		//		checkUnique(bugTrackingSystem, projectDetails.getProjectId());

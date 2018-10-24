@@ -94,9 +94,6 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 				.addIntegrationType(type.get())
 				.addBugTrackingProject(updateRQ.getProject())
 				.addProject(project)
-				.addUsername(updateRQ.getUsername())
-				.addPassword(updateRQ.getPassword())
-				.addAuthType(updateRQ.getExternalSystemAuth())
 				.addFields(updateRQ.getFields().stream().map(ExternalSystemFieldsConverter.FIELD_TO_DB).collect(Collectors.toSet()))
 				.get();
 

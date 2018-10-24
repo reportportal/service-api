@@ -5,8 +5,10 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
@@ -44,24 +46,31 @@ public class IntegrationsHandler {
 	private ApplicationEventPublisher eventPublisher;
 
 	@Autowired
+	private ProjectRepository projectRepository;
+
+	@Autowired
 	private PluginBox pluginBox;
 
-	public IntegrationResource getIntegrationByID(Long projectId, Long id) {
-		Integration integration = integrationRepository.findByIdAndProjectId(id, projectId)
+	public IntegrationResource getIntegrationByID(String projectName, Long id) {
+
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
+		Integration integration = integrationRepository.findByIdAndProjectId(id, project.getId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
 		return IntegrationConverter.TO_INTEGRATION_RESOURCE.apply(integration);
 	}
 
-	public synchronized OperationCompletionRS deleteIntegration(Long id, Long projectId, ReportPortalUser user) {
-		//		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
+	public synchronized OperationCompletionRS deleteIntegration(String projectName, Long systemId, ReportPortalUser user) {
+		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 
-		Integration integration = integrationRepository.findByIdAndProjectId(id, projectId)
-				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, id));
+		Integration integration = integrationRepository.findByIdAndProjectId(systemId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, systemId));
 
 		integrationRepository.delete(integration);
 
 		//		eventPublisher.publishEvent(new ExternalSystemDeletedEvent(exist, username));
-		return new OperationCompletionRS("ExternalSystem with ID = '" + id + "' is successfully deleted.");
+		return new OperationCompletionRS("ExternalSystem with ID = '" + systemId + "' is successfully deleted.");
 	}
 
 	public synchronized OperationCompletionRS deleteProjectIntegrations(String projectName, ReportPortalUser user) {
@@ -83,10 +92,16 @@ public class IntegrationsHandler {
 		Optional<IntegrationType> type = integrationTypeRepository.findByName(createRQ.getExternalSystemType());
 		expect(type, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, projectName);
 
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, "with id = " + projectDetails.getProjectId()));
+
 		Integration bugTrackingSystem = new BugTrackingSystemBuilder().addUrl(createRQ.getUrl())
 				.addIntegrationType(type.get())
 				.addBugTrackingProject(createRQ.getProject())
-				.addProject(projectDetails.getProjectId())
+				.addProject(project)
+				.addUsername(createRQ.getUsername())
+				.addPassword(createRQ.getPassword())
+				.addAuthType(createRQ.getExternalSystemAuth())
 				.get();
 
 		//		checkUnique(bugTrackingSystem, projectDetails.getProjectId());

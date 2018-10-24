@@ -22,9 +22,11 @@ import com.epam.ta.reportportal.core.bts.handler.IUpdateExternalSystemHandler;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.bts.BugTrackingSystemAuthFactory;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
@@ -63,6 +65,9 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 	private IntegrationTypeRepository integrationTypeRepository;
 
 	@Autowired
+	private ProjectRepository projectRepository;
+
+	@Autowired
 	private BugTrackingSystemAuthFactory bugTrackingSystemAuthFactory;
 
 	@Autowired
@@ -72,21 +77,27 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 	private PluginBox pluginBox;
 
 	@Override
-	public OperationCompletionRS updateExternalSystem(UpdateExternalSystemRQ request, String projectName, Long id, ReportPortalUser user) {
+	public OperationCompletionRS updateExternalSystem(UpdateExternalSystemRQ updateRQ, String projectName, Long id, ReportPortalUser user) {
 		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 		Integration bugTrackingSystem = integrationRepository.findById(id)
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, id));
 
 		BugTrackingSystemBuilder builder = new BugTrackingSystemBuilder(bugTrackingSystem);
 
-		Optional<IntegrationType> type = integrationTypeRepository.findByName(request.getExternalSystemType());
+		Optional<IntegrationType> type = integrationTypeRepository.findByName(updateRQ.getExternalSystemType());
 		expect(type, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, projectName);
 
-		bugTrackingSystem = builder.addUrl(request.getUrl())
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, "with id = " + projectDetails.getProjectId()));
+
+		bugTrackingSystem = builder.addUrl(updateRQ.getUrl())
 				.addIntegrationType(type.get())
-				.addBugTrackingProject(request.getProject())
-				.addProject(projectDetails.getProjectId())
-				.addFields(request.getFields().stream().map(ExternalSystemFieldsConverter.FIELD_TO_DB).collect(Collectors.toSet()))
+				.addBugTrackingProject(updateRQ.getProject())
+				.addProject(project)
+				.addUsername(updateRQ.getUsername())
+				.addPassword(updateRQ.getPassword())
+				.addAuthType(updateRQ.getExternalSystemAuth())
+				.addFields(updateRQ.getFields().stream().map(ExternalSystemFieldsConverter.FIELD_TO_DB).collect(Collectors.toSet()))
 				.get();
 
 		//TODO probably could be handled by database

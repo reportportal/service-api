@@ -60,13 +60,13 @@ springfox:
 ##########################################
 rp:
   amqp:
-    addresses: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+    addresses: amqp://rabbitmq:rabbitmq@localhost:5672
   db:
-    url: jdbc:postgresql://postgres:5432/reportportal?user=rpuser&password=rppass
+    url: jdbc:postgresql://localhost:5432/reportportal?user=rpuser&password=rppass
   upload:
     maxUploadSize: 128MB
     maxFileSize: 64MB
   analytics:
     enableByDefault: true
   plugins:
-    path: /Users/andrei_varabyeu/work/sources/reportportal/plugin-bts-jira/build/plugins
+    path: C:\Users\Ihar_Kahadouski\IdeaProjects\service-api\plugins

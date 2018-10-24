@@ -78,9 +78,9 @@ public class BugTrackingSystemController {
 	@GetMapping(value = "/{systemId}")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get registered external system instance")
-	public IntegrationResource getExternalSystem(@PathVariable Long projectId, @PathVariable Long systemId,
+	public IntegrationResource getExternalSystem(@PathVariable String projectName, @PathVariable Long systemId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return integrationsHandler.getIntegrationByID(projectId, systemId);
+		return integrationsHandler.getIntegrationByID(projectName, systemId);
 	}
 
 	@Transactional
@@ -88,9 +88,9 @@ public class BugTrackingSystemController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Delete registered external system instance")
 	//@PreAuthorize(PROJECT_MANAGER)
-	public OperationCompletionRS deleteExternalSystem(@PathVariable Long projectId, @PathVariable Long systemId,
+	public OperationCompletionRS deleteExternalSystem(@PathVariable String projectName, @PathVariable Long systemId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return integrationsHandler.deleteIntegration(projectId, systemId, user);
+		return integrationsHandler.deleteIntegration(projectName, systemId, user);
 	}
 
 	@Transactional

@@ -28,7 +28,7 @@ import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_F
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.NAME;
 
 /**
- * @author Ivan Budayeu
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
 public class FlakyCasesTableContentLoader implements LoadContentStrategy {

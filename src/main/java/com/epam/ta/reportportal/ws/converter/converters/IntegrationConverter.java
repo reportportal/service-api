@@ -29,7 +29,7 @@ public final class IntegrationConverter {
 		type.setId(integration.getType().getId());
 		type.setName(integration.getType().getName());
 		type.setCreationDate(EntityUtils.TO_DATE.apply(integration.getType().getCreationDate()));
-		type.setGroupType(integration.getType().getGroupType());
+		type.setGroupType(integration.getType().getIntegrationGroup().name());
 		type.setDetails(integration.getParams().getParams());
 		type.setAuthFlow(AuthFlowEnum.valueOf(integration.getType().getAuthFlow().name()));
 

@@ -24,7 +24,7 @@ import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_S
 import static java.util.Collections.singletonMap;
 
 /**
- * @author Ivan Budaev
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
 public class ProductStatusLaunchGroupedContentLoader implements ProductStatusContentLoader {

@@ -21,12 +21,15 @@ import com.epam.ta.reportportal.entity.bts.DefectFormField;
 import com.epam.ta.reportportal.ws.model.externalsystem.AllowedValue;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
@@ -40,21 +43,23 @@ public final class ExternalSystemFieldsConverter {
 	public static final Function<PostFormField, DefectFormField> FIELD_TO_DB = field -> {
 		Preconditions.checkNotNull(field);
 		DefectFormField defectFormField = new DefectFormField();
-		defectFormField.setFieldId(field.getFieldName());
+		defectFormField.setFieldId(field.getId());
 		defectFormField.setType(field.getFieldType());
 		defectFormField.setRequired(field.getIsRequired());
 		if (!CollectionUtils.isEmpty(field.getValue())) {
 			defectFormField.setValues(new HashSet<>(field.getValue()));
 		}
-		defectFormField.setDefectFieldAllowedValues(
-				field.getDefinedValues().stream().map(ExternalSystemFieldsConverter.VALUE_TO_DB).collect(Collectors.toSet()));
+
+		defectFormField.setDefectFieldAllowedValues(ofNullable(field.getDefinedValues()).map(dvs -> dvs.stream()
+				.map(ExternalSystemFieldsConverter.VALUE_TO_DB)
+				.collect(Collectors.toSet())).orElseGet(Sets::newHashSet));
 		return defectFormField;
 	};
 
 	public static final Function<DefectFormField, PostFormField> FIELD_TO_MODEL = defectFormField -> {
 		Preconditions.checkNotNull(defectFormField);
 		PostFormField postFormField = new PostFormField();
-		postFormField.setFieldName(defectFormField.getFieldId());
+		postFormField.setId(defectFormField.getFieldId());
 		postFormField.setFieldType(defectFormField.getType());
 		postFormField.setIsRequired(defectFormField.isRequired());
 		postFormField.setDefinedValues(defectFormField.getDefectFieldAllowedValues()

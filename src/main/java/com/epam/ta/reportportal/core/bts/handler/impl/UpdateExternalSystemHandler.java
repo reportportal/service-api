@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemFieldsConv
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.UpdateExternalSystemRQ;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -57,6 +58,9 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 
 	//	@Autowired
 	//	private StrategyProvider strategyProvider;
+
+	@Autowired
+	private BasicTextEncryptor simpleEncryptor;
 
 	@Autowired
 	private IntegrationRepository integrationRepository;
@@ -95,7 +99,7 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 				.addBugTrackingProject(updateRQ.getProject())
 				.addProject(project)
 				.addUsername(updateRQ.getUsername())
-				.addPassword(updateRQ.getPassword())
+				.addPassword(simpleEncryptor.encrypt(updateRQ.getPassword()))
 				.addAuthType(updateRQ.getExternalSystemAuth())
 				.addFields(updateRQ.getFields().stream().map(ExternalSystemFieldsConverter.FIELD_TO_DB).collect(Collectors.toSet()))
 				.get();

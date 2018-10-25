@@ -19,6 +19,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import org.apache.commons.collections.CollectionUtils;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,9 @@ import static com.google.common.base.Predicates.equalTo;
  */
 @Service
 public class IntegrationsHandler {
+
+	@Autowired
+	private BasicTextEncryptor simpleEncryptor;
 
 	@Autowired
 	private IntegrationRepository integrationRepository;
@@ -100,7 +104,7 @@ public class IntegrationsHandler {
 				.addBugTrackingProject(createRQ.getProject())
 				.addProject(project)
 				.addUsername(createRQ.getUsername())
-				.addPassword(createRQ.getPassword())
+				.addPassword(simpleEncryptor.encrypt(createRQ.getPassword()))
 				.addAuthType(createRQ.getExternalSystemAuth())
 				.get();
 

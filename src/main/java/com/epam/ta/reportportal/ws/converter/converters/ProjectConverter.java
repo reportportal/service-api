@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
@@ -35,6 +36,17 @@ public final class ProjectConverter {
 		//static only
 	}
 
+	public static final Function<List<IssueType>, Map<String, List<IssueSubTypeResource>>> TO_PROJECT_SUB_TYPES = issueTypes -> issueTypes.stream()
+			.collect(Collectors.groupingBy(it -> it.getIssueGroup().getTestItemIssueGroup().getValue(), Collectors.mapping(it -> {
+				IssueSubTypeResource issueSubTypeResource = new IssueSubTypeResource();
+				issueSubTypeResource.setLocator(it.getLocator());
+				issueSubTypeResource.setColor(it.getHexColor());
+				issueSubTypeResource.setLongName(it.getLongName());
+				issueSubTypeResource.setShortName(it.getShortName());
+				issueSubTypeResource.setTypeRef(it.getIssueGroup().getTestItemIssueGroup().getValue());
+				return issueSubTypeResource;
+			}, Collectors.toList())));
+
 	public static final Function<Project, ProjectResource> TO_PROJECT_RESOURCE = project -> {
 		if (project == null) {
 			return null;
@@ -50,20 +62,13 @@ public final class ProjectConverter {
 			return projectUser;
 		}).collect(Collectors.toList()));
 
-		Map<String, List<IssueSubTypeResource>> subTypes = project.getIssueTypes()
-				.stream()
-				.collect(Collectors.groupingBy(it -> it.getIssueGroup().getTestItemIssueGroup().getValue(), Collectors.mapping(it -> {
-					IssueSubTypeResource issueSubTypeResource = new IssueSubTypeResource();
-					issueSubTypeResource.setLocator(it.getLocator());
-					issueSubTypeResource.setColor(it.getHexColor());
-					issueSubTypeResource.setLongName(it.getLongName());
-					issueSubTypeResource.setShortName(it.getShortName());
-					issueSubTypeResource.setTypeRef(it.getIssueGroup().getTestItemIssueGroup().getValue());
-					return issueSubTypeResource;
-				}, Collectors.toList())));
+		Map<String, List<IssueSubTypeResource>> subTypes = TO_PROJECT_SUB_TYPES.apply(project.getIssueTypes());
+
 		ProjectConfiguration projectConfiguration = new ProjectConfiguration();
 		projectConfiguration.setSubTypes(subTypes);
-		projectConfiguration.setEmailConfig(EmailConfigConverter.TO_RESOURCE.apply(project.getProjectAttributes(), project.getEmailCases()));
+		projectConfiguration.setEmailConfig(EmailConfigConverter.TO_RESOURCE.apply(project.getProjectAttributes(),
+				project.getEmailCases()
+		));
 		projectResource.setConfiguration(projectConfiguration);
 		return projectResource;
 	};

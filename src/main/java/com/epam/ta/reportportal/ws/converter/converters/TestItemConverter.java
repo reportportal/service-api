@@ -42,7 +42,7 @@ public final class TestItemConverter {
 		resource.setUniqueId(item.getUniqueId());
 		resource.setTags(item.getTags().stream().map(TestItemTag::getValue).collect(Collectors.toSet()));
 		resource.setEndTime(EntityUtils.TO_DATE.apply(item.getItemResults().getEndTime()));
-		resource.setItemId(String.valueOf(item.getItemId()));
+		resource.setItemId(item.getItemId());
 		if (null != item.getParameters()) {
 			resource.setParameters(item.getParameters().stream().map(ParametersConverter.TO_RESOURCE).collect(Collectors.toList()));
 		}
@@ -51,14 +51,16 @@ public final class TestItemConverter {
 		resource.setStartTime(EntityUtils.TO_DATE.apply(item.getStartTime()));
 		resource.setStatus(item.getItemResults().getStatus() != null ? item.getItemResults().getStatus().toString() : null);
 		resource.setType(item.getType() != null ? item.getType().name() : null);
+		resource.setHasChildren(item.isHasChildren());
 
 		//FIXME: provide correct parameters
-		resource.setHasChilds(false);
+		resource.setHasChildren(false);
 
 		if (item.getParent() != null) {
 			resource.setParent(item.getParent().getItemId());
 		}
 		resource.setLaunchId(item.getLaunch().getId());
+		resource.setPath(item.getPath());
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults().getStatistics()));
 		return resource;
 	};

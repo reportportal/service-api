@@ -25,8 +25,8 @@ import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.collect.Sets;
 import org.springframework.stereotype.Service;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.MODE;
-import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.STATUS;
+import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
+import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_STATUS;
 
 /**
  * @author Pavel Bortnik
@@ -38,8 +38,8 @@ public class GeneralLaunchFilterStrategy extends ProjectFilterStrategy {
 	protected Filter buildDefaultFilter(Widget widget, Long projectId) {
 		Filter filter = super.buildDefaultFilter(widget, projectId);
 		filter.withConditions(Sets.newHashSet(
-				new FilterCondition(Condition.NOT_EQUALS, false, StatusEnum.IN_PROGRESS.name(), STATUS),
-				new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.toString(), MODE)
+				new FilterCondition(Condition.NOT_EQUALS, false, StatusEnum.IN_PROGRESS.name(), CRITERIA_LAUNCH_STATUS),
+				new FilterCondition(Condition.EQUALS, false, Mode.DEFAULT.toString(), CRITERIA_LAUNCH_MODE)
 		));
 		return filter;
 	}

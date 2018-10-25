@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.NAME;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LAUNCH_NAME_FIELD;
 
 /**
@@ -27,7 +27,7 @@ public class LaunchHistoryFilterStrategy extends GeneralLaunchFilterStrategy {
 		validateWidgetOptions(widget.getWidgetOptions());
 		String launchName = widget.getWidgetOptions().get(LAUNCH_NAME_FIELD);
 		Filter filter = super.buildDefaultFilter(widget, projectId);
-		return filter.withCondition(new FilterCondition(Condition.EQUALS, false, launchName, NAME));
+		return filter.withCondition(new FilterCondition(Condition.EQUALS, false, launchName, CRITERIA_NAME));
 	}
 
 	/**

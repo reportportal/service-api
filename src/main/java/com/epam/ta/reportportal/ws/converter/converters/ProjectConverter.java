@@ -101,6 +101,7 @@ public final class ProjectConverter {
 		projectConfiguration.setEmailConfig(projectEmailConfigDTO);
 
 		projectConfiguration.setProjectAttributes(attributes);
+		projectConfiguration.setEmailConfig(EmailConfigConverter.TO_RESOURCE.apply(project.getProjectAttributes(), project.getEmailCases()));
 		projectResource.setConfiguration(projectConfiguration);
 		return projectResource;
 	};

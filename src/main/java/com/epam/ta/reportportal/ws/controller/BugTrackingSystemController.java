@@ -18,10 +18,14 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
-import com.epam.ta.reportportal.core.bts.handler.*;
+import com.epam.ta.reportportal.core.bts.handler.ICreateTicketHandler;
+import com.epam.ta.reportportal.core.bts.handler.IGetTicketHandler;
+import com.epam.ta.reportportal.core.bts.handler.IUpdateExternalSystemHandler;
+import com.epam.ta.reportportal.core.bts.handler.impl.IntegrationsHandler;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.*;
+import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -47,21 +51,17 @@ public class BugTrackingSystemController {
 
 	private final ICreateTicketHandler createTicketHandler;
 	private final IGetTicketHandler getTicketHandler;
-	private final ICreateExternalSystemHandler createExternalSystemHandler;
-	private final IDeleteExternalSystemHandler deleteExternalSystemHandler;
 	private final IUpdateExternalSystemHandler updateExternalSystemHandler;
-	private final IGetExternalSystemHandler getExternalSystemHandler;
+	private final IntegrationsHandler integrationsHandler;
 
 	@Autowired
 	public BugTrackingSystemController(ICreateTicketHandler createTicketHandler, IGetTicketHandler getTicketHandler,
-			ICreateExternalSystemHandler createExternalSystemHandler, IDeleteExternalSystemHandler deleteExternalSystemHandler,
-			IUpdateExternalSystemHandler updateExternalSystemHandler, IGetExternalSystemHandler getExternalSystemHandler) {
+			IntegrationsHandler integrationsHandler, IUpdateExternalSystemHandler updateExternalSystemHandler) {
 		this.createTicketHandler = createTicketHandler;
 		this.getTicketHandler = getTicketHandler;
-		this.createExternalSystemHandler = createExternalSystemHandler;
-		this.deleteExternalSystemHandler = deleteExternalSystemHandler;
+		this.integrationsHandler = integrationsHandler;
 		this.updateExternalSystemHandler = updateExternalSystemHandler;
-		this.getExternalSystemHandler = getExternalSystemHandler;
+
 	}
 
 	@Transactional
@@ -71,16 +71,16 @@ public class BugTrackingSystemController {
 	//@PreAuthorize(PROJECT_MANAGER)
 	public EntryCreatedRS createExternalSystemInstance(@Validated @RequestBody CreateExternalSystemRQ createRQ,
 			@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return createExternalSystemHandler.createExternalSystem(createRQ, EntityUtils.normalizeId(projectName), user);
+		return integrationsHandler.createExternalSystem(createRQ, EntityUtils.normalizeId(projectName), user);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/{systemId}")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get registered external system instance")
-	public ExternalSystemResource getExternalSystem(@PathVariable String projectName, @PathVariable Long systemId,
+	public IntegrationResource getExternalSystem(@PathVariable Long projectId, @PathVariable Long systemId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getExternalSystemHandler.getExternalSystem(EntityUtils.normalizeId(projectName), systemId);
+		return integrationsHandler.getIntegrationByID(projectId, systemId);
 	}
 
 	@Transactional
@@ -88,9 +88,9 @@ public class BugTrackingSystemController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Delete registered external system instance")
 	//@PreAuthorize(PROJECT_MANAGER)
-	public OperationCompletionRS deleteExternalSystem(@PathVariable String projectName, @PathVariable Long systemId,
+	public OperationCompletionRS deleteExternalSystem(@PathVariable Long projectId, @PathVariable Long systemId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteExternalSystemHandler.deleteExternalSystem(EntityUtils.normalizeId(projectName), systemId, user);
+		return integrationsHandler.deleteIntegration(projectId, systemId, user);
 	}
 
 	@Transactional
@@ -100,7 +100,7 @@ public class BugTrackingSystemController {
 	//@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS deleteAllExternalSystems(@PathVariable String projectName,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteExternalSystemHandler.deleteAllExternalSystems(EntityUtils.normalizeId(projectName), user);
+		return integrationsHandler.deleteProjectIntegrations(EntityUtils.normalizeId(projectName), user);
 	}
 
 	@Transactional

@@ -15,33 +15,55 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
-import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
+
+import java.time.LocalDateTime;
+
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processDescription;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
 
 /**
  * @author Andrei Varabyeu
  */
-public class DashboardUpdatedEvent {
+public class DashboardUpdatedEvent extends AroundEvent<Dashboard> implements ActivityEvent {
 
-	private final Dashboard dashboard;
-	private final UpdateDashboardRQ updateRQ;
-	private final String updatedBy;
+	private Long updatedBy;
 
-	public DashboardUpdatedEvent(Dashboard dashboard, UpdateDashboardRQ updateRQ, String updatedBy) {
-		this.dashboard = dashboard;
-		this.updateRQ = updateRQ;
+	public DashboardUpdatedEvent() {
+	}
+
+	public DashboardUpdatedEvent(Dashboard before, Dashboard after, Long updatedBy) {
+		super(before, after);
 		this.updatedBy = updatedBy;
 	}
 
-	public Dashboard getDashboard() {
-		return dashboard;
-	}
-
-	public UpdateDashboardRQ getUpdateRQ() {
-		return updateRQ;
-	}
-
-	public String getUpdatedBy() {
+	public Long getUpdatedBy() {
 		return updatedBy;
+	}
+
+	public void setUpdatedBy(Long updatedBy) {
+		this.updatedBy = updatedBy;
+	}
+
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setActivityEntityType(Activity.ActivityEntityType.DASHBOARD);
+		activity.setAction(ActivityAction.UPDATE_DASHBOARD.getValue());
+		activity.setProjectId(getBefore().getProjectId());
+		activity.setUserId(updatedBy);
+		activity.setObjectId(getAfter().getId());
+
+		ActivityDetails details = new ActivityDetails(getAfter().getName());
+		//processShare
+		processName(details, getBefore().getName(), getAfter().getName());
+		processDescription(details, getBefore().getDescription(), getAfter().getDescription());
+
+		activity.setDetails(details);
+		return activity;
 	}
 }

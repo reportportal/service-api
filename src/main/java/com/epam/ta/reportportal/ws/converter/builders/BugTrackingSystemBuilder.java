@@ -16,27 +16,32 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.epam.ta.reportportal.entity.bts.BugTrackingSystem;
 import com.epam.ta.reportportal.entity.bts.DefectFormField;
+import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.integration.IntegrationParams;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.HashMap;
 import java.util.Set;
 import java.util.function.Supplier;
 
 /**
  * @author Pavel Bortnik
  */
-public class BugTrackingSystemBuilder implements Supplier<BugTrackingSystem> {
+public class BugTrackingSystemBuilder implements Supplier<Integration> {
 
-	private BugTrackingSystem bugTrackingSystem;
+	private Integration bugTrackingSystem;
+	private IntegrationParams parameters;
 
 	public BugTrackingSystemBuilder() {
-		bugTrackingSystem = new BugTrackingSystem();
+		bugTrackingSystem = new Integration();
+		parameters = new IntegrationParams(new HashMap<>());
 	}
 
-	public BugTrackingSystemBuilder(BugTrackingSystem bugTrackingSystem) {
+	public BugTrackingSystemBuilder(Integration bugTrackingSystem) {
 		this.bugTrackingSystem = bugTrackingSystem;
 	}
 
@@ -46,20 +51,19 @@ public class BugTrackingSystemBuilder implements Supplier<BugTrackingSystem> {
 				url = url.substring(0, url.length() - 1);
 			}
 		}
-		bugTrackingSystem.setUrl(url);
+		BtsConstants.URL.setParam(parameters, url);
 		return this;
 	}
 
-	public BugTrackingSystemBuilder addBugTrackingSystemType(String systemType) {
-		if (!StringUtils.isEmpty(systemType)) {
-			bugTrackingSystem.setBtsType(systemType);
-		}
+	public BugTrackingSystemBuilder addIntegrationType(IntegrationType type) {
+		this.bugTrackingSystem.setType(type);
 		return this;
 	}
 
 	public BugTrackingSystemBuilder addBugTrackingProject(String project) {
 		if (!StringUtils.isEmpty(project)) {
-			bugTrackingSystem.setBtsProject(project);
+			BtsConstants.PROJECT.setParam(parameters, project);
+
 		}
 		return this;
 	}
@@ -73,15 +77,14 @@ public class BugTrackingSystemBuilder implements Supplier<BugTrackingSystem> {
 
 	public BugTrackingSystemBuilder addFields(Set<DefectFormField> fields) {
 		if (!CollectionUtils.isEmpty(fields)) {
-			bugTrackingSystem.getDefectFormFields().clear();
-			bugTrackingSystem.getDefectFormFields().addAll(fields);
-			bugTrackingSystem.getDefectFormFields().forEach(it -> it.setBugTrackingSystem(bugTrackingSystem));
+			BtsConstants.DEFECT_FORM_FIELDS.setParam(parameters, fields);
 		}
 		return this;
 	}
 
 	@Override
-	public BugTrackingSystem get() {
+	public Integration get() {
+		this.bugTrackingSystem.setParams(parameters);
 		return bugTrackingSystem;
 	}
 }

@@ -14,26 +14,23 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.bts.handler;
+package com.epam.ta.reportportal.demodata;
 
-import com.epam.ta.reportportal.core.bts.handler.impl.GetExternalSystemHandler;
-import com.epam.ta.reportportal.ws.model.externalsystem.ExternalSystemResource;
+import com.epam.ta.reportportal.auth.ReportPortalUser;
+
+import java.util.List;
 
 /**
- * Basic interface for {@link GetExternalSystemHandler}
- *
- * @author Andrei_Ramanchuk
  * @author Pavel Bortnik
  */
-public interface IGetExternalSystemHandler {
-
+public interface DemoDataFacade {
 	/**
-	 * Get external system resource
+	 * Generates demo launches
 	 *
-	 * @param projectName Project Name
-	 * @param id          External System ID
-	 * @return Found External System
+	 * @param demoDataRq
+	 * @param user
+	 * @param projectDetails
+	 * @return
 	 */
-	ExternalSystemResource getExternalSystem(String projectName, Long id);
-
+	List<Long> generateDemoLaunches(DemoDataRq demoDataRq, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails);
 }

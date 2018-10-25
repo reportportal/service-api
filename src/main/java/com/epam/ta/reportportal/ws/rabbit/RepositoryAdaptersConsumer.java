@@ -1,6 +1,5 @@
 package com.epam.ta.reportportal.ws.rabbit;
 
-import com.epam.reportportal.extension.constants.RabbitConstants;
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
@@ -10,10 +9,10 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
-import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
@@ -45,6 +44,8 @@ public class RepositoryAdaptersConsumer {
 	private TestItemRepository testItemRepository;
 
 	private DataStoreService dataStoreService;
+
+	private TestItemResourceAssembler itemResourceAssembler;
 
 	@Autowired
 	public void setIntegrationRepository(IntegrationRepository integrationRepository) {
@@ -93,7 +94,7 @@ public class RepositoryAdaptersConsumer {
 	public TestItemResource findTestItem(@Payload Long itemId) {
 		TestItem testItem = testItemRepository.findById(itemId).orElse(null);
 		if (testItem != null) {
-			return TestItemConverter.TO_RESOURCE.apply(testItem);
+			return itemResourceAssembler.toResource(testItem);
 		}
 		return null;
 	}
@@ -112,6 +113,37 @@ public class RepositoryAdaptersConsumer {
 	public InputStream fetchData(String dataId) {
 		InputStream load = dataStoreService.load(dataId);
 		return load;
+	}
+
+	public class RabbitConstants {
+
+		private RabbitConstants() {
+			//static only
+		}
+
+		public final class QueueNames {
+
+			public static final String LOGS_FIND_BY_TEST_ITEM_REF_QUEUE = "repository.find.logs.by.item";
+			public static final String DATA_STORAGE_FETCH_DATA_QUEUE = "repository.find.data";
+			public static final String TEST_ITEMS_FIND_ONE_QUEUE = "repository.find.item";
+			public static final String INTEGRATION_FIND_ONE = "repository.find.integration";
+			public static final String PROJECTS_FIND_BY_NAME = "repository.find.project.by.name";
+
+			private QueueNames() {
+				//static only
+			}
+		}
+
+		public final class MessageHeaders {
+
+			public static final String ITEM_REF = "itemRef";
+			public static final String LIMIT = "limit";
+			public static final String IS_LOAD_BINARY_DATA = "isLoadBinaryData";
+
+			private MessageHeaders() {
+				//static only
+			}
+		}
 	}
 
 }

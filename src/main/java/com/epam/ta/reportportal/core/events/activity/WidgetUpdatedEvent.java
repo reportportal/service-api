@@ -15,28 +15,54 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.widget.Widget;
-import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+
+import java.time.LocalDateTime;
+
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processDescription;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
 
 /**
  * @author Andrei Varabyeu
  */
-public class WidgetUpdatedEvent extends BeforeEvent<Widget> {
+public class WidgetUpdatedEvent extends AroundEvent<Widget> implements ActivityEvent {
 
-	private final WidgetRQ widgetRQ;
-	private final String updatedBy;
+	private Long updatedBy;
 
-	public WidgetUpdatedEvent(Widget before, WidgetRQ widgetRQ, String updatedBy) {
-		super(before);
-		this.widgetRQ = widgetRQ;
+	public WidgetUpdatedEvent() {
+	}
+
+	public WidgetUpdatedEvent(Widget before, Widget after, Long updatedBy) {
+		super(before, after);
 		this.updatedBy = updatedBy;
 	}
 
-	public WidgetRQ getWidgetRQ() {
-		return widgetRQ;
+	public Long getUpdatedBy() {
+		return updatedBy;
 	}
 
-	public String getUpdatedBy() {
-		return updatedBy;
+	public void setUpdatedBy(Long updatedBy) {
+		this.updatedBy = updatedBy;
+	}
+
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.UPDATE_WIDGET.toString());
+		activity.setActivityEntityType(Activity.ActivityEntityType.WIDGET);
+		activity.setUserId(updatedBy);
+		activity.setProjectId(getAfter().getProject().getId());
+		activity.setObjectId(getAfter().getId());
+
+		ActivityDetails details = new ActivityDetails(getAfter().getName());
+		processName(details, getBefore().getName(), getAfter().getName());
+		processDescription(details, getBefore().getDescription(), getAfter().getDescription());
+
+		activity.setDetails(details);
+		return activity;
 	}
 }

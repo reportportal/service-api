@@ -37,7 +37,7 @@ public final class UserConverter {
 
 	public static final Function<User, UserResource> TO_RESOURCE = user -> {
 		UserResource resource = new UserResource();
-		resource.setUserId(user.getId().toString());
+		resource.setUserId(user.getLogin());
 		resource.setEmail(user.getEmail());
 		resource.setPhotoId(user.getAttachment());
 		resource.setFullName(user.getFullName());

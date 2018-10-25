@@ -21,4 +21,21 @@ public interface PluginBox {
 	 */
 	Optional<Plugin> getPlugin(String type);
 
+	/**
+	 * Creates (or takes from cache) instance of given plugin
+	 *
+	 * @param name Plugin name / ID
+	 * @param type Type of plugin
+	 * @return Optional of plugin by given type
+	 */
+	<T> Optional<T> getInstance(String name, Class<T> type);
+
+	/**
+	 * Creates (or takes from cache) instance of given plugin
+	 *
+	 * @param type Type of plugin
+	 * @return Optional of plugin by given type
+	 */
+	<T> Optional<T> getInstance(Class<T> type);
+
 }

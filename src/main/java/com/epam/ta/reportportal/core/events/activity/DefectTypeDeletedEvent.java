@@ -15,31 +15,65 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
+
+import java.time.LocalDateTime;
 
 /**
  * @author Andrei Varabyeu
  */
-public class DefectTypeDeletedEvent {
-	private final Project before;
-	private final String updatedBy;
-	private final String id;
+public class DefectTypeDeletedEvent extends BeforeEvent<IssueType> implements ActivityEvent {
 
-	public DefectTypeDeletedEvent(String id, Project before, String updatedBy) {
-		this.before = before;
-		this.updatedBy = updatedBy;
-		this.id = id;
+	private IssueType issueType;
+	private Long projectId;
+	private Long deletedBy;
+
+	public DefectTypeDeletedEvent() {
 	}
 
-	public Project getBefore() {
-		return before;
+	public DefectTypeDeletedEvent(IssueType issueType, Long projectId, Long deletedBy) {
+		this.issueType = issueType;
+		this.projectId = projectId;
+		this.deletedBy = deletedBy;
 	}
 
-	public String getUpdatedBy() {
-		return updatedBy;
+	public IssueType getIssueType() {
+		return issueType;
 	}
 
-	public String getId() {
-		return id;
+	public void setIssueType(IssueType issueType) {
+		this.issueType = issueType;
+	}
+
+	public Long getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(Long projectId) {
+		this.projectId = projectId;
+	}
+
+	public Long getDeletedBy() {
+		return deletedBy;
+	}
+
+	public void setDeletedBy(Long deletedBy) {
+		this.deletedBy = deletedBy;
+	}
+
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.DELETE_DEFECT.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.DEFECT_TYPE);
+		activity.setUserId(deletedBy);
+		activity.setProjectId(projectId);
+		activity.setObjectId(issueType.getId());
+		activity.setDetails(new ActivityDetails(issueType.getLongName()));
+		return activity;
 	}
 }

@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.WidgetCreatedEvent;
 import com.epam.ta.reportportal.core.widget.ICreateWidgetHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
@@ -41,6 +43,8 @@ public class CreateWidgetHandlerImpl implements ICreateWidgetHandler {
 
 	private UserFilterRepository filterRepository;
 
+	private MessageBus messageBus;
+
 	@Autowired
 	public void setWidgetRepository(WidgetRepository widgetRepository) {
 		this.widgetRepository = widgetRepository;
@@ -49,6 +53,11 @@ public class CreateWidgetHandlerImpl implements ICreateWidgetHandler {
 	@Autowired
 	public void setUserFilterRepository(UserFilterRepository filterRepository) {
 		this.filterRepository = filterRepository;
+	}
+
+	@Autowired
+	public void setMessageBus(MessageBus messageBus) {
+		this.messageBus = messageBus;
 	}
 
 	@Override
@@ -66,7 +75,7 @@ public class CreateWidgetHandlerImpl implements ICreateWidgetHandler {
 				.addFilters(userFilter)
 				.get();
 		widgetRepository.save(widget);
-
+		messageBus.publishActivity(new WidgetCreatedEvent(widget, user.getUserId()));
 		return new EntryCreatedRS(widget.getId());
 	}
 }

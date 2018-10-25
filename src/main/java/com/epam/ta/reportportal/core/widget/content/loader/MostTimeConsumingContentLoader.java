@@ -19,10 +19,10 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_LAUNCH_ID;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.content.loader.ActivityContentLoader.CONTENT_FIELDS_DELIMITER;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
-import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.LAUNCH_ID;
 import static com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum.*;
 import static java.util.Collections.singletonMap;
 
@@ -90,8 +90,7 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 				false,
 				String.valueOf(launchRepository.findLatestByNameAndFilter(launchName, filter)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName))
-						.getId()),
-				LAUNCH_ID
+						.getId()), CRITERIA_LAUNCH_ID
 		));
 	}
 

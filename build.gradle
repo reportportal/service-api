@@ -99,11 +99,11 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:a5b5b78'
-        compile 'com.github.reportportal:commons-rules:spb2-SNAPSHOT'
-        compile 'com.github.reportportal:commons-model:3b780d1'
-        compile 'com.github.reportportal:commons-bugtracking:496a571'
+        compile 'com.github.reportportal:commons-dao:636dba3'
+        compile 'com.github.reportportal:commons-rules:4cd20af'
+        compile 'com.github.reportportal:commons-model:149b853'
         compile('com.github.reportportal:commons:71d4aca')
+        compile('com.github.reportportal:plugin-api:5dc955e808')
     }
 
 
@@ -150,6 +150,9 @@ dependencies {
     compile 'org.springframework.cloud:spring-cloud-starter-oauth2'
     compile 'org.springframework.security:spring-security-oauth2-client'
     compile 'org.springframework.security:spring-security-jwt'
+    compile 'org.springframework.security:spring-security-acl'
+    compile 'com.github.ben-manes.caffeine:caffeine:2.6.2'
+
 ///// end of Security
 
     compile 'org.apache.tika:tika-core'

@@ -18,15 +18,20 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.BinaryData;
-import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.core.file.GetFileHandler;
+import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -39,19 +44,60 @@ import java.io.InputStream;
 @RequestMapping("/data")
 public class FileStorageController {
 
-	private final DataStoreService dataStoreService;
+	private final EditUserHandler editUserHandler;
 
-	public FileStorageController(DataStoreService dataStoreService) {
-		this.dataStoreService = dataStoreService;
+	private final GetFileHandler getFileHandler;
+
+	@Autowired
+	public FileStorageController(EditUserHandler editUserHandler, GetFileHandler getFileHandler) {
+		this.editUserHandler = editUserHandler;
+		this.getFileHandler = getFileHandler;
 	}
 
+	@Transactional(readOnly = true)
 	@GetMapping(value = "/{dataId}")
-	public void getFile(@PathVariable("dataId") String dataId, HttpServletResponse response) {
-		toResponse(response, dataStoreService.load(dataId));
+	public void getFile(@PathVariable("dataId") String dataId, HttpServletResponse response,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		toResponse(response, getFileHandler.loadFileById(dataId));
 	}
 
 	/**
-	 * Copies provided {@link BinaryData} to Response
+	 * (non-Javadoc)
+	 */
+	@Transactional(readOnly = true)
+	@GetMapping(value = "/photo")
+	@ApiOperation("Get photo of current user")
+	public void getMyPhoto(@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
+		toResponse(response, getFileHandler.getUserPhoto(user));
+	}
+
+	/**
+	 * (non-Javadoc)
+	 */
+	@Transactional(readOnly = true)
+	@GetMapping(value = "/userphoto")
+	@ApiOperation("Get user's photo")
+	public void getUserPhoto(@RequestParam(value = "id") String username, HttpServletResponse response,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		toResponse(response, getFileHandler.getUserPhoto(EntityUtils.normalizeId(username), user));
+	}
+
+	@Transactional
+	@PostMapping(value = "/photo")
+	@ApiOperation("Upload user's photo")
+	public OperationCompletionRS uploadPhoto(@RequestParam("file") MultipartFile file, @AuthenticationPrincipal ReportPortalUser user) {
+		return editUserHandler.uploadPhoto(EntityUtils.normalizeId(user.getUsername()), file);
+	}
+
+	@Transactional
+	@DeleteMapping(value = "/photo")
+	@ApiOperation("Delete user's photo")
+	public OperationCompletionRS deletePhoto(@AuthenticationPrincipal ReportPortalUser user) {
+		return editUserHandler.deletePhoto(EntityUtils.normalizeId(user.getUsername()));
+	}
+
+	/**
+	 * Copies data from provided {@link InputStream} to Response
 	 *
 	 * @param response    Response
 	 * @param inputStream Stored data

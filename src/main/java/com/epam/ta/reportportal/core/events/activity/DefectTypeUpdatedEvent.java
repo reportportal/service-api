@@ -15,32 +15,65 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
+import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
+
+import java.time.LocalDateTime;
 
 /**
  * @author Andrei Varabyeu
  */
-public class DefectTypeUpdatedEvent {
+public class DefectTypeUpdatedEvent implements ActivityEvent {
 
-	private final String project;
-	private final String updatedBy;
-	private final UpdateIssueSubTypeRQ request;
+	private Long projectId;
+	private Long updatedBy;
+	private UpdateOneIssueSubTypeRQ request;
 
-	public DefectTypeUpdatedEvent(String project, String updatedBy, UpdateIssueSubTypeRQ request) {
-		this.project = project;
+	public DefectTypeUpdatedEvent() {
+	}
+
+	public DefectTypeUpdatedEvent(Long projectId, Long updatedBy, UpdateOneIssueSubTypeRQ request) {
+		this.projectId = projectId;
 		this.updatedBy = updatedBy;
 		this.request = request;
 	}
 
-	public String getProject() {
-		return project;
+	public Long getProjectId() {
+		return projectId;
 	}
 
-	public String getUpdatedBy() {
+	public void setProjectId(Long projectId) {
+		this.projectId = projectId;
+	}
+
+	public Long getUpdatedBy() {
 		return updatedBy;
 	}
 
-	public UpdateIssueSubTypeRQ getRequest() {
+	public void setUpdatedBy(Long updatedBy) {
+		this.updatedBy = updatedBy;
+	}
+
+	public UpdateOneIssueSubTypeRQ getRequest() {
 		return request;
+	}
+
+	public void setRequest(UpdateOneIssueSubTypeRQ request) {
+		this.request = request;
+	}
+
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.UPDATE_DEFECT.toString());
+		activity.setActivityEntityType(Activity.ActivityEntityType.DEFECT_TYPE);
+		activity.setProjectId(projectId);
+		activity.setUserId(updatedBy);
+		activity.setObjectId(Long.valueOf(request.getId()));
+		activity.setDetails(new ActivityDetails(request.getLongName()));
+		return activity;
 	}
 }

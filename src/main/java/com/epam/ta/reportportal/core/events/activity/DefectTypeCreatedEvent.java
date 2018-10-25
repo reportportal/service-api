@@ -15,30 +15,65 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.ActivityDetails;
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
+
+import java.time.LocalDateTime;
+
 /**
  * @author Andrei Varabyeu
  */
-public class DefectTypeCreatedEvent {
+public class DefectTypeCreatedEvent implements ActivityEvent {
 
-//	private final String project;
-	//	private final String user;
-	//	private final Sta statisticSubType;
-	//
-	//	public DefectTypeCreatedEvent(String project, String user, StatisticSubType statisticSubType) {
-	//		this.project = project;
-	//		this.user = user;
-	//		this.statisticSubType = statisticSubType;
-	//	}
-	//
-	//	public String getProject() {
-	//		return project;
-	//	}
-	//
-	//	public String getUser() {
-	//		return user;
-	//	}
-	//
-	//	public StatisticSubType getStatisticSubType() {
-	//		return statisticSubType;
-	//	}
+	private IssueType issueType;
+	private Long projectId;
+	private Long createdBy;
+
+	public DefectTypeCreatedEvent() {
+	}
+
+	public DefectTypeCreatedEvent(IssueType issueType, Long projectId, Long createdBy) {
+		this.issueType = issueType;
+		this.projectId = projectId;
+		this.createdBy = createdBy;
+	}
+
+	public IssueType getIssueType() {
+		return issueType;
+	}
+
+	public void setIssueType(IssueType issueType) {
+		this.issueType = issueType;
+	}
+
+	public Long getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(Long projectId) {
+		this.projectId = projectId;
+	}
+
+	public Long getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(Long createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	@Override
+	public Activity toActivity() {
+		Activity activity = new Activity();
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setAction(ActivityAction.CREATE_DEFECT.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.DEFECT_TYPE);
+		activity.setUserId(createdBy);
+		activity.setProjectId(projectId);
+		activity.setObjectId(issueType.getId());
+		activity.setDetails(new ActivityDetails(issueType.getLongName()));
+		return activity;
+	}
 }

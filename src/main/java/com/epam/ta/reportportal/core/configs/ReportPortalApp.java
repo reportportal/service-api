@@ -33,6 +33,7 @@ package com.epam.ta.reportportal.core.configs;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.web.servlet.MultipartAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -41,7 +42,7 @@ import org.springframework.context.annotation.Import;
  *
  * @author Andrei Varabyeu
  */
-@SpringBootApplication(scanBasePackages = { "com.epam.ta.reportportal" })
+@SpringBootApplication(scanBasePackages = { "com.epam.ta.reportportal" }, exclude = MultipartAutoConfiguration.class)
 @Configuration
 @Import({ com.epam.ta.reportportal.config.DatabaseConfiguration.class })
 public class ReportPortalApp {

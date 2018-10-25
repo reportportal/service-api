@@ -46,6 +46,7 @@ import com.epam.ta.reportportal.ws.resolver.JsonViewSupportFactoryBean;
 import com.epam.ta.reportportal.ws.resolver.PagingHandlerMethodArgumentResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -53,12 +54,17 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.web.SortArgumentResolver;
 import org.springframework.data.web.SortHandlerMethodArgumentResolver;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.validation.beanvalidation.BeanValidationPostProcessor;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.multipart.support.MultipartFilter;
+import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
@@ -187,6 +193,38 @@ public class MvcConfig implements WebMvcConfigurer {
 	@Bean
 	HttpMessageConverters httpMessageConverters() {
 		return new HttpMessageConverters(converters);
+	}
+
+	@Bean
+	@Order(0)
+	public MultipartFilter multipartFilter() {
+		return new MultipartFilter();
+	}
+
+	@Bean(name = DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME)
+	@Order(1)
+	public CommonsMultipartResolver multipartResolver(MultipartConfig multipartConfig) {
+		CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver() {
+			@Override
+			protected DiskFileItemFactory newFileItemFactory() {
+				DiskFileItemFactory diskFileItemFactory = super.newFileItemFactory();
+				diskFileItemFactory.setFileCleaningTracker(null);
+				return diskFileItemFactory;
+			}
+
+			@Override
+			public void cleanupMultipart(MultipartHttpServletRequest request) {
+				//
+			}
+		};
+
+		//Lazy resolving gives a way to process file limits inside a controller
+		//level and handle exceptions in proper way. Fixes reportportal/reportportal#19
+		commonsMultipartResolver.setResolveLazily(true);
+
+		commonsMultipartResolver.setMaxUploadSize(multipartConfig.maxUploadSize);
+		commonsMultipartResolver.setMaxUploadSizePerFile(multipartConfig.maxFileSize);
+		return commonsMultipartResolver;
 	}
 
 	@ConfigurationProperties("rp.upload")

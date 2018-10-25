@@ -18,8 +18,8 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.core.project.*;
 import com.epam.ta.reportportal.core.filter.IShareUserFilterHandler;
+import com.epam.ta.reportportal.core.project.*;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.util.ProjectUtils;
@@ -42,12 +42,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -64,18 +58,18 @@ public class ProjectController {
 	private final ICreateProjectHandler createProjectHandler;
 	private final IUpdateProjectHandler updateProjectHandler;
 	private final IDeleteProjectHandler deleteProjectHandler;
-	@Autowired
-	private IShareUserFilterHandler shareFilterHandler;
+	private final IShareUserFilterHandler shareFilterHandler;
 
 	@Autowired
 	public ProjectController(IGetProjectHandler projectHandler, IGetProjectInfoHandler projectInfoHandler,
 			ICreateProjectHandler createProjectHandler, IUpdateProjectHandler updateProjectHandler,
-			IDeleteProjectHandler deleteProjectHandler) {
+			IDeleteProjectHandler deleteProjectHandler, IShareUserFilterHandler shareFilterHandler) {
 		this.projectHandler = projectHandler;
 		this.projectInfoHandler = projectInfoHandler;
 		this.createProjectHandler = createProjectHandler;
 		this.updateProjectHandler = updateProjectHandler;
 		this.deleteProjectHandler = deleteProjectHandler;
+		this.shareFilterHandler = shareFilterHandler;
 	}
 
 	@Transactional
@@ -134,7 +128,6 @@ public class ProjectController {
 	public OperationCompletionRS deleteProject(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
 		return deleteProjectHandler.deleteProject(normalizeId(projectName));
 	}
-
 
 	@Transactional
 	@PostMapping(value = "/{projectName}/shared/{filterId}")

@@ -19,6 +19,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,7 +30,6 @@ import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
-import static com.google.common.base.Predicates.equalTo;
 
 /**
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
@@ -104,7 +104,9 @@ public class IntegrationsHandler {
 				.addBugTrackingProject(createRQ.getProject())
 				.addProject(project)
 				.addUsername(createRQ.getUsername())
-				.addPassword(simpleEncryptor.encrypt(createRQ.getPassword()))
+				//TODO encryption here and decryption on the plugin side
+				.addPassword(createRQ.getPassword())
+				//				.addPassword(simpleEncryptor.encrypt(createRQ.getPassword()))
 				.addAuthType(createRQ.getExternalSystemAuth())
 				.get();
 
@@ -113,7 +115,7 @@ public class IntegrationsHandler {
 		Optional<BtsExtension> extenstion = pluginBox.getInstance(createRQ.getExternalSystemType(), BtsExtension.class);
 		expect(extenstion, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, projectName);
 
-		expect(extenstion.get().connectionTest(bugTrackingSystem), equalTo(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		expect(extenstion.get().connectionTest(bugTrackingSystem), BooleanUtils::isTrue).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				projectName
 		);
 

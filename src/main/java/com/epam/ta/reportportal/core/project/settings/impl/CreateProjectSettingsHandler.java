@@ -26,12 +26,12 @@ import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.builders.IssueTypeBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,8 +45,7 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.*;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -97,28 +96,27 @@ public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandl
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, rq.getTypeRef()));
 
 		List<IssueType> existingSubTypes = project.getIssueTypes()
-				.stream().filter(issueType -> issueType.getIssueGroup().equals(expectedGroup))
+				.stream()
+				.filter(issueType -> issueType.getIssueGroup().getTestItemIssueGroup().equals(expectedGroup))
 				.collect(Collectors.toList());
 
 		expect(existingSubTypes.size() < ValidationConstraints.MAX_ISSUE_SUBTYPES, equalTo(true)).verify(BAD_REQUEST_ERROR,
 				"Sub Issues count is bound of size limit"
 		);
 
-		IssueType subType = new IssueType();
 		String locator = PREFIX.get(expectedGroup.getValue()) + shortUUID();
-		subType.setLocator(locator);
-		subType.setIssueGroup(issueGroupRepository.findByTestItemIssueGroup(expectedGroup));
-		subType.setLongName(rq.getLongName());
-		subType.setShortName(rq.getShortName().toUpperCase());
-		subType.setHexColor(rq.getColor());
-		subType.setProjects(Lists.newArrayList(project));
+		IssueType subType = new IssueTypeBuilder().addLocator(locator)
+				.addIssueGroup(issueGroupRepository.findByTestItemIssueGroup(expectedGroup))
+				.addLongName(rq.getLongName())
+				.addShortName(rq.getShortName())
+				.addHexColor(rq.getColor())
+				.addProject(project)
+				.get();
 
 		project.getIssueTypes().add(subType);
-
 		projectRepository.save(project);
-		/*widgetRepository.findAllByProjectId(project.getId())
+		widgetRepository.findAllByProjectId(project.getId())
 				.stream()
-				.filter(widget -> widget.getWidgetType().equals(LAUNCHES_TABLE.getType()))
 				.filter(widget -> widget.getContentFields()
 						.stream()
 						.anyMatch(s -> s.contains(subType.getIssueGroup().getTestItemIssueGroup().getValue().toLowerCase())))
@@ -127,15 +125,13 @@ public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandl
 							.add("statistics$defects$" + subType.getIssueGroup().getTestItemIssueGroup().getValue().toLowerCase() + "$"
 									+ subType.getLocator());
 					widgetRepository.save(widget);
-				});*/
+				});
 
 		//messageBus.publishActivity(new DefectTypeCreatedEvent(subType, project.getId(), user.getUserId()));
-		subType.getId();
 		return new EntryCreatedRS(project.getIssueTypes()
 				.stream()
 				.filter(issueType -> issueType.getLocator().equalsIgnoreCase(locator))
-				.findFirst()
-				.get()
+				.findFirst().orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, locator))
 				.getId());
 	}
 

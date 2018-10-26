@@ -69,7 +69,7 @@ public class ProjectSettingsController {
 		this.getHandler = getHandler;
 	}
 
-	@RequestMapping(value = "/sub-type", method = RequestMethod.POST)
+	@PostMapping("/sub-type")
 	@ResponseBody
 	@ResponseStatus(CREATED)
 	@PreAuthorize(PROJECT_MANAGER)
@@ -83,7 +83,7 @@ public class ProjectSettingsController {
 		);
 	}
 
-	@RequestMapping(value = "/sub-type", method = RequestMethod.PUT)
+	@PutMapping("/sub-type")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
@@ -97,12 +97,12 @@ public class ProjectSettingsController {
 		);
 	}
 
-	@RequestMapping(value = "/sub-type/{id}", method = RequestMethod.DELETE)
+	@DeleteMapping("/sub-type/{id}")
 	@ResponseBody
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Delete custom project specific issue sub-type")
-	public OperationCompletionRS deleteProjectIssueSubType(@PathVariable String projectName, @PathVariable Long id,
+	public OperationCompletionRS deleteProjectIssueSubType(@PathVariable String projectName, @PathVariable String id,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return deleteHandler.deleteProjectIssueSubType(
 				ProjectUtils.extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
@@ -111,7 +111,7 @@ public class ProjectSettingsController {
 		);
 	}
 
-	@RequestMapping(method = RequestMethod.GET)
+	@GetMapping
 	@ResponseBody
 	@ResponseStatus(OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)

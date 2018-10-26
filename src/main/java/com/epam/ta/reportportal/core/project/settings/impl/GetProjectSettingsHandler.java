@@ -24,10 +24,14 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@Service
+@Transactional(readOnly = true)
 public class GetProjectSettingsHandler implements IGetProjectSettingsHandler {
 
 	private ProjectRepository repository;

@@ -80,12 +80,14 @@ public class UpdateProjectHandlerImpl implements IUpdateProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS unassignUsers(String projectName, String modifier, UnassignUsersRQ unassignUsersRQ) {
+	public OperationCompletionRS unassignUsers(ReportPortalUser.ProjectDetails projectDetails, UnassignUsersRQ unassignUsersRQ,
+			ReportPortalUser user) {
 		return null;
 	}
 
 	@Override
-	public OperationCompletionRS assignUsers(String projectName, String modifier, AssignUsersRQ assignUsersRQ) {
+	public OperationCompletionRS assignUsers(ReportPortalUser.ProjectDetails projectDetails, AssignUsersRQ assignUsersRQ,
+			ReportPortalUser user) {
 		return null;
 	}
 

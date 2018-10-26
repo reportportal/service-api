@@ -16,22 +16,37 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.Predicates;
+import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.project.IGetProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
+import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_PROJECT_ID;
 
 /**
  * @author Pavel Bortnik
@@ -41,14 +56,29 @@ public class GetProjectHandlerImpl implements IGetProjectHandler {
 
 	private final ProjectRepository projectRepository;
 
+	private final UserRepository userRepository;
+
 	@Autowired
-	public GetProjectHandlerImpl(ProjectRepository projectRepository) {
+	public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository) {
 		this.projectRepository = projectRepository;
+		this.userRepository = userRepository;
 	}
 
 	@Override
-	public Iterable<UserResource> getProjectUsers(String project, Filter filter, Pageable pageable) {
-		return null;
+	public Iterable<UserResource> getProjectUsers(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+		if (CollectionUtils.isEmpty(project.getUsers())) {
+			return Collections.emptyList();
+		}
+		filter.withCondition(new FilterCondition(Condition.EQUALS,
+				false,
+				String.valueOf(projectDetails.getProjectId()),
+				CRITERIA_PROJECT_ID
+		));
+
+		Page<User> users = userRepository.findByFilterExcluding(filter, pageable, "email");
+		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(users);
 	}
 
 	@Override
@@ -58,12 +88,15 @@ public class GetProjectHandlerImpl implements IGetProjectHandler {
 	}
 
 	@Override
-	public List<String> getUserNames(String project, String value) {
-		return null;
+	public List<String> getUserNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
+		BusinessRule.expect(value.length() > 2, Predicates.equalTo(true)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
+		);
+		return userRepository.findNamesByProject(projectDetails.getProjectId(), value);
 	}
 
 	@Override
-	public Page<UserResource> getUserNames(String value, Pageable pageable) {
+	public Iterable<UserResource> getUserNames(String value, Pageable pageable) {
 		return null;
 	}
 

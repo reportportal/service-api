@@ -56,24 +56,25 @@ public interface IUpdateProjectHandler {
 	/**
 	 * Un-assign specified user from project
 	 *
-	 * @param projectName     Project Name
-	 * @param modifier        Modifier
+	 * @param projectDetails  Project Details
+	 * @param modifier        Modifier User
 	 * @param unassignUsersRQ Request Data
 	 * @return Operation Result
 	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS unassignUsers(String projectName, String modifier, UnassignUsersRQ unassignUsersRQ);
+	OperationCompletionRS unassignUsers(ReportPortalUser.ProjectDetails projectDetails, UnassignUsersRQ unassignUsersRQ,
+			ReportPortalUser modifier);
 
 	/**
 	 * Assign specified user from project
 	 *
-	 * @param projectName   Project Name
-	 * @param modifier      Modifier
-	 * @param assignUsersRQ Request Data
+	 * @param projectDetails Project Details
+	 * @param modifier       Modifier User
+	 * @param assignUsersRQ  Request Data
 	 * @return Operation Result
-	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS assignUsers(String projectName, String modifier, AssignUsersRQ assignUsersRQ);
+	OperationCompletionRS assignUsers(ReportPortalUser.ProjectDetails projectDetails, AssignUsersRQ assignUsersRQ,
+			ReportPortalUser modifier);
 
 	/**
 	 * Index logs for specified project

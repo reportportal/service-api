@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.project;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
@@ -33,10 +34,10 @@ public interface IGetProjectHandler {
 	/**
 	 * Get project users info
 	 *
-	 * @param project Project name
+	 * @param projectDetails Project details
 	 * @return list of {@link UserResource}
 	 */
-	Iterable<UserResource> getProjectUsers(String project, Filter filter, Pageable pageable);
+	Iterable<UserResource> getProjectUsers(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable);
 
 	/**
 	 * Get project resource information
@@ -49,11 +50,11 @@ public interface IGetProjectHandler {
 	/**
 	 * Get list of specified usernames
 	 *
-	 * @param project Project name
-	 * @param value   Login
+	 * @param projectDetails Project name
+	 * @param value          Login
 	 * @return List of found user logins
 	 */
-	List<String> getUserNames(String project, String value);
+	List<String> getUserNames(ReportPortalUser.ProjectDetails projectDetails, String value);
 
 	/**
 	 * Performs global search for user
@@ -61,7 +62,7 @@ public interface IGetProjectHandler {
 	 * @param value login OR full name of user
 	 * @return List of found user logins
 	 */
-	com.epam.ta.reportportal.ws.model.Page<UserResource> getUserNames(String value, Pageable pageable);
+	Iterable<UserResource> getUserNames(String value, Pageable pageable);
 
 	/**
 	 * Verify if any project exists in MongoDB 'project' collection

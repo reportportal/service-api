@@ -17,19 +17,19 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.filter.IShareUserFilterHandler;
 import com.epam.ta.reportportal.core.project.*;
+import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
-import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
-import com.epam.ta.reportportal.ws.model.project.ProjectResource;
-import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
+import com.epam.ta.reportportal.ws.model.project.*;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
+import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
@@ -43,11 +43,13 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.List;
+import java.util.Map;
+
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 
 @RestController
 @RequestMapping("/project")
@@ -59,17 +61,19 @@ public class ProjectController {
 	private final IUpdateProjectHandler updateProjectHandler;
 	private final IDeleteProjectHandler deleteProjectHandler;
 	private final IShareUserFilterHandler shareFilterHandler;
+	private final GetUserHandler getUserHandler;
 
 	@Autowired
 	public ProjectController(IGetProjectHandler projectHandler, IGetProjectInfoHandler projectInfoHandler,
 			ICreateProjectHandler createProjectHandler, IUpdateProjectHandler updateProjectHandler,
-			IDeleteProjectHandler deleteProjectHandler, IShareUserFilterHandler shareFilterHandler) {
+			IDeleteProjectHandler deleteProjectHandler, IShareUserFilterHandler shareFilterHandler, GetUserHandler getUserHandler) {
 		this.projectHandler = projectHandler;
 		this.projectInfoHandler = projectInfoHandler;
 		this.createProjectHandler = createProjectHandler;
 		this.updateProjectHandler = updateProjectHandler;
 		this.deleteProjectHandler = deleteProjectHandler;
 		this.shareFilterHandler = shareFilterHandler;
+		this.getUserHandler = getUserHandler;
 	}
 
 	@Transactional
@@ -97,7 +101,34 @@ public class ProjectController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation(value = "Get information about project", notes = "Only for users that are assigned to the project")
 	public ProjectResource getProject(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return projectHandler.getProject(projectName);
+		return projectHandler.getProject(EntityUtils.normalizeId(projectName));
+	}
+
+	@PutMapping("/{projectName}/unassign")
+	@ResponseStatus(OK)
+	@PreAuthorize(PROJECT_MANAGER)
+	@ApiOperation("Un assign users")
+	public OperationCompletionRS unassignProjectUsers(@PathVariable String projectName,
+			@RequestBody @Validated UnassignUsersRQ unassignUsersRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateProjectHandler.unassignUsers(ProjectUtils.extractProjectDetails(user, projectName), unassignUsersRQ, user);
+	}
+
+	@PutMapping("/{projectName}/assign")
+	@ResponseStatus(OK)
+	@PreAuthorize(PROJECT_MANAGER)
+	@ApiOperation("Assign users")
+	public OperationCompletionRS assignProjectUsers(@PathVariable String projectName, @RequestBody @Validated AssignUsersRQ assignUsersRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return updateProjectHandler.assignUsers(ProjectUtils.extractProjectDetails(user, projectName), assignUsersRQ, user);
+	}
+
+	@GetMapping("/{projectName}/assignable")
+	@ResponseStatus(OK)
+	@PreAuthorize(PROJECT_MANAGER)
+	@ApiOperation(value = "Load users which can be assigned to specified project", notes = "Only for users with project manager permissions")
+	public Iterable<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
+			@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
+		return getUserHandler.getUsers(filter, pageable, ProjectUtils.extractProjectDetails(user, projectName));
 	}
 
 	@Transactional(readOnly = true)
@@ -106,8 +137,35 @@ public class ProjectController {
 	@ApiOperation("Get users from project")
 	public Iterable<UserResource> getProjectUsers(@PathVariable String projectName, @FilterFor(User.class) Filter filter,
 			@SortFor(User.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return projectHandler.getProjectUsers(normalizeId(projectName), filter, pageable);
+		return projectHandler.getProjectUsers(ProjectUtils.extractProjectDetails(user, projectName), filter, pageable);
 	}
+
+	@GetMapping("/{projectName}/usernames/search")
+	@ResponseStatus(OK)
+	@ApiIgnore
+	@PreAuthorize(PROJECT_MANAGER)
+	public Iterable<UserResource> searchForUser(@SuppressWarnings("unused") @PathVariable String projectName,
+			@RequestParam(value = "term") String term, Pageable pageable) {
+		return projectHandler.getUserNames(term, pageable);
+	}
+
+	//	@PutMapping("/{projectName}/preference/{login}")
+	//	@ResponseStatus(HttpStatus.OK)
+	//	@PreAuthorize(ALLOWED_TO_EDIT_USER)
+	//	@ApiIgnore
+	//	// Hide method cause results using for UI only and doesn't affect WS
+	//	public PreferenceResource updateUserPreference(@PathVariable String projectName,
+	//			@RequestBody @Validated UpdatePreferenceRQ updatePreferenceRQ, @PathVariable String login, Principal principal) {
+	//		return updatePreferenceHandler.updatePreference(principal.getName(), EntityUtils.normalizeId(projectName), updatePreferenceRQ);
+	//	}
+	//
+	//	@GetMapping("/{projectName}/preference/{login}")
+	//	@ResponseStatus(HttpStatus.OK)
+	//	@PreAuthorize(ALLOWED_TO_EDIT_USER)
+	//	@ApiOperation(value = "Load user preferences", notes = "Only for users that allowed to edit other users")
+	//	public PreferenceResource getUserPreference(@PathVariable String projectName, @PathVariable String login, Principal principal) {
+	//		return getPreferenceHandler.getPreference(normalizeId(projectName), normalizeId(login));
+	//	}
 
 	@Transactional(readOnly = true)
 	@PreAuthorize(ADMIN_ONLY)
@@ -119,9 +177,40 @@ public class ProjectController {
 		return projectInfoHandler.getAllProjectsInfo(filter, pageable);
 	}
 
-	@DeleteMapping
-	@RequestMapping(value = "/{projectName}", method = DELETE)
+	@Transactional(readOnly = true)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
+	@GetMapping("/list/{projectName}")
+	@ResponseStatus(HttpStatus.OK)
+	@ApiIgnore
+	public ProjectInfoResource getProjectInfo(@PathVariable String projectName,
+			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return projectInfoHandler.getProjectInfo(normalizeId(projectName), interval);
+	}
+
+	@Transactional(readOnly = true)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
+	@GetMapping("/{projectName}/widget/{widgetId}")
+	@ResponseStatus(HttpStatus.OK)
+	@ApiIgnore
+	public Map<String, List<ChartObject>> getProjectWidget(@PathVariable String projectName,
+			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval, @PathVariable String widgetId,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return projectInfoHandler.getProjectInfoWidgetContent(normalizeId(projectName), interval, widgetId);
+	}
+
+	@Transactional(readOnly = true)
+	@PreAuthorize(ADMIN_ONLY)
+	@RequestMapping(value = "/names", method = RequestMethod.GET)
 	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	@ApiIgnore
+	public Iterable<String> getAllProjectNames(@AuthenticationPrincipal ReportPortalUser user) {
+		return projectHandler.getAllProjectNames();
+	}
+
+	@Transactional
+	@DeleteMapping("/{projectName}")
 	@ResponseStatus(OK)
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Delete project", notes = "Could be deleted only by users with administrator role")

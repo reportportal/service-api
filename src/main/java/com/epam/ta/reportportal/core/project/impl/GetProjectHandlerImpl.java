@@ -97,7 +97,11 @@ public class GetProjectHandlerImpl implements IGetProjectHandler {
 
 	@Override
 	public Iterable<UserResource> getUserNames(String value, Pageable pageable) {
-		return null;
+		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true)).verify(
+				ErrorType.INCORRECT_FILTER_PARAMETERS,
+				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 1 symbol", value)
+		);
+		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(userRepository.searchForUser(value, pageable));
 	}
 
 	@Override
@@ -107,7 +111,7 @@ public class GetProjectHandlerImpl implements IGetProjectHandler {
 
 	@Override
 	public List<String> getAllProjectNames() {
-		return null;
+		return projectRepository.findAllProjectNames();
 	}
 
 	@Override

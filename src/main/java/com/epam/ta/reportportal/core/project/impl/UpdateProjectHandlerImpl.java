@@ -147,33 +147,6 @@ public class UpdateProjectHandlerImpl implements IUpdateProjectHandler {
 		return response;
 	}
 
-	private void validateUnassigningUser(User modifier, User userForUnassign, ReportPortalUser.ProjectDetails projectDetails,
-			Project project) {
-		if (ProjectType.PERSONAL.equals(project.getProjectType()) && project.getName().startsWith(userForUnassign.getLogin())) {
-			fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Unable to unassign user from his personal project");
-		}
-		if (ProjectType.UPSA.equals(project.getProjectType()) && UserType.UPSA.equals(userForUnassign.getUserType())) {
-			fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Project and user has UPSA type!");
-		}
-		if (!ProjectUtils.doesHaveUser(project, userForUnassign.getLogin())) {
-			fail().withError(USER_NOT_FOUND, userForUnassign.getLogin(), String.format("User not found in project %s", project.getName()));
-		}
-
-		ProjectUser projectUser = userForUnassign.getProjects()
-				.stream()
-				.filter(it -> Objects.equals(it.getProject().getId(), projectDetails.getProjectId()))
-				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND,
-						userForUnassign.getLogin(),
-						String.format("User not found in project %s", project.getName())
-				));
-
-		if (!UserRole.ADMINISTRATOR.equals(modifier.getRole())) {
-			expect(projectDetails.getProjectRole().sameOrHigherThan(projectUser.getProjectRole()), BooleanUtils::isTrue).verify(
-					ACCESS_DENIED);
-		}
-	}
-
 	@Override
 	public OperationCompletionRS assignUsers(ReportPortalUser.ProjectDetails projectDetails, AssignUsersRQ assignUsersRQ,
 			ReportPortalUser user) {
@@ -187,17 +160,15 @@ public class UpdateProjectHandlerImpl implements IUpdateProjectHandler {
 		}
 
 		List<String> assignedUsernames = project.getUsers().stream().map(u -> u.getUser().getLogin()).collect(toList());
-		assignUsersRQ.getUserNames().forEach((name, role) -> {
 
+		assignUsersRQ.getUserNames().forEach((name, role) -> {
+			User modifyingUser = userRepository.findByLogin(name).orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, name));
 			expect(name, not(in(assignedUsernames))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 					formattedSupplier("User '{}' cannot be assigned to project twice.", name)
 			);
-
-			User modifyingUser = userRepository.findByLogin(name).orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, name));
 			if (ProjectType.UPSA.equals(project.getProjectType()) && UserType.UPSA.equals(modifyingUser.getUserType())) {
 				fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Project and user has UPSA type!");
 			}
-
 			ProjectUser projectUser = new ProjectUser();
 			if (!Strings.isNullOrEmpty(role)) {
 				Optional<ProjectRole> projectRole = ProjectRole.forName(role);
@@ -227,6 +198,33 @@ public class UpdateProjectHandlerImpl implements IUpdateProjectHandler {
 	@Override
 	public OperationCompletionRS indexProjectData(String projectName, String user) {
 		return null;
+	}
+
+	private void validateUnassigningUser(User modifier, User userForUnassign, ReportPortalUser.ProjectDetails projectDetails,
+			Project project) {
+		if (ProjectType.PERSONAL.equals(project.getProjectType()) && project.getName().startsWith(userForUnassign.getLogin())) {
+			fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Unable to unassign user from his personal project");
+		}
+		if (ProjectType.UPSA.equals(project.getProjectType()) && UserType.UPSA.equals(userForUnassign.getUserType())) {
+			fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Project and user has UPSA type!");
+		}
+		if (!ProjectUtils.doesHaveUser(project, userForUnassign.getLogin())) {
+			fail().withError(USER_NOT_FOUND, userForUnassign.getLogin(), String.format("User not found in project %s", project.getName()));
+		}
+
+		ProjectUser projectUser = userForUnassign.getProjects()
+				.stream()
+				.filter(it -> Objects.equals(it.getProject().getId(), projectDetails.getProjectId()))
+				.findFirst()
+				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND,
+						userForUnassign.getLogin(),
+						String.format("User not found in project %s", project.getName())
+				));
+
+		if (!UserRole.ADMINISTRATOR.equals(modifier.getRole())) {
+			expect(projectDetails.getProjectRole().sameOrHigherThan(projectUser.getProjectRole()), BooleanUtils::isTrue).verify(
+					ACCESS_DENIED);
+		}
 	}
 
 	private void updateProjectUserRoles(Map<String, String> userRoles, Project project, ReportPortalUser.ProjectDetails projectDetails,

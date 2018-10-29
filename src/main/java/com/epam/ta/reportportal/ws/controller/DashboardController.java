@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.util.ProjectUtils.extractProjectDetails;
+import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 

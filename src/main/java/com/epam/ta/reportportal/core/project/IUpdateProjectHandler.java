@@ -46,12 +46,13 @@ public interface IUpdateProjectHandler {
 	/**
 	 * Update specified project email configuration
 	 *
-	 * @param projectName     Project Name
+	 * @param projectDetails  Project Name
 	 * @param updateProjectRQ Request Data
 	 * @param user            User performing that update
 	 * @return Operation Result
 	 */
-	OperationCompletionRS updateProjectEmailConfig(String projectName, String user, ProjectEmailConfigDTO updateProjectRQ);
+	OperationCompletionRS updateProjectEmailConfig(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			ProjectEmailConfigDTO updateProjectRQ);
 
 	/**
 	 * Un-assign specified user from project

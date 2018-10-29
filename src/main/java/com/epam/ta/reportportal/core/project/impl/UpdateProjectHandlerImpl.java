@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.Preconditions;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.EmailConfigUpdatedEvent;
 import com.epam.ta.reportportal.core.project.IUpdateProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
@@ -26,6 +28,7 @@ import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
 import com.epam.ta.reportportal.entity.enums.KeepScreenshotsDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
@@ -37,13 +40,18 @@ import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
+import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -57,9 +65,12 @@ public class UpdateProjectHandlerImpl implements IUpdateProjectHandler {
 
 	private final ProjectRepository projectRepository;
 
+	private MessageBus messageBus;
+
 	@Autowired
-	public UpdateProjectHandlerImpl(ProjectRepository projectRepository) {
+	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, MessageBus messageBus) {
 		this.projectRepository = projectRepository;
+		this.messageBus = messageBus;
 	}
 
 	@Override
@@ -69,14 +80,30 @@ public class UpdateProjectHandlerImpl implements IUpdateProjectHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
 		updateProjectUserRoles(updateProjectRQ.getUserRoles(), project, projectDetails, user);
-		updateProjectConfiguration(updateProjectRQ.getConfiguration(), project, user);
+		updateProjectConfiguration(updateProjectRQ.getConfiguration(), project, projectDetails, user);
 		projectRepository.save(project);
 		return new OperationCompletionRS("Project with name = '" + project.getName() + "' is successfully updated.");
 	}
 
 	@Override
-	public OperationCompletionRS updateProjectEmailConfig(String projectName, String user, ProjectEmailConfigDTO updateProjectRQ) {
-		return null;
+	public OperationCompletionRS updateProjectEmailConfig(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			ProjectEmailConfigDTO updateProjectRQ) {
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+		Project before = SerializationUtils.clone(project);
+		boolean emailEnabled = BooleanUtils.isTrue(updateProjectRQ.getEmailEnabled());
+		project.getProjectAttributes()
+				.stream()
+				.filter(it -> it.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.EMAIL_ENABLED.getAttribute()))
+				.findFirst()
+				.ifPresent(it -> it.setValue(String.valueOf(emailEnabled)));
+
+		updateEmailAttributes(project.getProjectAttributes(), updateProjectRQ.getEmailEnabled(), updateProjectRQ.getFrom());
+		updateEmailCases(project, updateProjectRQ.getEmailCases());
+
+		messageBus.publishActivity(new EmailConfigUpdatedEvent(before, updateProjectRQ, user.getUserId()));
+		return new OperationCompletionRS(
+				"EMail configuration of project with id = '" + projectDetails.getProjectId() + "' is successfully updated.");
 	}
 
 	@Override
@@ -131,7 +158,8 @@ public class UpdateProjectHandlerImpl implements IUpdateProjectHandler {
 		}
 	}
 
-	private void updateProjectConfiguration(ProjectConfiguration configuration, Project project, ReportPortalUser user) {
+	private void updateProjectConfiguration(ProjectConfiguration configuration, Project project,
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		ofNullable(configuration).ifPresent(config -> {
 			ofNullable(config.getProjectAttributes()).ifPresent(attributes -> {
 				verifyProjectAttributes(attributes);
@@ -141,10 +169,7 @@ public class UpdateProjectHandlerImpl implements IUpdateProjectHandler {
 						.findFirst()
 						.ifPresent(attr -> attr.setValue(value)));
 			});
-			ofNullable(config.getEmailConfig()).ifPresent(emailConfig -> updateProjectEmailConfig(project.getName(),
-					user.getUsername(),
-					emailConfig
-			));
+			ofNullable(config.getEmailConfig()).ifPresent(emailConfig -> updateProjectEmailConfig(projectDetails, user, emailConfig));
 		});
 
 	}
@@ -161,5 +186,13 @@ public class UpdateProjectHandlerImpl implements IUpdateProjectHandler {
 		).verify(ErrorType.BAD_REQUEST_ERROR, keepScreenshots));
 		ofNullable(attributes.get(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute())).ifPresent(analyzerMode -> expect(AnalyzeMode.fromString(
 				analyzerMode), isPresent()).verify(ErrorType.BAD_REQUEST_ERROR, analyzerMode));
+	}
+
+	private void updateEmailCases(Project project, List<EmailSenderCaseDTO> emailCases) {
+
+	}
+
+	private void updateEmailAttributes(Set<ProjectAttribute> projectAttributes, Boolean emailEnabled, String from) {
+
 	}
 }

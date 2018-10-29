@@ -24,10 +24,11 @@ import com.epam.ta.reportportal.core.project.*;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.util.ProjectUtils;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.*;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
@@ -93,7 +94,21 @@ public class ProjectController {
 	@ApiOperation(value = "Update project", notes = "'Email Configuration' can be also update via PUT to /{projectName}/emailconfig resource.")
 	public OperationCompletionRS updateProject(@PathVariable String projectName, @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.updateProject(ProjectUtils.extractProjectDetails(user, projectName), updateProjectRQ, user);
+		return updateProjectHandler.updateProject(ProjectExtractor.extractProjectDetails(user, projectName), updateProjectRQ, user);
+	}
+
+	@Transactional
+	@PutMapping(value = "/{projectName}/emailconfig")
+	@ResponseStatus(OK)
+	@PreAuthorize(PROJECT_MANAGER)
+	@ApiOperation("Update project email configuration")
+	public OperationCompletionRS updateProjectEmailConfig(@PathVariable String projectName,
+			@RequestBody @Validated ProjectEmailConfigDTO updateProjectRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateProjectHandler.updateProjectEmailConfig(
+				ProjectExtractor.extractProjectDetails(user, projectName),
+				user,
+				updateProjectRQ
+		);
 	}
 
 	@Transactional(readOnly = true)
@@ -110,7 +125,7 @@ public class ProjectController {
 	@ApiOperation("Un assign users")
 	public OperationCompletionRS unassignProjectUsers(@PathVariable String projectName,
 			@RequestBody @Validated UnassignUsersRQ unassignUsersRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.unassignUsers(ProjectUtils.extractProjectDetails(user, projectName), unassignUsersRQ, user);
+		return updateProjectHandler.unassignUsers(ProjectExtractor.extractProjectDetails(user, projectName), unassignUsersRQ, user);
 	}
 
 	@PutMapping("/{projectName}/assign")
@@ -119,7 +134,7 @@ public class ProjectController {
 	@ApiOperation("Assign users")
 	public OperationCompletionRS assignProjectUsers(@PathVariable String projectName, @RequestBody @Validated AssignUsersRQ assignUsersRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.assignUsers(ProjectUtils.extractProjectDetails(user, projectName), assignUsersRQ, user);
+		return updateProjectHandler.assignUsers(ProjectExtractor.extractProjectDetails(user, projectName), assignUsersRQ, user);
 	}
 
 	@GetMapping("/{projectName}/assignable")
@@ -128,7 +143,7 @@ public class ProjectController {
 	@ApiOperation(value = "Load users which can be assigned to specified project", notes = "Only for users with project manager permissions")
 	public Iterable<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
 			@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return getUserHandler.getUsers(filter, pageable, ProjectUtils.extractProjectDetails(user, projectName));
+		return getUserHandler.getUsers(filter, pageable, ProjectExtractor.extractProjectDetails(user, projectName));
 	}
 
 	@Transactional(readOnly = true)
@@ -137,7 +152,7 @@ public class ProjectController {
 	@ApiOperation("Get users from project")
 	public Iterable<UserResource> getProjectUsers(@PathVariable String projectName, @FilterFor(User.class) Filter filter,
 			@SortFor(User.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return projectHandler.getProjectUsers(ProjectUtils.extractProjectDetails(user, projectName), filter, pageable);
+		return projectHandler.getProjectUsers(ProjectExtractor.extractProjectDetails(user, projectName), filter, pageable);
 	}
 
 	@GetMapping("/{projectName}/usernames/search")

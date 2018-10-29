@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.builders.BtsConstants;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -41,6 +42,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.commons.Predicates.isPresent;
+import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 /**
@@ -88,7 +91,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 				.addAuthType(createRQ.getExternalSystemAuth())
 				.get();
 
-		//		checkUnique(bugTrackingSystem, projectDetails.getProjectId());
+		checkUnique(bugTrackingSystem, projectDetails.getProjectId());
 
 		Optional<BtsExtension> extenstion = pluginBox.getInstance(createRQ.getExternalSystemType(), BtsExtension.class);
 		expect(extenstion, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
@@ -104,12 +107,13 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		return new EntryCreatedRS(bugTrackingSystem.getId());
 	}
 
-	//	//TODO probably could be handled by database
-	//	private void checkUnique(BugTrackingSystem bugTrackingSystem, Long projectId) {
-	//		integrationRepository.findByUrlAndBtsProjectAndProjectId(
-	//				bugTrackingSystem.getUrl(), bugTrackingSystem.getBtsProject(), projectId)
-	//				.ifPresent(it -> new ReportPortalException(ErrorType.INTEGRATION_ALREADY_EXISTS,
-	//						bugTrackingSystem.getUrl() + " & " + bugTrackingSystem.getBtsProject()
-	//				));
-	//	}
+	private void checkUnique(Integration integration, Long projectId) {
+		String url = (String) BtsConstants.URL.getParam(integration.getParams())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified."));
+		String btsProject = (String) BtsConstants.PROJECT.getParam(integration.getParams())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "BTS project is not specified."));
+		expect(integrationRepository.findByUrlAndBtsProjectAndProjectId(url, btsProject, projectId),
+				not(isPresent())
+		).verify(ErrorType.INTEGRATION_ALREADY_EXISTS, url + " & " + btsProject);
+	}
 }

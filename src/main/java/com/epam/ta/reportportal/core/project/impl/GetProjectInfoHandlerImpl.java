@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.core.project.IGetProjectInfoHandler;
+import com.epam.ta.reportportal.core.project.GetProjectInfoHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -36,7 +36,7 @@ import java.util.Map;
  * @author Pavel Bortnik
  */
 @Service
-public class GetProjectInfoHandlerImpl implements IGetProjectInfoHandler {
+public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 
 	private final ProjectRepository projectRepository;
 	private final LaunchRepository launchRepository;

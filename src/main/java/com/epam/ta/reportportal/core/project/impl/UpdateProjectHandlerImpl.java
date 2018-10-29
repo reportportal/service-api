@@ -20,7 +20,7 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.EmailConfigUpdatedEvent;
-import com.epam.ta.reportportal.core.project.IUpdateProjectHandler;
+import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
@@ -65,7 +65,7 @@ import static java.util.stream.Collectors.toList;
  * @author Pavel Bortnik
  */
 @Service
-public class UpdateProjectHandlerImpl implements IUpdateProjectHandler {
+public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private final ProjectRepository projectRepository;
 

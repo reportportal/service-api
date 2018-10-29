@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.project.ICreateProjectHandler;
+import com.epam.ta.reportportal.core.project.CreateProjectHandler;
 import com.epam.ta.reportportal.dao.AttributeRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -48,7 +48,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
  * @author Pavel Bortnik
  */
 @Service
-public class CreateProjectHandlerImpl implements ICreateProjectHandler {
+public class CreateProjectHandlerImpl implements CreateProjectHandler {
 
 	private final ProjectRepository projectRepository;
 

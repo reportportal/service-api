@@ -26,7 +26,7 @@ import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
  *
  * @author Hanna_Sukhadolava
  */
-public interface ICreateProjectHandler {
+public interface CreateProjectHandler {
 
 	/**
 	 * Create new project

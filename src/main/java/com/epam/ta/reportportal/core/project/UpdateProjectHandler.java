@@ -29,7 +29,7 @@ import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
  *
  * @author Hanna_Sukhadolava
  */
-public interface IUpdateProjectHandler {
+public interface UpdateProjectHandler {
 
 	/**
 	 * Update specified project(projectName, customer and addInfo)

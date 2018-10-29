@@ -23,7 +23,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.project.IGetProjectHandler;
+import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -52,7 +52,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaCon
  * @author Pavel Bortnik
  */
 @Service
-public class GetProjectHandlerImpl implements IGetProjectHandler {
+public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	private final ProjectRepository projectRepository;
 

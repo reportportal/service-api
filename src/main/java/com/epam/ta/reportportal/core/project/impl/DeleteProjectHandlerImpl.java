@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
-import com.epam.ta.reportportal.core.project.IDeleteProjectHandler;
+import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
  * @author Pavel Bortnik
  */
 @Service
-public class DeleteProjectHandlerImpl implements IDeleteProjectHandler {
+public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	private final ProjectRepository projectRepository;
 

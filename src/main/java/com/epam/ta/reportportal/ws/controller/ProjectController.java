@@ -59,18 +59,18 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/project")
 public class ProjectController {
 
-	private final IGetProjectHandler projectHandler;
-	private final IGetProjectInfoHandler projectInfoHandler;
-	private final ICreateProjectHandler createProjectHandler;
-	private final IUpdateProjectHandler updateProjectHandler;
-	private final IDeleteProjectHandler deleteProjectHandler;
+	private final GetProjectHandler projectHandler;
+	private final GetProjectInfoHandler projectInfoHandler;
+	private final CreateProjectHandler createProjectHandler;
+	private final UpdateProjectHandler updateProjectHandler;
+	private final DeleteProjectHandler deleteProjectHandler;
 	private final IShareUserFilterHandler shareFilterHandler;
 	private final GetUserHandler getUserHandler;
 
 	@Autowired
-	public ProjectController(IGetProjectHandler projectHandler, IGetProjectInfoHandler projectInfoHandler,
-			ICreateProjectHandler createProjectHandler, IUpdateProjectHandler updateProjectHandler,
-			IDeleteProjectHandler deleteProjectHandler, IShareUserFilterHandler shareFilterHandler, GetUserHandler getUserHandler) {
+	public ProjectController(GetProjectHandler projectHandler, GetProjectInfoHandler projectInfoHandler,
+			CreateProjectHandler createProjectHandler, UpdateProjectHandler updateProjectHandler, DeleteProjectHandler deleteProjectHandler,
+			IShareUserFilterHandler shareFilterHandler, GetUserHandler getUserHandler) {
 		this.projectHandler = projectHandler;
 		this.projectInfoHandler = projectInfoHandler;
 		this.createProjectHandler = createProjectHandler;

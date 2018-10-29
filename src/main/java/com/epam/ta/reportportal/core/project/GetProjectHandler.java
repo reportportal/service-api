@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * @author Andrei_Ramanchuk
  */
-public interface IGetProjectHandler {
+public interface GetProjectHandler {
 
 	/**
 	 * Get project users info

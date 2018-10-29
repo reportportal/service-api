@@ -16,16 +16,15 @@
 
 package com.epam.ta.reportportal.core.project;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 /**
- * Delete {@link Project} request handler
+ * Delete {@link com.epam.ta.reportportal.entity.project.Project} request handler
  *
  * @author Hanna_Sukhadolava
  */
-public interface IDeleteProjectHandler {
+public interface DeleteProjectHandler {
 
 	/**
 	 * Delete specified project

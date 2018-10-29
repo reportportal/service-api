@@ -30,7 +30,7 @@ import java.util.Map;
  *
  * @author Dzmitry_Kavalets
  */
-public interface IGetProjectInfoHandler {
+public interface GetProjectInfoHandler {
 
 	/**
 	 * Get all projects info

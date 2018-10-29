@@ -30,7 +30,7 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
-import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemFieldsConverter;
+import com.epam.ta.reportportal.ws.converter.converters.IntegrationFieldsConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.UpdateExternalSystemRQ;
@@ -54,9 +54,6 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_I
  */
 @Service
 public class UpdateIntegrationHandlerImpl implements UpdateIntegrationHandler {
-
-	//	@Autowired
-	//	private StrategyProvider strategyProvider;
 
 	private final BasicTextEncryptor simpleEncryptor;
 
@@ -106,7 +103,7 @@ public class UpdateIntegrationHandlerImpl implements UpdateIntegrationHandler {
 				.addUsername(updateRQ.getUsername())
 				.addPassword(simpleEncryptor.encrypt(updateRQ.getPassword()))
 				.addAuthType(updateRQ.getExternalSystemAuth())
-				.addFields(updateRQ.getFields().stream().map(ExternalSystemFieldsConverter.FIELD_TO_DB).collect(Collectors.toSet()))
+				.addFields(updateRQ.getFields().stream().map(IntegrationFieldsConverter.FIELD_TO_DB).collect(Collectors.toSet()))
 				.get();
 
 		//TODO probably could be handled by database

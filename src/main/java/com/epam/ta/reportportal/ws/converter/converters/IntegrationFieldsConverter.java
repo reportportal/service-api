@@ -34,9 +34,9 @@ import static java.util.Optional.ofNullable;
 /**
  * @author Pavel Bortnik
  */
-public final class ExternalSystemFieldsConverter {
+public final class IntegrationFieldsConverter {
 
-	public ExternalSystemFieldsConverter() {
+	public IntegrationFieldsConverter() {
 		//static only
 	}
 
@@ -51,7 +51,7 @@ public final class ExternalSystemFieldsConverter {
 		}
 
 		defectFormField.setDefectFieldAllowedValues(ofNullable(field.getDefinedValues()).map(dvs -> dvs.stream()
-				.map(ExternalSystemFieldsConverter.VALUE_TO_DB)
+				.map(IntegrationFieldsConverter.VALUE_TO_DB)
 				.collect(Collectors.toSet())).orElseGet(Sets::newHashSet));
 		return defectFormField;
 	};
@@ -64,7 +64,7 @@ public final class ExternalSystemFieldsConverter {
 		postFormField.setIsRequired(defectFormField.isRequired());
 		postFormField.setDefinedValues(defectFormField.getDefectFieldAllowedValues()
 				.stream()
-				.map(ExternalSystemFieldsConverter.VALUE_TO_MODEL)
+				.map(IntegrationFieldsConverter.VALUE_TO_MODEL)
 				.collect(Collectors.toList()));
 		postFormField.setValue(new ArrayList<>(defectFormField.getValues()));
 		return postFormField;

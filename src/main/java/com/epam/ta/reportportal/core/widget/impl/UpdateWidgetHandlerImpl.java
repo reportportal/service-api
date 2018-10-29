@@ -19,14 +19,13 @@ package com.epam.ta.reportportal.core.widget.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.WidgetUpdatedEvent;
+import com.epam.ta.reportportal.core.widget.IShareWidgetHandler;
 import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.widget.Widget;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import org.apache.commons.collections.CollectionUtils;
@@ -49,6 +48,9 @@ public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
 	private MessageBus messageBus;
 
 	@Autowired
+	private IShareWidgetHandler shareWidgetHandler;
+
+	@Autowired
 	public void setWidgetRepository(WidgetRepository widgetRepository) {
 		this.widgetRepository = widgetRepository;
 	}
@@ -66,8 +68,7 @@ public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
 	@Override
 	public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		Widget widget = widgetRepository.findById(widgetId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND, widgetId));
+		Widget widget = shareWidgetHandler.findById(widgetId);
 		Widget before = SerializationUtils.clone(widget);
 		List<UserFilter> userFilter = null;
 		List<Long> filterIds = updateRQ.getFilterIds();

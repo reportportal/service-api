@@ -18,9 +18,9 @@ package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.widget.IGetWidgetHandler;
+import com.epam.ta.reportportal.core.widget.IShareWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -43,11 +43,12 @@ import java.util.Map;
 @Service
 public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 
-	private WidgetRepository widgetRepository;
-
 	private Map<WidgetType, BuildFilterStrategy> buildFilterStrategyMapping;
 
 	private Map<WidgetType, LoadContentStrategy> loadContentStrategy;
+
+	@Autowired
+	private IShareWidgetHandler shareWidgetHandler;
 
 	@Autowired
 	@Qualifier("buildFilterStrategyMapping")
@@ -61,15 +62,9 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 		this.loadContentStrategy = loadContentStrategy;
 	}
 
-	@Autowired
-	public void setWidgetRepository(WidgetRepository widgetRepository) {
-		this.widgetRepository = widgetRepository;
-	}
-
 	@Override
 	public WidgetResource getWidget(Long widgetId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Widget widget = widgetRepository.findById(widgetId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND, widgetId));
+		Widget widget = shareWidgetHandler.findById(widgetId);
 
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,

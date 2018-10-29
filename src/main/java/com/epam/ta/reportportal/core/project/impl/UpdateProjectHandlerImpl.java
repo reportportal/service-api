@@ -22,17 +22,17 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.EmailConfigUpdatedEvent;
 import com.epam.ta.reportportal.core.project.IUpdateProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
-import com.epam.ta.reportportal.entity.enums.InterruptionJobDelay;
-import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
-import com.epam.ta.reportportal.entity.enums.KeepScreenshotsDelay;
-import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
+import com.epam.ta.reportportal.entity.enums.*;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -42,6 +42,7 @@ import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
+import com.google.common.base.Strings;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
@@ -53,9 +54,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.epam.ta.reportportal.commons.Preconditions.IS_PRESENT;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Pavel Bortnik
@@ -65,11 +71,14 @@ public class UpdateProjectHandlerImpl implements IUpdateProjectHandler {
 
 	private final ProjectRepository projectRepository;
 
-	private MessageBus messageBus;
+	private final UserRepository userRepository;
+
+	private final MessageBus messageBus;
 
 	@Autowired
-	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, MessageBus messageBus) {
+	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository, MessageBus messageBus) {
 		this.projectRepository = projectRepository;
+		this.userRepository = userRepository;
 		this.messageBus = messageBus;
 	}
 
@@ -115,7 +124,56 @@ public class UpdateProjectHandlerImpl implements IUpdateProjectHandler {
 	@Override
 	public OperationCompletionRS assignUsers(ReportPortalUser.ProjectDetails projectDetails, AssignUsersRQ assignUsersRQ,
 			ReportPortalUser user) {
-		return null;
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+
+		validateRoles(assignUsersRQ, user);
+		if (!UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
+			expect(assignUsersRQ.getUserNames().keySet(), not(Preconditions.contains(equalTo(user.getUsername())))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+					"User should not assign himself to project."
+			);
+		}
+
+		List<String> assignedUsernames = project.getUsers().stream().map(u -> u.getUser().getLogin()).collect(toList());
+		assignUsersRQ.getUserNames().forEach((name, role) -> {
+
+			expect(name, not(in(assignedUsernames))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+					formattedSupplier("User '{}' cannot be assigned to project twice.", name)
+			);
+
+			User modifyingUser = userRepository.findByLogin(name).orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, name));
+			if (ProjectType.UPSA.equals(project.getProjectType()) && UserType.UPSA.equals(modifyingUser.getUserType())) {
+				fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Project and user has UPSA type!");
+			}
+
+			ProjectUser projectUser = new ProjectUser();
+			if (!Strings.isNullOrEmpty(role)) {
+				Optional<ProjectRole> projectRole = ProjectRole.forName(role);
+				expect(projectRole, IS_PRESENT).verify(ROLE_NOT_FOUND, role);
+
+				if (!UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
+					ProjectRole modifierRole = projectDetails.getProjectRole();
+					expect(modifierRole.sameOrHigherThan(projectRole.get()), BooleanUtils::isTrue).verify(ACCESS_DENIED);
+					projectUser.setProjectRole(projectRole.get());
+				} else {
+					projectUser.setProjectRole(projectRole.get());
+				}
+			} else {
+				projectUser.setProjectRole(ProjectRole.MEMBER);
+			}
+			projectUser.setUser(modifyingUser);
+			projectUser.setProject(project);
+			project.getUsers().add(projectUser);
+		});
+		OperationCompletionRS response = new OperationCompletionRS();
+		String msg = "User(s) with username='" + assignUsersRQ.getUserNames().keySet() + "' was successfully assigned to project='"
+				+ project.getName() + "'";
+		response.setResultMessage(msg);
+		return response;
+	}
+
+	private void validateRoles(AssignUsersRQ assignUsersRQ, ReportPortalUser user) {
+
 	}
 
 	@Override

@@ -44,6 +44,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
@@ -98,7 +99,7 @@ public class ProjectController {
 	}
 
 	@Transactional
-	@PutMapping(value = "/{projectName}/emailconfig")
+	@PutMapping("/{projectName}/emailconfig")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Update project email configuration")
@@ -111,20 +112,56 @@ public class ProjectController {
 		);
 	}
 
+	@Transactional
+	@DeleteMapping("/{projectName}")
+	@ResponseStatus(OK)
+	@PreAuthorize(ADMIN_ONLY)
+	@ApiOperation(value = "Delete project", notes = "Could be deleted only by users with administrator role")
+	public OperationCompletionRS deleteProject(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
+		return deleteProjectHandler.deleteProject(normalizeId(projectName));
+	}
+
+	@Transactional
+	@DeleteMapping("/{projectName}/index")
+	@ResponseStatus(OK)
+	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@ApiOperation(value = "Delete project index from ML")
+	public OperationCompletionRS deleteProjectIndex(@PathVariable String projectName, Principal principal) {
+		return deleteProjectHandler.deleteProjectIndex(normalizeId(projectName), principal.getName());
+	}
+
+	@Transactional
+	@PutMapping("/{projectName}/index")
+	@ResponseStatus(OK)
+	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@ApiOperation(value = "Starts reindex all project data in ML")
+	public OperationCompletionRS indexProjectData(@PathVariable String projectName, Principal principal) {
+		return updateProjectHandler.indexProjectData(normalizeId(projectName), principal.getName());
+	}
+
 	@Transactional(readOnly = true)
-	@GetMapping(value = "/{projectName}")
+	@GetMapping("/{projectName}/users")
+	@PreAuthorize(NOT_CUSTOMER)
+	@ApiOperation("Get users from project")
+	public Iterable<UserResource> getProjectUsers(@PathVariable String projectName, @FilterFor(User.class) Filter filter,
+			@SortFor(User.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+		return projectHandler.getProjectUsers(ProjectExtractor.extractProjectDetails(user, projectName), filter, pageable);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/{projectName}")
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation(value = "Get information about project", notes = "Only for users that are assigned to the project")
 	public ProjectResource getProject(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
 		return projectHandler.getProject(EntityUtils.normalizeId(projectName));
 	}
 
+	@Transactional
 	@PutMapping("/{projectName}/unassign")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Un assign users")
-	public OperationCompletionRS unassignProjectUsers(@PathVariable String projectName,
-			@RequestBody @Validated UnassignUsersRQ unassignUsersRQ, @AuthenticationPrincipal ReportPortalUser user) {
+	public OperationCompletionRS unassignProjectUsers(@PathVariable String projectName, @RequestBody @Validated UnassignUsersRQ unassignUsersRQ, @AuthenticationPrincipal ReportPortalUser user) {
 		return updateProjectHandler.unassignUsers(ProjectExtractor.extractProjectDetails(user, projectName), unassignUsersRQ, user);
 	}
 
@@ -144,15 +181,6 @@ public class ProjectController {
 	public Iterable<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
 			@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
 		return getUserHandler.getUsers(filter, pageable, ProjectExtractor.extractProjectDetails(user, projectName));
-	}
-
-	@Transactional(readOnly = true)
-	@GetMapping(value = "/{projectName}/users")
-	@PreAuthorize(NOT_CUSTOMER)
-	@ApiOperation("Get users from project")
-	public Iterable<UserResource> getProjectUsers(@PathVariable String projectName, @FilterFor(User.class) Filter filter,
-			@SortFor(User.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return projectHandler.getProjectUsers(ProjectExtractor.extractProjectDetails(user, projectName), filter, pageable);
 	}
 
 	@GetMapping("/{projectName}/usernames/search")
@@ -222,15 +250,6 @@ public class ProjectController {
 	@ApiIgnore
 	public Iterable<String> getAllProjectNames(@AuthenticationPrincipal ReportPortalUser user) {
 		return projectHandler.getAllProjectNames();
-	}
-
-	@Transactional
-	@DeleteMapping("/{projectName}")
-	@ResponseStatus(OK)
-	@PreAuthorize(ADMIN_ONLY)
-	@ApiOperation(value = "Delete project", notes = "Could be deleted only by users with administrator role")
-	public OperationCompletionRS deleteProject(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return deleteProjectHandler.deleteProject(normalizeId(projectName));
 	}
 
 	@Transactional

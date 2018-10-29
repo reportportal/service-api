@@ -49,12 +49,10 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static com.epam.ta.reportportal.commons.Preconditions.IS_PRESENT;
+import static com.epam.ta.reportportal.commons.Preconditions.contains;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
@@ -118,7 +116,62 @@ public class UpdateProjectHandlerImpl implements IUpdateProjectHandler {
 	@Override
 	public OperationCompletionRS unassignUsers(ReportPortalUser.ProjectDetails projectDetails, UnassignUsersRQ unassignUsersRQ,
 			ReportPortalUser user) {
-		return null;
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+		User modifier = userRepository.findById(user.getUserId())
+				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, user.getUsername()));
+
+		if (!UserRole.ADMINISTRATOR.equals(modifier.getRole())) {
+			expect(unassignUsersRQ.getUsernames(), not(contains(equalTo(modifier.getLogin())))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+					"User should not unassign himself from project."
+			);
+		}
+
+		List<User> unassignUsers = new ArrayList<>(unassignUsersRQ.getUsernames().size());
+		unassignUsersRQ.getUsernames().forEach(username -> {
+			User userForUnassign = userRepository.findByLogin(username)
+					.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
+			validateUnassigningUser(modifier, userForUnassign, projectDetails, project);
+			project.getUsers().removeIf(it -> it.getUser().getLogin().equalsIgnoreCase(username));
+			userForUnassign.getProjects().removeIf(it -> it.getProject().getName().equalsIgnoreCase(project.getName()));
+			unassignUsers.add(userForUnassign);
+		});
+		ProjectUtils.excludeProjectRecipients(unassignUsers, project);
+
+		//		prferenceRepository.removeByUsernamesAndProject(unassignUsersRQ.getUsernames(), project.getId());
+
+		OperationCompletionRS response = new OperationCompletionRS();
+		String msg = "User(s) with username(s)='" + unassignUsersRQ.getUsernames() + "' was successfully un-assigned from project='"
+				+ project.getName() + "'";
+		response.setResultMessage(msg);
+		return response;
+	}
+
+	private void validateUnassigningUser(User modifier, User userForUnassign, ReportPortalUser.ProjectDetails projectDetails,
+			Project project) {
+		if (ProjectType.PERSONAL.equals(project.getProjectType()) && project.getName().startsWith(userForUnassign.getLogin())) {
+			fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Unable to unassign user from his personal project");
+		}
+		if (ProjectType.UPSA.equals(project.getProjectType()) && UserType.UPSA.equals(userForUnassign.getUserType())) {
+			fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Project and user has UPSA type!");
+		}
+		if (!ProjectUtils.doesHaveUser(project, userForUnassign.getLogin())) {
+			fail().withError(USER_NOT_FOUND, userForUnassign.getLogin(), String.format("User not found in project %s", project.getName()));
+		}
+
+		ProjectUser projectUser = userForUnassign.getProjects()
+				.stream()
+				.filter(it -> Objects.equals(it.getProject().getId(), projectDetails.getProjectId()))
+				.findFirst()
+				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND,
+						userForUnassign.getLogin(),
+						String.format("User not found in project %s", project.getName())
+				));
+
+		if (!UserRole.ADMINISTRATOR.equals(modifier.getRole())) {
+			expect(projectDetails.getProjectRole().sameOrHigherThan(projectUser.getProjectRole()), BooleanUtils::isTrue).verify(
+					ACCESS_DENIED);
+		}
 	}
 
 	@Override
@@ -127,7 +180,6 @@ public class UpdateProjectHandlerImpl implements IUpdateProjectHandler {
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
-		validateRoles(assignUsersRQ, user);
 		if (!UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
 			expect(assignUsersRQ.getUserNames().keySet(), not(Preconditions.contains(equalTo(user.getUsername())))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 					"User should not assign himself to project."
@@ -170,10 +222,6 @@ public class UpdateProjectHandlerImpl implements IUpdateProjectHandler {
 				+ project.getName() + "'";
 		response.setResultMessage(msg);
 		return response;
-	}
-
-	private void validateRoles(AssignUsersRQ assignUsersRQ, ReportPortalUser user) {
-
 	}
 
 	@Override

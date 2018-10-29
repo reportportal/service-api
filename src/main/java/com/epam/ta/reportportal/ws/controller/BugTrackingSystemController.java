@@ -71,7 +71,7 @@ public class BugTrackingSystemController {
 	//@PreAuthorize(PROJECT_MANAGER)
 	public EntryCreatedRS createExternalSystemInstance(@Validated @RequestBody CreateExternalSystemRQ createRQ,
 			@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return integrationsHandler.createExternalSystem(createRQ, EntityUtils.normalizeId(projectName), user);
+		return integrationsHandler.createIntegration(createRQ, EntityUtils.normalizeId(projectName), user);
 	}
 
 	@Transactional(readOnly = true)

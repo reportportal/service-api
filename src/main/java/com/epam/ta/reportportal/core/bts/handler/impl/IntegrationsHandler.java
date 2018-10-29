@@ -87,7 +87,7 @@ public class IntegrationsHandler {
 		return new OperationCompletionRS("All ExternalSystems for project '" + projectName + "' successfully removed");
 	}
 
-	public EntryCreatedRS createExternalSystem(CreateExternalSystemRQ createRQ, String projectName, ReportPortalUser user) {
+	public EntryCreatedRS createIntegration(CreateExternalSystemRQ createRQ, String projectName, ReportPortalUser user) {
 		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 
 		//		Integration externalSystemStrategy = strategyProvider.getStrategy(createRQ.getExternalSystemType());
@@ -104,9 +104,7 @@ public class IntegrationsHandler {
 				.addBugTrackingProject(createRQ.getProject())
 				.addProject(project)
 				.addUsername(createRQ.getUsername())
-				//TODO encryption here and decryption on the plugin side
-				.addPassword(createRQ.getPassword())
-				//				.addPassword(simpleEncryptor.encrypt(createRQ.getPassword()))
+				.addPassword(simpleEncryptor.encrypt(createRQ.getPassword()))
 				.addAuthType(createRQ.getExternalSystemAuth())
 				.get();
 

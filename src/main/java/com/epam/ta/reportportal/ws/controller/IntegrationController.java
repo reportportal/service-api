@@ -18,10 +18,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
-import com.epam.ta.reportportal.core.bts.handler.ICreateTicketHandler;
-import com.epam.ta.reportportal.core.bts.handler.IGetTicketHandler;
-import com.epam.ta.reportportal.core.bts.handler.IUpdateExternalSystemHandler;
-import com.epam.ta.reportportal.core.bts.handler.impl.IntegrationsHandler;
+import com.epam.ta.reportportal.core.bts.handler.*;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.*;
@@ -29,6 +26,7 @@ import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -36,6 +34,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.util.ProjectUtils.extractProjectDetails;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
@@ -46,32 +47,36 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  */
 @RestController
 @RequestMapping("/{projectName}/external-system")
-//@PreAuthorize(ASSIGNED_TO_PROJECT)
-public class BugTrackingSystemController {
+@PreAuthorize(ASSIGNED_TO_PROJECT)
+public class IntegrationController {
 
-	private final ICreateTicketHandler createTicketHandler;
-	private final IGetTicketHandler getTicketHandler;
-	private final IUpdateExternalSystemHandler updateExternalSystemHandler;
-	private final IntegrationsHandler integrationsHandler;
+	private final CreateTicketHandler createTicketHandler;
+	private final GetTicketHandler getTicketHandler;
+	private final UpdateIntegrationHandler updateIntegrationHandler;
+	private final CreateIntegrationHandler createIntegrationHandler;
+	private final DeleteIntegrationHandler deleteIntegrationHandler;
+	private final GetIntegrationHandler getIntegrationHandler;
 
 	@Autowired
-	public BugTrackingSystemController(ICreateTicketHandler createTicketHandler, IGetTicketHandler getTicketHandler,
-			IntegrationsHandler integrationsHandler, IUpdateExternalSystemHandler updateExternalSystemHandler) {
+	public IntegrationController(CreateTicketHandler createTicketHandler, GetTicketHandler getTicketHandler,
+			UpdateIntegrationHandler updateIntegrationHandler, CreateIntegrationHandler createIntegrationHandler,
+			DeleteIntegrationHandler deleteIntegrationHandler, GetIntegrationHandler getIntegrationHandler) {
 		this.createTicketHandler = createTicketHandler;
 		this.getTicketHandler = getTicketHandler;
-		this.integrationsHandler = integrationsHandler;
-		this.updateExternalSystemHandler = updateExternalSystemHandler;
-
+		this.updateIntegrationHandler = updateIntegrationHandler;
+		this.createIntegrationHandler = createIntegrationHandler;
+		this.deleteIntegrationHandler = deleteIntegrationHandler;
+		this.getIntegrationHandler = getIntegrationHandler;
 	}
 
 	@Transactional
 	@PostMapping(consumes = { APPLICATION_JSON_VALUE })
 	@ResponseStatus(HttpStatus.CREATED)
 	@ApiOperation("Register external system instance")
-	//@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(PROJECT_MANAGER)
 	public EntryCreatedRS createExternalSystemInstance(@Validated @RequestBody CreateExternalSystemRQ createRQ,
 			@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return integrationsHandler.createIntegration(createRQ, EntityUtils.normalizeId(projectName), user);
+		return createIntegrationHandler.createIntegration(createRQ, extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
 	}
 
 	@Transactional(readOnly = true)
@@ -80,67 +85,76 @@ public class BugTrackingSystemController {
 	@ApiOperation("Get registered external system instance")
 	public IntegrationResource getExternalSystem(@PathVariable String projectName, @PathVariable Long systemId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return integrationsHandler.getIntegrationByID(projectName, systemId);
+		return getIntegrationHandler.getIntegrationByID(systemId, extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
 	}
 
 	@Transactional
 	@DeleteMapping(value = "/{systemId}")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Delete registered external system instance")
-	//@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS deleteExternalSystem(@PathVariable String projectName, @PathVariable Long systemId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return integrationsHandler.deleteIntegration(projectName, systemId, user);
+		return deleteIntegrationHandler.deleteIntegration(systemId, extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
 	}
 
 	@Transactional
 	@DeleteMapping(value = "/clear")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Delete all external system assigned to specified project")
-	//@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS deleteAllExternalSystems(@PathVariable String projectName,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return integrationsHandler.deleteProjectIntegrations(EntityUtils.normalizeId(projectName), user);
+		return deleteIntegrationHandler.deleteProjectIntegrations(extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
 	}
 
 	@Transactional
 	@PutMapping(value = "/{systemId}", consumes = { APPLICATION_JSON_VALUE })
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Update registered external system instance")
-	//@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS updateExternalSystem(@Validated @RequestBody UpdateExternalSystemRQ request,
 			@PathVariable String projectName, @PathVariable Long systemId, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateExternalSystemHandler.updateExternalSystem(request, EntityUtils.normalizeId(projectName), systemId, user);
+		return updateIntegrationHandler.updateIntegration(request,
+				systemId,
+				extractProjectDetails(user, EntityUtils.normalizeId(projectName))
+		);
 	}
 
 	@Transactional
 	@PutMapping(value = "/{systemId}/connect", consumes = { APPLICATION_JSON_VALUE })
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Check connection to external system instance")
-	//@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS checkConnection(@PathVariable String projectName, @PathVariable Long systemId,
 			@RequestBody @Validated UpdateExternalSystemRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateExternalSystemHandler.externalSystemConnect(updateRQ, EntityUtils.normalizeId(projectName), systemId, user);
+		return updateIntegrationHandler.integrationConnect(updateRQ,
+				systemId,
+				extractProjectDetails(user, EntityUtils.normalizeId(projectName))
+		);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/{systemId}/fields-set")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get list of fields required for posting ticket")
-	//	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(PROJECT_MANAGER)
 	public List<PostFormField> getSetOfExternalSystemFields(@RequestParam(value = "issuetype") String issuetype,
 			@PathVariable String projectName, @PathVariable Long systemId, @AuthenticationPrincipal ReportPortalUser user) {
-		return getTicketHandler.getSubmitTicketFields(issuetype, EntityUtils.normalizeId(projectName), systemId, user);
+		return getTicketHandler.getSubmitTicketFields(issuetype,
+				systemId,
+				extractProjectDetails(user, EntityUtils.normalizeId(projectName))
+		);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/{systemId}/issue_types")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get list of fields required for posting ticket")
-	//	@PreAuthorize(PROJECT_MANAGER)
+	@PreAuthorize(PROJECT_MANAGER)
 	public List<String> getAllowableIssueTypes(@PathVariable String projectName, @PathVariable Long systemId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getTicketHandler.getAllowableIssueTypes(EntityUtils.normalizeId(projectName), systemId, user);
+		return getTicketHandler.getAllowableIssueTypes(systemId, extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
 	}
 
 	//
@@ -154,7 +168,7 @@ public class BugTrackingSystemController {
 	@ApiOperation("Post ticket to external system")
 	public Ticket createIssue(@Validated @RequestBody PostTicketRQ ticketRQ, @PathVariable String projectName, @PathVariable Long systemId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return createTicketHandler.createIssue(ticketRQ, EntityUtils.normalizeId(projectName), systemId, user);
+		return createTicketHandler.createIssue(ticketRQ, systemId, extractProjectDetails(user, EntityUtils.normalizeId(projectName)), user);
 	}
 
 	@Transactional(readOnly = true)
@@ -163,7 +177,7 @@ public class BugTrackingSystemController {
 	@ApiOperation("Get ticket from external system")
 	public Ticket getTicket(@PathVariable String ticketId, @PathVariable String projectName, @PathVariable Long systemId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getTicketHandler.getTicket(ticketId, EntityUtils.normalizeId(projectName), systemId, user);
+		return getTicketHandler.getTicket(ticketId, systemId, extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
 	}
 
 }

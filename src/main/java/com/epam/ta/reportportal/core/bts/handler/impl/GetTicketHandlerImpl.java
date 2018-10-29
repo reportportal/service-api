@@ -18,12 +18,12 @@ package com.epam.ta.reportportal.core.bts.handler.impl;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.bts.handler.IGetTicketHandler;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.bts.handler.GetTicketHandler;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 import org.apache.commons.collections.CollectionUtils;
@@ -39,32 +39,34 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
- * Default implementation of {@link IGetTicketHandler}
+ * Default implementation of {@link GetTicketHandler}
  *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
  */
 @Service
-public class GetTicketHandler implements IGetTicketHandler {
+public class GetTicketHandlerImpl implements GetTicketHandler {
 
 	private final IntegrationRepository integrationRepository;
 	private final PluginBox pluginBox;
 
 	@Autowired
-	public GetTicketHandler(IntegrationRepository integrationRepository, PluginBox pluginBox) {
+	public GetTicketHandlerImpl(IntegrationRepository integrationRepository, PluginBox pluginBox) {
 		this.integrationRepository = integrationRepository;
 		this.pluginBox = pluginBox;
 	}
 
 	@Override
-	public Ticket getTicket(String ticketId, String projectName, Long systemId, ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
+	public Ticket getTicket(String ticketId, Long integrationId, ReportPortalUser.ProjectDetails projectDetails) {
 		List<Integration> integrations = integrationRepository.findAllByProjectId(projectDetails.getProjectId());
-		expect(integrations, not(CollectionUtils::isEmpty)).verify(PROJECT_NOT_CONFIGURED, projectName);
+		expect(integrations, not(CollectionUtils::isEmpty)).verify(
+				PROJECT_NOT_CONFIGURED,
+				Suppliers.formattedSupplier("No integrations for project with id = '{}' were found", projectDetails.getProjectId())
+		);
 		Integration integration = integrations.stream()
-				.filter(it -> Objects.equals(it.getId(), systemId))
+				.filter(it -> Objects.equals(it.getId(), integrationId))
 				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, systemId));
+				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
 
 		Optional<BtsExtension> btsExtension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class);
 		expect(btsExtension, Optional::isPresent).verify(BAD_REQUEST_ERROR,
@@ -75,9 +77,9 @@ public class GetTicketHandler implements IGetTicketHandler {
 	}
 
 	@Override
-	public List<PostFormField> getSubmitTicketFields(String ticketType, String projectName, Long systemId, ReportPortalUser user) {
-		ProjectUtils.extractProjectDetails(user, projectName);
-		Integration integration = validateExternalSystem(systemId);
+	public List<PostFormField> getSubmitTicketFields(String ticketType, Long integrationId,
+			ReportPortalUser.ProjectDetails projectDetails) {
+		Integration integration = validateExternalSystem(integrationId);
 
 		Optional<BtsExtension> btsExtension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class);
 		expect(btsExtension, Optional::isPresent).verify(BAD_REQUEST_ERROR,
@@ -88,9 +90,8 @@ public class GetTicketHandler implements IGetTicketHandler {
 	}
 
 	@Override
-	public List<String> getAllowableIssueTypes(String projectName, Long systemId, ReportPortalUser user) {
-		ProjectUtils.extractProjectDetails(user, projectName);
-		Integration integration = validateExternalSystem(systemId);
+	public List<String> getAllowableIssueTypes(Long integrationId, ReportPortalUser.ProjectDetails projectDetails) {
+		Integration integration = validateExternalSystem(integrationId);
 		Optional<BtsExtension> btsExtension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class);
 		expect(btsExtension, Optional::isPresent).verify(BAD_REQUEST_ERROR,
 				"BugTracking plugin for {} isn't installed",

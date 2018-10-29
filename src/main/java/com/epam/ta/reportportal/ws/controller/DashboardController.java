@@ -20,6 +20,8 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.dashboard.ICreateDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.IGetDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.IUpdateDashboardHandler;
+import com.epam.ta.reportportal.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.ws.converter.converters.DashboardConverter;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
@@ -28,6 +30,8 @@ import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 import io.swagger.annotations.ApiOperation;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -77,7 +81,9 @@ public class DashboardController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get all dashboard resources for specified project")
 	public Iterable<DashboardResource> getAllDashboards(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return getDashboardHandler.getAllDashboards(extractProjectDetails(user, projectName), user);
+		List<Dashboard> allDashboards = getDashboardHandler
+			.getAllDashboards(extractProjectDetails(user, projectName), user);
+		return allDashboards.stream().map(DashboardConverter.TO_RESOURCE).collect(Collectors.toList());
 	}
 
 	@Transactional
@@ -95,7 +101,7 @@ public class DashboardController {
 	@ApiOperation("Remove widget from specified dashboard")
 	public OperationCompletionRS removeWidget(@PathVariable String projectName, @PathVariable Long dashboardId, @PathVariable Long widgetId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateDashboardHandler.removeWidget(widgetId, dashboardId, extractProjectDetails(user, projectName));
+		return updateDashboardHandler.removeWidget(widgetId, dashboardId, extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional
@@ -113,7 +119,9 @@ public class DashboardController {
 	@ApiOperation("Get specified dashboard by ID for specified project")
 	public DashboardResource getDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getDashboardHandler.getDashboard(dashboardId, extractProjectDetails(user, projectName), user);
+		Dashboard dashboard = getDashboardHandler
+			.getDashboard(dashboardId, extractProjectDetails(user, projectName), user);
+		return DashboardConverter.TO_RESOURCE.apply(dashboard);
 	}
 
 	@GetMapping(value = "/shared")

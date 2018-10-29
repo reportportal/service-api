@@ -14,7 +14,6 @@ public class PluginConfiguration {
 	@Autowired
 	private AutowireCapableBeanFactory context;
 
-	@Autowired
 	@Value("${rp.plugins.path}")
 	private String pluginsPath;
 

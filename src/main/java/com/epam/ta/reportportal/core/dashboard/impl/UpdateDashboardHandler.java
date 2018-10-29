@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.core.dashboard.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails;
+import com.epam.ta.reportportal.core.dashboard.IGetDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.IUpdateDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardUpdatedEvent;
@@ -52,9 +54,13 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 
 	private MessageBus messageBus;
 
+	private IGetDashboardHandler getDashboardHandler;
+
 	@Autowired
-	public void setDashboardRepository(DashboardRepository dashboardRepository) {
+	public void setDashboardRepository(DashboardRepository dashboardRepository,
+		IGetDashboardHandler getDashboardHandler) {
 		this.dashboardRepository = dashboardRepository;
+		this.getDashboardHandler = getDashboardHandler;
 	}
 
 	@Autowired
@@ -71,8 +77,8 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 	public OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails, UpdateDashboardRQ rq, Long dashboardId,
 			ReportPortalUser user) {
 
-		Dashboard dashboard = dashboardRepository.findById(dashboardId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND));
+		Dashboard dashboard = getDashboardHandler.getDashboard(dashboardId, projectDetails, user);
+
 		Dashboard before = SerializationUtils.clone(dashboard);
 
 		dashboard = new DashboardBuilder(dashboard).addUpdateRq(rq).get();
@@ -86,8 +92,7 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 	public OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq,
 			ReportPortalUser user) {
 
-		Dashboard dashboard = dashboardRepository.findById(dashboardId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND));
+		Dashboard dashboard = getDashboardHandler.getDashboard(dashboardId, projectDetails, user);
 
 		Widget widget = widgetRepository.findById(rq.getObjectModel().getWidgetId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND));
@@ -103,10 +108,9 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 	}
 
 	@Override
-	public OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, ReportPortalUser.ProjectDetails projectDetails) {
+	public OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, ProjectDetails projectDetails, ReportPortalUser user) {
 
-		Dashboard dashboard = dashboardRepository.findById(dashboardId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND));
+		Dashboard dashboard = getDashboardHandler.getDashboard(dashboardId, projectDetails, user);
 
 		Widget widget = widgetRepository.findById(widgetId).orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND));
 

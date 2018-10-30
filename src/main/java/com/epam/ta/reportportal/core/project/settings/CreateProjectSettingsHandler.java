@@ -23,7 +23,7 @@ import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public interface ICreateProjectSettingsHandler {
+public interface CreateProjectSettingsHandler {
 
 	/**
 	 * Create issue sub-type for specified project

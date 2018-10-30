@@ -18,10 +18,10 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
-import com.epam.ta.reportportal.core.project.settings.ICreateProjectSettingsHandler;
-import com.epam.ta.reportportal.core.project.settings.IDeleteProjectSettingsHandler;
-import com.epam.ta.reportportal.core.project.settings.IGetProjectSettingsHandler;
-import com.epam.ta.reportportal.core.project.settings.IUpdateProjectSettingsHandler;
+import com.epam.ta.reportportal.core.project.settings.CreateProjectSettingsHandler;
+import com.epam.ta.reportportal.core.project.settings.DeleteProjectSettingsHandler;
+import com.epam.ta.reportportal.core.project.settings.GetProjectSettingsHandler;
+import com.epam.ta.reportportal.core.project.settings.UpdateProjectSettingsHandler;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
@@ -31,7 +31,6 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,22 +46,22 @@ import static org.springframework.http.HttpStatus.OK;
  *
  * @author Andrei_Ramanchuk
  */
-@Controller
+@RestController
 @RequestMapping("/{projectName}/settings")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class ProjectSettingsController {
 
-	private final ICreateProjectSettingsHandler createHandler;
+	private final CreateProjectSettingsHandler createHandler;
 
-	private final IUpdateProjectSettingsHandler updateHandler;
+	private final UpdateProjectSettingsHandler updateHandler;
 
-	private final IDeleteProjectSettingsHandler deleteHandler;
+	private final DeleteProjectSettingsHandler deleteHandler;
 
-	private final IGetProjectSettingsHandler getHandler;
+	private final GetProjectSettingsHandler getHandler;
 
 	@Autowired
-	public ProjectSettingsController(ICreateProjectSettingsHandler createHandler, IUpdateProjectSettingsHandler updateHandler,
-			IDeleteProjectSettingsHandler deleteHandler, IGetProjectSettingsHandler getHandler) {
+	public ProjectSettingsController(CreateProjectSettingsHandler createHandler, UpdateProjectSettingsHandler updateHandler,
+			DeleteProjectSettingsHandler deleteHandler, GetProjectSettingsHandler getHandler) {
 		this.createHandler = createHandler;
 		this.updateHandler = updateHandler;
 		this.deleteHandler = deleteHandler;
@@ -70,7 +69,6 @@ public class ProjectSettingsController {
 	}
 
 	@PostMapping("/sub-type")
-	@ResponseBody
 	@ResponseStatus(CREATED)
 	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Creation of custom project specific issue sub-type")
@@ -80,7 +78,6 @@ public class ProjectSettingsController {
 	}
 
 	@PutMapping("/sub-type")
-	@ResponseBody
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Update of custom project specific issue sub-type")
@@ -90,7 +87,6 @@ public class ProjectSettingsController {
 	}
 
 	@DeleteMapping("/sub-type/{id}")
-	@ResponseBody
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Delete custom project specific issue sub-type")
@@ -100,7 +96,6 @@ public class ProjectSettingsController {
 	}
 
 	@GetMapping
-	@ResponseBody
 	@ResponseStatus(OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation(value = "Get project specific issue sub-types", notes = "Only for users that are assigned to the project")

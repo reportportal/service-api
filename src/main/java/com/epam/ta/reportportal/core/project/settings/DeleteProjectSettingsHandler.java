@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public interface IDeleteProjectSettingsHandler {
+public interface DeleteProjectSettingsHandler {
 
 	/**
 	 * Remove specified issue sub-type for specified project

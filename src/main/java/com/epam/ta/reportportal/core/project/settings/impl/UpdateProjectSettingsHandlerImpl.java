@@ -19,11 +19,12 @@ package com.epam.ta.reportportal.core.project.settings.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeUpdatedEvent;
-import com.epam.ta.reportportal.core.project.settings.IUpdateProjectSettingsHandler;
+import com.epam.ta.reportportal.core.project.settings.UpdateProjectSettingsHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
@@ -34,10 +35,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.in;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.*;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
@@ -46,30 +48,36 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
  */
 @Service
 @Transactional
-public class UpdateProjectSettingsHandler implements IUpdateProjectSettingsHandler {
+public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHandler {
 
 	private ProjectRepository projectRepository;
 
 	private MessageBus messageBus;
 
 	@Autowired
-	public UpdateProjectSettingsHandler(ProjectRepository projectRepository, MessageBus messageBus) {
+	public UpdateProjectSettingsHandlerImpl(ProjectRepository projectRepository, MessageBus messageBus) {
 		this.projectRepository = projectRepository;
 		this.messageBus = messageBus;
 	}
 
 	@Override
 	public OperationCompletionRS updateProjectIssueSubType(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			UpdateIssueSubTypeRQ rq) {
-		expect(rq.getIds().size() > 0, equalTo(true)).verify(FORBIDDEN_OPERATION, "Please specify at least one item data for update.");
+			UpdateIssueSubTypeRQ updateIssueSubTypeRQ) {
+		expect(updateIssueSubTypeRQ.getIds().size() > 0, equalTo(true)).verify(FORBIDDEN_OPERATION,
+				"Please specify at least one item data for update."
+		);
 
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
-		rq.getIds().forEach(r -> validateAndUpdate(r, project.getIssueTypes()));
+		updateIssueSubTypeRQ.getIds()
+				.forEach(subTypeRQ -> validateAndUpdate(subTypeRQ,
+						project.getProjectIssueTypes().stream().map(ProjectIssueType::getIssueType).collect(Collectors.toList())
+				));
 
 		projectRepository.save(project);
-		rq.getIds().forEach(one -> messageBus.publishActivity(new DefectTypeUpdatedEvent(project.getId(), user.getUserId(), one)));
+		updateIssueSubTypeRQ.getIds()
+				.forEach(one -> messageBus.publishActivity(new DefectTypeUpdatedEvent(project.getId(), user.getUserId(), one)));
 		return new OperationCompletionRS("Issue sub-type(s) was updated successfully.");
 	}
 
@@ -88,14 +96,13 @@ public class UpdateProjectSettingsHandler implements IUpdateProjectSettingsHandl
 				"You cannot change sub-type references to global type."
 		);
 
-		if (Sets.newHashSet(AUTOMATION_BUG.getLocator(),
+		expect(exist.getLocator(), in(Sets.newHashSet(
+				AUTOMATION_BUG.getLocator(),
 				PRODUCT_BUG.getLocator(),
 				SYSTEM_ISSUE.getLocator(),
 				NO_DEFECT.getLocator(),
 				TO_INVESTIGATE.getLocator()
-		).contains(exist.getLocator())) {
-			fail().withError(FORBIDDEN_OPERATION, "You cannot edit predefined global issue types.");
-		}
+		))).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
 
 		exist.setLongName(one.getLongName());
 		exist.setShortName(one.getShortName());

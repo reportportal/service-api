@@ -26,7 +26,7 @@ import com.epam.ta.reportportal.entity.bts.BugTrackingSystemAuthFactory;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.ProjectUtils;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemFieldsConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -73,7 +73,7 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 
 	@Override
 	public OperationCompletionRS updateExternalSystem(UpdateExternalSystemRQ request, String projectName, Long id, ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
+		ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, projectName);
 		Integration bugTrackingSystem = integrationRepository.findById(id)
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, id));
 

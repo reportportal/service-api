@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.rabbit;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.core.log.impl.CreateLogHandler;
-import com.epam.ta.reportportal.util.ProjectUtils;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -41,7 +41,7 @@ public class LogReporterConsumer {
 	public void onLogCreate(@Payload SaveLogRQ rq, @Header(MessageHeaders.USERNAME) String username,
 			@Header(MessageHeaders.PROJECT_NAME) String projectName) {
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
-		createLogHandler.createLog(rq, null, ProjectUtils.extractProjectDetails(user, projectName));
+		createLogHandler.createLog(rq, null, ProjectExtractor.extractProjectDetails(user, projectName));
 	}
 
 }

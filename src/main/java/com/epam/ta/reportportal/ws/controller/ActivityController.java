@@ -23,7 +23,7 @@ import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.activity.IActivityHandler;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.util.ProjectUtils;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
@@ -63,7 +63,7 @@ public class ActivityController {
 	@ApiOperation("Get activities for project")
 	public Page<ActivityResource> getActivities(@PathVariable String projectName, @FilterFor(Activity.class) Filter filter,
 			@SortFor(Activity.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, EntityUtils.normalizeId(projectName));
+		ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectName));
 		return activityHandler.getItemActivities(projectDetails, filter, pageable);
 	}
 
@@ -73,7 +73,7 @@ public class ActivityController {
 	@ApiIgnore
 	public ActivityResource getActivity(@PathVariable String projectName, @PathVariable Long activityId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, EntityUtils.normalizeId(projectName));
+		ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectName));
 		return activityHandler.getActivity(projectDetails, activityId);
 	}
 
@@ -83,7 +83,7 @@ public class ActivityController {
 	@ApiOperation("Get activities for test item")
 	public Iterable<ActivityResource> getTestItemActivities(@PathVariable String projectName, @PathVariable Long itemId,
 			@FilterFor(Activity.class) Filter filter, @SortFor(Activity.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, EntityUtils.normalizeId(projectName));
+		ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectName));
 		return activityHandler.getItemActivities(projectDetails, itemId, filter, pageable);
 	}
 }

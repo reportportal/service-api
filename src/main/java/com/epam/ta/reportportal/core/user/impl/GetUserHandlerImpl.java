@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
@@ -48,9 +47,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EXPIRED;
-import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_LOGIN;
+import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_PROJECT_ID;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
 /**
@@ -86,20 +84,21 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
 	@Override
 	public UserResource getUser(ReportPortalUser loggedInUser) {
-		//todo check for lower case if necessary
-		User user = userRepository.findByLogin(loggedInUser.getUsername()/*.toLowerCase()*/)
+		User user = userRepository.findByLogin(loggedInUser.getUsername())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND));
 		return UserConverter.TO_RESOURCE.apply(user);
 	}
 
 	@Override
-	public Iterable<UserResource> getUsers(Filter filter, Pageable pageable, String projectName) {
+	public Iterable<UserResource> getUsers(Filter filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails) {
 		// Active users only
 		filter.withCondition(new FilterCondition(Condition.EQUALS, false, "false", CRITERIA_EXPIRED));
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND));
-		String criteria = project.getUsers().stream().map(ProjectUser::getUser).map(User::getLogin).collect(joining(","));
-		filter.withCondition(new FilterCondition(Condition.IN, true, criteria, CRITERIA_LOGIN));
+		filter.withCondition(new FilterCondition(Condition.EQUALS,
+				false,
+				String.valueOf(projectDetails.getProjectId()),
+				CRITERIA_PROJECT_ID
+		));
+
 		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE)
 				.apply(userRepository.findByFilterExcluding(filter, pageable, "email"));
 	}
@@ -136,8 +135,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
 	public Map<String, UserResource.AssignedProject> getUserProjects(String userName) {
 		return projectRepository.findUserProjects(userName).stream().collect(toMap(Project::getName, it -> {
 			UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-			Map<String, String> config = ProjectUtils.getConfigParameters(it.getProjectAttributes());
-			assignedProject.setEntryType(config.get(ProjectAttributeEnum.ENTRY_TYPE.getAttribute()));
+			assignedProject.setEntryType(it.getProjectType().name());
 			ProjectUser projectUser = ProjectUtils.findUserConfigByLogin(it, userName);
 
 			ofNullable(ofNullable(projectUser).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userName))

@@ -14,24 +14,32 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.project.settings;
+package com.epam.ta.reportportal.core.project;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
 
 /**
- * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
+ * Delete {@link com.epam.ta.reportportal.entity.project.Project} request handler
+ *
+ * @author Hanna_Sukhadolava
  */
-public interface IUpdateProjectSettingsHandler {
+public interface DeleteProjectHandler {
 
 	/**
-	 * Update issue sub-type for specified project
+	 * Delete specified project
 	 *
-	 * @param projectDetails
-	 * @param rq
-	 * @return OperationCompletionRS
+	 * @param projectName Project name
+	 * @return Result of operation
+	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS updateProjectIssueSubType(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			UpdateIssueSubTypeRQ rq);
+	OperationCompletionRS deleteProject(String projectName);
+
+	/**
+	 * Delete project index
+	 *
+	 * @param projectName Project name
+	 * @param username    User name
+	 */
+	OperationCompletionRS deleteProjectIndex(String projectName, String username);
 }

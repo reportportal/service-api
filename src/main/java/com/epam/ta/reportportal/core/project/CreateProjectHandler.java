@@ -14,25 +14,26 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.project.settings;
+package com.epam.ta.reportportal.core.project;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
+import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
 
 /**
- * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
+ * Create {@link Project} request handler
+ *
+ * @author Hanna_Sukhadolava
  */
-public interface ICreateProjectSettingsHandler {
+public interface CreateProjectHandler {
 
 	/**
-	 * Create issue sub-type for specified project
+	 * Create new project
 	 *
-	 * @param projectDetails
-	 * @param user
-	 * @param rq
-	 * @return EntryCreatedRS
+	 * @param createProjectRQ Request Data
+	 * @param user            ReportPortal User
+	 * @return Response data
 	 */
-	EntryCreatedRS createProjectIssueSubType(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			CreateIssueSubTypeRQ rq);
+	EntryCreatedRS createProject(CreateProjectRQ createProjectRQ, ReportPortalUser user);
 }

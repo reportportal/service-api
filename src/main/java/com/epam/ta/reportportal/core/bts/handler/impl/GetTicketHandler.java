@@ -23,7 +23,7 @@ import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.ProjectUtils;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 import org.apache.commons.collections.CollectionUtils;
@@ -58,7 +58,7 @@ public class GetTicketHandler implements IGetTicketHandler {
 
 	@Override
 	public Ticket getTicket(String ticketId, String projectName, Long systemId, ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
+		ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, projectName);
 		List<Integration> integrations = integrationRepository.findAllByProjectId(projectDetails.getProjectId());
 		expect(integrations, not(CollectionUtils::isEmpty)).verify(PROJECT_NOT_CONFIGURED, projectName);
 		Integration integration = integrations.stream()
@@ -76,7 +76,7 @@ public class GetTicketHandler implements IGetTicketHandler {
 
 	@Override
 	public List<PostFormField> getSubmitTicketFields(String ticketType, String projectName, Long systemId, ReportPortalUser user) {
-		ProjectUtils.extractProjectDetails(user, projectName);
+		ProjectExtractor.extractProjectDetails(user, projectName);
 		Integration integration = validateExternalSystem(systemId);
 
 		Optional<BtsExtension> btsExtension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class);
@@ -89,7 +89,7 @@ public class GetTicketHandler implements IGetTicketHandler {
 
 	@Override
 	public List<String> getAllowableIssueTypes(String projectName, Long systemId, ReportPortalUser user) {
-		ProjectUtils.extractProjectDetails(user, projectName);
+		ProjectExtractor.extractProjectDetails(user, projectName);
 		Integration integration = validateExternalSystem(systemId);
 		Optional<BtsExtension> btsExtension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class);
 		expect(btsExtension, Optional::isPresent).verify(BAD_REQUEST_ERROR,

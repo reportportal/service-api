@@ -58,7 +58,7 @@ public interface IUpdateDashboardHandler {
 	 * @param dashboardId    Dashboard id
 	 * @param projectDetails Project details
 	 * @param user
-     * @return OperationCompletionRS
+	 * @return OperationCompletionRS
 	 */
 	OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, ProjectDetails projectDetails, ReportPortalUser user);
 

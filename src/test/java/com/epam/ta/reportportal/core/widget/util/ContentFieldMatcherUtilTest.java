@@ -23,7 +23,6 @@ public class ContentFieldMatcherUtilTest {
 
 		boolean match = ContentFieldMatcherUtil.match(DEFECTS_REGEX, buildCorrectDefectContentFields());
 
-
 		Assert.assertTrue(match);
 	}
 

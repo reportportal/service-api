@@ -56,13 +56,15 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 
 	protected final LaunchRepository launchRepository;
 
-	public AbstractLaunchMergeStrategy(TestItemRepository testItemRepository, TestItemUniqueIdGenerator identifierGenerator, LaunchRepository launchRepository) {
+	public AbstractLaunchMergeStrategy(TestItemRepository testItemRepository, TestItemUniqueIdGenerator identifierGenerator,
+			LaunchRepository launchRepository) {
 		this.testItemRepository = testItemRepository;
 		this.identifierGenerator = identifierGenerator;
 		this.launchRepository = launchRepository;
 	}
 
-	protected Launch createNewLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, MergeLaunchesRQ rq, List<Launch> launchesList) {
+	protected Launch createNewLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, MergeLaunchesRQ rq,
+			List<Launch> launchesList) {
 		Launch newLaunch = createResultedLaunch(projectDetails.getProjectId(), user.getUserId(), rq, launchesList);
 		boolean isNameChanged = !newLaunch.getName().equals(launchesList.get(0).getName());
 		updateChildrenOfLaunches(newLaunch, rq.getLaunches(), rq.isExtendSuitesDescription(), isNameChanged);

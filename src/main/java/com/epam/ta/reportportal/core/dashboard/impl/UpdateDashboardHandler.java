@@ -57,8 +57,7 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 	private IGetDashboardHandler getDashboardHandler;
 
 	@Autowired
-	public void setDashboardRepository(DashboardRepository dashboardRepository,
-		IGetDashboardHandler getDashboardHandler) {
+	public void setDashboardRepository(DashboardRepository dashboardRepository, IGetDashboardHandler getDashboardHandler) {
 		this.dashboardRepository = dashboardRepository;
 		this.getDashboardHandler = getDashboardHandler;
 	}

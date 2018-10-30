@@ -91,7 +91,7 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 		Set<ProjectAttribute> projectAttributes = ProjectUtils.defaultProjectAttributes(project,
 				attributeRepository.getDefaultProjectAttributes()
 		);
-		
+
 		project.setProjectType(projectType);
 
 		project.setProjectAttributes(projectAttributes);

@@ -78,8 +78,7 @@ public final class ProjectConverter {
 
 		Map<String, List<IssueSubTypeResource>> subTypes = project.getProjectIssueTypes()
 				.stream()
-				.map(ProjectIssueType::getIssueType)
-				.collect(Collectors.groupingBy(
+				.map(ProjectIssueType::getIssueType).collect(Collectors.groupingBy(
 						it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
 						Collectors.mapping(ProjectConverter.TO_SUBTYPE_RESOURCE, Collectors.toList())
 				));
@@ -101,7 +100,9 @@ public final class ProjectConverter {
 		projectConfiguration.setEmailConfig(projectEmailConfigDTO);
 
 		projectConfiguration.setProjectAttributes(attributes);
-		projectConfiguration.setEmailConfig(EmailConfigConverter.TO_RESOURCE.apply(project.getProjectAttributes(), project.getEmailCases()));
+		projectConfiguration.setEmailConfig(EmailConfigConverter.TO_RESOURCE.apply(project.getProjectAttributes(),
+				project.getEmailCases()
+		));
 		projectResource.setConfiguration(projectConfiguration);
 		return projectResource;
 	};

@@ -102,7 +102,7 @@ public class ProjectSettingsController {
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Delete custom project specific issue sub-type")
-	public OperationCompletionRS deleteProjectIssueSubType(@PathVariable String projectName, @PathVariable String id,
+	public OperationCompletionRS deleteProjectIssueSubType(@PathVariable String projectName, @PathVariable Long id,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return deleteHandler.deleteProjectIssueSubType(
 				ProjectUtils.extractProjectDetails(user, EntityUtils.normalizeId(projectName)),

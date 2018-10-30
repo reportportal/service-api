@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.project.settings.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.DefectTypeCreatedEvent;
 import com.epam.ta.reportportal.core.project.settings.ICreateProjectSettingsHandler;
 import com.epam.ta.reportportal.dao.IssueGroupRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -127,12 +128,16 @@ public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandl
 					widgetRepository.save(widget);
 				});
 
-		//messageBus.publishActivity(new DefectTypeCreatedEvent(subType, project.getId(), user.getUserId()));
-		return new EntryCreatedRS(project.getIssueTypes()
+		Long id = project.getIssueTypes()
 				.stream()
 				.filter(issueType -> issueType.getLocator().equalsIgnoreCase(locator))
-				.findFirst().orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, locator))
-				.getId());
+				.findFirst()
+				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, locator))
+				.getId();
+		subType.setId(id);
+
+		messageBus.publishActivity(new DefectTypeCreatedEvent(subType, project.getId(), user.getUserId()));
+		return new EntryCreatedRS(id);
 	}
 
 	private static String shortUUID() {

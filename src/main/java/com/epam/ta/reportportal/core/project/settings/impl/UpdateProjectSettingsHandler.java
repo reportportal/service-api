@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -44,6 +45,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Service
+@Transactional
 public class UpdateProjectSettingsHandler implements IUpdateProjectSettingsHandler {
 
 	private ProjectRepository projectRepository;
@@ -73,7 +75,7 @@ public class UpdateProjectSettingsHandler implements IUpdateProjectSettingsHandl
 
 	private void validateAndUpdate(UpdateOneIssueSubTypeRQ one, List<IssueType> settings) {
 		/* Check if global issue type reference is valid */
-		TestItemIssueGroup expectedType = TestItemIssueGroup.fromValue(one.getTypeRef())
+		TestItemIssueGroup expectedGroup = TestItemIssueGroup.fromValue(one.getTypeRef())
 				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, one.getTypeRef()));
 
 		IssueType exist = settings.stream()
@@ -81,7 +83,8 @@ public class UpdateProjectSettingsHandler implements IUpdateProjectSettingsHandl
 				.findFirst()
 				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, one.getId()));
 
-		expect(exist.getIssueGroup().equals(expectedType), equalTo(true)).verify(FORBIDDEN_OPERATION,
+		expect(exist.getIssueGroup().getTestItemIssueGroup().equals(expectedGroup), equalTo(true)).verify(
+				FORBIDDEN_OPERATION,
 				"You cannot change sub-type references to global type."
 		);
 

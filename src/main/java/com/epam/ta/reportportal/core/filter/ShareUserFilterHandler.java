@@ -21,7 +21,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
 import org.springframework.data.domain.Pageable;
 
-public interface IShareUserFilterHandler {
+public interface ShareUserFilterHandler {
 
     /**
      * Share user filter to project

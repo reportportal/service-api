@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.widget.ICreateWidgetHandler;
 import com.epam.ta.reportportal.core.widget.IGetWidgetHandler;
-import com.epam.ta.reportportal.core.widget.IShareWidgetHandler;
+import com.epam.ta.reportportal.core.widget.ShareWidgetHandler;
 import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -58,7 +58,7 @@ public class WidgetController {
 	private final IUpdateWidgetHandler updateWidgetHandler;
 	private final IGetWidgetHandler getWidgetHandler;
 	@Autowired
-	private IShareWidgetHandler shareWidgetHandler;
+	private ShareWidgetHandler shareWidgetHandler;
 
 	@Autowired
 	public WidgetController(ICreateWidgetHandler createWidgetHandler, IUpdateWidgetHandler updateWidgetHandler,

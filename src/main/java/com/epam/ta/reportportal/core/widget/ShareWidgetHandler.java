@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.widget;
 
 import com.epam.ta.reportportal.entity.widget.Widget;
 
-public interface IShareWidgetHandler {
+public interface ShareWidgetHandler {
 
     /**
      * Share widget to project

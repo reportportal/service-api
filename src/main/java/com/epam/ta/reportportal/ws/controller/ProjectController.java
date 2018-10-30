@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.filter.IShareUserFilterHandler;
+import com.epam.ta.reportportal.core.filter.ShareUserFilterHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -48,7 +48,7 @@ public class ProjectController {
 	private ProjectRepository projectRepository;
 
 	@Autowired
-	private IShareUserFilterHandler shareFilterHandler;
+	private ShareUserFilterHandler shareFilterHandler;
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/{projectName}")

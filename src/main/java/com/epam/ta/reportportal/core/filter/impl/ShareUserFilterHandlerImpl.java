@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.filter.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.acl.ReportPortalAclService;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.core.filter.IShareUserFilterHandler;
+import com.epam.ta.reportportal.core.filter.ShareUserFilterHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -37,7 +37,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ShareUserFilterHandlerImpl implements IShareUserFilterHandler {
+public class ShareUserFilterHandlerImpl implements ShareUserFilterHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ShareUserFilterHandlerImpl.class);
 

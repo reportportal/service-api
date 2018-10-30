@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.widget.impl;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_READ_OBJECT;
 
 import com.epam.ta.reportportal.auth.acl.ReportPortalAclService;
-import com.epam.ta.reportportal.core.widget.IShareWidgetHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -34,7 +33,7 @@ import org.springframework.stereotype.Service;
  * @author Ivan Nikitsenka
  */
 @Service
-public class ShareWidgetHandler implements IShareWidgetHandler {
+public class ShareWidgetHandler implements com.epam.ta.reportportal.core.widget.ShareWidgetHandler {
 
     @Autowired
     private WidgetRepository widgetRepository;

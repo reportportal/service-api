@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.widget.IGetWidgetHandler;
-import com.epam.ta.reportportal.core.widget.IShareWidgetHandler;
+import com.epam.ta.reportportal.core.widget.ShareWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.entity.widget.Widget;
@@ -48,7 +48,7 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 	private Map<WidgetType, LoadContentStrategy> loadContentStrategy;
 
 	@Autowired
-	private IShareWidgetHandler shareWidgetHandler;
+	private ShareWidgetHandler shareWidgetHandler;
 
 	@Autowired
 	@Qualifier("buildFilterStrategyMapping")

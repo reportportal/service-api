@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.core.dashboard.IGetDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.IUpdateDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardUpdatedEvent;
-import com.epam.ta.reportportal.core.widget.IShareWidgetHandler;
+import com.epam.ta.reportportal.core.widget.ShareWidgetHandler;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
@@ -54,7 +54,7 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 	private IGetDashboardHandler getDashboardHandler;
 
 	@Autowired
-	private IShareWidgetHandler shareWidgetHandler;
+	private ShareWidgetHandler shareWidgetHandler;
 
 	@Autowired
 	public void setDashboardRepository(DashboardRepository dashboardRepository,

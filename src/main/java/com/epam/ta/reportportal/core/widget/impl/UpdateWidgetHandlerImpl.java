@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.widget.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.WidgetUpdatedEvent;
-import com.epam.ta.reportportal.core.widget.IShareWidgetHandler;
+import com.epam.ta.reportportal.core.widget.ShareWidgetHandler;
 import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
@@ -48,7 +48,7 @@ public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
 	private MessageBus messageBus;
 
 	@Autowired
-	private IShareWidgetHandler shareWidgetHandler;
+	private ShareWidgetHandler shareWidgetHandler;
 
 	@Autowired
 	public void setWidgetRepository(WidgetRepository widgetRepository) {

@@ -37,8 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.in;
+import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.*;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -81,31 +80,29 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 		return new OperationCompletionRS("Issue sub-type(s) was updated successfully.");
 	}
 
-	private void validateAndUpdate(UpdateOneIssueSubTypeRQ one, List<IssueType> settings) {
+	private void validateAndUpdate(UpdateOneIssueSubTypeRQ issueSubTypeRQ, List<IssueType> issueTypes) {
 		/* Check if global issue type reference is valid */
-		TestItemIssueGroup expectedGroup = TestItemIssueGroup.fromValue(one.getTypeRef())
-				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, one.getTypeRef()));
+		TestItemIssueGroup expectedGroup = TestItemIssueGroup.fromValue(issueSubTypeRQ.getTypeRef())
+				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, issueSubTypeRQ.getTypeRef()));
 
-		IssueType exist = settings.stream()
-				.filter(issueType -> issueType.getLocator().equalsIgnoreCase(one.getId()))
-				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, one.getId()));
+		IssueType exist = issueTypes.stream().filter(issueType -> issueType.getLocator().equalsIgnoreCase(issueSubTypeRQ.getId()))
+				.findFirst().orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, issueSubTypeRQ.getId()));
 
 		expect(exist.getIssueGroup().getTestItemIssueGroup().equals(expectedGroup), equalTo(true)).verify(
 				FORBIDDEN_OPERATION,
 				"You cannot change sub-type references to global type."
 		);
 
-		expect(exist.getLocator(), in(Sets.newHashSet(
+		expect(exist.getLocator(), not(in(Sets.newHashSet(
 				AUTOMATION_BUG.getLocator(),
 				PRODUCT_BUG.getLocator(),
 				SYSTEM_ISSUE.getLocator(),
 				NO_DEFECT.getLocator(),
 				TO_INVESTIGATE.getLocator()
-		))).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
+		)))).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
 
-		exist.setLongName(one.getLongName());
-		exist.setShortName(one.getShortName());
-		exist.setHexColor(one.getColor());
+		exist.setLongName(issueSubTypeRQ.getLongName());
+		exist.setShortName(issueSubTypeRQ.getShortName());
+		exist.setHexColor(issueSubTypeRQ.getColor());
 	}
 }

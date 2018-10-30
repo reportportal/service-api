@@ -24,10 +24,7 @@ import com.epam.ta.reportportal.core.launch.*;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
 import com.epam.ta.reportportal.ws.model.*;
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
+import com.epam.ta.reportportal.ws.model.launch.*;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.net.HttpHeaders;
@@ -102,10 +99,16 @@ public class LaunchController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
-	public EntryCreatedRS startLaunch(@PathVariable String projectName,
+	public EntryCreatedRS startLaunch(HttpServletRequest request, @PathVariable String projectName,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return createLaunchMessageHandler.startLaunch(user, extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
+		LaunchWithLinkRS rs = createLaunchMessageHandler.startLaunch(user,
+				extractProjectDetails(user, normalizeId(projectName)),
+				startLaunchRQ
+		);
+
+		rs.setLink(generateLaunchLink(request.getHeader("host"), projectName, String.valueOf(rs.getId())));
+		return rs;
 	}
 
 	@Transactional
@@ -113,14 +116,17 @@ public class LaunchController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Finish launch for specified project")
-	public OperationCompletionRS finishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
+	public LaunchWithLinkRS finishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
 			HttpServletRequest request) {
-		return finishLaunchMessageHandler.finishLaunch(launchId,
+		LaunchWithLinkRS rs = finishLaunchMessageHandler.finishLaunch(
+				launchId,
 				finishLaunchRQ,
 				extractProjectDetails(user, normalizeId(projectName)),
 				user
 		);
+		rs.setLink(generateLaunchLink(request.getHeader("host"), projectName, String.valueOf(rs.getId())));
+		return rs;
 	}
 
 	@Transactional
@@ -308,6 +314,11 @@ public class LaunchController {
 	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return importLaunchHandler.importLaunch(extractProjectDetails(user, normalizeId(projectName)), user, "XUNIT", file);
+	}
+
+	private String generateLaunchLink(String host, String projectName, String id) {
+		StringBuilder sb = new StringBuilder("http://");
+		return sb.append(host).append("/ui/#").append(projectName).append("/launches/all/").append(id).toString();
 	}
 
 }

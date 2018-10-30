@@ -13,10 +13,6 @@ import java.util.function.Function;
  */
 public final class IntegrationConverter {
 
-	private IntegrationConverter() {
-		//static only
-	}
-
 	public static final Function<Integration, IntegrationResource> TO_INTEGRATION_RESOURCE = integration -> {
 		IntegrationResource resource = new IntegrationResource();
 		resource.setId(integration.getId());
@@ -29,7 +25,7 @@ public final class IntegrationConverter {
 		type.setId(integration.getType().getId());
 		type.setName(integration.getType().getName());
 		type.setCreationDate(EntityUtils.TO_DATE.apply(integration.getType().getCreationDate()));
-		type.setGroupType(integration.getType().getGroupType());
+		type.setGroupType(integration.getType().getIntegrationGroup().name());
 		type.setDetails(integration.getParams().getParams());
 		type.setAuthFlow(AuthFlowEnum.valueOf(integration.getType().getAuthFlow().name()));
 
@@ -37,5 +33,9 @@ public final class IntegrationConverter {
 
 		return resource;
 	};
+
+	private IntegrationConverter() {
+		//static only
+	}
 
 }

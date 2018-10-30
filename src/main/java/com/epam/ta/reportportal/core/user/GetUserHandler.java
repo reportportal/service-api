@@ -70,13 +70,14 @@ public interface GetUserHandler {
 	YesNoRS validateInfo(String username, String email);
 
 	/**
-	 * Get all users
+	 * Get all users by filter with paging
 	 *
-	 * @param filter
-	 * @param projectName
-	 * @return
+	 * @param filter         Filter
+	 * @param pageable       Paging
+	 * @param projectDetails Project details
+	 * @return Page of users
 	 */
-	Iterable<UserResource> getUsers(Filter filter, Pageable pageable, String projectName);
+	Iterable<UserResource> getUsers(Filter filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails);
 
 	Map<String, UserResource.AssignedProject> getUserProjects(String userName);
 

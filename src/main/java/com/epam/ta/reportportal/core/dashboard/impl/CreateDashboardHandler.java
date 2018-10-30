@@ -35,17 +35,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class CreateDashboardHandler implements ICreateDashboardHandler {
 
+	@Autowired
 	private DashboardRepository dashboardRepository;
+
+	@Autowired
 	private MessageBus messageBus;
 
 	@Autowired
 	private ReportPortalAclService aclService;
-
-	@Autowired
-	public CreateDashboardHandler(DashboardRepository dashboardRepository, MessageBus messageBus) {
-		this.dashboardRepository = dashboardRepository;
-		this.messageBus = messageBus;
-	}
 
 	@Override
 	public EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails, CreateDashboardRQ rq, ReportPortalUser user) {
@@ -55,5 +52,17 @@ public class CreateDashboardHandler implements ICreateDashboardHandler {
 		aclService.addReadPermissions(dashboard, user.getUsername());
 		messageBus.publishActivity(new DashboardCreatedEvent(dashboard, user.getUserId()));
 		return new EntryCreatedRS(dashboard.getId());
+	}
+
+	public DashboardRepository getDashboardRepository() {
+		return dashboardRepository;
+	}
+
+	public MessageBus getMessageBus() {
+		return messageBus;
+	}
+
+	public ReportPortalAclService getAclService() {
+		return aclService;
 	}
 }

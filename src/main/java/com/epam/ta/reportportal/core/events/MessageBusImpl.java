@@ -2,7 +2,6 @@ package com.epam.ta.reportportal.core.events;
 
 import com.epam.ta.reportportal.core.configs.RabbitMqConfiguration;
 import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.amqp.core.AsyncAmqpTemplate;
 
 public class MessageBusImpl implements MessageBus {
 
@@ -30,6 +29,10 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public void publishActivity(ActivityEvent o) {
 		this.amqpTemplate.convertAndSend(RabbitMqConfiguration.EXCHANGE_ACTIVITY, RabbitMqConfiguration.QUEUE_ACTIVITY, o);
+	}
+
+	public void temp() {
+		this.amqpTemplate.receiveAndReply()
 	}
 
 }

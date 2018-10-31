@@ -112,16 +112,6 @@ public class MvcConfig implements WebMvcConfigurer {
 	//	}
 
 	@Bean
-	public Thumbnailator thumbnailator() {
-		return new ThumbnailatorImpl();
-	}
-
-	@Bean
-	public ContentTypeResolver contentTypeResolver() {
-		return new TikaContentTypeResolver();
-	}
-
-	@Bean
 	public SortArgumentResolver sortArgumentResolver() {
 		SortHandlerMethodArgumentResolver argumentResolver = new SortHandlerMethodArgumentResolver();
 		argumentResolver.setSortParameter("page.sort");

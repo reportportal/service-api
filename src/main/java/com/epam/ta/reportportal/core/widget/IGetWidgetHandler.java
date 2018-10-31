@@ -73,11 +73,11 @@ public interface IGetWidgetHandler {
 	 * Get content for building preview while creating widget
 	 *
 	 * @param previewRQ   Widget parameters
-	 * @param projectName Project name
-	 * @param userName    Username
+	 * @param projectDetails Project name
+	 * @param user    Username
 	 * @return Widget content
 	 */
-	Map<String, ?> getWidgetPreview(String projectName, String userName, WidgetPreviewRQ previewRQ);
+	Map<String, ?> getWidgetPreview(WidgetPreviewRQ previewRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
 	 * Get list of widgets that contains search criteria

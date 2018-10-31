@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
@@ -93,7 +94,7 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
-		return null;
+		return widgetRepository.getSharedWidgetNames(userName, project.getId(), pageable);
 	}
 
 	@Override
@@ -101,7 +102,8 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
-		return null;
+		return PagedResourcesAssembler.pageConverter(WidgetConverter.TO_WIDGET_RESOURCE)
+				.apply(widgetRepository.getSharedWidgetsList(userName, project.getId(), pageable));
 	}
 
 	@Override
@@ -110,12 +112,20 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
-		return null;
+		return widgetRepository.getWidgetNames(userName, project.getId());
 	}
 
 	@Override
-	public Map<String, ?> getWidgetPreview(String projectName, String userName, WidgetPreviewRQ previewRQ) {
-		return null;
+	public Map<String, ?> getWidgetPreview(WidgetPreviewRQ previewRQ, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
+
+		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+						"Unsupported widget type {}" + widget.getWidgetType()
+				));
+
+		Map<String, ?> content = buildFilterStrategyMapping.get(widgetType)
+				.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget);
 	}
 
 	@Override
@@ -123,6 +133,7 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
-		return null;
+		return PagedResourcesAssembler.pageConverter(WidgetConverter.TO_WIDGET_RESOURCE)
+				.apply(widgetRepository.searchSharedWidgets(term, project.getId(), pageable));
 	}
 }

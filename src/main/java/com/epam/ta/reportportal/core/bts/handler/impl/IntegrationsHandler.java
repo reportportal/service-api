@@ -8,7 +8,7 @@ import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.ProjectUtils;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
@@ -53,7 +53,7 @@ public class IntegrationsHandler {
 	}
 
 	public synchronized OperationCompletionRS deleteIntegration(Long id, Long projectId, ReportPortalUser user) {
-		//		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
+		//		ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, projectName);
 
 		Integration integration = integrationRepository.findByIdAndProjectId(id, projectId)
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, id));
@@ -65,7 +65,7 @@ public class IntegrationsHandler {
 	}
 
 	public synchronized OperationCompletionRS deleteProjectIntegrations(String projectName, ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
+		ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, projectName);
 		List<Integration> btsSystems = integrationRepository.findAllByProjectId(projectDetails.getProjectId());
 		if (!CollectionUtils.isEmpty(btsSystems)) {
 			integrationRepository.deleteAll(btsSystems);
@@ -75,7 +75,7 @@ public class IntegrationsHandler {
 	}
 
 	public EntryCreatedRS createExternalSystem(CreateExternalSystemRQ createRQ, String projectName, ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
+		ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, projectName);
 
 		//		Integration externalSystemStrategy = strategyProvider.getStrategy(createRQ.getExternalSystemType());
 		//		expect(externalSystemStrategy, notNull()).verify(INTEGRATION_NOT_FOUND, createRQ.getExternalSystemType());

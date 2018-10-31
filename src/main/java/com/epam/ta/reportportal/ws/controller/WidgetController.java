@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright (C) 2018 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.widget.ICreateWidgetHandler;
 import com.epam.ta.reportportal.core.widget.IGetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
+import com.epam.ta.reportportal.core.widget.ShareWidgetHandler;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
@@ -28,6 +29,7 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +42,7 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static com.epam.ta.reportportal.util.ProjectUtils.extractProjectDetails;
+import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -55,6 +57,8 @@ public class WidgetController {
 	private final ICreateWidgetHandler createWidgetHandler;
 	private final IUpdateWidgetHandler updateWidgetHandler;
 	private final IGetWidgetHandler getWidgetHandler;
+	@Autowired
+	private ShareWidgetHandler shareWidgetHandler;
 
 	@Autowired
 	public WidgetController(ICreateWidgetHandler createWidgetHandler, IUpdateWidgetHandler updateWidgetHandler,
@@ -113,6 +117,14 @@ public class WidgetController {
 	@ApiOperation("Load shared widgets")
 	public Iterable<WidgetResource> getSharedWidgetsList(Principal principal, @PathVariable String projectName, Pageable pageable) {
 		return getWidgetHandler.getSharedWidgetsList(principal.getName(), normalizeId(projectName), pageable);
+	}
+
+	@Transactional(readOnly = true)
+	@PostMapping(value = "/shared/{widgetId}")
+	@ResponseStatus(HttpStatus.CREATED)
+	@ApiOperation("Share widget to project")
+	public void shareWidjet(@PathVariable String projectName, @PathVariable Long widgetId) {
+		shareWidgetHandler.shareWidget(projectName, widgetId);
 	}
 
 	@Transactional(readOnly = true)

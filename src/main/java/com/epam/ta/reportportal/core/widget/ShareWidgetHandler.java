@@ -20,19 +20,20 @@ import com.epam.ta.reportportal.entity.widget.Widget;
 
 public interface ShareWidgetHandler {
 
-    /**
-     * Share widget to project
-     *
-     * @param projectName
-     * @param widgetId
-     * @return list of all shared widgets for the project
-     */
-    void shareWidget(String projectName, Long widgetId);
+	/**
+	 * Share widget to project
+	 *
+	 * @param projectName
+	 * @param widgetId
+	 * @return list of all shared widgets for the project
+	 */
+	void shareWidget(String projectName, Long widgetId);
 
-    /**
-     * Find widget
-     * @param widgetId
-     * @return widget
-     */
-    Widget findById(Long widgetId);
+	/**
+	 * Find widget
+	 *
+	 * @param widgetId
+	 * @return widget
+	 */
+	Widget findById(Long widgetId);
 }

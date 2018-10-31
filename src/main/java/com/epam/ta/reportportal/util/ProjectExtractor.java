@@ -27,7 +27,7 @@ import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 /**
  * @author Pavel Bortnik
  */
-public class ProjectUtils {
+public class ProjectExtractor {
 
 	/**
 	 * Extracts project details for specified user by specified project name

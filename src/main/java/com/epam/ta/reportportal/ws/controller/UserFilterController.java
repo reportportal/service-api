@@ -64,7 +64,7 @@ public class UserFilterController {
 
 	@Autowired
 	public UserFilterController(ICreateUserFilterHandler createFilterHandler, GetUserFilterHandler getFilterHandler,
-		IDeleteUserFilterHandler deleteFilterHandler, IUpdateUserFilterHandler updateUserFilterHandler,
+			IDeleteUserFilterHandler deleteFilterHandler, IUpdateUserFilterHandler updateUserFilterHandler,
 			ShareUserFilterHandler shareFilterHandler) {
 
 		this.createFilterHandler = createFilterHandler;

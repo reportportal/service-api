@@ -25,7 +25,7 @@ import org.springframework.data.domain.Pageable;
 /**
  * @author Ihar Kahadouski
  */
-public interface IActivityHandler {
+public interface ActivityHandler {
 
 	/**
 	 * Load list of {@link com.epam.ta.reportportal.ws.model.ActivityResource}

@@ -30,8 +30,6 @@ import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 import io.swagger.annotations.ApiOperation;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,6 +39,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
@@ -81,8 +81,7 @@ public class DashboardController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get all dashboard resources for specified project")
 	public Iterable<DashboardResource> getAllDashboards(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		List<Dashboard> allDashboards = getDashboardHandler
-			.getAllDashboards(extractProjectDetails(user, projectName), user);
+		List<Dashboard> allDashboards = getDashboardHandler.getAllDashboards(extractProjectDetails(user, projectName), user);
 		return allDashboards.stream().map(DashboardConverter.TO_RESOURCE).collect(Collectors.toList());
 	}
 
@@ -119,8 +118,7 @@ public class DashboardController {
 	@ApiOperation("Get specified dashboard by ID for specified project")
 	public DashboardResource getDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		Dashboard dashboard = getDashboardHandler
-			.getDashboard(dashboardId, extractProjectDetails(user, projectName), user);
+		Dashboard dashboard = getDashboardHandler.getDashboard(dashboardId, extractProjectDetails(user, projectName), user);
 		return DashboardConverter.TO_RESOURCE.apply(dashboard);
 	}
 

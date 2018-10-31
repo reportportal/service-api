@@ -145,7 +145,8 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 			);
 
 			if (isUserValidate) {
-				expect(launch.getUser().getLogin(), equalTo(user.getUsername())).verify(ACCESS_DENIED,
+				expect(launch.getUser().getLogin(), equalTo(user.getUsername())).verify(
+						ACCESS_DENIED,
 						"You are not an owner of launches or have less than PROJECT_MANAGER project role."
 				);
 			}

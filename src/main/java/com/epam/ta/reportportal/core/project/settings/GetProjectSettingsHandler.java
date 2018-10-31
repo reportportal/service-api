@@ -16,19 +16,19 @@
 
 package com.epam.ta.reportportal.core.project.settings;
 
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
 
 /**
- * @author Andrei_Ramanchuk
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public interface IDeleteProjectSettingsHandler {
+public interface GetProjectSettingsHandler {
 
 	/**
-	 * Remove specified issue sub-type for specified project
+	 * Provide additional settings for specified project
 	 *
-	 * @param projectName
-	 * @param id
-	 * @return
+	 * @param projectDetails
+	 * @return ProjectSettingsResource
 	 */
-	OperationCompletionRS deleteProjectIssueSubType(String projectName, String user, String id);
+	ProjectSettingsResource getProjectSettings(ReportPortalUser.ProjectDetails projectDetails);
 }

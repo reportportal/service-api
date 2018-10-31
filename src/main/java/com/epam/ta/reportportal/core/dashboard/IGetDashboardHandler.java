@@ -21,9 +21,9 @@ import com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
-import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
-import java.util.List;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 /**
  * Get dashboard handler.

@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.project.config.IssueSubTypeResource;
+import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import com.google.common.base.Preconditions;
@@ -77,9 +78,7 @@ public final class ProjectConverter {
 		}).collect(Collectors.toList()));
 
 		Map<String, List<IssueSubTypeResource>> subTypes = project.getProjectIssueTypes()
-				.stream()
-				.map(ProjectIssueType::getIssueType)
-				.collect(Collectors.groupingBy(
+				.stream().map(ProjectIssueType::getIssueType).collect(Collectors.groupingBy(
 						it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
 						Collectors.mapping(ProjectConverter.TO_SUBTYPE_RESOURCE, Collectors.toList())
 				));
@@ -101,7 +100,9 @@ public final class ProjectConverter {
 		projectConfiguration.setEmailConfig(projectEmailConfigDTO);
 
 		projectConfiguration.setProjectAttributes(attributes);
-		projectConfiguration.setEmailConfig(EmailConfigConverter.TO_RESOURCE.apply(project.getProjectAttributes(), project.getEmailCases()));
+		projectConfiguration.setEmailConfig(EmailConfigConverter.TO_RESOURCE.apply(project.getProjectAttributes(),
+				project.getEmailCases()
+		));
 		projectResource.setConfiguration(projectConfiguration);
 		return projectResource;
 	};
@@ -114,6 +115,23 @@ public final class ProjectConverter {
 		issueSubTypeResource.setShortName(issueType.getShortName());
 		issueSubTypeResource.setTypeRef(issueType.getIssueGroup().getTestItemIssueGroup().getValue());
 		return issueSubTypeResource;
+	};
+
+	public static final Function<List<IssueType>, Map<String, List<IssueSubTypeResource>>> TO_PROJECT_SUB_TYPES_RESOURCE = issueTypes -> issueTypes
+			.stream()
+			.collect(Collectors.groupingBy(
+					it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
+					Collectors.mapping(TO_SUBTYPE_RESOURCE::apply, Collectors.toList())
+			));
+
+	public static final Function<Project, ProjectSettingsResource> TO_PROJECT_SETTINGS_RESOURCE = project -> {
+		ProjectSettingsResource resource = new ProjectSettingsResource();
+		resource.setProjectId(project.getId());
+		resource.setSubTypes(TO_PROJECT_SUB_TYPES_RESOURCE.apply(project.getProjectIssueTypes()
+				.stream()
+				.map(ProjectIssueType::getIssueType)
+				.collect(Collectors.toList())));
+		return resource;
 	};
 
 }

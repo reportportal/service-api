@@ -16,9 +16,12 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.commons.SendCase;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.entity.project.email.EmailSenderCase;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
 import com.google.common.base.Preconditions;
 
@@ -32,17 +35,17 @@ import java.util.stream.Collectors;
  */
 public final class EmailConfigConverters {
 
-	private EmailConfigConverters() {
-		//static only
-	}
+    private EmailConfigConverters() {
+        //static only
+    }
 
-	public final static Function<EmailSenderCase, EmailSenderCaseDTO> TO_CASE_RESOURCE = model -> {
-		Preconditions.checkNotNull(model);
-		EmailSenderCaseDTO resource = new EmailSenderCaseDTO();
-		resource.setLaunchNames(model.getLaunches().stream().map(Launch::getName).collect(Collectors.toList()));
-		resource.setTags(model.getTags().stream().map(LaunchTag::getValue).collect(Collectors.toList()));
-		resource.setSendCase(model.getSendCase().getCaseString());
-		resource.setRecipients(model.getRecipients());
-		return resource;
-	};
+    public final static Function<EmailSenderCase, EmailSenderCaseDTO> TO_CASE_RESOURCE = model -> {
+        Preconditions.checkNotNull(model);
+        EmailSenderCaseDTO resource = new EmailSenderCaseDTO();
+        resource.setLaunchNames(model.getLaunches().stream().map(Launch::getName).collect(Collectors.toList()));
+        resource.setTags(model.getTags().stream().map(LaunchTag::getValue).collect(Collectors.toList()));
+        resource.setSendCase(model.getSendCase().getCaseString());
+        resource.setRecipients(model.getRecipients());
+        return resource;
+    };
 }

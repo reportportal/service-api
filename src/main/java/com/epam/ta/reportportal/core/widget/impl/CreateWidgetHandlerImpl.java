@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.auth.acl.ReportPortalAclService;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.WidgetCreatedEvent;
 import com.epam.ta.reportportal.core.widget.ICreateWidgetHandler;
@@ -44,6 +45,9 @@ public class CreateWidgetHandlerImpl implements ICreateWidgetHandler {
 	private UserFilterRepository filterRepository;
 
 	private MessageBus messageBus;
+
+	@Autowired
+	private ReportPortalAclService aclService;
 
 	@Autowired
 	public void setWidgetRepository(WidgetRepository widgetRepository) {
@@ -75,6 +79,8 @@ public class CreateWidgetHandlerImpl implements ICreateWidgetHandler {
 				.addFilters(userFilter)
 				.get();
 		widgetRepository.save(widget);
+		aclService.createAcl(widget);
+		aclService.addReadPermissions(widget, user.getUsername());
 		messageBus.publishActivity(new WidgetCreatedEvent(widget, user.getUserId()));
 		return new EntryCreatedRS(widget.getId());
 	}

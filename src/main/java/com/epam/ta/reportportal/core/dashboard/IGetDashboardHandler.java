@@ -17,10 +17,13 @@
 package com.epam.ta.reportportal.core.dashboard;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails;
+import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
-import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 /**
  * Get dashboard handler.
@@ -35,19 +38,19 @@ public interface IGetDashboardHandler {
 	 * @param dashboardId    Dashboard id
 	 * @param projectDetails Project details
 	 * @param user           User
-	 * @return {@link DashboardResource}
+	 * @return dashboard
 	 */
-	DashboardResource getDashboard(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	Dashboard getDashboard(Long dashboardId, ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
 	 * Get all dashboards.
 	 *
 	 * @param projectDetails Project details
 	 * @param user           User
-	 * @return {@link Iterable}
+	 * @return dashboards
 	 * @throws ReportPortalException
 	 */
-	Iterable<DashboardResource> getAllDashboards(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	List<Dashboard> getAllDashboards(ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
 	 * Get dashboards names shared for current project.

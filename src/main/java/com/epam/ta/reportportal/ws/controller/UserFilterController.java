@@ -18,11 +18,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
-import com.epam.ta.reportportal.core.filter.IDeleteUserFilterHandler;
-import com.epam.ta.reportportal.core.filter.IGetUserFilterHandler;
-import com.epam.ta.reportportal.core.filter.IShareUserFilterHandler;
-import com.epam.ta.reportportal.core.filter.IUpdateUserFilterHandler;
+import com.epam.ta.reportportal.core.filter.*;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
@@ -36,7 +32,6 @@ import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -47,9 +42,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.util.ProjectUtils.extractProjectDetails;
+import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 
 /**
  * @author Pavel Bortnik
@@ -61,18 +57,15 @@ import static com.epam.ta.reportportal.util.ProjectUtils.extractProjectDetails;
 public class UserFilterController {
 
 	private final ICreateUserFilterHandler createFilterHandler;
-	private final IGetUserFilterHandler getFilterHandler;
+	private final GetUserFilterHandler getFilterHandler;
 	private final IDeleteUserFilterHandler deleteFilterHandler;
 	private final IUpdateUserFilterHandler updateUserFilterHandler;
-	private IShareUserFilterHandler shareFilterHandler;
+	private ShareUserFilterHandler shareFilterHandler;
 
 	@Autowired
-	public UserFilterController(
-		ICreateUserFilterHandler createFilterHandler,
-		IGetUserFilterHandler getFilterHandler,
-		IDeleteUserFilterHandler deleteFilterHandler,
-		IUpdateUserFilterHandler updateUserFilterHandler,
-		IShareUserFilterHandler shareFilterHandler) {
+	public UserFilterController(ICreateUserFilterHandler createFilterHandler, GetUserFilterHandler getFilterHandler,
+			IDeleteUserFilterHandler deleteFilterHandler, IUpdateUserFilterHandler updateUserFilterHandler,
+			ShareUserFilterHandler shareFilterHandler) {
 
 		this.createFilterHandler = createFilterHandler;
 		this.getFilterHandler = getFilterHandler;

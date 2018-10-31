@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.dashboard.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.auth.acl.ReportPortalAclService;
 import com.epam.ta.reportportal.core.dashboard.ICreateDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardCreatedEvent;
@@ -38,6 +39,9 @@ public class CreateDashboardHandler implements ICreateDashboardHandler {
 	private MessageBus messageBus;
 
 	@Autowired
+	private ReportPortalAclService aclService;
+
+	@Autowired
 	public CreateDashboardHandler(DashboardRepository dashboardRepository, MessageBus messageBus) {
 		this.dashboardRepository = dashboardRepository;
 		this.messageBus = messageBus;
@@ -47,6 +51,8 @@ public class CreateDashboardHandler implements ICreateDashboardHandler {
 	public EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails, CreateDashboardRQ rq, ReportPortalUser user) {
 		Dashboard dashboard = new DashboardBuilder().addDashboardRq(rq).addProject(projectDetails.getProjectId()).get();
 		dashboardRepository.save(dashboard);
+		aclService.createAcl(dashboard);
+		aclService.addReadPermissions(dashboard, user.getUsername());
 		messageBus.publishActivity(new DashboardCreatedEvent(dashboard, user.getUserId()));
 		return new EntryCreatedRS(dashboard.getId());
 	}

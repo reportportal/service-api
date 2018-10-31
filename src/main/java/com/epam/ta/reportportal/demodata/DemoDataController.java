@@ -24,7 +24,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
-import static com.epam.ta.reportportal.util.ProjectUtils.extractProjectDetails;
+import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 
 /**
  * @author Ihar Kahadouski

@@ -13,10 +13,6 @@ import java.util.function.Function;
  */
 public final class IntegrationConverter {
 
-	private IntegrationConverter() {
-		//static only
-	}
-
 	public static final Function<Integration, IntegrationResource> TO_INTEGRATION_RESOURCE = integration -> {
 		IntegrationResource resource = new IntegrationResource();
 		resource.setId(integration.getId());
@@ -37,5 +33,9 @@ public final class IntegrationConverter {
 
 		return resource;
 	};
+
+	private IntegrationConverter() {
+		//static only
+	}
 
 }

@@ -31,10 +31,6 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.reportportal.commons.ContentTypeResolver;
-import com.epam.reportportal.commons.Thumbnailator;
-import com.epam.reportportal.commons.ThumbnailatorImpl;
-import com.epam.reportportal.commons.TikaContentTypeResolver;
 import com.epam.ta.reportportal.commons.ExceptionMappings;
 import com.epam.ta.reportportal.commons.exception.forwarding.ClientResponseForwardingExceptionHandler;
 import com.epam.ta.reportportal.commons.exception.rest.DefaultErrorResolver;
@@ -54,6 +50,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.web.SortArgumentResolver;
 import org.springframework.data.web.SortHandlerMethodArgumentResolver;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -62,6 +59,7 @@ import org.springframework.validation.beanvalidation.BeanValidationPostProcessor
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.multipart.support.MultipartFilter;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
@@ -108,16 +106,6 @@ public class MvcConfig implements WebMvcConfigurer {
 	//		registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
 	//
 	//	}
-
-	@Bean
-	public Thumbnailator thumbnailator() {
-		return new ThumbnailatorImpl();
-	}
-
-	@Bean
-	public ContentTypeResolver contentTypeResolver() {
-		return new TikaContentTypeResolver();
-	}
 
 	@Bean
 	public SortArgumentResolver sortArgumentResolver() {
@@ -193,7 +181,14 @@ public class MvcConfig implements WebMvcConfigurer {
 		return new HttpMessageConverters(converters);
 	}
 
+	@Bean
+	@Order(0)
+	public MultipartFilter multipartFilter() {
+		return new MultipartFilter();
+	}
+
 	@Bean(name = DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME)
+	@Order(1)
 	public CommonsMultipartResolver multipartResolver(MultipartConfig multipartConfig) {
 		CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver() {
 			@Override

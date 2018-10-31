@@ -44,6 +44,7 @@ public class BugTrackingSystemBuilder implements Supplier<Integration> {
 
 	public BugTrackingSystemBuilder(Integration bugTrackingSystem) {
 		this.bugTrackingSystem = bugTrackingSystem;
+		this.parameters = null != bugTrackingSystem.getParams() ? bugTrackingSystem.getParams() : new IntegrationParams(new HashMap<>());
 	}
 
 	public BugTrackingSystemBuilder addUrl(String url) {

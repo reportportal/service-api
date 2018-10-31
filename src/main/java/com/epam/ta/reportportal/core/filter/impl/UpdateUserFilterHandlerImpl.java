@@ -3,14 +3,12 @@ package com.epam.ta.reportportal.core.filter.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.FilterUpdatedEvent;
-import com.epam.ta.reportportal.core.filter.IGetUserFilterHandler;
+import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.IUpdateUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
@@ -24,13 +22,14 @@ import java.util.List;
 public class UpdateUserFilterHandlerImpl implements IUpdateUserFilterHandler {
 
 	private final UserFilterRepository userFilterRepository;
-	private final IGetUserFilterHandler getFilterHandler;
+	private final GetUserFilterHandler getFilterHandler;
 
 
 	private final MessageBus messageBus;
 
 	@Autowired
-	public UpdateUserFilterHandlerImpl(UserFilterRepository userFilterRepository, MessageBus messageBus, IGetUserFilterHandler getFilterHandler) {
+	public UpdateUserFilterHandlerImpl(UserFilterRepository userFilterRepository, MessageBus messageBus,
+			GetUserFilterHandler getFilterHandler) {
 		this.userFilterRepository = userFilterRepository;
 		this.messageBus = messageBus;
         this.getFilterHandler = getFilterHandler;

@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static com.epam.ta.reportportal.commons.Predicates.in;
+import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.*;
 import static com.epam.ta.reportportal.entity.widget.WidgetType.LAUNCHES_TABLE;
@@ -84,13 +85,13 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 				.findFirst()
 				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, id));
 
-		expect(type.getIssueType().getLocator(), in(Sets.newHashSet(
+		expect(type.getIssueType().getLocator(), not(in(Sets.newHashSet(
 				AUTOMATION_BUG.getLocator(),
 				PRODUCT_BUG.getLocator(),
 				SYSTEM_ISSUE.getLocator(),
 				NO_DEFECT.getLocator(),
 				TO_INVESTIGATE.getLocator()
-		))).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
+		)))).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
 
 		String issueField =
 				"statistics$defects$" + TestItemIssueGroup.fromValue(type.getIssueType().getIssueGroup().getTestItemIssueGroup().getValue())
@@ -113,14 +114,9 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 				.stream()
 				.filter(widget -> LAUNCHES_TABLE.getType().equals(widget.getWidgetType()) || STATISTIC_TREND.getType()
 						.equals(widget.getWidgetType()))
-				.forEach(widget -> {
-					widget.getContentFields()
-							.remove("statistics$defects$" + type.getIssueType()
-									.getIssueGroup()
-									.getTestItemIssueGroup()
-									.getValue()
-									.toLowerCase() + "$" + type.getIssueType().getLocator());
-				});
+				.forEach(widget -> widget.getContentFields()
+						.remove("statistics$defects$" + type.getIssueType().getIssueGroup().getTestItemIssueGroup().getValue().toLowerCase()
+								+ "$" + type.getIssueType().getLocator()));
 		issueTypeRepository.delete(type.getIssueType());
 
 		messageBus.publishActivity(new DefectTypeDeletedEvent(type.getIssueType(), project.getId(), user.getUserId()));

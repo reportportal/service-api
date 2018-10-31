@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.filter.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.core.filter.IGetUserFilterHandler;
+import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -48,7 +48,7 @@ import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetai
  */
 @Service
 @Transactional(readOnly = true)
-public class GetUserFilterHandlerImpl implements IGetUserFilterHandler {
+public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 
 	private UserFilterRepository filterRepository;
 

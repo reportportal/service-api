@@ -22,17 +22,21 @@ import com.epam.ta.reportportal.core.widget.ShareWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
+import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
+import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
@@ -59,6 +63,9 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 
 	@Autowired
 	private WidgetRepository widgetRepository;
+
+	@Autowired
+	private UserFilterRepository filterRepository;
 
 	@Autowired
 	@Qualifier("buildFilterStrategyMapping")
@@ -119,12 +126,26 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 	public Map<String, ?> getWidgetPreview(WidgetPreviewRQ previewRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 
+		previewRQ.getContentParameters().getWidgetType();
+
+		List<UserFilter> userFilter = null;
+
+		if (CollectionUtils.isNotEmpty(previewRQ.getFilterIds())) {
+			userFilter = filterRepository.findAllById(previewRQ.getFilterIds());
+			//					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, createWidgetRQ.getFilterId()));
+		}
+
+		Widget widget = new WidgetBuilder().addWidgetPreviewRq(previewRQ)
+				.addProject(projectDetails.getProjectId())
+				.addFilters(userFilter)
+				.get();
+
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
 						"Unsupported widget type {}" + widget.getWidgetType()
 				));
 
-		Map<String, ?> content = buildFilterStrategyMapping.get(widgetType)
+		return buildFilterStrategyMapping.get(widgetType)
 				.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget);
 	}
 

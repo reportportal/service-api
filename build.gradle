@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '2.0.2.RELEASE'
+        springBootVersion = '2.1.0.RELEASE'
         springCloudVersion = 'Finchley.M9'
     }
     repositories {
@@ -71,7 +71,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "com.github.reportportal:commons-bom:71b7ca8"
+        mavenBom "com.github.reportportal:commons-bom:44ec962"
     }
 }
 

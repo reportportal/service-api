@@ -1,7 +1,7 @@
 package com.epam.ta.reportportal.util.email.constant;
 
 /**
- * @author Ivan Budaev
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class IssueRegexConstant {
 

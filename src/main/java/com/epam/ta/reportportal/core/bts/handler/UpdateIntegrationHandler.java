@@ -17,38 +17,37 @@
 package com.epam.ta.reportportal.core.bts.handler;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.bts.handler.impl.UpdateExternalSystemHandler;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.UpdateExternalSystemRQ;
 
 /**
- * Basic interface for {@link UpdateExternalSystemHandler}
+ * Basic interface for {@link com.epam.ta.reportportal.core.bts.handler.impl.UpdateIntegrationHandlerImpl}
  *
  * @author Andrei_Ramanchuk
  * @author Pavel Bortnik
  */
-public interface IUpdateExternalSystemHandler {
+public interface UpdateIntegrationHandler {
 
 	/**
-	 * Update method for {@link com.epam.ta.reportportal.entity.bts.BugTrackingSystem} entity
+	 * Update method for {@link com.epam.ta.reportportal.entity.integration.Integration} entity
 	 *
-	 * @param request     Request Data
-	 * @param projectName Project Name
-	 * @param id          System ID
-	 * @param user        Report portal user
+	 * @param request        Request Data
+	 * @param integrationId  Integration id
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 * @return Operation result
 	 */
-	OperationCompletionRS updateExternalSystem(UpdateExternalSystemRQ request, String projectName, Long id, ReportPortalUser user);
+	OperationCompletionRS updateIntegration(UpdateExternalSystemRQ request, Long integrationId,
+			ReportPortalUser.ProjectDetails projectDetails);
 
 	/**
-	 * Validate connection of provided ExternalSystem configuration
+	 * Validate connection of provided Integration configuration
 	 *
-	 * @param projectName Project
-	 * @param systemId    External system id
-	 * @param updateRQ    Request Data
-	 * @param user        Report portal user
+	 * @param updateRQ       Request Data
+	 * @param integrationId  Integration id
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 * @return Operation result
 	 */
-	OperationCompletionRS externalSystemConnect(UpdateExternalSystemRQ updateRQ, String projectName, Long systemId, ReportPortalUser user);
+	OperationCompletionRS integrationConnect(UpdateExternalSystemRQ updateRQ, Long integrationId,
+			ReportPortalUser.ProjectDetails projectDetails);
 
 }

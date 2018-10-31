@@ -31,7 +31,7 @@ import static com.epam.ta.reportportal.core.imprt.FileExtensionConstant.XML_EXTE
 import static java.util.Optional.ofNullable;
 
 /**
- * @author Ivan Budaev
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
 public class XmlImportStrategy extends AbstractImportStrategy {

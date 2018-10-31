@@ -28,7 +28,7 @@ import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConst
 import static java.util.Collections.singletonMap;
 
 /**
- * @author Ivan Budayeu
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
 public class PassingRatePerLaunchContentLoader implements LoadContentStrategy {

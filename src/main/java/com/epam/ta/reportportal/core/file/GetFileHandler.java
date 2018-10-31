@@ -20,7 +20,7 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import java.io.InputStream;
 
 /**
- * @author Ivan Budaev
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface GetFileHandler {
 

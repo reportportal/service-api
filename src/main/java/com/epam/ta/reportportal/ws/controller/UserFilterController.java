@@ -60,13 +60,13 @@ public class UserFilterController {
 	private final GetUserFilterHandler getFilterHandler;
 	private final IDeleteUserFilterHandler deleteFilterHandler;
 	private final IUpdateUserFilterHandler updateUserFilterHandler;
-	private IShareUserFilterHandler shareFilterHandler;
+	private ShareUserFilterHandler shareFilterHandler;
 
 	@Autowired
 	public UserFilterController(ICreateUserFilterHandler createFilterHandler, GetUserFilterHandler getFilterHandler,
 		IDeleteUserFilterHandler deleteFilterHandler,
 		IUpdateUserFilterHandler updateUserFilterHandler,
-		IShareUserFilterHandler shareFilterHandler) {
+		ShareUserFilterHandler shareFilterHandler) {
 
 		this.createFilterHandler = createFilterHandler;
 		this.getFilterHandler = getFilterHandler;

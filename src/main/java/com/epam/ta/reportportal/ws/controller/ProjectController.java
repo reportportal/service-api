@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.filter.IShareUserFilterHandler;
 import com.epam.ta.reportportal.core.preference.GetPreferenceHandler;
 import com.epam.ta.reportportal.core.preference.UpdatePreferenceHandler;
+import com.epam.ta.reportportal.core.filter.ShareUserFilterHandler;
 import com.epam.ta.reportportal.core.project.*;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -67,7 +68,7 @@ public class ProjectController {
 	private final CreateProjectHandler createProjectHandler;
 	private final UpdateProjectHandler updateProjectHandler;
 	private final DeleteProjectHandler deleteProjectHandler;
-	private final IShareUserFilterHandler shareFilterHandler;
+	private final ShareUserFilterHandler shareFilterHandler;
 	private final GetUserHandler getUserHandler;
 	private final GetPreferenceHandler getPreference;
 	private final UpdatePreferenceHandler updatePreference;
@@ -75,7 +76,7 @@ public class ProjectController {
 	@Autowired
 	public ProjectController(GetProjectHandler projectHandler, GetProjectInfoHandler projectInfoHandler,
 			CreateProjectHandler createProjectHandler, UpdateProjectHandler updateProjectHandler, DeleteProjectHandler deleteProjectHandler,
-			IShareUserFilterHandler shareFilterHandler, GetUserHandler getUserHandler, GetPreferenceHandler getPreference,
+			ShareUserFilterHandler shareFilterHandler, GetUserHandler getUserHandler, GetPreferenceHandler getPreference,
 			UpdatePreferenceHandler updatePreference) {
 		this.projectHandler = projectHandler;
 		this.projectInfoHandler = projectInfoHandler;

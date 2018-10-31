@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.widget.ICreateWidgetHandler;
 import com.epam.ta.reportportal.core.widget.IGetWidgetHandler;
+import com.epam.ta.reportportal.core.widget.ShareWidgetHandler;
 import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -28,6 +29,7 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +57,8 @@ public class WidgetController {
 	private final ICreateWidgetHandler createWidgetHandler;
 	private final IUpdateWidgetHandler updateWidgetHandler;
 	private final IGetWidgetHandler getWidgetHandler;
+	@Autowired
+	private ShareWidgetHandler shareWidgetHandler;
 
 	@Autowired
 	public WidgetController(ICreateWidgetHandler createWidgetHandler, IUpdateWidgetHandler updateWidgetHandler,
@@ -113,6 +117,14 @@ public class WidgetController {
 	@ApiOperation("Load shared widgets")
 	public Iterable<WidgetResource> getSharedWidgetsList(Principal principal, @PathVariable String projectName, Pageable pageable) {
 		return getWidgetHandler.getSharedWidgetsList(principal.getName(), normalizeId(projectName), pageable);
+	}
+
+	@Transactional(readOnly = true)
+	@PostMapping(value = "/shared/{widgetId}")
+	@ResponseStatus(HttpStatus.CREATED)
+	@ApiOperation("Share widget to project")
+	public void shareWidjet(@PathVariable String projectName, @PathVariable Long widgetId) {
+		shareWidgetHandler.shareWidget(projectName, widgetId);
 	}
 
 	@Transactional(readOnly = true)

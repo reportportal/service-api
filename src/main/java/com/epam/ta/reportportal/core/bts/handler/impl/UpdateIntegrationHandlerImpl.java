@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IntegrationFieldsConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;

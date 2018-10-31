@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '2.0.2.RELEASE'
+        springBootVersion = '2.1.0.RELEASE'
         springCloudVersion = 'Finchley.M9'
     }
     repositories {
@@ -71,7 +71,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "com.github.reportportal:commons-bom:71b7ca8"
+        mavenBom "com.github.reportportal:commons-bom:44ec962"
     }
 }
 
@@ -99,11 +99,11 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:058b981e'
-        compile 'com.github.reportportal:commons-model:7ffbf4e'
+        compile 'com.github.reportportal:commons-dao:ed1cc5a'
         compile 'com.github.reportportal:commons-rules:4cd20af'
+        compile 'com.github.reportportal:commons-model:e41459b'
         compile('com.github.reportportal:commons:71d4aca')
-        compile('com.github.reportportal:plugin-api:7a9a353')
+        compile('com.github.reportportal:plugin-api:5dc955e808')
     }
 
     //move this to the plugin-api

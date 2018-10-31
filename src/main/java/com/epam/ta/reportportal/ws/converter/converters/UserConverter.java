@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.MoreCollectors;
-import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserType;
@@ -53,12 +52,7 @@ public final class UserConverter {
 					.stream()
 					.collect(MoreCollectors.toLinkedMap(p -> p.getProject().getName(), p -> {
 						UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-						p.getProject()
-								.getProjectAttributes()
-								.stream()
-								.filter(a -> ProjectAttributeEnum.ENTRY_TYPE.getAttribute().equalsIgnoreCase(a.getAttribute().getName()))
-								.findFirst()
-								.ifPresent(attr -> assignedProject.setEntryType(attr.getValue()));
+						assignedProject.setEntryType(p.getProject().getProjectType().name());
 						assignedProject.setProjectRole(p.getProjectRole().toString());
 						return assignedProject;
 					}));

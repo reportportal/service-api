@@ -65,10 +65,10 @@ public class ProjectUpdatedEvent extends AroundEvent<Project> implements Activit
 		ActivityDetails details = new ActivityDetails(getAfter().getName());
 		Map<String, String> existedConfig = ProjectUtils.getConfigParameters(getAfter().getProjectAttributes());
 		ProjectConfiguration updatedConfig = updateProjectRQ.getConfiguration();
-		if (null != updatedConfig) {
-			processKeepLogs(details, existedConfig, updatedConfig);
-			processKeepScreenshots(details, existedConfig, updatedConfig);
-			processLaunchInactivityTimeout(details, existedConfig, updatedConfig);
+		if (null != updatedConfig && null != updatedConfig.getProjectAttributes()) {
+			processKeepLogs(details, existedConfig, updatedConfig.getProjectAttributes());
+			processKeepScreenshots(details, existedConfig, updatedConfig.getProjectAttributes());
+			processLaunchInactivityTimeout(details, existedConfig, updatedConfig.getProjectAttributes());
 		}
 		if (!details.getHistory().isEmpty()) {
 			activity.setDetails(details);
@@ -77,26 +77,36 @@ public class ProjectUpdatedEvent extends AroundEvent<Project> implements Activit
 	}
 
 	private void processLaunchInactivityTimeout(ActivityDetails details, Map<String, String> existedConfig,
-			ProjectConfiguration updatedConfig) {
-		String oldValue = existedConfig.get(INTERRUPT_JOB_TIME.getAttribute());
-		if ((null != updatedConfig.getInterruptJobTime()) && !Strings.isNullOrEmpty(oldValue) && (!updatedConfig.getInterruptJobTime()
-				.equals(oldValue))) {
-			details.addHistoryField(HistoryField.of(LAUNCH_INACTIVITY, oldValue, updatedConfig.getInterruptJobTime()));
-		}
+			Map<String, String> updatedAttributes) {
+		processField(
+				details,
+				LAUNCH_INACTIVITY,
+				existedConfig.get(INTERRUPT_JOB_TIME.getAttribute()),
+				updatedAttributes.get(INTERRUPT_JOB_TIME.getAttribute())
+		);
 	}
 
-	private void processKeepScreenshots(ActivityDetails details, Map<String, String> existedConfig, ProjectConfiguration configuration) {
-		String oldValue = existedConfig.get(KEEP_SCREENSHOTS.getAttribute());
-		if ((null != configuration.getKeepScreenshots()) && !Strings.isNullOrEmpty(oldValue) && (!configuration.getKeepScreenshots()
-				.equals(oldValue))) {
-			details.addHistoryField(HistoryField.of(KEEP_SCREENSHOTS.getAttribute(), oldValue, configuration.getKeepScreenshots()));
-		}
+	private void processKeepScreenshots(ActivityDetails details, Map<String, String> existedConfig, Map<String, String> updatedAttributes) {
+		processField(
+				details,
+				KEEP_SCREENSHOTS.getAttribute(),
+				existedConfig.get(KEEP_SCREENSHOTS.getAttribute()),
+				updatedAttributes.get(KEEP_SCREENSHOTS.getAttribute())
+		);
 	}
 
-	private void processKeepLogs(ActivityDetails details, Map<String, String> existedConfig, ProjectConfiguration configuration) {
-		String oldValue = existedConfig.get(KEEP_LOGS.getAttribute());
-		if ((null != configuration.getKeepLogs()) && !Strings.isNullOrEmpty(oldValue) && (!configuration.getKeepLogs().equals(oldValue))) {
-			details.addHistoryField(HistoryField.of(KEEP_LOGS.getAttribute(), oldValue, configuration.getKeepLogs()));
+	private void processKeepLogs(ActivityDetails details, Map<String, String> existedConfig, Map<String, String> updatedAttributes) {
+		processField(
+				details,
+				KEEP_LOGS.getAttribute(),
+				existedConfig.get(KEEP_LOGS.getAttribute()),
+				updatedAttributes.get(KEEP_LOGS.getAttribute())
+		);
+	}
+
+	private void processField(ActivityDetails details, String field, String oldValue, String newValue) {
+		if ((null != newValue) && !Strings.isNullOrEmpty(oldValue) && (!newValue.equals(oldValue))) {
+			details.addHistoryField(HistoryField.of(field, oldValue, newValue));
 		}
 	}
 }

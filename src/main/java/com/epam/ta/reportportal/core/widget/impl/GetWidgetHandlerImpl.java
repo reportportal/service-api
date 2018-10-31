@@ -21,6 +21,9 @@ import com.epam.ta.reportportal.core.widget.IGetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.ShareWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.WidgetRepository;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -49,6 +52,12 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 
 	@Autowired
 	private ShareWidgetHandler shareWidgetHandler;
+
+	@Autowired
+	private ProjectRepository projectRepository;
+
+	@Autowired
+	private WidgetRepository widgetRepository;
 
 	@Autowired
 	@Qualifier("buildFilterStrategyMapping")
@@ -80,16 +89,27 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 
 	@Override
 	public Iterable<SharedEntity> getSharedWidgetNames(String userName, String projectName, Pageable pageable) {
+
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
 		return null;
 	}
 
 	@Override
 	public Iterable<WidgetResource> getSharedWidgetsList(String userName, String projectName, Pageable pageable) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
 		return null;
 	}
 
 	@Override
 	public List<String> getWidgetNames(String projectName, String userName) {
+
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
 		return null;
 	}
 
@@ -100,6 +120,9 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 
 	@Override
 	public Iterable<WidgetResource> searchSharedWidgets(String term, String projectName, Pageable pageable) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
 		return null;
 	}
 }

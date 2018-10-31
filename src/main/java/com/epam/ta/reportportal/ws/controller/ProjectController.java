@@ -115,10 +115,9 @@ public class ProjectController {
 	@ApiOperation("Update project email configuration")
 	public OperationCompletionRS updateProjectEmailConfig(@PathVariable String projectName,
 			@RequestBody @Validated ProjectEmailConfigDTO updateProjectRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.updateProjectEmailConfig(
-				ProjectExtractor.extractProjectDetails(user, projectName),
-				user,
-				updateProjectRQ
+<<<<<<<HEAD return updateProjectHandler.updateProjectEmailConfig(ProjectExtractor.extractProjectDetails(user, projectName), =======
+		return updateProjectHandler.updateProjectEmailConfig(ProjectExtractor.extractProjectDetails(user, projectName), >>>>>>>
+		e9cf928f5ced8fc3589d5b613d17fb203e07ebb8 user, updateProjectRQ
 		);
 	}
 

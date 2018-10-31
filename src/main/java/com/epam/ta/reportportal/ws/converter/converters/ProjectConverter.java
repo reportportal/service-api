@@ -77,9 +77,12 @@ public final class ProjectConverter {
 			return projectUser;
 		}).collect(Collectors.toList()));
 
-		Map<String, List<IssueSubTypeResource>> subTypes = project.getProjectIssueTypes()
-				.stream().map(ProjectIssueType::getIssueType).collect(Collectors.groupingBy(
-						it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
+		Map<String, List<IssueSubTypeResource>> subTypes = project.getProjectIssueTypes() <<<<<<<HEAD.stream()
+				.map(ProjectIssueType::getIssueType)
+				.collect(Collectors.groupingBy(it -> it.getIssueGroup().getTestItemIssueGroup().getValue(), == =====
+				.stream().map(ProjectIssueType::getIssueType)
+				.collect(Collectors.groupingBy(it -> it.getIssueGroup().getTestItemIssueGroup().getValue(), >>> >>>
+				> e9cf928f5ced8fc3589d5b613d17fb203e07ebb8
 						Collectors.mapping(ProjectConverter.TO_SUBTYPE_RESOURCE, Collectors.toList())
 				));
 
@@ -118,9 +121,24 @@ public final class ProjectConverter {
 	};
 
 	public static final Function<List<IssueType>, Map<String, List<IssueSubTypeResource>>> TO_PROJECT_SUB_TYPES_RESOURCE = issueTypes -> issueTypes
-			.stream()
-			.collect(Collectors.groupingBy(
-					it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
+			.stream() << <<<<<HEAD
+			.
+
+	collect(Collectors.groupingBy(it ->it.getIssueGroup().
+
+	getTestItemIssueGroup().
+
+	getValue(),
+=======
+		.
+
+	collect(Collectors.groupingBy(
+			it ->it.getIssueGroup().
+
+	getTestItemIssueGroup().
+
+	getValue(),
+>>>>>>>e9cf928f5ced8fc3589d5b613d17fb203e07ebb8
 					Collectors.mapping(TO_SUBTYPE_RESOURCE::apply, Collectors.toList())
 			));
 

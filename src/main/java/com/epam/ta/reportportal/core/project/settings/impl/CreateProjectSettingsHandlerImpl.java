@@ -130,9 +130,11 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 				});
 
 		Long id = project.getProjectIssueTypes()
-				.stream().filter(projectIssueType -> projectIssueType.getIssueType().getLocator().equalsIgnoreCase(locator))
+				.stream()
+				.filter(projectIssueType -> projectIssueType.getIssueType().getLocator().equalsIgnoreCase(locator))
 				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, locator)).getIssueType()
+				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, locator))
+				.getIssueType()
 				.getId();
 		subType.setId(id);
 

@@ -16,7 +16,9 @@
 
 package com.epam.ta.reportportal.core.project;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.entity.enums.InfoInterval;
 import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import org.springframework.data.domain.Pageable;
@@ -42,10 +44,11 @@ public interface GetProjectInfoHandler {
 	/**
 	 * Get project info
 	 *
-	 * @param projectId
-	 * @return
+	 * @param projectDetails Project details
+	 * @param interval       Interval
+	 * @return Project info resource
 	 */
-	ProjectInfoResource getProjectInfo(String projectId, String interval);
+	ProjectInfoResource getProjectInfo(ReportPortalUser.ProjectDetails projectDetails, String interval);
 
 	/**
 	 * Get widget data content for specified project by specified

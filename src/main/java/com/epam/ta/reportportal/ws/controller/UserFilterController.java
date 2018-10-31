@@ -57,15 +57,13 @@ import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetai
 public class UserFilterController {
 
 	private final ICreateUserFilterHandler createFilterHandler;
-	private final IGetUserFilterHandler getFilterHandler;
+	private final GetUserFilterHandler getFilterHandler;
 	private final IDeleteUserFilterHandler deleteFilterHandler;
 	private final IUpdateUserFilterHandler updateUserFilterHandler;
 	private IShareUserFilterHandler shareFilterHandler;
 
 	@Autowired
-	public UserFilterController(
-		ICreateUserFilterHandler createFilterHandler,
-		IGetUserFilterHandler getFilterHandler,
+	public UserFilterController(ICreateUserFilterHandler createFilterHandler, GetUserFilterHandler getFilterHandler,
 		IDeleteUserFilterHandler deleteFilterHandler,
 		IUpdateUserFilterHandler updateUserFilterHandler,
 		IShareUserFilterHandler shareFilterHandler) {

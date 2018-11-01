@@ -28,6 +28,7 @@ import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFacto
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitManagementTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -70,6 +71,11 @@ public class RabbitMqConfiguration {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+
+	@Bean
+	public RabbitManagementTemplate managementTemplate(@Value("${rp.amqp.api-address}") String address) {
+		return new RabbitManagementTemplate(address);
+	}
 
 	@Bean
 	public Service pluginBox(@Autowired MessageBus messageBus) {

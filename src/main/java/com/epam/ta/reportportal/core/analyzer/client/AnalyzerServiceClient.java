@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.events.ConsulUpdateEvent;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -34,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.context.event.EventListener;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -42,8 +40,8 @@ import org.springframework.web.client.RestTemplate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.*;
-import static java.util.Comparator.comparingInt;
+import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.ANALYZER_KEY;
+import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.SUPPORT_INDEX;
 import static java.util.stream.Collectors.toList;
 
 @Service
@@ -196,7 +194,7 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 	/**
 	 * Update list of available analyzers instances
 	 */
-	@EventListener
+/*	@EventListener
 	private void getAnalyzerServiceInstances(ConsulUpdateEvent event) {
 		List<ServiceInstance> collect = discoveryClient.getServices()
 				.stream()
@@ -205,5 +203,5 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 				.sorted(comparingInt(SERVICE_PRIORITY))
 				.collect(toList());
 		analyzerInstances.set(collect);
-	}
+	}*/
 }

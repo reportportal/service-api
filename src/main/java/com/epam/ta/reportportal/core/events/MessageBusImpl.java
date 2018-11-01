@@ -30,9 +30,4 @@ public class MessageBusImpl implements MessageBus {
 	public void publishActivity(ActivityEvent o) {
 		this.amqpTemplate.convertAndSend(RabbitMqConfiguration.EXCHANGE_ACTIVITY, RabbitMqConfiguration.QUEUE_ACTIVITY, o);
 	}
-
-	public void temp() {
-		this.amqpTemplate.receiveAndReply()
-	}
-
 }

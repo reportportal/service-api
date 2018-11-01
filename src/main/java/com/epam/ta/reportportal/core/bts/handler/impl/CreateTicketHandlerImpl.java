@@ -86,9 +86,7 @@ public class CreateTicketHandlerImpl implements CreateTicketHandler {
 
 		Ticket ticket = btsExtension.get().submitTicket(postTicketRQ, integration);
 		testItems.forEach(item -> eventPublisher.publishEvent(new TicketPostedEvent(ticket,
-				item,
-				user.getUserId(),
-				projectDetails.getProjectId()
+				item, user.getUserId(), projectDetails.getProjectId()
 		)));
 		return ticket;
 	}

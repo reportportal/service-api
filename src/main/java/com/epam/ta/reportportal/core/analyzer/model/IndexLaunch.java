@@ -21,7 +21,6 @@
 
 package com.epam.ta.reportportal.core.analyzer.model;
 
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
@@ -42,8 +41,8 @@ public class IndexLaunch {
 	@JsonProperty("project")
 	private String project;
 
-	@JsonProperty("analyzerConfig")
-	private AnalyzerConfig analyzerConfig;
+/*	@JsonProperty("analyzerConfig")
+	private AnalyzerConfig analyzerConfig;*/
 
 	@JsonProperty("testItems")
 	private List<IndexTestItem> testItems;
@@ -75,13 +74,13 @@ public class IndexLaunch {
 		this.project = project;
 	}
 
-	public AnalyzerConfig getAnalyzerConfig() {
+/*	public AnalyzerConfig getAnalyzerConfig() {
 		return analyzerConfig;
 	}
 
 	public void setAnalyzerConfig(AnalyzerConfig analyzerConfig) {
 		this.analyzerConfig = analyzerConfig;
-	}
+	}*/
 
 	public List<IndexTestItem> getTestItems() {
 		return testItems;

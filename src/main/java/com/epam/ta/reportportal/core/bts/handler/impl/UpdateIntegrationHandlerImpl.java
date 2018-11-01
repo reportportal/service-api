@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IntegrationFieldsConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -90,7 +89,8 @@ public class UpdateIntegrationHandlerImpl implements UpdateIntegrationHandler {
 		BugTrackingSystemBuilder builder = new BugTrackingSystemBuilder(bugTrackingSystem);
 
 		Optional<IntegrationType> type = integrationTypeRepository.findByName(updateRQ.getExternalSystemType());
-		expect(type, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		expect(type, Optional::isPresent).verify(
+				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				Suppliers.formattedSupplier("Integration type '{}' was not found.", updateRQ.getExternalSystemType())
 		);
 

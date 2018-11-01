@@ -29,12 +29,11 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IntegrationFieldsConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.externalsystem.UpdateExternalSystemRQ;
+import com.epam.ta.reportportal.ws.model.externalsystem.UpdateIntegrationRQ;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -81,7 +80,7 @@ public class UpdateIntegrationHandlerImpl implements UpdateIntegrationHandler {
 	}
 
 	@Override
-	public OperationCompletionRS updateIntegration(UpdateExternalSystemRQ updateRQ, Long integrationId,
+	public OperationCompletionRS updateIntegration(UpdateIntegrationRQ updateRQ, Long integrationId,
 			ReportPortalUser.ProjectDetails projectDetails) {
 
 		Integration bugTrackingSystem = integrationRepository.findById(integrationId)
@@ -138,7 +137,7 @@ public class UpdateIntegrationHandlerImpl implements UpdateIntegrationHandler {
 	}
 
 	@Override
-	public OperationCompletionRS integrationConnect(UpdateExternalSystemRQ updateRQ, Long integrationId,
+	public OperationCompletionRS integrationConnect(UpdateIntegrationRQ updateRQ, Long integrationId,
 			ReportPortalUser.ProjectDetails projectDetails) {
 		Integration bugTrackingSystem = integrationRepository.findById(integrationId)
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));

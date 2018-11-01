@@ -34,7 +34,7 @@ import com.epam.ta.reportportal.ws.converter.builders.BtsConstants;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
+import com.epam.ta.reportportal.ws.model.externalsystem.CreateIntegrationRQ;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,7 +72,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		this.pluginBox = pluginBox;
 	}
 
-	public EntryCreatedRS createIntegration(CreateExternalSystemRQ createRQ, ReportPortalUser.ProjectDetails projectDetails) {
+	public EntryCreatedRS createIntegration(CreateIntegrationRQ createRQ, ReportPortalUser.ProjectDetails projectDetails) {
 
 		Optional<IntegrationType> type = integrationTypeRepository.findByName(createRQ.getExternalSystemType());
 		expect(type, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,

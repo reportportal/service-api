@@ -99,8 +99,8 @@ public class WidgetController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get widget preview")
 	public Map<String, ?> getWidgetPreview(@PathVariable String projectName, @RequestBody @Validated WidgetPreviewRQ previewRQ,
-			Principal principal) {
-		return getWidgetHandler.getWidgetPreview(normalizeId(projectName), principal.getName(), previewRQ);
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getWidgetHandler.getWidgetPreview(previewRQ, extractProjectDetails(user, normalizeId(projectName)), user);
 	}
 
 	@Transactional(readOnly = true)

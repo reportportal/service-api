@@ -36,7 +36,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
@@ -107,23 +106,24 @@ public class WidgetController {
 	@GetMapping(value = "/names/all")
 	@ResponseStatus(OK)
 	@ApiOperation("Load all widget names which belong to a user")
-	public List<String> getWidgetNames(@PathVariable String projectName, Principal principal) {
-		return getWidgetHandler.getWidgetNames(normalizeId(projectName), principal.getName());
+	public List<String> getWidgetNames(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
+		return getWidgetHandler.getWidgetNames(normalizeId(projectName), user.getUsername());
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/shared")
 	@ResponseStatus(OK)
 	@ApiOperation("Load shared widgets")
-	public Iterable<WidgetResource> getSharedWidgetsList(Principal principal, @PathVariable String projectName, Pageable pageable) {
-		return getWidgetHandler.getSharedWidgetsList(principal.getName(), normalizeId(projectName), pageable);
+	public Iterable<WidgetResource> getSharedWidgetsList(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			Pageable pageable) {
+		return getWidgetHandler.getSharedWidgetsList(user.getUsername(), normalizeId(projectName), pageable);
 	}
 
-	@Transactional(readOnly = true)
+	@Transactional
 	@PostMapping(value = "/shared/{widgetId}")
 	@ResponseStatus(HttpStatus.CREATED)
 	@ApiOperation("Share widget to project")
-	public void shareWidjet(@PathVariable String projectName, @PathVariable Long widgetId) {
+	public void shareWidget(@PathVariable String projectName, @PathVariable Long widgetId) {
 		shareWidgetHandler.shareWidget(projectName, widgetId);
 	}
 
@@ -132,8 +132,8 @@ public class WidgetController {
 	@ResponseStatus(OK)
 	@ApiOperation("Search shared widgets by name")
 	public Iterable<WidgetResource> searchSharedWidgets(@RequestParam("term") String term, @PathVariable String projectName,
-			Pageable pageable) {
-		return getWidgetHandler.searchSharedWidgets(term, normalizeId(projectName), pageable);
+			@AuthenticationPrincipal ReportPortalUser user, Pageable pageable) {
+		return getWidgetHandler.searchSharedWidgets(term, user.getUsername(), normalizeId(projectName), pageable);
 	}
 
 }

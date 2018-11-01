@@ -159,11 +159,11 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 	}
 
 	@Override
-	public Iterable<WidgetResource> searchSharedWidgets(String term, String projectName, Pageable pageable) {
+	public Iterable<WidgetResource> searchSharedWidgets(String term, String username, String projectName, Pageable pageable) {
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
 		return PagedResourcesAssembler.pageConverter(WidgetConverter.TO_WIDGET_RESOURCE)
-				.apply(widgetRepository.searchSharedWidgets(term, project.getId(), pageable));
+				.apply(widgetRepository.searchSharedWidgets(term, username, project.getId(), pageable));
 	}
 }

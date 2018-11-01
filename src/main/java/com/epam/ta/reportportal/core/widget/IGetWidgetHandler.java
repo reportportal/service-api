@@ -86,5 +86,5 @@ public interface IGetWidgetHandler {
 	 * @param projectName Project name
 	 * @return List of widgets
 	 */
-	Iterable<WidgetResource> searchSharedWidgets(String term, String projectName, Pageable pageable);
+	Iterable<WidgetResource> searchSharedWidgets(String term, String username, String projectName, Pageable pageable);
 }

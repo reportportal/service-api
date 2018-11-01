@@ -19,13 +19,14 @@ package com.epam.ta.reportportal.core.project.settings.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeCreatedEvent;
-import com.epam.ta.reportportal.core.project.settings.ICreateProjectSettingsHandler;
+import com.epam.ta.reportportal.core.project.settings.CreateProjectSettingsHandler;
 import com.epam.ta.reportportal.dao.IssueGroupRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.IssueTypeBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
@@ -53,7 +54,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
  */
 @Service
 @Transactional
-public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandler {
+public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHandler {
 
 	private static final Map<String, String> PREFIX = ImmutableMap.<String, String>builder().put(AUTOMATION_BUG.getValue(), "ab_")
 			.put(PRODUCT_BUG.getValue(), "pb_")
@@ -71,7 +72,7 @@ public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandl
 	private MessageBus messageBus;
 
 	@Autowired
-	public CreateProjectSettingsHandler(ProjectRepository projectRepository, WidgetRepository widgetRepository,
+	public CreateProjectSettingsHandlerImpl(ProjectRepository projectRepository, WidgetRepository widgetRepository,
 			IssueGroupRepository issueGroupRepository, MessageBus messageBus) {
 		this.projectRepository = projectRepository;
 		this.widgetRepository = widgetRepository;
@@ -96,9 +97,9 @@ public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandl
 		TestItemIssueGroup expectedGroup = TestItemIssueGroup.fromValue(rq.getTypeRef())
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, rq.getTypeRef()));
 
-		List<IssueType> existingSubTypes = project.getIssueTypes()
+		List<ProjectIssueType> existingSubTypes = project.getProjectIssueTypes()
 				.stream()
-				.filter(issueType -> issueType.getIssueGroup().getTestItemIssueGroup().equals(expectedGroup))
+				.filter(projectIssueType -> projectIssueType.getIssueType().getIssueGroup().getTestItemIssueGroup().equals(expectedGroup))
 				.collect(Collectors.toList());
 
 		expect(existingSubTypes.size() < ValidationConstraints.MAX_ISSUE_SUBTYPES, equalTo(true)).verify(BAD_REQUEST_ERROR,
@@ -114,7 +115,7 @@ public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandl
 				.addProject(project)
 				.get();
 
-		project.getIssueTypes().add(subType);
+		project.getProjectIssueTypes().add(new ProjectIssueType().withIssueType(subType).withProject(project));
 		projectRepository.save(project);
 		widgetRepository.findAllByProjectId(project.getId())
 				.stream()
@@ -128,11 +129,10 @@ public class CreateProjectSettingsHandler implements ICreateProjectSettingsHandl
 					widgetRepository.save(widget);
 				});
 
-		Long id = project.getIssueTypes()
-				.stream()
-				.filter(issueType -> issueType.getLocator().equalsIgnoreCase(locator))
+		Long id = project.getProjectIssueTypes()
+				.stream().filter(projectIssueType -> projectIssueType.getIssueType().getLocator().equalsIgnoreCase(locator))
 				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, locator))
+				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, locator)).getIssueType()
 				.getId();
 		subType.setId(id);
 

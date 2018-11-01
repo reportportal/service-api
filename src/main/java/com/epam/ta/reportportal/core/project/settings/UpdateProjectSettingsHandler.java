@@ -17,18 +17,21 @@
 package com.epam.ta.reportportal.core.project.settings;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public interface IGetProjectSettingsHandler {
+public interface UpdateProjectSettingsHandler {
 
 	/**
-	 * Provide additional settings for specified project
+	 * Update issue sub-type for specified project
 	 *
 	 * @param projectDetails
-	 * @return ProjectSettingsResource
+	 * @param rq
+	 * @return OperationCompletionRS
 	 */
-	ProjectSettingsResource getProjectSettings(ReportPortalUser.ProjectDetails projectDetails);
+	OperationCompletionRS updateProjectIssueSubType(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			UpdateIssueSubTypeRQ rq);
 }

@@ -20,7 +20,9 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.core.filter.IShareUserFilterHandler;
+import com.epam.ta.reportportal.core.filter.ShareUserFilterHandler;
+import com.epam.ta.reportportal.core.preference.GetPreferenceHandler;
+import com.epam.ta.reportportal.core.preference.UpdatePreferenceHandler;
 import com.epam.ta.reportportal.core.project.*;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -28,6 +30,7 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
 import com.epam.ta.reportportal.ws.model.project.*;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
@@ -64,13 +67,16 @@ public class ProjectController {
 	private final CreateProjectHandler createProjectHandler;
 	private final UpdateProjectHandler updateProjectHandler;
 	private final DeleteProjectHandler deleteProjectHandler;
-	private final IShareUserFilterHandler shareFilterHandler;
+	private final ShareUserFilterHandler shareFilterHandler;
 	private final GetUserHandler getUserHandler;
+	private final GetPreferenceHandler getPreference;
+	private final UpdatePreferenceHandler updatePreference;
 
 	@Autowired
 	public ProjectController(GetProjectHandler projectHandler, GetProjectInfoHandler projectInfoHandler,
 			CreateProjectHandler createProjectHandler, UpdateProjectHandler updateProjectHandler, DeleteProjectHandler deleteProjectHandler,
-			IShareUserFilterHandler shareFilterHandler, GetUserHandler getUserHandler) {
+			ShareUserFilterHandler shareFilterHandler, GetUserHandler getUserHandler, GetPreferenceHandler getPreference,
+			UpdatePreferenceHandler updatePreference) {
 		this.projectHandler = projectHandler;
 		this.projectInfoHandler = projectInfoHandler;
 		this.createProjectHandler = createProjectHandler;
@@ -78,6 +84,8 @@ public class ProjectController {
 		this.deleteProjectHandler = deleteProjectHandler;
 		this.shareFilterHandler = shareFilterHandler;
 		this.getUserHandler = getUserHandler;
+		this.getPreference = getPreference;
+		this.updatePreference = updatePreference;
 	}
 
 	@Transactional
@@ -210,23 +218,33 @@ public class ProjectController {
 		return projectHandler.getUserNames(term, pageable);
 	}
 
-	//	@PutMapping("/{projectName}/preference/{login}")
-	//	@ResponseStatus(HttpStatus.OK)
-	//	@PreAuthorize(ALLOWED_TO_EDIT_USER)
-	//	@ApiIgnore
-	//	// Hide method cause results using for UI only and doesn't affect WS
-	//	public PreferenceResource updateUserPreference(@PathVariable String projectName,
-	//			@RequestBody @Validated UpdatePreferenceRQ updatePreferenceRQ, @PathVariable String login, Principal principal) {
-	//		return updatePreferenceHandler.updatePreference(principal.getName(), EntityUtils.normalizeId(projectName), updatePreferenceRQ);
-	//	}
-	//
-	//	@GetMapping("/{projectName}/preference/{login}")
-	//	@ResponseStatus(HttpStatus.OK)
-	//	@PreAuthorize(ALLOWED_TO_EDIT_USER)
-	//	@ApiOperation(value = "Load user preferences", notes = "Only for users that allowed to edit other users")
-	//	public PreferenceResource getUserPreference(@PathVariable String projectName, @PathVariable String login, Principal principal) {
-	//		return getPreferenceHandler.getPreference(normalizeId(projectName), normalizeId(login));
-	//	}
+	@Transactional
+	@PutMapping("/{projectName}/preference/{login}/{filterId}")
+	@ResponseStatus(HttpStatus.OK)
+	@PreAuthorize(ALLOWED_TO_EDIT_USER)
+	public OperationCompletionRS addUserPreference(@PathVariable String projectName, @PathVariable String login,
+			@PathVariable Long filterId, @AuthenticationPrincipal ReportPortalUser user) {
+		return updatePreference.addPreference(ProjectExtractor.extractProjectDetails(user, projectName), user, filterId);
+	}
+
+	@Transactional
+	@DeleteMapping("/{projectName}/preference/{login}/{filterId}")
+	@ResponseStatus(HttpStatus.OK)
+	@PreAuthorize(ALLOWED_TO_EDIT_USER)
+	public OperationCompletionRS removeUserPreference(@PathVariable String projectName, @PathVariable String login,
+			@PathVariable Long filterId, @AuthenticationPrincipal ReportPortalUser user) {
+		return updatePreference.removePreference(ProjectExtractor.extractProjectDetails(user, projectName), user, filterId);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/{projectName}/preference/{login}")
+	@ResponseStatus(HttpStatus.OK)
+	@PreAuthorize(ALLOWED_TO_EDIT_USER)
+	@ApiOperation(value = "Load user preferences", notes = "Only for users that allowed to edit other users")
+	public PreferenceResource getUserPreference(@PathVariable String projectName, @PathVariable String login,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getPreference.getPreference(ProjectExtractor.extractProjectDetails(user, projectName), user);
+	}
 
 	@Transactional(readOnly = true)
 	@PreAuthorize(ADMIN_ONLY)

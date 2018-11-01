@@ -27,40 +27,35 @@ import java.util.List;
  *
  * @author Aliaksei_Makayed
  */
-public interface IGetTicketHandler {
+public interface GetTicketHandler {
 
 	/**
 	 * Get ticket from specified external system by id.<br>
 	 * <b>Note: resulting object returned from cache.</b>
 	 *
-	 * @param ticketId    Ticket ID
-	 * @param projectName Project Name
-	 * @param systemId    ID of external system
-	 * @param user        Report Portal user
+	 * @param ticketId       Ticket ID
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param integrationId  Integration id
 	 * @return Ticket
 	 */
-	Ticket getTicket(String ticketId, String projectName, Long systemId, ReportPortalUser user);
+	Ticket getTicket(String ticketId, Long integrationId, ReportPortalUser.ProjectDetails projectDetails);
 
 	/**
 	 * Get set of fields of external system to submit a ticket
 	 *
-	 * @param ticketType  Ticket Type
-	 * @param projectName ProjectName
-	 * @param systemId    System id
-	 * @param user        Report Portal user
-	 *
+	 * @param ticketType     Ticket Type
+	 * @param integrationId  Integration id
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 * @return Found fields
 	 */
-	List<PostFormField> getSubmitTicketFields(String ticketType, String projectName, Long systemId, ReportPortalUser user);
+	List<PostFormField> getSubmitTicketFields(String ticketType, Long integrationId, ReportPortalUser.ProjectDetails projectDetails);
 
 	/**
 	 * Get allowable issue types
 	 *
-	 * @param projectName Project Name
-	 * @param systemId    External System ID
-	 * @param user        Report Portal user
-	 *
+	 * @param integrationId  Integration id
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 * @return Fields
 	 */
-	List<String> getAllowableIssueTypes(String projectName, Long systemId, ReportPortalUser user);
+	List<String> getAllowableIssueTypes(Long integrationId, ReportPortalUser.ProjectDetails projectDetails);
 }

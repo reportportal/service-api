@@ -70,4 +70,4 @@ rp:
   analytics:
     enableByDefault: true
   plugins:
-    path: /Users/andrei_varabyeu/work/sources/reportportal/plugin-bts-jira/build/plugins
+    path: /plugins

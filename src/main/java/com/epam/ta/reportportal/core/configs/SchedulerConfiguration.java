@@ -22,6 +22,7 @@ package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.job.CleanLogsJob;
 import com.epam.ta.reportportal.job.CleanScreenshotsJob;
+import com.epam.ta.reportportal.job.FlushingDataJob;
 import com.epam.ta.reportportal.job.InterruptBrokenLaunchesJob;
 import org.quartz.JobDetail;
 import org.quartz.SimpleTrigger;
@@ -35,6 +36,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.quartz.*;
 
 import javax.inject.Named;
@@ -64,6 +66,7 @@ public class SchedulerConfiguration {
 		scheduler.setQuartzProperties(quartzProperties.getQuartz());
 		scheduler.setAutoStartup(true);  // to not automatically start after startup
 		scheduler.setWaitForJobsToCompleteOnShutdown(true);
+		scheduler.setOverwriteExistingJobs(true);
 		scheduler.setJobFactory(beanJobFactory());
 
 		// Here we will set all the trigger beans we have defined.
@@ -87,6 +90,14 @@ public class SchedulerConfiguration {
 	}
 
 	@Bean
+	@Profile("demo")
+	public SimpleTriggerFactoryBean flushingDataTrigger(@Named("flushingDataJob") JobDetail jobDetail,
+			@Value("${com.ta.reportportal.rp.flushing.time.cron}") String flushingCron) {
+		return createTrigger(jobDetail, Duration.parse(flushingCron).toMillis());
+	}
+
+	@Bean
+	@Profile("!demo")
 	public SimpleTriggerFactoryBean createCleanLogsTrigger(@Named("cleanLogsJob") JobDetail jobDetail,
 			@Value("${com.ta.reportportal.job.clean.logs.cron}") String cleanLogsCron) {
 		return createTrigger(jobDetail, Duration.parse(cleanLogsCron).toMillis());
@@ -99,12 +110,21 @@ public class SchedulerConfiguration {
 	}
 
 	@Bean
+	@Profile("!demo")
 	public SimpleTriggerFactoryBean cleanScreenshotsTrigger(@Named("cleanScreenshotsJob") JobDetail jobDetail,
 			@Value("${com.ta.reportportal.job.clean.screenshots.cron}") String cleanScreenshotsCron) {
 		return createTrigger(jobDetail, Duration.parse(cleanScreenshotsCron).toMillis());
 	}
 
 	@Bean
+	@Profile("demo")
+	@Named("flushingDataJob")
+	public static JobDetailFactoryBean flushingDataJob() {
+		return createJobDetail(FlushingDataJob.class);
+	}
+
+	@Bean
+	@Profile("!demo")
 	@Named("cleanLogsJob")
 	public static JobDetailFactoryBean cleanLogsJob() {
 		return createJobDetail(CleanLogsJob.class);
@@ -117,6 +137,7 @@ public class SchedulerConfiguration {
 	}
 
 	@Bean
+	@Profile("!demo")
 	@Named("cleanScreenshotsJob")
 	public static JobDetailFactoryBean cleanScreenshotsJob() {
 		return createJobDetail(CleanScreenshotsJob.class);

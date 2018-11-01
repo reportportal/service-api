@@ -1,20 +1,20 @@
 /*
  * Copyright 2016 EPAM Systems
- * 
- * 
+ *
+ *
  * This file is part of EPAM Report Portal.
  * https://github.com/reportportal/service-api
- * 
+ *
  * Report Portal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Report Portal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -86,27 +86,6 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 	@Value("${rp.analytics.enableByDefault:true}")
 	private boolean enableByDefault;
 
-	/**
-	 * Photo avatar for non-existing users
-	 */
-	public static final Supplier<BinaryData> NONAME_USER_PHOTO = Suppliers.memoize(() -> new BinaryData(MediaType.IMAGE_JPEG_VALUE, null,
-			AddDemoProjectEventHandler.class.getClassLoader().getResourceAsStream("nonameUserPhoto.jpg")
-	));
-
-	/**
-	 * Default user avatar
-	 */
-	public static final Supplier<BinaryData> DEMO_USER_PHOTO = Suppliers.memoize(() -> new BinaryData(MediaType.IMAGE_JPEG_VALUE, null,
-			AddDemoProjectEventHandler.class.getClassLoader().getResourceAsStream("defaultUserPhoto.jpg")
-	));
-
-	/**
-	 * Administrator avatar
-	 */
-	public static final Supplier<BinaryData> DEFAULT_ADMIN_PHOTO = Suppliers.memoize(() -> new BinaryData(MediaType.IMAGE_JPEG_VALUE, null,
-			AddDemoProjectEventHandler.class.getClassLoader().getResourceAsStream("superAdminPhoto.jpg")
-	));
-
 	public static final Supplier<User> DEFAULT_ADMIN = Suppliers.memoize(() -> {
 		LOGGER.info("========== DEFAULT ADMINISTRATOR CREATION ==========");
 		User user = new User();
@@ -142,8 +121,17 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		ServerSettings settings = new ServerSettings();
 		settings.setId(DEFAULT_PROFILE_ID);
 		settings.setActive(true);
-		settings.setServerEmailDetails(
-				new ServerEmailDetails(true, host, port, protocol, isEnable, false, false, username, password, "rp@epam.com"));
+		settings.setServerEmailDetails(new ServerEmailDetails(true,
+				host,
+				port,
+				protocol,
+				isEnable,
+				false,
+				false,
+				username,
+				password,
+				"rp@epam.com"
+		));
 		settings.setAnalyticsDetails(ImmutableMap.<String, AnalyticsDetails>builder().put("all", new AnalyticsDetails(true)).build());
 		settings.setInstanceId(UUID.randomUUID().toString());
 		return settings;
@@ -167,38 +155,54 @@ public class AddDemoProjectEventHandler implements ApplicationListener<ContextRe
 		 * if we didn't import default setting import them and set flag
 		 */
 		if (null == serverSettingsRepository.findOne(DEFAULT_PROFILE.get().getId())) {
-			// Save non-existing user photo
-			userRepository.uploadUserPhoto(Constants.NONAME_USER.toString(), NONAME_USER_PHOTO.get());
 
 			// Super administrator
 			if (null == userRepository.findOne(DEFAULT_ADMIN.get().getLogin())) {
 				User user = DEFAULT_ADMIN.get();
-				String photoId = userRepository.uploadUserPhoto(user.getLogin(), DEFAULT_ADMIN_PHOTO.get());
+				String photoId = userRepository.uploadUserPhoto(user.getLogin(), new BinaryData(MediaType.IMAGE_JPEG_VALUE,
+						null,
+						AddDemoProjectEventHandler.class.getClassLoader().getResourceAsStream("superAdminPhoto.jpg")
+				));
 				user.setPhotoId(photoId);
 
 				projectRepository.save(personalProjectService.generatePersonalProject(user));
 				userRepository.save(user);
 			}
 
-			// Down-graded user (previous administrator)
-			if (null == userRepository.findOne(DEFAULT_USER.get().getLogin())) {
-				User user = DEFAULT_USER.get();
-				String photoId = userRepository.uploadUserPhoto(user.getLogin(), DEMO_USER_PHOTO.get());
-				user.setPhotoId(photoId);
-
-				projectRepository.save(personalProjectService.generatePersonalProject(user));
-				userRepository.save(user);
-			}
+			addDefaultUser();
 
 			/* Create server settings repository with default profile */
 			ServerSettings serverSettings = DEFAULT_PROFILE.get();
 			serverSettingsRepository.save(serverSettings);
 
 			if (null == serverSettings.getAnalyticsDetails()) {
-				serverSettings.setAnalyticsDetails(
-						ImmutableMap.<String, AnalyticsDetails>builder().put("all", new AnalyticsDetails(enableByDefault)).build());
+				serverSettings.setAnalyticsDetails(ImmutableMap.<String, AnalyticsDetails>builder().put("all",
+						new AnalyticsDetails(enableByDefault)
+				).build());
 				serverSettingsRepository.save(serverSettings);
 			}
 		}
+	}
+
+	public void addDefaultUser() {
+		// Save non-existing user photo
+		userRepository.uploadUserPhoto(Constants.NONAME_USER.toString(), new BinaryData(MediaType.IMAGE_JPEG_VALUE,
+				null,
+				AddDemoProjectEventHandler.class.getClassLoader().getResourceAsStream("nonameUserPhoto.jpg")
+		));
+
+		// Down-graded user (previous administrator)
+		if (null == userRepository.findOne(DEFAULT_USER.get().getLogin())) {
+			User user = DEFAULT_USER.get();
+			String photoId = userRepository.uploadUserPhoto(user.getLogin(), new BinaryData(MediaType.IMAGE_JPEG_VALUE,
+					null,
+					AddDemoProjectEventHandler.class.getClassLoader().getResourceAsStream("defaultUserPhoto.jpg")
+			));
+			user.setPhotoId(photoId);
+
+			projectRepository.save(personalProjectService.generatePersonalProject(user));
+			userRepository.save(user);
+		}
+
 	}
 }

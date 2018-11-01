@@ -36,13 +36,10 @@
  */
 package com.epam.ta.reportportal.core.jasper;
 
-import com.epam.ta.reportportal.core.imprt.impl.DateUtils;
 import com.epam.ta.reportportal.database.entity.item.TestItem;
 import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
 import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
 import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
-
-import java.time.Duration;
 
 /**
  * Jasper Reports collection {@link TestItem} POJO
@@ -53,7 +50,7 @@ public class TestItemPojo {
 	private String type;
 	private String name;
 	private String status;
-	private Double duration;
+//	private Double duration;
 	private Integer total;
 	private Integer passed;
 	private Integer failed;
@@ -80,8 +77,8 @@ public class TestItemPojo {
 		this.name = input.getName() + description + issueDescription;
 		this.status = input.getStatus().name();
 
-		this.duration = Duration.between(DateUtils.fromDate(input.getStartTime()), DateUtils.fromDate(input.getEndTime())).toMillis()
-				/ (double) org.apache.commons.lang.time.DateUtils.MILLIS_PER_SECOND;
+//		this.duration = Duration.between(DateUtils.fromDate(input.getStartTime()), DateUtils.fromDate(input.getEndTime())).toMillis()
+//				/ (double) org.apache.commons.lang.time.DateUtils.MILLIS_PER_SECOND;
 
 		ExecutionCounter exec = input.getStatistics().getExecutionCounter();
 		this.total = exec.getTotal();
@@ -193,13 +190,13 @@ public class TestItemPojo {
 		return toInvestigate;
 	}
 
-	public Double getDuration() {
-		return duration;
-	}
-
-	public void setDuration(Double duration) {
-		this.duration = duration;
-	}
+//	public Double getDuration() {
+//		return duration;
+//	}
+//
+//	public void setDuration(Double duration) {
+//		this.duration = duration;
+//	}
 
 	public void setPassed(Integer passed) {
 		this.passed = passed;

@@ -129,13 +129,11 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 		User modifier = userRepository.findById(user.getUserId())
 				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, user.getUsername()));
-
 		if (!UserRole.ADMINISTRATOR.equals(modifier.getRole())) {
 			expect(unassignUsersRQ.getUsernames(), not(contains(equalTo(modifier.getLogin())))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 					"User should not unassign himself from project."
 			);
 		}
-
 		List<User> unassignUsers = new ArrayList<>(unassignUsersRQ.getUsernames().size());
 		unassignUsersRQ.getUsernames().forEach(username -> {
 			User userForUnassign = userRepository.findByLogin(username)
@@ -146,14 +144,10 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 			unassignUsers.add(userForUnassign);
 		});
 		ProjectUtils.excludeProjectRecipients(unassignUsers, project);
-
-		preferenceRepository.removeByUsernamesAndProject(unassignUsersRQ.getUsernames(), project.getId());
-
-		OperationCompletionRS response = new OperationCompletionRS();
-		String msg = "User(s) with username(s)='" + unassignUsersRQ.getUsernames() + "' was successfully un-assigned from project='"
-				+ project.getName() + "'";
-		response.setResultMessage(msg);
-		return response;
+		preferenceRepository.removeByProjectIdAndUserId(projectDetails.getProjectId(), user.getUserId());
+		return new OperationCompletionRS(
+				"User(s) with username(s)='" + unassignUsersRQ.getUsernames() + "' was successfully un-assigned from project='"
+						+ project.getName() + "'");
 	}
 
 	@Override
@@ -197,11 +191,9 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 			projectUser.setProject(project);
 			project.getUsers().add(projectUser);
 		});
-		OperationCompletionRS response = new OperationCompletionRS();
-		String msg = "User(s) with username='" + assignUsersRQ.getUserNames().keySet() + "' was successfully assigned to project='"
-				+ project.getName() + "'";
-		response.setResultMessage(msg);
-		return response;
+		return new OperationCompletionRS(
+				"User(s) with username='" + assignUsersRQ.getUserNames().keySet() + "' was successfully assigned to project='"
+						+ project.getName() + "'");
 	}
 
 	@Override

@@ -17,25 +17,23 @@
 package com.epam.ta.reportportal.core.bts.handler;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
-import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
 
 /**
- * External system ticket creation handler
+ * Basic interface for {@link} realization
  *
- * @author Aliaksei_Makayed
+ * @author Andrei_Ramanchuk
+ * @author Pavel Bortnik
  */
-
-public interface ICreateTicketHandler {
+public interface CreateIntegrationHandler {
 
 	/**
-	 * Post ticket to external system.
+	 * Create {@link com.epam.ta.reportportal.entity.integration.Integration} entry method
 	 *
-	 * @param postTicketRQ Request Data
-	 * @param project      Project Name
-	 * @param systemId     ID of external system
-	 * @param user         User
-	 * @return Found Ticket
+	 * @param createRQ       Request Data
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @return Response Data
 	 */
-	Ticket createIssue(PostTicketRQ postTicketRQ, String project, Long systemId, ReportPortalUser user);
+	EntryCreatedRS createIntegration(CreateExternalSystemRQ createRQ, ReportPortalUser.ProjectDetails projectDetails);
 }

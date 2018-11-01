@@ -3,7 +3,7 @@ package com.epam.ta.reportportal.core.user.event;
 import org.springframework.context.ApplicationEvent;
 
 /**
- * @author Ivan Budaev
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class UpdateUserRoleEvent extends ApplicationEvent {
 

@@ -14,6 +14,9 @@ RUN ./gradlew resolveDependencies --stacktrace
 COPY . ./
 RUN ./gradlew build
 
+RUN mkdir -p /usr/src/reportportal/plugins
+RUN curl -o /usr/src/reportportal/plugins/jira-bts.jar https://jitpack.io/com/github/reportportal/plugin-bts-jira/master/plugin-bts-jira-master.jar
+
 FROM openjdk:8-jre-slim
 
 LABEL maintainer="Andrei Varabyeu <andrei_varabyeu@epam.com>"
@@ -31,6 +34,9 @@ RUN sh -c "echo '#!/bin/sh \n\
 exec java $JAVA_OPTS -jar $JAVA_APP' > /start.sh && chmod +x /start.sh"
 
 VOLUME /tmp
+
+RUN mkdir plugins
+COPY --from=builder /usr/src/reportportal/plugins/jira-bts.jar ./plugins/jira-bts.jar
 
 COPY --from=builder /usr/src/reportportal/build/libs/service-api.jar ./app.jar
 

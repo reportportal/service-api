@@ -11,7 +11,11 @@ import java.util.Optional;
 public enum BtsConstants {
 	PROJECT("project"),
 	URL("url"),
-	DEFECT_FORM_FIELDS("defectFormFields");
+	DEFECT_FORM_FIELDS("defectFormFields"),
+	USER_NAME("username"),
+	PASSWORD("password"),
+	AUTH_TYPE("authType"),
+	OAUTH_ACCESS_KEY("oauthAccessKey");
 
 	private final String name;
 

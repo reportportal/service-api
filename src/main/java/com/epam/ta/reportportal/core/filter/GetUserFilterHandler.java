@@ -30,7 +30,7 @@ import java.util.List;
  *
  * @author Aliaksei_Makayed
  */
-public interface IGetUserFilterHandler {
+public interface GetUserFilterHandler {
 
 	/**
 	 * Get {@link UserFilterResource} by id

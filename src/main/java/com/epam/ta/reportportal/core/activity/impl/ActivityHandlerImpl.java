@@ -19,7 +19,7 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.core.activity.IActivityHandler;
+import com.epam.ta.reportportal.core.activity.ActivityHandler;
 import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -48,7 +48,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
  * @author Ihar Kahadouski
  */
 @Service
-public class ActivityHandler implements IActivityHandler {
+public class ActivityHandlerImpl implements ActivityHandler {
 
 	private static final String CREATION_DATE_COLUMN = "creation_date";
 
@@ -57,7 +57,7 @@ public class ActivityHandler implements IActivityHandler {
 	private final ProjectRepository projectRepository;
 
 	@Autowired
-	public ActivityHandler(ActivityRepository activityRepository, TestItemRepository testItemRepository,
+	public ActivityHandlerImpl(ActivityRepository activityRepository, TestItemRepository testItemRepository,
 			ProjectRepository projectRepository) {
 		this.activityRepository = activityRepository;
 		this.testItemRepository = testItemRepository;

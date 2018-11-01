@@ -16,20 +16,21 @@
 
 package com.epam.ta.reportportal.core.project.settings;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
 
 /**
- * @author Andrei_Ramanchuk
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public interface IUpdateProjectSettingsHandler {
+public interface DeleteProjectSettingsHandler {
 
 	/**
-	 * Update issue sub-type for specified project
+	 * Remove specified issue sub-type for specified project
 	 *
-	 * @param projectName
-	 * @param rq
+	 * @param projectDetails
+	 * @param user
+	 * @param id
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS updateProjectIssueSubType(String projectName, String user, UpdateIssueSubTypeRQ rq);
+	OperationCompletionRS deleteProjectIssueSubType(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long id);
 }

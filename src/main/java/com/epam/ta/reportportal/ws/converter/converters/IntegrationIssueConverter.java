@@ -25,9 +25,9 @@ import java.util.function.Function;
 /**
  * @author Pavel Bortnik
  */
-public final class ExternalSystemIssueConverter {
+public final class IntegrationIssueConverter {
 
-	private ExternalSystemIssueConverter() {
+	private IntegrationIssueConverter() {
 		//static only
 	}
 

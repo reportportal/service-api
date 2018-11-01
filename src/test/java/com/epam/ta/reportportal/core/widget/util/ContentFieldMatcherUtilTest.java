@@ -12,7 +12,7 @@ import java.util.Random;
 import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.*;
 
 /**
- * @author Ivan_Budaev
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 //TODO replace random wrong content field generation with the specified loop
 @RunWith(Parameterized.class)
@@ -22,7 +22,6 @@ public class ContentFieldMatcherUtilTest {
 	public void whenCorrectDefectsContentFieldsFormatThenTrue() {
 
 		boolean match = ContentFieldMatcherUtil.match(DEFECTS_REGEX, buildCorrectDefectContentFields());
-
 
 		Assert.assertTrue(match);
 	}

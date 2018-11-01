@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '2.0.2.RELEASE'
+        springBootVersion = '2.1.0.RELEASE'
         springCloudVersion = 'Finchley.M9'
     }
     repositories {
@@ -71,7 +71,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "com.github.reportportal:commons-bom:71b7ca8"
+        mavenBom "com.github.reportportal:commons-bom:44ec962"
     }
 }
 
@@ -106,6 +106,10 @@ dependencies {
         compile('com.github.reportportal:plugin-api:5dc955e808')
     }
 
+    //move this to the plugin-api
+    compile('com.atlassian.fugue:fugue:2.6.1')
+    compile('com.atlassian.jira:jira-rest-java-client-core:4.0.0')
+    //*****************************
 
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
 
@@ -169,7 +173,8 @@ dependencies {
     compile 'io.springfox:springfox-swagger-ui'
     compile 'io.springfox:springfox-swagger2'
 
-    compile 'com.google.guava:guava'
+    compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.1'
+    compile group: 'com.google.guava', name: 'guava', version: '25.1-jre'
 
     api 'org.jacoco:org.jacoco.agent:0.7.7.201606060606'
 

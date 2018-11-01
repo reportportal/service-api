@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
+import com.epam.reportportal.extension.bugtracking.BtsConstants;
 import com.epam.ta.reportportal.entity.bts.DefectFormField;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
@@ -93,6 +94,11 @@ public class BugTrackingSystemBuilder implements Supplier<Integration> {
 		if (!CollectionUtils.isEmpty(fields)) {
 			BtsConstants.DEFECT_FORM_FIELDS.setParam(parameters, fields);
 		}
+		return this;
+	}
+
+	public BugTrackingSystemBuilder addAuthKey(String authType) {
+		BtsConstants.OAUTH_ACCESS_KEY.setParam(parameters, authType);
 		return this;
 	}
 

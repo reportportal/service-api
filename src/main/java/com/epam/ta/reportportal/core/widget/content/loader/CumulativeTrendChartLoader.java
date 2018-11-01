@@ -2,27 +2,17 @@ package com.epam.ta.reportportal.core.widget.content.loader;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.util.ContentFieldMatcherUtil;
-import com.epam.ta.reportportal.dao.WidgetContentRepository;
-import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.PREFIX;
 import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.COMBINED_CONTENT_FIELDS_REGEX;
-import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
-import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
-import static java.util.Collections.singletonMap;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>

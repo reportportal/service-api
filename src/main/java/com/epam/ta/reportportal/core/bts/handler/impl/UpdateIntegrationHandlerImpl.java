@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IntegrationFieldsConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -103,7 +102,7 @@ public class UpdateIntegrationHandlerImpl implements UpdateIntegrationHandler {
 				.addProject(project)
 				.addUsername(updateRQ.getUsername())
 				.addPassword(simpleEncryptor.encrypt(updateRQ.getPassword()))
-				.addAuthType(updateRQ.getExternalSystemAuth())
+				.addAuthType(updateRQ.getExternalSystemAuth()).addAuthKey(updateRQ.getAccessKey())
 				.addFields(updateRQ.getFields().stream().map(IntegrationFieldsConverter.FIELD_TO_DB).collect(Collectors.toSet()))
 				.get();
 

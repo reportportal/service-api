@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.converter.builders;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.google.common.collect.Sets;
 
@@ -53,6 +54,19 @@ public class WidgetBuilder implements Supplier<Widget> {
 		widget.getContentFields().clear();
 		widget.getContentFields()
 				.addAll(Optional.ofNullable(widgetRQ.getContentParameters().getContentFields()).orElse(Collections.emptyList()));
+		return this;
+	}
+
+	public WidgetBuilder addWidgetPreviewRq(WidgetPreviewRQ previewRQ) {
+		widget.getWidgetOptions().clear();
+		widget.getWidgetOptions().putAll(previewRQ.getContentParameters().getWidgetOptions());
+
+		widget.setWidgetType(previewRQ.getContentParameters().getWidgetType());
+		widget.setItemsCount(previewRQ.getContentParameters().getItemsCount());
+
+		widget.getContentFields().clear();
+		widget.getContentFields()
+				.addAll(Optional.ofNullable(previewRQ.getContentParameters().getContentFields()).orElse(Collections.emptyList()));
 		return this;
 	}
 

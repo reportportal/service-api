@@ -31,10 +31,6 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.reportportal.commons.ContentTypeResolver;
-import com.epam.reportportal.commons.Thumbnailator;
-import com.epam.reportportal.commons.ThumbnailatorImpl;
-import com.epam.reportportal.commons.TikaContentTypeResolver;
 import com.epam.ta.reportportal.commons.ExceptionMappings;
 import com.epam.ta.reportportal.commons.exception.forwarding.ClientResponseForwardingExceptionHandler;
 import com.epam.ta.reportportal.commons.exception.rest.DefaultErrorResolver;

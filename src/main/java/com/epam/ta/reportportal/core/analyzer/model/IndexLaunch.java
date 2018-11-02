@@ -33,7 +33,7 @@ import java.util.List;
 public class IndexLaunch {
 
 	@JsonProperty("launchId")
-	private String launchId;
+	private Long launchId;
 
 	@JsonProperty("launchName")
 	private String launchName;

@@ -34,10 +34,10 @@ import java.util.Set;
 public class IndexTestItem {
 
 	@JsonProperty("testItemId")
-	private String testItemId;
+	private Long testItemId;
 
 	@JsonProperty("issueType")
-	private String issueType;
+	private Long issueTypeId;
 
 	@JsonProperty("logs")
 	private Set<IndexLog> logs;
@@ -52,11 +52,11 @@ public class IndexTestItem {
 	public IndexTestItem() {
 	}
 
-	public String getTestItemId() {
+	public Long getTestItemId() {
 		return testItemId;
 	}
 
-	public void setTestItemId(String testItemId) {
+	public void setTestItemId(Long testItemId) {
 		this.testItemId = testItemId;
 	}
 
@@ -68,12 +68,12 @@ public class IndexTestItem {
 		this.uniqueId = uniqueId;
 	}
 
-	public String getIssueType() {
-		return issueType;
+	public Long getIssueTypeId() {
+		return issueTypeId;
 	}
 
-	public void setIssueType(String issueType) {
-		this.issueType = issueType;
+	public void setIssueTypeId(Long issueTypeId) {
+		this.issueTypeId = issueTypeId;
 	}
 
 	public Set<IndexLog> getLogs() {
@@ -101,14 +101,13 @@ public class IndexTestItem {
 			return false;
 		}
 		IndexTestItem that = (IndexTestItem) o;
-		return isAutoAnalyzed == that.isAutoAnalyzed && Objects.equals(testItemId, that.testItemId) && Objects.equals(
-				issueType,
-				that.issueType
+		return isAutoAnalyzed == that.isAutoAnalyzed && Objects.equals(testItemId, that.testItemId) && Objects.equals(issueTypeId,
+				that.issueTypeId
 		) && Objects.equals(logs, that.logs) && Objects.equals(uniqueId, that.uniqueId);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(testItemId, issueType, logs, uniqueId, isAutoAnalyzed);
+		return Objects.hash(testItemId, issueTypeId, logs, uniqueId, isAutoAnalyzed);
 	}
 }

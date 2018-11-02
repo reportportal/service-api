@@ -47,7 +47,7 @@ import java.util.concurrent.CompletableFuture;
  * @author Ivan Sharamet
  * @author Pavel Bortnik
  */
-public interface IAnalyzerServiceClient {
+public interface AnalyzerServiceClient {
 
 	/**
 	 * Checks if any client is available
@@ -70,7 +70,7 @@ public interface IAnalyzerServiceClient {
 	 * @param rq Launch
 	 * @return Analyzed Launch
 	 */
-	Map<String, List<AnalyzedItemRs>> analyze(IndexLaunch rq);
+	CompletableFuture<Map<String, List<AnalyzedItemRs>>> analyze(IndexLaunch rq);
 
 	/**
 	 * Remove documents with specified ids from index
@@ -78,12 +78,12 @@ public interface IAnalyzerServiceClient {
 	 * @param index Index to to be cleaned
 	 * @param ids   Document ids to be deleted from index
 	 */
-	void cleanIndex(String index, List<String> ids);
+	void cleanIndex(Long index, List<Long> ids);
 
 	/**
 	 * Delete index
 	 *
 	 * @param index Index to be deleted
 	 */
-	void deleteIndex(String index);
+	void deleteIndex(Long index);
 }

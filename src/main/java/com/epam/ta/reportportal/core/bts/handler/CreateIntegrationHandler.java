@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.bts.handler;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
+import com.epam.ta.reportportal.ws.model.externalsystem.CreateIntegrationRQ;
 
 /**
  * Basic interface for {@link} realization
@@ -35,5 +35,5 @@ public interface CreateIntegrationHandler {
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 * @return Response Data
 	 */
-	EntryCreatedRS createIntegration(CreateExternalSystemRQ createRQ, ReportPortalUser.ProjectDetails projectDetails);
+	EntryCreatedRS createIntegration(CreateIntegrationRQ createRQ, ReportPortalUser.ProjectDetails projectDetails);
 }

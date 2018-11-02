@@ -17,18 +17,27 @@
 package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
 import com.epam.ta.reportportal.core.widget.IGetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.ShareWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.UserFilterRepository;
+import com.epam.ta.reportportal.dao.WidgetRepository;
+import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
+import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +45,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 /**
  * @author Pavel Bortnik
@@ -49,6 +61,18 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 
 	@Autowired
 	private ShareWidgetHandler shareWidgetHandler;
+
+	@Autowired
+	private ProjectRepository projectRepository;
+
+	@Autowired
+	private WidgetRepository widgetRepository;
+
+	@Autowired
+	private UserFilterRepository filterRepository;
+
+	@Autowired
+	private GetUserFilterHandler getUserFilterHandler;
 
 	@Autowired
 	@Qualifier("buildFilterStrategyMapping")
@@ -80,26 +104,66 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 
 	@Override
 	public Iterable<SharedEntity> getSharedWidgetNames(String userName, String projectName, Pageable pageable) {
-		return null;
+
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
+		return widgetRepository.getSharedWidgetNames(userName, project.getId(), pageable);
 	}
 
 	@Override
 	public Iterable<WidgetResource> getSharedWidgetsList(String userName, String projectName, Pageable pageable) {
-		return null;
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
+		return PagedResourcesAssembler.pageConverter(WidgetConverter.TO_WIDGET_RESOURCE)
+				.apply(widgetRepository.getSharedWidgetsList(userName, project.getId(), pageable));
 	}
 
 	@Override
 	public List<String> getWidgetNames(String projectName, String userName) {
-		return null;
+
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
+		return widgetRepository.getWidgetNames(userName, project.getId());
 	}
 
 	@Override
-	public Map<String, ?> getWidgetPreview(String projectName, String userName, WidgetPreviewRQ previewRQ) {
-		return null;
+	public Map<String, ?> getWidgetPreview(WidgetPreviewRQ previewRQ, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
+
+		previewRQ.getContentParameters().getWidgetType();
+
+		List<UserFilter> userFilter = null;
+
+		if (CollectionUtils.isNotEmpty(previewRQ.getFilterIds())) {
+			userFilter = getUserFilterHandler.getFilters(previewRQ.getFilterIds().stream().toArray(Long[]::new), projectDetails, user);
+			expect(userFilter.size(), equalTo(previewRQ.getFilterIds().size())).verify(ErrorType.BAD_REQUEST_ERROR,
+					"Not all filters were found by provided ids"
+			);
+		}
+
+		Widget widget = new WidgetBuilder().addWidgetPreviewRq(previewRQ)
+				.addProject(projectDetails.getProjectId())
+				.addFilters(userFilter)
+				.get();
+
+		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+						"Unsupported widget type {}" + widget.getWidgetType()
+				));
+
+		return buildFilterStrategyMapping.get(widgetType)
+				.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget);
 	}
 
 	@Override
-	public Iterable<WidgetResource> searchSharedWidgets(String term, String projectName, Pageable pageable) {
-		return null;
+	public Iterable<WidgetResource> searchSharedWidgets(String term, String username, String projectName, Pageable pageable) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
+		return PagedResourcesAssembler.pageConverter(WidgetConverter.TO_WIDGET_RESOURCE)
+				.apply(widgetRepository.searchSharedWidgets(term, username, project.getId(), pageable));
 	}
 }

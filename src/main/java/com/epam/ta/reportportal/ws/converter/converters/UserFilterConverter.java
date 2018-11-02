@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -66,12 +67,14 @@ public final class UserFilterConverter {
 		userFilterResource.setFilterId(filter.getId());
 		userFilterResource.setName(filter.getName());
 		userFilterResource.setDescription(filter.getDescription());
-		userFilterResource.setObjectType(filter.getTargetClass().getClassObject().getSimpleName());
-		userFilterResource.setConditions(filter.getFilterCondition()
-				.stream()
+		ofNullable(filter.getTargetClass()).ifPresent(tc -> userFilterResource.setObjectType(tc.getClassObject().getSimpleName()));
+		ofNullable(filter.getFilterCondition()).ifPresent(fcs -> userFilterResource.setConditions(fcs.stream()
 				.map(UserFilterConverter.TO_FILTER_CONDITION)
-				.collect(toSet()));
-		userFilterResource.setOrders(filter.getFilterSorts().stream().map(UserFilterConverter.TO_FILTER_ORDER).collect(toList()));
+				.collect(toSet())));
+		ofNullable(filter.getFilterSorts()).ifPresent(fs -> userFilterResource.setOrders(fs.stream()
+				.map(UserFilterConverter.TO_FILTER_ORDER)
+				.collect(toList())));
+
 		return userFilterResource;
 	}
 }

@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.bts.handler;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.externalsystem.UpdateExternalSystemRQ;
+import com.epam.ta.reportportal.ws.model.externalsystem.UpdateIntegrationRQ;
 
 /**
  * Basic interface for {@link com.epam.ta.reportportal.core.bts.handler.impl.UpdateIntegrationHandlerImpl}
@@ -36,7 +36,7 @@ public interface UpdateIntegrationHandler {
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 * @return Operation result
 	 */
-	OperationCompletionRS updateIntegration(UpdateExternalSystemRQ request, Long integrationId,
+	OperationCompletionRS updateIntegration(UpdateIntegrationRQ request, Long integrationId,
 			ReportPortalUser.ProjectDetails projectDetails);
 
 	/**
@@ -47,7 +47,7 @@ public interface UpdateIntegrationHandler {
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 * @return Operation result
 	 */
-	OperationCompletionRS integrationConnect(UpdateExternalSystemRQ updateRQ, Long integrationId,
+	OperationCompletionRS integrationConnect(UpdateIntegrationRQ updateRQ, Long integrationId,
 			ReportPortalUser.ProjectDetails projectDetails);
 
 }

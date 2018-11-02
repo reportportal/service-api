@@ -46,9 +46,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-
 /**
  * @author Pavel Bortnik
  */
@@ -139,9 +136,6 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 
 		if (CollectionUtils.isNotEmpty(previewRQ.getFilterIds())) {
 			userFilter = getUserFilterHandler.getFilters(previewRQ.getFilterIds().stream().toArray(Long[]::new), projectDetails, user);
-			expect(userFilter.size(), equalTo(previewRQ.getFilterIds().size())).verify(ErrorType.BAD_REQUEST_ERROR,
-					"Not all filters were found by provided ids"
-			);
 		}
 
 		Widget widget = new WidgetBuilder().addWidgetPreviewRq(previewRQ)

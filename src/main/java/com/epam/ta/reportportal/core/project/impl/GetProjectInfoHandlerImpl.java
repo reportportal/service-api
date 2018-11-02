@@ -17,54 +17,35 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.project.GetProjectInfoHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.enums.InfoInterval;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.project.email.ProjectInfoWidget;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
-import com.google.common.collect.Maps;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.temporal.TemporalAccessor;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-import static com.epam.ta.reportportal.commons.Predicates.in;
-import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static org.springframework.data.domain.Sort.Direction.DESC;
 
 /**
  * @author Pavel Bortnik
@@ -114,7 +95,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 	}
 
 	@Override
-	public Map<String, String> getProjectInfoWidgetContent(ReportPortalUser.ProjectDetails projectDetails, String interval,
+	public Map<String, List<ChartObject>> getProjectInfoWidgetContent(ReportPortalUser.ProjectDetails projectDetails, String interval,
 			String widgetCode) {
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
@@ -128,7 +109,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				LaunchModeEnum.DEFAULT
 		);
 
-		Map<String, List<ChartObject>> result = Maps.newHashMap();
+		Map<String, List<ChartObject>> result;
 
 		switch (widgetType) {
 			case INVESTIGATED:
@@ -154,7 +135,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				result = Collections.emptyMap();
 		}
 
-		return null;
+		return result;
 	}
 
 	/**
@@ -166,4 +147,5 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 	private static LocalDateTime getStartIntervalDate(InfoInterval interval) {
 		return LocalDateTime.now(Clock.systemUTC()).minusMonths(interval.getCount());
 	}
+
 }

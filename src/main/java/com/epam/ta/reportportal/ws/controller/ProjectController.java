@@ -271,7 +271,7 @@ public class ProjectController {
 	@GetMapping("/{projectName}/widget/{widgetCode}")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiIgnore
-	public Map<String, String> getProjectWidget(@PathVariable String projectName,
+	public Map<String, List<ChartObject>> getProjectWidget(@PathVariable String projectName,
 			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval, @PathVariable String widgetCode,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return projectInfoHandler.getProjectInfoWidgetContent(ProjectExtractor.extractProjectDetails(user, projectName),

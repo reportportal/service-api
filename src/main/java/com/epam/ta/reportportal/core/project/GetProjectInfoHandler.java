@@ -59,6 +59,6 @@ public interface GetProjectInfoHandler {
 	 * @param widgetCode     Project Info Widget code
 	 * @return
 	 */
-	Map<String, String> getProjectInfoWidgetContent(ReportPortalUser.ProjectDetails projectDetails, String interval,
+	Map<String, List<ChartObject>> getProjectInfoWidgetContent(ReportPortalUser.ProjectDetails projectDetails, String interval,
 			String widgetCode);
 }

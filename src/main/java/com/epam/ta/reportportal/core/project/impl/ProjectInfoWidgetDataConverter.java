@@ -61,7 +61,7 @@ public class ProjectInfoWidgetDataConverter {
 	@Qualifier("groupingStrategy")
 	private Map<InfoInterval, ProjectInfoGroup> grouping;
 
-	enum ProjectInfoGroup {
+	public enum ProjectInfoGroup {
 		BY_DAY,
 		BY_WEEK,
 		BY_NAME

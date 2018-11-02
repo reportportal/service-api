@@ -1,6 +1,6 @@
 FROM openjdk:8-jdk-alpine as builder
 
-RUN apk add --no-cache ca-certificates git
+RUN apk add --no-cache ca-certificates git curl
 
 WORKDIR /usr/src/reportportal
 

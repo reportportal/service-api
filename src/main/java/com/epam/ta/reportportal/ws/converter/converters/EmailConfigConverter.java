@@ -1,8 +1,6 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
-import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
@@ -32,12 +30,17 @@ public class EmailConfigConverter {
 				.findFirst()
 				.ifPresent(it -> dto.setEmailEnabled(BooleanUtils.toBoolean(it.getValue())));
 
-		dto.setEmailCases(es.stream().map(item -> new EmailSenderCaseDTO(
-				item.getRecipients(),
-				item.getSendCase().toString(),
-				item.getLaunches().stream().map(Launch::getName).collect(Collectors.toList()),
-				item.getTags().stream().map(LaunchTag::getValue).collect(Collectors.toList())
-		)).collect(Collectors.toList()));
+		dto.setEmailCases(es.stream().map(item -> {
+					EmailSenderCaseDTO emailSenderCaseDTO = new EmailSenderCaseDTO();
+					emailSenderCaseDTO.setRecipients(item.getRecipients());
+					emailSenderCaseDTO.setSendCase(item.getSendCase().getCaseString());
+
+					return emailSenderCaseDTO;
+				}
+
+				//				item.getLaunches().stream().map(Launch::getName).collect(Collectors.toList()),
+				//				item.getTags().stream().map(LaunchTag::getValue).collect(Collectors.toList())
+		).collect(Collectors.toList()));
 
 		return dto;
 	};

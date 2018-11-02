@@ -16,14 +16,11 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.entity.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
 import com.google.common.base.Preconditions;
 
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Converts internal DB model from/to DTO
@@ -39,8 +36,8 @@ public final class EmailConfigConverters {
 	public final static Function<EmailSenderCase, EmailSenderCaseDTO> TO_CASE_RESOURCE = model -> {
 		Preconditions.checkNotNull(model);
 		EmailSenderCaseDTO resource = new EmailSenderCaseDTO();
-		resource.setLaunchNames(model.getLaunches().stream().map(Launch::getName).collect(Collectors.toList()));
-		resource.setTags(model.getTags().stream().map(LaunchTag::getValue).collect(Collectors.toList()));
+//		resource.setLaunchNames(model.getLaunches().stream().map(Launch::getName).collect(Collectors.toList()));
+//		resource.setTags(model.getTags().stream().map(LaunchTag::getValue).collect(Collectors.toList()));
 		resource.setSendCase(model.getSendCase().getCaseString());
 		resource.setRecipients(model.getRecipients());
 		return resource;

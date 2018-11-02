@@ -54,6 +54,7 @@ public class WidgetConverter {
 		contentParameters.setItemsCount(widget.getItemsCount());
 		contentParameters.setWidgetOptions(widget.getWidgetOptions());
 		contentParameters.setContentFields(Lists.newArrayList(widget.getContentFields()));
+		contentParameters.setWidgetType(widget.getWidgetType());
 		widgetResource.setContentParameters(contentParameters);
 		return widgetResource;
 	};

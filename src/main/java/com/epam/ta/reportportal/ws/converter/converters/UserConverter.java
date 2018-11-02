@@ -48,15 +48,15 @@ public final class UserConverter {
 		if (null != user.getProjects()) {
 			List<ProjectUser> projects = Lists.newArrayList(user.getProjects());
 			projects.sort(Comparator.comparing(compare -> compare.getProject().getName()));
-			Map<Long, UserResource.AssignedProject> userProjects = user.getProjects()
+			Map<String, UserResource.AssignedProject> userProjects = user.getProjects()
 					.stream()
-					.collect(MoreCollectors.toLinkedMap(p -> p.getProject().getId(), p -> {
+					.collect(MoreCollectors.toLinkedMap(p -> p.getProject().getName(), p -> {
 						UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();
-						//assignedProject.setEntryType(p.getProject().getProjectType().name());
+						assignedProject.setEntryType(p.getProject().getProjectType().name());
 						assignedProject.setProjectRole(p.getProjectRole().toString());
 						return assignedProject;
 					}));
-			resource.setDefaultProject(user.getDefaultProject().getId());
+			resource.setDefaultProject(user.getDefaultProject().getName());
 			resource.setAssignedProjects(userProjects);
 		}
 		return resource;

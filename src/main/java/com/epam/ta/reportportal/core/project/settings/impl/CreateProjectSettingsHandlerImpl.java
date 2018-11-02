@@ -112,7 +112,6 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 				.addLongName(rq.getLongName())
 				.addShortName(rq.getShortName())
 				.addHexColor(rq.getColor())
-				.addProject(project)
 				.get();
 
 		project.getProjectIssueTypes().add(new ProjectIssueType().withIssueType(subType).withProject(project));

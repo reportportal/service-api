@@ -120,7 +120,7 @@ public class CleanLogsJob implements Job {
 	private void removeOutdatedLogs(Long projectId, Duration period) {
 		Date endDate = Date.from(Instant.now().minusSeconds(MIN_DELAY.getSeconds()));
 		AtomicLong countPerProject = new AtomicLong(0);
-		iterateOverPages(pageable -> launchRepository.findModifiedBefore(projectId, endDate, pageable), launches -> {
+		iterateOverPages(pageable -> launchRepository.getIdsModifiedBefore(projectId, endDate, pageable), launches -> {
 			launches.forEach(launch -> {
 				try (Stream<TestItem> testItemStream = testItemRepository.streamIdsByLaunch(launch.getId())) {
 					long count = logRepo.deleteByPeriodAndItemsRef(period,

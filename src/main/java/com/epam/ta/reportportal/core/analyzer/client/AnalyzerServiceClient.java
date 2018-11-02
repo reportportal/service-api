@@ -25,20 +25,24 @@ import com.epam.ta.reportportal.core.analyzer.IAnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
-import com.epam.ta.reportportal.core.events.MessageBus;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.ANALYZER_KEY;
 import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.SUPPORT_INDEX;
@@ -60,7 +64,20 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 
 	private AtomicReference<List<ServiceInstance>> analyzerInstances;
 
-	private MessageBus messageBus;
+	//*************************************
+
+	static final String INDEX_ROUTE = "index";
+	static final String ANALYZE_ROUTE = "analyze";
+	static final String DELETE_ROUTE = "delete";
+
+	@Autowired
+	private RabbitMqManagementClient rabbitMqManagementClient;
+
+	@Autowired
+	private AsyncRabbitTemplate asyncRabbitTemplate;
+
+	@Autowired
+	private RabbitTemplate rabbitTemplate;
 
 	@Autowired
 	public AnalyzerServiceClient(RestTemplate restTemplate, DiscoveryClient discoveryClient) {
@@ -71,18 +88,34 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 
 	@Override
 	public boolean hasClients() {
-		return !analyzerInstances.get().isEmpty();
+		return rabbitMqManagementClient.getAnalyzerExchanges().size() != 0;
 	}
 
 	@Override
-	public List<IndexRs> index(List<IndexLaunch> rq) {
-		return analyzerInstances.get()
+	public List<CompletableFuture<IndexRs>> index(List<IndexLaunch> rq) {
+		return rabbitMqManagementClient.getAnalyzerExchanges()
 				.stream()
-				.filter(SUPPORT_INDEX)
-				.map(instance -> index(instance, rq))
-				.filter(Optional::isPresent)
-				.map(Optional::get)
-				.collect(toList());
+				.flatMap(exchange -> rq.stream()
+						.map(indexLaunch -> asyncRabbitTemplate.<IndexRs>convertSendAndReceive(exchange.getName(),
+								rabbitMqManagementClient.getAnalyzerQueue(INDEX_ROUTE).getName(),
+								indexLaunch
+						)))
+				.map(future -> {
+					CompletableFuture<IndexRs> f = new CompletableFuture<>();
+					future.addCallback(new ListenableFutureCallback<IndexRs>() {
+						@Override
+						public void onFailure(Throwable ex) {
+							f.completeExceptionally(ex);
+						}
+
+						@Override
+						public void onSuccess(IndexRs result) {
+							f.complete(result);
+						}
+					});
+					return f;
+				})
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -105,7 +138,11 @@ public class AnalyzerServiceClient implements IAnalyzerServiceClient {
 
 	@Override
 	public void deleteIndex(String index) {
-		analyzerInstances.get().stream().filter(SUPPORT_INDEX).forEach(instance -> deleteIndex(instance, index));
+		rabbitMqManagementClient.getAnalyzerExchanges()
+				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(),
+						rabbitMqManagementClient.getAnalyzerQueue(DELETE_ROUTE).getName(),
+						index
+				));
 	}
 
 	private void deleteIndex(ServiceInstance instance, String index) {

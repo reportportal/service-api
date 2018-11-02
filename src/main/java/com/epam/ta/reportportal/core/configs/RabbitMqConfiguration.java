@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
+import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClientTemplate;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.MessageBusImpl;
 import com.epam.ta.reportportal.core.plugin.RabbitAwarePluginBox;
@@ -73,8 +75,8 @@ public class RabbitMqConfiguration {
 	private ObjectMapper objectMapper;
 
 	@Bean
-	public RabbitManagementTemplate managementTemplate(@Value("${rp.amqp.api-address}") String address) {
-		return new RabbitManagementTemplate(address);
+	public RabbitMqManagementClient managementTemplate(@Value("${rp.amqp.api-address}") String address) {
+		return new RabbitMqManagementClientTemplate(new RabbitManagementTemplate(address));
 	}
 
 	@Bean

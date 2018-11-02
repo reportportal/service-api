@@ -61,7 +61,7 @@ springfox:
 rp:
   amqp:
     addresses: amqp://guest:guest@localhost:5672
-    api-address: http://localhost:15672/api
+    api-address: http://guest:guest@localhost:15672/api
   db:
     url: jdbc:postgresql://localhost:5432/reportportal?user=rpuser&password=rppass
   upload:

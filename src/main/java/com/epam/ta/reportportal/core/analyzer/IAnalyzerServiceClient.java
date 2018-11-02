@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * HTTP client for all log indexing/analysis services. Such services are those that have
@@ -61,7 +62,7 @@ public interface IAnalyzerServiceClient {
 	 * @param rq Launch
 	 * @return Indexing result
 	 */
-	List<IndexRs> index(List<IndexLaunch> rq);
+	List<CompletableFuture<IndexRs>> index(List<IndexLaunch> rq);
 
 	/**
 	 * Analyze launch

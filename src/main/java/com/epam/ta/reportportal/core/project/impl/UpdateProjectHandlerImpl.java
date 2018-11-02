@@ -333,16 +333,16 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 			}
 		});
 
-		/* If project email settings */
-		List<EmailSenderCase> withoutDuplicateCases = emailCases.stream()
-				.distinct()
-				.map(EmailConfigConverters.TO_CASE_MODEL)
-				.collect(toList());
-		if (emailCases.size() != withoutDuplicateCases.size()) {
-			fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
-		}
-
-		project.setEmailCases(Sets.newHashSet(withoutDuplicateCases));
+//		/* If project email settings */
+//		List<EmailSenderCase> withoutDuplicateCases = emailCases.stream()
+//				.distinct()
+//				.map(EmailConfigConverters.TO_CASE_MODEL)
+//				.collect(toList());
+//		if (emailCases.size() != withoutDuplicateCases.size()) {
+//			fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
+//		}
+//
+//		project.setEmailCases(Sets.newHashSet(withoutDuplicateCases));
 	}
 
 	void validateRecipient(Project project, String recipient) {

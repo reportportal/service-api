@@ -268,13 +268,16 @@ public class ProjectController {
 
 	@Transactional(readOnly = true)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
-	@GetMapping("/{projectName}/widget/{widgetId}")
+	@GetMapping("/{projectName}/widget/{widgetCode}")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiIgnore
-	public Map<String, List<ChartObject>> getProjectWidget(@PathVariable String projectName,
-			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval, @PathVariable String widgetId,
+	public Map<String, String> getProjectWidget(@PathVariable String projectName,
+			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval, @PathVariable String widgetCode,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return projectInfoHandler.getProjectInfoWidgetContent(normalizeId(projectName), interval, widgetId);
+		return projectInfoHandler.getProjectInfoWidgetContent(ProjectExtractor.extractProjectDetails(user, projectName),
+				interval,
+				widgetCode
+		);
 	}
 
 	@Transactional(readOnly = true)

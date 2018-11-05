@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,11 +30,14 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.entity.project.email.EmailSenderCase;
+import com.epam.ta.reportportal.entity.project.email.SendCaseType;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.converters.EmailConfigConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
@@ -44,6 +47,8 @@ import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
@@ -55,16 +60,15 @@ import java.util.*;
 import static com.epam.ta.reportportal.commons.Preconditions.IS_PRESENT;
 import static com.epam.ta.reportportal.commons.Preconditions.contains;
 import static com.epam.ta.reportportal.commons.Predicates.*;
-import static com.epam.ta.reportportal.commons.SendCase.findByName;
+import static com.epam.ta.reportportal.commons.Predicates.isPresent;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.entity.project.ProjectUtils.getOwner;
+import static com.epam.ta.reportportal.entity.project.email.SendCaseType.*;
 import static com.epam.ta.reportportal.util.UserUtils.isEmailValid;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_LOGIN_LENGTH;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_NAME_LENGTH;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_LOGIN_LENGTH;
+import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -303,25 +307,32 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private void updateEmailCases(Project project, List<EmailSenderCaseDTO> emailCases) {
 		emailCases.forEach(sendCase -> {
-			expect(findByName(sendCase.getSendCase()).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, sendCase.getSendCase());
-			expect(sendCase.getRecipients(), notNull()).verify(BAD_REQUEST_ERROR, "Recipients list should not be null");
-			expect(sendCase.getRecipients().isEmpty(), equalTo(false)).verify(BAD_REQUEST_ERROR,
+			List<String> launchStatsRule = sendCase.getCases().get(SendCaseType.LAUNCH_STATS_RULE.getCaseTypeString());
+			expect(CollectionUtils.isNotEmpty(launchStatsRule), equalTo(true)).verify(BAD_REQUEST_ERROR,
+					formattedSupplier("Empty stats rules list for email case")
+			);
+
+			List<String> recipients = sendCase.getCases().get(RECIPIENTS.getCaseTypeString());
+			expect(recipients, notNull()).verify(BAD_REQUEST_ERROR, "Recipients list should not be null");
+			expect(recipients.isEmpty(), equalTo(false)).verify(BAD_REQUEST_ERROR,
 					formattedSupplier("Empty recipients list for email case '{}' ", sendCase)
 			);
-			sendCase.setRecipients(sendCase.getRecipients().stream().map(it -> {
+			sendCase.getCases().put(RECIPIENTS.getCaseTypeString(), recipients.stream().map(it -> {
 				validateRecipient(project, it);
 				return it.trim();
 			}).distinct().collect(toList()));
 
-			if (null != sendCase.getLaunchNames()) {
-				sendCase.setLaunchNames(sendCase.getLaunchNames().stream().map(name -> {
+			List<String> launchNameRule = sendCase.getCases().get(LAUNCH_NAME_RULE.getCaseTypeString());
+			if (CollectionUtils.isNotEmpty(launchNameRule)) {
+				sendCase.getCases().put(LAUNCH_NAME_RULE.getCaseTypeString(), launchNameRule.stream().map(name -> {
 					validateLaunchName(name);
 					return name.trim();
 				}).distinct().collect(toList()));
 			}
 
-			if (null != sendCase.getTags()) {
-				sendCase.setTags(sendCase.getTags().stream().map(tag -> {
+			List<String> launchTagRule = sendCase.getCases().get(LAUNCH_TAG_RULE.getCaseTypeString());
+			if (null != launchTagRule) {
+				sendCase.getCases().put(LAUNCH_TAG_RULE.getCaseTypeString(), launchTagRule.stream().map(tag -> {
 					expect(isNullOrEmpty(tag), equalTo(false)).verify(BAD_REQUEST_ERROR,
 							"Tags values cannot be empty. Please specify it or not include in request."
 					);
@@ -330,16 +341,17 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 			}
 		});
 
-//		/* If project email settings */
-//		List<EmailSenderCase> withoutDuplicateCases = emailCases.stream()
-//				.distinct()
-//				.map(EmailConfigConverters.TO_CASE_MODEL)
-//				.collect(toList());
-//		if (emailCases.size() != withoutDuplicateCases.size()) {
-//			fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
-//		}
-//
-//		project.setEmailCases(Sets.newHashSet(withoutDuplicateCases));
+		/* If project email settings */
+		List<EmailSenderCase> withoutDuplicateCases = emailCases.stream()
+				.distinct()
+				.map(EmailConfigConverter.TO_CASE_MODEL)
+				.peek(it -> it.setProject(project))
+				.collect(toList());
+		if (emailCases.size() != withoutDuplicateCases.size()) {
+			fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
+		}
+
+		project.setEmailCases(Sets.newHashSet(withoutDuplicateCases));
 	}
 
 	void validateRecipient(Project project, String recipient) {

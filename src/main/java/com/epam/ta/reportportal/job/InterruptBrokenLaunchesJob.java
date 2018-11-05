@@ -27,25 +27,30 @@ import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.InterruptionJobDelay;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofHours;
+import static java.util.Optional.ofNullable;
 
 /**
  * Finds jobs witn duration more than defined and finishes them with interrupted
- * {@link com.epam.ta.reportportal.database.entity.Status#INTERRUPTED} status
+ * {@link StatusEnum#INTERRUPTED} status
  *
  * @author Andrei Varabyeu
  */
@@ -61,111 +66,100 @@ public class InterruptBrokenLaunchesJob implements Job {
 	@Autowired
 	private LogRepository logRepository;
 
-//	@Autowired
-//	private StatisticsFacadeFactory statisticsFacadeFactory;
-//
-//	@Autowired
-//	private ProjectRepository projectRepository;
-//
-//	@Autowired
-//	private IRetriesLaunchHandler retriesLaunchHandler;
+	@Autowired
+	private ProjectRepository projectRepository;
+
+	@Autowired
+	private IRetriesLaunchHandler retriesLaunchHandler;
 
 	@Override
 	//	@Scheduled(cron = "${com.ta.reportportal.job.interrupt.broken.launches.cron}")
 	public void execute(JobExecutionContext context) {
-//		try (Stream<Project> projects = projectRepository.streamAllIdsAndConfiguration()) {
-//			projects.forEach(project -> {
-//				Duration maxDuration = ofHours(InterruptionJobDelay.findByName(project.getConfiguration().getInterruptJobTime())
-//						.getPeriod());
-//				launchRepository.findModifiedLaterAgo(maxDuration, Status.IN_PROGRESS, project.getId()).forEach(launch -> {
-//					if (!launchRepository.hasItems(launch, Status.IN_PROGRESS)) {
-//						/*
-//						 * There are no test items for this launch. Just INTERRUPT
-//						 * this launch
-//						 */
-//						interruptLaunch(launch);
-//					} else {
-//						/*
-//						 * Well, there are some test items started for specified
-//						 * launch
-//						 */
-//
-//						if (!testItemRepository.hasTestItemsAddedLately(maxDuration, launch, Status.IN_PROGRESS)) {
-//							List<TestItem> items = testItemRepository.findModifiedLaterAgo(maxDuration, Status.IN_PROGRESS, launch);
-//
-//							/*
-//							 * If there are logs, we have to check whether them
-//							 * expired
-//							 */
-//							if (testItemRepository.hasLogs(items)) {
-//								boolean isLaunchBroken = true;
-//								for (TestItem item : items) {
-//									/*
-//									 * If there are logs which are still valid
-//									 * (probably automation project keep writing
-//									 * something)
-//									 */
-//									if (logRepository.hasLogsAddedLately(maxDuration, item)) {
-//										isLaunchBroken = false;
-//										break;
-//									}
-//								}
-//								if (isLaunchBroken) {
-//									interruptItems(testItemRepository.findInStatusItems(StatusEnum.IN_PROGRESS.name(), launch.getId()), launch);
-//								}
-//							} else {
-//								/*
-//								 * If not just INTERRUPT all found items and launch
-//								 */
-//								interruptItems(testItemRepository.findInStatusItems(StatusEnum.IN_PROGRESS.name(), launch.getId()), launch);
-//							}
-//						}
-//					}
-//				});
-//			});
-//		}
-//	}
-//
-//	private void interruptLaunch(Launch launch) {
-//		launch.setStatus(StatusEnum.INTERRUPTED);
-//		launch.setEndTime(Calendar.getInstance().getTime());
-//		launchRepository.save(launch);
-//	}
-//
-//	private void interruptItems(List<TestItem> testItems, Launch launch) {
-//		if (testItems.isEmpty()) {
-//			return;
-//		}
-//		testItems.forEach(item -> interruptItem(item, launch));
-//		Launch launchReloaded = launchRepository.findOne(launch.getId());
-//		launchReloaded.setStatus(StatusEnum.INTERRUPTED);
-//		launchReloaded.setEndTime(Calendar.getInstance().getTime());
-//		retriesLaunchHandler.handleRetries(launchReloaded);
-//		launchRepository.save(launchReloaded);
-//	}
-//
-//	private void interruptItem(TestItem item, Launch launch) {
-//		/*
-//		 * If not interrupted yet
-//		 */
-//		if (!StatusEnum.INTERRUPTED.equals(item.getStatus())) {
-//			item.setStatus(StatusEnum.INTERRUPTED);
-//			item.setEndTime(Calendar.getInstance().getTime());
-//			item = testItemRepository.save(item);
-//
-//			if (!item.hasChilds() && !IS_RETRY.test(item)) {
-//				Project project = projectRepository.findOne(launch.getProjectRef());
-//				item = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
-//						.updateExecutionStatistics(item);
-//				if (null != item.getIssue()) {
-//					item = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
-//							.updateIssueStatistics(item);
-//				}
-//			}
-//
-//			if (null != item.getParent()) {
-//				interruptItem(testItemRepository.findOne(item.getParent()), launch);
-//			}
-//		}
+
+		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(ProjectAttributeEnum.KEEP_SCREENSHOTS, pageable),
+				projects -> projects.forEach(project -> {
+					project.getProjectAttributes()
+							.stream()
+							.map(ProjectAttribute::getAttribute)
+							.filter(attribute -> attribute.getName()
+									.equalsIgnoreCase(ProjectAttributeEnum.INTERRUPT_JOB_TIME.getAttribute()))
+							.findFirst()
+							.ifPresent(attr -> {
+								Duration maxDuration = ofHours(InterruptionJobDelay.findByName(attr.getName()).getPeriod());
+								launchRepository.findModifiedLaterAgo(maxDuration, StatusEnum.IN_PROGRESS, project.getId())
+										.forEach(launch -> {
+											if (!launchRepository.hasItems(launch, StatusEnum.IN_PROGRESS)) {
+												/*
+												 * There are no test items for this launch. Just INTERRUPT
+												 * this launch
+												 */
+												interruptLaunch(launch);
+											} else {
+												/*
+												 * Well, there are some test items started for specified
+												 * launch
+												 */
+
+												if (!testItemRepository.hasTestItemsAddedLately(
+														maxDuration,
+														launch,
+														StatusEnum.IN_PROGRESS
+												)) {
+													List<TestItem> items = testItemRepository.findModifiedLaterAgo(
+															maxDuration,
+															StatusEnum.IN_PROGRESS,
+															launch
+													);
+
+													/*
+													 * If there are logs, we have to check whether them
+													 * expired
+													 */
+													if (testItemRepository.hasLogs(items)) {
+														boolean isLaunchBroken = true;
+														for (TestItem item : items) {
+															/*
+															 * If there are logs which are still valid
+															 * (probably automation project keep writing
+															 * something)
+															 */
+															if (logRepository.hasLogsAddedLately(maxDuration, item)) {
+																isLaunchBroken = false;
+																break;
+															}
+														}
+														if (isLaunchBroken) {
+															interruptItems(launch);
+														}
+													} else {
+														/*
+														 * If not just INTERRUPT all found items and launch
+														 */
+														interruptItems(launch);
+													}
+												}
+											}
+										});
+							});
+
+				})
+		);
+	}
+
+	private void interruptLaunch(Launch launch) {
+		launch.setStatus(StatusEnum.INTERRUPTED);
+		launch.setEndTime(LocalDateTime.now());
+		launchRepository.save(launch);
+	}
+
+	private void interruptItems(Launch launch) {
+		testItemRepository.interruptInProgressItems(launch.getId());
+		launchRepository.findById(launch.getId()).ifPresent(l -> {
+			l.setStatus(StatusEnum.INTERRUPTED);
+			l.setEndTime(LocalDateTime.now());
+			retriesLaunchHandler.handleRetries(l);
+			launchRepository.save(l);
+		});
+
 	}
 }

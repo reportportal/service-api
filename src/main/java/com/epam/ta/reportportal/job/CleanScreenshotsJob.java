@@ -110,7 +110,7 @@ public class CleanScreenshotsJob implements Job {
 										iterateOverPages(pageable -> launchRepository.getIdsModifiedBefore(project.getId(),
 												endDate,
 												pageable
-										), launches -> launches.forEach(id -> {
+										), launchIds -> launchIds.forEach(id -> {
 											try (Stream<Long> ids = testItemRepository.streamTestItemIdsByLaunchId(id)) {
 												ids.forEach(itemId -> {
 													List<Log> logs = logRepository.findLogsWithThumbnailByTestItemIdAndPeriod(itemId,

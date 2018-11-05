@@ -317,8 +317,13 @@ public class LaunchController {
 	}
 
 	private String generateLaunchLink(HttpServletRequest request, String projectName, String id) {
-		StringBuilder sb = new StringBuilder(request.getScheme());
-		return sb.append(request.getHeader("host")).append("/ui/#").append(projectName).append("/launches/all/").append(id).toString();
+		return new StringBuilder(request.getScheme()).append("://")
+				.append(request.getHeader("host"))
+				.append("/ui/#")
+				.append(projectName)
+				.append("/launches/all/")
+				.append(id)
+				.toString();
 	}
 
 }

@@ -16,9 +16,10 @@
 
 package com.epam.ta.reportportal.core.bts.handler.impl;
 
+import com.epam.reportportal.extension.bugtracking.BtsConstants;
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.bts.handler.ICreateTicketHandler;
+import com.epam.ta.reportportal.core.bts.handler.CreateTicketHandler;
 import com.epam.ta.reportportal.core.events.activity.TicketPostedEvent;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
@@ -26,7 +27,6 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.builders.BtsConstants;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,13 +41,13 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
- * Default implementation of {@link ICreateTicketHandler}
+ * Default implementation of {@link CreateTicketHandler}
  *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
  */
 @Service
-public class CreateTicketHandler implements ICreateTicketHandler {
+public class CreateTicketHandlerImpl implements CreateTicketHandler {
 
 	private final TestItemRepository testItemRepository;
 
@@ -58,7 +58,7 @@ public class CreateTicketHandler implements ICreateTicketHandler {
 	private final PluginBox pluginBox;
 
 	@Autowired
-	public CreateTicketHandler(TestItemRepository testItemRepository, IntegrationRepository integrationRepository,
+	public CreateTicketHandlerImpl(TestItemRepository testItemRepository, IntegrationRepository integrationRepository,
 			ApplicationEventPublisher eventPublisher, PluginBox pluginBox) {
 		this.testItemRepository = testItemRepository;
 		this.integrationRepository = integrationRepository;
@@ -67,13 +67,13 @@ public class CreateTicketHandler implements ICreateTicketHandler {
 	}
 
 	@Override
-	public Ticket createIssue(PostTicketRQ postTicketRQ, String projectName, Long systemId, ReportPortalUser user) {
+	public Ticket createIssue(PostTicketRQ postTicketRQ, Long integrationId, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
 		validatePostTicketRQ(postTicketRQ);
 		List<TestItem> testItems = testItemRepository.findAllById(postTicketRQ.getBackLinks().keySet());
-		//		ReportPortalUser.ProjectDetails projectDetails = ProjectUtils.extractProjectDetails(user, projectName);
 
-		Integration integration = integrationRepository.findById(systemId)
-				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, systemId));
+		Integration integration = integrationRepository.findById(integrationId)
+				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
 
 		expect(BtsConstants.DEFECT_FORM_FIELDS.getParam(integration.getParams()), notNull()).verify(BAD_REQUEST_ERROR,
 				"There aren't any submitted BTS fields!"
@@ -85,11 +85,10 @@ public class CreateTicketHandler implements ICreateTicketHandler {
 		);
 
 		Ticket ticket = btsExtension.get().submitTicket(postTicketRQ, integration);
-		testItems.forEach(item -> eventPublisher.publishEvent(new TicketPostedEvent(
-				ticket,
+		testItems.forEach(item -> eventPublisher.publishEvent(new TicketPostedEvent(ticket,
 				item,
 				user.getUserId(),
-				user.getProjectDetails().get(projectName).getProjectId()
+				projectDetails.getProjectId()
 		)));
 		return ticket;
 	}

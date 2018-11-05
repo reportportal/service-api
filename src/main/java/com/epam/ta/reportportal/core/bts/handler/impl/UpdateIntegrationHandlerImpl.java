@@ -18,22 +18,24 @@ package com.epam.ta.reportportal.core.bts.handler.impl;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.bts.handler.IUpdateExternalSystemHandler;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.bts.handler.UpdateIntegrationHandler;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.bts.BugTrackingSystemAuthFactory;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
-import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemFieldsConverter;
+import com.epam.ta.reportportal.ws.converter.converters.IntegrationFieldsConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.externalsystem.UpdateExternalSystemRQ;
+import com.epam.ta.reportportal.ws.model.externalsystem.UpdateIntegrationRQ;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -45,48 +47,63 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 
 /**
- * Initial realization for {@link IUpdateExternalSystemHandler} interface
+ * Initial realization for {@link UpdateIntegrationHandler} interface
  *
  * @author Andrei_Ramanchuk
  * @author Pavel Bortnik
  */
 @Service
-public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler {
+public class UpdateIntegrationHandlerImpl implements UpdateIntegrationHandler {
 
-	//	@Autowired
-	//	private StrategyProvider strategyProvider;
+	private final BasicTextEncryptor simpleEncryptor;
 
-	@Autowired
-	private IntegrationRepository integrationRepository;
+	private final IntegrationRepository integrationRepository;
 
-	@Autowired
-	private IntegrationTypeRepository integrationTypeRepository;
+	private final IntegrationTypeRepository integrationTypeRepository;
 
-	@Autowired
-	private BugTrackingSystemAuthFactory bugTrackingSystemAuthFactory;
+	private final ProjectRepository projectRepository;
 
-	@Autowired
-	private ApplicationEventPublisher eventPublisher;
+	private final BugTrackingSystemAuthFactory bugTrackingSystemAuthFactory;
+
+	private final PluginBox pluginBox;
 
 	@Autowired
-	private PluginBox pluginBox;
+	public UpdateIntegrationHandlerImpl(BasicTextEncryptor simpleEncryptor, IntegrationRepository integrationRepository,
+			IntegrationTypeRepository integrationTypeRepository, ProjectRepository projectRepository,
+			BugTrackingSystemAuthFactory bugTrackingSystemAuthFactory, PluginBox pluginBox) {
+		this.simpleEncryptor = simpleEncryptor;
+		this.integrationRepository = integrationRepository;
+		this.integrationTypeRepository = integrationTypeRepository;
+		this.projectRepository = projectRepository;
+		this.bugTrackingSystemAuthFactory = bugTrackingSystemAuthFactory;
+		this.pluginBox = pluginBox;
+	}
 
 	@Override
-	public OperationCompletionRS updateExternalSystem(UpdateExternalSystemRQ request, String projectName, Long id, ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, projectName);
-		Integration bugTrackingSystem = integrationRepository.findById(id)
-				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, id));
+	public OperationCompletionRS updateIntegration(UpdateIntegrationRQ updateRQ, Long integrationId,
+			ReportPortalUser.ProjectDetails projectDetails) {
+
+		Integration bugTrackingSystem = integrationRepository.findById(integrationId)
+				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
 
 		BugTrackingSystemBuilder builder = new BugTrackingSystemBuilder(bugTrackingSystem);
 
-		Optional<IntegrationType> type = integrationTypeRepository.findByName(request.getExternalSystemType());
-		expect(type, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, projectName);
+		Optional<IntegrationType> type = integrationTypeRepository.findByName(updateRQ.getExternalSystemType());
+		expect(type, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				Suppliers.formattedSupplier("Integration type '{}' was not found.", updateRQ.getExternalSystemType())
+		);
 
-		bugTrackingSystem = builder.addUrl(request.getUrl())
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, "with id = " + projectDetails.getProjectId()));
+
+		bugTrackingSystem = builder.addUrl(updateRQ.getUrl())
 				.addIntegrationType(type.get())
-				.addBugTrackingProject(request.getProject())
-				.addProject(projectDetails.getProjectId())
-				.addFields(request.getFields().stream().map(ExternalSystemFieldsConverter.FIELD_TO_DB).collect(Collectors.toSet()))
+				.addBugTrackingProject(updateRQ.getProject())
+				.addProject(project)
+				.addUsername(updateRQ.getUsername())
+				.addPassword(simpleEncryptor.encrypt(updateRQ.getPassword()))
+				.addAuthType(updateRQ.getExternalSystemAuth()).addAuthKey(updateRQ.getAccessKey())
+				.addFields(updateRQ.getFields().stream().map(IntegrationFieldsConverter.FIELD_TO_DB).collect(Collectors.toSet()))
 				.get();
 
 		//TODO probably could be handled by database
@@ -116,14 +133,14 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 		integrationRepository.save(bugTrackingSystem);
 
 		//eventPublisher.publishEvent(new IntegrationUpdatedEvent(exist, principalName));
-		return new OperationCompletionRS("ExternalSystem with ID = '" + id + "' is successfully updated.");
+		return new OperationCompletionRS("ExternalSystem with ID = '" + integrationId + "' is successfully updated.");
 	}
 
 	@Override
-	public OperationCompletionRS externalSystemConnect(UpdateExternalSystemRQ updateRQ, String projectName, Long systemId,
-			ReportPortalUser user) {
-		Integration bugTrackingSystem = integrationRepository.findById(systemId)
-				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, systemId));
+	public OperationCompletionRS integrationConnect(UpdateIntegrationRQ updateRQ, Long integrationId,
+			ReportPortalUser.ProjectDetails projectDetails) {
+		Integration bugTrackingSystem = integrationRepository.findById(integrationId)
+				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
 
 		Integration details = new BugTrackingSystemBuilder().addUrl(updateRQ.getUrl()).addBugTrackingProject(updateRQ.getProject()).get();
 
@@ -134,6 +151,6 @@ public class UpdateExternalSystemHandler implements IUpdateExternalSystemHandler
 				bugTrackingSystem.getProject().getId()
 		);
 
-		return new OperationCompletionRS("Connection to ExternalSystem with ID = '" + systemId + "' is successfully performed.");
+		return new OperationCompletionRS("Connection to ExternalSystem with ID = '" + integrationId + "' is successfully performed.");
 	}
 }

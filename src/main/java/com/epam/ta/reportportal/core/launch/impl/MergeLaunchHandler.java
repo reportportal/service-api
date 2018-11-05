@@ -110,6 +110,7 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 
 		launchRepository.save(newLaunch);
 		launchRepository.deleteAll(launchesList);
+		launchRepository.refresh(newLaunch);
 
 		//		logIndexer.indexLogs(newLaunch.getId(), testItemRepository.findItemsNotInIssueType(TO_INVESTIGATE.getLocator(), newLaunch.getId()));
 
@@ -145,7 +146,8 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 			);
 
 			if (isUserValidate) {
-				expect(launch.getUser().getLogin(), equalTo(user.getUsername())).verify(ACCESS_DENIED,
+				expect(launch.getUser().getLogin(), equalTo(user.getUsername())).verify(
+						ACCESS_DENIED,
 						"You are not an owner of launches or have less than PROJECT_MANAGER project role."
 				);
 			}

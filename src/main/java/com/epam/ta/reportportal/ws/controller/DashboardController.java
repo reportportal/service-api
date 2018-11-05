@@ -81,8 +81,7 @@ public class DashboardController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get all dashboard resources for specified project")
 	public Iterable<DashboardResource> getAllDashboards(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		List<Dashboard> allDashboards = getDashboardHandler
-			.getAllDashboards(extractProjectDetails(user, projectName), user);
+		List<Dashboard> allDashboards = getDashboardHandler.getAllDashboards(extractProjectDetails(user, projectName), user);
 		return allDashboards.stream().map(DashboardConverter.TO_RESOURCE).collect(Collectors.toList());
 	}
 
@@ -119,8 +118,7 @@ public class DashboardController {
 	@ApiOperation("Get specified dashboard by ID for specified project")
 	public DashboardResource getDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		Dashboard dashboard = getDashboardHandler
-			.getDashboard(dashboardId, extractProjectDetails(user, projectName), user);
+		Dashboard dashboard = getDashboardHandler.getDashboard(dashboardId, extractProjectDetails(user, projectName), user);
 		return DashboardConverter.TO_RESOURCE.apply(dashboard);
 	}
 

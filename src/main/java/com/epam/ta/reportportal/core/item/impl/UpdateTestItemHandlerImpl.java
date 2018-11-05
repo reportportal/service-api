@@ -38,7 +38,7 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
-import com.epam.ta.reportportal.ws.converter.converters.ExternalSystemIssueConverter;
+import com.epam.ta.reportportal.ws.converter.converters.IntegrationIssueConverter;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -214,8 +214,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				testItemNew.getName()
 		)));
 
-		return testItems.stream().map(testItem -> new OperationCompletionRS(
-				"TestItem with ID = '" + testItem.getItemId() + "' successfully updated.")).collect(toList());
+		return testItems.stream()
+				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))
+				.collect(toList());
 	}
 
 	@Override
@@ -263,7 +264,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 */
 	private Set<Ticket> collectTickets(LinkExternalIssueRQ rq, Long userId) {
 		return rq.getIssues().stream().map(it -> {
-			Ticket apply = ExternalSystemIssueConverter.TO_TICKET.apply(it);
+			Ticket apply = IntegrationIssueConverter.TO_TICKET.apply(it);
 			apply.setSubmitterId(ofNullable(it.getSubmitter()).orElse(userId));
 			apply.setSubmitDate(LocalDateTime.now());
 			Optional<Integration> bts = integrationRepository.findById(it.getExternalSystemId());
@@ -325,10 +326,13 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				Suppliers.formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
 		).verify();
 
-		expect(item.getItemResults().getStatus(), not(equalTo(StatusEnum.PASSED)), Suppliers.formattedSupplier(
-				"Issue status update cannot be applied on {} test items, cause it is not allowed.",
-				StatusEnum.PASSED.name()
-		)).verify();
+		expect(
+				item.getItemResults().getStatus(),
+				not(equalTo(StatusEnum.PASSED)),
+				Suppliers.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
+						StatusEnum.PASSED.name()
+				)
+		).verify();
 
 		expect(testItemRepository.hasChildren(item.getItemId(), item.getPath()),
 				equalTo(false),

@@ -15,11 +15,13 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.core.project.impl.ProjectInfoWidgetDataConverter;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.content.filter.*;
 import com.epam.ta.reportportal.core.widget.content.loader.*;
 import com.epam.ta.reportportal.core.widget.content.loader.util.ProductStatusContentLoaderManager;
+import com.epam.ta.reportportal.entity.enums.InfoInterval;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,13 +117,13 @@ public class WidgetConfig implements ApplicationContextAware {
 		return mapping;
 	}
 
-	//		@Bean("groupingStrategy")
-	//		public Map<InfoInterval, ProjectInfoGroup> groupMapping() {
-	//			Map<InfoInterval, ProjectInfoGroup> mapping = new HashMap<>();
-	//			mapping.put(InfoInterval.ONE_MONTH, ProjectInfoGroup.BY_DAY);
-	//			mapping.put(InfoInterval.THREE_MONTHS, ProjectInfoGroup.BY_WEEK);
-	//			mapping.put(InfoInterval.SIX_MONTHS, ProjectInfoGroup.BY_WEEK);
-	//			return mapping;
-	//		}
+	@Bean("groupingStrategy")
+	public Map<InfoInterval, ProjectInfoWidgetDataConverter.ProjectInfoGroup> groupMapping() {
+		Map<InfoInterval, ProjectInfoWidgetDataConverter.ProjectInfoGroup> mapping = new HashMap<>();
+		mapping.put(InfoInterval.ONE_MONTH, ProjectInfoWidgetDataConverter.ProjectInfoGroup.BY_DAY);
+		mapping.put(InfoInterval.THREE_MONTHS, ProjectInfoWidgetDataConverter.ProjectInfoGroup.BY_WEEK);
+		mapping.put(InfoInterval.SIX_MONTHS, ProjectInfoWidgetDataConverter.ProjectInfoGroup.BY_WEEK);
+		return mapping;
+	}
 
 }

@@ -16,7 +16,7 @@ import java.util.Map;
 import static java.util.Optional.ofNullable;
 
 /**
- * @author Ivan Budaev
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
 public class ProductStatusContentLoaderManager implements LoadContentStrategy {

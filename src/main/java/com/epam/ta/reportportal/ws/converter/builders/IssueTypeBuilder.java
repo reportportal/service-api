@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.entity.project.Project;
 
 import java.util.function.Supplier;
 
@@ -60,6 +61,16 @@ public class IssueTypeBuilder implements Supplier<IssueType> {
 		issueType.setHexColor(color);
 		return this;
 	}
+
+	public IssueTypeBuilder addProject(Project project) {
+//		issueType.getProjects().add(project);
+		return this;
+	}
+
+//	public IssueTypeBuilder addProjectList(List<Project> projects) {
+//		issueType.getProjects().addAll(projects);
+//		return this;
+//	}
 
 	@Override
 	public IssueType get() {

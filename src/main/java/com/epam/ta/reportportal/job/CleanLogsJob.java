@@ -18,10 +18,10 @@
 
 package com.epam.ta.reportportal.job;
 
+import com.epam.ta.reportportal.core.configs.SchedulerConfiguration;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
-import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.quartz.Job;
@@ -31,6 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -78,9 +80,15 @@ public class CleanLogsJob implements Job {
 	@Autowired
 	private ActivityRepository activityRepository;
 
+	@Bean(name = "cleanLogsJobBean")
+	public JobDetailFactoryBean cleanLogsJob() {
+		return SchedulerConfiguration.createJobDetail(this.getClass());
+	}
+
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 
+		System.out.println("QWERTY");
 		LOGGER.debug("Cleaning outdated logs has been started");
 		ExecutorService executor = Executors.newFixedThreadPool(
 				Optional.ofNullable(threadsCount).orElse(DEFAULT_THREAD_COUNT),
@@ -121,11 +129,9 @@ public class CleanLogsJob implements Job {
 		Date endDate = Date.from(Instant.now().minusSeconds(MIN_DELAY.getSeconds()));
 		AtomicLong countPerProject = new AtomicLong(0);
 		iterateOverPages(pageable -> launchRepository.getIdsModifiedBefore(projectId, endDate, pageable), launches -> {
-			launches.forEach(launch -> {
-				try (Stream<TestItem> testItemStream = testItemRepository.streamIdsByLaunch(launch.getId())) {
-					long count = logRepo.deleteByPeriodAndItemsRef(period,
-							testItemStream.map(TestItem::getId).collect(Collectors.toList())
-					);
+			launches.forEach(id -> {
+				try (Stream<Long> ids = testItemRepository.streamTestItemIdsByLaunchId(id)) {
+					long count = logRepository.deleteByPeriodAndTestItemIds(period, ids.collect(Collectors.toList()));
 					countPerProject.addAndGet(count);
 				} catch (Exception e) {
 					//do nothing

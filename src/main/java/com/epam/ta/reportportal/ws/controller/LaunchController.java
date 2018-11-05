@@ -107,7 +107,7 @@ public class LaunchController {
 				startLaunchRQ
 		);
 
-		rs.setLink(generateLaunchLink(request.getHeader("host"), projectName, String.valueOf(rs.getId())));
+		rs.setLink(generateLaunchLink(request, projectName, String.valueOf(rs.getId())));
 		return rs;
 	}
 
@@ -125,7 +125,7 @@ public class LaunchController {
 				extractProjectDetails(user, normalizeId(projectName)),
 				user
 		);
-		rs.setLink(generateLaunchLink(request.getHeader("host"), projectName, String.valueOf(rs.getId())));
+		rs.setLink(generateLaunchLink(request, projectName, String.valueOf(rs.getId())));
 		return rs;
 	}
 
@@ -316,9 +316,9 @@ public class LaunchController {
 		return importLaunchHandler.importLaunch(extractProjectDetails(user, normalizeId(projectName)), user, "XUNIT", file);
 	}
 
-	private String generateLaunchLink(String host, String projectName, String id) {
-		StringBuilder sb = new StringBuilder("http://");
-		return sb.append(host).append("/ui/#").append(projectName).append("/launches/all/").append(id).toString();
+	private String generateLaunchLink(HttpServletRequest request, String projectName, String id) {
+		StringBuilder sb = new StringBuilder(request.getScheme());
+		return sb.append(request.getHeader("host")).append("/ui/#").append(projectName).append("/launches/all/").append(id).toString();
 	}
 
 }

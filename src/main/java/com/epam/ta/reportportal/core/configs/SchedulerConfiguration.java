@@ -15,6 +15,7 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.job.CleanScreenshotsJob;
 import org.quartz.Job;
 import org.quartz.JobDetail;
 import org.quartz.SimpleTrigger;
@@ -96,11 +97,11 @@ public class SchedulerConfiguration {
 	//			return createTrigger(jobDetail, Duration.parse(interruptLaunchesCron).toMillis());
 	//		}
 	//
-	//		@Bean
-	//		public SimpleTriggerFactoryBean cleanScreenshotsTrigger(@Named("cleanScreenshotsJob") JobDetail jobDetail,
-	//				@Value("${com.ta.reportportal.job.clean.screenshots.cron}") String cleanScreenshotsCron) {
-	//			return createTrigger(jobDetail, Duration.parse(cleanScreenshotsCron).toMillis());
-	//		}
+	@Bean
+	public SimpleTriggerFactoryBean cleanScreenshotsTrigger(@Named("cleanScreenshotsJobBean") JobDetail jobDetail,
+			@Value("${com.ta.reportportal.job.clean.screenshots.cron}") String cleanScreenshotsCron) {
+		return createTrigger(jobDetail, Duration.parse(cleanScreenshotsCron).toMillis());
+	}
 
 	//		@Bean
 	//		@Named("interruptLaunchesJob")
@@ -108,11 +109,6 @@ public class SchedulerConfiguration {
 	//			return createJobDetail(InterruptBrokenLaunchesJob.class);
 	//		}
 	//
-	//		@Bean
-	//		@Named("cleanScreenshotsJob")
-	//		public static JobDetailFactoryBean cleanScreenshotsJob() {
-	//			return createJobDetail(CleanScreenshotsJob.class);
-	//		}
 
 	public static SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs) {
 		SimpleTriggerFactoryBean factoryBean = new SimpleTriggerFactoryBean();

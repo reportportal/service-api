@@ -52,11 +52,11 @@ public class AnalyzerServiceClient implements com.epam.ta.reportportal.core.anal
 	static final String DELETE_ROUTE = "delete";
 	static final String CLEAN_ROUTE = "clean";
 
-	private RabbitMqManagementClient rabbitMqManagementClient;
+	private final RabbitMqManagementClient rabbitMqManagementClient;
 
-	private AsyncRabbitTemplate asyncRabbitTemplate;
+	private final AsyncRabbitTemplate asyncRabbitTemplate;
 
-	private RabbitTemplate rabbitTemplate;
+	private final RabbitTemplate rabbitTemplate;
 
 	@Autowired
 	public AnalyzerServiceClient(RabbitMqManagementClient rabbitMqManagementClient, AsyncRabbitTemplate asyncRabbitTemplate,

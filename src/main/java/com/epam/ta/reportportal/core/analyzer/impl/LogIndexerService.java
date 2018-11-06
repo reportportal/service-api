@@ -59,23 +59,29 @@ import static java.util.stream.Collectors.toList;
 public class LogIndexerService implements LogIndexer {
 	private static Logger LOGGER = LoggerFactory.getLogger(LogIndexerService.class);
 
-	@Autowired
-	private TestItemRepository testItemRepository;
+	private final TestItemRepository testItemRepository;
+
+	private final LaunchRepository launchRepository;
+
+	private final AnalyzerServiceClient analyzerServiceClient;
+
+	private final LogRepository logRepository;
+
+	private final ProjectRepository projectRepository;
+
+	private final MailServiceFactory mailServiceFactory;
 
 	@Autowired
-	private LaunchRepository launchRepository;
-
-	@Autowired
-	private AnalyzerServiceClient analyzerServiceClient;
-
-	@Autowired
-	private LogRepository logRepository;
-
-	@Autowired
-	private ProjectRepository projectRepository;
-
-	@Autowired
-	private MailServiceFactory mailServiceFactory;
+	public LogIndexerService(TestItemRepository testItemRepository, LaunchRepository launchRepository,
+			AnalyzerServiceClient analyzerServiceClient, LogRepository logRepository, ProjectRepository projectRepository,
+			MailServiceFactory mailServiceFactory) {
+		this.testItemRepository = testItemRepository;
+		this.launchRepository = launchRepository;
+		this.analyzerServiceClient = analyzerServiceClient;
+		this.logRepository = logRepository;
+		this.projectRepository = projectRepository;
+		this.mailServiceFactory = mailServiceFactory;
+	}
 
 	@Override
 	public void indexLog(Log log) {

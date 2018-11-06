@@ -71,26 +71,32 @@ import static org.apache.commons.collections.CollectionUtils.isEmpty;
 @Service
 public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 
-	@Autowired
-	private AnalyzerStatusCache analyzerStatusCache;
+	private final AnalyzerStatusCache analyzerStatusCache;
+
+	private final AnalyzerServiceClient analyzerServiceClient;
+
+	private final LogRepository logRepository;
+
+	private final IssueTypeRepository issueTypeRepository;
+
+	private final TestItemRepository testItemRepository;
+
+	private final MessageBus messageBus;
+
+	private final LogIndexer logIndexer;
 
 	@Autowired
-	private AnalyzerServiceClient analyzerServiceClient;
-
-	@Autowired
-	private LogRepository logRepository;
-
-	@Autowired
-	private IssueTypeRepository issueTypeRepository;
-
-	@Autowired
-	private TestItemRepository testItemRepository;
-
-	@Autowired
-	private MessageBus messageBus;
-
-	@Autowired
-	private LogIndexer logIndexer;
+	public IssuesAnalyzerServiceImpl(AnalyzerStatusCache analyzerStatusCache, AnalyzerServiceClient analyzerServiceClient,
+			LogRepository logRepository, IssueTypeRepository issueTypeRepository, TestItemRepository testItemRepository,
+			MessageBus messageBus, LogIndexer logIndexer) {
+		this.analyzerStatusCache = analyzerStatusCache;
+		this.analyzerServiceClient = analyzerServiceClient;
+		this.logRepository = logRepository;
+		this.issueTypeRepository = issueTypeRepository;
+		this.testItemRepository = testItemRepository;
+		this.messageBus = messageBus;
+		this.logIndexer = logIndexer;
+	}
 
 	@Override
 	public void analyze(Launch launch, Project project, List<TestItem> testItems, AnalyzeMode mode) {

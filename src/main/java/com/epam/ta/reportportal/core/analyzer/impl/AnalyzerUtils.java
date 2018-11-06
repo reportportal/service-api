@@ -25,10 +25,16 @@ import com.epam.ta.reportportal.core.analyzer.model.IndexLog;
 import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
 
 /**
  * Useful utils methods for basic analyzer
@@ -75,5 +81,17 @@ public class AnalyzerUtils {
 			indexTestItem.setLogs(logs.stream().map(TO_INDEX_LOG).collect(Collectors.toSet()));
 		}
 		return indexTestItem;
+	}
+
+	public static AnalyzerConfig getAnalyzerConfig(Project project) {
+		Map<String, String> configParameters = ProjectUtils.getConfigParameters(project.getProjectAttributes());
+		AnalyzerConfig analyzerConfig = new AnalyzerConfig();
+		analyzerConfig.setIsAutoAnalyzerEnabled(Boolean.valueOf(configParameters.get(AUTO_ANALYZER_ENABLED.getAttribute())));
+		analyzerConfig.setMinDocFreq(Integer.valueOf(configParameters.get(MIN_DOC_FREQ.getAttribute())));
+		analyzerConfig.setMinTermFreq(Integer.valueOf(configParameters.get(MIN_TERM_FREQ.getAttribute())));
+		analyzerConfig.setMinShouldMatch(Integer.valueOf(configParameters.get(MIN_SHOULD_MATCH.getAttribute())));
+		analyzerConfig.setNumberOfLogLines(Integer.valueOf(configParameters.get(NUMBER_OF_LOG_LINES.getAttribute())));
+		analyzerConfig.setIndexingRunning(Boolean.valueOf(configParameters.get(INDEXING_RUNNING.getAttribute())));
+		return analyzerConfig;
 	}
 }

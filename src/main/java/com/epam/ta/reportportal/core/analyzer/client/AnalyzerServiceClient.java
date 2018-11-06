@@ -28,8 +28,6 @@ import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Exchange;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -48,7 +46,6 @@ import static java.util.stream.Collectors.toList;
 
 @Service
 public class AnalyzerServiceClient implements com.epam.ta.reportportal.core.analyzer.AnalyzerServiceClient {
-	private static final Logger LOGGER = LoggerFactory.getLogger(AnalyzerServiceClient.class);
 
 	static final String INDEX_ROUTE = "index";
 	static final String ANALYZE_ROUTE = "analyze";
@@ -159,7 +156,7 @@ public class AnalyzerServiceClient implements com.epam.ta.reportportal.core.anal
 	 * @param analyzed List of analyzer items
 	 */
 	private void removeAnalyzedFromRq(IndexLaunch rq, List<AnalyzedItemRs> analyzed) {
-		List<String> analyzedItemIds = analyzed.stream().map(AnalyzedItemRs::getItemId).collect(toList());
+		List<Long> analyzedItemIds = analyzed.stream().map(AnalyzedItemRs::getItemId).collect(toList());
 		rq.getTestItems().removeIf(it -> analyzedItemIds.contains(it.getTestItemId()));
 	}
 }

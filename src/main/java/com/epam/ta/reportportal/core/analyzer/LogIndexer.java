@@ -27,13 +27,14 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.User;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Service for indexing log content in some external storage for further search/analysis.
  *
  * @author Ivan Sharamet
  */
-public interface ILogIndexer {
+public interface LogIndexer {
 
 	/**
 	 * Index single log if it's level greater than
@@ -52,14 +53,14 @@ public interface ILogIndexer {
 	 * @param testItems - list of test items, for which log indexing will be performed
 	 * @return The count of indexed test items
 	 */
-	Long indexLogs(String launchId, List<TestItem> testItems);
+	CompletableFuture<Long> indexLogs(Long launchId, List<TestItem> testItems);
 
 	/**
 	 * Delete index of specified project
 	 *
 	 * @param project Project/index
 	 */
-	void deleteIndex(String project);
+	void deleteIndex(Long project);
 
 	/**
 	 * Remove documents with specified ids from index
@@ -67,13 +68,7 @@ public interface ILogIndexer {
 	 * @param index Index to to be cleaned
 	 * @param ids   Document ids to be deleted from index
 	 */
-	void cleanIndex(String index, List<String> ids);
-
-	/**
-	 * Index all logs with its' level greater than
-	 * {@link com.epam.ta.reportportal.entity.enums.LogLevel#ERROR} in repository
-	 */
-	void indexAllLogs();
+	void cleanIndex(Long index, List<Long> ids);
 
 	/**
 	 * Index all logs with its' level greater than

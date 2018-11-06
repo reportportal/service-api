@@ -31,36 +31,36 @@ import java.util.Objects;
 public class AnalyzedItemRs {
 
 	@JsonProperty("test_item")
-	private String itemId;
+	private Long itemId;
 
 	@JsonProperty("relevant_item")
-	private String relevantItemId;
+	private Long relevantItemId;
 
 	@JsonProperty("issue_type")
-	private String issueType;
+	private Long issueTypeId;
 
-	public String getItemId() {
+	public Long getItemId() {
 		return itemId;
 	}
 
-	public void setItemId(String itemId) {
+	public void setItemId(Long itemId) {
 		this.itemId = itemId;
 	}
 
-	public String getRelevantItemId() {
+	public Long getRelevantItemId() {
 		return relevantItemId;
 	}
 
-	public void setRelevantItemId(String relevantItemId) {
+	public void setRelevantItemId(Long relevantItemId) {
 		this.relevantItemId = relevantItemId;
 	}
 
-	public String getIssueType() {
-		return issueType;
+	public Long getIssueTypeId() {
+		return issueTypeId;
 	}
 
-	public void setIssueType(String issueType) {
-		this.issueType = issueType;
+	public void setIssueTypeId(Long issueTypeId) {
+		this.issueTypeId = issueTypeId;
 	}
 
 	@Override

@@ -16,6 +16,10 @@
 
 package com.epam.ta.reportportal.util;
 
+import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.google.common.base.CharMatcher;
 
 import java.util.function.Predicate;
@@ -38,10 +42,18 @@ public class Predicates {
 	 */
 	public static final Predicate<String> SPECIAL_CHARS_ONLY = str -> CharMatcher.anyOf(SPECIAL_CHARACTERS).matchesAllOf(str);
 
-	//	/**
-	//	 * Checks if the test item is suitable for indexing in analyzer.
-	//	 */
-	//	public static final Predicate<TestItem> CAN_BE_INDEXED = testItem -> testItem != null && testItem.getIssue() != null
-	//			&& !TestItemIssueType.TO_INVESTIGATE.getLocator().equals(testItem.getIssue().getIssueType()) && !testItem.getIssue()
-	//			.isIgnoreAnalyzer();
+	/**
+	 * Checks if the test item is suitable for indexing in analyzer.
+	 */
+	public static final Predicate<TestItem> ITEM_CAN_BE_INDEXED = testItem -> testItem != null
+			&& testItem.getItemResults().getIssue() != null && !TestItemIssueGroup.TO_INVESTIGATE.getLocator()
+			.equals(testItem.getItemResults().getIssue().getIssueType().getLocator()) && !testItem.getItemResults()
+			.getIssue()
+			.getIgnoreAnalyzer();
+
+	/**
+	 * Checks if the launch is suitable for indexing in analyzer
+	 */
+	public static final Predicate<Launch> LAUNCH_CAN_BE_INDEXED = launch -> launch != null
+			&& LaunchModeEnum.DEFAULT.equals(launch.getMode());
 }

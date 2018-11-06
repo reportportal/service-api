@@ -49,7 +49,7 @@ public class AnalyzerStatusCache {
 		analyzerStatus.put(launchId, projectName);
 	}
 
-	public void analyzeFinished(String launchId) {
+	public void analyzeFinished(Long launchId) {
 		analyzerStatus.invalidate(launchId);
 	}
 

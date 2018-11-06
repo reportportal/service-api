@@ -26,12 +26,9 @@ import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.HistoryField;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
-import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.*;
 import static java.util.Objects.isNull;
@@ -44,18 +41,16 @@ public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 	private Long postedBy;
 	private IssueDefinition issueDefinition;
 	private TestItem testItem;
-	private List<IssueType> issueTypes;
 	private Long projectId;
 
 	public ItemIssueTypeDefinedEvent() {
 	}
 
-	public ItemIssueTypeDefinedEvent(Long postedBy, IssueDefinition issueDefinition, TestItem testItem, List<IssueType> issueTypes,
+	public ItemIssueTypeDefinedEvent(Long postedBy, IssueDefinition issueDefinition, TestItem testItem,
 			Long projectId) {
 		this.postedBy = postedBy;
 		this.issueDefinition = issueDefinition;
 		this.testItem = testItem;
-		this.issueTypes = issueTypes;
 		this.projectId = projectId;
 	}
 
@@ -81,14 +76,6 @@ public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 
 	public void setTestItem(TestItem testItem) {
 		this.testItem = testItem;
-	}
-
-	public List<IssueType> getIssueTypes() {
-		return issueTypes;
-	}
-
-	public void setIssueTypes(List<IssueType> issueTypes) {
-		this.issueTypes = issueTypes;
 	}
 
 	public Long getProjectId() {
@@ -119,7 +106,7 @@ public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 			details.addHistoryField(descriptionField);
 		}
 
-		HistoryField issueTypeField = processIssueTypes(issueEntity);
+		HistoryField issueTypeField = processIssueTypes();
 		if (issueTypeField.getOldValue().equalsIgnoreCase(issueTypeField.getNewValue())) {
 			details.addHistoryField(issueTypeField);
 		}
@@ -149,18 +136,9 @@ public class ItemIssueTypeDefinedEvent implements ActivityEvent {
 		return historyField;
 	}
 
-	private HistoryField processIssueTypes(IssueEntity issueEntity) {
-		String oldValue;
-		String newValue;
-
-		Optional<IssueType> oldIssue = issueTypes.stream()
-				.filter(i -> i.getLocator().equalsIgnoreCase(issueEntity.getIssueType().getLocator())).findFirst();
-		oldValue = oldIssue.isPresent() ? oldIssue.get().getLongName() : EMPTY_STRING;
-
-		Optional<IssueType> newIssue = issueTypes.stream()
-				.filter(i -> i.getLocator().equalsIgnoreCase(issueDefinition.getIssue().getIssueType())).findFirst();
-		newValue = newIssue.isPresent() ? newIssue.get().getLongName() : EMPTY_STRING;
-
+	private HistoryField processIssueTypes() {
+		String oldValue = testItem.getItemResults().getIssue().getIssueType().getLongName();
+		String newValue = issueDefinition.getIssue().getIssueType();
 		return HistoryField.of(ISSUE_TYPE, oldValue, newValue);
 	}
 

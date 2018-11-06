@@ -154,7 +154,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						user.getUserId(),
 						issueDefinition,
 						testItem,
-						issueTypes,
 						projectDetails.getProjectId()
 				));
 			} catch (BusinessRuleViolationException e) {

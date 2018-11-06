@@ -80,15 +80,8 @@ public class CleanLogsJob implements Job {
 	@Autowired
 	private ActivityRepository activityRepository;
 
-	@Bean(name = "cleanLogsJobBean")
-	public JobDetailFactoryBean cleanLogsJob() {
-		return SchedulerConfiguration.createJobDetail(this.getClass());
-	}
-
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
-
-		System.out.println("QWERTY");
 		LOGGER.debug("Cleaning outdated logs has been started");
 		ExecutorService executor = Executors.newFixedThreadPool(
 				Optional.ofNullable(threadsCount).orElse(DEFAULT_THREAD_COUNT),
@@ -103,12 +96,11 @@ public class CleanLogsJob implements Job {
 							LOGGER.info("Cleaning outdated logs for project {} has been started", project.getId());
 							project.getProjectAttributes()
 									.stream()
-									.map(ProjectAttribute::getAttribute)
-									.filter(attribute -> attribute.getName()
+									.filter(pa -> pa.getAttribute().getName()
 											.equalsIgnoreCase(ProjectAttributeEnum.KEEP_LOGS.getAttribute()))
 									.findFirst()
-									.ifPresent(attr -> {
-										Duration period = ofDays(KeepLogsDelay.findByName(attr.getName()).getDays());
+									.ifPresent(pa -> {
+										Duration period = ofDays(KeepLogsDelay.findByName(pa.getValue()).getDays());
 										if (!period.isZero()) {
 											activityRepository.deleteModifiedLaterAgo(project.getId(), period);
 											removeOutdatedLogs(project.getId(), period);

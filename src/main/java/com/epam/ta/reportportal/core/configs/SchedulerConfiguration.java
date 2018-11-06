@@ -15,7 +15,9 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.job.CleanLogsJob;
 import com.epam.ta.reportportal.job.CleanScreenshotsJob;
+import com.epam.ta.reportportal.job.InterruptBrokenLaunchesJob;
 import org.quartz.Job;
 import org.quartz.JobDetail;
 import org.quartz.SimpleTrigger;
@@ -91,24 +93,32 @@ public class SchedulerConfiguration {
 		return createTrigger(jobDetail, Duration.parse(cleanLogsCron).toMillis());
 	}
 
-	//		@Bean
-	//		public SimpleTriggerFactoryBean interruptLaunchesTrigger(@Autowired @Named("interruptLaunchesJob") JobDetail jobDetail,
-	//				@Value("${com.ta.reportportal.job.interrupt.broken.launches.cron}") String interruptLaunchesCron) {
-	//			return createTrigger(jobDetail, Duration.parse(interruptLaunchesCron).toMillis());
-	//		}
-	//
+	@Bean
+	public SimpleTriggerFactoryBean interruptLaunchesTrigger(@Named("interruptLaunchesJobBean") JobDetail jobDetail,
+			@Value("${com.ta.reportportal.job.interrupt.broken.launches.cron}") String interruptLaunchesCron) {
+		return createTrigger(jobDetail, Duration.parse(interruptLaunchesCron).toMillis());
+	}
+
 	@Bean
 	public SimpleTriggerFactoryBean cleanScreenshotsTrigger(@Named("cleanScreenshotsJobBean") JobDetail jobDetail,
 			@Value("${com.ta.reportportal.job.clean.screenshots.cron}") String cleanScreenshotsCron) {
 		return createTrigger(jobDetail, Duration.parse(cleanScreenshotsCron).toMillis());
 	}
 
-	//		@Bean
-	//		@Named("interruptLaunchesJob")
-	//		public static JobDetailFactoryBean interruptLaunchesJob() {
-	//			return createJobDetail(InterruptBrokenLaunchesJob.class);
-	//		}
-	//
+	@Bean(name = "cleanLogsJobBean")
+	public JobDetailFactoryBean cleanLogsJob() {
+		return SchedulerConfiguration.createJobDetail(CleanLogsJob.class);
+	}
+
+	@Bean("interruptLaunchesJobBean")
+	public static JobDetailFactoryBean interruptLaunchesJob() {
+		return createJobDetail(InterruptBrokenLaunchesJob.class);
+	}
+
+	@Bean("cleanScreenshotsJobBean")
+	public static JobDetailFactoryBean cleanScreenshotsJob() {
+		return SchedulerConfiguration.createJobDetail(CleanScreenshotsJob.class);
+	}
 
 	public static SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs) {
 		SimpleTriggerFactoryBean factoryBean = new SimpleTriggerFactoryBean();

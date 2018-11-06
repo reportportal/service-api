@@ -78,16 +78,10 @@ public class CleanScreenshotsJob implements Job {
 	@Autowired
 	private TestItemRepository testItemRepository;
 
-	@Bean("cleanScreenshotsJobBean")
-	public static JobDetailFactoryBean cleanScreenshotsJob() {
-		return SchedulerConfiguration.createJobDetail(CleanScreenshotsJob.class);
-	}
-
 	@Override
 	//	@Scheduled(cron = "${com.ta.reportportal.job.clean.screenshots.cron}")
 	public void execute(JobExecutionContext context) {
 		LOGGER.info("Cleaning outdated screenshots has been started");
-		System.out.println("QQQQQQQQQQQQQ");
 
 		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(ProjectAttributeEnum.KEEP_SCREENSHOTS, pageable),
 				projects -> projects.forEach(project -> {
@@ -98,12 +92,11 @@ public class CleanScreenshotsJob implements Job {
 
 						project.getProjectAttributes()
 								.stream()
-								.map(ProjectAttribute::getAttribute)
-								.filter(attribute -> attribute.getName()
+								.filter(pa -> pa.getAttribute().getName()
 										.equalsIgnoreCase(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute()))
 								.findFirst()
-								.ifPresent(attr -> {
-									Duration period = ofDays(KeepScreenshotsDelay.findByName(attr.getName()).getDays());
+								.ifPresent(pa -> {
+									Duration period = ofDays(KeepScreenshotsDelay.findByName(pa.getValue()).getDays());
 									if (!period.isZero()) {
 
 										Date endDate = Date.from(Instant.now().minusSeconds(MIN_DELAY.getSeconds()));
@@ -119,11 +112,11 @@ public class CleanScreenshotsJob implements Job {
 													logs.stream().forEach(log -> {
 														ofNullable(log.getAttachment()).ifPresent(attachment -> {
 															dataStoreService.delete(attachment);
-															count.addAndGet(1);
+															count.addAndGet(1L);
 														});
 														ofNullable(log.getAttachmentThumbnail()).ifPresent(attachThumb -> {
 															dataStoreService.delete(attachThumb);
-															count.addAndGet(1);
+															count.addAndGet(1L);
 														});
 													});
 

@@ -18,6 +18,7 @@
 
 package com.epam.ta.reportportal.core.bts.handler.impl;
 
+import com.epam.reportportal.extension.bugtracking.BtsConstants;
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
@@ -30,11 +31,10 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.builders.BtsConstants;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.externalsystem.CreateExternalSystemRQ;
+import com.epam.ta.reportportal.ws.model.externalsystem.CreateIntegrationRQ;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,7 +72,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		this.pluginBox = pluginBox;
 	}
 
-	public EntryCreatedRS createIntegration(CreateExternalSystemRQ createRQ, ReportPortalUser.ProjectDetails projectDetails) {
+	public EntryCreatedRS createIntegration(CreateIntegrationRQ createRQ, ReportPortalUser.ProjectDetails projectDetails) {
 
 		Optional<IntegrationType> type = integrationTypeRepository.findByName(createRQ.getExternalSystemType());
 		expect(type, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
@@ -88,7 +88,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 				.addProject(project)
 				.addUsername(createRQ.getUsername())
 				.addPassword(simpleEncryptor.encrypt(createRQ.getPassword()))
-				.addAuthType(createRQ.getExternalSystemAuth())
+				.addAuthType(createRQ.getExternalSystemAuth()).addAuthKey(createRQ.getAccessKey())
 				.get();
 
 		checkUnique(bugTrackingSystem, projectDetails.getProjectId());

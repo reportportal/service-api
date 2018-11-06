@@ -74,7 +74,7 @@ public class IntegrationController {
 	@ResponseStatus(HttpStatus.CREATED)
 	@ApiOperation("Register external system instance")
 	@PreAuthorize(PROJECT_MANAGER)
-	public EntryCreatedRS createExternalSystemInstance(@Validated @RequestBody CreateExternalSystemRQ createRQ,
+	public EntryCreatedRS createExternalSystemInstance(@Validated @RequestBody CreateIntegrationRQ createRQ,
 			@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
 		return createIntegrationHandler.createIntegration(createRQ, extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
 	}
@@ -113,7 +113,7 @@ public class IntegrationController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Update registered external system instance")
 	@PreAuthorize(PROJECT_MANAGER)
-	public OperationCompletionRS updateExternalSystem(@Validated @RequestBody UpdateExternalSystemRQ request,
+	public OperationCompletionRS updateExternalSystem(@Validated @RequestBody UpdateIntegrationRQ request,
 			@PathVariable String projectName, @PathVariable Long systemId, @AuthenticationPrincipal ReportPortalUser user) {
 		return updateIntegrationHandler.updateIntegration(request,
 				systemId,
@@ -127,7 +127,7 @@ public class IntegrationController {
 	@ApiOperation("Check connection to external system instance")
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS checkConnection(@PathVariable String projectName, @PathVariable Long systemId,
-			@RequestBody @Validated UpdateExternalSystemRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
+			@RequestBody @Validated UpdateIntegrationRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
 		return updateIntegrationHandler.integrationConnect(updateRQ,
 				systemId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName))

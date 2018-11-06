@@ -115,8 +115,7 @@ public class ProjectController {
 	@ApiOperation("Update project email configuration")
 	public OperationCompletionRS updateProjectEmailConfig(@PathVariable String projectName,
 			@RequestBody @Validated ProjectEmailConfigDTO updateProjectRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.updateProjectEmailConfig(
-				ProjectExtractor.extractProjectDetails(user, projectName),
+		return updateProjectHandler.updateProjectEmailConfig(ProjectExtractor.extractProjectDetails(user, projectName),
 				user,
 				updateProjectRQ
 		);
@@ -264,18 +263,21 @@ public class ProjectController {
 	public ProjectInfoResource getProjectInfo(@PathVariable String projectName,
 			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return projectInfoHandler.getProjectInfo(normalizeId(projectName), interval);
+		return projectInfoHandler.getProjectInfo(ProjectExtractor.extractProjectDetails(user, projectName), interval);
 	}
 
 	@Transactional(readOnly = true)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
-	@GetMapping("/{projectName}/widget/{widgetId}")
+	@GetMapping("/{projectName}/widget/{widgetCode}")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiIgnore
 	public Map<String, List<ChartObject>> getProjectWidget(@PathVariable String projectName,
-			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval, @PathVariable String widgetId,
+			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval, @PathVariable String widgetCode,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return projectInfoHandler.getProjectInfoWidgetContent(normalizeId(projectName), interval, widgetId);
+		return projectInfoHandler.getProjectInfoWidgetContent(ProjectExtractor.extractProjectDetails(user, projectName),
+				interval,
+				widgetCode
+		);
 	}
 
 	@Transactional(readOnly = true)

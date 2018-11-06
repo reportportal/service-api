@@ -62,9 +62,7 @@ import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSup
 import static com.epam.ta.reportportal.entity.project.ProjectUtils.getOwner;
 import static com.epam.ta.reportportal.util.UserUtils.isEmailValid;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_LOGIN_LENGTH;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_NAME_LENGTH;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_LOGIN_LENGTH;
+import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -330,16 +328,16 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 			}
 		});
 
-//		/* If project email settings */
-//		List<EmailSenderCase> withoutDuplicateCases = emailCases.stream()
-//				.distinct()
-//				.map(EmailConfigConverters.TO_CASE_MODEL)
-//				.collect(toList());
-//		if (emailCases.size() != withoutDuplicateCases.size()) {
-//			fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
-//		}
-//
-//		project.setEmailCases(Sets.newHashSet(withoutDuplicateCases));
+		//		/* If project email settings */
+		//		List<EmailSenderCase> withoutDuplicateCases = emailCases.stream()
+		//				.distinct()
+		//				.map(EmailConfigConverters.TO_CASE_MODEL)
+		//				.collect(toList());
+		//		if (emailCases.size() != withoutDuplicateCases.size()) {
+		//			fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
+		//		}
+		//
+		//		project.setEmailCases(Sets.newHashSet(withoutDuplicateCases));
 	}
 
 	void validateRecipient(Project project, String recipient) {

@@ -139,12 +139,13 @@ public class LogIndexerService implements LogIndexer {
 			List<Long> itemIds = testItemRepository.selectIdsNotInIssueByLaunch(id, TestItemIssueGroup.TO_INVESTIGATE.getValue());
 			result.add(indexLogs(id, testItemRepository.findAllById(itemIds)));
 		});
-		long sum;
-		try {
-			sum = result.stream().mapToLong(CompletableFuture::get).sum();
-		} catch (InterruptedException | ExecutionException e) {
-			throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR);
-		}
+		long sum = result.stream().mapToLong(f -> {
+			try {
+				return f.get();
+			} catch (InterruptedException | ExecutionException e) {
+				throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR);
+			}
+		}).sum();
 		mailServiceFactory.getDefaultEmailService(true).sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), sum);
 	}
 

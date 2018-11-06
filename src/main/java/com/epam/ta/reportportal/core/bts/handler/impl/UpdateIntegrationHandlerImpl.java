@@ -103,7 +103,8 @@ public class UpdateIntegrationHandlerImpl implements UpdateIntegrationHandler {
 				.addProject(project)
 				.addUsername(updateRQ.getUsername())
 				.addPassword(simpleEncryptor.encrypt(updateRQ.getPassword()))
-				.addAuthType(updateRQ.getExternalSystemAuth()).addAuthKey(updateRQ.getAccessKey())
+				.addAuthType(updateRQ.getExternalSystemAuth())
+				.addAuthKey(updateRQ.getAccessKey())
 				.addFields(updateRQ.getFields().stream().map(IntegrationFieldsConverter.FIELD_TO_DB).collect(Collectors.toSet()))
 				.get();
 

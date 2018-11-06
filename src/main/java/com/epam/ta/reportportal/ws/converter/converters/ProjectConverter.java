@@ -78,9 +78,8 @@ public final class ProjectConverter {
 		}).collect(Collectors.toList()));
 
 		Map<String, List<IssueSubTypeResource>> subTypes = project.getProjectIssueTypes()
-				.stream()
-				.map(ProjectIssueType::getIssueType)
-				.collect(Collectors.groupingBy(it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
+				.stream().map(ProjectIssueType::getIssueType).collect(Collectors.groupingBy(
+						it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
 						Collectors.mapping(ProjectConverter.TO_SUBTYPE_RESOURCE, Collectors.toList())
 				));
 
@@ -90,9 +89,7 @@ public final class ProjectConverter {
 		ProjectEmailConfigDTO projectEmailConfigDTO = new ProjectEmailConfigDTO();
 
 		Map<String, String> attributes = ProjectUtils.getConfigParameters(project.getProjectAttributes());
-		List<EmailSenderCaseDTO> emailCases = project.getEmailCases()
-				.stream()
-				.map(EmailConfigConverter.TO_CASE_RESOURCE)
+		List<EmailSenderCaseDTO> emailCases = project.getEmailCases().stream().map(EmailConfigConverter.TO_CASE_RESOURCE)
 				.collect(Collectors.toList());
 
 		projectEmailConfigDTO.setEmailCases(emailCases);
@@ -120,7 +117,8 @@ public final class ProjectConverter {
 
 	public static final Function<List<IssueType>, Map<String, List<IssueSubTypeResource>>> TO_PROJECT_SUB_TYPES_RESOURCE = issueTypes -> issueTypes
 			.stream()
-			.collect(Collectors.groupingBy(it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
+			.collect(Collectors.groupingBy(
+					it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
 					Collectors.mapping(TO_SUBTYPE_RESOURCE::apply, Collectors.toList())
 			));
 

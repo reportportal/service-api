@@ -88,7 +88,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 				.addProject(project)
 				.addUsername(createRQ.getUsername())
 				.addPassword(simpleEncryptor.encrypt(createRQ.getPassword()))
-				.addAuthType(createRQ.getExternalSystemAuth()).addAuthKey(createRQ.getAccessKey())
+				.addAuthType(createRQ.getExternalSystemAuth())
+				.addAuthKey(createRQ.getAccessKey())
 				.get();
 
 		checkUnique(bugTrackingSystem, projectDetails.getProjectId());

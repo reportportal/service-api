@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeCreatedEvent;
 import com.epam.ta.reportportal.core.project.settings.CreateProjectSettingsHandler;
 import com.epam.ta.reportportal.dao.IssueGroupRepository;
+import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
@@ -47,7 +48,8 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.*;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -63,20 +65,23 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 			.put(TO_INVESTIGATE.getValue(), "ti_")
 			.build();
 
-	private ProjectRepository projectRepository;
+	private final ProjectRepository projectRepository;
 
-	private WidgetRepository widgetRepository;
+	private final WidgetRepository widgetRepository;
 
-	private IssueGroupRepository issueGroupRepository;
+	private final IssueGroupRepository issueGroupRepository;
 
-	private MessageBus messageBus;
+	private final IssueTypeRepository issueTypeRepository;
+
+	private final MessageBus messageBus;
 
 	@Autowired
 	public CreateProjectSettingsHandlerImpl(ProjectRepository projectRepository, WidgetRepository widgetRepository,
-			IssueGroupRepository issueGroupRepository, MessageBus messageBus) {
+			IssueGroupRepository issueGroupRepository, IssueTypeRepository issueTypeRepository, MessageBus messageBus) {
 		this.projectRepository = projectRepository;
 		this.widgetRepository = widgetRepository;
 		this.issueGroupRepository = issueGroupRepository;
+		this.issueTypeRepository = issueTypeRepository;
 		this.messageBus = messageBus;
 	}
 
@@ -113,6 +118,7 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 				.addShortName(rq.getShortName())
 				.addHexColor(rq.getColor())
 				.get();
+		issueTypeRepository.save(subType);
 
 		project.getProjectIssueTypes().add(new ProjectIssueType().withIssueType(subType).withProject(project));
 		projectRepository.save(project);
@@ -128,17 +134,8 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 					widgetRepository.save(widget);
 				});
 
-		Long id = project.getProjectIssueTypes()
-				.stream()
-				.filter(projectIssueType -> projectIssueType.getIssueType().getLocator().equalsIgnoreCase(locator))
-				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, locator))
-				.getIssueType()
-				.getId();
-		subType.setId(id);
-
 		messageBus.publishActivity(new DefectTypeCreatedEvent(subType, project.getId(), user.getUserId()));
-		return new EntryCreatedRS(id);
+		return new EntryCreatedRS(subType.getId());
 	}
 
 	private static String shortUUID() {

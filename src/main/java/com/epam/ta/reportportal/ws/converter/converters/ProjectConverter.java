@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
-import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
@@ -28,10 +27,7 @@ import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.project.config.IssueSubTypeResource;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
-import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang3.BooleanUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -80,30 +76,22 @@ public final class ProjectConverter {
 		Map<String, List<IssueSubTypeResource>> subTypes = project.getProjectIssueTypes()
 				.stream()
 				.map(ProjectIssueType::getIssueType)
-				.collect(Collectors.groupingBy(it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
+				.collect(Collectors.groupingBy(
+						it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
 						Collectors.mapping(ProjectConverter.TO_SUBTYPE_RESOURCE, Collectors.toList())
 				));
 
 		ProjectConfiguration projectConfiguration = new ProjectConfiguration();
 		projectConfiguration.setSubTypes(subTypes);
 
-		ProjectEmailConfigDTO projectEmailConfigDTO = new ProjectEmailConfigDTO();
-
 		Map<String, String> attributes = ProjectUtils.getConfigParameters(project.getProjectAttributes());
-		List<EmailSenderCaseDTO> emailCases = project.getEmailCases()
-				.stream()
-				.map(EmailConfigConverter.TO_CASE_RESOURCE)
-				.collect(Collectors.toList());
-
-		projectEmailConfigDTO.setEmailCases(emailCases);
-		projectEmailConfigDTO.setEmailEnabled(BooleanUtils.toBoolean(attributes.get(ProjectAttributeEnum.EMAIL_ENABLED.getAttribute())));
-		projectEmailConfigDTO.setFrom(attributes.get(ProjectAttributeEnum.EMAIL_FROM.getAttribute()));
-		projectConfiguration.setEmailConfig(projectEmailConfigDTO);
-
 		projectConfiguration.setProjectAttributes(attributes);
-		projectConfiguration.setEmailConfig(EmailConfigConverter.TO_RESOURCE.apply(project.getProjectAttributes(),
-				project.getEmailCases()
-		));
+
+		projectResource.setIntegrations(project.getIntegrations()
+				.stream()
+				.map(IntegrationConverter.TO_INTEGRATION_RESOURCE)
+				.collect(Collectors.toList()));
+
 		projectResource.setConfiguration(projectConfiguration);
 		return projectResource;
 	};
@@ -120,7 +108,8 @@ public final class ProjectConverter {
 
 	public static final Function<List<IssueType>, Map<String, List<IssueSubTypeResource>>> TO_PROJECT_SUB_TYPES_RESOURCE = issueTypes -> issueTypes
 			.stream()
-			.collect(Collectors.groupingBy(it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
+			.collect(Collectors.groupingBy(
+					it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
 					Collectors.mapping(TO_SUBTYPE_RESOURCE::apply, Collectors.toList())
 			));
 

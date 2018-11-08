@@ -50,17 +50,17 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Transactional
 public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHandler {
 
-	private ProjectRepository projectRepository;
+	private final ProjectRepository projectRepository;
 
-	private StatisticsFieldRepository statisticsFieldRepository;
+	private final StatisticsFieldRepository statisticsFieldRepository;
 
-	private WidgetRepository widgetRepository;
+	private final WidgetRepository widgetRepository;
 
-	private MessageBus messageBus;
+	private final MessageBus messageBus;
 
-	private IssueTypeRepository issueTypeRepository;
+	private final IssueTypeRepository issueTypeRepository;
 
-	private IssueEntityRepository issueEntityRepository;
+	private final IssueEntityRepository issueEntityRepository;
 
 	@Autowired
 	public DeleteProjectSettingsHandlerImpl(ProjectRepository projectRepository, StatisticsFieldRepository statisticsFieldRepository,

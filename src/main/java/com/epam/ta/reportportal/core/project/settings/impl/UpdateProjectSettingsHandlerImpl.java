@@ -49,9 +49,9 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Transactional
 public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHandler {
 
-	private ProjectRepository projectRepository;
+	private final ProjectRepository projectRepository;
 
-	private MessageBus messageBus;
+	private final MessageBus messageBus;
 
 	@Autowired
 	public UpdateProjectSettingsHandlerImpl(ProjectRepository projectRepository, MessageBus messageBus) {

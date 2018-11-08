@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ package com.epam.ta.reportportal.core.project;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 
 /**
  * Update {@link com.epam.ta.reportportal.entity.project.Project} request handler
@@ -51,8 +51,8 @@ public interface UpdateProjectHandler {
 	 * @param user            User performing that update
 	 * @return Operation Result
 	 */
-	OperationCompletionRS updateProjectEmailConfig(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			ProjectEmailConfigDTO updateProjectRQ);
+	OperationCompletionRS updateIntegrationParameters(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			UpdateIntegrationRQ updateProjectRQ);
 
 	/**
 	 * Un-assign specified user from project

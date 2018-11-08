@@ -130,6 +130,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						).get()));
 
 				verifyTestItem(testItem, issueDefinition.getId());
+				IssueEntity before = SerializationUtils.clone(testItem.getItemResults().getIssue());
 
 				Issue issue = issueDefinition.getIssue();
 				IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(),
@@ -137,24 +138,20 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						issue.getIssueType()
 				);
 
-				IssueEntity issueEntity = new IssueEntityBuilder(testItem.getItemResults().getIssue()).addIssueType(issueType)
+				IssueEntity after = new IssueEntityBuilder(testItem.getItemResults().getIssue()).addIssueType(issueType)
 						.addDescription(issue.getComment())
 						.addIgnoreFlag(issue.getIgnoreAnalyzer())
 						.addAutoAnalyzedFlag(false)
 						.get();
-				issueEntity.setIssueId(testItem.getItemId());
-				testItem.getItemResults().setIssue(issueEntity);
+				after.setIssueId(testItem.getItemId());
+				testItem.getItemResults().setIssue(after);
 
 				//TODO EXTERNAL SYSTEM LOGIC, ANALYZER LOGIC
 				testItemRepository.save(testItem);
-				updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
+				updated.add(IssueConverter.TO_MODEL.apply(after));
 
-				List<IssueType> issueTypes = testItemRepository.selectIssueLocatorsByProject(projectDetails.getProjectId());
-				events.add(new ItemIssueTypeDefinedEvent(
-						user.getUserId(),
-						issueDefinition,
-						testItem,
-						issueTypes,
+				events.add(new ItemIssueTypeDefinedEvent(before, after,
+						user.getUserId(), testItem.getItemId(), testItem.getName(),
 						projectDetails.getProjectId()
 				));
 			} catch (BusinessRuleViolationException e) {

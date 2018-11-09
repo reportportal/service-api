@@ -105,7 +105,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
 		updateProjectUserRoles(updateProjectRQ.getUserRoles(), project, projectDetails, user);
-		updateProjectConfiguration(updateProjectRQ.getConfiguration(), project, projectDetails, user);
+		updateProjectConfiguration(updateProjectRQ.getConfiguration(), project);
 		projectRepository.save(project);
 		return new OperationCompletionRS("Project with name = '" + project.getName() + "' is successfully updated.");
 	}
@@ -281,8 +281,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		}
 	}
 
-	private void updateProjectConfiguration(ProjectConfiguration configuration, Project project,
-			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	private void updateProjectConfiguration(ProjectConfiguration configuration, Project project) {
 		ofNullable(configuration).ifPresent(config -> {
 			ofNullable(config.getProjectAttributes()).ifPresent(attributes -> {
 				verifyProjectAttributes(attributes);

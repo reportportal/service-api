@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
@@ -76,15 +77,18 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private final UserPreferenceRepository preferenceRepository;
 
+	private final ProjectUserRepository projectUserRepository;
+
 	private final MessageBus messageBus;
 
 	@Autowired
 	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
-			UserPreferenceRepository preferenceRepository, MessageBus messageBus) {
+			UserPreferenceRepository preferenceRepository, MessageBus messageBus, ProjectUserRepository projectUserRepository) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.preferenceRepository = preferenceRepository;
 		this.messageBus = messageBus;
+		this.projectUserRepository = projectUserRepository;
 	}
 
 	@Override
@@ -134,16 +138,23 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 					"User should not unassign himself from project."
 			);
 		}
-		List<User> unassignUsers = new ArrayList<>(unassignUsersRQ.getUsernames().size());
+		List<ProjectUser> unassignUsers = new ArrayList<>(unassignUsersRQ.getUsernames().size());
 		unassignUsersRQ.getUsernames().forEach(username -> {
 			User userForUnassign = userRepository.findByLogin(username)
 					.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
 			validateUnassigningUser(modifier, userForUnassign, projectDetails, project);
-			project.getUsers().removeIf(it -> it.getUser().getLogin().equalsIgnoreCase(username));
-			userForUnassign.getProjects().removeIf(it -> it.getProject().getName().equalsIgnoreCase(project.getName()));
-			unassignUsers.add(userForUnassign);
+			ProjectUser projectUser = project.getUsers()
+					.stream()
+					.filter(it -> it.getUser().getLogin().equalsIgnoreCase(username))
+					.findFirst()
+					.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
+			project.getUsers().remove(projectUser);
+			userForUnassign.getProjects().remove(projectUser);
+			unassignUsers.add(projectUser);
 		});
-		ProjectUtils.excludeProjectRecipients(unassignUsers, project);
+		projectUserRepository.deleteAll(unassignUsers);
+		//TODO exclude project recipients if have
+		//		ProjectUtils.excludeProjectRecipients(unassignUsers, project);
 		preferenceRepository.removeByProjectIdAndUserId(projectDetails.getProjectId(), user.getUserId());
 		return new OperationCompletionRS(
 				"User(s) with username(s)='" + unassignUsersRQ.getUsernames() + "' was successfully un-assigned from project='"

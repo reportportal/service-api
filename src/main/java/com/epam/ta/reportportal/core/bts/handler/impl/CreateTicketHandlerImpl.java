@@ -20,6 +20,7 @@ import com.epam.reportportal.extension.bugtracking.BtsConstants;
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.CreateTicketHandler;
+import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.TicketPostedEvent;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
@@ -30,7 +31,6 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -53,17 +53,17 @@ public class CreateTicketHandlerImpl implements CreateTicketHandler {
 
 	private final IntegrationRepository integrationRepository;
 
-	private final ApplicationEventPublisher eventPublisher;
-
 	private final PluginBox pluginBox;
 
+	private final MessageBus messageBus;
+
 	@Autowired
-	public CreateTicketHandlerImpl(TestItemRepository testItemRepository, IntegrationRepository integrationRepository,
-			ApplicationEventPublisher eventPublisher, PluginBox pluginBox) {
+	public CreateTicketHandlerImpl(TestItemRepository testItemRepository, IntegrationRepository integrationRepository, PluginBox pluginBox,
+			MessageBus messageBus) {
 		this.testItemRepository = testItemRepository;
 		this.integrationRepository = integrationRepository;
-		this.eventPublisher = eventPublisher;
 		this.pluginBox = pluginBox;
+		this.messageBus = messageBus;
 	}
 
 	@Override
@@ -85,7 +85,8 @@ public class CreateTicketHandlerImpl implements CreateTicketHandler {
 		);
 
 		Ticket ticket = btsExtension.get().submitTicket(postTicketRQ, integration);
-		testItems.forEach(item -> eventPublisher.publishEvent(new TicketPostedEvent(ticket,
+		testItems.forEach(item -> messageBus.publishActivity(new TicketPostedEvent(
+				ticket,
 				item,
 				user.getUserId(),
 				projectDetails.getProjectId()

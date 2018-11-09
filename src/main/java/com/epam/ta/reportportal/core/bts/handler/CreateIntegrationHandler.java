@@ -33,7 +33,8 @@ public interface CreateIntegrationHandler {
 	 *
 	 * @param createRQ       Request Data
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param user {@link com.epam.ta.reportportal.auth.ReportPortalUser}
 	 * @return Response Data
 	 */
-	EntryCreatedRS createIntegration(CreateIntegrationRQ createRQ, ReportPortalUser.ProjectDetails projectDetails);
+	EntryCreatedRS createIntegration(CreateIntegrationRQ createRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 }

@@ -111,7 +111,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS updateIntegrationParameters(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+	public OperationCompletionRS updateIntegration(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			UpdateIntegrationRQ updateIntegrationRQ) {
 
 		Project project = projectRepository.findById(projectDetails.getProjectId())
@@ -129,6 +129,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, updateIntegrationRQ.getIntegrationName()));
 		integration.setEnabled(updateIntegrationRQ.getEnabled());
 		integration.setParams(new IntegrationParams(updateIntegrationRQ.getIntegrationParams()));
+
 		return new OperationCompletionRS(
 				"EMail configuration of project with id = '" + projectDetails.getProjectId() + "' is successfully updated.");
 	}

@@ -118,7 +118,7 @@ public class ProjectController {
 	@ApiOperation("Update project integration configuration")
 	public OperationCompletionRS updateProjectIntegration(@PathVariable String projectName,
 			@RequestBody @Validated UpdateIntegrationRQ updateProjectRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.updateIntegrationParameters(ProjectExtractor.extractProjectDetails(user, projectName),
+		return updateProjectHandler.updateIntegration(ProjectExtractor.extractProjectDetails(user, projectName),
 				user,
 				updateProjectRQ
 		);

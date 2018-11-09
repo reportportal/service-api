@@ -36,7 +36,10 @@ import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.time.Duration;
@@ -60,26 +63,32 @@ import static java.util.Optional.ofNullable;
 @Service
 public class InterruptBrokenLaunchesJob implements Job {
 
-	@Autowired
-	private LaunchRepository launchRepository;
+	private final LaunchRepository launchRepository;
+
+	private final TestItemRepository testItemRepository;
+
+	private final LogRepository logRepository;
+
+	private final ProjectRepository projectRepository;
 
 	@Autowired
-	private TestItemRepository testItemRepository;
-
-	@Autowired
-	private LogRepository logRepository;
-
-	@Autowired
-	private ProjectRepository projectRepository;
+	public InterruptBrokenLaunchesJob(LaunchRepository launchRepository, TestItemRepository testItemRepository, LogRepository logRepository,
+			ProjectRepository projectRepository) {
+		this.launchRepository = launchRepository;
+		this.testItemRepository = testItemRepository;
+		this.logRepository = logRepository;
+		this.projectRepository = projectRepository;
+	}
 
 	//	@Autowired
 	//	private IRetriesLaunchHandler retriesLaunchHandler;
 
 	@Override
 	//	@Scheduled(cron = "${com.ta.reportportal.job.interrupt.broken.launches.cron}")
+	@Transactional
 	public void execute(JobExecutionContext context) {
 
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(ProjectAttributeEnum.KEEP_SCREENSHOTS, pageable),
+		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(ProjectAttributeEnum.INTERRUPT_JOB_TIME, pageable),
 				projects -> projects.forEach(project -> {
 					project.getProjectAttributes()
 							.stream()

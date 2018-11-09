@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Properties;
 
 @Configuration
-@EnableConfigurationProperties(SchedulerConfiguration.QuartzProperties.class)
+@EnableConfigurationProperties({ SchedulerConfiguration.QuartzProperties.class, SchedulerConfiguration.CleanLogsJobProperties.class })
 public class SchedulerConfiguration {
 
 	@Autowired
@@ -105,7 +105,7 @@ public class SchedulerConfiguration {
 		return createTrigger(jobDetail, Duration.parse(cleanScreenshotsCron).toMillis());
 	}
 
-	@Bean(name = "cleanLogsJobBean")
+	@Bean("cleanLogsJobBean")
 	public JobDetailFactoryBean cleanLogsJob() {
 		return SchedulerConfiguration.createJobDetail(CleanLogsJob.class);
 	}
@@ -157,6 +157,20 @@ public class SchedulerConfiguration {
 			return quartz;
 		}
 
+	}
+
+	@ConfigurationProperties("com.ta.reportportal.job.clean.logs")
+	public class CleanLogsJobProperties {
+
+		private Integer timeout;
+
+		public Integer getTimeout() {
+			return timeout;
+		}
+
+		public void setTimeout(Integer timeout) {
+			this.timeout = timeout;
+		}
 	}
 
 }

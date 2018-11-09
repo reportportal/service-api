@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Named;
 import java.time.Duration;
@@ -63,23 +64,29 @@ import static java.util.Optional.ofNullable;
 public class CleanScreenshotsJob implements Job {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CleanScreenshotsJob.class);
 
-	@Autowired
-	private DataStoreService dataStoreService;
+	private final DataStoreService dataStoreService;
+
+	private final ProjectRepository projectRepository;
+
+	private final LogRepository logRepository;
+
+	private final LaunchRepository launchRepository;
+
+	private final TestItemRepository testItemRepository;
 
 	@Autowired
-	private ProjectRepository projectRepository;
-
-	@Autowired
-	private LogRepository logRepository;
-
-	@Autowired
-	private LaunchRepository launchRepository;
-
-	@Autowired
-	private TestItemRepository testItemRepository;
+	public CleanScreenshotsJob(DataStoreService dataStoreService, ProjectRepository projectRepository, LogRepository logRepository,
+			LaunchRepository launchRepository, TestItemRepository testItemRepository) {
+		this.dataStoreService = dataStoreService;
+		this.projectRepository = projectRepository;
+		this.logRepository = logRepository;
+		this.launchRepository = launchRepository;
+		this.testItemRepository = testItemRepository;
+	}
 
 	@Override
 	//	@Scheduled(cron = "${com.ta.reportportal.job.clean.screenshots.cron}")
+	@Transactional
 	public void execute(JobExecutionContext context) {
 		LOGGER.info("Cleaning outdated screenshots has been started");
 
@@ -92,7 +99,8 @@ public class CleanScreenshotsJob implements Job {
 
 						project.getProjectAttributes()
 								.stream()
-								.filter(pa -> pa.getAttribute().getName()
+								.filter(pa -> pa.getAttribute()
+										.getName()
 										.equalsIgnoreCase(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute()))
 								.findFirst()
 								.ifPresent(pa -> {

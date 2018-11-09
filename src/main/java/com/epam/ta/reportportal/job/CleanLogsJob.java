@@ -31,9 +31,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -41,6 +45,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -62,23 +67,25 @@ public class CleanLogsJob implements Job {
 	public static final long JOB_EXECUTION_TIMEOUT = 1L;
 	public static final Duration MIN_DELAY = Duration.ofDays(KeepLogsDelay.TWO_WEEKS.getDays() - 1);
 
-	@Value("")
+	@Value("5")
 	private Integer threadsCount;
 
-	@Autowired
-	private LogRepository logRepository;
+	private final ProjectRepository projectRepository;
+
+	private final ActivityRepository activityRepository;
+
+	private final LogCleanerService logCleaner;
+
+	private final SchedulerConfiguration.CleanLogsJobProperties cleanLogsJobProperties;
 
 	@Autowired
-	private LaunchRepository launchRepository;
-
-	@Autowired
-	private ProjectRepository projectRepository;
-
-	@Autowired
-	private TestItemRepository testItemRepository;
-
-	@Autowired
-	private ActivityRepository activityRepository;
+	public CleanLogsJob(ProjectRepository projectRepository, ActivityRepository activityRepository, LogCleanerService logCleaner,
+			SchedulerConfiguration.CleanLogsJobProperties cleanLogsJobProperties) {
+		this.projectRepository = projectRepository;
+		this.activityRepository = activityRepository;
+		this.logCleaner = logCleaner;
+		this.cleanLogsJobProperties = cleanLogsJobProperties;
+	}
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -96,14 +103,15 @@ public class CleanLogsJob implements Job {
 							LOGGER.info("Cleaning outdated logs for project {} has been started", project.getId());
 							project.getProjectAttributes()
 									.stream()
-									.filter(pa -> pa.getAttribute().getName()
+									.filter(pa -> pa.getAttribute()
+											.getName()
 											.equalsIgnoreCase(ProjectAttributeEnum.KEEP_LOGS.getAttribute()))
 									.findFirst()
 									.ifPresent(pa -> {
 										Duration period = ofDays(KeepLogsDelay.findByName(pa.getValue()).getDays());
 										if (!period.isZero()) {
 											activityRepository.deleteModifiedLaterAgo(project.getId(), period);
-											removeOutdatedLogs(project.getId(), period);
+											logCleaner.removeOutdatedLogs(project.getId(), period);
 										}
 									});
 
@@ -115,22 +123,17 @@ public class CleanLogsJob implements Job {
 				})
 		);
 
+		try {
+			executor.shutdown();
+			if (!executor.awaitTermination(cleanLogsJobProperties.getTimeout(), TimeUnit.SECONDS)) {
+				executor.shutdownNow();
+			}
+		} catch (InterruptedException e) {
+			LOGGER.debug("Waiting for tasks execution has been failed", e);
+		} finally {
+			executor.shutdownNow();
+		}
+
 	}
 
-	private void removeOutdatedLogs(Long projectId, Duration period) {
-		Date endDate = Date.from(Instant.now().minusSeconds(MIN_DELAY.getSeconds()));
-		AtomicLong countPerProject = new AtomicLong(0);
-		iterateOverPages(pageable -> launchRepository.getIdsModifiedBefore(projectId, endDate, pageable), launches -> {
-			launches.forEach(id -> {
-				try (Stream<Long> ids = testItemRepository.streamTestItemIdsByLaunchId(id)) {
-					long count = logRepository.deleteByPeriodAndTestItemIds(period, ids.collect(Collectors.toList()));
-					countPerProject.addAndGet(count);
-				} catch (Exception e) {
-					//do nothing
-				}
-			});
-
-		});
-		LOGGER.info("Removed {} logs for project {}", countPerProject.get(), projectId);
-	}
 }

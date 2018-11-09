@@ -154,7 +154,7 @@ public class ProjectController {
 	@Transactional(readOnly = true)
 	@GetMapping("/{projectName}/users")
 	@PreAuthorize(NOT_CUSTOMER)
-	@ApiOperation("Get users from project")
+	@ApiOperation("Get users assigned on current project")
 	public Iterable<UserResource> getProjectUsers(@PathVariable String projectName, @FilterFor(User.class) Filter filter,
 			@SortFor(User.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
 		return projectHandler.getProjectUsers(ProjectExtractor.extractProjectDetails(user, projectName), filter, pageable);

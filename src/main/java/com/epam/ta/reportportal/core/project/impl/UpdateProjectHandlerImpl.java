@@ -19,6 +19,8 @@ package com.epam.ta.reportportal.core.project.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.integration.EmailIntegrationService;
+import com.epam.ta.reportportal.core.integration.IntegrationService;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
@@ -47,6 +49,7 @@ import com.google.common.base.Strings;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -57,11 +60,7 @@ import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.entity.project.ProjectUtils.getOwner;
-import static com.epam.ta.reportportal.util.UserUtils.isEmailValid;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
@@ -81,14 +80,22 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private final MessageBus messageBus;
 
+	private final Map<String, IntegrationService> integrationServiceMapping;
+
+	private final EmailIntegrationService emailIntegrationService;
+
 	@Autowired
 	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
-			UserPreferenceRepository preferenceRepository, MessageBus messageBus, ProjectUserRepository projectUserRepository) {
+			UserPreferenceRepository preferenceRepository, MessageBus messageBus, ProjectUserRepository projectUserRepository,
+			@Qualifier(value = "integrationServiceMap") Map<String, IntegrationService> integrationServiceMapping,
+			EmailIntegrationService emailIntegrationService) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.preferenceRepository = preferenceRepository;
 		this.messageBus = messageBus;
 		this.projectUserRepository = projectUserRepository;
+		this.integrationServiceMapping = integrationServiceMapping;
+		this.emailIntegrationService = emailIntegrationService;
 	}
 
 	@Override
@@ -106,22 +113,22 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	@Override
 	public OperationCompletionRS updateIntegrationParameters(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			UpdateIntegrationRQ updateIntegrationRQ) {
+
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
-		//		Project before = SerializationUtils.clone(project);
+
+		IntegrationService integrationService = Optional.ofNullable(integrationServiceMapping.get(updateIntegrationRQ.getIntegrationName()))
+				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, updateIntegrationRQ.getIntegrationName()));
+
+		integrationService.validateIntegrationParameters(project, updateIntegrationRQ.getIntegrationParams());
 
 		Integration integration = project.getIntegrations()
 				.stream()
 				.filter(it -> it.getType().getName().equalsIgnoreCase(updateIntegrationRQ.getIntegrationName()))
 				.findFirst()
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, updateIntegrationRQ.getIntegrationName()));
-
 		integration.setEnabled(updateIntegrationRQ.getEnabled());
 		integration.setParams(new IntegrationParams(updateIntegrationRQ.getIntegrationParams()));
-
-		//TODO validations of integrations?
-
-		//		messageBus.publishActivity(new EmailConfigUpdatedEvent(before, updateProjectRQ, user.getUserId()));
 		return new OperationCompletionRS(
 				"EMail configuration of project with id = '" + projectDetails.getProjectId() + "' is successfully updated.");
 	}
@@ -152,9 +159,9 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 			userForUnassign.getProjects().remove(projectUser);
 			unassignUsers.add(projectUser);
 		});
+
 		projectUserRepository.deleteAll(unassignUsers);
-		//TODO exclude project recipients if have
-		//		ProjectUtils.excludeProjectRecipients(unassignUsers, project);
+		emailIntegrationService.excludeProjectRecipients(unassignUsers, project);
 		preferenceRepository.removeByProjectIdAndUserId(projectDetails.getProjectId(), user.getUserId());
 		return new OperationCompletionRS(
 				"User(s) with username(s)='" + unassignUsersRQ.getUsernames() + "' was successfully un-assigned from project='"
@@ -301,34 +308,5 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		).verify(ErrorType.BAD_REQUEST_ERROR, keepScreenshots));
 		ofNullable(attributes.get(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute())).ifPresent(analyzerMode -> expect(AnalyzeMode.fromString(
 				analyzerMode), isPresent()).verify(ErrorType.BAD_REQUEST_ERROR, analyzerMode));
-	}
-
-	void validateRecipient(Project project, String recipient) {
-		expect(recipient, notNull()).verify(BAD_REQUEST_ERROR, formattedSupplier("Provided recipient email '{}' is invalid", recipient));
-		if (recipient.contains("@")) {
-			expect(isEmailValid(recipient), equalTo(true)).verify(BAD_REQUEST_ERROR,
-					formattedSupplier("Provided recipient email '{}' is invalid", recipient)
-			);
-		} else {
-			final String login = recipient.trim();
-			expect(MIN_LOGIN_LENGTH <= login.length() && login.length() <= MAX_LOGIN_LENGTH, equalTo(true)).verify(BAD_REQUEST_ERROR,
-					"Acceptable login length  [" + MIN_LOGIN_LENGTH + ".." + MAX_LOGIN_LENGTH + "]"
-			);
-			if (!getOwner().equals(login)) {
-				expect(ProjectUtils.doesHaveUser(project, login.toLowerCase()), equalTo(true)).verify(USER_NOT_FOUND,
-						login,
-						String.format("User not found in project %s", project.getId())
-				);
-			}
-		}
-	}
-
-	void validateLaunchName(String name) {
-		expect(isNullOrEmpty(name), equalTo(false)).verify(BAD_REQUEST_ERROR,
-				"Launch name values cannot be empty. Please specify it or not include in request."
-		);
-		expect(name.length() <= MAX_NAME_LENGTH, equalTo(true)).verify(BAD_REQUEST_ERROR,
-				formattedSupplier("One of provided launch names '{}' is too long. Acceptable name length is [1..256]", name)
-		);
 	}
 }

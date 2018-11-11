@@ -50,7 +50,7 @@ public class WidgetConfig implements ApplicationContextAware {
 	}
 
 	@Bean("contentLoader")
-	public Map<WidgetType, LoadContentStrategy> contentLoading() {
+	public Map<WidgetType, LoadContentStrategy> contentLoader() {
 		return ImmutableMap.<WidgetType, LoadContentStrategy>builder().put(WidgetType.FLAKY_TEST_CASES,
 				applicationContext.getBean(FlakyCasesTableContentLoader.class)
 		)

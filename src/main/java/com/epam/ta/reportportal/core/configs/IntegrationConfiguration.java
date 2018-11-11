@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.core.integration.EmailIntegrationService;
+import com.epam.ta.reportportal.core.integration.email.EmailIntegrationService;
 import com.epam.ta.reportportal.core.integration.IntegrationService;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;

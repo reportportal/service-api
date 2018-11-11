@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.integration;
+package com.epam.ta.reportportal.core.integration.email;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 
+import com.epam.ta.reportportal.core.integration.IntegrationService;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
@@ -47,6 +48,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.core.integration.email.EmailIntegrationUtil.*;
 import static com.epam.ta.reportportal.dao.constant.WidgetRepositoryConstants.OWNER;
 import static com.epam.ta.reportportal.entity.project.ProjectUtils.getOwner;
 import static com.epam.ta.reportportal.entity.project.email.SendCaseType.*;
@@ -65,11 +67,25 @@ import static java.util.stream.StreamSupport.stream;
 @Component
 public class EmailIntegrationService implements IntegrationService {
 
-	private static final String EMAIL = "email";
-	private static final String RULES = "rules";
-
 	@Autowired
 	private IntegrationTypeRepository integrationTypeRepository;
+
+	@Override
+	public boolean validateIntegrationParameters(Project project, Map<String, Object> integrationParameters) {
+		expect(integrationParameters, notNull()).verify(BAD_REQUEST_ERROR, "Integration parameters should be provided.");
+		List<Map<String, Object>> rules = getEmailRules(integrationParameters);
+		expect(rules, NOT_EMPTY_COLLECTION).verify(BAD_REQUEST_ERROR, "At least one rule should be present.");
+		rules.forEach(rule -> {
+			String sendCase = getLaunchStatsValue(rule);
+			expect(LaunchStatsRule.findByName(sendCase).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, sendCase);
+
+			validateRecipients(project, getRuleValues(rule, RECIPIENTS));
+			validateLaunchName(getRuleValues(rule, LAUNCH_NAME_RULE));
+			rule.put(LAUNCH_TAG_RULE.getCaseTypeString(), validateTags(getRuleValues(rule, LAUNCH_TAG_RULE)));
+		});
+
+		return true;
+	}
 
 	/**
 	 * Setup default project email configuration
@@ -109,9 +125,8 @@ public class EmailIntegrationService implements IntegrationService {
 			Integration integration = getEmailIntegration(project).orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND,
 					EMAIL
 			));
-			Map<String, Object> params = integration.getParams().getParams();
-			List<Map<String, Object>> rules = (List<Map<String, Object>>) params.get(RULES);
-			rules.forEach(rule -> ((List<String>) rule.get(RECIPIENTS.getCaseTypeString())).removeAll(toExclude));
+			List<Map<String, Object>> rules = getEmailRules(integration.getParams().getParams());
+			rules.forEach(rule -> getRuleValues(rule, RECIPIENTS).removeAll(toExclude));
 		}
 	}
 
@@ -128,9 +143,8 @@ public class EmailIntegrationService implements IntegrationService {
 			Integration integration = getEmailIntegration(project).orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND,
 					EMAIL
 			));
-			Map<String, Object> params = integration.getParams().getParams();
-			List<Map<String, Object>> rules = (List<Map<String, Object>>) params.get(RULES);
-			rules.forEach(rule -> ((List<String>) rule.get(RECIPIENTS.getCaseTypeString())).replaceAll(it -> {
+			List<Map<String, Object>> rules = getEmailRules(integration.getParams().getParams());
+			rules.forEach(rule -> getRuleValues(rule, RECIPIENTS).replaceAll(it -> {
 				if (it.equalsIgnoreCase(oldEmail)) {
 					it = it.replaceAll(oldEmail, newEmail);
 				}
@@ -138,39 +152,6 @@ public class EmailIntegrationService implements IntegrationService {
 			}));
 		}
 		return project;
-	}
-
-	/**
-	 * Extract email integration from project
-	 *
-	 * @param project Project
-	 * @return Optional of Integration
-	 */
-	public Optional<Integration> getEmailIntegration(Project project) {
-		if (project != null && CollectionUtils.isNotEmpty(project.getIntegrations())) {
-			return project.getIntegrations().stream().filter(it -> it.getType().getName().equalsIgnoreCase(EMAIL)).findFirst();
-		}
-		return Optional.empty();
-	}
-
-	@Override
-	public boolean validateIntegrationParameters(Project project, Map<String, Object> integrationParameters) {
-		expect(integrationParameters, notNull()).verify(BAD_REQUEST_ERROR, "Integration parameters should be provided.");
-
-		List<Map<String, Object>> rules = (List<Map<String, Object>>) integrationParameters.get(RULES);
-		expect(rules, NOT_EMPTY_COLLECTION).verify(BAD_REQUEST_ERROR, "At least one rule should be present.");
-
-		rules.forEach(rule -> {
-
-			String sendCase = (String) rule.get(LAUNCH_STATS_RULE.getCaseTypeString());
-			expect(SendCaseType.findByName(sendCase).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, sendCase);
-
-			validateRecipients(project, (List<String>) rule.get(RECIPIENTS.getCaseTypeString()));
-			validateLaunchName((List<String>) rule.get(LAUNCH_NAME_RULE.getCaseTypeString()));
-			rule.put(LAUNCH_TAG_RULE.getCaseTypeString(), validateTags((List<String>) rule.get(LAUNCH_TAG_RULE.getCaseTypeString())));
-		});
-
-		return true;
 	}
 
 	private List<String> validateTags(List<String> strings) {

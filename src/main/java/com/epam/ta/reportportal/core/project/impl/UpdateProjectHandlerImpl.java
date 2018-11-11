@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.project.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.integration.EmailIntegrationService;
+import com.epam.ta.reportportal.core.integration.email.EmailIntegrationService;
 import com.epam.ta.reportportal.core.integration.IntegrationService;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;

@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
-import com.epam.ta.reportportal.core.integration.EmailIntegrationService;
+import com.epam.ta.reportportal.core.integration.email.EmailIntegrationService;
 import com.epam.ta.reportportal.dao.AttributeRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;

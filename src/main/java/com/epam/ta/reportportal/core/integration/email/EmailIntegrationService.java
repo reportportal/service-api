@@ -16,10 +16,6 @@
 
 package com.epam.ta.reportportal.core.integration.email;
 
-/**
- * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
- */
-
 import com.epam.ta.reportportal.core.integration.IntegrationService;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
@@ -62,7 +58,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
 
 /**
- * @author Pavel Bortnik
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Component
 public class EmailIntegrationService implements IntegrationService {

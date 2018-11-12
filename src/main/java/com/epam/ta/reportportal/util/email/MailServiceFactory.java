@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,9 +19,7 @@ import com.epam.reportportal.commons.template.TemplateEngine;
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.entity.ServerSettingsEnum;
-import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
-import com.epam.ta.reportportal.entity.project.ProjectAttribute;
-import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -34,11 +32,13 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.ws.model.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
-import static java.util.Optional.ofNullable;
 
 /**
  * Factory for {@link EmailService}
@@ -50,6 +50,7 @@ public class MailServiceFactory {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailServiceFactory.class);
 	private static final int DEFAULT_CONNECTION_TIMEOUT = 5000;
+	private static final String FROM_ADDRESS = "fromAddress";
 
 	private final TemplateEngine templateEngine;
 	private final BasicTextEncryptor encryptor;
@@ -65,23 +66,14 @@ public class MailServiceFactory {
 	/**
 	 * Build mail service based on provided configs
 	 *
-	 * @param projectAttributes Project configuration attributes
-	 * @param serverSettings    Server-level configuration
+	 * @param emailIntegration Project configuration attributes
+	 * @param serverSettings   Server-level configuration
 	 * @return Built email service
 	 */
-	private Optional<EmailService> getEmailService(Set<ProjectAttribute> projectAttributes, List<ServerSettings> serverSettings) {
-
-		Map<String, String> configuration = ProjectUtils.getConfigParameters(projectAttributes);
-
+	private Optional<EmailService> getEmailService(Integration emailIntegration, List<ServerSettings> serverSettings) {
 		return getEmailService(serverSettings).flatMap(service -> {
-			// if there is server email config, let's check project config
-			if (MapUtils.isNotEmpty(configuration)) {
-				// if project config is present, check whether sending emails is enabled and replace server properties with project properties
-				if (BooleanUtils.toBoolean(configuration.get(ProjectAttributeEnum.EMAIL_ENABLED.getAttribute()))) {
-					//update of present on project level
-					ofNullable(configuration.get(ProjectAttributeEnum.EMAIL_FROM.getAttribute())).ifPresent(service::setFrom);
-				}
-
+			if (null != emailIntegration && emailIntegration.isEnabled()) {
+				service.setFrom((String) emailIntegration.getParams().getParams().get(FROM_ADDRESS));
 			}
 			return Optional.of(service);
 		});
@@ -145,8 +137,8 @@ public class MailServiceFactory {
 	 *
 	 * @return Built email service
 	 */
-	public Optional<EmailService> getDefaultEmailService(Set<ProjectAttribute> projectAttributes) {
-		return getEmailService(projectAttributes, settingsRepository.findAll());
+	public Optional<EmailService> getDefaultEmailService(Integration integration) {
+		return getEmailService(integration, settingsRepository.findAll());
 	}
 
 	/**
@@ -155,8 +147,8 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	public EmailService getDefaultEmailService(Set<ProjectAttribute> projectAttributes, boolean checkConnection) {
-		EmailService emailService = getEmailService(projectAttributes,
+	public EmailService getDefaultEmailService(Integration integration, boolean checkConnection) {
+		EmailService emailService = getEmailService(integration,
 				settingsRepository.findAll()
 		).orElseThrow(() -> emailConfigurationFail(null));
 

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,11 +19,10 @@ package com.epam.ta.reportportal.core.user.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.core.integration.email.EmailIntegrationService;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -32,7 +31,6 @@ import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -48,10 +46,14 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 	private final ProjectRepository projectRepository;
 
+	private final EmailIntegrationService emailIntegrationService;
+
 	@Autowired
-	public DeleteUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository) {
+	public DeleteUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository,
+			EmailIntegrationService emailIntegrationService) {
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
+		this.emailIntegrationService = emailIntegrationService;
 	}
 
 	//	@Autowired
@@ -63,9 +65,11 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		BusinessRule.expect(login.equalsIgnoreCase(loggedInUser.getUsername()), Predicates.equalTo(false))
 				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
 		try {
-			List<Project> userProjects = projectRepository.findUserProjects(login);
-			userProjects.forEach(project -> ProjectUtils.excludeProjectRecipients(Lists.newArrayList(user), project));
-			projectRepository.saveAll(userProjects);
+			user.getProjects()
+					.forEach(userProject -> emailIntegrationService.excludeProjectRecipients(
+							Lists.newArrayList(userProject),
+							userProject.getProject()
+					));
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while updating projects", exp);
 		}

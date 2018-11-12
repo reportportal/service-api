@@ -51,7 +51,7 @@ public interface UpdateProjectHandler {
 	 * @param user            User performing that update
 	 * @return Operation Result
 	 */
-	OperationCompletionRS updateIntegrationParameters(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+	OperationCompletionRS updateIntegration(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			UpdateIntegrationRQ updateProjectRQ);
 
 	/**

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@ package com.epam.ta.reportportal.util.email;
 
 import com.epam.reportportal.commons.template.TemplateEngine;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.constant.IssueRegexConstant;
@@ -102,7 +101,7 @@ public class EmailService extends JavaMailSenderImpl {
 	 * @param url        ReportPortal URL
 	 * @param launch     Launch
 	 */
-	public void sendLaunchFinishNotification(final String[] recipients, final String url, final Launch launch, final Project project) {
+	public void sendLaunchFinishNotification(final String[] recipients, final String url, final Launch launch) {
 		String subject = format(FINISH_LAUNCH_EMAIL_SUBJECT, launch.getName(), launch.getNumber());
 		MimeMessagePreparator preparator = mimeMessage -> {
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
@@ -110,7 +109,7 @@ public class EmailService extends JavaMailSenderImpl {
 			message.setTo(recipients);
 			setFrom(message);
 
-			String text = mergeFinishLaunchText(url, launch, project);
+			String text = mergeFinishLaunchText(url, launch);
 			message.setText(text, true);
 
 			attachSocialImages(message);
@@ -119,7 +118,7 @@ public class EmailService extends JavaMailSenderImpl {
 	}
 
 	@VisibleForTesting
-	String mergeFinishLaunchText(String url, Launch launch, Project project) {
+	String mergeFinishLaunchText(String url, Launch launch) {
 		Map<String, Object> email = new HashMap<>();
 		/* Email fields values */
 		String basicUrl = format(URL_FORMAT, url);
@@ -146,17 +145,17 @@ public class EmailService extends JavaMailSenderImpl {
 				.filter(s -> ofNullable(s.getStatisticsField()).isPresent() && StringUtils.isNotEmpty(s.getStatisticsField().getName()))
 				.collect(Collectors.toMap(s -> s.getStatisticsField().getName(), Statistics::getCounter, (prev, curr) -> prev));
 
-		email.put("total", statistics.get("statistics$executions$total"));
-		email.put("passed", statistics.get("statistics$executions$passed"));
-		email.put("failed", statistics.get("statistics$executions$failed"));
-		email.put("skipped", statistics.get("statistics$executions$skipped"));
+		email.put("total", ofNullable(statistics.get("statistics$executions$total")).orElse(0));
+		email.put("passed", ofNullable(statistics.get("statistics$executions$passed")).orElse(0));
+		email.put("failed", ofNullable(statistics.get("statistics$executions$failed")).orElse(0));
+		email.put("skipped", ofNullable(statistics.get("statistics$executions$skipped")).orElse(0));
 
 		/* Launch issue statistics global counters */
-		email.put("productBugTotal", statistics.get("statistics$product_bug$total"));
-		email.put("automationBugTotal", statistics.get("statistics$product_bug$total"));
-		email.put("systemIssueTotal", statistics.get("statistics$system_issue$total"));
-		email.put("noDefectTotal", statistics.get("statistics$no_defect$total"));
-		email.put("toInvestigateTotal", statistics.get("statistics$to_investigate$total"));
+		email.put("productBugTotal", ofNullable(statistics.get("statistics$product_bug$total")).orElse(0));
+		email.put("automationBugTotal", ofNullable(statistics.get("statistics$product_bug$total")).orElse(0));
+		email.put("systemIssueTotal", ofNullable(statistics.get("statistics$system_issue$total")).orElse(0));
+		email.put("noDefectTotal", ofNullable(statistics.get("statistics$no_defect$total")).orElse(0));
+		email.put("toInvestigateTotal", ofNullable(statistics.get("statistics$to_investigate$total")).orElse(0));
 
 
 

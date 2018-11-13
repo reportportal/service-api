@@ -15,6 +15,7 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.job.CleanLaunchesJob;
 import com.epam.ta.reportportal.job.CleanLogsJob;
 import com.epam.ta.reportportal.job.CleanScreenshotsJob;
 import com.epam.ta.reportportal.job.InterruptBrokenLaunchesJob;
@@ -40,7 +41,8 @@ import java.util.List;
 import java.util.Properties;
 
 @Configuration
-@EnableConfigurationProperties({ SchedulerConfiguration.QuartzProperties.class, SchedulerConfiguration.CleanLogsJobProperties.class })
+@EnableConfigurationProperties({ SchedulerConfiguration.QuartzProperties.class, SchedulerConfiguration.CleanLogsJobProperties.class,
+		SchedulerConfiguration.CleanLaunchesJobProperties.class })
 public class SchedulerConfiguration {
 
 	@Autowired
@@ -105,19 +107,30 @@ public class SchedulerConfiguration {
 		return createTrigger(jobDetail, Duration.parse(cleanScreenshotsCron).toMillis());
 	}
 
+	@Bean
+	public SimpleTriggerFactoryBean createCleanLaunchesTrigger(@Named("cleanLaunchesJobBean") JobDetail jobDetail,
+			@Value("${com.ta.reportportal.job.clean.launches.cron}") String cleanLogsCron) {
+		return createTrigger(jobDetail, Duration.parse(cleanLogsCron).toMillis());
+	}
+
 	@Bean("cleanLogsJobBean")
 	public JobDetailFactoryBean cleanLogsJob() {
-		return SchedulerConfiguration.createJobDetail(CleanLogsJob.class);
+		return createJobDetail(CleanLogsJob.class);
 	}
 
 	@Bean("interruptLaunchesJobBean")
-	public static JobDetailFactoryBean interruptLaunchesJob() {
+	public JobDetailFactoryBean interruptLaunchesJob() {
 		return createJobDetail(InterruptBrokenLaunchesJob.class);
 	}
 
 	@Bean("cleanScreenshotsJobBean")
-	public static JobDetailFactoryBean cleanScreenshotsJob() {
-		return SchedulerConfiguration.createJobDetail(CleanScreenshotsJob.class);
+	public JobDetailFactoryBean cleanScreenshotsJob() {
+		return createJobDetail(CleanScreenshotsJob.class);
+	}
+
+	@Bean("cleanLaunchesJobBean")
+	public JobDetailFactoryBean cleanLaunchesJob() {
+		return createJobDetail(CleanLaunchesJob.class);
 	}
 
 	public static SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs) {
@@ -161,6 +174,20 @@ public class SchedulerConfiguration {
 
 	@ConfigurationProperties("com.ta.reportportal.job.clean.logs")
 	public class CleanLogsJobProperties {
+
+		private Integer timeout;
+
+		public Integer getTimeout() {
+			return timeout;
+		}
+
+		public void setTimeout(Integer timeout) {
+			this.timeout = timeout;
+		}
+	}
+
+	@ConfigurationProperties("com.ta.reportportal.job.clean.launches")
+	public class CleanLaunchesJobProperties {
 
 		private Integer timeout;
 

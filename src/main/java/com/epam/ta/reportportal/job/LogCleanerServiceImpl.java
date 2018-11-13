@@ -1,26 +1,29 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.project.Project;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.job.CleanLogsJob.MIN_DELAY;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.util.Optional.ofNullable;
@@ -41,40 +44,97 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 
 	private final DataStoreService dataStoreService;
 
+	private final ActivityRepository activityRepository;
+
 	@Autowired
 	public LogCleanerServiceImpl(LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			DataStoreService dataStoreService) {
+			DataStoreService dataStoreService, ActivityRepository activityRepository) {
 		this.logRepository = logRepository;
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.dataStoreService = dataStoreService;
+		this.activityRepository = activityRepository;
 	}
 
+	@Override
 	@Async
 	@Transactional
-	public void removeOutdatedLogs(Long projectId, Duration period) {
+	public void removeOutdatedLogs(Project project, Duration period, AtomicLong removedLogsCount) {
 		Date endDate = Date.from(Instant.now().minusSeconds(MIN_DELAY.getSeconds()));
-		AtomicLong countPerProject = new AtomicLong(0);
-		iterateOverPages(pageable -> launchRepository.getIdsModifiedBefore(projectId, endDate, pageable), launches -> {
-			launches.forEach(id -> {
+		AtomicLong removedLogsInThreadCount = new AtomicLong(0);
+		AtomicLong attachmentsCount = new AtomicLong(0);
+		AtomicLong thumbnailsCount = new AtomicLong(0);
+
+		activityRepository.deleteModifiedLaterAgo(project.getId(), period);
+
+		try (Stream<Long> launchIds = launchRepository.streamIdsModifiedBefore(project.getId(), TO_LOCAL_DATE_TIME.apply(endDate))) {
+			launchIds.forEach(id -> {
 				try (Stream<Long> ids = testItemRepository.streamTestItemIdsByLaunchId(id)) {
 					ids.forEach(itemId -> {
 						List<Log> logs = logRepository.findLogsWithThumbnailByTestItemIdAndPeriod(itemId, period);
-						logs.stream().forEach(log -> {
-							ofNullable(log.getAttachment()).ifPresent(dataStoreService::delete);
-							ofNullable(log.getAttachmentThumbnail()).ifPresent(dataStoreService::delete);
-						});
+						removeAttachmentsOfLogs(logs, attachmentsCount, thumbnailsCount);
 					});
 					long count = logRepository.deleteByPeriodAndTestItemIds(period, ids.collect(Collectors.toList()));
-					countPerProject.addAndGet(count);
+					removedLogsCount.addAndGet(count);
+					removedLogsInThreadCount.addAndGet(count);
 				} catch (Exception e) {
 					//do nothing
-					e.printStackTrace();
 				}
 			});
+		} catch (Exception e) {
+			//do nothing
+		}
+
+		LOGGER.info(
+				"Removed {} logs for project {} with {} attachments and {} thumbnails",
+				removedLogsInThreadCount,
+				project.getId(),
+				attachmentsCount.get(),
+				thumbnailsCount.get()
+		);
+	}
+
+	@Override
+	@Async
+	@Transactional
+	public void removeProjectAttachments(Project project, Duration period, AtomicLong removedAttachmentsCount,
+			AtomicLong removedThumbnailsCount) {
+		Date endDate = Date.from(Instant.now().minusSeconds(MIN_DELAY.getSeconds()));
+		try (Stream<Long> launchIds = launchRepository.streamIdsModifiedBefore(project.getId(), TO_LOCAL_DATE_TIME.apply(endDate))) {
+			launchIds.forEach(id -> {
+				try (Stream<Long> ids = testItemRepository.streamTestItemIdsByLaunchId(id)) {
+					ids.forEach(itemId -> {
+						List<Log> logs = logRepository.findLogsWithThumbnailByTestItemIdAndPeriod(itemId, period);
+						removeAttachmentsOfLogs(logs, removedAttachmentsCount, removedThumbnailsCount);
+						logRepository.clearLogsAttachmentsAndThumbnails(logs.stream().map(Log::getId).collect(Collectors.toList()));
+					});
+				} catch (Exception e) {
+					//do nothing
+				}
+			});
+		} catch (Exception e) {
+			//do nothing
+		}
+	}
+
+	@Override
+	public void removeAttachmentsOfLogs(Collection<Log> logs, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {
+		logs.stream().forEach(log -> {
+			try {
+				ofNullable(log.getAttachment()).ifPresent(filePath -> {
+					dataStoreService.delete(filePath);
+					attachmentsCount.addAndGet(1L);
+				});
+				ofNullable(log.getAttachmentThumbnail()).ifPresent(filePath -> {
+					dataStoreService.delete(filePath);
+					thumbnailsCount.addAndGet(1L);
+				});
+			} catch (Exception ex) {
+				LOGGER.debug("Error has occurred during the attachments removing", ex);
+				//do nothing, because error that has occurred during the removing of current attachment shouldn't affect others
+			}
 
 		});
-		LOGGER.info("Removed {} logs for project {}", countPerProject.get(), projectId);
 	}
 
 }

@@ -22,7 +22,6 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.binary.DataStoreService;
-import com.epam.ta.reportportal.core.configs.SchedulerConfiguration;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -30,18 +29,14 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.KeepScreenshotsDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.log.Log;
-import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.inject.Named;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
@@ -50,10 +45,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.job.CleanLogsJob.MIN_DELAY;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofDays;
-import static java.util.Optional.ofNullable;
 
 /**
  * Clear screenshots from GridFS in accordance with projects settings
@@ -64,35 +59,26 @@ import static java.util.Optional.ofNullable;
 public class CleanScreenshotsJob implements Job {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CleanScreenshotsJob.class);
 
-	private final DataStoreService dataStoreService;
-
 	private final ProjectRepository projectRepository;
 
-	private final LogRepository logRepository;
-
-	private final LaunchRepository launchRepository;
-
-	private final TestItemRepository testItemRepository;
+	private final LogCleanerService logCleaner;
 
 	@Autowired
-	public CleanScreenshotsJob(DataStoreService dataStoreService, ProjectRepository projectRepository, LogRepository logRepository,
-			LaunchRepository launchRepository, TestItemRepository testItemRepository) {
-		this.dataStoreService = dataStoreService;
+	public CleanScreenshotsJob(ProjectRepository projectRepository, LogCleanerService logCleaner) {
 		this.projectRepository = projectRepository;
-		this.logRepository = logRepository;
-		this.launchRepository = launchRepository;
-		this.testItemRepository = testItemRepository;
+		this.logCleaner = logCleaner;
 	}
 
 	@Override
 	//	@Scheduled(cron = "${com.ta.reportportal.job.clean.screenshots.cron}")
-	@Transactional
 	public void execute(JobExecutionContext context) {
 		LOGGER.info("Cleaning outdated screenshots has been started");
 
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(ProjectAttributeEnum.KEEP_SCREENSHOTS, pageable),
+		iterateOverPages(
+				pageable -> projectRepository.findAllIdsAndProjectAttributes(ProjectAttributeEnum.KEEP_SCREENSHOTS, pageable),
 				projects -> projects.forEach(project -> {
-					AtomicLong count = new AtomicLong(0);
+					AtomicLong attachmentsCount = new AtomicLong(0);
+					AtomicLong thumbnailsCount = new AtomicLong(0);
 
 					try {
 						LOGGER.info("Cleaning outdated screenshots for project {} has been started", project.getId());
@@ -106,44 +92,19 @@ public class CleanScreenshotsJob implements Job {
 								.ifPresent(pa -> {
 									Duration period = ofDays(KeepScreenshotsDelay.findByName(pa.getValue()).getDays());
 									if (!period.isZero()) {
-
-										Date endDate = Date.from(Instant.now().minusSeconds(MIN_DELAY.getSeconds()));
-										iterateOverPages(pageable -> launchRepository.getIdsModifiedBefore(project.getId(),
-												endDate,
-												pageable
-										), launchIds -> launchIds.forEach(id -> {
-											try (Stream<Long> ids = testItemRepository.streamTestItemIdsByLaunchId(id)) {
-												ids.forEach(itemId -> {
-													List<Log> logs = logRepository.findLogsWithThumbnailByTestItemIdAndPeriod(itemId,
-															period
-													);
-													logs.stream().forEach(log -> {
-														ofNullable(log.getAttachment()).ifPresent(attachment -> {
-															dataStoreService.delete(attachment);
-															count.addAndGet(1L);
-														});
-														ofNullable(log.getAttachmentThumbnail()).ifPresent(attachThumb -> {
-															dataStoreService.delete(attachThumb);
-															count.addAndGet(1L);
-														});
-													});
-
-													logRepository.clearLogsAttachmentsAndThumbnails(logs.stream()
-															.map(Log::getId)
-															.collect(Collectors.toList()));
-												});
-
-											} catch (Exception e) {
-												//do nothing
-											}
-										}));
+										logCleaner.removeProjectAttachments(project, period, attachmentsCount, thumbnailsCount);
 									}
 								});
 
 					} catch (Exception e) {
 						LOGGER.info("Cleaning outdated screenshots for project {} has been failed", project.getId(), e);
 					}
-					LOGGER.info("Cleaning outdated screenshots for project {} has been finished. {} deleted", project.getId(), count.get());
+					LOGGER.info(
+							"Cleaning outdated screenshots for project {} has been finished. {} attachments and {} thumbnails have been deleted",
+							project.getId(),
+							attachmentsCount.get(),
+							thumbnailsCount.get()
+					);
 				})
 		);
 

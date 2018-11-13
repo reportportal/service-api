@@ -72,17 +72,14 @@ public class CleanLogsJob implements Job {
 
 	private final ProjectRepository projectRepository;
 
-	private final ActivityRepository activityRepository;
-
 	private final LogCleanerService logCleaner;
 
 	private final SchedulerConfiguration.CleanLogsJobProperties cleanLogsJobProperties;
 
 	@Autowired
-	public CleanLogsJob(ProjectRepository projectRepository, ActivityRepository activityRepository, LogCleanerService logCleaner,
+	public CleanLogsJob(ProjectRepository projectRepository, LogCleanerService logCleaner,
 			SchedulerConfiguration.CleanLogsJobProperties cleanLogsJobProperties) {
 		this.projectRepository = projectRepository;
-		this.activityRepository = activityRepository;
 		this.logCleaner = logCleaner;
 		this.cleanLogsJobProperties = cleanLogsJobProperties;
 	}
@@ -98,6 +95,7 @@ public class CleanLogsJob implements Job {
 		iterateOverPages(
 				pageable -> projectRepository.findAllIdsAndProjectAttributes(ProjectAttributeEnum.KEEP_LOGS, pageable),
 				projects -> projects.forEach(project -> {
+					AtomicLong removedLogsCount = new AtomicLong(0);
 					executor.submit(() -> {
 						try {
 							LOGGER.info("Cleaning outdated logs for project {} has been started", project.getId());
@@ -110,15 +108,18 @@ public class CleanLogsJob implements Job {
 									.ifPresent(pa -> {
 										Duration period = ofDays(KeepLogsDelay.findByName(pa.getValue()).getDays());
 										if (!period.isZero()) {
-											activityRepository.deleteModifiedLaterAgo(project.getId(), period);
-											logCleaner.removeOutdatedLogs(project.getId(), period);
+											logCleaner.removeOutdatedLogs(project, period, removedLogsCount);
 										}
 									});
 
 						} catch (Exception e) {
 							LOGGER.debug("Cleaning outdated logs for project {} has been failed", project.getId(), e);
 						}
-						LOGGER.info("Cleaning outdated logs for project {} has been finished", project.getId());
+						LOGGER.info(
+								"Cleaning outdated logs for project {} has been finished. Total logs removed: {}",
+								project.getId(),
+								removedLogsCount.get()
+						);
 					});
 				})
 		);

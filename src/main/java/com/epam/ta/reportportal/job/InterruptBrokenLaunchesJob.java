@@ -98,47 +98,53 @@ public class InterruptBrokenLaunchesJob implements Job {
 							.findFirst()
 							.ifPresent(pa -> {
 								Duration maxDuration = ofHours(InterruptionJobDelay.findByName(pa.getValue()).getPeriod());
-								launchRepository.streamIdsWithStatusModifiedBefore(project.getId(),
+								try (Stream<Long> ids = launchRepository.streamIdsWithStatusModifiedBefore(project.getId(),
 										StatusEnum.IN_PROGRESS,
 										TO_LOCAL_DATE_TIME.apply(Date.from(Instant.now().minusSeconds(maxDuration.getSeconds())))
-								).forEach(launchId -> {
-									if (!testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)) {
-										/*
-										 * There are no test items for this launch. Just INTERRUPT
-										 * this launch
-										 */
-										interruptLaunch(launchId);
-									} else {
-										/*
-										 * Well, there are some test items started for specified
-										 * launch
-										 */
-										if (!testItemRepository.hasItemsInStatusAddedLately(launchId,
-												maxDuration,
-												StatusEnum.IN_PROGRESS
-										)) {
+								)) {
+									ids.forEach(launchId -> {
+										if (!testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)) {
 											/*
-											 * If there are logs, we have to check whether them
-											 * expired
+											 * There are no test items for this launch. Just INTERRUPT
+											 * this launch
 											 */
-											if (testItemRepository.hasLogs(launchId, maxDuration, StatusEnum.IN_PROGRESS)) {
+											interruptLaunch(launchId);
+										} else {
+											/*
+											 * Well, there are some test items started for specified
+											 * launch
+											 */
+											if (!testItemRepository.hasItemsInStatusAddedLately(launchId,
+													maxDuration,
+													StatusEnum.IN_PROGRESS
+											)) {
 												/*
-												 * If there are logs which are still valid
-												 * (probably automation project keep writing
-												 * something)
+												 * If there are logs, we have to check whether them
+												 * expired
 												 */
-												if (!logRepository.hasLogsAddedLately(maxDuration, launchId, StatusEnum.IN_PROGRESS)) {
+												if (testItemRepository.hasLogs(launchId, maxDuration, StatusEnum.IN_PROGRESS)) {
+													/*
+													 * If there are logs which are still valid
+													 * (probably automation project keep writing
+													 * something)
+													 */
+													if (!logRepository.hasLogsAddedLately(maxDuration, launchId, StatusEnum.IN_PROGRESS)) {
+														interruptItems(launchId);
+													}
+												} else {
+													/*
+													 * If not just INTERRUPT all found items and launch
+													 */
 													interruptItems(launchId);
 												}
-											} else {
-												/*
-												 * If not just INTERRUPT all found items and launch
-												 */
-												interruptItems(launchId);
 											}
 										}
-									}
-								});
+									});
+								} catch (Exception ex) {
+									//do nothing
+									ex.printStackTrace();
+								}
+
 							});
 
 				})

@@ -132,6 +132,10 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 		String email = EntityUtils.normalizeId(request.getEmail());
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
+		expect(userRepository.findByEmail(email).isPresent(), equalTo(false)).verify(
+				USER_ALREADY_EXISTS,
+				formattedSupplier("email = '{}'", email)
+		);
 
 		CreateUserRQConfirm req = new CreateUserRQConfirm();
 		req.setDefaultProject(projectName);

@@ -132,7 +132,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 				parameter.setKey(it.getKey());
 				parameter.setValue(it.getValue());
 				return parameter;
-			}).collect(Collectors.toList()));
+			}).collect(Collectors.toSet()));
 		}
 		return this;
 	}

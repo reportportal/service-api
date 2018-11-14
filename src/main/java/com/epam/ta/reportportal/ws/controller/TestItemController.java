@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,10 +17,15 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.item.*;
 import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
+import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -30,9 +35,13 @@ import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
+import com.google.common.collect.Sets;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,14 +51,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @RequestMapping("/{projectName}/item")
-@PreAuthorize(ASSIGNED_TO_PROJECT)
+//@PreAuthorize(ASSIGNED_TO_PROJECT)
 public class TestItemController {
 
 	private final StartTestItemHandler startTestItemHandler;
@@ -126,6 +135,28 @@ public class TestItemController {
 				extractProjectDetails(user, projectName),
 				user
 		);
+	}
+
+	@Autowired
+	private TestItemRepository testItemRepository;
+	@Autowired
+	private TestItemResourceAssembler itemResourceAssembler;
+
+	@Transactional(readOnly = true)
+	@GetMapping("/test")
+	@ResponseStatus(OK)
+	public Iterable<TestItem> getTestItems() {
+		Filter filter = new Filter(TestItem.class, Sets.newHashSet(new FilterCondition(Condition.CONTAINS, false, "Step", CRITERIA_NAME)));
+		PageRequest pageRequest = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "item_id"));
+		return testItemRepository.findByFilter(filter, pageRequest);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/hiber")
+	@ResponseStatus(OK)
+	public Iterable<TestItemResource> testItemsHiber() {
+		Page<TestItem> page = testItemRepository.findAll(PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "itemId")));
+		return PagedResourcesAssembler.pageConverter(itemResourceAssembler::toResource).apply(page);
 	}
 
 	@Transactional

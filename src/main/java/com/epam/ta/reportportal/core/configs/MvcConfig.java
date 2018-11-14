@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,10 +36,7 @@ import com.epam.ta.reportportal.commons.exception.forwarding.ClientResponseForwa
 import com.epam.ta.reportportal.commons.exception.rest.DefaultErrorResolver;
 import com.epam.ta.reportportal.commons.exception.rest.ReportPortalExceptionResolver;
 import com.epam.ta.reportportal.commons.exception.rest.RestExceptionHandler;
-import com.epam.ta.reportportal.ws.resolver.ActiveUserWebArgumentResolver;
-import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
-import com.epam.ta.reportportal.ws.resolver.JsonViewSupportFactoryBean;
-import com.epam.ta.reportportal.ws.resolver.PagingHandlerMethodArgumentResolver;
+import com.epam.ta.reportportal.ws.resolver.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -51,8 +48,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.data.web.SortArgumentResolver;
-import org.springframework.data.web.SortHandlerMethodArgumentResolver;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.validation.beanvalidation.BeanValidationPostProcessor;
@@ -109,7 +104,7 @@ public class MvcConfig implements WebMvcConfigurer {
 
 	@Bean
 	public SortArgumentResolver sortArgumentResolver() {
-		SortHandlerMethodArgumentResolver argumentResolver = new SortHandlerMethodArgumentResolver();
+		SortArgumentResolver argumentResolver = new SortArgumentResolver();
 		argumentResolver.setSortParameter("page.sort");
 		argumentResolver.setQualifierDelimiter("+");
 		return argumentResolver;
@@ -123,7 +118,7 @@ public class MvcConfig implements WebMvcConfigurer {
 	@Override
 	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
 		argumentResolvers.clear();
-		PagingHandlerMethodArgumentResolver pageableResolver = new PagingHandlerMethodArgumentResolver((SortHandlerMethodArgumentResolver) sortArgumentResolver());
+		PagingHandlerMethodArgumentResolver pageableResolver = new PagingHandlerMethodArgumentResolver(sortArgumentResolver());
 		pageableResolver.setPrefix("page.");
 		pageableResolver.setOneIndexedParameters(true);
 

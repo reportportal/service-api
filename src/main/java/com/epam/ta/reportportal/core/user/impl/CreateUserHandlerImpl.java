@@ -165,6 +165,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 				projectRepository.save(personalProject);
 			}
 
+			user.setDefaultProject(personalProject);
+
 			safe(() -> emailServiceFactory.getDefaultEmailService(true).sendCreateUserConfirmationEmail(request, basicUrl),
 					e -> response.setWarning(e.getMessage())
 			);

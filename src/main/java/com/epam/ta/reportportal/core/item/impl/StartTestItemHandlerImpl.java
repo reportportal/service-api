@@ -109,9 +109,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		validate(rq, parentItem);
 
 		//TODO retries
-
-		rq.isRetry();
-
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addLaunch(launch).addParent(parentItem).get();
 		testItemRepository.save(item);
 		item.setPath(parentItem.getPath() + "." + item.getItemId());

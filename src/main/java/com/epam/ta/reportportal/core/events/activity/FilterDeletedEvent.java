@@ -18,22 +18,23 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
 
-import java.time.LocalDateTime;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.DELETE_FILTER;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.FILTER;
 
 /**
  * @author pavel_bortnik
  */
-public class FilterDeletedEvent extends BeforeEvent<UserFilter> implements ActivityEvent {
+public class FilterDeletedEvent extends BeforeEvent<UserFilterActivityResource> implements ActivityEvent {
 
 	private Long deletedBy;
 
 	public FilterDeletedEvent() {
 	}
 
-	public FilterDeletedEvent(UserFilter before, Long deletedBy) {
+	public FilterDeletedEvent(UserFilterActivityResource before, Long deletedBy) {
 		super(before);
 		this.deletedBy = deletedBy;
 	}
@@ -48,14 +49,13 @@ public class FilterDeletedEvent extends BeforeEvent<UserFilter> implements Activ
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setActivityEntityType(Activity.ActivityEntityType.FILTER);
-		activity.setAction(ActivityAction.DELETE_FILTER.getValue());
-		activity.setProjectId(getBefore().getProject().getId());
-		activity.setUserId(deletedBy);
-		activity.setObjectId(getBefore().getId());
-		activity.setDetails(new ActivityDetails(getBefore().getDescription()));
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(DELETE_FILTER)
+				.addActivityEntityType(FILTER)
+				.addUserId(deletedBy)
+				.addObjectId(getBefore().getId())
+				.addObjectName(getBefore().getName())
+				.addProjectId(getBefore().getProjectId())
+				.get();
 	}
 }

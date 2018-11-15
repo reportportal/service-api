@@ -17,42 +17,26 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.IssueTypeActivityResource;
 
-import java.time.LocalDateTime;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.DELETE_DEFECT;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.DEFECT_TYPE;
 
 /**
  * @author Andrei Varabyeu
  */
-public class DefectTypeDeletedEvent extends BeforeEvent<IssueType> implements ActivityEvent {
+public class DefectTypeDeletedEvent extends BeforeEvent<IssueTypeActivityResource> implements ActivityEvent {
 
-	private IssueType issueType;
-	private Long projectId;
 	private Long deletedBy;
+	private Long projectId;
 
 	public DefectTypeDeletedEvent() {
 	}
 
-	public DefectTypeDeletedEvent(IssueType issueType, Long projectId, Long deletedBy) {
-		this.issueType = issueType;
-		this.projectId = projectId;
+	public DefectTypeDeletedEvent(IssueTypeActivityResource before, Long deletedBy, Long projectId) {
+		super(before);
 		this.deletedBy = deletedBy;
-	}
-
-	public IssueType getIssueType() {
-		return issueType;
-	}
-
-	public void setIssueType(IssueType issueType) {
-		this.issueType = issueType;
-	}
-
-	public Long getProjectId() {
-		return projectId;
-	}
-
-	public void setProjectId(Long projectId) {
 		this.projectId = projectId;
 	}
 
@@ -64,16 +48,23 @@ public class DefectTypeDeletedEvent extends BeforeEvent<IssueType> implements Ac
 		this.deletedBy = deletedBy;
 	}
 
+	public Long getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(Long projectId) {
+		this.projectId = projectId;
+	}
+
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.DELETE_DEFECT.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.DEFECT_TYPE);
-		activity.setUserId(deletedBy);
-		activity.setProjectId(projectId);
-		activity.setObjectId(issueType.getId());
-		activity.setDetails(new ActivityDetails(issueType.getLongName()));
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(DELETE_DEFECT)
+				.addActivityEntityType(DEFECT_TYPE)
+				.addUserId(deletedBy)
+				.addObjectId(getBefore().getId())
+				.addObjectName(getBefore().getLongName())
+				.addProjectId(projectId)
+				.get();
 	}
 }

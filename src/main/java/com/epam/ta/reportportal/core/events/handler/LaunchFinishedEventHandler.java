@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.events.handler;
 
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.integration.email.EmailIntegrationUtil;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -75,13 +76,17 @@ public class LaunchFinishedEventHandler {
 	private UserRepository userRepository;
 
 	@Autowired
+	private LaunchRepository launchRepository;
+
+	@Autowired
 	private Provider<HttpServletRequest> currentRequest;
 
 	@EventListener
 	public void onApplicationEvent(LaunchFinishedEvent event) {
 		//TODO: retries and analyzer handlers should be added according to existed logic.
 
-		Launch launch = event.getLaunch();
+		Launch launch = launchRepository.findById(event.getLaunchActivityResource().getId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, event.getLaunchActivityResource().getId()));
 		if (LaunchModeEnum.DEBUG == launch.getMode()) {
 			return;
 		}

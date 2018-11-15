@@ -23,9 +23,11 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 
-import java.time.LocalDateTime;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.DELETE_INDEX;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.GENERATE_INDEX;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.PROJECT;
 
 /**
  * @author Pavel Bortnik
@@ -81,13 +83,13 @@ public class ProjectIndexEvent implements ActivityEvent {
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(indexing ? ActivityAction.GENERATE_INDEX.getValue() : ActivityAction.DELETE_INDEX.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.PROJECT);
-		activity.setProjectId(projectId);
-		activity.setUserId(userId);
-		activity.setDetails(new ActivityDetails(projectName));
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(indexing ? GENERATE_INDEX : DELETE_INDEX)
+				.addActivityEntityType(PROJECT)
+				.addUserId(userId)
+				.addObjectId(projectId)
+				.addObjectName(projectName)
+				.addProjectId(projectId)
+				.get();
 	}
 }

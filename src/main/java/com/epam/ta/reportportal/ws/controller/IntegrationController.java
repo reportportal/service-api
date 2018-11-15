@@ -76,7 +76,10 @@ public class IntegrationController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public EntryCreatedRS createExternalSystemInstance(@Validated @RequestBody CreateIntegrationRQ createRQ,
 			@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return createIntegrationHandler.createIntegration(createRQ, extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
+		return createIntegrationHandler.createIntegration(createRQ,
+				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
+				user
+		);
 	}
 
 	@Transactional(readOnly = true)
@@ -95,7 +98,10 @@ public class IntegrationController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS deleteExternalSystem(@PathVariable String projectName, @PathVariable Long systemId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteIntegrationHandler.deleteIntegration(systemId, extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
+		return deleteIntegrationHandler.deleteIntegration(systemId,
+				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
+				user
+		);
 	}
 
 	@Transactional
@@ -105,7 +111,7 @@ public class IntegrationController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS deleteAllExternalSystems(@PathVariable String projectName,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteIntegrationHandler.deleteProjectIntegrations(extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
+		return deleteIntegrationHandler.deleteProjectIntegrations(extractProjectDetails(user, EntityUtils.normalizeId(projectName)), user);
 	}
 
 	@Transactional
@@ -113,11 +119,10 @@ public class IntegrationController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Update registered external system instance")
 	@PreAuthorize(PROJECT_MANAGER)
-	public OperationCompletionRS updateExternalSystem(@Validated @RequestBody UpdateIntegrationRQ request,
-			@PathVariable String projectName, @PathVariable Long systemId, @AuthenticationPrincipal ReportPortalUser user) {
+	public OperationCompletionRS updateExternalSystem(@Validated @RequestBody UpdateIntegrationRQ request, @PathVariable String projectName,
+			@PathVariable Long systemId, @AuthenticationPrincipal ReportPortalUser user) {
 		return updateIntegrationHandler.updateIntegration(request,
-				systemId,
-				extractProjectDetails(user, EntityUtils.normalizeId(projectName))
+				systemId, extractProjectDetails(user, EntityUtils.normalizeId(projectName)), user
 		);
 	}
 

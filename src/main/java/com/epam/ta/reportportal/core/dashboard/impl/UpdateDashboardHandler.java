@@ -31,15 +31,16 @@ import com.epam.ta.reportportal.ws.converter.builders.DashboardBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
 import com.epam.ta.reportportal.ws.model.dashboard.AddWidgetRq;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
-import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
 
 /**
  * @author Pavel Bortnik
@@ -70,15 +71,13 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 	@Override
 	public OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails, UpdateDashboardRQ rq, Long dashboardId,
 			ReportPortalUser user) {
-
 		Dashboard dashboard = getDashboardHandler.getDashboard(dashboardId, projectDetails, user);
-
-		Dashboard before = SerializationUtils.clone(dashboard);
+		DashboardActivityResource before = TO_ACTIVITY_RESOURCE.apply(dashboard);
 
 		dashboard = new DashboardBuilder(dashboard).addUpdateRq(rq).get();
 		dashboardRepository.save(dashboard);
-		messageBus.publishActivity(new DashboardUpdatedEvent(before, dashboard, user.getUserId()));
 
+		messageBus.publishActivity(new DashboardUpdatedEvent(before, TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId()));
 		return new OperationCompletionRS("Dashboard with ID = '" + dashboard.getId() + "' successfully updated");
 	}
 

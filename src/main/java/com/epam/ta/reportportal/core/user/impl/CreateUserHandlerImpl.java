@@ -62,6 +62,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
 import static com.epam.ta.reportportal.entity.project.ProjectUtils.findUserConfigByLogin;
+import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
 
@@ -174,7 +175,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
 		}
 
-		messageBus.publishActivity(new UserCreatedEvent(user, administrator.getId()));
+		messageBus.publishActivity(new UserCreatedEvent(TO_ACTIVITY_RESOURCE.apply(user), administrator.getId()));
 
 		response.setLogin(user.getLogin());
 		return response;
@@ -311,7 +312,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			throw new ReportPortalException("Error while User creating.", exp);
 		}
 
-		messageBus.publishActivity(new UserCreatedEvent(newUser, newUser.getId()));
+		messageBus.publishActivity(new UserCreatedEvent(TO_ACTIVITY_RESOURCE.apply(newUser), newUser.getId()));
 		CreateUserRS response = new CreateUserRS();
 		response.setLogin(newUser.getLogin());
 		return response;

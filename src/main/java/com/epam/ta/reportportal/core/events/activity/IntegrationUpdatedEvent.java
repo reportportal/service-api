@@ -17,33 +17,34 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
 
-import java.time.LocalDateTime;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.UPDATE_BTS;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.INTEGRATION;
 
 /**
  * @author Andrei Varabyeu
  */
 public class IntegrationUpdatedEvent implements ActivityEvent {
 
-	private Integration integration;
+	private IntegrationActivityResource integrationActivityResource;
 	private Long updatedBy;
 
 	public IntegrationUpdatedEvent() {
 	}
 
-	public IntegrationUpdatedEvent(Integration integration, Long updatedBy) {
-		this.integration = integration;
+	public IntegrationUpdatedEvent(IntegrationActivityResource integrationActivityResource, Long updatedBy) {
+		this.integrationActivityResource = integrationActivityResource;
 		this.updatedBy = updatedBy;
 	}
 
-	public Integration getIntegration() {
-		return integration;
+	public IntegrationActivityResource getIntegrationActivityResource() {
+		return integrationActivityResource;
 	}
 
-	public void setIntegration(Integration integration) {
-		this.integration = integration;
+	public void setIntegrationActivityResource(IntegrationActivityResource integrationActivityResource) {
+		this.integrationActivityResource = integrationActivityResource;
 	}
 
 	public Long getUpdatedBy() {
@@ -56,14 +57,13 @@ public class IntegrationUpdatedEvent implements ActivityEvent {
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.UPDATE_BTS.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.INTEGRATION);
-		activity.setProjectId(integration.getProject().getId());
-		activity.setUserId(updatedBy);
-		activity.setObjectId(integration.getId());
-		activity.setDetails(new ActivityDetails(integration.getType().getName() + ":" + integration.getProject().getName()));
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(UPDATE_BTS)
+				.addActivityEntityType(INTEGRATION)
+				.addUserId(updatedBy)
+				.addObjectId(integrationActivityResource.getId())
+				.addObjectName(integrationActivityResource.getTypeName() + ":" + integrationActivityResource.getProjectName())
+				.addProjectId(integrationActivityResource.getProjectId())
+				.get();
 	}
 }

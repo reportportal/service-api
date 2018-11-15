@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.activity.IssueTypeActivityResource;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
 import com.google.common.collect.Sets;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.*;
+import static com.epam.ta.reportportal.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -69,18 +71,23 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
-		updateIssueSubTypeRQ.getIds()
-				.forEach(subTypeRQ -> validateAndUpdate(subTypeRQ,
+		List<IssueTypeActivityResource> issueTypeActivityResources = updateIssueSubTypeRQ.getIds()
+				.stream()
+				.map(subTypeRQ -> TO_ACTIVITY_RESOURCE.apply(validateAndUpdate(
+						subTypeRQ,
 						project.getProjectIssueTypes().stream().map(ProjectIssueType::getIssueType).collect(Collectors.toList())
-				));
+				)))
+				.collect(Collectors.toList());
 
 		projectRepository.save(project);
-		updateIssueSubTypeRQ.getIds()
-				.forEach(one -> messageBus.publishActivity(new DefectTypeUpdatedEvent(project.getId(), user.getUserId(), one)));
+		issueTypeActivityResources.forEach(it -> messageBus.publishActivity(new DefectTypeUpdatedEvent(it,
+				user.getUserId(),
+				project.getId()
+		)));
 		return new OperationCompletionRS("Issue sub-type(s) was updated successfully.");
 	}
 
-	private void validateAndUpdate(UpdateOneIssueSubTypeRQ issueSubTypeRQ, List<IssueType> issueTypes) {
+	private IssueType validateAndUpdate(UpdateOneIssueSubTypeRQ issueSubTypeRQ, List<IssueType> issueTypes) {
 		/* Check if global issue type reference is valid */
 		TestItemIssueGroup expectedGroup = TestItemIssueGroup.fromValue(issueSubTypeRQ.getTypeRef())
 				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, issueSubTypeRQ.getTypeRef()));
@@ -106,5 +113,7 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 		exist.setLongName(issueSubTypeRQ.getLongName());
 		exist.setShortName(issueSubTypeRQ.getShortName());
 		exist.setHexColor(issueSubTypeRQ.getColor());
+
+		return exist;
 	}
 }

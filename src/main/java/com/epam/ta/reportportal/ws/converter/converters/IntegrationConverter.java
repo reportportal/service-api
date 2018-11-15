@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
 import com.epam.ta.reportportal.ws.model.integration.AuthFlowEnum;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
@@ -47,6 +48,15 @@ public final class IntegrationConverter {
 		Optional.ofNullable(integration.getType().getAuthFlow()).ifPresent(it -> type.setAuthFlow(AuthFlowEnum.valueOf(it.name())));
 		resource.setIntegrationType(type);
 
+		return resource;
+	};
+
+	public static final Function<Integration, IntegrationActivityResource> TO_ACTIVITY_RESOURCE = integration -> {
+		IntegrationActivityResource resource = new IntegrationActivityResource();
+		resource.setId(integration.getId());
+		resource.setProjectId(integration.getProject().getId());
+		resource.setProjectName(integration.getProject().getName());
+		resource.setTypeName(integration.getType().getName());
 		return resource;
 	};
 

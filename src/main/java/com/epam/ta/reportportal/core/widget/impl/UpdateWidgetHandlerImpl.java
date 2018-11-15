@@ -27,13 +27,15 @@ import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.activity.WidgetActivityResource;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
+import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
 
 /**
  * @author Pavel Bortnik
@@ -69,7 +71,8 @@ public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
 	public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 		Widget widget = shareWidgetHandler.findById(widgetId);
-		Widget before = SerializationUtils.clone(widget);
+		WidgetActivityResource before = TO_ACTIVITY_RESOURCE.apply(widget);
+
 		List<UserFilter> userFilter = null;
 		List<Long> filterIds = updateRQ.getFilterIds();
 
@@ -80,7 +83,7 @@ public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
 		}
 		widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilters(userFilter).get();
 		widgetRepository.save(widget);
-		messageBus.publishActivity(new WidgetUpdatedEvent(before, widget, user.getUserId()));
+		messageBus.publishActivity(new WidgetUpdatedEvent(before, TO_ACTIVITY_RESOURCE.apply(widget), user.getUserId()));
 		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
 	}
 }

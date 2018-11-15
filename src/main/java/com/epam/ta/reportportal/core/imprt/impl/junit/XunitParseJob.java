@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.xml.sax.SAXException;
 
@@ -42,7 +41,7 @@ public class XunitParseJob implements Callable<ParseResults> {
 
 	private InputStream xmlInputStream;
 
-	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
+	@Transactional
 	@Override
 	public ParseResults call() {
 		try {

@@ -25,7 +25,6 @@ import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.job.CleanLogsJob.MIN_DELAY;
-import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -117,8 +116,7 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 		}
 	}
 
-	@Override
-	public void removeAttachmentsOfLogs(Collection<Log> logs, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {
+	private void removeAttachmentsOfLogs(Collection<Log> logs, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {
 		logs.stream().forEach(log -> {
 			try {
 				ofNullable(log.getAttachment()).ifPresent(filePath -> {

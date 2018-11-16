@@ -17,13 +17,13 @@
 package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.annotation.Regular;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.job.SaveBinaryDataJob;
 import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -41,8 +41,7 @@ import javax.inject.Provider;
  *
  * @author Andrei Varabyeu
  */
-@Regular
-@Service
+@Service("asyncCreateLogHandler")
 public class AsyncCreateLogHandler extends CreateLogHandler {
 
 	/**
@@ -62,7 +61,8 @@ public class AsyncCreateLogHandler extends CreateLogHandler {
 	@Nonnull
 	public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, ReportPortalUser.ProjectDetails projectDetails) {
 
-		TestItem testItem = testItemRepository.findById(createLogRQ.getTestItemId()).orElse(null);
+		TestItem testItem = testItemRepository.findById(createLogRQ.getTestItemId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, createLogRQ.getTestItemId()));
 
 		validate(testItem, createLogRQ);
 
@@ -75,9 +75,8 @@ public class AsyncCreateLogHandler extends CreateLogHandler {
 		if (null != file) {
 			taskExecutor.execute(saveBinaryDataJob.get()
 					.withFile(file)
-					.withLog(log)
-					.withProjectId(projectDetails.getProjectId())
-			);
+					.withLogId(log.getId())
+					.withProjectId(projectDetails.getProjectId()));
 		}
 
 		return new EntryCreatedRS(log.getId());

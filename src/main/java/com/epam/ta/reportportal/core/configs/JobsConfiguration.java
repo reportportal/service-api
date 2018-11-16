@@ -16,12 +16,9 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.job.SaveBinaryDataJob;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -56,12 +53,6 @@ public class JobsConfiguration {
 		executor.setThreadNamePrefix("logs-task-exec");
 		executor.setRejectedExecutionHandler(new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
 		return executor;
-	}
-
-	@Bean(name = "saveBinaryDataJob")
-	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	public SaveBinaryDataJob saveBinaryDataJob() {
-		return new SaveBinaryDataJob();
 	}
 
 	@EnableScheduling

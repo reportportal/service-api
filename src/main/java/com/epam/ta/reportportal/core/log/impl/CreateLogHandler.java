@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Nonnull;
@@ -47,6 +48,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
  * @author Henadzi Vrubleuski
  * @author Andrei Varabyeu
  */
+@Service("createLogHandler")
 public class CreateLogHandler implements ICreateLogHandler {
 
 	protected TestItemRepository testItemRepository;

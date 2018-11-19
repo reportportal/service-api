@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.ws.model.launch.LaunchWithLinkRS;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 
 /**
  * Start Launch operation handler
@@ -35,5 +35,5 @@ public interface StartLaunchHandler {
 	 * @param startLaunchRQ  Request Data
 	 * @return StartLaunchRS
 	 */
-	StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ);
+	LaunchWithLinkRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ);
 }

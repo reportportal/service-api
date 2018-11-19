@@ -24,9 +24,9 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.launch.LaunchWithLinkRS;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,7 +50,8 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 
 	@Override
 	@Transactional
-	public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ) {
+	public LaunchWithLinkRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
+			StartLaunchRQ startLaunchRQ) {
 		validateRoles(user, projectDetails, startLaunchRQ);
 
 		Launch launch = new LaunchBuilder().addStartRQ(startLaunchRQ)
@@ -63,7 +64,10 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 
 		//messageBus.publishActivity(new LaunchStartedEvent(launch));
 
-		return new StartLaunchRS(launch.getId(), launch.getNumber());
+		LaunchWithLinkRS rs = new LaunchWithLinkRS();
+		rs.setId(launch.getId());
+		rs.setNumber(launch.getNumber());
+		return rs;
 	}
 
 	/**

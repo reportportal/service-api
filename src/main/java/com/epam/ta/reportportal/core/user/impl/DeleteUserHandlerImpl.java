@@ -65,9 +65,8 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		BusinessRule.expect(login.equalsIgnoreCase(loggedInUser.getUsername()), Predicates.equalTo(false))
 				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
 		try {
-			user.getProjects()
-					.forEach(userProject -> emailIntegrationService.excludeProjectRecipients(
-							Lists.newArrayList(userProject),
+			user.getProjects().forEach(userProject -> emailIntegrationService.excludeProjectRecipients(
+					Lists.newArrayList(userProject),
 							userProject.getProject()
 					));
 		} catch (Exception exp) {

@@ -150,8 +150,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				testItemRepository.save(testItem);
 				updated.add(IssueConverter.TO_MODEL.apply(after));
 
-				events.add(new ItemIssueTypeDefinedEvent(before, after,
-						user.getUserId(), testItem.getItemId(), testItem.getName(),
+				events.add(new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), testItem.getItemId(), testItem.getName(),
 						projectDetails.getProjectId()
 				));
 			} catch (BusinessRuleViolationException e) {
@@ -206,7 +205,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		expect(!errors.isEmpty(), equalTo(FALSE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 		testItemRepository.saveAll(testItems);
 
-		cloned.forEach(testItemNew -> messageBus.publishActivity(new LinkTicketEvent(testItemNew.getItemResults().getIssue(),
+		cloned.forEach(testItemNew -> messageBus.publishActivity(new LinkTicketEvent(
+				testItemNew.getItemResults().getIssue(),
 				testItems.stream()
 						.map(testItemOld -> testItemOld.getItemResults().getIssue())
 						.filter(is -> is.getIssueId().equals(testItemNew.getItemResults().getIssue().getIssueId()))
@@ -292,7 +292,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 					"Launch is not under the specified project."
 			);
 			if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
-				expect(user.getUsername(), equalTo(launch.getUser().getLogin())).verify(ErrorType.ACCESS_DENIED,
+				expect(user.getUsername(), equalTo(launch.getUser().getLogin())).verify(
+						ErrorType.ACCESS_DENIED,
 						"You are not a launch owner."
 				);
 			}

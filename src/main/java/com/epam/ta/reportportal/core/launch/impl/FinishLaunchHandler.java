@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.launch.LaunchWithLinkRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -81,7 +82,7 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 	}
 
 	@Override
-	public OperationCompletionRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ,
+	public LaunchWithLinkRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ,
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
@@ -107,11 +108,12 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 			validateProvidedStatus(launch, statusEnum.get(), fromStatisticsStatus);
 		}
 		launch.setStatus(statusEnum.orElse(fromStatisticsStatus));
+		messageBus.publishActivity(new LaunchFinishedEvent(launch));
 
-		LaunchFinishedEvent event = new LaunchFinishedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId());
-		messageBus.publishActivity(event);
-		eventPublisher.publishEvent(event);
-		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully finished.");
+		LaunchWithLinkRS rs = new LaunchWithLinkRS();
+		rs.setId(launchId);
+		rs.setNumber(launch.getNumber());
+		return rs;
 	}
 
 	@Override

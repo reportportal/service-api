@@ -44,6 +44,7 @@ import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
+import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.apache.commons.collections.MapUtils;
@@ -55,6 +56,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils.getAnalyzerConfig;
+import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static java.util.Collections.singletonList;
@@ -171,7 +173,7 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 	 * @return List of updated items
 	 */
 	private List<TestItem> updateTestItems(String analyzerInstance, List<AnalyzedItemRs> rs, List<TestItem> testItems, Long projectId) {
-		final Map<IssueDefinition, TestItem> forEvents = new HashMap<>();
+		final Map<TestItemActivityResource, TestItemActivityResource> forEvents = new HashMap<>();
 		final Map<String, TestItemResource> relevantItemIdMap = new HashMap<>();
 
 		List<TestItem> beforeUpdate = new ArrayList<>(rs.size());
@@ -180,7 +182,7 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 			toUpdate.ifPresent(testItem -> {
 				beforeUpdate.add(SerializationUtils.clone(testItem));
 
-				IssueEntity before = SerializationUtils.clone(testItem.getItemResults().getIssue());
+				TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
 
 				IssueEntity issueEntity = new IssueEntity();
 				issueEntity.setIssueType(issueTypeRepository.findById(analyzed.getIssueTypeId())
@@ -190,26 +192,21 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 
 				ofNullable(analyzed.getRelevantItemId()).ifPresent(relevantItemId -> fromRelevantItem(issueEntity, relevantItemId));
 				IssueDefinition issueDefinition = createIssueDefinition(testItem.getItemId(), issueEntity);
-				forEvents.put(issueDefinition, SerializationUtils.clone(testItem));
 
 				TestItemResource testItemResource = TestItemConverter.TO_RESOURCE.apply(testItemRepository.findById(analyzed.getItemId())
 						.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, analyzed.getItemId())));
 				relevantItemIdMap.put(String.valueOf(testItem.getItemId()), testItemResource);
 				testItem.getItemResults().setIssue(issueEntity);
-				messageBus.publishActivity(new LinkTicketEvent(
-						before,
-						issueEntity,
-						100L,
-						projectId,
-						testItem.getItemId(),
-						testItem.getName()
-				));
+				forEvents.put(before, TO_ACTIVITY_RESOURCE.apply(testItem));
 			});
 			return toUpdate;
 		}).filter(Optional::isPresent).map(Optional::get).collect(toList());
 		//		eventPublisher.publishEvent(new ItemIssueTypeDefined(forEvents, analyzerInstance, project, relevantItemIdMap));
 		//		eventPublisher.publishEvent(new TicketAttachedEvent(beforeUpdate, updatedItems, analyzerInstance, project, relevantItemIdMap));
-		forEvents.forEach((key, value) -> messageBus.publishActivity(new ItemIssueTypeDefinedEvent(100L, key, value, projectId)));
+		forEvents.forEach((key, value) -> {
+			messageBus.publishActivity(new ItemIssueTypeDefinedEvent(key, value, 100L));
+			messageBus.publishActivity(new LinkTicketEvent(key, value, 100L));
+		});
 		return updatedItems;
 	}
 

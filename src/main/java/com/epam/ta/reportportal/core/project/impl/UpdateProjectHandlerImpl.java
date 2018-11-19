@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,11 @@ package com.epam.ta.reportportal.core.project.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.events.activity.EmailConfigUpdatedEvent;
+import com.epam.ta.reportportal.core.integration.email.EmailIntegrationService;
+import com.epam.ta.reportportal.core.integration.IntegrationService;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
@@ -29,8 +31,10 @@ import com.epam.ta.reportportal.entity.enums.InterruptionJobDelay;
 import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
 import com.epam.ta.reportportal.entity.enums.KeepScreenshotsDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
+import com.epam.ta.reportportal.entity.enums.*;
+import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
@@ -40,17 +44,16 @@ import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
-import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import com.google.common.base.Strings;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -58,17 +61,10 @@ import java.util.*;
 import static com.epam.ta.reportportal.commons.Preconditions.IS_PRESENT;
 import static com.epam.ta.reportportal.commons.Preconditions.contains;
 import static com.epam.ta.reportportal.commons.Predicates.*;
-import static com.epam.ta.reportportal.commons.SendCase.findByName;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.entity.project.ProjectUtils.getOwner;
-import static com.epam.ta.reportportal.util.UserUtils.isEmailValid;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_LOGIN_LENGTH;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_NAME_LENGTH;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_LOGIN_LENGTH;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
@@ -84,15 +80,26 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private final UserPreferenceRepository preferenceRepository;
 
+	private final ProjectUserRepository projectUserRepository;
+
 	private final MessageBus messageBus;
+
+	private final Map<String, IntegrationService> integrationServiceMapping;
+
+	private final EmailIntegrationService emailIntegrationService;
 
 	@Autowired
 	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
-			UserPreferenceRepository preferenceRepository, MessageBus messageBus) {
+			UserPreferenceRepository preferenceRepository, MessageBus messageBus, ProjectUserRepository projectUserRepository,
+			@Qualifier(value = "integrationServiceMap") Map<String, IntegrationService> integrationServiceMapping,
+			EmailIntegrationService emailIntegrationService) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.preferenceRepository = preferenceRepository;
 		this.messageBus = messageBus;
+		this.projectUserRepository = projectUserRepository;
+		this.integrationServiceMapping = integrationServiceMapping;
+		this.emailIntegrationService = emailIntegrationService;
 	}
 
 	@Override
@@ -102,22 +109,31 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
 		updateProjectUserRoles(updateProjectRQ.getUserRoles(), project, projectDetails, user);
-		updateProjectConfiguration(updateProjectRQ.getConfiguration(), project, projectDetails, user);
+		updateProjectConfiguration(updateProjectRQ.getConfiguration(), project);
 		projectRepository.save(project);
 		return new OperationCompletionRS("Project with name = '" + project.getName() + "' is successfully updated.");
 	}
 
 	@Override
-	public OperationCompletionRS updateProjectEmailConfig(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			ProjectEmailConfigDTO updateProjectRQ) {
+	public OperationCompletionRS updateIntegration(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			UpdateIntegrationRQ updateIntegrationRQ) {
+
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
-		Project before = SerializationUtils.clone(project);
 
-		updateEmailAttributes(project.getProjectAttributes(), updateProjectRQ.getEmailEnabled(), updateProjectRQ.getFrom());
-		updateEmailCases(project, updateProjectRQ.getEmailCases());
+		IntegrationService integrationService = Optional.ofNullable(integrationServiceMapping.get(updateIntegrationRQ.getIntegrationName()))
+				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, updateIntegrationRQ.getIntegrationName()));
 
-		messageBus.publishActivity(new EmailConfigUpdatedEvent(before, updateProjectRQ, user.getUserId()));
+		integrationService.validateIntegrationParameters(project, updateIntegrationRQ.getIntegrationParams());
+
+		Integration integration = project.getIntegrations()
+				.stream()
+				.filter(it -> it.getType().getName().equalsIgnoreCase(updateIntegrationRQ.getIntegrationName()))
+				.findFirst()
+				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, updateIntegrationRQ.getIntegrationName()));
+		integration.setEnabled(updateIntegrationRQ.getEnabled());
+		integration.setParams(new IntegrationParams(updateIntegrationRQ.getIntegrationParams()));
+
 		return new OperationCompletionRS(
 				"EMail configuration of project with id = '" + projectDetails.getProjectId() + "' is successfully updated.");
 	}
@@ -134,16 +150,23 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 					"User should not unassign himself from project."
 			);
 		}
-		List<User> unassignUsers = new ArrayList<>(unassignUsersRQ.getUsernames().size());
+		List<ProjectUser> unassignUsers = new ArrayList<>(unassignUsersRQ.getUsernames().size());
 		unassignUsersRQ.getUsernames().forEach(username -> {
 			User userForUnassign = userRepository.findByLogin(username)
 					.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
 			validateUnassigningUser(modifier, userForUnassign, projectDetails, project);
-			project.getUsers().removeIf(it -> it.getUser().getLogin().equalsIgnoreCase(username));
-			userForUnassign.getProjects().removeIf(it -> it.getProject().getName().equalsIgnoreCase(project.getName()));
-			unassignUsers.add(userForUnassign);
+			ProjectUser projectUser = project.getUsers()
+					.stream()
+					.filter(it -> it.getUser().getLogin().equalsIgnoreCase(username))
+					.findFirst()
+					.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
+			project.getUsers().remove(projectUser);
+			userForUnassign.getProjects().remove(projectUser);
+			unassignUsers.add(projectUser);
 		});
-		ProjectUtils.excludeProjectRecipients(unassignUsers, project);
+
+		projectUserRepository.deleteAll(unassignUsers);
+		emailIntegrationService.excludeProjectRecipients(unassignUsers, project);
 		preferenceRepository.removeByProjectIdAndUserId(projectDetails.getProjectId(), user.getUserId());
 		return new OperationCompletionRS(
 				"User(s) with username(s)='" + unassignUsersRQ.getUsernames() + "' was successfully un-assigned from project='"
@@ -263,8 +286,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		}
 	}
 
-	private void updateProjectConfiguration(ProjectConfiguration configuration, Project project,
-			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	private void updateProjectConfiguration(ProjectConfiguration configuration, Project project) {
 		ofNullable(configuration).ifPresent(config -> {
 			ofNullable(config.getProjectAttributes()).ifPresent(attributes -> {
 				verifyProjectAttributes(attributes);
@@ -274,7 +296,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 						.findFirst()
 						.ifPresent(attr -> attr.setValue(value)));
 			});
-			ofNullable(config.getEmailConfig()).ifPresent(emailConfig -> updateProjectEmailConfig(projectDetails, user, emailConfig));
 		});
 
 	}
@@ -291,86 +312,5 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		).verify(ErrorType.BAD_REQUEST_ERROR, keepScreenshots));
 		ofNullable(attributes.get(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute())).ifPresent(analyzerMode -> expect(AnalyzeMode.fromString(
 				analyzerMode), isPresent()).verify(ErrorType.BAD_REQUEST_ERROR, analyzerMode));
-	}
-
-	private void updateEmailAttributes(Set<ProjectAttribute> projectAttributes, Boolean emailEnabled, String from) {
-		projectAttributes.forEach(attribute -> {
-			if (attribute.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.EMAIL_ENABLED.getAttribute())) {
-				attribute.setValue(String.valueOf(BooleanUtils.isTrue(emailEnabled)));
-			}
-			if (attribute.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.EMAIL_FROM.getAttribute())) {
-				attribute.setValue(from);
-			}
-		});
-	}
-
-	private void updateEmailCases(Project project, List<EmailSenderCaseDTO> emailCases) {
-		emailCases.forEach(sendCase -> {
-			expect(findByName(sendCase.getSendCase()).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, sendCase.getSendCase());
-			expect(sendCase.getRecipients(), notNull()).verify(BAD_REQUEST_ERROR, "Recipients list should not be null");
-			expect(sendCase.getRecipients().isEmpty(), equalTo(false)).verify(BAD_REQUEST_ERROR,
-					formattedSupplier("Empty recipients list for email case '{}' ", sendCase)
-			);
-			sendCase.setRecipients(sendCase.getRecipients().stream().map(it -> {
-				validateRecipient(project, it);
-				return it.trim();
-			}).distinct().collect(toList()));
-
-			if (null != sendCase.getLaunchNames()) {
-				sendCase.setLaunchNames(sendCase.getLaunchNames().stream().map(name -> {
-					validateLaunchName(name);
-					return name.trim();
-				}).distinct().collect(toList()));
-			}
-
-			if (null != sendCase.getTags()) {
-				sendCase.setTags(sendCase.getTags().stream().map(tag -> {
-					expect(isNullOrEmpty(tag), equalTo(false)).verify(BAD_REQUEST_ERROR,
-							"Tags values cannot be empty. Please specify it or not include in request."
-					);
-					return tag.trim();
-				}).distinct().collect(toList()));
-			}
-		});
-
-//		/* If project email settings */
-//		List<EmailSenderCase> withoutDuplicateCases = emailCases.stream()
-//				.distinct()
-//				.map(EmailConfigConverters.TO_CASE_MODEL)
-//				.collect(toList());
-//		if (emailCases.size() != withoutDuplicateCases.size()) {
-//			fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
-//		}
-//
-//		project.setEmailCases(Sets.newHashSet(withoutDuplicateCases));
-	}
-
-	void validateRecipient(Project project, String recipient) {
-		expect(recipient, notNull()).verify(BAD_REQUEST_ERROR, formattedSupplier("Provided recipient email '{}' is invalid", recipient));
-		if (recipient.contains("@")) {
-			expect(isEmailValid(recipient), equalTo(true)).verify(BAD_REQUEST_ERROR,
-					formattedSupplier("Provided recipient email '{}' is invalid", recipient)
-			);
-		} else {
-			final String login = recipient.trim();
-			expect(MIN_LOGIN_LENGTH <= login.length() && login.length() <= MAX_LOGIN_LENGTH, equalTo(true)).verify(BAD_REQUEST_ERROR,
-					"Acceptable login length  [" + MIN_LOGIN_LENGTH + ".." + MAX_LOGIN_LENGTH + "]"
-			);
-			if (!getOwner().equals(login)) {
-				expect(ProjectUtils.doesHaveUser(project, login.toLowerCase()), equalTo(true)).verify(USER_NOT_FOUND,
-						login,
-						String.format("User not found in project %s", project.getId())
-				);
-			}
-		}
-	}
-
-	void validateLaunchName(String name) {
-		expect(isNullOrEmpty(name), equalTo(false)).verify(BAD_REQUEST_ERROR,
-				"Launch name values cannot be empty. Please specify it or not include in request."
-		);
-		expect(name.length() <= MAX_NAME_LENGTH, equalTo(true)).verify(BAD_REQUEST_ERROR,
-				formattedSupplier("One of provided launch names '{}' is too long. Acceptable name length is [1..256]", name)
-		);
 	}
 }

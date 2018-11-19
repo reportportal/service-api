@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,8 +36,9 @@ import static com.epam.ta.reportportal.ws.converter.converters.ProjectConverter.
 @Transactional(readOnly = true)
 public class GetProjectSettingsHandlerImpl implements GetProjectSettingsHandler {
 
-	private ProjectRepository repository;
+	private final ProjectRepository repository;
 
+	@Autowired
 	public GetProjectSettingsHandlerImpl(ProjectRepository repository) {
 		this.repository = repository;
 	}

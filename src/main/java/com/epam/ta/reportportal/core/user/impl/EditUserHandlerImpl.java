@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.BinaryData;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.integration.email.EmailIntegrationService;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.event.UpdateUserRoleEvent;
 import com.epam.ta.reportportal.core.user.event.UpdatedRole;
@@ -27,7 +28,6 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.ImageFormat;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -83,14 +83,17 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 	private final DataEncoder dataEncoder;
 
+	private final EmailIntegrationService emailIntegrationService;
+
 	@Autowired
 	public EditUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository, ApplicationEventPublisher eventPublisher,
-			DataStoreService dataStoreService, DataEncoder dataEncoder) {
+			DataStoreService dataStoreService, DataEncoder dataEncoder, EmailIntegrationService emailIntegrationService) {
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.eventPublisher = eventPublisher;
 		this.dataStoreService = dataStoreService;
 		this.dataEncoder = dataEncoder;
+		this.emailIntegrationService = emailIntegrationService;
 	}
 
 	@Override
@@ -175,7 +178,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
 			expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR, updEmail);
 
 			List<Project> userProjects = projectRepository.findUserProjects(username);
-			userProjects.forEach(project -> ProjectUtils.updateProjectRecipients(user.getEmail(), updEmail, project));
+			userProjects.forEach(project -> emailIntegrationService.updateProjectRecipients(user.getEmail(), updEmail, project));
 			user.setEmail(updEmail);
 			try {
 				projectRepository.saveAll(userProjects);

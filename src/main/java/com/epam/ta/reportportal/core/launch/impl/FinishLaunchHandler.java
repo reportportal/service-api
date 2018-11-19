@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.LaunchWithLinkRS;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,12 +69,15 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 	private final LaunchRepository launchRepository;
 	private final TestItemRepository testItemRepository;
 	private final MessageBus messageBus;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	public FinishLaunchHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository, MessageBus messageBus) {
+	public FinishLaunchHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository, MessageBus messageBus,
+			ApplicationEventPublisher eventPublisher) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.messageBus = messageBus;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Override

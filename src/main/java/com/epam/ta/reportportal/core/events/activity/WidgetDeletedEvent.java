@@ -18,24 +18,25 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.WidgetActivityResource;
 
-import java.time.LocalDateTime;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.DELETE_WIDGET;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.WIDGET;
 
 /**
  * @author pavel_bortnik
  */
-public class WidgetDeletedEvent extends BeforeEvent<Widget> implements ActivityEvent {
+public class WidgetDeletedEvent extends BeforeEvent<WidgetActivityResource> implements ActivityEvent {
 
 	private Long deletedBy;
 
 	public WidgetDeletedEvent() {
 	}
 
-	public WidgetDeletedEvent(Widget widget, Long removerId) {
-		super(widget);
-		this.deletedBy = removerId;
+	public WidgetDeletedEvent(WidgetActivityResource before, Long deletedBy) {
+		super(before);
+		this.deletedBy = deletedBy;
 	}
 
 	public Long getDeletedBy() {
@@ -48,14 +49,13 @@ public class WidgetDeletedEvent extends BeforeEvent<Widget> implements ActivityE
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.DELETE_WIDGET.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.WIDGET);
-		activity.setUserId(deletedBy);
-		activity.setProjectId(getBefore().getProject().getId());
-		activity.setObjectId(getBefore().getId());
-		activity.setDetails(new ActivityDetails(getBefore().getName()));
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(DELETE_WIDGET)
+				.addActivityEntityType(WIDGET)
+				.addUserId(deletedBy)
+				.addObjectId(getBefore().getId())
+				.addObjectName(getBefore().getName())
+				.addProjectId(getBefore().getProjectId())
+				.get();
 	}
 }

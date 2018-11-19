@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -94,7 +94,7 @@ public final class PersonalProjectService {
 		project.setProjectType(ProjectType.PERSONAL);
 
 		ProjectUser projectUser = new ProjectUser().withUser(user).withProjectRole(ProjectRole.PROJECT_MANAGER).withProject(project);
-		project.setUsers(ImmutableSet.<ProjectUser>builder().add(projectUser).build());
+		project.setUsers(Sets.newHashSet(projectUser));
 
 		project.setMetadata(new Metadata(Collections.singletonMap("additional_info",
 				"Personal project of " + (isNullOrEmpty(user.getFullName()) ? user.getLogin() : user.getFullName())

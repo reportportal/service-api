@@ -34,10 +34,11 @@ public interface UpdateIntegrationHandler {
 	 * @param request        Request Data
 	 * @param integrationId  Integration id
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param user {@link com.epam.ta.reportportal.auth.ReportPortalUser}
 	 * @return Operation result
 	 */
-	OperationCompletionRS updateIntegration(UpdateIntegrationRQ request, Long integrationId,
-			ReportPortalUser.ProjectDetails projectDetails);
+	OperationCompletionRS updateIntegration(UpdateIntegrationRQ request, Long integrationId, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user);
 
 	/**
 	 * Validate connection of provided Integration configuration

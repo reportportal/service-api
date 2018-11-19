@@ -17,18 +17,12 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.HistoryField;
-import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
-import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
-import com.google.common.base.Strings;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
 
-import java.time.LocalDateTime;
-import java.util.Map;
-
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.LAUNCH_INACTIVITY;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.UPDATE_PROJECT;
+import static com.epam.ta.reportportal.core.events.activity.ProjectAnalyzerConfigEvent.processParameter;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.PROJECT;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
 
 /**
@@ -36,10 +30,12 @@ import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
  *
  * @author Andrei Varabyeu
  */
-public class ProjectUpdatedEvent extends AroundEvent<Project> implements ActivityEvent {
+public class ProjectUpdatedEvent extends AroundEvent<ProjectAttributesActivityResource> implements ActivityEvent {
 
-	private final Long updatedBy;
-	private final UpdateProjectRQ updateProjectRQ;
+	private Long updatedBy;
+
+	public ProjectUpdatedEvent() {
+	}
 
 	/**
 	 * Create a new ApplicationEvent.
@@ -47,66 +43,31 @@ public class ProjectUpdatedEvent extends AroundEvent<Project> implements Activit
 	 * @param before Project before update
 	 * @param after  Project after update
 	 */
-	public ProjectUpdatedEvent(Project before, Project after, Long updatedBy, UpdateProjectRQ updateProjectRQ) {
+	public ProjectUpdatedEvent(ProjectAttributesActivityResource before, ProjectAttributesActivityResource after, Long updatedBy) {
 		super(before, after);
 		this.updatedBy = updatedBy;
-		this.updateProjectRQ = updateProjectRQ;
+	}
+
+	public Long getUpdatedBy() {
+		return updatedBy;
+	}
+
+	public void setUpdatedBy(Long updatedBy) {
+		this.updatedBy = updatedBy;
 	}
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.UPDATE_PROJECT.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.PROJECT);
-		activity.setProjectId(getAfter().getId());
-		activity.setUserId(updatedBy);
-
-		ActivityDetails details = new ActivityDetails(getAfter().getName());
-		Map<String, String> existedConfig = ProjectUtils.getConfigParameters(getAfter().getProjectAttributes());
-		ProjectConfiguration updatedConfig = updateProjectRQ.getConfiguration();
-		if (null != updatedConfig && null != updatedConfig.getProjectAttributes()) {
-			processKeepLogs(details, existedConfig, updatedConfig.getProjectAttributes());
-			processKeepScreenshots(details, existedConfig, updatedConfig.getProjectAttributes());
-			processLaunchInactivityTimeout(details, existedConfig, updatedConfig.getProjectAttributes());
-		}
-		if (!details.getHistory().isEmpty()) {
-			activity.setDetails(details);
-		}
-		return activity;
-	}
-
-	private void processLaunchInactivityTimeout(ActivityDetails details, Map<String, String> existedConfig,
-			Map<String, String> updatedAttributes) {
-		processField(
-				details,
-				LAUNCH_INACTIVITY,
-				existedConfig.get(INTERRUPT_JOB_TIME.getAttribute()),
-				updatedAttributes.get(INTERRUPT_JOB_TIME.getAttribute())
-		);
-	}
-
-	private void processKeepScreenshots(ActivityDetails details, Map<String, String> existedConfig, Map<String, String> updatedAttributes) {
-		processField(
-				details,
-				KEEP_SCREENSHOTS.getAttribute(),
-				existedConfig.get(KEEP_SCREENSHOTS.getAttribute()),
-				updatedAttributes.get(KEEP_SCREENSHOTS.getAttribute())
-		);
-	}
-
-	private void processKeepLogs(ActivityDetails details, Map<String, String> existedConfig, Map<String, String> updatedAttributes) {
-		processField(
-				details,
-				KEEP_LOGS.getAttribute(),
-				existedConfig.get(KEEP_LOGS.getAttribute()),
-				updatedAttributes.get(KEEP_LOGS.getAttribute())
-		);
-	}
-
-	private void processField(ActivityDetails details, String field, String oldValue, String newValue) {
-		if ((null != newValue) && !Strings.isNullOrEmpty(oldValue) && (!newValue.equals(oldValue))) {
-			details.addHistoryField(HistoryField.of(field, oldValue, newValue));
-		}
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(UPDATE_PROJECT)
+				.addActivityEntityType(PROJECT)
+				.addUserId(updatedBy)
+				.addObjectId(getAfter().getProjectId())
+				.addObjectName(getAfter().getProjectName())
+				.addProjectId(getAfter().getProjectId())
+				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), INTERRUPT_JOB_TIME.getAttribute()))
+				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), KEEP_SCREENSHOTS.getAttribute()))
+				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), KEEP_LOGS.getAttribute()))
+				.get();
 	}
 }

@@ -17,33 +17,34 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
 
-import java.time.LocalDateTime;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.CREATE_DASHBOARD;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.DASHBOARD;
 
 /**
  * @author pavel_bortnik
  */
 public class DashboardCreatedEvent implements ActivityEvent {
 
-	private Dashboard dashboard;
+	private DashboardActivityResource dashboardActivityResource;
 	private Long createdBy;
 
 	public DashboardCreatedEvent() {
 	}
 
-	public DashboardCreatedEvent(Dashboard dashboard, Long createdBy) {
-		this.dashboard = dashboard;
+	public DashboardCreatedEvent(DashboardActivityResource dashboardActivityResource, Long createdBy) {
+		this.dashboardActivityResource = dashboardActivityResource;
 		this.createdBy = createdBy;
 	}
 
-	public Dashboard getDashboard() {
-		return dashboard;
+	public DashboardActivityResource getDashboardActivityResource() {
+		return dashboardActivityResource;
 	}
 
-	public void setDashboard(Dashboard dashboard) {
-		this.dashboard = dashboard;
+	public void setDashboardActivityResource(DashboardActivityResource dashboardActivityResource) {
+		this.dashboardActivityResource = dashboardActivityResource;
 	}
 
 	public Long getCreatedBy() {
@@ -56,14 +57,13 @@ public class DashboardCreatedEvent implements ActivityEvent {
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setActivityEntityType(Activity.ActivityEntityType.DASHBOARD);
-		activity.setAction(ActivityAction.CREATE_DASHBOARD.getValue());
-		activity.setProjectId(dashboard.getProjectId());
-		activity.setUserId(createdBy);
-		activity.setObjectId(dashboard.getId());
-		activity.setDetails(new ActivityDetails(dashboard.getName()));
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(CREATE_DASHBOARD)
+				.addActivityEntityType(DASHBOARD)
+				.addUserId(createdBy)
+				.addProjectId(dashboardActivityResource.getProjectId())
+				.addObjectId(dashboardActivityResource.getId())
+				.addObjectName(dashboardActivityResource.getName())
+				.get();
 	}
 }

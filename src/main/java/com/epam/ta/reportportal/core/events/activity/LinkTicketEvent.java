@@ -22,59 +22,58 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.HistoryField;
-import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 
-import java.time.LocalDateTime;
-
-import static com.epam.ta.reportportal.core.events.activity.TicketPostedEvent.issuesIdsToString;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.*;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.TICKET_ID;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.TICKET;
 
 /**
  * @author Andrei Varabyeu
  */
-public class LinkTicketEvent extends AroundEvent<IssueEntity> implements ActivityEvent {
+public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> implements ActivityEvent {
 
-	private final Long attachedBy;
-	private final Long projectId;
-	private final Long testItemId;
-	private final String testItemName;
+	private Long attachedBy;
 
-	public LinkTicketEvent(IssueEntity before, IssueEntity after, Long attachedBy, Long projectId, Long testItemId, String testItemName) {
+	public LinkTicketEvent() {
+	}
+
+	public LinkTicketEvent(Long attachedBy) {
+		this.attachedBy = attachedBy;
+	}
+
+	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, Long attachedBy) {
 		super(before, after);
 		this.attachedBy = attachedBy;
-		this.projectId = projectId;
-		this.testItemId = testItemId;
-		this.testItemName = testItemName;
+	}
+
+	public Long getAttachedBy() {
+		return attachedBy;
 	}
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(getAfter().getAutoAnalyzed() ?
-				ActivityAction.LINK_ISSUE_AA.getValue() :
-				ActivityAction.LINK_ISSUE.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.TICKET);
-		activity.setUserId(attachedBy);
-		activity.setProjectId(projectId);
-		activity.setObjectId(testItemId);
-
-		ActivityDetails details = new ActivityDetails(testItemName);
+		ActivityBuilder builder = new ActivityBuilder().addCreatedNow()
+				.addAction(getAfter().isAutoAnalyzed() ? LINK_ISSUE_AA : LINK_ISSUE)
+				.addActivityEntityType(TICKET)
+				.addUserId(attachedBy)
+				.addObjectId(getAfter().getId())
+				.addObjectName(getAfter().getName())
+				.addProjectId(getAfter().getProjectId());
 
 		if (getAfter() != null) {
-			String oldValue = issuesIdsToString(getBefore());
-			String newValue = issuesIdsToString(getAfter());
-			if (!oldValue.isEmpty() && !newValue.isEmpty() || !oldValue.equalsIgnoreCase(newValue)){
-				if (oldValue.length() > newValue.length()){
-					activity.setAction(ActivityAction.UNLINK_ISSUE.getValue());
+			String oldValue = getBefore().getTickets();
+			String newValue = getAfter().getTickets();
+			if (!oldValue.isEmpty() && !newValue.isEmpty() || !oldValue.equalsIgnoreCase(newValue)) {
+				if (oldValue.length() > newValue.length()) {
+					builder.addAction(UNLINK_ISSUE);
 				}
-				details.addHistoryField(HistoryField.of(TICKET_ID, oldValue, newValue));
+				builder.addHistoryField(TICKET_ID, oldValue, newValue);
 			}
 		}
 
-		activity.setDetails(details);
-		return activity;
+		return builder.get();
+
 	}
 }

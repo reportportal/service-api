@@ -50,6 +50,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -107,7 +108,10 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 			validateProvidedStatus(launch, statusEnum.get(), fromStatisticsStatus);
 		}
 		launch.setStatus(statusEnum.orElse(fromStatisticsStatus));
-		messageBus.publishActivity(new LaunchFinishedEvent(launch));
+
+		LaunchFinishedEvent event = new LaunchFinishedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId());
+		messageBus.publishActivity(event);
+		eventPublisher.publishEvent(event);
 
 		LaunchWithLinkRS rs = new LaunchWithLinkRS();
 		rs.setId(launchId);
@@ -136,7 +140,7 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 		launchRepository.save(launch);
 		testItemRepository.interruptInProgressItems(launchId);
 
-		messageBus.publishActivity(new LaunchFinishForcedEvent(launch, user.getUserId()));
+		messageBus.publishActivity(new LaunchFinishForcedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId()));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully stopped.");
 	}
 

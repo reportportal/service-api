@@ -23,68 +23,60 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.HistoryField;
-import com.epam.ta.reportportal.entity.project.ProjectAttribute;
-import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
 
-import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.UPDATE_ANALYZER;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.PROJECT;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
-import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
  */
-public class ProjectAnalyzerConfigEvent extends AroundEvent<Set<ProjectAttribute>> implements ActivityEvent {
+public class ProjectAnalyzerConfigEvent extends AroundEvent<ProjectAttributesActivityResource> implements ActivityEvent {
 
-	private final Long updatedBy;
-	private final Long projectId;
-	private final String projectName;
+	private Long updatedBy;
 
-	public ProjectAnalyzerConfigEvent(Set<ProjectAttribute> before, Set<ProjectAttribute> after, Long updatedBy, Long projectId,
-			String projectName) {
+	public ProjectAnalyzerConfigEvent() {
+	}
+
+	public ProjectAnalyzerConfigEvent(ProjectAttributesActivityResource before, ProjectAttributesActivityResource after, Long updatedBy) {
 		super(before, after);
 		this.updatedBy = updatedBy;
-		this.projectId = projectId;
-		this.projectName = projectName;
+	}
+
+	public Long getUpdatedBy() {
+		return updatedBy;
 	}
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.UPDATE_ANALYZER.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.PROJECT);
-		activity.setProjectId(projectId);
-		activity.setUserId(updatedBy);
-
-		ActivityDetails details = new ActivityDetails(projectName);
-
-		Map<String, String> oldConfig = ProjectUtils.getConfigParameters(getBefore());
-		Map<String, String> newConfig = ProjectUtils.getConfigParameters(getAfter());
-
-		processParameter(details, oldConfig, newConfig, AUTO_ANALYZER_MODE.getAttribute());
-		processParameter(details, oldConfig, newConfig, MIN_DOC_FREQ.getAttribute());
-		processParameter(details, oldConfig, newConfig, MIN_TERM_FREQ.getAttribute());
-		processParameter(details, oldConfig, newConfig, MIN_SHOULD_MATCH.getAttribute());
-		processParameter(details, oldConfig, newConfig, NUMBER_OF_LOG_LINES.getAttribute());
-		processParameter(details, oldConfig, newConfig, AUTO_ANALYZER_ENABLED.getAttribute());
-
-		activity.setDetails(details);
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(UPDATE_ANALYZER)
+				.addActivityEntityType(PROJECT)
+				.addUserId(updatedBy)
+				.addObjectId(getAfter().getProjectId())
+				.addObjectName(getAfter().getProjectName())
+				.addProjectId(getAfter().getProjectId())
+				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), AUTO_ANALYZER_MODE.getAttribute()))
+				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), MIN_DOC_FREQ.getAttribute()))
+				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), MIN_TERM_FREQ.getAttribute()))
+				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), MIN_SHOULD_MATCH.getAttribute()))
+				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), NUMBER_OF_LOG_LINES.getAttribute()))
+				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), AUTO_ANALYZER_ENABLED.getAttribute()))
+				.get();
 	}
 
-	private void processParameter(ActivityDetails details, Map<String, String> oldConfig, Map<String, String> newConfig,
-			String parameterName) {
-		String oldValue = oldConfig.get(parameterName);
-		String newValue = newConfig.get(parameterName);
-		ofNullable(newValue).ifPresent(param -> {
-			if (!param.equals(oldValue)) {
-				details.addHistoryField(HistoryField.of(parameterName, oldValue, param));
-			}
-		});
+	static Optional<HistoryField> processParameter(Map<String, String> oldConfig, Map<String, String> newConfig, String parameterName) {
+		String before = oldConfig.get(parameterName);
+		String after = newConfig.get(parameterName);
+		if (after != null && !after.equals(before)) {
+			return Optional.of(HistoryField.of(parameterName, before, after));
+		}
+		return Optional.empty();
 	}
 }

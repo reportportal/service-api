@@ -17,11 +17,11 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.launch.Launch;
-import com.google.common.base.Preconditions;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
 
-import java.time.LocalDateTime;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.FINISH_LAUNCH;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.LAUNCH;
 
 /**
  * Lifecycle events.
@@ -30,33 +30,42 @@ import java.time.LocalDateTime;
  */
 public class LaunchFinishedEvent implements ActivityEvent {
 
-	private Launch launch;
+	private LaunchActivityResource launchActivityResource;
+	private Long finishedBy;
 
 	public LaunchFinishedEvent() {
 	}
 
-	public LaunchFinishedEvent(Launch launch) {
-		this.launch = Preconditions.checkNotNull(launch, "Should not be null");
+	public LaunchFinishedEvent(LaunchActivityResource launchActivityResource, Long finishedBy) {
+		this.launchActivityResource = launchActivityResource;
+		this.finishedBy = finishedBy;
 	}
 
-	public Launch getLaunch() {
-		return launch;
+	public LaunchActivityResource getLaunchActivityResource() {
+		return launchActivityResource;
 	}
 
-	public void setLaunch(Launch launch) {
-		this.launch = launch;
+	public void setLaunchActivityResource(LaunchActivityResource launchActivityResource) {
+		this.launchActivityResource = launchActivityResource;
+	}
+
+	public Long getFinishedBy() {
+		return finishedBy;
+	}
+
+	public void setFinishedBy(Long finishedBy) {
+		this.finishedBy = finishedBy;
 	}
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.FINISH_LAUNCH.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH);
-		activity.setUserId(launch.getUser().getId());
-		activity.setProjectId(launch.getProjectId());
-		activity.setObjectId(launch.getId());
-		activity.setDetails(new ActivityDetails(launch.getName()));
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(FINISH_LAUNCH)
+				.addActivityEntityType(LAUNCH)
+				.addUserId(finishedBy)
+				.addObjectId(launchActivityResource.getId())
+				.addObjectName(launchActivityResource.getName())
+				.addProjectId(launchActivityResource.getProjectId())
+				.get();
 	}
 }

@@ -19,9 +19,10 @@ package com.epam.ta.reportportal.core.events.activity.util;
  * @author Ihar Kahadouski
  */
 
-import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.HistoryField;
 import com.google.common.base.Strings;
+
+import java.util.Optional;
 
 public class ActivityDetailsUtil {
 
@@ -31,6 +32,7 @@ public class ActivityDetailsUtil {
 
 	public static final String NAME = "name";
 	public static final String DESCRIPTION = "description";
+	public static final String SHARE = "share";
 	public static final String EMPTY_FIELD = "";
 	public static final String TICKET_ID = "ticketId";
 	public static final String LAUNCH_INACTIVITY = "launchInactivity";
@@ -41,18 +43,30 @@ public class ActivityDetailsUtil {
 	public static final String EMAIL_STATUS = "emailEnabled";
 	public static final String EMAIL_CASES = "emailCases";
 	public static final String EMAIL_FROM = "from";
+	public static final String ITEMS_COUNT = "itemsCount";
+	public static final String CONTENT_FIELDS = "contentFields";
+	public static final String WIDGET_OPTIONS = "widgetOptions";
 
-	public static void processName(ActivityDetails details, String oldName, String newName) {
+	public static Optional<HistoryField> processName(String oldName, String newName) {
 		if (!Strings.isNullOrEmpty(newName) && !oldName.equals(newName)) {
-			details.addHistoryField(HistoryField.of(NAME, oldName, newName));
+			return Optional.of(HistoryField.of(NAME, oldName, newName));
 		}
+		return Optional.empty();
 	}
 
-	public static void processDescription(ActivityDetails details, String oldDescription, String newDescription) {
+	public static Optional<HistoryField> processDescription(String oldDescription, String newDescription) {
 		oldDescription = Strings.nullToEmpty(oldDescription);
 		newDescription = Strings.nullToEmpty(newDescription);
 		if (!newDescription.equals(oldDescription)) {
-			details.addHistoryField(HistoryField.of(DESCRIPTION, oldDescription, newDescription));
+			return Optional.of(HistoryField.of(DESCRIPTION, oldDescription, newDescription));
 		}
+		return Optional.empty();
+	}
+
+	public static Optional<HistoryField> processShared(boolean oldShared, boolean newShared) {
+		if (oldShared != newShared) {
+			return Optional.of(HistoryField.of(SHARE, String.valueOf(oldShared), String.valueOf(newShared)));
+		}
+		return Optional.empty();
 	}
 }

@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.project.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.core.integration.IntegrationService;
 import com.epam.ta.reportportal.core.integration.email.EmailIntegrationService;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
@@ -40,6 +41,7 @@ import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
 import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
@@ -60,6 +62,7 @@ import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.ws.converter.converters.ProjectConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -103,10 +106,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 			ReportPortalUser user) {
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+		ProjectAttributesActivityResource before = TO_ACTIVITY_RESOURCE.apply(project);
 
 		updateProjectUserRoles(updateProjectRQ.getUserRoles(), project, projectDetails, user);
 		updateProjectConfiguration(updateProjectRQ.getConfiguration(), project);
 		projectRepository.save(project);
+		messageBus.publishActivity(new ProjectUpdatedEvent(before, TO_ACTIVITY_RESOURCE.apply(project), user.getUserId()));
 		return new OperationCompletionRS("Project with name = '" + project.getName() + "' is successfully updated.");
 	}
 
@@ -293,7 +298,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 						.ifPresent(attr -> attr.setValue(value)));
 			});
 		});
-
 	}
 
 	private void verifyProjectAttributes(Map<String, String> attributes) {

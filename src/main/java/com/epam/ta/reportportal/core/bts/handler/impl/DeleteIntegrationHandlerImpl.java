@@ -66,11 +66,11 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 
 	@Override
 	public OperationCompletionRS deleteProjectIntegrations(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		List<Integration> btsSystems = integrationRepository.findAllByProjectId(projectDetails.getProjectId());
-		if (!CollectionUtils.isEmpty(btsSystems)) {
-			integrationRepository.deleteAll(btsSystems);
+		List<Integration> integrations = integrationRepository.findAllByProjectId(projectDetails.getProjectId());
+		if (!CollectionUtils.isEmpty(integrations)) {
+			integrationRepository.deleteAll(integrations);
 		}
-		btsSystems.stream()
+		integrations.stream()
 				.map(TO_ACTIVITY_RESOURCE)
 				.forEach(it -> messageBus.publishActivity(new IntegrationDeletedEvent(it, user.getUserId())));
 		return new OperationCompletionRS(

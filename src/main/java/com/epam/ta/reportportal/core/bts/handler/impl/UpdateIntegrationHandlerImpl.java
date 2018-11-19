@@ -89,10 +89,10 @@ public class UpdateIntegrationHandlerImpl implements UpdateIntegrationHandler {
 	public OperationCompletionRS updateIntegration(UpdateIntegrationRQ updateRQ, Long integrationId,
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 
-		Integration bugTrackingSystem = integrationRepository.findById(integrationId)
+		Integration integration = integrationRepository.findById(integrationId)
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
 
-		BugTrackingSystemBuilder builder = new BugTrackingSystemBuilder(bugTrackingSystem);
+		BugTrackingSystemBuilder builder = new BugTrackingSystemBuilder(integration);
 
 		Optional<IntegrationType> type = integrationTypeRepository.findByName(updateRQ.getExternalSystemType());
 		expect(type, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
@@ -102,7 +102,7 @@ public class UpdateIntegrationHandlerImpl implements UpdateIntegrationHandler {
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, "with id = " + projectDetails.getProjectId()));
 
-		bugTrackingSystem = builder.addUrl(updateRQ.getUrl())
+		integration = builder.addUrl(updateRQ.getUrl())
 				.addIntegrationType(type.get())
 				.addBugTrackingProject(updateRQ.getProject())
 				.addProject(project)
@@ -137,25 +137,25 @@ public class UpdateIntegrationHandlerImpl implements UpdateIntegrationHandler {
 		//						UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, projectName);
 		//			}
 
-		integrationRepository.save(bugTrackingSystem);
+		integrationRepository.save(integration);
 
-		messageBus.publishActivity(new IntegrationUpdatedEvent(TO_ACTIVITY_RESOURCE.apply(bugTrackingSystem), user.getUserId()));
+		messageBus.publishActivity(new IntegrationUpdatedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId()));
 		return new OperationCompletionRS("ExternalSystem with ID = '" + integrationId + "' is successfully updated.");
 	}
 
 	@Override
 	public OperationCompletionRS integrationConnect(UpdateIntegrationRQ updateRQ, Long integrationId,
 			ReportPortalUser.ProjectDetails projectDetails) {
-		Integration bugTrackingSystem = integrationRepository.findById(integrationId)
+		Integration integration = integrationRepository.findById(integrationId)
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
 
 		Integration details = new BugTrackingSystemBuilder().addUrl(updateRQ.getUrl()).addBugTrackingProject(updateRQ.getProject()).get();
 
 		Optional<BtsExtension> extension = pluginBox.getInstance(details.getType().getName(), BtsExtension.class);
 
-		expect(extension, Optional::isPresent).verify(UNABLE_INTERACT_WITH_INTEGRATION, bugTrackingSystem.getProject().getId());
+		expect(extension, Optional::isPresent).verify(UNABLE_INTERACT_WITH_INTEGRATION, integration.getProject().getId());
 		expect(extension.get().connectionTest(details), equalTo(true)).verify(UNABLE_INTERACT_WITH_INTEGRATION,
-				bugTrackingSystem.getProject().getId()
+				integration.getProject().getId()
 		);
 
 		return new OperationCompletionRS("Connection to ExternalSystem with ID = '" + integrationId + "' is successfully performed.");

@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.events.handler;
 
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
-import com.epam.ta.reportportal.core.integration.email.EmailIntegrationUtil;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -33,6 +32,7 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
+import com.epam.ta.reportportal.util.integration.email.EmailIntegrationUtil;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -50,11 +50,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.core.integration.email.EmailIntegrationUtil.EMAIL;
-import static com.epam.ta.reportportal.core.integration.email.EmailIntegrationUtil.getRuleValues;
 import static com.epam.ta.reportportal.core.project.impl.StatisticsUtils.extractStatisticsCount;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
 import static com.epam.ta.reportportal.entity.project.email.SendCaseType.RECIPIENTS;
+import static com.epam.ta.reportportal.util.integration.email.EmailIntegrationUtil.EMAIL;
+import static com.epam.ta.reportportal.util.integration.email.EmailIntegrationUtil.getRuleValues;
 import static java.util.stream.Collectors.toList;
 
 /**

@@ -74,9 +74,7 @@ public final class ProjectConverter {
 		}).collect(Collectors.toList()));
 
 		Map<String, List<IssueSubTypeResource>> subTypes = project.getProjectIssueTypes()
-				.stream()
-				.map(ProjectIssueType::getIssueType)
-				.collect(Collectors.groupingBy(
+				.stream().map(ProjectIssueType::getIssueType).collect(Collectors.groupingBy(
 						it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
 						Collectors.mapping(ProjectConverter.TO_SUBTYPE_RESOURCE, Collectors.toList())
 				));

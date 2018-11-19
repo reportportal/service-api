@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.user.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
-import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
@@ -42,11 +41,13 @@ import com.epam.ta.reportportal.ws.converter.converters.UserCreationBidConverter
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
+import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.ws.model.user.*;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -55,7 +56,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.epam.reportportal.commons.Safe.safe;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
@@ -90,11 +90,13 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 	private final MessageBus messageBus;
 
+	private final SaveDefaultProjectService saveDefaultProjectService;
+
 	@Autowired
 	public CreateUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository,
 			PersonalProjectService personalProjectService, MailServiceFactory emailServiceFactory,
 			UserCreationBidRepository userCreationBidRepository, RestorePasswordBidRepository restorePasswordBidRepository,
-			MessageBus messageBus) {
+			MessageBus messageBus, SaveDefaultProjectService saveDefaultProjectService) {
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.personalProjectService = personalProjectService;
@@ -102,11 +104,11 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		this.userCreationBidRepository = userCreationBidRepository;
 		this.restorePasswordBidRepository = restorePasswordBidRepository;
 		this.messageBus = messageBus;
+		this.saveDefaultProjectService = saveDefaultProjectService;
 	}
 
 	@Override
 	public CreateUserRS createUserByAdmin(CreateUserRQFull request, ReportPortalUser creator, String basicUrl) {
-
 		User administrator = userRepository.findByLogin(creator.getUsername())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND,
 						Suppliers.formattedSupplier("Administrator with login - {} was not found.", creator.getUsername())
@@ -126,10 +128,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 				formattedSupplier("Username '{}' consists only of special characters", newUsername)
 		);
 
-		//todo rename method normalizedId
-		String projectName = EntityUtils.normalizeId(request.getDefaultProject());
-		Project defaultProject = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
 
 		String email = EntityUtils.normalizeId(request.getEmail());
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
@@ -138,53 +137,10 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 				formattedSupplier("email = '{}'", email)
 		);
 
-		CreateUserRQConfirm req = new CreateUserRQConfirm();
-		req.setDefaultProject(projectName);
-		req.setEmail(email);
-		req.setFullName(request.getFullName());
-		req.setLogin(request.getLogin());
-		req.setPassword(request.getPassword());
+		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(request, email, basicUrl);
+		messageBus.publishActivity(new UserCreatedEvent(pair.getKey(), creator.getUserId()));
+		return pair.getValue();
 
-		final Optional<UserRole> userRole = UserRole.findByName(request.getAccountRole());
-		expect(userRole, Preconditions.IS_PRESENT).verify(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter.");
-		//noinspection ConstantConditions
-		User user = new UserBuilder().addCreateUserRQ(req).addUserRole(userRole.get()).get();
-		Optional<ProjectRole> projectRole = forName(request.getProjectRole());
-		expect(projectRole, Preconditions.IS_PRESENT).verify(ROLE_NOT_FOUND, request.getProjectRole());
-
-		Set<ProjectUser> projectUsers = defaultProject.getUsers();
-		//noinspection ConstantConditions
-		projectUsers.add(new ProjectUser().withProjectRole(projectRole.get()).withUser(user).withProject(defaultProject));
-		defaultProject.setUsers(projectUsers);
-
-		CreateUserRS response = new CreateUserRS();
-
-		try {
-			userRepository.save(user);
-
-			/*
-			 * Generate personal project for the user
-			 */
-			Project personalProject = personalProjectService.generatePersonalProject(user);
-			if (!defaultProject.getId().equals(personalProject.getId())) {
-				projectRepository.save(personalProject);
-			}
-
-			user.setDefaultProject(personalProject);
-
-			safe(() -> emailServiceFactory.getDefaultEmailService(true).sendCreateUserConfirmationEmail(request, basicUrl),
-					e -> response.setWarning(e.getMessage())
-			);
-		} catch (DuplicateKeyException e) {
-			fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
-		} catch (Exception exp) {
-			throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
-		}
-
-		messageBus.publishActivity(new UserCreatedEvent(TO_ACTIVITY_RESOURCE.apply(user), administrator.getId()));
-
-		response.setLogin(user.getLogin());
-		return response;
 	}
 
 	@Override

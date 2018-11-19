@@ -75,7 +75,6 @@ public class UserController {
 		this.getUserHandler = getUserHandler;
 	}
 
-	@Transactional
 	@PostMapping
 	@ResponseStatus(CREATED)
 	@PreAuthorize(ADMIN_ONLY)

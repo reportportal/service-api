@@ -7,6 +7,6 @@ spring:
 
 rp:
   amqp:
-    addresses: amqp://guest:guest@localhost:5672
+    addresses: amqp://rabbitmq:rabbitmq@localhost:5672
   db:
     url: jdbc:postgresql://localhost:5432/reportportal?user=rpuser&password=rppass

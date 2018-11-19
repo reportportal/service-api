@@ -11,6 +11,8 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import static com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter.TO_ACTIVITY_RESOURCE;
+
 @Service
 public class DeleteUserFilterHandlerImpl implements IDeleteUserFilterHandler {
 
@@ -30,7 +32,7 @@ public class DeleteUserFilterHandlerImpl implements IDeleteUserFilterHandler {
 	public OperationCompletionRS deleteFilter(Long id, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		UserFilter userFilter = getFilterHandler.getFilter(id, projectDetails, user);
 		userFilterRepository.delete(userFilter);
-        messageBus.publishActivity(new FilterDeletedEvent(userFilter, user.getUserId()));
+		messageBus.publishActivity(new FilterDeletedEvent(TO_ACTIVITY_RESOURCE.apply(userFilter), user.getUserId()));
 		return new OperationCompletionRS("User filter with ID = '" + id + "' successfully deleted.");
 	}
 }

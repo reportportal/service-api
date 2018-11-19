@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,9 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
 import com.epam.ta.reportportal.ws.model.project.*;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
@@ -58,6 +58,9 @@ import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
+/**
+ * @author Pavel Bortnik
+ */
 @RestController
 @RequestMapping("/project")
 public class ProjectController {
@@ -109,17 +112,13 @@ public class ProjectController {
 	}
 
 	@Transactional
-	@PutMapping("/{projectName}/emailconfig")
+	@PutMapping("/{projectName}/integration")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
-	@ApiOperation("Update project email configuration")
-	public OperationCompletionRS updateProjectEmailConfig(@PathVariable String projectName,
-			@RequestBody @Validated ProjectEmailConfigDTO updateProjectRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.updateProjectEmailConfig(
-				ProjectExtractor.extractProjectDetails(user, projectName),
-				user,
-				updateProjectRQ
-		);
+	@ApiOperation("Update project integration configuration")
+	public OperationCompletionRS updateProjectIntegration(@PathVariable String projectName,
+			@RequestBody @Validated UpdateIntegrationRQ updateProjectRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateProjectHandler.updateIntegration(ProjectExtractor.extractProjectDetails(user, projectName), user, updateProjectRQ);
 	}
 
 	@Transactional
@@ -152,7 +151,7 @@ public class ProjectController {
 	@Transactional(readOnly = true)
 	@GetMapping("/{projectName}/users")
 	@PreAuthorize(NOT_CUSTOMER)
-	@ApiOperation("Get users from project")
+	@ApiOperation("Get users assigned on current project")
 	public Iterable<UserResource> getProjectUsers(@PathVariable String projectName, @FilterFor(User.class) Filter filter,
 			@SortFor(User.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
 		return projectHandler.getProjectUsers(ProjectExtractor.extractProjectDetails(user, projectName), filter, pageable);

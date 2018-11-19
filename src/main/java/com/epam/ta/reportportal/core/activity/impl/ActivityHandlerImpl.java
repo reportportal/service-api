@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -110,12 +110,9 @@ public class ActivityHandlerImpl implements ActivityHandler {
 	public Page<ActivityResource> getItemActivities(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
 		projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
-		org.springframework.data.domain.Page<Activity> activityPage = activityRepository.findByFilter(filter.withCondition(new FilterCondition(Condition.EQUALS,
-				false,
-				projectDetails.getProjectId().toString(),
-				CRITERIA_PROJECT_ID
-		)), pageable);
-		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(activityPage);
+		filter.withCondition(new FilterCondition(Condition.EQUALS, false, projectDetails.getProjectId().toString(), CRITERIA_PROJECT_ID));
+		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE)
+				.apply(activityRepository.findByFilter(filter, pageable));
 	}
 }
 

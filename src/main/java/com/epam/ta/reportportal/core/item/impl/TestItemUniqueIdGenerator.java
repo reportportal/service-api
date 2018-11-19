@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
@@ -71,10 +72,10 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 		StringJoiner joiner = new StringJoiner(";");
 		joiner.add(projectId.toString()).add(launchName);
 		if (!CollectionUtils.isEmpty(pathNames)) {
-			joiner.add(pathNames.stream().collect(Collectors.joining(";")));
+			joiner.add(String.join(";", pathNames));
 		}
 		joiner.add(itemName);
-		List<Parameter> parameters = testItem.getParameters();
+		Set<Parameter> parameters = testItem.getParameters();
 		if (!CollectionUtils.isEmpty(parameters)) {
 			joiner.add(parameters.stream()
 					.map(parameter -> (!Strings.isNullOrEmpty(parameter.getKey()) ? parameter.getKey() + "=" : "") + parameter.getValue())

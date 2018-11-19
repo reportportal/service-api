@@ -29,13 +29,15 @@ public interface DeleteIntegrationHandler {
 	/**
 	 * @param integrationId  Integration id
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param user {@link com.epam.ta.reportportal.auth.ReportPortalUser}
 	 * @return Response data
 	 */
-	OperationCompletionRS deleteIntegration(Long integrationId, ReportPortalUser.ProjectDetails projectDetails);
+	OperationCompletionRS deleteIntegration(Long integrationId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param user {@link com.epam.ta.reportportal.auth.ReportPortalUser}
 	 * @return Response data
 	 */
-	OperationCompletionRS deleteProjectIntegrations(ReportPortalUser.ProjectDetails projectDetails);
+	OperationCompletionRS deleteProjectIntegrations(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,16 @@ import com.epam.ta.reportportal.commons.MoreCollectors;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserType;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.google.common.collect.Lists;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -56,9 +60,23 @@ public final class UserConverter {
 						assignedProject.setProjectRole(p.getProjectRole().toString());
 						return assignedProject;
 					}));
-			resource.setDefaultProject(user.getDefaultProject().getName());
+			resource.setDefaultProject(user.getProjects()
+					.stream()
+					.filter(it -> Objects.equals(it.getProject().getId(), user.getDefaultProject().getId()))
+					.findFirst()
+					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND))
+					.getProject()
+					.getName());
 			resource.setAssignedProjects(userProjects);
 		}
+		return resource;
+	};
+
+	public static final Function<User, UserActivityResource> TO_ACTIVITY_RESOURCE = user -> {
+		UserActivityResource resource = new UserActivityResource();
+		resource.setId(user.getId());
+		resource.setDefaultProjectId(user.getDefaultProject().getId());
+		resource.setFullName(user.getFullName());
 		return resource;
 	};
 

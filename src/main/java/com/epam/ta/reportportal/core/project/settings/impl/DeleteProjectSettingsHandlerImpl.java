@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,6 +41,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.*;
 import static com.epam.ta.reportportal.entity.widget.WidgetType.LAUNCHES_TABLE;
 import static com.epam.ta.reportportal.entity.widget.WidgetType.STATISTIC_TREND;
+import static com.epam.ta.reportportal.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -50,17 +51,17 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Transactional
 public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHandler {
 
-	private ProjectRepository projectRepository;
+	private final ProjectRepository projectRepository;
 
-	private StatisticsFieldRepository statisticsFieldRepository;
+	private final StatisticsFieldRepository statisticsFieldRepository;
 
-	private WidgetRepository widgetRepository;
+	private final WidgetRepository widgetRepository;
 
-	private MessageBus messageBus;
+	private final MessageBus messageBus;
 
-	private IssueTypeRepository issueTypeRepository;
+	private final IssueTypeRepository issueTypeRepository;
 
-	private IssueEntityRepository issueEntityRepository;
+	private final IssueEntityRepository issueEntityRepository;
 
 	@Autowired
 	public DeleteProjectSettingsHandlerImpl(ProjectRepository projectRepository, StatisticsFieldRepository statisticsFieldRepository,
@@ -119,7 +120,11 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 								+ "$" + type.getIssueType().getLocator()));
 		issueTypeRepository.delete(type.getIssueType());
 
-		messageBus.publishActivity(new DefectTypeDeletedEvent(type.getIssueType(), project.getId(), user.getUserId()));
+		messageBus.publishActivity(new DefectTypeDeletedEvent(
+				TO_ACTIVITY_RESOURCE.apply(type.getIssueType()),
+				project.getId(),
+				user.getUserId()
+		));
 		return new OperationCompletionRS("Issue sub-type delete operation completed successfully.");
 	}
 }

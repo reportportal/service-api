@@ -29,6 +29,8 @@ import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import static com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter.TO_ACTIVITY_RESOURCE;
+
 /**
  * @author Pavel Bortnik
  */
@@ -56,7 +58,7 @@ public class CreateUserFilterHandlerImpl implements ICreateUserFilterHandler {
 		userFilterRepository.save(filter);
         aclService.createAcl(filter);
         aclService.addReadPermissions(filter, user.getUsername());
-		messageBus.publishActivity(new FilterCreatedEvent(filter, user.getUserId()));
+		messageBus.publishActivity(new FilterCreatedEvent(TO_ACTIVITY_RESOURCE.apply(filter), user.getUserId()));
 		return new EntryCreatedRS(filter.getId());
 	}
 }

@@ -23,6 +23,8 @@ import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.bts.handler.CreateIntegrationHandler;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.IntegrationCreatedEvent;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
@@ -45,6 +47,7 @@ import java.util.Optional;
 import static com.epam.ta.reportportal.commons.Predicates.isPresent;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter.TO_ACTIVITY_RESOURCE;
 
 /**
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
@@ -62,17 +65,22 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 	private final PluginBox pluginBox;
 
+	private final MessageBus messageBus;
+
 	@Autowired
 	public CreateIntegrationHandlerImpl(BasicTextEncryptor simpleEncryptor, IntegrationRepository integrationRepository,
-			IntegrationTypeRepository integrationTypeRepository, ProjectRepository projectRepository, PluginBox pluginBox) {
+			IntegrationTypeRepository integrationTypeRepository, ProjectRepository projectRepository, PluginBox pluginBox,
+			MessageBus messageBus) {
 		this.simpleEncryptor = simpleEncryptor;
 		this.integrationRepository = integrationRepository;
 		this.integrationTypeRepository = integrationTypeRepository;
 		this.projectRepository = projectRepository;
 		this.pluginBox = pluginBox;
+		this.messageBus = messageBus;
 	}
 
-	public EntryCreatedRS createIntegration(CreateIntegrationRQ createRQ, ReportPortalUser.ProjectDetails projectDetails) {
+	public EntryCreatedRS createIntegration(CreateIntegrationRQ createRQ, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
 
 		Optional<IntegrationType> type = integrationTypeRepository.findByName(createRQ.getExternalSystemType());
 		expect(type, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
@@ -82,7 +90,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, "with id = " + projectDetails.getProjectId()));
 
-		Integration bugTrackingSystem = new BugTrackingSystemBuilder().addUrl(createRQ.getUrl())
+		Integration integration = new BugTrackingSystemBuilder().addUrl(createRQ.getUrl())
 				.addIntegrationType(type.get())
 				.addBugTrackingProject(createRQ.getProject())
 				.addProject(project)
@@ -92,20 +100,21 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 				.addAuthKey(createRQ.getAccessKey())
 				.get();
 
-		checkUnique(bugTrackingSystem, projectDetails.getProjectId());
+		checkUnique(integration, projectDetails.getProjectId());
 
 		Optional<BtsExtension> extenstion = pluginBox.getInstance(createRQ.getExternalSystemType(), BtsExtension.class);
 		expect(extenstion, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				Suppliers.formattedSupplier("Could not find plugin with name '{}'.", createRQ.getExternalSystemType())
 		);
 
-		expect(extenstion.get().connectionTest(bugTrackingSystem), BooleanUtils::isTrue).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		expect(extenstion.get().connectionTest(integration), BooleanUtils::isTrue).verify(
+				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				"Connection refused."
 		);
 
-		integrationRepository.save(bugTrackingSystem);
-		//eventPublisher.publishEvent(new IntegrationCreatedEvent(createOne, username));
-		return new EntryCreatedRS(bugTrackingSystem.getId());
+		integrationRepository.save(integration);
+		messageBus.publishActivity(new IntegrationCreatedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId()));
+		return new EntryCreatedRS(integration.getId());
 	}
 
 	private void checkUnique(Integration integration, Long projectId) {

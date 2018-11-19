@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.integration.email.EmailIntegrationService;
 import com.epam.ta.reportportal.core.project.CreateProjectHandler;
 import com.epam.ta.reportportal.dao.AttributeRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
@@ -58,13 +59,17 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 
 	private final IssueTypeRepository issueTypeRepository;
 
+	private final EmailIntegrationService emailIntegrationService;
+
 	@Autowired
 	public CreateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
-			AttributeRepository attributeRepository, IssueTypeRepository issueTypeRepository) {
+			AttributeRepository attributeRepository, IssueTypeRepository issueTypeRepository,
+			EmailIntegrationService emailIntegrationService) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.attributeRepository = attributeRepository;
 		this.issueTypeRepository = issueTypeRepository;
+		this.emailIntegrationService = emailIntegrationService;
 	}
 
 	@Override
@@ -95,7 +100,7 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 		project.setProjectType(projectType);
 
 		project.setProjectAttributes(projectAttributes);
-		ProjectUtils.setDefaultEmailConfiguration(project);
+		emailIntegrationService.setDefaultEmailConfiguration(project);
 
 		ProjectUser projectUser = new ProjectUser().withProject(project)
 				.withUser(userRepository.findById(user.getUserId())

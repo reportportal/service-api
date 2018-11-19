@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.entity.filter.FilterSort;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
 import com.epam.ta.reportportal.ws.model.filter.Order;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
@@ -46,6 +47,16 @@ public final class UserFilterConverter {
 			.collect(Collectors.toList());
 
 	public static final Function<UserFilter, UserFilterResource> TO_FILTER_RESOURCE = UserFilterConverter::buildFilterResource;
+
+	public static final Function<UserFilter, UserFilterActivityResource> TO_ACTIVITY_RESOURCE = filter -> {
+		UserFilterActivityResource resource = new UserFilterActivityResource();
+		resource.setId(filter.getId());
+		resource.setName(filter.getName());
+		resource.setDescription(filter.getDescription());
+		resource.setProjectId(filter.getProject().getId());
+		//		resource.setShared();
+		return resource;
+	};
 
 	private static final Function<FilterCondition, UserFilterCondition> TO_FILTER_CONDITION = filterCondition -> {
 		UserFilterCondition condition = new UserFilterCondition();

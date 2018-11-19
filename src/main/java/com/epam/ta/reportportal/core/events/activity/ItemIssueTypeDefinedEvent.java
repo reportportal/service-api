@@ -17,36 +17,30 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.HistoryField;
-import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
-import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.ANALYZE_ITEM;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.UPDATE_ITEM;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.*;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.ITEM_ISSUE;
 
 /**
  * @author Andrei Varabyeu
  */
-public class ItemIssueTypeDefinedEvent extends AroundEvent<IssueEntity> implements ActivityEvent {
+public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResource> implements ActivityEvent {
 
 	private Long postedBy;
-	private Long testItemId;
-	private String testItemName;
-	private Long projectId;
 
 	public ItemIssueTypeDefinedEvent() {
 	}
 
-	public ItemIssueTypeDefinedEvent(IssueEntity before, IssueEntity after, Long postedBy, Long testItemId, String testItemName,
-			Long projectId) {
+	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, Long postedBy) {
 		super(before, after);
 		this.postedBy = postedBy;
-		this.testItemId = testItemId;
-		this.testItemName = testItemName;
-		this.projectId = projectId;
 	}
 
 	public Long getPostedBy() {
@@ -57,75 +51,41 @@ public class ItemIssueTypeDefinedEvent extends AroundEvent<IssueEntity> implemen
 		this.postedBy = postedBy;
 	}
 
-	public Long getProjectId() {
-		return projectId;
-	}
-
-	public void setProjectId(Long projectId) {
-		this.projectId = projectId;
-	}
-
-	public Long getTestItemId() {
-		return testItemId;
-	}
-
-	public void setTestItemId(Long testItemId) {
-		this.testItemId = testItemId;
-	}
-
-	public String getTestItemName() {
-		return testItemName;
-	}
-
-	public void setTestItemName(String testItemName) {
-		this.testItemName = testItemName;
-	}
-
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(getAfter().getAutoAnalyzed() ?
-				ActivityAction.ANALYZE_ITEM.getValue() :
-				ActivityAction.UPDATE_ITEM.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.ITEM_ISSUE);
-		activity.setProjectId(projectId);
-		activity.setUserId(postedBy);
-		activity.setObjectId(testItemId);
-
-		ActivityDetails details = new ActivityDetails(testItemName);
-
-		processIssueDescription(getBefore().getIssueDescription(), getAfter().getIssueDescription()).ifPresent(details::addHistoryField);
-		processIssueTypes(getBefore().getIssueType(), getAfter().getIssueType()).ifPresent(details::addHistoryField);
-		processIgnoredAnalyzer(getBefore().getIgnoreAnalyzer(), getAfter().getIgnoreAnalyzer()).ifPresent(details::addHistoryField);
-
-		activity.setDetails(details);
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(getAfter().isAutoAnalyzed() ? ANALYZE_ITEM : UPDATE_ITEM)
+				.addActivityEntityType(ITEM_ISSUE)
+				.addUserId(postedBy)
+				.addObjectId(getAfter().getId())
+				.addObjectName(getAfter().getName())
+				.addProjectId(getAfter().getProjectId())
+				.addHistoryField(processIssueDescription(getBefore().getIssueDescription(), getAfter().getIssueDescription()))
+				.addHistoryField(processIssueTypes(getBefore().getIssueTypeLongName(), getAfter().getIssueTypeLongName()))
+				.addHistoryField(processIgnoredAnalyzer(getBefore().isIgnoreAnalyzer(), getAfter().isIgnoreAnalyzer()))
+				.get();
 	}
 
-	private Optional<HistoryField> processIssueDescription(String oldIssueDescription, String newIssueDescription) {
+	private Optional<HistoryField> processIssueDescription(String before, String after) {
 		HistoryField historyField = null;
 
-		newIssueDescription = (null != newIssueDescription) ? newIssueDescription.trim() : EMPTY_STRING;
-		oldIssueDescription = (null != oldIssueDescription) ? oldIssueDescription : EMPTY_STRING;
+		after = (null != after) ? after.trim() : EMPTY_STRING;
+		before = (null != before) ? before : EMPTY_STRING;
 
-		if (!oldIssueDescription.equals(newIssueDescription)) {
-			historyField = HistoryField.of(COMMENT, oldIssueDescription, newIssueDescription);
+		if (!before.equals(after)) {
+			historyField = HistoryField.of(COMMENT, before, after);
 		}
 		return Optional.ofNullable(historyField);
 	}
 
-	private Optional<HistoryField> processIssueTypes(IssueType before, IssueType after) {
-		String oldValue = before.getLongName();
-		String newValue = after.getLongName();
-		return oldValue.equalsIgnoreCase(newValue) ? Optional.empty() : Optional.of(HistoryField.of(ISSUE_TYPE, oldValue, newValue));
+	private Optional<HistoryField> processIssueTypes(String before, String after) {
+		return before.equalsIgnoreCase(after) ? Optional.empty() : Optional.of(HistoryField.of(ISSUE_TYPE, before, after));
 	}
 
 	private Optional<HistoryField> processIgnoredAnalyzer(Boolean before, Boolean after) {
-		HistoryField historyField = null;
 		if (!before.equals(after)) {
-			historyField = HistoryField.of(IGNORE_ANALYZER, String.valueOf(before), String.valueOf(after));
+			return Optional.of(HistoryField.of(IGNORE_ANALYZER, String.valueOf(before), String.valueOf(after)));
 		}
-		return Optional.ofNullable(historyField);
+		return Optional.empty();
 	}
 }

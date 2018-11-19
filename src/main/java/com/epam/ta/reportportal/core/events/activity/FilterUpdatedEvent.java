@@ -18,25 +18,25 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
 
-import java.time.LocalDateTime;
-
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.UPDATE_FILTER;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processDescription;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.FILTER;
 
 /**
  * @author Pavel Bortnik
  */
-public class FilterUpdatedEvent extends AroundEvent<UserFilter> implements ActivityEvent {
+public class FilterUpdatedEvent extends AroundEvent<UserFilterActivityResource> implements ActivityEvent {
 
 	private Long updatedBy;
 
 	public FilterUpdatedEvent() {
 	}
 
-	public FilterUpdatedEvent(UserFilter before, UserFilter after, Long updatedBy) {
+	public FilterUpdatedEvent(UserFilterActivityResource before, UserFilterActivityResource after, Long updatedBy) {
 		super(before, after);
 		this.updatedBy = updatedBy;
 	}
@@ -51,19 +51,16 @@ public class FilterUpdatedEvent extends AroundEvent<UserFilter> implements Activ
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.UPDATE_FILTER.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.FILTER);
-		activity.setProjectId(getAfter().getId());
-		activity.setUserId(updatedBy);
-		activity.setObjectId(getAfter().getId());
-
-		ActivityDetails details = new ActivityDetails(getAfter().getName());
-		processName(details, getBefore().getName(), getAfter().getName());
-		processDescription(details, getBefore().getDescription(), getAfter().getDescription());
-
-		activity.setDetails(details);
-		return activity;
+		//processShared
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(UPDATE_FILTER)
+				.addActivityEntityType(FILTER)
+				.addUserId(updatedBy)
+				.addObjectId(getAfter().getId())
+				.addObjectName(getAfter().getName())
+				.addProjectId(getAfter().getProjectId())
+				.addHistoryField(processName(getBefore().getName(), getAfter().getName()))
+				.addHistoryField(processDescription(getBefore().getDescription(), getAfter().getDescription()))
+				.get();
 	}
 }

@@ -29,6 +29,8 @@ import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
+
 /**
  * @author Pavel Bortnik
  */
@@ -53,7 +55,7 @@ public class CreateDashboardHandler implements ICreateDashboardHandler {
 		dashboardRepository.save(dashboard);
 		aclService.createAcl(dashboard);
 		aclService.addReadPermissions(dashboard, user.getUsername());
-		messageBus.publishActivity(new DashboardCreatedEvent(dashboard, user.getUserId()));
+		messageBus.publishActivity(new DashboardCreatedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId()));
 		return new EntryCreatedRS(dashboard.getId());
 	}
 }

@@ -34,6 +34,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
+
 /**
  * @author Pavel Bortnik
  */
@@ -71,7 +73,7 @@ public class CreateWidgetHandlerImpl implements ICreateWidgetHandler {
 		//TODO chech if this statement could be replaced by loop filter search
 		if (CollectionUtils.isNotEmpty(createWidgetRQ.getFilterIds())) {
 			userFilter = filterRepository.findAllById(createWidgetRQ.getFilterIds());
-//					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, createWidgetRQ.getFilterId()));
+			//					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, createWidgetRQ.getFilterId()));
 		}
 
 		Widget widget = new WidgetBuilder().addWidgetRq(createWidgetRQ)
@@ -81,7 +83,7 @@ public class CreateWidgetHandlerImpl implements ICreateWidgetHandler {
 		widgetRepository.save(widget);
 		aclService.createAcl(widget);
 		aclService.addReadPermissions(widget, user.getUsername());
-		messageBus.publishActivity(new WidgetCreatedEvent(widget, user.getUserId()));
+		messageBus.publishActivity(new WidgetCreatedEvent(TO_ACTIVITY_RESOURCE.apply(widget), user.getUserId()));
 		return new EntryCreatedRS(widget.getId());
 	}
 }

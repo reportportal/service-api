@@ -17,43 +17,53 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
 
-import java.time.LocalDateTime;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.START_LAUNCH;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.LAUNCH;
 
 /**
  * @author Andrei Varabyeu
  */
 public class LaunchStartedEvent implements ActivityEvent {
 
-	private Launch launch;
+	private LaunchActivityResource launchActivityResource;
+	private Long startedBy;
 
 	public LaunchStartedEvent() {
 	}
 
-	public LaunchStartedEvent(Launch launch) {
-		this.launch = launch;
+	public LaunchStartedEvent(LaunchActivityResource launchActivityResource, Long startedBy) {
+		this.launchActivityResource = launchActivityResource;
+		this.startedBy = startedBy;
 	}
 
-	public Launch getLaunch() {
-		return launch;
+	public LaunchActivityResource getLaunchActivityResource() {
+		return launchActivityResource;
 	}
 
-	public void setLaunch(Launch launch) {
-		this.launch = launch;
+	public void setLaunchActivityResource(LaunchActivityResource launchActivityResource) {
+		this.launchActivityResource = launchActivityResource;
+	}
+
+	public Long getStartedBy() {
+		return startedBy;
+	}
+
+	public void setStartedBy(Long startedBy) {
+		this.startedBy = startedBy;
 	}
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setUserId(launch.getUser().getId());
-		activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH);
-		activity.setProjectId(launch.getProjectId());
-		activity.setAction(ActivityAction.START_LAUNCH.getValue());
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setObjectId(launch.getId());
-		activity.setDetails(new ActivityDetails(launch.getName()));
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(START_LAUNCH)
+				.addActivityEntityType(LAUNCH)
+				.addUserId(startedBy)
+				.addObjectId(launchActivityResource.getId())
+				.addObjectName(launchActivityResource.getName())
+				.addProjectId(launchActivityResource.getProjectId())
+				.get();
 	}
 }

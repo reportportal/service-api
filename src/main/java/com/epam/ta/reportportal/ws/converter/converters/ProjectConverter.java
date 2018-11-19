@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
@@ -74,7 +75,9 @@ public final class ProjectConverter {
 		}).collect(Collectors.toList()));
 
 		Map<String, List<IssueSubTypeResource>> subTypes = project.getProjectIssueTypes()
-				.stream().map(ProjectIssueType::getIssueType).collect(Collectors.groupingBy(
+				.stream()
+				.map(ProjectIssueType::getIssueType)
+				.collect(Collectors.groupingBy(
 						it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
 						Collectors.mapping(ProjectConverter.TO_SUBTYPE_RESOURCE, Collectors.toList())
 				));
@@ -118,6 +121,14 @@ public final class ProjectConverter {
 				.stream()
 				.map(ProjectIssueType::getIssueType)
 				.collect(Collectors.toList())));
+		return resource;
+	};
+
+	public static final Function<Project, ProjectAttributesActivityResource> TO_ACTIVITY_RESOURCE = project -> {
+		ProjectAttributesActivityResource resource = new ProjectAttributesActivityResource();
+		resource.setProjectId(project.getId());
+		resource.setProjectName(project.getName());
+		resource.setConfig(ProjectUtils.getConfigParameters(project.getProjectAttributes()));
 		return resource;
 	};
 

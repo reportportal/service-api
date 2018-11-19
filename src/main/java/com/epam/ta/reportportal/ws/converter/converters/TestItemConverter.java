@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemTag;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
+import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -61,6 +62,23 @@ public final class TestItemConverter {
 		resource.setLaunchId(item.getLaunch().getId());
 		resource.setPath(item.getPath());
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults().getStatistics()));
+		return resource;
+	};
+
+	public static final Function<TestItem, TestItemActivityResource> TO_ACTIVITY_RESOURCE = testItem -> {
+		TestItemActivityResource resource = new TestItemActivityResource();
+		resource.setId(testItem.getLaunch().getProjectId());
+		resource.setName(testItem.getName());
+		resource.setAutoAnalyzed(testItem.getItemResults().getIssue().getAutoAnalyzed());
+		resource.setIgnoreAnalyzer(testItem.getItemResults().getIssue().getIgnoreAnalyzer());
+		resource.setIssueDescription(testItem.getItemResults().getIssue().getIssueDescription());
+		resource.setIssueTypeLongName(testItem.getItemResults().getIssue().getIssueType().getLongName());
+		resource.setTickets(testItem.getItemResults()
+				.getIssue()
+				.getTickets()
+				.stream()
+				.map(it -> it.getTicketId().concat(":").concat(it.getUrl()))
+				.collect(Collectors.joining(",")));
 		return resource;
 	};
 }

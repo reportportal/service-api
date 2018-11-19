@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.google.common.collect.Lists;
 
@@ -68,6 +69,14 @@ public final class UserConverter {
 					.getName());
 			resource.setAssignedProjects(userProjects);
 		}
+		return resource;
+	};
+
+	public static final Function<User, UserActivityResource> TO_ACTIVITY_RESOURCE = user -> {
+		UserActivityResource resource = new UserActivityResource();
+		resource.setId(user.getId());
+		resource.setDefaultProjectId(user.getDefaultProject().getId());
+		resource.setFullName(user.getFullName());
 		return resource;
 	};
 

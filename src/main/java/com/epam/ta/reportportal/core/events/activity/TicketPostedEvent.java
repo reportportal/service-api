@@ -17,16 +17,15 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.HistoryField;
-import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
+import com.google.common.base.Strings;
 
-import java.time.LocalDateTime;
-import java.util.stream.Collectors;
-
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.POST_ISSUE;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.EMPTY_STRING;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.TICKET_ID;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.TICKET;
 
 /**
  * @author Andrei Varabyeu
@@ -35,17 +34,12 @@ public class TicketPostedEvent implements ActivityEvent {
 
 	private Ticket ticket;
 	private Long postedBy;
-	private TestItem testItem;
-	private Long projectId;
+	private TestItemActivityResource testItemActivityResource;
 
-	public TicketPostedEvent() {
-	}
-
-	public TicketPostedEvent(Ticket ticket, TestItem testItem, Long postedBy, Long projectId) {
+	public TicketPostedEvent(Ticket ticket, Long postedBy, TestItemActivityResource testItemActivityResource) {
 		this.ticket = ticket;
 		this.postedBy = postedBy;
-		this.testItem = testItem;
-		this.projectId = projectId;
+		this.testItemActivityResource = testItemActivityResource;
 	}
 
 	public Ticket getTicket() {
@@ -64,59 +58,30 @@ public class TicketPostedEvent implements ActivityEvent {
 		this.postedBy = postedBy;
 	}
 
-	public TestItem getTestItem() {
-		return testItem;
+	public TestItemActivityResource getTestItemActivityResource() {
+		return testItemActivityResource;
 	}
 
-	public void setTestItem(TestItem testItem) {
-		this.testItem = testItem;
-	}
-
-	public Long getProjectId() {
-		return projectId;
-	}
-
-	public void setProjectId(Long projectId) {
-		this.projectId = projectId;
+	public void setTestItemActivityResource(TestItemActivityResource testItemActivityResource) {
+		this.testItemActivityResource = testItemActivityResource;
 	}
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.POST_ISSUE.toString());
-		activity.setActivityEntityType(Activity.ActivityEntityType.TICKET);
-		activity.setActivityEntityType(Activity.ActivityEntityType.TICKET);
-		activity.setUserId(postedBy);
-		activity.setProjectId(projectId);
-		activity.setObjectId(testItem.getItemId());
-
-		ActivityDetails details = new ActivityDetails(testItem.getName());
-		processTicketId(details);
-
-		activity.setDetails(details);
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(POST_ISSUE)
+				.addActivityEntityType(TICKET)
+				.addUserId(postedBy)
+				.addObjectId(testItemActivityResource.getId())
+				.addObjectName(testItemActivityResource.getName())
+				.addProjectId(testItemActivityResource.getProjectId())
+				.addHistoryField(
+						TICKET_ID,
+						Strings.isNullOrEmpty(testItemActivityResource.getTickets()) ? EMPTY_STRING : testItemActivityResource.getTickets(),
+						Strings.isNullOrEmpty(testItemActivityResource.getTickets()) ?
+								ticket.getId() + ":" + ticket.getTicketUrl() :
+								testItemActivityResource.getTickets() + "," + ticket.getId() + ":" + ticket.getTicketUrl()
+				)
+				.get();
 	}
-
-	private void processTicketId(ActivityDetails details) {
-		String oldValue = null;
-		if (testItem != null && testItem.getItemResults() != null) {
-			oldValue = issuesIdsToString(testItem.getItemResults().getIssue());
-		}
-
-		String newValue = ticket.getId() + ":" + ticket.getTicketUrl();
-		if (null != oldValue) {
-			newValue = oldValue + "," + newValue;
-		}
-
-		details.addHistoryField(HistoryField.of(TICKET_ID, oldValue, newValue));
-	}
-
-	static String issuesIdsToString(IssueEntity issue) {
-		return issue.getTickets()
-				.stream()
-				.map(t -> t.getTicketId().concat(":").concat(t.getUrl()))
-				.collect(Collectors.joining(","));
-	}
-
 }

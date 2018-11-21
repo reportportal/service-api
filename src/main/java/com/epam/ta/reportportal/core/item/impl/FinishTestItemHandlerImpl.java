@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -151,7 +152,15 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param hasChildren  Does item contain children
 	 */
 	private void verifyTestItem(ReportPortalUser user, TestItem testItem, Optional<StatusEnum> actualStatus, boolean hasChildren) {
-		Launch launch = ofNullable(testItem.getLaunch()).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
+		Launch launch;
+		if (ofNullable(testItem.getRetryOf()).isPresent()) {
+			TestItem retryParent = testItemRepository.findById(testItem.getRetryOf())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItem.getRetryOf()));
+
+			launch = ofNullable(retryParent.getLaunch()).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
+		} else {
+			launch = ofNullable(testItem.getLaunch()).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
+		}
 		expect(user.getUsername(), equalTo(launch.getUser().getLogin())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
 
 		expect(testItem.getItemResults().getStatus(), Preconditions.statusIn(IN_PROGRESS)).verify(REPORTING_ITEM_ALREADY_FINISHED,

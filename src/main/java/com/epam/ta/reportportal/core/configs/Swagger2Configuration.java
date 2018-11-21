@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterTarget;
@@ -32,7 +31,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Component;
 import springfox.documentation.PathProvider;
 import springfox.documentation.builders.ParameterBuilder;
@@ -54,7 +52,6 @@ import springfox.documentation.swagger.web.UiConfiguration;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.servlet.ServletContext;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -106,10 +103,9 @@ public class Swagger2Configuration {
 
 		// @formatter:off
         Docket rpDocket = new Docket(DocumentationType.SWAGGER_2)
-                .ignoredParameterTypes(ReportPortalUser.class, Filter.class, Pageable.class)
+                .ignoredParameterTypes(ReportPortalUser.class, Filter.class, Pageable.class, UserRole.class)
                 .pathProvider(rpPathProvider())
                 .useDefaultResponseMessages(false)
-				.ignoredParameterTypes(UserRole.class, AuthenticationPrincipal.class, ReportPortalUser.ProjectDetails.class)
                 /* remove default endpoints from listing */
                 .select().apis(not(or(
                         basePackage("org.springframework.boot"),
@@ -195,30 +191,27 @@ public class Swagger2Configuration {
 				} else if (filterType.equals(resolvedType)) {
 					FilterFor filterClass = methodParameter.findAnnotation(FilterFor.class).get();
 					List<CriteriaHolder> criteriaList = FilterTarget.findByClass(filterClass.value()).getCriteriaHolders();
-					List<String> conditions = Arrays.stream(Condition.values()).map(Condition::getMarker).collect(Collectors.toList());
-					List<Parameter> params = conditions.stream()
-							.flatMap(it -> buildParameters(parameterContext, factory, criteriaList, it).stream())
+					List<Parameter> params = criteriaList.stream()
+							.map(it -> buildParameters(parameterContext, factory, it))
+							/* if type is not a collection and first letter is not capital (all known to swagger types start from lower case) */
+							.filter(p -> !(null == p.getModelRef().getItemType() && Character.isUpperCase(p.getModelRef()
+									.getType()
+									.toCharArray()[0])))
 							.collect(Collectors.toList());
 					context.operationBuilder().parameters(params);
 				}
 			}
 		}
 
-		private List<Parameter> buildParameters(ParameterContext parameterContext, Function<ResolvedType, ? extends ModelReference> factory,
-				List<CriteriaHolder> criteriaList, String condition) {
-			return criteriaList.stream()
-					.map(searchCriteria -> parameterContext.parameterBuilder()
-							.parameterType("query")
-							.name("filter." + condition + "." + searchCriteria.getFilterCriteria())
-							.allowMultiple(true)
-							.modelRef(factory.apply(resolver.resolve(searchCriteria.getDataType())))
-							.description("Filters by '" + searchCriteria.getFilterCriteria() + "'")
-							.build())
-					/* if type is not a collection and first letter is not capital (all known to swagger types start from lower case) */
-					.filter(p -> !(null == p.getModelRef().getItemType() && Character.isUpperCase(p.getModelRef()
-							.getType()
-							.toCharArray()[0])))
-					.collect(Collectors.toList());
+		private Parameter buildParameters(ParameterContext parameterContext, Function<ResolvedType, ? extends ModelReference> factory,
+				CriteriaHolder criteriaHolder) {
+			return parameterContext.parameterBuilder()
+					.parameterType("query")
+					.name("filter.eq." + criteriaHolder.getFilterCriteria())
+					.allowMultiple(true)
+					.modelRef(factory.apply(resolver.resolve(criteriaHolder.getDataType())))
+					.description("Filters by '" + criteriaHolder.getFilterCriteria() + "'")
+					.build();
 		}
 
 		@Override

@@ -17,11 +17,12 @@
 package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.launch.LaunchWithLinkRS;
+import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
 
 import java.util.List;
 
@@ -33,6 +34,9 @@ import java.util.List;
 
 public interface FinishLaunchHandler {
 
+	Launch finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user);
+
 	/**
 	 * Updates {@link Launch} instance
 	 *
@@ -40,10 +44,10 @@ public interface FinishLaunchHandler {
 	 * @param finishLaunchRQ Request data
 	 * @param projectDetails Project Details
 	 * @param user           User
-	 * @return OperationCompletionRS
+	 * @return FinishLaunchRS
 	 */
-	LaunchWithLinkRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
+	FinishLaunchRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user, LaunchLinkGenerator.LinkParams linkParams);
 
 	/**
 	 * Stop Launch instance by user

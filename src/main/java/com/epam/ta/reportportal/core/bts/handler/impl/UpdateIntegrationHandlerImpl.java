@@ -95,7 +95,8 @@ public class UpdateIntegrationHandlerImpl implements UpdateIntegrationHandler {
 		BugTrackingSystemBuilder builder = new BugTrackingSystemBuilder(integration);
 
 		Optional<IntegrationType> type = integrationTypeRepository.findByName(updateRQ.getExternalSystemType());
-		expect(type, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		expect(type, Optional::isPresent).verify(
+				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				Suppliers.formattedSupplier("Integration type '{}' was not found.", updateRQ.getExternalSystemType())
 		);
 

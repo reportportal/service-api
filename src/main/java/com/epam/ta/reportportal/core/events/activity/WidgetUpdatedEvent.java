@@ -21,10 +21,8 @@ import com.epam.ta.reportportal.entity.HistoryField;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.WidgetActivityResource;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.events.activity.ActivityAction.UPDATE_WIDGET;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.*;
@@ -36,13 +34,18 @@ import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.WIDGET
 public class WidgetUpdatedEvent extends AroundEvent<WidgetActivityResource> implements ActivityEvent {
 
 	private Long updatedBy;
+	private String widgetOptionsBefore;
+	private String widgetOptionsAfter;
 
 	public WidgetUpdatedEvent() {
 	}
 
-	public WidgetUpdatedEvent(WidgetActivityResource before, WidgetActivityResource after, Long updatedBy) {
+	public WidgetUpdatedEvent(WidgetActivityResource before, WidgetActivityResource after, String widgetOptionsBefore,
+			String widgetOptionsAfter, Long updatedBy) {
 		super(before, after);
 		this.updatedBy = updatedBy;
+		this.widgetOptionsBefore = widgetOptionsBefore;
+		this.widgetOptionsAfter = widgetOptionsAfter;
 	}
 
 	public Long getUpdatedBy() {
@@ -67,7 +70,7 @@ public class WidgetUpdatedEvent extends AroundEvent<WidgetActivityResource> impl
 				.addHistoryField(processDescription(getBefore().getDescription(), getAfter().getDescription()))
 				.addHistoryField(processItemsCount(getBefore().getItemsCount(), getAfter().getItemsCount()))
 				.addHistoryField(processFields(getBefore().getContentFields(), getAfter().getContentFields()))
-				.addHistoryField(processWidgetOptions(getBefore().getWidgetOptions(), getAfter().getWidgetOptions()))
+				.addHistoryField(Optional.of(HistoryField.of(WIDGET_OPTIONS, widgetOptionsBefore, widgetOptionsAfter)))
 				.get();
 	}
 
@@ -83,21 +86,6 @@ public class WidgetUpdatedEvent extends AroundEvent<WidgetActivityResource> impl
 			String oldValue = String.join(", ", before);
 			String newValue = String.join(", ", after);
 			return Optional.of(HistoryField.of(CONTENT_FIELDS, oldValue, newValue));
-		}
-		return Optional.empty();
-	}
-
-	private Optional<HistoryField> processWidgetOptions(Map<String, String> before, Map<String, String> after) {
-		if (before != null && after != null && !before.equals(after)) {
-			String oldValue = before.entrySet()
-					.stream()
-					.map(it -> it.getKey().concat(":").concat(it.getValue()))
-					.collect(Collectors.joining(", "));
-			String newValue = after.entrySet()
-					.stream()
-					.map(it -> it.getKey().concat(":").concat(it.getValue()))
-					.collect(Collectors.joining(", "));
-			return Optional.of(HistoryField.of(WIDGET_OPTIONS, oldValue, newValue));
 		}
 		return Optional.empty();
 	}

@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
@@ -33,6 +34,9 @@ import java.util.List;
 
 public interface FinishLaunchHandler {
 
+	Launch finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user);
+
 	/**
 	 * Updates {@link Launch} instance
 	 *
@@ -43,7 +47,7 @@ public interface FinishLaunchHandler {
 	 * @return FinishLaunchRS
 	 */
 	FinishLaunchRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
+			ReportPortalUser user, LaunchLinkGenerator.LinkParams linkParams);
 
 	/**
 	 * Stop Launch instance by user

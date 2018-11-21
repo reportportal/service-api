@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.core.imprt.ImportLaunchHandler;
 import com.epam.ta.reportportal.core.jasper.IGetJasperReportHandler;
 import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.core.launch.*;
+import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
@@ -116,14 +117,13 @@ public class LaunchController {
 	public FinishLaunchRS finishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
 			HttpServletRequest request) {
-		FinishLaunchRS rs = finishLaunchMessageHandler.finishLaunch(
+		return finishLaunchMessageHandler.finishLaunch(
 				launchId,
 				finishLaunchRQ,
 				extractProjectDetails(user, normalizeId(projectName)),
-				user
+				user,
+				LaunchLinkGenerator.LinkParams.of(request.getScheme(), request.getHeader("host"), projectName)
 		);
-		rs.setLink(generateLaunchLink(request, projectName, String.valueOf(rs.getId())));
-		return rs;
 	}
 
 	@Transactional
@@ -311,16 +311,6 @@ public class LaunchController {
 	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return importLaunchHandler.importLaunch(extractProjectDetails(user, normalizeId(projectName)), user, "XUNIT", file);
-	}
-
-	private String generateLaunchLink(HttpServletRequest request, String projectName, String id) {
-		return new StringBuilder(request.getScheme()).append("://")
-				.append(request.getHeader("host"))
-				.append("/ui/#")
-				.append(projectName)
-				.append("/launches/all/")
-				.append(id)
-				.toString();
 	}
 
 }

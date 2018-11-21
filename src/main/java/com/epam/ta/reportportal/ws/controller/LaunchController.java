@@ -102,7 +102,7 @@ public class LaunchController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
-	public StartLaunchRS startLaunch(HttpServletRequest request, @PathVariable String projectName,
+	public StartLaunchRS startLaunch(@PathVariable String projectName,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return createLaunchMessageHandler.startLaunch(user, extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);

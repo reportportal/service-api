@@ -122,7 +122,9 @@ public class IntegrationController {
 	public OperationCompletionRS updateExternalSystem(@Validated @RequestBody UpdateIntegrationRQ request, @PathVariable String projectName,
 			@PathVariable Long systemId, @AuthenticationPrincipal ReportPortalUser user) {
 		return updateIntegrationHandler.updateIntegration(request,
-				systemId, extractProjectDetails(user, EntityUtils.normalizeId(projectName)), user
+				systemId,
+				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
+				user
 		);
 	}
 

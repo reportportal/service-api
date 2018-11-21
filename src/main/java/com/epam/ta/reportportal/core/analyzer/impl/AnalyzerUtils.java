@@ -1,0 +1,97 @@
+/*
+ * Copyright 2017 EPAM Systems
+ *
+ *
+ * This file is part of EPAM Report Portal.
+ * https://github.com/reportportal/service-api
+ *
+ * Report Portal is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Report Portal is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package com.epam.ta.reportportal.core.analyzer.impl;
+
+import com.epam.ta.reportportal.core.analyzer.model.IndexLog;
+import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
+
+/**
+ * Useful utils methods for basic analyzer
+ *
+ * @author Pavel Bortnik
+ */
+public class AnalyzerUtils {
+
+	private AnalyzerUtils() {
+		//static only
+	}
+
+	/**
+	 * Creates {@link IndexLog} model for log for further
+	 * sending that into analyzer
+	 */
+	private static Function<Log, IndexLog> TO_INDEX_LOG = log -> {
+		IndexLog indexLog = new IndexLog();
+		indexLog.setLogId(log.getId());
+		if (log.getLogLevel() != null) {
+			indexLog.setLogLevel(log.getLogLevel());
+		}
+		indexLog.setMessage(log.getLogMessage());
+		return indexLog;
+	};
+
+	/**
+	 * Creates {@link IndexTestItem} model for test item and it's logs
+	 * for further sending that into analyzer.
+	 *
+	 * @param testItem Test item to be created from
+	 * @param logs     Test item's logs
+	 * @return {@link IndexTestItem} object
+	 */
+	public static IndexTestItem fromTestItem(TestItem testItem, List<Log> logs) {
+		IndexTestItem indexTestItem = new IndexTestItem();
+		indexTestItem.setTestItemId(testItem.getItemId());
+		indexTestItem.setUniqueId(testItem.getUniqueId());
+		if (testItem.getItemResults().getIssue() != null) {
+			indexTestItem.setIssueTypeId(testItem.getItemResults().getIssue().getIssueType().getId());
+			indexTestItem.setAutoAnalyzed(testItem.getItemResults().getIssue().getAutoAnalyzed());
+		}
+		if (!logs.isEmpty()) {
+			indexTestItem.setLogs(logs.stream().map(TO_INDEX_LOG).collect(Collectors.toSet()));
+		}
+		return indexTestItem;
+	}
+
+	public static AnalyzerConfig getAnalyzerConfig(Project project) {
+		Map<String, String> configParameters = ProjectUtils.getConfigParameters(project.getProjectAttributes());
+		AnalyzerConfig analyzerConfig = new AnalyzerConfig();
+		analyzerConfig.setIsAutoAnalyzerEnabled(Boolean.valueOf(configParameters.get(AUTO_ANALYZER_ENABLED.getAttribute())));
+		analyzerConfig.setMinDocFreq(Integer.valueOf(configParameters.get(MIN_DOC_FREQ.getAttribute())));
+		analyzerConfig.setMinTermFreq(Integer.valueOf(configParameters.get(MIN_TERM_FREQ.getAttribute())));
+		analyzerConfig.setMinShouldMatch(Integer.valueOf(configParameters.get(MIN_SHOULD_MATCH.getAttribute())));
+		analyzerConfig.setNumberOfLogLines(Integer.valueOf(configParameters.get(NUMBER_OF_LOG_LINES.getAttribute())));
+		analyzerConfig.setIndexingRunning(Boolean.valueOf(configParameters.get(INDEXING_RUNNING.getAttribute())));
+		return analyzerConfig;
+	}
+}

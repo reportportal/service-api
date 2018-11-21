@@ -77,9 +77,7 @@ public class TopTestCasesContentLoader implements LoadContentStrategy {
 						WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions)
 				));
 		List<CriteraHistoryItem> content = widgetContentRepository.topItemsByCriteria(filter,
-				contentField,
-				limit,
-				BooleanUtils.toBoolean(WidgetOptionUtil.getValueByKey(INCLUDE_METHODS, widgetOptions))
+				contentField, limit, BooleanUtils.toBoolean(WidgetOptionUtil.getValueByKey(INCLUDE_METHODS, widgetOptions))
 		);
 		return ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, LaunchConverter.TO_RESOURCE.apply(latestByName))
 				.put(RESULT, content)

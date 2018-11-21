@@ -17,8 +17,11 @@
 package com.epam.ta.reportportal.demodata;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
+import static com.epam.ta.reportportal.demodata.Constants.NAME;
+import static com.epam.ta.reportportal.demodata.Constants.STORY_PROBABILITY;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.*;
 import static java.util.stream.Collectors.toList;
 
@@ -35,7 +41,19 @@ import static java.util.stream.Collectors.toList;
  * @author Ihar Kahadouski
  */
 @Service
-public class DefaultDemoDataFacade extends DemoDataCommonService implements DemoDataFacade {
+public class DefaultDemoDataFacade implements DemoDataFacade {
+
+	@Autowired
+	private DemoDataCommonService demoDataCommonService;
+
+	@Autowired
+	private DemoLogsService demoLogsService;
+
+	@Autowired
+	private TestItemRepository testItemRepository;
+
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	@Value("classpath:demo/demo_data.json")
 	private Resource resource;
@@ -55,9 +73,9 @@ public class DefaultDemoDataFacade extends DemoDataCommonService implements Demo
 	private List<Long> generateLaunches(DemoDataRq rq, Map<String, Map<String, List<String>>> suitesStructure, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
 		return IntStream.range(0, rq.getLaunchesQuantity()).mapToObj(i -> {
-			Long launchId = startLaunch(NAME, i, user, projectDetails);
+			Long launchId = demoDataCommonService.startLaunch(NAME, i, user, projectDetails);
 			generateSuites(suitesStructure, i, launchId, user, projectDetails);
-			finishLaunch(launchId, user, projectDetails);
+			demoDataCommonService.finishLaunch(launchId, user, projectDetails);
 			return launchId;
 		}).collect(toList());
 	}
@@ -65,34 +83,55 @@ public class DefaultDemoDataFacade extends DemoDataCommonService implements Demo
 	private List<Long> generateSuites(Map<String, Map<String, List<String>>> suitesStructure, int i, Long launchId, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
 		return suitesStructure.entrySet().stream().limit(i + 1).map(suites -> {
-			Long suiteItemId = startRootItem(suites.getKey(), launchId, SUITE, user, projectDetails);
+			Long suiteItemId = demoDataCommonService.startRootItem(suites.getKey(), launchId, SUITE, user, projectDetails);
 			suites.getValue().entrySet().forEach(tests -> {
-				Long testItemId = startTestItem(suiteItemId, launchId, tests.getKey(), TEST, user, projectDetails);
+				Long testItemId = demoDataCommonService.startTestItem(suiteItemId, launchId, tests.getKey(), TEST, user, projectDetails);
 				String beforeClassStatus = "";
 				boolean isGenerateClass = ContentUtils.getWithProbability(STORY_PROBABILITY);
 				if (isGenerateClass) {
-					Long beforeClassId = startTestItem(testItemId, launchId, "beforeClass", BEFORE_CLASS, user, projectDetails);
+					Long beforeClassId = demoDataCommonService.startTestItem(
+							testItemId,
+							launchId,
+							"beforeClass",
+							BEFORE_CLASS,
+							user,
+							projectDetails
+					);
 					beforeClassStatus = status();
-					finishTestItem(beforeClassId, beforeClassStatus, user, projectDetails);
+					demoDataCommonService.finishTestItem(beforeClassId, beforeClassStatus, user, projectDetails);
 				}
 				boolean isGenerateBeforeMethod = ContentUtils.getWithProbability(STORY_PROBABILITY);
 				boolean isGenerateAfterMethod = ContentUtils.getWithProbability(STORY_PROBABILITY);
 				tests.getValue().stream().limit(i + 1).forEach(name -> {
 					if (isGenerateBeforeMethod) {
-						finishTestItem(
-								startTestItem(testItemId, launchId, "beforeMethod", BEFORE_METHOD, user, projectDetails),
+						demoDataCommonService.finishTestItem(
+								demoDataCommonService.startTestItem(
+										testItemId,
+										launchId,
+										"beforeMethod",
+										BEFORE_METHOD,
+										user,
+										projectDetails
+								),
 								status(),
 								user,
 								projectDetails
 						);
 					}
-					Long stepId = startTestItem(testItemId, launchId, name, STEP, user, projectDetails);
+					Long stepId = demoDataCommonService.startTestItem(testItemId, launchId, name, STEP, user, projectDetails);
 					String status = status();
-					logDemoDataService.generateDemoLogs(testItemRepository.findById(stepId).get(), status);
-					finishTestItem(stepId, status, user, projectDetails);
+					demoLogsService.generateDemoLogs(testItemRepository.findById(stepId).get(), status);
+					demoDataCommonService.finishTestItem(stepId, status, user, projectDetails);
 					if (isGenerateAfterMethod) {
-						finishTestItem(
-								startTestItem(testItemId, launchId, "afterMethod", AFTER_METHOD, user, projectDetails),
+						demoDataCommonService.finishTestItem(
+								demoDataCommonService.startTestItem(
+										testItemId,
+										launchId,
+										"afterMethod",
+										AFTER_METHOD,
+										user,
+										projectDetails
+								),
 								status(),
 								user,
 								projectDetails
@@ -100,13 +139,35 @@ public class DefaultDemoDataFacade extends DemoDataCommonService implements Demo
 					}
 				});
 				if (isGenerateClass) {
-					Long afterClassId = startTestItem(testItemId, launchId, "afterClass", AFTER_CLASS, user, projectDetails);
-					finishTestItem(afterClassId, status(), user, projectDetails);
+					Long afterClassId = demoDataCommonService.startTestItem(
+							testItemId,
+							launchId,
+							"afterClass",
+							AFTER_CLASS,
+							user,
+							projectDetails
+					);
+					demoDataCommonService.finishTestItem(afterClassId, status(), user, projectDetails);
 				}
-				finishTestItem(testItemId, !beforeClassStatus.isEmpty() ? beforeClassStatus : "FAILED", user, projectDetails);
+				demoDataCommonService.finishTestItem(
+						testItemId,
+						!beforeClassStatus.isEmpty() ? beforeClassStatus : "FAILED",
+						user,
+						projectDetails
+				);
 			});
-			finishRootItem(suiteItemId, user, projectDetails);
+			demoDataCommonService.finishRootItem(suiteItemId, user, projectDetails);
 			return suiteItemId;
 		}).collect(toList());
+	}
+
+	String status() {
+		int STATUS_PROBABILITY = 15;
+		if (ContentUtils.getWithProbability(STATUS_PROBABILITY)) {
+			return SKIPPED.name();
+		} else if (ContentUtils.getWithProbability(2 * STATUS_PROBABILITY)) {
+			return FAILED.name();
+		}
+		return PASSED.name();
 	}
 }

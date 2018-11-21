@@ -27,11 +27,11 @@ import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import java.util.Optional;
 import java.util.function.Function;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
@@ -51,11 +51,11 @@ public class WidgetConverter {
 		widgetResource.setWidgetId(widget.getId());
 		widgetResource.setName(widget.getName());
 		widgetResource.setDescription(widget.getDescription());
-		Optional.ofNullable(widget.getFilters())
-				.ifPresent(filter -> widgetResource.setAppliedFilters(UserFilterConverter.FILTER_SET_TO_FILTER_RESOURCE.apply(filter)));
+		ofNullable(widget.getFilters()).ifPresent(filter -> widgetResource.setAppliedFilters(UserFilterConverter.FILTER_SET_TO_FILTER_RESOURCE
+				.apply(filter)));
 		ContentParameters contentParameters = new ContentParameters();
 		contentParameters.setItemsCount(widget.getItemsCount());
-		contentParameters.setWidgetOptions(widget.getWidgetOptions());
+		ofNullable(widget.getWidgetOptions()).ifPresent(wo -> contentParameters.setWidgetOptions(wo.getOptions()));
 		contentParameters.setContentFields(Lists.newArrayList(widget.getContentFields()));
 		contentParameters.setWidgetType(widget.getWidgetType());
 		widgetResource.setContentParameters(contentParameters);
@@ -70,7 +70,7 @@ public class WidgetConverter {
 		resource.setDescription(widget.getDescription());
 		resource.setItemsCount(widget.getItemsCount());
 		resource.setContentFields(Sets.newHashSet(widget.getContentFields()));
-		resource.setWidgetOptions(Maps.newHashMap(widget.getWidgetOptions()));
+		ofNullable(widget.getWidgetOptions()).ifPresent(wo -> resource.setWidgetOptions(wo.getOptions()));
 		return resource;
 	};
 

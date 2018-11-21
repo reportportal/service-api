@@ -4,15 +4,13 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LAUNCH_NAME_FIELD;
 
@@ -25,7 +23,7 @@ public class LaunchHistoryFilterStrategy extends GeneralLaunchFilterStrategy {
 	@Override
 	protected Filter buildDefaultFilter(Widget widget, Long projectId) {
 		validateWidgetOptions(widget.getWidgetOptions());
-		String launchName = widget.getWidgetOptions().get(LAUNCH_NAME_FIELD);
+		String launchName = WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widget.getWidgetOptions());
 		Filter filter = super.buildDefaultFilter(widget, projectId);
 		return filter.withCondition(new FilterCondition(Condition.EQUALS, false, launchName, CRITERIA_NAME));
 	}
@@ -35,10 +33,8 @@ public class LaunchHistoryFilterStrategy extends GeneralLaunchFilterStrategy {
 	 *
 	 * @param widgetOptions Map of stored widget options.
 	 */
-	private void validateWidgetOptions(Map<String, String> widgetOptions) {
-		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should not be null.");
-		BusinessRule.expect(widgetOptions.get(LAUNCH_NAME_FIELD), StringUtils::isNotEmpty)
+	private void validateWidgetOptions(WidgetOptions widgetOptions) {
+		BusinessRule.expect(WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions), StringUtils::isNotBlank)
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LAUNCH_NAME_FIELD + " should be specified for widget.");
 	}
 }

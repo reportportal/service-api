@@ -21,9 +21,11 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.ActivityContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -63,7 +65,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	}
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,
+	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
 			int limit) {
 
 		validateFilterSortMapping(filterSortMapping);
@@ -72,7 +74,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 
 		validateContentFields(contentFields);
 
-		String login = widgetOptions.get(LOGIN);
+		String login = WidgetOptionUtil.getValueByKey(LOGIN, widgetOptions);
 		User user = userRepository.findByLogin(login)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, "User with login " + login + " was not found"));
 
@@ -116,10 +118,8 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	 *
 	 * @param widgetOptions Map of stored widget options.
 	 */
-	private void validateWidgetOptions(Map<String, String> widgetOptions) {
-		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should not be null.");
-		BusinessRule.expect(widgetOptions.get(LOGIN), StringUtils::isNotEmpty)
+	private void validateWidgetOptions(WidgetOptions widgetOptions) {
+		BusinessRule.expect(WidgetOptionUtil.getValueByKey(LOGIN, widgetOptions), StringUtils::isNotBlank)
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LOGIN + " should be specified for widget.");
 	}
 

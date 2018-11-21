@@ -21,8 +21,10 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
+import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.MapUtils;
@@ -58,8 +60,7 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 	}
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, Map<String, String> widgetOptions,
-			int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, WidgetOptions widgetOptions, int limit) {
 
 		validateFilterSortMapping(filterSortMap);
 
@@ -87,16 +88,14 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 	 *
 	 * @param widgetOptions Map of stored widget options.
 	 */
-	private void validateWidgetOptions(Map<String, String> widgetOptions) {
-		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should not be null.");
-		BusinessRule.expect(widgetOptions.get(LAUNCH_NAME_FIELD), StringUtils::isNotEmpty)
+	private void validateWidgetOptions(WidgetOptions widgetOptions) {
+		BusinessRule.expect(WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions), StringUtils::isNotBlank)
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LAUNCH_NAME_FIELD + " should be specified for widget.");
 	}
 
-	private Filter updateFilter(Filter filter, Map<String, String> widgetOptions) {
-		filter = updateFilterWithLatestLaunchId(filter, widgetOptions.get(LAUNCH_NAME_FIELD));
-		filter = updateFilterWithTestItemTypes(filter, widgetOptions.containsKey(INCLUDE_METHODS));
+	private Filter updateFilter(Filter filter, WidgetOptions widgetOptions) {
+		filter = updateFilterWithLatestLaunchId(filter, WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions));
+		filter = updateFilterWithTestItemTypes(filter, WidgetOptionUtil.containsKey(INCLUDE_METHODS, widgetOptions));
 		return filter;
 	}
 
@@ -106,7 +105,8 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 				false,
 				String.valueOf(launchRepository.findLatestByNameAndFilter(launchName, filter)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName))
-						.getId()), CRITERIA_LAUNCH_ID
+						.getId()),
+				CRITERIA_LAUNCH_ID
 		));
 	}
 

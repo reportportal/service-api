@@ -3,7 +3,9 @@ package com.epam.ta.reportportal.core.widget.content.loader;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.util.ContentFieldMatcherUtil;
+import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
+import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -33,8 +35,7 @@ public class ProductStatusLaunchGroupedContentLoader implements ProductStatusCon
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> fields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,
-			int limit) {
+	public Map<String, ?> loadContent(List<String> fields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions, int limit) {
 
 		validateFilterSortMapping(filterSortMapping);
 
@@ -56,7 +57,7 @@ public class ProductStatusLaunchGroupedContentLoader implements ProductStatusCon
 						contentFields,
 						tags,
 						sort,
-						widgetOptions.containsKey(LATEST_OPTION),
+						WidgetOptionUtil.containsKey(LATEST_OPTION, widgetOptions),
 						limit
 				)
 		);

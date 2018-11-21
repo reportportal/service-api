@@ -144,8 +144,8 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 */
 	private void validate(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
-		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-				formattedSupplier("FilterTarget launch '{}' not under specified project '{}'",
+		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION, formattedSupplier(
+				"Target launch '{}' not under specified project '{}'",
 						launch.getId(),
 						projectDetails.getProjectId()
 				)
@@ -162,8 +162,8 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 	private Optional<ReportPortalException> validateProject(Launch launch, ReportPortalUser.ProjectDetails projectDetails) {
 		return launch.getProjectId().equals(projectDetails.getProjectId()) ?
 				Optional.empty() :
-				Optional.of(new ReportPortalException(FORBIDDEN_OPERATION,
-						formattedSupplier("FilterTarget launch '{}' not under specified project '{}'",
+				Optional.of(new ReportPortalException(FORBIDDEN_OPERATION, formattedSupplier(
+						"Target launch '{}' not under specified project '{}'",
 								launch.getId(),
 								projectDetails.getProjectId()
 						)

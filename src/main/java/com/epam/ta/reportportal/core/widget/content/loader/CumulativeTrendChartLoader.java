@@ -41,7 +41,7 @@ public class CumulativeTrendChartLoader {
 //	private WidgetContentRepository widgetContentRepository;
 //
 //	@Override
-//	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
+	//	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
 //			int limit) {
 //
 //		validateFilterSortMapping(filterSortMapping);

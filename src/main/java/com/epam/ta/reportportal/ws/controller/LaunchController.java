@@ -23,7 +23,10 @@ import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.core.launch.*;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
-import com.epam.ta.reportportal.ws.model.*;
+import com.epam.ta.reportportal.ws.model.BulkRQ;
+import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.launch.*;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
@@ -99,16 +102,10 @@ public class LaunchController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
-	public EntryCreatedRS startLaunch(HttpServletRequest request, @PathVariable String projectName,
+	public StartLaunchRS startLaunch(HttpServletRequest request, @PathVariable String projectName,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		LaunchWithLinkRS rs = createLaunchMessageHandler.startLaunch(user,
-				extractProjectDetails(user, normalizeId(projectName)),
-				startLaunchRQ
-		);
-
-		rs.setLink(generateLaunchLink(request, projectName, String.valueOf(rs.getId())));
-		return rs;
+		return createLaunchMessageHandler.startLaunch(user, extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
 	}
 
 	@Transactional
@@ -116,10 +113,10 @@ public class LaunchController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Finish launch for specified project")
-	public LaunchWithLinkRS finishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
+	public FinishLaunchRS finishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
 			HttpServletRequest request) {
-		LaunchWithLinkRS rs = finishLaunchMessageHandler.finishLaunch(
+		FinishLaunchRS rs = finishLaunchMessageHandler.finishLaunch(
 				launchId,
 				finishLaunchRQ,
 				extractProjectDetails(user, normalizeId(projectName)),

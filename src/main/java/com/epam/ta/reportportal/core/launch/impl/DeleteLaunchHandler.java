@@ -94,26 +94,18 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 	public DeleteLaunchesRS deleteLaunches(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		List<Long> notFound = Lists.newArrayList();
 		List<ReportPortalException> exceptions = Lists.newArrayList();
-		List<Long> noPermissions = Lists.newArrayList();
 		List<Launch> toDelete = Lists.newArrayList();
 
 		stream(ids).forEach(id -> {
 			Optional<Launch> optionalLaunch = launchRepository.findById(id);
 			if (optionalLaunch.isPresent()) {
 				Launch launch = optionalLaunch.get();
-				Optional<ReportPortalException> permissionsExceptionOptional = validatePermissions(launch, user, projectDetails);
-				Optional<ReportPortalException> projectExceptionOptional = validateProject(launch, projectDetails);
-				Optional<ReportPortalException> statusExceptionOptional = validateStatus(launch);
-				if (!permissionsExceptionOptional.isPresent() && !projectExceptionOptional.isPresent()
-						&& !statusExceptionOptional.isPresent()) {
+				try {
+					validate(launch, user, projectDetails);
 					toDelete.add(launch);
-				}
-				permissionsExceptionOptional.ifPresent(ex -> {
+				} catch (ReportPortalException ex) {
 					exceptions.add(ex);
-					noPermissions.add(id);
-				});
-				projectExceptionOptional.ifPresent(exceptions::add);
-				statusExceptionOptional.ifPresent(exceptions::add);
+				}
 			} else {
 				notFound.add(id);
 			}
@@ -126,7 +118,6 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 		toDelete.stream().map(TO_ACTIVITY_RESOURCE).forEach(r -> new LaunchDeletedEvent(r, user.getUserId()));
 		return new DeleteLaunchesRS(toDelete.stream().map(Launch::getId).collect(Collectors.toList()),
 				notFound,
-				noPermissions,
 				exceptions.stream().map(ex -> {
 					ErrorRS errorResponse = new ErrorRS();
 					errorResponse.setErrorType(ex.getErrorType());
@@ -144,47 +135,16 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 */
 	private void validate(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
-		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION, formattedSupplier(
-				"Target launch '{}' not under specified project '{}'",
-						launch.getId(),
-						projectDetails.getProjectId()
-				)
+		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
+				FORBIDDEN_OPERATION,
+				formattedSupplier("Target launch '{}' not under specified project '{}'", launch.getId(), projectDetails.getProjectId())
 		);
 		expect(launch, not(l -> l.getStatus().equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId())
 		);
 		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUsername(), launch.getUser().getLogin())) {
 			/* Only PROJECT_MANAGER roles could delete launches */
-			expect(projectDetails.getProjectRole(), equalTo(PROJECT_MANAGER)).verify(ACCESS_DENIED);
+			expect(projectDetails.getProjectRole(), equalTo(PROJECT_MANAGER)).verify(ACCESS_DENIED, launch.getId());
 		}
-	}
-
-	private Optional<ReportPortalException> validateProject(Launch launch, ReportPortalUser.ProjectDetails projectDetails) {
-		return launch.getProjectId().equals(projectDetails.getProjectId()) ?
-				Optional.empty() :
-				Optional.of(new ReportPortalException(FORBIDDEN_OPERATION, formattedSupplier(
-						"Target launch '{}' not under specified project '{}'",
-								launch.getId(),
-								projectDetails.getProjectId()
-						)
-				));
-	}
-
-	private Optional<ReportPortalException> validateStatus(Launch launch) {
-		return !launch.getStatus().equals(StatusEnum.IN_PROGRESS) ?
-				Optional.empty() :
-				Optional.of(new ReportPortalException(LAUNCH_IS_NOT_FINISHED,
-						formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId())
-				));
-	}
-
-	private Optional<ReportPortalException> validatePermissions(Launch launch, ReportPortalUser user,
-			ReportPortalUser.ProjectDetails projectDetails) {
-		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUsername(), launch.getUser().getLogin())) {
-			return projectDetails.getProjectRole().equals(PROJECT_MANAGER) ?
-					Optional.empty() :
-					Optional.of(new ReportPortalException(ACCESS_DENIED));
-		}
-		return Optional.empty();
 	}
 }

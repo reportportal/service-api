@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,12 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Condition;
+import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterTarget;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.fasterxml.classmate.ResolvedType;
 import com.fasterxml.classmate.TypeResolver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,9 +54,11 @@ import springfox.documentation.swagger.web.UiConfiguration;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.servlet.ServletContext;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Predicates.or;
@@ -90,8 +97,8 @@ public class Swagger2Configuration {
 				"Report Portal",
 				"Report Portal API documentation",
 				buildVersion,
-				"urn:tos",
-				new Contact("EPAM Systems", "http://epam.com", "Support EPMC-TST Report Portal <SupportEPMC-TSTReportPortal@epam.com>"),
+				null,
+				new Contact("Support", null, "Support EPMC-TST Report Portal <SupportEPMC-TSTReportPortal@epam.com>"),
 				"GPLv3",
 				"https://www.gnu.org/licenses/licenses.html#GPL",
 				Collections.emptyList()
@@ -99,7 +106,7 @@ public class Swagger2Configuration {
 
 		// @formatter:off
         Docket rpDocket = new Docket(DocumentationType.SWAGGER_2)
-                //.ignoredParameterTypes(Principal.class, Filter.class, Pageable.class)
+                .ignoredParameterTypes(ReportPortalUser.class, Filter.class, Pageable.class)
                 .pathProvider(rpPathProvider())
                 .useDefaultResponseMessages(false)
 				.ignoredParameterTypes(UserRole.class, AuthenticationPrincipal.class, ReportPortalUser.ProjectDetails.class)
@@ -135,16 +142,14 @@ public class Swagger2Configuration {
 		private final TypeResolver resolver;
 
 		private final ResolvedType pageableType;
-		//private final ResolvedType filterType;
-		private final ResolvedType projectDetailsType;
+		private final ResolvedType filterType;
 
 		@Autowired
 		public OperationPageableParameterReader(TypeNameExtractor nameExtractor, TypeResolver resolver) {
 			this.nameExtractor = nameExtractor;
 			this.resolver = resolver;
 			this.pageableType = resolver.resolve(Pageable.class);
-			//this.filterType = resolver.resolve(Filter.class);
-			this.projectDetailsType = resolver.resolve(ReportPortalUser.ProjectDetails.class);
+			this.filterType = resolver.resolve(Filter.class);
 		}
 
 		@Override
@@ -164,64 +169,56 @@ public class Swagger2Configuration {
 				Function<ResolvedType, ? extends ModelReference> factory = createModelRefFactory(parameterContext);
 				ModelReference stringModel = factory.apply(resolver.resolve(List.class, String.class));
 
-				if (projectDetailsType.equals(resolvedType)) {
-
-					parameters.add(new ParameterBuilder().parameterType("path")
-							.name("projectName")
-							.modelRef(stringModel)
-							.description("Name of project launch starts under")
-							.required(true)
-							.build());
-
-					context.operationBuilder().parameters(parameters);
-				} else if (pageableType.equals(resolvedType)) {
+				if (pageableType.equals(resolvedType)) {
 
 					ModelReference intModel = factory.apply(resolver.resolve(Integer.TYPE));
-					//@formatter:off
 
-					parameters.add(new ParameterBuilder()
-							.parameterType("query")
+					parameters.add(new ParameterBuilder().parameterType("query")
 							.name("page.page")
 							.modelRef(intModel)
-							.description("Results page you want to retrieve (0..N)").build());
-					parameters.add(new ParameterBuilder()
-							.parameterType("query")
+							.description("Results page you want to retrieve (0..N)")
+							.build());
+					parameters.add(new ParameterBuilder().parameterType("query")
 							.name("page.size")
 							.modelRef(intModel)
-							.description("Number of records per page").build());
-					parameters.add(new ParameterBuilder()
-							.parameterType("query")
+							.description("Number of records per page")
+							.build());
+					parameters.add(new ParameterBuilder().parameterType("query")
 							.name("page.sort")
 							.modelRef(stringModel)
 							.allowMultiple(true)
-							.description("Sorting criteria in the format: property(,asc|desc). "
-									+ "Default sort order is ascending. "
+							.description("Sorting criteria in the format: property(,asc|desc). " + "Default sort order is ascending. "
 									+ "Multiple sort criteria are supported.")
 							.build());
 					context.operationBuilder().parameters(parameters);
-					//@formatter:on
+
+				} else if (filterType.equals(resolvedType)) {
+					FilterFor filterClass = methodParameter.findAnnotation(FilterFor.class).get();
+					List<CriteriaHolder> criteriaList = FilterTarget.findByClass(filterClass.value()).getCriteriaHolders();
+					List<String> conditions = Arrays.stream(Condition.values()).map(Condition::getMarker).collect(Collectors.toList());
+					List<Parameter> params = conditions.stream()
+							.flatMap(it -> buildParameters(parameterContext, factory, criteriaList, it).stream())
+							.collect(Collectors.toList());
+					context.operationBuilder().parameters(params);
 				}
-				//				} else if (filterType.equals(resolvedType)) {
-				//					FilterFor filterClass = methodParameter.findAnnotation(FilterFor.class).get();
-				//					CriteriaMap<?> criteriaMap = CriteriaMapFactory.DEFAULT_INSTANCE_SUPPLIER.get().getCriteriaMap(filterClass.value());
-				//
-				//					//@formatter:off
-//					List<Parameter> params = criteriaMap.getAllowedSearchCriterias().stream()
-//							.map(searchCriteria -> parameterContext
-//									.parameterBuilder()
-//										.parameterType("query")
-//										.name("filter.eq." + searchCriteria)
-//										.modelRef(factory.apply(resolver.resolve(criteriaMap.getCriteriaHolder(searchCriteria).getDataType())))
-//									.description("Filters by '" + searchCriteria + "'")
-//									.build())
-//							/* if type is not a collection and first letter is not capital (all known to swagger types start from lower case) */
-//							.filter( p -> !(null == p.getModelRef().getItemType() && Character.isUpperCase(p.getModelRef().getType().toCharArray()[0])))
-//							.collect(Collectors.toList());
-//					//@formatter:on
-				//
-				//					context.operationBuilder().parameters(params);
-				//				}
 			}
+		}
+
+		private List<Parameter> buildParameters(ParameterContext parameterContext, Function<ResolvedType, ? extends ModelReference> factory,
+				List<CriteriaHolder> criteriaList, String condition) {
+			return criteriaList.stream()
+					.map(searchCriteria -> parameterContext.parameterBuilder()
+							.parameterType("query")
+							.name("filter." + condition + "." + searchCriteria.getFilterCriteria())
+							.allowMultiple(true)
+							.modelRef(factory.apply(resolver.resolve(searchCriteria.getDataType())))
+							.description("Filters by '" + searchCriteria.getFilterCriteria() + "'")
+							.build())
+					/* if type is not a collection and first letter is not capital (all known to swagger types start from lower case) */
+					.filter(p -> !(null == p.getModelRef().getItemType() && Character.isUpperCase(p.getModelRef()
+							.getType()
+							.toCharArray()[0])))
+					.collect(Collectors.toList());
 		}
 
 		@Override

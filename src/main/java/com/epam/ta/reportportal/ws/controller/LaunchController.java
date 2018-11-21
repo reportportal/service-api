@@ -303,7 +303,7 @@ public class LaunchController {
 	@DeleteMapping
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified launches by ids")
-	public OperationCompletionRS deleteLaunches(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
+	public DeleteLaunchesRS deleteLaunches(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return deleteLaunchMessageHandler.deleteLaunches(ids, extractProjectDetails(user, normalizeId(projectName)), user);
 	}

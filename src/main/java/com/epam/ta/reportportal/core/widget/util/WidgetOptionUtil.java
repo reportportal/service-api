@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.widget.util;
 
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.MapUtils;
@@ -26,7 +27,9 @@ public final class WidgetOptionUtil {
 				"Widget options should be not empty."
 		);
 		Object value = widgetOptions.getOptions().get(key);
-		expect(value, v -> v instanceof String).verify(ErrorType.BAD_REQUEST_ERROR, "Wrong widget option value type. String expected.");
+		expect(value, String.class::isInstance).verify(ErrorType.BAD_REQUEST_ERROR,
+				Suppliers.formattedSupplier("Wrong widget option value type for key = '{}'. String expected.", key)
+		);
 		return (String) value;
 	}
 
@@ -37,7 +40,9 @@ public final class WidgetOptionUtil {
 		);
 
 		Object value = widgetOptions.getOptions().get(key);
-		expect(value, v -> v instanceof Map).verify(ErrorType.BAD_REQUEST_ERROR, "Wrong widget option value type. Map expected.");
+		expect(value, Map.class::isInstance).verify(ErrorType.BAD_REQUEST_ERROR,
+				Suppliers.formattedSupplier("Wrong widget option value type for key = '{}'. Map expected.", key)
+		);
 
 		return (Map<String, List<String>>) value;
 	}

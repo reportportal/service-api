@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,25 +17,30 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.entity.HistoryField;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.WidgetActivityResource;
 
-import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processDescription;
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.UPDATE_WIDGET;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.*;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.WIDGET;
 
 /**
  * @author Andrei Varabyeu
  */
-public class WidgetUpdatedEvent extends AroundEvent<Widget> implements ActivityEvent {
+public class WidgetUpdatedEvent extends AroundEvent<WidgetActivityResource> implements ActivityEvent {
 
 	private Long updatedBy;
 
 	public WidgetUpdatedEvent() {
 	}
 
-	public WidgetUpdatedEvent(Widget before, Widget after, Long updatedBy) {
+	public WidgetUpdatedEvent(WidgetActivityResource before, WidgetActivityResource after, Long updatedBy) {
 		super(before, after);
 		this.updatedBy = updatedBy;
 	}
@@ -50,19 +55,50 @@ public class WidgetUpdatedEvent extends AroundEvent<Widget> implements ActivityE
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.UPDATE_WIDGET.toString());
-		activity.setActivityEntityType(Activity.ActivityEntityType.WIDGET);
-		activity.setUserId(updatedBy);
-		activity.setProjectId(getAfter().getProject().getId());
-		activity.setObjectId(getAfter().getId());
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(UPDATE_WIDGET)
+				.addActivityEntityType(WIDGET)
+				.addUserId(updatedBy)
+				.addObjectId(getAfter().getId())
+				.addObjectName(getAfter().getName())
+				.addProjectId(getAfter().getProjectId())
+				.addHistoryField(processShared(getBefore().isShared(), getAfter().isShared()))
+				.addHistoryField(processName(getBefore().getName(), getAfter().getName()))
+				.addHistoryField(processDescription(getBefore().getDescription(), getAfter().getDescription()))
+				.addHistoryField(processItemsCount(getBefore().getItemsCount(), getAfter().getItemsCount()))
+				.addHistoryField(processFields(getBefore().getContentFields(), getAfter().getContentFields()))
+				.addHistoryField(processWidgetOptions(getBefore().getWidgetOptions(), getAfter().getWidgetOptions()))
+				.get();
+	}
 
-		ActivityDetails details = new ActivityDetails(getAfter().getName());
-		processName(details, getBefore().getName(), getAfter().getName());
-		processDescription(details, getBefore().getDescription(), getAfter().getDescription());
+	private Optional<HistoryField> processItemsCount(int before, int after) {
+		if (before != after) {
+			return Optional.of(HistoryField.of(ITEMS_COUNT, String.valueOf(before), String.valueOf(after)));
+		}
+		return Optional.empty();
+	}
 
-		activity.setDetails(details);
-		return activity;
+	private Optional<HistoryField> processFields(Set<String> before, Set<String> after) {
+		if (before != null && after != null && !before.equals(after)) {
+			String oldValue = String.join(", ", before);
+			String newValue = String.join(", ", after);
+			return Optional.of(HistoryField.of(CONTENT_FIELDS, oldValue, newValue));
+		}
+		return Optional.empty();
+	}
+
+	private Optional<HistoryField> processWidgetOptions(Map<String, String> before, Map<String, String> after) {
+		if (before != null && after != null && !before.equals(after)) {
+			String oldValue = before.entrySet()
+					.stream()
+					.map(it -> it.getKey().concat(":").concat(it.getValue()))
+					.collect(Collectors.joining(", "));
+			String newValue = after.entrySet()
+					.stream()
+					.map(it -> it.getKey().concat(":").concat(it.getValue()))
+					.collect(Collectors.joining(", "));
+			return Optional.of(HistoryField.of(WIDGET_OPTIONS, oldValue, newValue));
+		}
+		return Optional.empty();
 	}
 }

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,10 +22,13 @@ import com.epam.ta.reportportal.entity.dashboard.DashboardWidgetId;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.Position;
 import com.epam.ta.reportportal.ws.model.Size;
+import com.epam.ta.reportportal.ws.model.activity.WidgetActivityResource;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -57,6 +60,18 @@ public class WidgetConverter {
 		contentParameters.setWidgetType(widget.getWidgetType());
 		widgetResource.setContentParameters(contentParameters);
 		return widgetResource;
+	};
+
+	public static final Function<Widget, WidgetActivityResource> TO_ACTIVITY_RESOURCE = widget -> {
+		WidgetActivityResource resource = new WidgetActivityResource();
+		resource.setId(widget.getId());
+		resource.setProjectId(widget.getProject().getId());
+		resource.setName(widget.getName());
+		resource.setDescription(widget.getDescription());
+		resource.setItemsCount(widget.getItemsCount());
+		resource.setContentFields(Sets.newHashSet(widget.getContentFields()));
+		resource.setWidgetOptions(Maps.newHashMap(widget.getWidgetOptions()));
+		return resource;
 	};
 
 	/**

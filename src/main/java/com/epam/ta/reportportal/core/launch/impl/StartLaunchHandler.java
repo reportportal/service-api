@@ -18,18 +18,21 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.launch.LaunchWithLinkRS;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 
 /**
  * Default implementation of {@link com.epam.ta.reportportal.core.launch.StartLaunchHandler}
@@ -50,7 +53,8 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 
 	@Override
 	@Transactional
-	public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ) {
+	public LaunchWithLinkRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
+			StartLaunchRQ startLaunchRQ) {
 		validateRoles(user, projectDetails, startLaunchRQ);
 
 		Launch launch = new LaunchBuilder().addStartRQ(startLaunchRQ)
@@ -61,9 +65,12 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 		launch = launchRepository.save(launch);
 		//launchRepository.refresh(launch);
 
-		//messageBus.publishActivity(new LaunchStartedEvent(launch));
+		messageBus.publishActivity(new LaunchStartedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId()));
 
-		return new StartLaunchRS(launch.getId(), launch.getNumber());
+		LaunchWithLinkRS rs = new LaunchWithLinkRS();
+		rs.setId(launch.getId());
+		rs.setNumber(launch.getNumber());
+		return rs;
 	}
 
 	/**

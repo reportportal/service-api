@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,8 @@ import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.bts.handler.UpdateIntegrationHandler;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.IntegrationUpdatedEvent;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
@@ -43,6 +45,7 @@ import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 
@@ -65,28 +68,31 @@ public class UpdateIntegrationHandlerImpl implements UpdateIntegrationHandler {
 
 	private final BugTrackingSystemAuthFactory bugTrackingSystemAuthFactory;
 
+	private final MessageBus messageBus;
+
 	private final PluginBox pluginBox;
 
 	@Autowired
 	public UpdateIntegrationHandlerImpl(BasicTextEncryptor simpleEncryptor, IntegrationRepository integrationRepository,
 			IntegrationTypeRepository integrationTypeRepository, ProjectRepository projectRepository,
-			BugTrackingSystemAuthFactory bugTrackingSystemAuthFactory, PluginBox pluginBox) {
+			BugTrackingSystemAuthFactory bugTrackingSystemAuthFactory, MessageBus messageBus, PluginBox pluginBox) {
 		this.simpleEncryptor = simpleEncryptor;
 		this.integrationRepository = integrationRepository;
 		this.integrationTypeRepository = integrationTypeRepository;
 		this.projectRepository = projectRepository;
 		this.bugTrackingSystemAuthFactory = bugTrackingSystemAuthFactory;
+		this.messageBus = messageBus;
 		this.pluginBox = pluginBox;
 	}
 
 	@Override
 	public OperationCompletionRS updateIntegration(UpdateIntegrationRQ updateRQ, Long integrationId,
-			ReportPortalUser.ProjectDetails projectDetails) {
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 
-		Integration bugTrackingSystem = integrationRepository.findById(integrationId)
+		Integration integration = integrationRepository.findById(integrationId)
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
 
-		BugTrackingSystemBuilder builder = new BugTrackingSystemBuilder(bugTrackingSystem);
+		BugTrackingSystemBuilder builder = new BugTrackingSystemBuilder(integration);
 
 		Optional<IntegrationType> type = integrationTypeRepository.findByName(updateRQ.getExternalSystemType());
 		expect(type, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
@@ -96,13 +102,14 @@ public class UpdateIntegrationHandlerImpl implements UpdateIntegrationHandler {
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, "with id = " + projectDetails.getProjectId()));
 
-		bugTrackingSystem = builder.addUrl(updateRQ.getUrl())
+		integration = builder.addUrl(updateRQ.getUrl())
 				.addIntegrationType(type.get())
 				.addBugTrackingProject(updateRQ.getProject())
 				.addProject(project)
 				.addUsername(updateRQ.getUsername())
 				.addPassword(simpleEncryptor.encrypt(updateRQ.getPassword()))
-				.addAuthType(updateRQ.getExternalSystemAuth()).addAuthKey(updateRQ.getAccessKey())
+				.addAuthType(updateRQ.getExternalSystemAuth())
+				.addAuthKey(updateRQ.getAccessKey())
 				.addFields(updateRQ.getFields().stream().map(IntegrationFieldsConverter.FIELD_TO_DB).collect(Collectors.toSet()))
 				.get();
 
@@ -130,25 +137,25 @@ public class UpdateIntegrationHandlerImpl implements UpdateIntegrationHandler {
 		//						UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, projectName);
 		//			}
 
-		integrationRepository.save(bugTrackingSystem);
+		integrationRepository.save(integration);
 
-		//eventPublisher.publishEvent(new IntegrationUpdatedEvent(exist, principalName));
+		messageBus.publishActivity(new IntegrationUpdatedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId()));
 		return new OperationCompletionRS("ExternalSystem with ID = '" + integrationId + "' is successfully updated.");
 	}
 
 	@Override
 	public OperationCompletionRS integrationConnect(UpdateIntegrationRQ updateRQ, Long integrationId,
 			ReportPortalUser.ProjectDetails projectDetails) {
-		Integration bugTrackingSystem = integrationRepository.findById(integrationId)
+		Integration integration = integrationRepository.findById(integrationId)
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
 
 		Integration details = new BugTrackingSystemBuilder().addUrl(updateRQ.getUrl()).addBugTrackingProject(updateRQ.getProject()).get();
 
 		Optional<BtsExtension> extension = pluginBox.getInstance(details.getType().getName(), BtsExtension.class);
 
-		expect(extension, Optional::isPresent).verify(UNABLE_INTERACT_WITH_INTEGRATION, bugTrackingSystem.getProject().getId());
+		expect(extension, Optional::isPresent).verify(UNABLE_INTERACT_WITH_INTEGRATION, integration.getProject().getId());
 		expect(extension.get().connectionTest(details), equalTo(true)).verify(UNABLE_INTERACT_WITH_INTEGRATION,
-				bugTrackingSystem.getProject().getId()
+				integration.getProject().getId()
 		);
 
 		return new OperationCompletionRS("Connection to ExternalSystem with ID = '" + integrationId + "' is successfully performed.");

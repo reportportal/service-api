@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,14 +42,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @RequestMapping("/{projectName}/item")
-@PreAuthorize(ASSIGNED_TO_PROJECT)
+//@PreAuthorize(ASSIGNED_TO_PROJECT)
 public class TestItemController {
 
 	private final StartTestItemHandler startTestItemHandler;

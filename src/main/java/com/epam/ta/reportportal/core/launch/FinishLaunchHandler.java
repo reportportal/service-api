@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.launch.LaunchWithLinkRS;
 
 import java.util.List;
 
@@ -41,7 +42,7 @@ public interface FinishLaunchHandler {
 	 * @param user           User
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
+	LaunchWithLinkRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user);
 
 	/**

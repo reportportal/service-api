@@ -31,6 +31,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
+import static com.epam.ta.reportportal.commons.querygen.QueryBuilder.STATISTICS_KEY;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -59,11 +60,15 @@ public class SortArgumentResolver extends SortHandlerMethodArgumentResolver {
 			 * Build Sort with search criteria from internal domain model
 			 */
 			return Sort.by(StreamSupport.stream(defaultSort.spliterator(), false).map(order -> {
-				Optional<CriteriaHolder> criteriaHolder = filterTarget.getCriteriaByFilter(order.getProperty());
+				if (!order.getProperty().startsWith(STATISTICS_KEY)) {
+					Optional<CriteriaHolder> criteriaHolder = filterTarget.getCriteriaByFilter(order.getProperty());
 
-				BusinessRule.expect(criteriaHolder, Preconditions.IS_PRESENT)
-						.verify(ErrorType.INCORRECT_SORTING_PARAMETERS, order.getProperty());
-				return new Sort.Order(order.getDirection(), criteriaHolder.get().getQueryCriteria());
+					BusinessRule.expect(criteriaHolder, Preconditions.IS_PRESENT)
+							.verify(ErrorType.INCORRECT_SORTING_PARAMETERS, order.getProperty());
+					return new Sort.Order(order.getDirection(), criteriaHolder.get().getQueryCriteria());
+				} else {
+					return new Sort.Order(order.getDirection(), order.getProperty());
+				}
 			}).collect(toList()));
 		} else {
 			/*

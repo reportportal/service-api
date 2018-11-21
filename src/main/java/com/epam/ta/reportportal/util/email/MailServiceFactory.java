@@ -32,11 +32,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import static com.epam.ta.reportportal.ws.model.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
 
@@ -88,7 +84,7 @@ public class MailServiceFactory {
 	public Optional<EmailService> getEmailService(List<ServerSettings> serverSettings) {
 
 		Map<String, String> config = serverSettings.stream()
-				.collect(Collectors.toMap(ServerSettings::getKey, ServerSettings::getValue, (prev, curr) -> prev));
+				.collect(HashMap::new, (map, settings) -> map.put(settings.getKey(), settings.getValue()), HashMap::putAll);
 
 		if (MapUtils.isNotEmpty(config) && BooleanUtils.toBoolean(config.get(ServerSettingsEnum.ENABLED.getAttribute()))) {
 
@@ -148,8 +144,7 @@ public class MailServiceFactory {
 	 */
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public EmailService getDefaultEmailService(Integration integration, boolean checkConnection) {
-		EmailService emailService = getEmailService(
-				integration,
+		EmailService emailService = getEmailService(integration,
 				settingsRepository.findAll()
 		).orElseThrow(() -> emailConfigurationFail(null));
 

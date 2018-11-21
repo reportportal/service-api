@@ -55,7 +55,6 @@ public class ProductStatusContentLoaderManager implements LoadContentStrategy {
 
 		return ofNullable(productStatusContentLoader.get(strategy)).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
 				"Wrong strategy type. Allowed: \"filter\", \"launch\". But found: " + strategy
-		))
-				.loadContent(contentFields, filterSortMapping, widgetOptions, limit);
+		)).loadContent(contentFields, filterSortMapping, widgetOptions, limit);
 	}
 }

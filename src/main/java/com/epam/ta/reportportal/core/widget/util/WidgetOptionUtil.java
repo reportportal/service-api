@@ -22,25 +22,25 @@ public final class WidgetOptionUtil {
 	}
 
 	public static String getValueByKey(String key, WidgetOptions widgetOptions) {
-		expect(widgetOptions, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should be not null.");
-		expect(MapUtils.isNotEmpty(widgetOptions.getOptions()), equalTo(true)).verify(ErrorType.BAD_REQUEST_ERROR,
+		expect(widgetOptions, notNull()).verify(ErrorType.OBJECT_RETRIEVAL_ERROR, "Widget options should be not null.");
+		expect(MapUtils.isNotEmpty(widgetOptions.getOptions()), equalTo(true)).verify(ErrorType.OBJECT_RETRIEVAL_ERROR,
 				"Widget options should be not empty."
 		);
 		Object value = widgetOptions.getOptions().get(key);
-		expect(value, String.class::isInstance).verify(ErrorType.BAD_REQUEST_ERROR,
+		expect(value, String.class::isInstance).verify(ErrorType.OBJECT_RETRIEVAL_ERROR,
 				Suppliers.formattedSupplier("Wrong widget option value type for key = '{}'. String expected.", key)
 		);
 		return (String) value;
 	}
 
 	public static Map<String, List<String>> getMapByKey(String key, WidgetOptions widgetOptions) {
-		expect(widgetOptions, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should be not null.");
-		expect(MapUtils.isNotEmpty(widgetOptions.getOptions()), equalTo(true)).verify(ErrorType.BAD_REQUEST_ERROR,
+		expect(widgetOptions, notNull()).verify(ErrorType.OBJECT_RETRIEVAL_ERROR, "Widget options should be not null.");
+		expect(MapUtils.isNotEmpty(widgetOptions.getOptions()), equalTo(true)).verify(ErrorType.OBJECT_RETRIEVAL_ERROR,
 				"Widget options should be not empty."
 		);
 
 		Object value = widgetOptions.getOptions().get(key);
-		expect(value, Map.class::isInstance).verify(ErrorType.BAD_REQUEST_ERROR,
+		expect(value, Map.class::isInstance).verify(ErrorType.OBJECT_RETRIEVAL_ERROR,
 				Suppliers.formattedSupplier("Wrong widget option value type for key = '{}'. Map expected.", key)
 		);
 
@@ -48,8 +48,8 @@ public final class WidgetOptionUtil {
 	}
 
 	public static boolean containsKey(String key, WidgetOptions widgetOptions) {
-		expect(widgetOptions, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should be not null.");
-		expect(MapUtils.isNotEmpty(widgetOptions.getOptions()), equalTo(true)).verify(ErrorType.BAD_REQUEST_ERROR,
+		expect(widgetOptions, notNull()).verify(ErrorType.OBJECT_RETRIEVAL_ERROR, "Widget options should be not null.");
+		expect(MapUtils.isNotEmpty(widgetOptions.getOptions()), equalTo(true)).verify(ErrorType.OBJECT_RETRIEVAL_ERROR,
 				"Widget options should be not empty."
 		);
 

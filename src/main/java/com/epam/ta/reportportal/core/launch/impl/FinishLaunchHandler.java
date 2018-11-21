@@ -141,6 +141,7 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 
 		launchRepository.save(launch);
 		testItemRepository.interruptInProgressItems(launchId);
+		testItemRepository.handleRetriesStatistics(launch.getId());
 
 		messageBus.publishActivity(new LaunchFinishForcedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId()));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully stopped.");

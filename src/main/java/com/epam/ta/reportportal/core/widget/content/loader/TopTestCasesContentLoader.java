@@ -19,9 +19,11 @@ package com.epam.ta.reportportal.core.widget.content.loader;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.CriteraHistoryItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
@@ -64,16 +66,20 @@ public class TopTestCasesContentLoader implements LoadContentStrategy {
 	}
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,
+	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
 			int limit) {
 		String contentField = validateContentFields(contentFields);
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
-		Launch latestByName = launchRepository.findLatestByNameAndFilter(widgetOptions.get(LAUNCH_NAME_FIELD), filter)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, widgetOptions.get(LAUNCH_NAME_FIELD)));
+		Launch latestByName = launchRepository.findLatestByNameAndFilter(WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions),
+				filter
+		)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND,
+						WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions)
+				));
 		List<CriteraHistoryItem> content = widgetContentRepository.topItemsByCriteria(filter,
 				contentField,
 				limit,
-				BooleanUtils.toBoolean(widgetOptions.get(INCLUDE_METHODS))
+				BooleanUtils.toBoolean(WidgetOptionUtil.getValueByKey(INCLUDE_METHODS, widgetOptions))
 		);
 		return ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, LaunchConverter.TO_RESOURCE.apply(latestByName))
 				.put(RESULT, content)

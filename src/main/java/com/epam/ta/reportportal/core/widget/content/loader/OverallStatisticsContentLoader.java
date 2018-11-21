@@ -19,7 +19,9 @@ package com.epam.ta.reportportal.core.widget.content.loader;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
+import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
@@ -47,9 +49,10 @@ public class OverallStatisticsContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,
+	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
 			int limit) {
-		boolean latestMode = widgetOptions.entrySet().stream().anyMatch(it -> it.getKey().equalsIgnoreCase(LATEST_OPTION));
+
+		boolean latestMode = WidgetOptionUtil.containsKey(LATEST_OPTION, widgetOptions);
 		validateContentFields(contentFields);
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());

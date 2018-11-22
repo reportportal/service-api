@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.demodata;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
@@ -34,8 +33,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Date;
 
 import static com.epam.ta.reportportal.demodata.Constants.CONTENT_PROBABILITY;
 import static com.epam.ta.reportportal.demodata.Constants.TAGS_COUNT;
@@ -47,17 +46,22 @@ import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.*;
 @Service
 public class DemoDataCommonService {
 
-	@Autowired
-	protected StartLaunchHandler startLaunchHandler;
+	private final StartLaunchHandler startLaunchHandler;
+
+	private final FinishLaunchHandler finishLaunchHandler;
+
+	private final StartTestItemHandler startTestItemHandler;
+
+	private final FinishTestItemHandler finishTestItemHandler;
 
 	@Autowired
-	protected FinishLaunchHandler finishLaunchHandler;
-
-	@Autowired
-	protected StartTestItemHandler startTestItemHandler;
-
-	@Autowired
-	protected FinishTestItemHandler finishTestItemHandler;
+	public DemoDataCommonService(StartLaunchHandler startLaunchHandler, FinishLaunchHandler finishLaunchHandler,
+			StartTestItemHandler startTestItemHandler, FinishTestItemHandler finishTestItemHandler) {
+		this.startLaunchHandler = startLaunchHandler;
+		this.finishLaunchHandler = finishLaunchHandler;
+		this.startTestItemHandler = startTestItemHandler;
+		this.finishTestItemHandler = finishTestItemHandler;
+	}
 
 	@Transactional
 	public Long startLaunch(String name, int i, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
@@ -65,7 +69,7 @@ public class DemoDataCommonService {
 		rq.setMode(Mode.DEFAULT);
 		rq.setDescription(ContentUtils.getLaunchDescription());
 		rq.setName(name);
-		rq.setStartTime(EntityUtils.TO_DATE.apply(LocalDateTime.now()));
+		rq.setStartTime(new Date());
 		rq.setTags(ImmutableSet.<String>builder().addAll(Arrays.asList("desktop", "demo", "build:3.0.1." + (i + 1))).build());
 
 		return startLaunchHandler.startLaunch(user, projectDetails, rq).getId();
@@ -74,7 +78,7 @@ public class DemoDataCommonService {
 	@Transactional
 	public void finishLaunch(Long launchId, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		FinishExecutionRQ rq = new FinishExecutionRQ();
-		rq.setEndTime(EntityUtils.TO_DATE.apply(LocalDateTime.now()));
+		rq.setEndTime(new Date());
 
 		finishLaunchHandler.finishLaunch(launchId, rq, projectDetails, user);
 	}
@@ -86,7 +90,7 @@ public class DemoDataCommonService {
 		StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setName(rootItemName);
 		rq.setLaunchId(launchId);
-		rq.setStartTime(EntityUtils.TO_DATE.apply(LocalDateTime.now()));
+		rq.setStartTime(new Date());
 		rq.setType(type.name());
 		if (type.sameLevel(SUITE) && ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
 			rq.setTags(ContentUtils.getTagsInRange(TAGS_COUNT));
@@ -99,7 +103,7 @@ public class DemoDataCommonService {
 	@Transactional
 	public void finishRootItem(Long rootItemId, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
-		rq.setEndTime(EntityUtils.TO_DATE.apply(LocalDateTime.now()));
+		rq.setEndTime(new Date());
 
 		finishTestItemHandler.finishTestItem(user, projectDetails, rootItemId, rq);
 	}
@@ -119,7 +123,7 @@ public class DemoDataCommonService {
 			}
 		}
 		rq.setLaunchId(launchId);
-		rq.setStartTime(EntityUtils.TO_DATE.apply(LocalDateTime.now()));
+		rq.setStartTime(new Date());
 		rq.setName(name);
 		rq.setType(type.name());
 
@@ -129,7 +133,7 @@ public class DemoDataCommonService {
 	@Transactional
 	public void finishTestItem(Long testItemId, String status, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
-		rq.setEndTime(EntityUtils.TO_DATE.apply(LocalDateTime.now()));
+		rq.setEndTime(new Date());
 		rq.setStatus(status);
 		if ("FAILED".equals(status)) {
 			rq.setIssue(issueType());
@@ -137,12 +141,12 @@ public class DemoDataCommonService {
 		finishTestItemHandler.finishTestItem(user, projectDetails, testItemId, rq);
 	}
 
-	boolean hasChildren(TestItemTypeEnum testItemType) {
+	private boolean hasChildren(TestItemTypeEnum testItemType) {
 		return !(testItemType == STEP || testItemType == BEFORE_CLASS || testItemType == BEFORE_METHOD || testItemType == AFTER_CLASS
 				|| testItemType == AFTER_METHOD);
 	}
 
-	Issue issueType() {
+	private Issue issueType() {
 		int ISSUE_PROBABILITY = 25;
 		if (ContentUtils.getWithProbability(ISSUE_PROBABILITY)) {
 			return ContentUtils.getProductBug();

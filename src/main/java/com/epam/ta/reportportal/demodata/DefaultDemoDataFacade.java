@@ -43,20 +43,25 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class DefaultDemoDataFacade implements DemoDataFacade {
 
-	@Autowired
-	private DemoDataCommonService demoDataCommonService;
+	private final DemoDataCommonService demoDataCommonService;
 
-	@Autowired
-	private DemoLogsService demoLogsService;
+	private final DemoLogsService demoLogsService;
 
-	@Autowired
-	private TestItemRepository testItemRepository;
+	private final TestItemRepository testItemRepository;
 
-	@Autowired
-	private ObjectMapper objectMapper;
+	private final ObjectMapper objectMapper;
 
 	@Value("classpath:demo/demo_data.json")
 	private Resource resource;
+
+	@Autowired
+	public DefaultDemoDataFacade(DemoDataCommonService demoDataCommonService, DemoLogsService demoLogsService,
+			TestItemRepository testItemRepository, ObjectMapper objectMapper) {
+		this.demoDataCommonService = demoDataCommonService;
+		this.demoLogsService = demoLogsService;
+		this.testItemRepository = testItemRepository;
+		this.objectMapper = objectMapper;
+	}
 
 	@Override
 	public List<Long> generateDemoLaunches(DemoDataRq demoDataRq, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {

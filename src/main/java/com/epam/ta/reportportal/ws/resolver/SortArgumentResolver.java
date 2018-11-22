@@ -51,7 +51,7 @@ public class SortArgumentResolver extends SortHandlerMethodArgumentResolver {
 		/*
 		 * Try to find parameter to be sorted in internal-external mapping
 		 */
-		if (null != parameter.getParameterAnnotation(SortFor.class) && null != defaultSort) {
+		if (null != parameter.getParameterAnnotation(SortFor.class)) {
 
 			Class<?> domainModelType = parameter.getParameterAnnotation(SortFor.class).value();
 			FilterTarget filterTarget = FilterTarget.findByClass(domainModelType);
@@ -60,14 +60,14 @@ public class SortArgumentResolver extends SortHandlerMethodArgumentResolver {
 			 * Build Sort with search criteria from internal domain model
 			 */
 			return Sort.by(StreamSupport.stream(defaultSort.spliterator(), false).map(order -> {
-				if (!order.getProperty().startsWith(STATISTICS_KEY)) {
+				if (order.getProperty().startsWith(STATISTICS_KEY)) {
+					return new Sort.Order(order.getDirection(), order.getProperty());
+				} else {
 					Optional<CriteriaHolder> criteriaHolder = filterTarget.getCriteriaByFilter(order.getProperty());
 
 					BusinessRule.expect(criteriaHolder, Preconditions.IS_PRESENT)
 							.verify(ErrorType.INCORRECT_SORTING_PARAMETERS, order.getProperty());
 					return new Sort.Order(order.getDirection(), criteriaHolder.get().getQueryCriteria());
-				} else {
-					return new Sort.Order(order.getDirection(), order.getProperty());
 				}
 			}).collect(toList()));
 		} else {

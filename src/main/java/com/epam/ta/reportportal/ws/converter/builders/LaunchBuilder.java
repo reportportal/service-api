@@ -93,7 +93,8 @@ public class LaunchBuilder implements Supplier<Launch> {
 	public LaunchBuilder addTags(Set<String> tags) {
 		ofNullable(tags).ifPresent(it -> launch.setTags(it.stream()
 				.filter(EntityUtils.NOT_EMPTY)
-				.map(EntityUtils.REPLACE_SEPARATOR).map(val -> {
+				.map(EntityUtils.REPLACE_SEPARATOR)
+				.map(val -> {
 					LaunchTag tag = new LaunchTag();
 					tag.setValue(val);
 					tag.setLaunch(launch);

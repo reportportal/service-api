@@ -98,13 +98,12 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	@Override
 	public Iterable<UserResource> getUserNames(String value, Pageable pageable) {
-		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true)).verify(
-				ErrorType.INCORRECT_FILTER_PARAMETERS,
+		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
 				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 1 symbol", value)
 		);
 		Filter filter = Filter.builder()
 				.withTarget(User.class)
-				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_LOGIN))
+				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER))
 				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_FULL_NAME))
 				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_EMAIL))
 				.build();

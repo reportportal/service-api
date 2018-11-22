@@ -103,8 +103,7 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 1 symbol", value)
 		);
 		Filter filter = Filter.builder()
-				.withTarget(User.class)
-				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_LOGIN))
+				.withTarget(User.class).withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER))
 				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_FULL_NAME))
 				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_EMAIL))
 				.build();

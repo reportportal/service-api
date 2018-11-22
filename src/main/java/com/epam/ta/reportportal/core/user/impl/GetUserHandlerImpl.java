@@ -155,8 +155,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
 	@Override
 	public Iterable<UserResource> searchUsers(String term, Pageable pageable) {
 		Filter filter = Filter.builder()
-				.withTarget(User.class)
-				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_LOGIN))
+				.withTarget(User.class).withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_USER))
 				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_FULL_NAME))
 				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_EMAIL))
 				.build();

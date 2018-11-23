@@ -40,7 +40,9 @@ import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.RoundingMode;
@@ -72,6 +74,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 
 	private DecimalFormat formatter = new DecimalFormat("###.##");
 	private static final Double WEEKS_IN_MONTH = 4.4;
+	private static final int LIMIT = 150;
 
 	private final ProjectRepository projectRepository;
 
@@ -214,24 +217,20 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				.filter(not(ACTIVITIES_PROJECT_FILTER))
 				.map(ActivityAction::getValue)
 				.collect(joining(","));
-		int limit = 150;
-		Filter filter = new Filter(Activity.class, Sets.newHashSet(
-				new FilterCondition(IN, false, value, CRITERIA_ACTION),
-				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID),
-				new FilterCondition(
+		Filter filter = new Filter(Activity.class, Sets.newHashSet(new FilterCondition(IN, false, value, CRITERIA_ACTION),
+				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID), new FilterCondition(
 						GREATER_THAN_OR_EQUALS,
 						false,
 						String.valueOf(Timestamp.valueOf(getStartIntervalDate(infoInterval)).getTime()),
 						CRITERIA_CREATION_DATE
 				)
 		));
-		//TODO find with sorting and limit
-/*		List<Activity> activities = activityRepository.findByFilterWithSortingAndLimit(
-				filter,
-				Sort.by(Sort.Direction.DESC, "creation_date"),
-				limit
-		);*/
-		List<Activity> activities = activityRepository.findByFilter(filter);
+		List<Activity> activities = activityRepository.findByFilter(filter, PageRequest.of(0, LIMIT, Sort.by(Sort.Direction.DESC,
+				filter.getTarget()
+						.getCriteriaByFilter(CRITERIA_CREATION_DATE)
+						.orElseThrow(() -> new ReportPortalException(""))
+						.getQueryCriteria()
+		))).getContent();
 
 		List<ChartObject> chartObjects = activities.stream().map(it -> {
 			ChartObject chartObject = new ChartObject();

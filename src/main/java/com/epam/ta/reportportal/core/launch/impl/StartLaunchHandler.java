@@ -53,16 +53,14 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 
 	@Override
 	@Transactional
-	public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
-			StartLaunchRQ startLaunchRQ) {
+	public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ) {
 		validateRoles(user, projectDetails, startLaunchRQ);
 
 		Launch launch = new LaunchBuilder().addStartRQ(startLaunchRQ)
 				.addProject(projectDetails.getProjectId())
 				.addUser(user.getUserId())
-				.addTags(startLaunchRQ.getTags())
 				.get();
-		launch = launchRepository.save(launch);
+		launchRepository.save(launch);
 		launchRepository.refresh(launch);
 
 		messageBus.publishActivity(new LaunchStartedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId()));

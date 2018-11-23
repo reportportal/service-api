@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
+import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClientTemplate;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.MessageBusImpl;
 import com.epam.ta.reportportal.core.plugin.RabbitAwarePluginBox;
@@ -28,6 +30,7 @@ import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFacto
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitManagementTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -70,6 +73,11 @@ public class RabbitMqConfiguration {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+
+	@Bean
+	public RabbitMqManagementClient managementTemplate(@Value("${rp.amqp.api-address}") String address) {
+		return new RabbitMqManagementClientTemplate(new RabbitManagementTemplate(address));
+	}
 
 	@Bean
 	public Service pluginBox(@Autowired MessageBus messageBus) {

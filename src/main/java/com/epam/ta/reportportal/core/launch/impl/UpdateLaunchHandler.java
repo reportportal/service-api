@@ -51,7 +51,7 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 
 	private LaunchRepository launchRepository;
 
-	//	private IIssuesAnalyzer analyzerService;
+	//	private IssuesAnalyzer analyzerService;
 	//
 	//	private ILogIndexer logIndexer;
 
@@ -60,7 +60,7 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 	//	private TaskExecutor taskExecutor;
 
 	//	@Autowired
-	//	public void setAnalyzerService(IIssuesAnalyzer analyzerService) {
+	//	public void setAnalyzerService(IssuesAnalyzer analyzerService) {
 	//		this.analyzerService = analyzerService;
 	//	}
 	//

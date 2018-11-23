@@ -63,14 +63,14 @@ public class IssueTypeBuilder implements Supplier<IssueType> {
 	}
 
 	public IssueTypeBuilder addProject(Project project) {
-//		issueType.getProjects().add(project);
+		//		issueType.getProjects().add(project);
 		return this;
 	}
 
-//	public IssueTypeBuilder addProjectList(List<Project> projects) {
-//		issueType.getProjects().addAll(projects);
-//		return this;
-//	}
+	//	public IssueTypeBuilder addProjectList(List<Project> projects) {
+	//		issueType.getProjects().addAll(projects);
+	//		return this;
+	//	}
 
 	@Override
 	public IssueType get() {

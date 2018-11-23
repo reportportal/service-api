@@ -42,13 +42,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @RequestMapping("/{projectName}/item")
-//@PreAuthorize(ASSIGNED_TO_PROJECT)
+@PreAuthorize(ASSIGNED_TO_PROJECT)
 public class TestItemController {
 
 	private final StartTestItemHandler startTestItemHandler;

@@ -57,6 +57,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteri
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_CREATION_DATE;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.core.events.activity.ActivityAction.*;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.ws.converter.converters.ActivityConverter.TO_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.joining;
@@ -158,7 +159,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 
 	private Map<String, ?> getLastLaunchStatistics(Long projectId) {
 		Optional<Launch> launchOptional = launchRepository.findLastRun(projectId, Mode.DEFAULT.name());
-		return launchOptional.isPresent() ? Collections.singletonMap("result", launchOptional.get()) : Collections.emptyMap();
+		return launchOptional.isPresent() ? Collections.singletonMap(RESULT, launchOptional.get()) : Collections.emptyMap();
 	}
 
 	/**
@@ -195,7 +196,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 						.getQueryCriteria()
 		))).getContent();
 
-		return Collections.singletonMap("result", activities.stream().map(TO_RESOURCE).collect(toList()));
+		return Collections.singletonMap(RESULT, activities.stream().map(TO_RESOURCE).collect(toList()));
 	}
 
 }

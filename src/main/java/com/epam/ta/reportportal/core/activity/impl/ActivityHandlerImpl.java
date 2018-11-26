@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,6 +27,8 @@ import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.jooq.enums.JActivityEntityEnum;
+import com.epam.ta.reportportal.jooq.tables.JActivity;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ActivityConverter;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
@@ -39,6 +41,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.function.Predicate;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ENTITY;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -49,8 +52,6 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
  */
 @Service
 public class ActivityHandlerImpl implements ActivityHandler {
-
-	private static final String CREATION_DATE_COLUMN = "creation_date";
 
 	private final ActivityRepository activityRepository;
 	private final TestItemRepository testItemRepository;
@@ -97,10 +98,11 @@ public class ActivityHandlerImpl implements ActivityHandler {
 		Launch launch = testItem.getLaunch();
 		expect(projectDetails.getProjectId(), Predicate.isEqual(launch.getProjectId())).verify(ACCESS_DENIED, itemId);
 
-		Sort sortByCreationDateDesc = new Sort(Sort.Direction.DESC, CREATION_DATE_COLUMN);
-		FilterCondition testItemCondition = new FilterCondition(Condition.EQUALS, false, itemId.toString(), CRITERIA_OBJECT_ID);
+		Sort sortByCreationDateDesc = new Sort(Sort.Direction.DESC, JActivity.ACTIVITY.CREATION_DATE.getQualifiedName().toString());
+		filter.withCondition(new FilterCondition(Condition.EQUALS, false, itemId.toString(), CRITERIA_OBJECT_ID));
+		filter.withCondition(new FilterCondition(Condition.EQUALS, false, JActivityEntityEnum.ITEM.name(), CRITERIA_ENTITY));
 
-		org.springframework.data.domain.Page<Activity> page = activityRepository.findByFilter(filter.withCondition(testItemCondition),
+		org.springframework.data.domain.Page<Activity> page = activityRepository.findByFilter(filter,
 				PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreationDateDesc)
 		);
 		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page).getContent();
@@ -110,12 +112,9 @@ public class ActivityHandlerImpl implements ActivityHandler {
 	public Page<ActivityResource> getItemActivities(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
 		projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
-		org.springframework.data.domain.Page<Activity> activityPage = activityRepository.findByFilter(filter.withCondition(new FilterCondition(Condition.EQUALS,
-				false,
-				projectDetails.getProjectId().toString(),
-				CRITERIA_PROJECT_ID
-		)), pageable);
-		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(activityPage);
+		filter.withCondition(new FilterCondition(Condition.EQUALS, false, projectDetails.getProjectId().toString(), CRITERIA_PROJECT_ID));
+		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE)
+				.apply(activityRepository.findByFilter(filter, pageable));
 	}
 }
 

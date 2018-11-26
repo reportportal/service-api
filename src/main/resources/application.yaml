@@ -61,6 +61,7 @@ springfox:
 rp:
   amqp:
     addresses: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+    api-address: http://rabbitmq:rabbitmq@rabbitmq:15672/api
   db:
     url: jdbc:postgresql://postgres:5432/reportportal?user=rpuser&password=rppass
   upload:

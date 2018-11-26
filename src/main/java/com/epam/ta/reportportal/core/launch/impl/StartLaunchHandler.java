@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -30,6 +31,8 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 
 /**
  * Default implementation of {@link com.epam.ta.reportportal.core.launch.StartLaunchHandler}
@@ -56,14 +59,16 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 		Launch launch = new LaunchBuilder().addStartRQ(startLaunchRQ)
 				.addProject(projectDetails.getProjectId())
 				.addUser(user.getUserId())
-				.addTags(startLaunchRQ.getTags())
 				.get();
-		launch = launchRepository.save(launch);
-		//launchRepository.refresh(launch);
+		launchRepository.save(launch);
+		launchRepository.refresh(launch);
 
-		//messageBus.publishActivity(new LaunchStartedEvent(launch));
+		messageBus.publishActivity(new LaunchStartedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId()));
 
-		return new StartLaunchRS(launch.getId(), launch.getNumber());
+		StartLaunchRS response = new StartLaunchRS();
+		response.setId(launch.getId());
+		response.setNumber(launch.getNumber());
+		return response;
 	}
 
 	/**

@@ -42,15 +42,14 @@ import com.epam.ta.reportportal.ws.converter.converters.IntegrationIssueConverte
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
-import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -59,9 +58,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
 import static java.lang.Boolean.FALSE;
@@ -130,7 +131,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						).get()));
 
 				verifyTestItem(testItem, issueDefinition.getId());
-				IssueEntity before = SerializationUtils.clone(testItem.getItemResults().getIssue());
+				TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
 
 				Issue issue = issueDefinition.getIssue();
 				IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(),
@@ -138,22 +139,19 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						issue.getIssueType()
 				);
 
-				IssueEntity after = new IssueEntityBuilder(testItem.getItemResults().getIssue()).addIssueType(issueType)
+				IssueEntity issueEntity = new IssueEntityBuilder(testItem.getItemResults().getIssue()).addIssueType(issueType)
 						.addDescription(issue.getComment())
 						.addIgnoreFlag(issue.getIgnoreAnalyzer())
 						.addAutoAnalyzedFlag(false)
 						.get();
-				after.setIssueId(testItem.getItemId());
-				testItem.getItemResults().setIssue(after);
+				issueEntity.setIssueId(testItem.getItemId());
+				testItem.getItemResults().setIssue(issueEntity);
 
 				//TODO EXTERNAL SYSTEM LOGIC, ANALYZER LOGIC
 				testItemRepository.save(testItem);
-				updated.add(IssueConverter.TO_MODEL.apply(after));
+				updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
 
-				events.add(new ItemIssueTypeDefinedEvent(before, after,
-						user.getUserId(), testItem.getItemId(), testItem.getName(),
-						projectDetails.getProjectId()
-				));
+				events.add(new ItemIssueTypeDefinedEvent(before, TO_ACTIVITY_RESOURCE.apply(testItem), user.getUserId()));
 			} catch (BusinessRuleViolationException e) {
 				errors.add(e.getMessage());
 			}
@@ -188,7 +186,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		List<String> errors = new ArrayList<>();
 
 		List<TestItem> testItems = testItemRepository.findAllById(rq.getTestItemIds());
-		ArrayList<TestItem> cloned = SerializationUtils.clone(Lists.newArrayList(testItems));
+		List<TestItemActivityResource> before = testItems.stream().map(TO_ACTIVITY_RESOURCE).collect(Collectors.toList());
 
 		List<Ticket> existedTickets = collectExistedTickets(rq);
 		Set<Ticket> ticketsFromRq = collectTickets(rq, user.getUserId());
@@ -205,19 +203,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		});
 		expect(!errors.isEmpty(), equalTo(FALSE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 		testItemRepository.saveAll(testItems);
+		List<TestItemActivityResource> after = testItems.stream().map(TO_ACTIVITY_RESOURCE).collect(Collectors.toList());
 
-		cloned.forEach(testItemNew -> messageBus.publishActivity(new LinkTicketEvent(testItemNew.getItemResults().getIssue(),
-				testItems.stream()
-						.map(testItemOld -> testItemOld.getItemResults().getIssue())
-						.filter(is -> is.getIssueId().equals(testItemNew.getItemResults().getIssue().getIssueId()))
-						.findFirst()
-						.get(),
-				user.getUserId(),
-				projectDetails.getProjectId(),
-				testItemNew.getItemId(),
-				testItemNew.getName()
-		)));
-
+		before.forEach(it -> new LinkTicketEvent(it,
+				after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
+				user.getUserId()
+		));
 		return testItems.stream()
 				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))
 				.collect(toList());
@@ -292,7 +283,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 					"Launch is not under the specified project."
 			);
 			if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
-				expect(user.getUsername(), equalTo(launch.getUser().getLogin())).verify(ErrorType.ACCESS_DENIED,
+				expect(user.getUsername(), equalTo(launch.getUser().getLogin())).verify(
+						ErrorType.ACCESS_DENIED,
 						"You are not a launch owner."
 				);
 			}

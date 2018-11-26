@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,33 +17,34 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 
-import java.time.LocalDateTime;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.CREATE_USER;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.USER;
 
 /**
  * @author Andrei Varabyeu
  */
 public class UserCreatedEvent implements ActivityEvent {
 
-	private User user;
+	private UserActivityResource userActivityResource;
 	private Long createdBy;
 
 	public UserCreatedEvent() {
 	}
 
-	public UserCreatedEvent(User user, Long createdBy) {
-		this.user = user;
+	public UserCreatedEvent(UserActivityResource userActivityResource, Long createdBy) {
+		this.userActivityResource = userActivityResource;
 		this.createdBy = createdBy;
 	}
 
-	public User getUser() {
-		return user;
+	public UserActivityResource getUserActivityResource() {
+		return userActivityResource;
 	}
 
-	public void setUser(User user) {
-		this.user = user;
+	public void setUserActivityResource(UserActivityResource userActivityResource) {
+		this.userActivityResource = userActivityResource;
 	}
 
 	public Long getCreatedBy() {
@@ -56,14 +57,13 @@ public class UserCreatedEvent implements ActivityEvent {
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.CREATE_USER.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.USER);
-		activity.setUserId(createdBy);
-		activity.setProjectId(user.getDefaultProject().getId());
-		activity.setObjectId(user.getId());
-		activity.setDetails(new ActivityDetails(user.getFullName()));
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(CREATE_USER)
+				.addActivityEntityType(USER)
+				.addUserId(createdBy)
+				.addObjectId(userActivityResource.getId())
+				.addObjectName(userActivityResource.getFullName())
+				.addProjectId(userActivityResource.getDefaultProjectId())
+				.get();
 	}
 }

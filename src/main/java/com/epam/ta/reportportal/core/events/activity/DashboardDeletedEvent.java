@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,22 +17,23 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
 
-import java.time.LocalDateTime;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.DELETE_DASHBOARD;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.DASHBOARD;
 
 /**
  * @author pavel_bortnik
  */
-public class DashboardDeletedEvent extends BeforeEvent<Dashboard> implements ActivityEvent {
+public class DashboardDeletedEvent extends BeforeEvent<DashboardActivityResource> implements ActivityEvent {
 
 	private Long deletedBy;
 
 	public DashboardDeletedEvent() {
 	}
 
-	public DashboardDeletedEvent(Dashboard before, Long deletedBy) {
+	public DashboardDeletedEvent(DashboardActivityResource before, Long deletedBy) {
 		super(before);
 		this.deletedBy = deletedBy;
 	}
@@ -47,14 +48,13 @@ public class DashboardDeletedEvent extends BeforeEvent<Dashboard> implements Act
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setActivityEntityType(Activity.ActivityEntityType.DASHBOARD);
-		activity.setAction(ActivityAction.DELETE_DASHBOARD.getValue());
-		activity.setProjectId(getBefore().getProjectId());
-		activity.setUserId(deletedBy);
-		activity.setObjectId(getBefore().getId());
-		activity.setDetails(new ActivityDetails(getBefore().getName()));
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(DELETE_DASHBOARD)
+				.addActivityEntityType(DASHBOARD)
+				.addUserId(deletedBy)
+				.addProjectId(getBefore().getProjectId())
+				.addObjectId(getBefore().getId())
+				.addObjectName(getBefore().getName())
+				.get();
 	}
 }

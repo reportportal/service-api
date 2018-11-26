@@ -19,12 +19,12 @@ package com.epam.ta.reportportal.core.user.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.core.integration.email.EmailIntegrationService;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.integration.email.EmailIntegrationService;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
@@ -65,9 +65,8 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		BusinessRule.expect(login.equalsIgnoreCase(loggedInUser.getUsername()), Predicates.equalTo(false))
 				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
 		try {
-			user.getProjects()
-					.forEach(userProject -> emailIntegrationService.excludeProjectRecipients(
-							Lists.newArrayList(userProject),
+			user.getProjects().forEach(userProject -> emailIntegrationService.excludeProjectRecipients(
+					Lists.newArrayList(userProject),
 							userProject.getProject()
 					));
 		} catch (Exception exp) {

@@ -14,26 +14,19 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.integration;
-
-import com.epam.ta.reportportal.entity.project.Project;
-
-import java.util.Map;
+package com.epam.ta.reportportal.demodata;
 
 /**
- * Validates parameters of provided integration.
- *
- * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public interface IntegrationService {
+public class Constants {
 
-	/**
-	 * Validates parameters
-	 *
-	 * @param project               Project
-	 * @param integrationParameters Integration parameters
-	 * @return true if valid, false if not
-	 */
-	boolean validateIntegrationParameters(Project project, Map<String, Object> integrationParameters);
+	private Constants() {
+		//static only
+	}
 
+	static final String NAME = "Demo Api Tests";
+	static final int STORY_PROBABILITY = 30;
+	static final int CONTENT_PROBABILITY = 60;
+	static final int TAGS_COUNT = 3;
 }

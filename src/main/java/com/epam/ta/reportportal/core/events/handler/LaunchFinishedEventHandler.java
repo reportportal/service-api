@@ -155,7 +155,7 @@ public class LaunchFinishedEventHandler {
 	 */
 	@VisibleForTesting
 	static boolean isTagsMatched(Launch launch, List<String> tags) {
-		return !(null != tags && !tags.isEmpty()) || null != launch.getTags() && launch.getTags()
+		return !(null != tags && !tags.isEmpty()) || null != launch.getAttributes() && launch.getAttributes()
 				.stream().map(ItemAttribute::getValue)
 				.collect(toList())
 				.containsAll(tags);

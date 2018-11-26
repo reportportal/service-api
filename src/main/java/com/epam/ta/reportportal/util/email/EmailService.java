@@ -128,9 +128,8 @@ public class EmailService extends JavaMailSenderImpl {
 		email.put("url", format("%s/%s", basicUrl, launch.getId()));
 
 		/* Tags with links */
-		if (!CollectionUtils.isEmpty(launch.getTags())) {
-			email.put("tags",
-					launch.getTags()
+		if (!CollectionUtils.isEmpty(launch.getAttributes())) {
+			email.put("attributes", launch.getAttributes()
 							.stream()
 							.collect(toMap(tag -> tag,
 									tag -> format(FILTER_TAG_FORMAT, basicUrl, urlPathSegmentEscaper().escape(tag.getValue()))

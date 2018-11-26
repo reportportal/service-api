@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.core.item.impl.TestItemUniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.merge.LaunchMergeStrategy;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -33,12 +32,14 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
@@ -99,8 +100,11 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 				.collect(joining("\n"))));
 		startRQ.setName(ofNullable(mergeLaunchesRQ.getName()).orElse(
 				"Merged: " + launches.stream().map(Launch::getName).distinct().collect(joining(", "))));
-		startRQ.setTags(ofNullable(mergeLaunchesRQ.getTags()).orElse(launches.stream()
-				.flatMap(launch -> ofNullable(launch.getTags()).orElse(Collections.emptySet()).stream()).map(ItemAttribute::getValue)
+		startRQ.setAttributes(ofNullable(mergeLaunchesRQ.getAttributes()).orElse(launches.stream()
+				.flatMap(launch -> Optional.of(launch.getAttributes()
+						.stream()
+						.map(it -> new ItemAttributeResource(it.getKey(), it.getValue(), it.isSystem())))
+						.orElse(Stream.<ItemAttributeResource>empty()))
 				.collect(toSet())));
 		startRQ.setStartTime(startTime);
 		Launch launch = new LaunchBuilder().addStartRQ(startRQ)

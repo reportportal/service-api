@@ -17,9 +17,9 @@
 package com.epam.ta.reportportal.demodata;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import org.springframework.core.io.ClassPathResource;
 
@@ -55,10 +55,13 @@ final class ContentUtils {
 		//static only
 	}
 
-	static Set<String> getTagsInRange(int limit) {
+	static Set<ItemAttributeResource> getTagsInRange(int limit) {
 		List<String> content = readToList("demo/content/tags.txt");
 		int fromIndex = random.nextInt(content.size() - limit);
-		return ImmutableSet.<String>builder().addAll(content.subList(fromIndex, fromIndex + limit)).build();
+		return content.subList(fromIndex, fromIndex + limit)
+				.stream()
+				.map(it -> new ItemAttributeResource(it, "", false))
+				.collect(Collectors.toSet());
 	}
 
 	static String getSuiteDescription() {

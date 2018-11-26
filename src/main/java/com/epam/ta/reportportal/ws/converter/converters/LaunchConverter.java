@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
@@ -67,6 +66,8 @@ public final class LaunchConverter {
 	};
 
 	private static Set<String> getTags(Launch launch) {
-		return Optional.ofNullable(launch.getTags()).map(tags -> tags.stream().map(LaunchTag::getValue).collect(toSet())).orElse(null);
+		return Optional.ofNullable(launch.getTags())
+				.map(tags -> tags.stream().map(it -> it.getKey().concat(":").concat(it.getValue())).collect(toSet()))
+				.orElse(null);
 	}
 }

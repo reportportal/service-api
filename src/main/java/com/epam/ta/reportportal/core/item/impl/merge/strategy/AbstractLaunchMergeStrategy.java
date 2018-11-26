@@ -25,10 +25,10 @@ import com.epam.ta.reportportal.core.item.impl.TestItemUniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.merge.LaunchMergeStrategy;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
@@ -100,8 +100,7 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 		startRQ.setName(ofNullable(mergeLaunchesRQ.getName()).orElse(
 				"Merged: " + launches.stream().map(Launch::getName).distinct().collect(joining(", "))));
 		startRQ.setTags(ofNullable(mergeLaunchesRQ.getTags()).orElse(launches.stream()
-				.flatMap(launch -> ofNullable(launch.getTags()).orElse(Collections.emptySet()).stream())
-				.map(LaunchTag::getValue)
+				.flatMap(launch -> ofNullable(launch.getTags()).orElse(Collections.emptySet()).stream()).map(ItemAttribute::getValue)
 				.collect(toSet())));
 		startRQ.setStartTime(startTime);
 		Launch launch = new LaunchBuilder().addStartRQ(startRQ)

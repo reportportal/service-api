@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -94,9 +95,9 @@ public class LaunchBuilder implements Supplier<Launch> {
 		ofNullable(tags).ifPresent(it -> launch.setTags(it.stream()
 				.filter(EntityUtils.NOT_EMPTY)
 				.map(EntityUtils.REPLACE_SEPARATOR).map(val -> {
-					LaunchTag tag = new LaunchTag();
-					tag.setValue(val);
-					tag.setLaunch(launch);
+					ItemAttribute itemAttribute = new ItemAttribute();
+					itemAttribute.setValue(val);
+					itemAttribute.setKey();
 					return tag;
 				})
 				.collect(Collectors.toSet())));

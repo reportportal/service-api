@@ -115,7 +115,6 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        project-info-widgets
         compile 'com.github.reportportal:commons-dao:684a5d4'
         compile 'com.github.reportportal:commons-rules:4cd20af'
         compile 'com.github.reportportal:commons-model:46bda6e'

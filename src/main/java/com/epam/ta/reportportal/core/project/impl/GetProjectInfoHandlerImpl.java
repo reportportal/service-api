@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.email.ProjectInfoWidget;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
+import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
@@ -159,7 +160,9 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 
 	private Map<String, ?> getLastLaunchStatistics(Long projectId) {
 		Optional<Launch> launchOptional = launchRepository.findLastRun(projectId, Mode.DEFAULT.name());
-		return launchOptional.isPresent() ? Collections.singletonMap(RESULT, launchOptional.get()) : Collections.emptyMap();
+		return launchOptional.isPresent() ?
+				Collections.singletonMap(RESULT, LaunchConverter.TO_RESOURCE.apply(launchOptional.get())) :
+				Collections.emptyMap();
 	}
 
 	/**
@@ -181,8 +184,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				.map(ActivityAction::getValue)
 				.collect(joining(","));
 		Filter filter = new Filter(Activity.class, Sets.newHashSet(new FilterCondition(IN, false, value, CRITERIA_ACTION),
-				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID),
-				new FilterCondition(
+				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID), new FilterCondition(
 						GREATER_THAN_OR_EQUALS,
 						false,
 						String.valueOf(Timestamp.valueOf(getStartIntervalDate(infoInterval)).getTime()),

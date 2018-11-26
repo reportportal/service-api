@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.*;
+import static com.epam.ta.reportportal.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 
@@ -134,7 +135,7 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 					widgetRepository.save(widget);
 				});
 
-		messageBus.publishActivity(new DefectTypeCreatedEvent(subType, project.getId(), user.getUserId()));
+		messageBus.publishActivity(new DefectTypeCreatedEvent(TO_ACTIVITY_RESOURCE.apply(subType), project.getId(), user.getUserId()));
 		return new EntryCreatedRS(subType.getId());
 	}
 

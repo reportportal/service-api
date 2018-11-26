@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,25 +17,24 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
 
-import java.time.LocalDateTime;
-
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processDescription;
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.UPDATE_DASHBOARD;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.*;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.DASHBOARD;
 
 /**
  * @author Andrei Varabyeu
  */
-public class DashboardUpdatedEvent extends AroundEvent<Dashboard> implements ActivityEvent {
+public class DashboardUpdatedEvent extends AroundEvent<DashboardActivityResource> implements ActivityEvent {
 
 	private Long updatedBy;
 
 	public DashboardUpdatedEvent() {
 	}
 
-	public DashboardUpdatedEvent(Dashboard before, Dashboard after, Long updatedBy) {
+	public DashboardUpdatedEvent(DashboardActivityResource before, DashboardActivityResource after, Long updatedBy) {
 		super(before, after);
 		this.updatedBy = updatedBy;
 	}
@@ -50,20 +49,16 @@ public class DashboardUpdatedEvent extends AroundEvent<Dashboard> implements Act
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setActivityEntityType(Activity.ActivityEntityType.DASHBOARD);
-		activity.setAction(ActivityAction.UPDATE_DASHBOARD.getValue());
-		activity.setProjectId(getBefore().getProjectId());
-		activity.setUserId(updatedBy);
-		activity.setObjectId(getAfter().getId());
-
-		ActivityDetails details = new ActivityDetails(getAfter().getName());
-		//processShare
-		processName(details, getBefore().getName(), getAfter().getName());
-		processDescription(details, getBefore().getDescription(), getAfter().getDescription());
-
-		activity.setDetails(details);
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(UPDATE_DASHBOARD)
+				.addActivityEntityType(DASHBOARD)
+				.addUserId(updatedBy)
+				.addObjectId(getAfter().getId())
+				.addObjectName(getAfter().getName())
+				.addProjectId(getAfter().getProjectId())
+				.addHistoryField(processShared(getBefore().isShared(), getAfter().isShared()))
+				.addHistoryField(processName(getBefore().getName(), getAfter().getName()))
+				.addHistoryField(processDescription(getBefore().getDescription(), getAfter().getDescription()))
+				.get();
 	}
 }

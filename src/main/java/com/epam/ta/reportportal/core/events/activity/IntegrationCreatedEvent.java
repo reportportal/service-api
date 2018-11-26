@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,33 +17,34 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
 
-import java.time.LocalDateTime;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.CREATE_BTS;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.INTEGRATION;
 
 /**
  * @author Andrei Varabyeu
  */
 public class IntegrationCreatedEvent implements ActivityEvent {
 
-	private Integration integration;
+	private IntegrationActivityResource integrationActivityResource;
 	private Long createdBy;
 
 	public IntegrationCreatedEvent() {
 	}
 
-	public IntegrationCreatedEvent(Integration integration, Long createdBy) {
-		this.integration = integration;
+	public IntegrationCreatedEvent(IntegrationActivityResource integrationActivityResource, Long createdBy) {
+		this.integrationActivityResource = integrationActivityResource;
 		this.createdBy = createdBy;
 	}
 
-	public Integration getIntegration() {
-		return integration;
+	public IntegrationActivityResource getIntegrationActivityResource() {
+		return integrationActivityResource;
 	}
 
-	public void setIntegration(Integration integration) {
-		this.integration = integration;
+	public void setIntegrationActivityResource(IntegrationActivityResource integrationActivityResource) {
+		this.integrationActivityResource = integrationActivityResource;
 	}
 
 	public Long getCreatedBy() {
@@ -56,14 +57,13 @@ public class IntegrationCreatedEvent implements ActivityEvent {
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.CREATE_BTS.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.INTEGRATION);
-		activity.setProjectId(integration.getProject().getId());
-		activity.setUserId(createdBy);
-		activity.setObjectId(integration.getId());
-		activity.setDetails(new ActivityDetails(integration.getType().getName() + ":" + integration.getProject().getName()));
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(CREATE_BTS)
+				.addActivityEntityType(INTEGRATION)
+				.addUserId(createdBy)
+				.addObjectId(integrationActivityResource.getId())
+				.addObjectName(integrationActivityResource.getTypeName() + ":" + integrationActivityResource.getProjectName())
+				.addProjectId(integrationActivityResource.getProjectId())
+				.get();
 	}
 }

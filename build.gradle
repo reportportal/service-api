@@ -115,9 +115,9 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:3b3820d4'
+        compile 'com.github.reportportal:commons-dao:a17cb8a'
         compile 'com.github.reportportal:commons-rules:4cd20af'
-        compile 'com.github.reportportal:commons-model:a481cf8f'
+        compile 'com.github.reportportal:commons-model:46bda6e'
         compile('com.github.reportportal:commons:71d4aca')
         compile('com.github.reportportal:plugin-api:e7970ce')
     }
@@ -141,6 +141,8 @@ dependencies {
     compile 'org.jooq:jooq-meta:3.11.4'
     compile 'org.jasypt:jasypt:1.9.2'
     compile("org.springframework.boot:spring-boot-starter-amqp")
+    // Optional for spring-boot-starter-amqp
+    compile "com.rabbitmq:http-client:2.1.0.RELEASE"
 
     compile 'commons-fileupload:commons-fileupload:1.3.3'
     compile 'commons-validator:commons-validator:1.6'

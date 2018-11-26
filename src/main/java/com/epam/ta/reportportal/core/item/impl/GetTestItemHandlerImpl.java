@@ -71,7 +71,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	public Iterable<TestItemResource> getTestItems(Filter filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 		Page<TestItem> testItemPage = testItemRepository.findByFilter(filter, pageable);
-		return PagedResourcesAssembler.pageConverter(itemResourceAssembler::toResource).apply(testItemPage).getContent();
+		return PagedResourcesAssembler.pageConverter(itemResourceAssembler::toResource).apply(testItemPage);
 	}
 
 	@Override

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,33 +18,34 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.WidgetActivityResource;
 
-import java.time.LocalDateTime;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.CREATE_WIDGET;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.WIDGET;
 
 /**
  * @author pavel_bortnik
  */
 public class WidgetCreatedEvent implements ActivityEvent {
 
-	private Widget widget;
+	private WidgetActivityResource widgetActivityResource;
 	private Long createdBy;
 
 	public WidgetCreatedEvent() {
 	}
 
-	public WidgetCreatedEvent(Widget widget, Long createdBy) {
-		this.widget = widget;
+	public WidgetCreatedEvent(WidgetActivityResource widgetActivityResource, Long createdBy) {
+		this.widgetActivityResource = widgetActivityResource;
 		this.createdBy = createdBy;
 	}
 
-	public Widget getWidget() {
-		return widget;
+	public WidgetActivityResource getWidgetActivityResource() {
+		return widgetActivityResource;
 	}
 
-	public void setWidget(Widget widget) {
-		this.widget = widget;
+	public void setWidgetActivityResource(WidgetActivityResource widgetActivityResource) {
+		this.widgetActivityResource = widgetActivityResource;
 	}
 
 	public Long getCreatedBy() {
@@ -57,15 +58,14 @@ public class WidgetCreatedEvent implements ActivityEvent {
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.CREATE_WIDGET.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.WIDGET);
-		activity.setUserId(createdBy);
-		activity.setProjectId(widget.getProject().getId());
-		activity.setObjectId(widget.getId());
-		activity.setDetails(new ActivityDetails(widget.getName()));
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(CREATE_WIDGET)
+				.addActivityEntityType(WIDGET)
+				.addUserId(createdBy)
+				.addObjectId(widgetActivityResource.getId())
+				.addObjectName(widgetActivityResource.getName())
+				.addProjectId(widgetActivityResource.getProjectId())
+				.get();
 	}
 
 }

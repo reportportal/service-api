@@ -21,13 +21,14 @@ import com.epam.ta.reportportal.core.imprt.ImportLaunchHandler;
 import com.epam.ta.reportportal.core.jasper.IGetJasperReportHandler;
 import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.core.launch.*;
+import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
-import com.epam.ta.reportportal.ws.model.*;
-import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
+import com.epam.ta.reportportal.ws.model.BulkRQ;
+import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.Page;
+import com.epam.ta.reportportal.ws.model.launch.*;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.net.HttpHeaders;
@@ -103,7 +104,7 @@ public class LaunchController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
-	public EntryCreatedRS startLaunch(@PathVariable String projectName,
+	public StartLaunchRS startLaunch(@PathVariable String projectName,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return createLaunchMessageHandler.startLaunch(user, extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
@@ -114,13 +115,15 @@ public class LaunchController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Finish launch for specified project")
-	public OperationCompletionRS finishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
+	public FinishLaunchRS finishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
 			HttpServletRequest request) {
-		return finishLaunchMessageHandler.finishLaunch(launchId,
+		return finishLaunchMessageHandler.finishLaunch(
+				launchId,
 				finishLaunchRQ,
 				extractProjectDetails(user, normalizeId(projectName)),
-				user
+				user,
+				LaunchLinkGenerator.LinkParams.of(request.getScheme(), request.getHeader("host"), projectName)
 		);
 	}
 
@@ -298,7 +301,7 @@ public class LaunchController {
 	@DeleteMapping
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified launches by ids")
-	public OperationCompletionRS deleteLaunches(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
+	public DeleteLaunchesRS deleteLaunches(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return deleteLaunchMessageHandler.deleteLaunches(ids, extractProjectDetails(user, normalizeId(projectName)), user);
 	}

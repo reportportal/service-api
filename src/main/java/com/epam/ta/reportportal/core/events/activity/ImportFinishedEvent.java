@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,9 +18,10 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 
-import java.time.LocalDateTime;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.FINISH_IMPORT;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.IMPORT;
 
 /**
  * @author Pavel Bortnik
@@ -66,14 +67,12 @@ public class ImportFinishedEvent implements ActivityEvent {
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.FINISH_IMPORT.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.IMPORT);
-		activity.setUserId(userId);
-		activity.setProjectId(projectId);
-
-		activity.setDetails(new ActivityDetails(fileName));
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(FINISH_IMPORT)
+				.addActivityEntityType(IMPORT)
+				.addUserId(userId)
+				.addProjectId(projectId)
+				.addObjectName(fileName)
+				.get();
 	}
 }

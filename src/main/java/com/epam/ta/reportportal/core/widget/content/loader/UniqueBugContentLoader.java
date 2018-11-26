@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,9 @@ package com.epam.ta.reportportal.core.widget.content.loader;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
+import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +48,7 @@ public class UniqueBugContentLoader implements LoadContentStrategy {
 	private WidgetContentRepository widgetRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, Map<String, String> widgetOptions,
+	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
 			int limit) {
 
 		validateFilterSortMapping(filterSortMapping);
@@ -57,7 +59,10 @@ public class UniqueBugContentLoader implements LoadContentStrategy {
 
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		return singletonMap(RESULT, widgetRepository.uniqueBugStatistics(filter, sort, widgetOptions.containsKey(LATEST_OPTION), limit));
+		return singletonMap(
+				RESULT,
+				widgetRepository.uniqueBugStatistics(filter, sort, WidgetOptionUtil.containsKey(LATEST_OPTION, widgetOptions), limit)
+		);
 	}
 
 	/**
@@ -75,12 +80,8 @@ public class UniqueBugContentLoader implements LoadContentStrategy {
 	 *
 	 * @param widgetOptions Map of stored widget options.
 	 */
-	private void validateWidgetOptions(Map<String, String> widgetOptions) {
-		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should not be null.");
-
-		String launchName = widgetOptions.get(LAUNCH_NAME_FIELD);
-		BusinessRule.expect(launchName, StringUtils::isNotEmpty)
+	private void validateWidgetOptions(WidgetOptions widgetOptions) {
+		BusinessRule.expect(WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions), StringUtils::isNotEmpty)
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LAUNCH_NAME_FIELD + " should be specified for widget.");
 	}
 

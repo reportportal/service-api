@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.core.widget.content.loader;
 
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -5,8 +21,10 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
+import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.MapUtils;
@@ -19,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_LAUNCH_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.content.loader.ActivityContentLoader.CONTENT_FIELDS_DELIMITER;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
@@ -42,8 +60,7 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 	}
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, Map<String, String> widgetOptions,
-			int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, WidgetOptions widgetOptions, int limit) {
 
 		validateFilterSortMapping(filterSortMap);
 
@@ -71,16 +88,14 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 	 *
 	 * @param widgetOptions Map of stored widget options.
 	 */
-	private void validateWidgetOptions(Map<String, String> widgetOptions) {
-		BusinessRule.expect(MapUtils.isNotEmpty(widgetOptions), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Widget options should not be null.");
-		BusinessRule.expect(widgetOptions.get(LAUNCH_NAME_FIELD), StringUtils::isNotEmpty)
+	private void validateWidgetOptions(WidgetOptions widgetOptions) {
+		BusinessRule.expect(WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions), StringUtils::isNotBlank)
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LAUNCH_NAME_FIELD + " should be specified for widget.");
 	}
 
-	private Filter updateFilter(Filter filter, Map<String, String> widgetOptions) {
-		filter = updateFilterWithLatestLaunchId(filter, widgetOptions.get(LAUNCH_NAME_FIELD));
-		filter = updateFilterWithTestItemTypes(filter, widgetOptions.containsKey(INCLUDE_METHODS));
+	private Filter updateFilter(Filter filter, WidgetOptions widgetOptions) {
+		filter = updateFilterWithLatestLaunchId(filter, WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions));
+		filter = updateFilterWithTestItemTypes(filter, WidgetOptionUtil.containsKey(INCLUDE_METHODS, widgetOptions));
 		return filter;
 	}
 

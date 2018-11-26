@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,33 +17,34 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
 
-import java.time.LocalDateTime;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.FINISH_LAUNCH;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.LAUNCH;
 
 /**
  * @author Andrei Varabyeu
  */
 public class LaunchFinishForcedEvent implements ActivityEvent {
 
-	private Launch launch;
+	private LaunchActivityResource launchActivityResource;
 	private Long forcedBy;
 
 	public LaunchFinishForcedEvent() {
 	}
 
-	public LaunchFinishForcedEvent(Launch launch, Long forcedBy) {
-		this.launch = launch;
+	public LaunchFinishForcedEvent(LaunchActivityResource launchActivityResource, Long forcedBy) {
+		this.launchActivityResource = launchActivityResource;
 		this.forcedBy = forcedBy;
 	}
 
-	public Launch getLaunch() {
-		return launch;
+	public LaunchActivityResource getLaunchActivityResource() {
+		return launchActivityResource;
 	}
 
-	public void setLaunch(Launch launch) {
-		this.launch = launch;
+	public void setLaunchActivityResource(LaunchActivityResource launchActivityResource) {
+		this.launchActivityResource = launchActivityResource;
 	}
 
 	public Long getForcedBy() {
@@ -56,15 +57,13 @@ public class LaunchFinishForcedEvent implements ActivityEvent {
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		// No FORCED_FINISH_LAUNCH action
-		activity.setAction(ActivityAction.FINISH_LAUNCH.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH);
-		activity.setProjectId(launch.getProjectId());
-		activity.setUserId(forcedBy);
-		activity.setObjectId(launch.getId());
-		activity.setDetails(new ActivityDetails(launch.getName()));
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(FINISH_LAUNCH)
+				.addActivityEntityType(LAUNCH)
+				.addUserId(forcedBy)
+				.addObjectId(launchActivityResource.getId())
+				.addObjectName(launchActivityResource.getName())
+				.addProjectId(launchActivityResource.getProjectId())
+				.get();
 	}
 }

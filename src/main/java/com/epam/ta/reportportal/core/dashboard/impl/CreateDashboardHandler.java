@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,6 +28,8 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
 
 /**
  * @author Pavel Bortnik
@@ -53,7 +55,7 @@ public class CreateDashboardHandler implements ICreateDashboardHandler {
 		dashboardRepository.save(dashboard);
 		aclService.createAcl(dashboard);
 		aclService.addReadPermissions(dashboard, user.getUsername());
-		messageBus.publishActivity(new DashboardCreatedEvent(dashboard, user.getUserId()));
+		messageBus.publishActivity(new DashboardCreatedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId()));
 		return new EntryCreatedRS(dashboard.getId());
 	}
 }

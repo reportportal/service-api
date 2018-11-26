@@ -41,6 +41,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.*;
 import static com.epam.ta.reportportal.entity.widget.WidgetType.LAUNCHES_TABLE;
 import static com.epam.ta.reportportal.entity.widget.WidgetType.STATISTIC_TREND;
+import static com.epam.ta.reportportal.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -119,7 +120,11 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 								+ "$" + type.getIssueType().getLocator()));
 		issueTypeRepository.delete(type.getIssueType());
 
-		messageBus.publishActivity(new DefectTypeDeletedEvent(type.getIssueType(), project.getId(), user.getUserId()));
+		messageBus.publishActivity(new DefectTypeDeletedEvent(
+				TO_ACTIVITY_RESOURCE.apply(type.getIssueType()),
+				project.getId(),
+				user.getUserId()
+		));
 		return new OperationCompletionRS("Issue sub-type delete operation completed successfully.");
 	}
 }

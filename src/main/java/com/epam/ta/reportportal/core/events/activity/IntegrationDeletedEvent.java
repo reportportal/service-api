@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,28 +17,34 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
 
-import java.time.LocalDateTime;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.DELETE_BTS;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.INTEGRATION;
 
 /**
  * @author Andrei Varabyeu
  */
 public class IntegrationDeletedEvent implements ActivityEvent {
 
-	private Integration integration;
+	private IntegrationActivityResource integrationActivityResource;
 	private Long deletedBy;
 
 	public IntegrationDeletedEvent() {
 	}
 
-	public Integration getIntegration() {
-		return integration;
+	public IntegrationDeletedEvent(IntegrationActivityResource integrationActivityResource, Long deletedBy) {
+		this.integrationActivityResource = integrationActivityResource;
+		this.deletedBy = deletedBy;
 	}
 
-	public void setIntegration(Integration integration) {
-		this.integration = integration;
+	public IntegrationActivityResource getIntegrationActivityResource() {
+		return integrationActivityResource;
+	}
+
+	public void setIntegrationActivityResource(IntegrationActivityResource integrationActivityResource) {
+		this.integrationActivityResource = integrationActivityResource;
 	}
 
 	public Long getDeletedBy() {
@@ -49,21 +55,15 @@ public class IntegrationDeletedEvent implements ActivityEvent {
 		this.deletedBy = deletedBy;
 	}
 
-	public IntegrationDeletedEvent(Integration integration, Long deletedBy) {
-		this.integration = integration;
-		this.deletedBy = deletedBy;
-	}
-
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setActivityEntityType(Activity.ActivityEntityType.INTEGRATION);
-		activity.setAction(ActivityAction.DELETE_BTS.getValue());
-		activity.setProjectId(integration.getProject().getId());
-		activity.setUserId(deletedBy);
-		activity.setObjectId(integration.getId());
-		activity.setDetails(new ActivityDetails(integration.getType().getName() + ":" + integration.getProject().getName()));
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(DELETE_BTS)
+				.addActivityEntityType(INTEGRATION)
+				.addUserId(deletedBy)
+				.addObjectId(integrationActivityResource.getId())
+				.addObjectName(integrationActivityResource.getTypeName() + ":" + integrationActivityResource.getProjectName())
+				.addProjectId(integrationActivityResource.getProjectId())
+				.get();
 	}
 }

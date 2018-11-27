@@ -47,7 +47,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.*;
+import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EXPIRED;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
 
@@ -153,12 +153,13 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
 	@Override
 	public Iterable<UserResource> searchUsers(String term, Pageable pageable) {
-		Filter filter = Filter.builder()
-				.withTarget(User.class)
-				.withCondition(new FilterCondition(Condition.CONTAINS, false, term, CRITERIA_USER))
-				.withCondition(new FilterCondition(Condition.CONTAINS, false, term, CRITERIA_FULL_NAME))
-				.withCondition(new FilterCondition(Condition.CONTAINS, false, term, CRITERIA_EMAIL))
-				.build();
-		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(userRepository.findByFilter(filter, pageable));
+		//		Filter filter = Filter.builder()
+		//				.withTarget(User.class)
+		//				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_USER))
+		//				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_FULL_NAME))
+		//				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_EMAIL))
+		//				.build();
+		//		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(userRepository.findByFilter(filter, pageable));
+		throw new ReportPortalException("Unsupported operation");
 	}
 }

@@ -24,23 +24,24 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
+import com.epam.ta.reportportal.entity.widget.content.CriteriaHistoryItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LAUNCH_NAME_FIELD;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
-
-//import com.epam.ta.reportportal.entity.widget.content.CriteraHistoryItem;
 
 /**
  * Content loader for {@link com.epam.ta.reportportal.entity.widget.WidgetType#TOP_TEST_CASES}
@@ -71,17 +72,16 @@ public class TopTestCasesContentLoader implements LoadContentStrategy {
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 		Launch latestByName = launchRepository.findLatestByNameAndFilter(WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions),
 				filter
-		).orElseThrow(() -> new ReportPortalException(
-				ErrorType.LAUNCH_NOT_FOUND,
+		)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND,
 						WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions)
 				));
-/*		List<CriteraHistoryItem> content = widgetContentRepository.topItemsByCriteria(filter,
+		List<CriteriaHistoryItem> content = widgetContentRepository.topItemsByCriteria(filter,
 				contentField, limit, BooleanUtils.toBoolean(WidgetOptionUtil.getValueByKey(INCLUDE_METHODS, widgetOptions))
 		);
 		return ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, LaunchConverter.TO_RESOURCE.apply(latestByName))
 				.put(RESULT, content)
-				.build();*/
-		return Collections.emptyMap();
+				.build();
 	}
 
 	/**

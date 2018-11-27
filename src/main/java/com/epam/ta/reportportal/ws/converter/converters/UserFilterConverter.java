@@ -54,7 +54,7 @@ public final class UserFilterConverter {
 		resource.setName(filter.getName());
 		resource.setDescription(filter.getDescription());
 		resource.setProjectId(filter.getProject().getId());
-		//		resource.setShared();
+		resource.setShared(filter.isShared());
 		return resource;
 	};
 
@@ -73,11 +73,12 @@ public final class UserFilterConverter {
 		return order;
 	};
 
-	private static final UserFilterResource buildFilterResource(UserFilter filter) {
+	private static UserFilterResource buildFilterResource(UserFilter filter) {
 		UserFilterResource userFilterResource = new UserFilterResource();
 		userFilterResource.setFilterId(filter.getId());
 		userFilterResource.setName(filter.getName());
 		userFilterResource.setDescription(filter.getDescription());
+		userFilterResource.setShare(filter.isShared());
 		ofNullable(filter.getTargetClass()).ifPresent(tc -> userFilterResource.setObjectType(tc.getClassObject().getSimpleName()));
 		ofNullable(filter.getFilterCondition()).ifPresent(fcs -> userFilterResource.setConditions(fcs.stream()
 				.map(UserFilterConverter.TO_FILTER_CONDITION)

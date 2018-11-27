@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -89,8 +89,7 @@ public class UserFilterController {
 	@ApiOperation("Get specified user filter by id")
 	public UserFilterResource getFilter(@PathVariable String projectName, @PathVariable Long filterId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		UserFilter filter = getFilterHandler
-			.getFilter(filterId, extractProjectDetails(user, projectName), user);
+		UserFilter filter = getFilterHandler.getFilter(filterId, extractProjectDetails(user, projectName), user);
 		return UserFilterConverter.TO_FILTER_RESOURCE.apply(filter);
 	}
 
@@ -109,7 +108,7 @@ public class UserFilterController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get all filters for specified user who own them")
 	public Iterable<UserFilterResource> getOwnFilters(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
-		@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
+			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
 		return getFilterHandler.getOwnFilters(projectName, pageable, filter, user);
 	}
 
@@ -119,7 +118,7 @@ public class UserFilterController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get all available shared filters (except own shared filters)")
 	public Iterable<UserFilterResource> getSharedFilters(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
-		@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
+			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
 		return shareFilterHandler.getSharedFilters(projectName, pageable, filter, user);
 	}
 

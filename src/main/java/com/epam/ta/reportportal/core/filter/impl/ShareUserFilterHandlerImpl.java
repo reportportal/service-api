@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,9 @@ package com.epam.ta.reportportal.core.filter.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.acl.ReportPortalAclService;
+import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.filter.ShareUserFilterHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
@@ -36,52 +38,46 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+
 @Service
 public class ShareUserFilterHandlerImpl implements ShareUserFilterHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ShareUserFilterHandlerImpl.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ShareUserFilterHandlerImpl.class);
 
+	@Autowired
+	private ReportPortalAclService aclService;
 
-    @Autowired
-    private ReportPortalAclService aclService;
+	@Autowired
+	private ProjectRepository projectRepository;
 
-    @Autowired
-    private ProjectRepository projectRepository;
+	@Autowired
+	private UserFilterRepository userFilterRepository;
 
-    @Autowired
-    private UserFilterRepository userFilterRepository;
+	@Override
+	public void shareFilter(String projectName, Long filterId) {
+		UserFilter filter = userFilterRepository.findById(filterId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND));
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND));
+		project.getUsers().forEach(user -> aclService.addReadPermissions(filter, user.getUser().getLogin()));
+	}
 
+	@Override
+	public Iterable<UserFilterResource> getSharedFilters(String projectName, Pageable pageable, Filter filter, ReportPortalUser user) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND));
+		filter.withCondition(new FilterCondition(Condition.EQUALS, false, String.valueOf(project.getId()), CRITERIA_PROJECT_ID));
+		Page<UserFilter> filters = userFilterRepository.getSharedFilters(project.getId(), filter, pageable, user.getUsername());
+		return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_FILTER_RESOURCE).apply(filters);
+	}
 
-    @Override
-    public void shareFilter(String projectName, Long filterId) {
-        UserFilter filter = userFilterRepository.findById(filterId)
-            .orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND));
-        Project project = projectRepository.findByName(projectName)
-            .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND));
-        project.getUsers()
-            .forEach(user -> aclService.addReadPermissions(filter, user.getUser().getLogin()));
-    }
-
-    @Override
-    public Iterable<UserFilterResource> getSharedFilters(String projectName, Pageable pageable,
-        Filter filter, ReportPortalUser user) {
-        Project project = projectRepository.findByName(projectName)
-            .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND));
-        Page<UserFilter> filters = userFilterRepository
-            .getSharedFilters(project.getId(), filter, pageable, user.getUsername());
-        return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_FILTER_RESOURCE)
-            .apply(filters);
-    }
-
-    @Override
-    public Iterable<UserFilterResource> getAllFilters(String projectName, Pageable pageable,
-        Filter filter, ReportPortalUser user) {
-        Project project = projectRepository.findByName(projectName)
-            .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND));
-        Page<UserFilter> filters = userFilterRepository
-            .getPermittedFilters(project.getId(), filter, pageable,
-                user.getUsername());
-        return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_FILTER_RESOURCE)
-            .apply(filters);
-    }
+	@Override
+	public Iterable<UserFilterResource> getAllFilters(String projectName, Pageable pageable, Filter filter, ReportPortalUser user) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND));
+		filter.withCondition(new FilterCondition(Condition.EQUALS, false, String.valueOf(project.getId()), CRITERIA_PROJECT_ID));
+		Page<UserFilter> filters = userFilterRepository.getPermittedFilters(project.getId(), filter, pageable, user.getUsername());
+		return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_FILTER_RESOURCE).apply(filters);
+	}
 }

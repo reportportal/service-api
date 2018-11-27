@@ -38,7 +38,6 @@ import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.UserBidRS;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.google.common.base.Preconditions;
-import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -156,9 +155,9 @@ public class GetUserHandlerImpl implements GetUserHandler {
 	public Iterable<UserResource> searchUsers(String term, Pageable pageable) {
 		Filter filter = Filter.builder()
 				.withTarget(User.class)
-				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_USER))
-				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_FULL_NAME))
-				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_EMAIL))
+				.withCondition(new FilterCondition(Condition.CONTAINS, false, term, CRITERIA_USER))
+				.withCondition(new FilterCondition(Condition.CONTAINS, false, term, CRITERIA_FULL_NAME))
+				.withCondition(new FilterCondition(Condition.CONTAINS, false, term, CRITERIA_EMAIL))
 				.build();
 		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(userRepository.findByFilter(filter, pageable));
 	}

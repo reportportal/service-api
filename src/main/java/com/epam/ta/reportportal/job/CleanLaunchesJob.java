@@ -1,11 +1,10 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.core.configs.SchedulerConfiguration;
-import com.epam.ta.reportportal.dao.ActivityRepository;
-import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.KeepLaunchDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.quartz.Job;
@@ -16,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -60,37 +58,21 @@ public class CleanLaunchesJob implements Job {
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		LOGGER.debug("Cleaning outdated logs has been started");
-		ExecutorService executor = Executors.newFixedThreadPool(Optional.ofNullable(threadsCount).orElse(DEFAULT_THREAD_COUNT),
+		ExecutorService executor = Executors.newFixedThreadPool(
+				Optional.ofNullable(threadsCount).orElse(DEFAULT_THREAD_COUNT),
 				new ThreadFactoryBuilder().setNameFormat("clean-launches-job-thread-%d").build()
 		);
 
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(ProjectAttributeEnum.KEEP_LAUNCHES, pageable),
+		iterateOverPages(
+				pageable -> projectRepository.findAllIdsAndProjectAttributes(ProjectAttributeEnum.KEEP_LAUNCHES, pageable),
 				projects -> projects.forEach(project -> {
 					AtomicLong removedLaunchesCount = new AtomicLong(0);
 					AtomicLong removedAttachmentsCount = new AtomicLong(0);
 					AtomicLong removedThumbnailsCount = new AtomicLong(0);
 					executor.submit(() -> {
+
 						try {
-							project.getProjectAttributes()
-									.stream()
-									.filter(pa -> pa.getAttribute()
-											.getName()
-											.equalsIgnoreCase(ProjectAttributeEnum.KEEP_LAUNCHES.getAttribute()))
-									.findFirst()
-									.ifPresent(pa -> {
-										KeepLaunchDelay delay = KeepLaunchDelay.findByName(pa.getValue())
-												.orElseThrow(() -> new ReportPortalException(
-														"Incorrect keep launch delay period: " + pa.getValue()));
-										Duration period = Duration.ofDays(delay.getDays());
-										if (!period.isZero()) {
-											logCleaner.removeProjectAttachments(project,
-													period,
-													removedAttachmentsCount,
-													removedThumbnailsCount
-											);
-											launchCleaner.cleanOutdatedLaunches(project, period, removedLaunchesCount);
-										}
-									});
+							proceedLaunchesCleaning(project, removedLaunchesCount, removedAttachmentsCount, removedThumbnailsCount);
 						} catch (Exception e) {
 							LOGGER.debug("Cleaning outdated launches for project {} has been failed", project.getId(), e);
 						}
@@ -119,4 +101,25 @@ public class CleanLaunchesJob implements Job {
 			executor.shutdownNow();
 		}
 	}
+
+	private void proceedLaunchesCleaning(Project project, AtomicLong removedLaunchesCount, AtomicLong removedAttachmentsCount,
+			AtomicLong removedThumbnailsCount) {
+		project.getProjectAttributes()
+				.stream()
+				.filter(pa -> pa.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.KEEP_LAUNCHES.getAttribute()))
+				.findFirst()
+				.ifPresent(pa -> {
+
+					KeepLaunchDelay delay = KeepLaunchDelay.findByName(pa.getValue())
+							.orElseThrow(() -> new ReportPortalException("Incorrect keep launch delay period: " + pa.getValue()));
+
+					Duration period = Duration.ofDays(delay.getDays());
+					if (!period.isZero()) {
+						logCleaner.removeProjectAttachments(project, period, removedAttachmentsCount, removedThumbnailsCount);
+						launchCleaner.cleanOutdatedLaunches(project, period, removedLaunchesCount);
+					}
+
+				});
+	}
+
 }

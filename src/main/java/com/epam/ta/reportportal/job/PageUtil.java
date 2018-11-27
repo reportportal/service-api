@@ -25,6 +25,9 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+/**
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ */
 class PageUtil {
 
 	private static final int DEFAULT_PAGE_SIZE = 50;

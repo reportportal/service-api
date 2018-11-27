@@ -19,10 +19,10 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.core.configs.SchedulerConfiguration;
-import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
-import com.epam.ta.reportportal.entity.project.ProjectAttribute;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -31,24 +31,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.time.Instant;
-import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofDays;
@@ -99,18 +89,7 @@ public class CleanLogsJob implements Job {
 					executor.submit(() -> {
 						try {
 							LOGGER.info("Cleaning outdated logs for project {} has been started", project.getId());
-							project.getProjectAttributes()
-									.stream()
-									.filter(pa -> pa.getAttribute()
-											.getName()
-											.equalsIgnoreCase(ProjectAttributeEnum.KEEP_LOGS.getAttribute()))
-									.findFirst()
-									.ifPresent(pa -> {
-										Duration period = ofDays(KeepLogsDelay.findByName(pa.getValue()).getDays());
-										if (!period.isZero()) {
-											logCleaner.removeOutdatedLogs(project, period, removedLogsCount);
-										}
-									});
+							proceedLogsRemoving(project, removedLogsCount);
 
 						} catch (Exception e) {
 							LOGGER.debug("Cleaning outdated logs for project {} has been failed", project.getId(), e);
@@ -135,6 +114,19 @@ public class CleanLogsJob implements Job {
 			executor.shutdownNow();
 		}
 
+	}
+
+	private void proceedLogsRemoving(Project project, AtomicLong removedLogsCount) {
+		project.getProjectAttributes()
+				.stream()
+				.filter(pa -> pa.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.KEEP_LOGS.getAttribute()))
+				.findFirst()
+				.ifPresent(pa -> {
+					Duration period = ofDays(KeepLogsDelay.findByName(pa.getValue()).getDays());
+					if (!period.isZero()) {
+						logCleaner.removeOutdatedLogs(project, period, removedLogsCount);
+					}
+				});
 	}
 
 }

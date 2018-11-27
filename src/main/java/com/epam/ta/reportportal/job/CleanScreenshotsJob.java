@@ -21,32 +21,20 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.binary.DataStoreService;
-import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.KeepScreenshotsDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
-import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.project.Project;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.time.Instant;
-import java.util.Date;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
-import static com.epam.ta.reportportal.job.CleanLogsJob.MIN_DELAY;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofDays;
 
@@ -82,20 +70,7 @@ public class CleanScreenshotsJob implements Job {
 
 					try {
 						LOGGER.info("Cleaning outdated screenshots for project {} has been started", project.getId());
-
-						project.getProjectAttributes()
-								.stream()
-								.filter(pa -> pa.getAttribute()
-										.getName()
-										.equalsIgnoreCase(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute()))
-								.findFirst()
-								.ifPresent(pa -> {
-									Duration period = ofDays(KeepScreenshotsDelay.findByName(pa.getValue()).getDays());
-									if (!period.isZero()) {
-										logCleaner.removeProjectAttachments(project, period, attachmentsCount, thumbnailsCount);
-									}
-								});
-
+						proceedScreenShotsCleaning(project, attachmentsCount, thumbnailsCount);
 					} catch (Exception e) {
 						LOGGER.info("Cleaning outdated screenshots for project {} has been failed", project.getId(), e);
 					}
@@ -108,5 +83,18 @@ public class CleanScreenshotsJob implements Job {
 				})
 		);
 
+	}
+
+	private void proceedScreenShotsCleaning(Project project, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {
+		project.getProjectAttributes()
+				.stream()
+				.filter(pa -> pa.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute()))
+				.findFirst()
+				.ifPresent(pa -> {
+					Duration period = ofDays(KeepScreenshotsDelay.findByName(pa.getValue()).getDays());
+					if (!period.isZero()) {
+						logCleaner.removeProjectAttachments(project, period, attachmentsCount, thumbnailsCount);
+					}
+				});
 	}
 }

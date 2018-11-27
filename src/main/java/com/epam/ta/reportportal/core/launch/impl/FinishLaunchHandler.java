@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishForcedEvent;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
+import com.epam.ta.reportportal.core.launch.AfterLaunchFinishedHandler;
 import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -75,6 +76,9 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
+	private AfterLaunchFinishedHandler afterLaunchFinishedHandler;
+
+	@Autowired
 	public FinishLaunchHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository, MessageBus messageBus,
 			ApplicationEventPublisher eventPublisher) {
 		this.launchRepository = launchRepository;
@@ -86,7 +90,8 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 	@Override
 	public Launch finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
+		Launch launch = launchRepository.findById(launchId)
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
 
 		validateRoles(launch, user, projectDetails);
 		validate(launch, finishLaunchRQ);
@@ -110,7 +115,7 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 		}
 		launch.setStatus(statusEnum.orElse(fromStatisticsStatus));
 
-		testItemRepository.handleRetriesStatistics(launch.getId());
+		afterLaunchFinishedHandler.handleRetriesStatistics(launch);
 
 		LaunchFinishedEvent event = new LaunchFinishedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId());
 		messageBus.publishActivity(event);
@@ -150,7 +155,8 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 
 		launchRepository.save(launch);
 		testItemRepository.interruptInProgressItems(launchId);
-		testItemRepository.handleRetriesStatistics(launch.getId());
+
+		afterLaunchFinishedHandler.handleRetriesStatistics(launch);
 
 		messageBus.publishActivity(new LaunchFinishForcedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId()));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully stopped.");

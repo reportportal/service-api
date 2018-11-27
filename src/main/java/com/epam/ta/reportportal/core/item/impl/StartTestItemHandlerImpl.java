@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -115,7 +116,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
-		if(rq.isRetry() != null && rq.isRetry()) {
+		if(BooleanUtils.toBoolean(rq.isRetry())) {
 			testItemRepository.handleRetries(item.getItemId());
 		}
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());

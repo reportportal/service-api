@@ -21,6 +21,9 @@
 
 package com.epam.ta.reportportal.job;
 
+import com.epam.ta.reportportal.commons.querygen.Condition;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.KeepScreenshotsDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
@@ -35,6 +38,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_ATTRIBUTE_NAME;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofDays;
 
@@ -62,27 +66,34 @@ public class CleanScreenshotsJob implements Job {
 	public void execute(JobExecutionContext context) {
 		LOGGER.info("Cleaning outdated screenshots has been started");
 
-		iterateOverPages(
-				pageable -> projectRepository.findAllIdsAndProjectAttributes(ProjectAttributeEnum.KEEP_SCREENSHOTS, pageable),
-				projects -> projects.forEach(project -> {
-					AtomicLong attachmentsCount = new AtomicLong(0);
-					AtomicLong thumbnailsCount = new AtomicLong(0);
+		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(
+				buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_SCREENSHOTS),
+				pageable
+		), projects -> projects.forEach(project -> {
+			AtomicLong attachmentsCount = new AtomicLong(0);
+			AtomicLong thumbnailsCount = new AtomicLong(0);
 
-					try {
-						LOGGER.info("Cleaning outdated screenshots for project {} has been started", project.getId());
-						proceedScreenShotsCleaning(project, attachmentsCount, thumbnailsCount);
-					} catch (Exception e) {
-						LOGGER.info("Cleaning outdated screenshots for project {} has been failed", project.getId(), e);
-					}
-					LOGGER.info(
-							"Cleaning outdated screenshots for project {} has been finished. {} attachments and {} thumbnails have been deleted",
-							project.getId(),
-							attachmentsCount.get(),
-							thumbnailsCount.get()
-					);
-				})
-		);
+			try {
+				LOGGER.info("Cleaning outdated screenshots for project {} has been started", project.getId());
+				proceedScreenShotsCleaning(project, attachmentsCount, thumbnailsCount);
+			} catch (Exception e) {
+				LOGGER.info("Cleaning outdated screenshots for project {} has been failed", project.getId(), e);
+			}
+			LOGGER.info(
+					"Cleaning outdated screenshots for project {} has been finished. {} attachments and {} thumbnails have been deleted",
+					project.getId(),
+					attachmentsCount.get(),
+					thumbnailsCount.get()
+			);
+		}));
 
+	}
+
+	private Filter buildProjectAttributesFilter(ProjectAttributeEnum projectAttributeEnum) {
+		return Filter.builder()
+				.withTarget(Project.class)
+				.withCondition(new FilterCondition(Condition.EQUALS, false, projectAttributeEnum.getAttribute(), CRITERIA_ATTRIBUTE_NAME))
+				.build();
 	}
 
 	private void proceedScreenShotsCleaning(Project project, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {

@@ -18,6 +18,9 @@
 
 package com.epam.ta.reportportal.job;
 
+import com.epam.ta.reportportal.commons.querygen.Condition;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.configs.SchedulerConfiguration;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
@@ -40,6 +43,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_ATTRIBUTE_NAME;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofDays;
 
@@ -77,31 +81,29 @@ public class CleanLogsJob implements Job {
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		LOGGER.debug("Cleaning outdated logs has been started");
-		ExecutorService executor = Executors.newFixedThreadPool(
-				Optional.ofNullable(threadsCount).orElse(DEFAULT_THREAD_COUNT),
+		ExecutorService executor = Executors.newFixedThreadPool(Optional.ofNullable(threadsCount).orElse(DEFAULT_THREAD_COUNT),
 				new ThreadFactoryBuilder().setNameFormat("clean-logs-job-thread-%d").build()
 		);
 
-		iterateOverPages(
-				pageable -> projectRepository.findAllIdsAndProjectAttributes(ProjectAttributeEnum.KEEP_LOGS, pageable),
-				projects -> projects.forEach(project -> {
-					AtomicLong removedLogsCount = new AtomicLong(0);
-					executor.submit(() -> {
-						try {
-							LOGGER.info("Cleaning outdated logs for project {} has been started", project.getId());
-							proceedLogsRemoving(project, removedLogsCount);
+		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(
+				buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LOGS),
+				pageable
+		), projects -> projects.forEach(project -> {
+			AtomicLong removedLogsCount = new AtomicLong(0);
+			executor.submit(() -> {
+				try {
+					LOGGER.info("Cleaning outdated logs for project {} has been started", project.getId());
+					proceedLogsRemoving(project, removedLogsCount);
 
-						} catch (Exception e) {
-							LOGGER.debug("Cleaning outdated logs for project {} has been failed", project.getId(), e);
-						}
-						LOGGER.info(
-								"Cleaning outdated logs for project {} has been finished. Total logs removed: {}",
-								project.getId(),
-								removedLogsCount.get()
-						);
-					});
-				})
-		);
+				} catch (Exception e) {
+					LOGGER.debug("Cleaning outdated logs for project {} has been failed", project.getId(), e);
+				}
+				LOGGER.info("Cleaning outdated logs for project {} has been finished. Total logs removed: {}",
+						project.getId(),
+						removedLogsCount.get()
+				);
+			});
+		}));
 
 		try {
 			executor.shutdown();
@@ -114,6 +116,13 @@ public class CleanLogsJob implements Job {
 			executor.shutdownNow();
 		}
 
+	}
+
+	private Filter buildProjectAttributesFilter(ProjectAttributeEnum projectAttributeEnum) {
+		return Filter.builder()
+				.withTarget(Project.class)
+				.withCondition(new FilterCondition(Condition.EQUALS, false, projectAttributeEnum.getAttribute(), CRITERIA_ATTRIBUTE_NAME))
+				.build();
 	}
 
 	private void proceedLogsRemoving(Project project, AtomicLong removedLogsCount) {

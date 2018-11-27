@@ -1,5 +1,8 @@
 package com.epam.ta.reportportal.job;
 
+import com.epam.ta.reportportal.commons.querygen.Condition;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.configs.SchedulerConfiguration;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.KeepLaunchDelay;
@@ -23,6 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_ATTRIBUTE_NAME;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 
 /**
@@ -58,14 +62,16 @@ public class CleanLaunchesJob implements Job {
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		LOGGER.debug("Cleaning outdated logs has been started");
-		ExecutorService executor = Executors.newFixedThreadPool(
-				Optional.ofNullable(threadsCount).orElse(DEFAULT_THREAD_COUNT),
+		ExecutorService executor = Executors.newFixedThreadPool(Optional.ofNullable(threadsCount).orElse(DEFAULT_THREAD_COUNT),
 				new ThreadFactoryBuilder().setNameFormat("clean-launches-job-thread-%d").build()
 		);
 
 		iterateOverPages(
-				pageable -> projectRepository.findAllIdsAndProjectAttributes(ProjectAttributeEnum.KEEP_LAUNCHES, pageable),
-				projects -> projects.forEach(project -> {
+
+				pageable -> projectRepository.findAllIdsAndProjectAttributes(
+						buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LAUNCHES),
+						pageable
+				), projects -> projects.forEach(project -> {
 					AtomicLong removedLaunchesCount = new AtomicLong(0);
 					AtomicLong removedAttachmentsCount = new AtomicLong(0);
 					AtomicLong removedThumbnailsCount = new AtomicLong(0);
@@ -87,8 +93,7 @@ public class CleanLaunchesJob implements Job {
 
 					});
 
-				})
-		);
+				}));
 
 		try {
 			executor.shutdown();
@@ -100,6 +105,13 @@ public class CleanLaunchesJob implements Job {
 		} finally {
 			executor.shutdownNow();
 		}
+	}
+
+	private Filter buildProjectAttributesFilter(ProjectAttributeEnum projectAttributeEnum) {
+		return Filter.builder()
+				.withTarget(Project.class)
+				.withCondition(new FilterCondition(Condition.EQUALS, false, projectAttributeEnum.getAttribute(), CRITERIA_ATTRIBUTE_NAME))
+				.build();
 	}
 
 	private void proceedLaunchesCleaning(Project project, AtomicLong removedLaunchesCount, AtomicLong removedAttachmentsCount,

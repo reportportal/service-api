@@ -37,8 +37,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import java.util.Set;
 
+import static com.epam.ta.reportportal.demodata.Constants.ATTRIBUTES_COUNT;
 import static com.epam.ta.reportportal.demodata.Constants.CONTENT_PROBABILITY;
-import static com.epam.ta.reportportal.demodata.Constants.TAGS_COUNT;
 import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.*;
 
 /**
@@ -72,9 +72,9 @@ public class DemoDataCommonService {
 		rq.setName(name);
 		rq.setStartTime(new Date());
 		Set<ItemAttributeResource> tags = Sets.newHashSet(
-				new ItemAttributeResource("desktop", "", false),
-				new ItemAttributeResource("demo", "", false),
-				new ItemAttributeResource("build", "3.0.1", false)
+				new ItemAttributeResource("desktop", null),
+				new ItemAttributeResource("demo", null),
+				new ItemAttributeResource("build", "3.0.1")
 		);
 		rq.setAttributes(tags);
 
@@ -99,7 +99,7 @@ public class DemoDataCommonService {
 		rq.setStartTime(new Date());
 		rq.setType(type.name());
 		if (type.sameLevel(SUITE) && ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
-			rq.setAttributes(ContentUtils.getTagsInRange(TAGS_COUNT));
+			rq.setAttributes(ContentUtils.getAttributesInRange(ATTRIBUTES_COUNT));
 			rq.setDescription(ContentUtils.getSuiteDescription());
 		}
 
@@ -121,10 +121,10 @@ public class DemoDataCommonService {
 		StartTestItemRQ rq = new StartTestItemRQ();
 		if (ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
 			if (hasChildren(type)) {
-				rq.setAttributes(ContentUtils.getTagsInRange(TAGS_COUNT));
+				rq.setAttributes(ContentUtils.getAttributesInRange(ATTRIBUTES_COUNT));
 				rq.setDescription(ContentUtils.getTestDescription());
 			} else {
-				rq.setAttributes(ContentUtils.getTagsInRange(TAGS_COUNT));
+				rq.setAttributes(ContentUtils.getAttributesInRange(ATTRIBUTES_COUNT));
 				rq.setDescription(ContentUtils.getStepDescription());
 			}
 		}

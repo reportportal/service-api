@@ -62,9 +62,7 @@ public final class IntegrationFieldsConverter {
 		postFormField.setId(defectFormField.getFieldId());
 		postFormField.setFieldType(defectFormField.getType());
 		postFormField.setIsRequired(defectFormField.isRequired());
-		postFormField.setDefinedValues(defectFormField.getDefectFieldAllowedValues()
-				.stream()
-				.map(IntegrationFieldsConverter.VALUE_TO_MODEL)
+		postFormField.setDefinedValues(defectFormField.getDefectFieldAllowedValues().stream().map(IntegrationFieldsConverter.VALUE_TO_MODEL)
 				.collect(Collectors.toList()));
 		postFormField.setValue(new ArrayList<>(defectFormField.getValues()));
 		return postFormField;

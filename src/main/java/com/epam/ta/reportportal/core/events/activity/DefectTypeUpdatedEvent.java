@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,35 +17,36 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
-import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
+import com.epam.ta.reportportal.ws.model.activity.IssueTypeActivityResource;
 
-import java.time.LocalDateTime;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.UPDATE_DEFECT;
+import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.DEFECT_TYPE;
 
 /**
  * @author Andrei Varabyeu
  */
 public class DefectTypeUpdatedEvent implements ActivityEvent {
 
-	private Long projectId;
+	private IssueTypeActivityResource issueTypeActivityResource;
 	private Long updatedBy;
-	private UpdateOneIssueSubTypeRQ request;
+	private Long projectId;
 
 	public DefectTypeUpdatedEvent() {
 	}
 
-	public DefectTypeUpdatedEvent(Long projectId, Long updatedBy, UpdateOneIssueSubTypeRQ request) {
-		this.projectId = projectId;
+	public DefectTypeUpdatedEvent(IssueTypeActivityResource issueTypeActivityResource, Long updatedBy, Long projectId) {
+		this.issueTypeActivityResource = issueTypeActivityResource;
 		this.updatedBy = updatedBy;
-		this.request = request;
-	}
-
-	public Long getProjectId() {
-		return projectId;
-	}
-
-	public void setProjectId(Long projectId) {
 		this.projectId = projectId;
+	}
+
+	public IssueTypeActivityResource getIssueTypeActivityResource() {
+		return issueTypeActivityResource;
+	}
+
+	public void setIssueTypeActivityResource(IssueTypeActivityResource issueTypeActivityResource) {
+		this.issueTypeActivityResource = issueTypeActivityResource;
 	}
 
 	public Long getUpdatedBy() {
@@ -56,24 +57,23 @@ public class DefectTypeUpdatedEvent implements ActivityEvent {
 		this.updatedBy = updatedBy;
 	}
 
-	public UpdateOneIssueSubTypeRQ getRequest() {
-		return request;
+	public Long getProjectId() {
+		return projectId;
 	}
 
-	public void setRequest(UpdateOneIssueSubTypeRQ request) {
-		this.request = request;
+	public void setProjectId(Long projectId) {
+		this.projectId = projectId;
 	}
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setAction(ActivityAction.UPDATE_DEFECT.toString());
-		activity.setActivityEntityType(Activity.ActivityEntityType.DEFECT_TYPE);
-		activity.setProjectId(projectId);
-		activity.setUserId(updatedBy);
-		activity.setObjectId(Long.valueOf(request.getId()));
-		activity.setDetails(new ActivityDetails(request.getLongName()));
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addAction(UPDATE_DEFECT)
+				.addActivityEntityType(DEFECT_TYPE)
+				.addUserId(updatedBy)
+				.addObjectId(issueTypeActivityResource.getId())
+				.addObjectName(issueTypeActivityResource.getLongName())
+				.addProjectId(projectId)
+				.get();
 	}
 }

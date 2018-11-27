@@ -39,7 +39,6 @@ import java.util.Map.Entry;
 
 import static com.epam.ta.reportportal.core.project.impl.ProjectInfoWidgetDataConverter.ProjectInfoGroup.BY_DAY;
 import static com.epam.ta.reportportal.core.project.impl.ProjectInfoWidgetDataConverter.ProjectInfoGroup.BY_NAME;
-
 import static com.epam.ta.reportportal.core.project.impl.StatisticsUtils.extractStatisticsCount;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
 import static java.time.temporal.ChronoUnit.DAYS;

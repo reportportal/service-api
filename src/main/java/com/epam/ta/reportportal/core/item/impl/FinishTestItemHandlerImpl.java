@@ -161,7 +161,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param actualStatus Actual status of item
 	 * @param hasChildren  Does item contain children
 	 */
-	private void verifyTestItem(ReportPortalUser user, TestItem testItem, Optional<StatusEnum> actualStatus, Set<ItemAttributeResource> attributes,  boolean hasChildren) {
+	private void verifyTestItem(ReportPortalUser user, TestItem testItem, Optional<StatusEnum> actualStatus,
+			Set<ItemAttributeResource> attributes, boolean hasChildren) {
 		Launch launch;
 		if (ofNullable(testItem.getRetryOf()).isPresent()) {
 			TestItem retryParent = testItemRepository.findById(testItem.getRetryOf())

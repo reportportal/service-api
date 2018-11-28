@@ -102,7 +102,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	}
 
 	public TestItemBuilder addAttributes(Set<ItemAttributeResource> tags) {
-		ofNullable(tags).ifPresent(it -> testItem.setAttributes(it.stream().map(val -> {
+		ofNullable(tags).ifPresent(it -> testItem.getAttributes().addAll(it.stream().map(val -> {
 			ItemAttribute itemAttribute = new ItemAttribute();
 			itemAttribute.setKey(val.getKey());
 			itemAttribute.setValue(val.getValue());

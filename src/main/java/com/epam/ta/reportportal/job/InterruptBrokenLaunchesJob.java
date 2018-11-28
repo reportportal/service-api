@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.entity.enums.InterruptionJobDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,18 +84,17 @@ public class InterruptBrokenLaunchesJob implements Job {
 	@Transactional
 	public void execute(JobExecutionContext context) {
 
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(
-				buildProjectAttributesFilter(ProjectAttributeEnum.INTERRUPT_JOB_TIME),
+		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.INTERRUPT_JOB_TIME),
 				pageable
 		), projects -> projects.forEach(project -> {
 			project.getProjectAttributes()
 					.stream()
-					.filter(pa -> pa.getAttribute()
-							.getName()
-							.equalsIgnoreCase(ProjectAttributeEnum.INTERRUPT_JOB_TIME.getAttribute()))
+					.filter(pa -> pa.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.INTERRUPT_JOB_TIME.getAttribute()))
 					.findFirst()
 					.ifPresent(pa -> {
-						Duration maxDuration = ofHours(InterruptionJobDelay.findByName(pa.getValue()).getPeriod());
+						Duration maxDuration = ofHours(InterruptionJobDelay.findByName(pa.getValue())
+								.orElseThrow(() -> new ReportPortalException("Incorrect launch interruption delay period: " + pa.getValue()))
+								.getPeriod());
 						try (Stream<Long> ids = launchRepository.streamIdsWithStatusModifiedBefore(project.getId(),
 								StatusEnum.IN_PROGRESS,
 								TO_LOCAL_DATE_TIME.apply(Date.from(Instant.now().minusSeconds(maxDuration.getSeconds())))

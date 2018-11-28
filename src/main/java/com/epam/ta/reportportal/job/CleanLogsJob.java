@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -85,8 +86,7 @@ public class CleanLogsJob implements Job {
 				new ThreadFactoryBuilder().setNameFormat("clean-logs-job-thread-%d").build()
 		);
 
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(
-				buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LOGS),
+		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LOGS),
 				pageable
 		), projects -> projects.forEach(project -> {
 			AtomicLong removedLogsCount = new AtomicLong(0);
@@ -131,7 +131,9 @@ public class CleanLogsJob implements Job {
 				.filter(pa -> pa.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.KEEP_LOGS.getAttribute()))
 				.findFirst()
 				.ifPresent(pa -> {
-					Duration period = ofDays(KeepLogsDelay.findByName(pa.getValue()).getDays());
+					Duration period = ofDays(KeepLogsDelay.findByName(pa.getValue())
+							.orElseThrow(() -> new ReportPortalException("Incorrect keep logs delay period: " + pa.getValue()))
+							.getDays());
 					if (!period.isZero()) {
 						logCleaner.removeOutdatedLogs(project, period, removedLogsCount);
 					}

@@ -22,11 +22,12 @@ import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * Converts internal DB model to DTO
@@ -52,7 +53,7 @@ public final class TestItemConverter {
 		if (null != item.getParameters()) {
 			resource.setParameters(item.getParameters().stream().map(ParametersConverter.TO_RESOURCE).collect(Collectors.toList()));
 		}
-		Optional.ofNullable(item.getItemResults().getIssue()).ifPresent(i -> resource.setIssue(IssueConverter.TO_MODEL.apply(i)));
+		ofNullable(item.getItemResults().getIssue()).ifPresent(i -> resource.setIssue(IssueConverter.TO_MODEL.apply(i)));
 		resource.setName(item.getName());
 		resource.setStartTime(EntityUtils.TO_DATE.apply(item.getStartTime()));
 		resource.setStatus(item.getItemResults().getStatus() != null ? item.getItemResults().getStatus().toString() : null);
@@ -64,9 +65,10 @@ public final class TestItemConverter {
 		if (item.getParent() != null) {
 			resource.setParent(item.getParent().getItemId());
 		}
-		resource.setLaunchId(item.getLaunch().getId());
+		ofNullable(item.getLaunch()).ifPresent(l -> resource.setLaunchId(l.getId()));
 		resource.setPath(item.getPath());
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults().getStatistics()));
+		resource.setRetries(item.getRetries().stream().map(TestItemConverter.TO_RESOURCE).collect(Collectors.toList()));
 		return resource;
 	};
 

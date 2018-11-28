@@ -15,6 +15,7 @@
  */
 package com.epam.ta.reportportal.info;
 
+import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.enums.ActivityEventType;
 import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
 import com.google.common.collect.ImmutableMap;
@@ -38,10 +39,11 @@ public class MetadataInfoContributor extends MapInfoContributor {
 
 	private static Map<String, Object> getMetadata() {
 		return ImmutableMap.<String, Object>builder().put(
-				"activitiesEventType",
-				stream(ActivityEventType.values()).map(ActivityEventType::getValue).collect(toList())
-		)
-				.put("activitiesObjectType", stream(ActivityEventType.values()).map(ActivityEventType::getValue).collect(toList()))
+				"activitiesEventType", stream(ActivityEventType.values()).map(ActivityEventType::getValue).collect(toList()))
+				.put(
+						"activitiesObjectType",
+						stream(Activity.ActivityEntityType.values()).map(Activity.ActivityEntityType::getValue).collect(toList())
+				)
 				.put("keepLogsDelay", stream(KeepLogsDelay.values()).map(KeepLogsDelay::getValue).collect(toList()))
 				.build();
 	}

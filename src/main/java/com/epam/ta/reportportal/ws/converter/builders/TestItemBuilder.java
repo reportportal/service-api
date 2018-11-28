@@ -18,14 +18,15 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
-import com.epam.ta.reportportal.entity.item.TestItemTag;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import org.apache.commons.collections.CollectionUtils;
@@ -66,7 +67,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		testItemResults.setTestItem(testItem);
 
 		addDescription(rq.getDescription());
-		addTags(rq.getTags());
+		addAttributes(rq.getAttributes());
 		addParameters(rq.getParameters());
 		addType(rq.getType());
 		return this;
@@ -100,12 +101,15 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		return this;
 	}
 
-	public TestItemBuilder addTags(Set<String> tags) {
-		ofNullable(tags).ifPresent(it -> testItem.setTags(it.stream()
-				.filter(EntityUtils.NOT_EMPTY)
-				.map(EntityUtils.REPLACE_SEPARATOR)
-				.map(TestItemTag::new)
-				.collect(Collectors.toSet())));
+	public TestItemBuilder addAttributes(Set<ItemAttributeResource> tags) {
+		ofNullable(tags).ifPresent(it -> testItem.setAttributes(it.stream().map(val -> {
+			ItemAttribute itemAttribute = new ItemAttribute();
+			itemAttribute.setKey(val.getKey());
+			itemAttribute.setValue(val.getValue());
+			itemAttribute.setSystem(val.isSystem());
+			itemAttribute.setTestItem(testItem);
+			return itemAttribute;
+		}).collect(Collectors.toSet())));
 		return this;
 	}
 

@@ -18,9 +18,13 @@ package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.core.events.activity.ActivityAction;
 import com.epam.ta.reportportal.core.project.GetProjectInfoHandler;
+import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.enums.InfoInterval;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -28,24 +32,37 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.email.ProjectInfoWidget;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
+import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
+import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
-import com.epam.ta.reportportal.ws.model.widget.ChartObject;
+import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.RoundingMode;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Predicate;
 
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.querygen.Condition.*;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ACTION;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_CREATION_DATE;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+import static com.epam.ta.reportportal.core.events.activity.ActivityAction.*;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
+import static com.epam.ta.reportportal.ws.converter.converters.ActivityConverter.TO_RESOURCE;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Pavel Bortnik
@@ -55,18 +72,22 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 
 	private DecimalFormat formatter = new DecimalFormat("###.##");
 	private static final Double WEEKS_IN_MONTH = 4.4;
+	private static final int LIMIT = 150;
 
 	private final ProjectRepository projectRepository;
 
 	private final LaunchRepository launchRepository;
 
+	private final ActivityRepository activityRepository;
+
 	private final ProjectInfoWidgetDataConverter dataConverter;
 
 	@Autowired
 	public GetProjectInfoHandlerImpl(ProjectRepository projectRepository, LaunchRepository launchRepository,
-			ProjectInfoWidgetDataConverter dataConverter) {
+			ActivityRepository activityRepository, ProjectInfoWidgetDataConverter dataConverter) {
 		this.projectRepository = projectRepository;
 		this.launchRepository = launchRepository;
+		this.activityRepository = activityRepository;
 		this.dataConverter = dataConverter;
 	}
 
@@ -95,8 +116,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 	}
 
 	@Override
-	public Map<String, List<ChartObject>> getProjectInfoWidgetContent(ReportPortalUser.ProjectDetails projectDetails, String interval,
-			String widgetCode) {
+	public Map<String, ?> getProjectInfoWidgetContent(ReportPortalUser.ProjectDetails projectDetails, String interval, String widgetCode) {
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 		InfoInterval infoInterval = InfoInterval.findByInterval(interval)
@@ -109,7 +129,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				LaunchModeEnum.DEFAULT
 		);
 
-		Map<String, List<ChartObject>> result;
+		Map<String, ?> result;
 
 		switch (widgetType) {
 			case INVESTIGATED:
@@ -124,18 +144,25 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 			case ISSUES_CHART:
 				result = dataConverter.getLaunchesIssues(launches, infoInterval);
 				break;
-			//			case ACTIVITIES:
-			//				result = getActivities(projectId, infoInterval);
-			//				break;
-			//			case LAST_LAUNCH:
-			//				result = getLastLaunchStatistics(projectId);
-			//				break;
+			case ACTIVITIES:
+				result = getActivities(projectDetails.getProjectId(), infoInterval);
+				break;
+			case LAST_LAUNCH:
+				result = getLastLaunchStatistics(projectDetails.getProjectId());
+				break;
 			default:
 				// empty result
 				result = Collections.emptyMap();
 		}
 
 		return result;
+	}
+
+	private Map<String, ?> getLastLaunchStatistics(Long projectId) {
+		Optional<Launch> launchOptional = launchRepository.findLastRun(projectId, Mode.DEFAULT.name());
+		return launchOptional.isPresent() ?
+				Collections.singletonMap(RESULT, LaunchConverter.TO_RESOURCE.apply(launchOptional.get())) :
+				Collections.emptyMap();
 	}
 
 	/**
@@ -146,6 +173,32 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 	 */
 	private static LocalDateTime getStartIntervalDate(InfoInterval interval) {
 		return LocalDateTime.now(Clock.systemUTC()).minusMonths(interval.getCount());
+	}
+
+	private static final Predicate<ActivityAction> ACTIVITIES_PROJECT_FILTER = it -> it == UPDATE_DEFECT || it == DELETE_DEFECT
+			|| it == LINK_ISSUE || it == LINK_ISSUE_AA || it == UNLINK_ISSUE || it == UPDATE_ITEM;
+
+	private Map<String, List<ActivityResource>> getActivities(Long projectId, InfoInterval infoInterval) {
+		String value = Arrays.stream(ActivityAction.values())
+				.filter(not(ACTIVITIES_PROJECT_FILTER))
+				.map(ActivityAction::getValue)
+				.collect(joining(","));
+		Filter filter = new Filter(Activity.class, Sets.newHashSet(new FilterCondition(IN, false, value, CRITERIA_ACTION),
+				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID), new FilterCondition(
+						GREATER_THAN_OR_EQUALS,
+						false,
+						String.valueOf(Timestamp.valueOf(getStartIntervalDate(infoInterval)).getTime()),
+						CRITERIA_CREATION_DATE
+				)
+		));
+		List<Activity> activities = activityRepository.findByFilter(filter, PageRequest.of(0, LIMIT, Sort.by(Sort.Direction.DESC,
+				filter.getTarget()
+						.getCriteriaByFilter(CRITERIA_CREATION_DATE)
+						.orElseThrow(() -> new ReportPortalException(UNCLASSIFIED_REPORT_PORTAL_ERROR))
+						.getQueryCriteria()
+		))).getContent();
+
+		return Collections.singletonMap(RESULT, activities.stream().map(TO_RESOURCE).collect(toList()));
 	}
 
 }

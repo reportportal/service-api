@@ -20,11 +20,11 @@ import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.project.email.LaunchStatsRule;
@@ -155,9 +155,8 @@ public class LaunchFinishedEventHandler {
 	 */
 	@VisibleForTesting
 	static boolean isTagsMatched(Launch launch, List<String> tags) {
-		return !(null != tags && !tags.isEmpty()) || null != launch.getTags() && launch.getTags()
-				.stream()
-				.map(LaunchTag::getValue)
+		return !(null != tags && !tags.isEmpty()) || null != launch.getAttributes() && launch.getAttributes()
+				.stream().map(ItemAttribute::getValue)
 				.collect(toList())
 				.containsAll(tags);
 	}

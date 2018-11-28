@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ import org.springframework.stereotype.Service;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -115,6 +117,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
+		if(BooleanUtils.toBoolean(rq.isRetry())) {
+			testItemRepository.handleRetries(item.getItemId());
+		}
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
 
@@ -137,6 +142,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				launch.getStartTime(),
 				launch.getId()
 		);
+
+		validateAttributes(rq.getAttributes());
 	}
 
 	/**
@@ -160,5 +167,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		expect(logRepository.hasLogs(parent.getItemId()), equalTo(false)).verify(START_ITEM_NOT_ALLOWED,
 				formattedSupplier("Parent Item '{}' already has log items", parent.getItemId())
 		);
+
+		validateAttributes(rq.getAttributes());
 	}
 }

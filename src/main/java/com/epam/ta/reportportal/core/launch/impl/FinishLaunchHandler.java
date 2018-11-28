@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishForcedEvent;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
+import com.epam.ta.reportportal.core.launch.AfterLaunchFinishedHandler;
 import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -49,6 +50,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
 import static com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator.generateLaunchLink;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
@@ -67,12 +69,14 @@ import static java.util.stream.Collectors.toList;
 public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch.FinishLaunchHandler {
 
 	private static final String LAUNCH_STOP_DESCRIPTION = " stopped";
-	private static final String LAUNCH_STOP_TAG = "stopped";
 
 	private final LaunchRepository launchRepository;
 	private final TestItemRepository testItemRepository;
 	private final MessageBus messageBus;
 	private final ApplicationEventPublisher eventPublisher;
+
+	@Autowired
+	private AfterLaunchFinishedHandler afterLaunchFinishedHandler;
 
 	@Autowired
 	public FinishLaunchHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository, MessageBus messageBus,
@@ -86,7 +90,8 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 	@Override
 	public Launch finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
+		Launch launch = launchRepository.findById(launchId)
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
 
 		validateRoles(launch, user, projectDetails);
 		validate(launch, finishLaunchRQ);
@@ -95,8 +100,7 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 			testItemRepository.interruptInProgressItems(launchId);
 		}
 
-		launch = new LaunchBuilder(launch).addDescription(finishLaunchRQ.getDescription())
-				.addTags(finishLaunchRQ.getTags())
+		launch = new LaunchBuilder(launch).addDescription(finishLaunchRQ.getDescription()).addAttributes(finishLaunchRQ.getAttributes())
 				.addEndTime(finishLaunchRQ.getEndTime())
 				.get();
 
@@ -109,6 +113,8 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 			validateProvidedStatus(launch, statusEnum.get(), fromStatisticsStatus);
 		}
 		launch.setStatus(statusEnum.orElse(fromStatisticsStatus));
+
+		afterLaunchFinishedHandler.handleRetriesStatistics(launch);
 
 		LaunchFinishedEvent event = new LaunchFinishedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId());
 		messageBus.publishActivity(event);
@@ -141,13 +147,14 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 		);
 
 		launch = new LaunchBuilder(launch).addDescription(ofNullable(launch.getDescription()).orElse("").concat(LAUNCH_STOP_DESCRIPTION))
-				.addTag(LAUNCH_STOP_TAG)
 				.addStatus(ofNullable(finishLaunchRQ.getStatus()).orElse(STOPPED.name()))
 				.get();
 		launch.setEndTime(LocalDateTime.now());
 
 		launchRepository.save(launch);
 		testItemRepository.interruptInProgressItems(launchId);
+
+		afterLaunchFinishedHandler.handleRetriesStatistics(launch);
 
 		messageBus.publishActivity(new LaunchFinishForcedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId()));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully stopped.");
@@ -179,6 +186,8 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 				launch.getStartTime(),
 				launch.getId()
 		);
+
+		validateAttributes(finishExecutionRQ.getAttributes());
 	}
 
 	/**

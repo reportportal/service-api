@@ -16,11 +16,9 @@
 
 package com.epam.ta.reportportal.core.events.handler;
 
-import com.epam.ta.reportportal.core.events.activity.LaunchFinishForcedEvent;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -83,21 +81,15 @@ public class LaunchFinishedEventHandler {
 	@Autowired
 	private Provider<HttpServletRequest> currentRequest;
 
-	@Autowired
-	private TestItemRepository testItemRepository;
-
 	@EventListener
 	public void onApplicationEvent(LaunchFinishedEvent event) {
-		//TODO: analyzer handlers should be added according to existed logic.
+		//TODO: retries and analyzer handlers should be added according to existed logic.
 
 		Launch launch = launchRepository.findById(event.getLaunchActivityResource().getId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, event.getLaunchActivityResource().getId()));
 		if (LaunchModeEnum.DEBUG == launch.getMode()) {
 			return;
 		}
-
-		testItemRepository.handleRetriesStatistics(launch.getId());
-
 		Project project = projectRepository.findById(launch.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, launch.getProjectId()));
 		Integration emailIntegration = EmailIntegrationUtil.getEmailIntegration(project)
@@ -105,16 +97,6 @@ public class LaunchFinishedEventHandler {
 		Optional<EmailService> emailService = mailServiceFactory.getDefaultEmailService(emailIntegration);
 
 		emailService.ifPresent(it -> sendEmail(launch, project, it));
-
-	}
-
-	@EventListener
-	public void onApplicationEvent(LaunchFinishForcedEvent event) {
-
-		//TODO: analyzer handlers should be added according to existed logic.
-		Launch launch = launchRepository.findById(event.getLaunchActivityResource().getId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, event.getLaunchActivityResource().getId()));
-		testItemRepository.handleRetriesStatistics(launch.getId());
 
 	}
 
@@ -174,8 +156,7 @@ public class LaunchFinishedEventHandler {
 	@VisibleForTesting
 	static boolean isTagsMatched(Launch launch, List<String> tags) {
 		return !(null != tags && !tags.isEmpty()) || null != launch.getAttributes() && launch.getAttributes()
-				.stream()
-				.map(ItemAttribute::getValue)
+				.stream().map(ItemAttribute::getValue)
 				.collect(toList())
 				.containsAll(tags);
 	}

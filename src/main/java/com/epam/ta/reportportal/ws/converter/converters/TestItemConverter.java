@@ -18,13 +18,15 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.item.TestItemTag;
+import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Converts internal DB model to DTO
@@ -41,7 +43,10 @@ public final class TestItemConverter {
 		TestItemResource resource = new TestItemResource();
 		resource.setDescription(item.getDescription());
 		resource.setUniqueId(item.getUniqueId());
-		resource.setTags(item.getTags().stream().map(TestItemTag::getValue).collect(Collectors.toSet()));
+		resource.setAttributes(item.getAttributes()
+				.stream()
+				.map(it -> new ItemAttributeResource(it.getKey(), it.getValue(), it.isSystem()))
+				.collect(toSet()));
 		resource.setEndTime(EntityUtils.TO_DATE.apply(item.getItemResults().getEndTime()));
 		resource.setItemId(item.getItemId());
 		if (null != item.getParameters()) {

@@ -18,12 +18,13 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.launch.LaunchTag;
+import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.base.Preconditions;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -51,7 +52,7 @@ public final class LaunchConverter {
 		resource.setStatus(db.getStatus() == null ? null : db.getStatus().toString());
 		resource.setStartTime(db.getStartTime() == null ? null : EntityUtils.TO_DATE.apply(db.getStartTime()));
 		resource.setEndTime(db.getEndTime() == null ? null : EntityUtils.TO_DATE.apply(db.getEndTime()));
-		resource.setTags(getTags(db));
+		resource.setAttributes(getAttributes(db));
 		resource.setMode(db.getMode() == null ? null : Mode.valueOf(db.getMode().name()));
 		resource.setOwner(db.getUser().getLogin());
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
@@ -66,7 +67,9 @@ public final class LaunchConverter {
 		return resource;
 	};
 
-	private static Set<String> getTags(Launch launch) {
-		return Optional.ofNullable(launch.getTags()).map(tags -> tags.stream().map(LaunchTag::getValue).collect(toSet())).orElse(null);
+	private static Set<ItemAttributeResource> getAttributes(Launch launch) {
+		return Optional.ofNullable(launch.getAttributes())
+				.map(tags -> tags.stream().map(it -> new ItemAttributeResource(it.getKey(), it.getValue(), it.isSystem())).collect(toSet()))
+				.orElse(Collections.emptySet());
 	}
 }

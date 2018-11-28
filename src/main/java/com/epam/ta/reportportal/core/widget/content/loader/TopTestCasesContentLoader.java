@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import com.epam.ta.reportportal.entity.widget.content.CriteraHistoryItem;
+import com.epam.ta.reportportal.entity.widget.content.CriteriaHistoryItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -72,11 +72,12 @@ public class TopTestCasesContentLoader implements LoadContentStrategy {
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 		Launch latestByName = launchRepository.findLatestByNameAndFilter(WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions),
 				filter
-		)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND,
+		).orElseThrow(() -> new ReportPortalException(
+				ErrorType.LAUNCH_NOT_FOUND,
 						WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions)
 				));
-		List<CriteraHistoryItem> content = widgetContentRepository.topItemsByCriteria(filter,
+		List<CriteriaHistoryItem> content = widgetContentRepository.topItemsByCriteria(
+				filter,
 				contentField, limit, BooleanUtils.toBoolean(WidgetOptionUtil.getValueByKey(INCLUDE_METHODS, widgetOptions))
 		);
 		return ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, LaunchConverter.TO_RESOURCE.apply(latestByName))

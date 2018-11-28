@@ -19,8 +19,8 @@ package com.epam.ta.reportportal.core.item.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.item.GetTestItemHandler;
+import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.dao.TestItemTagRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -48,15 +48,15 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	private final TestItemRepository testItemRepository;
 
-	private final TestItemTagRepository testItemTagRepository;
+	private final ItemAttributeRepository itemAttributeRepository;
 
 	private final TestItemResourceAssembler itemResourceAssembler;
 
 	@Autowired
-	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, TestItemTagRepository testItemTagRepository,
+	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
 			TestItemResourceAssembler itemResourceAssembler) {
 		this.testItemRepository = testItemRepository;
-		this.testItemTagRepository = testItemTagRepository;
+		this.itemAttributeRepository = itemAttributeRepository;
 		this.itemResourceAssembler = itemResourceAssembler;
 	}
 
@@ -75,8 +75,15 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	}
 
 	@Override
-	public List<String> getTags(Long launchId, String value, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		return testItemTagRepository.findDistinctByLaunchIdAndValue(launchId, value);
+	public List<String> getAttributeKeys(Long launchId, String value, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
+		return itemAttributeRepository.findKeysByLaunchIdAndValue(launchId, value);
+	}
+
+	@Override
+	public List<String> getAttributeValues(Long launchId, String value, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
+		return itemAttributeRepository.findValuesByLaunchIdAndValue(launchId, value);
 	}
 
 	@Override

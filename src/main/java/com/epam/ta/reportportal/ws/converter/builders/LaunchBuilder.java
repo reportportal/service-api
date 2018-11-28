@@ -17,13 +17,14 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.launch.LaunchTag;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.base.Preconditions;
@@ -57,7 +58,7 @@ public class LaunchBuilder implements Supplier<Launch> {
 		launch.setStatus(StatusEnum.IN_PROGRESS);
 		launch.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
 		addDescription(request.getDescription());
-		addTags(request.getTags());
+		addAttributes(request.getAttributes());
 		ofNullable(request.getMode()).ifPresent(it -> launch.setMode(LaunchModeEnum.valueOf(request.getMode().name())));
 		return this;
 	}
@@ -79,28 +80,26 @@ public class LaunchBuilder implements Supplier<Launch> {
 		return this;
 	}
 
-	public LaunchBuilder addTag(String tag) {
-		Preconditions.checkNotNull(tag, "Provided value should not be null");
-		Set<LaunchTag> newTags = Sets.newHashSet(launch.getTags());
-		LaunchTag launchTag = new LaunchTag();
-		launchTag.setValue(tag);
-		launchTag.setLaunch(launch);
-		newTags.add(launchTag);
-		launch.setTags(newTags);
+	public LaunchBuilder addAttribute(ItemAttributeResource attributeResource) {
+		Set<ItemAttribute> newTags = Sets.newHashSet(launch.getAttributes());
+		ItemAttribute itemAttribute = new ItemAttribute();
+		itemAttribute.setKey(attributeResource.getKey());
+		itemAttribute.setValue(attributeResource.getValue());
+		itemAttribute.setSystem(attributeResource.isSystem());
+		itemAttribute.setLaunch(launch);
+		launch.setAttributes(newTags);
 		return this;
 	}
 
-	public LaunchBuilder addTags(Set<String> tags) {
-		ofNullable(tags).ifPresent(it -> launch.setTags(it.stream()
-				.filter(EntityUtils.NOT_EMPTY)
-				.map(EntityUtils.REPLACE_SEPARATOR)
-				.map(val -> {
-					LaunchTag tag = new LaunchTag();
-					tag.setValue(val);
-					tag.setLaunch(launch);
-					return tag;
-				})
-				.collect(Collectors.toSet())));
+	public LaunchBuilder addAttributes(Set<ItemAttributeResource> attributes) {
+		ofNullable(attributes).ifPresent(it -> launch.setAttributes(it.stream().map(val -> {
+			ItemAttribute itemAttribute = new ItemAttribute();
+			itemAttribute.setValue(val.getValue());
+			itemAttribute.setKey(val.getKey());
+			itemAttribute.setSystem(val.isSystem());
+			itemAttribute.setLaunch(launch);
+			return itemAttribute;
+		}).collect(Collectors.toSet())));
 		return this;
 	}
 

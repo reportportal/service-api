@@ -167,12 +167,21 @@ public class TestItemController {
 	}
 
 	@Transactional(readOnly = true)
-	@GetMapping("/tags")
+	@GetMapping("/attribute/keys")
 	@ResponseStatus(OK)
-	@ApiOperation("Get all unique tags of specified launch")
-	public List<String> getAllTags(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@RequestParam(value = "launch") Long id, @RequestParam(value = "filter." + "cnt." + "tags") String value) {
-		return getTestItemHandler.getTags(id, value, extractProjectDetails(user, projectName), user);
+	@ApiOperation("Get all unique attribute keys of specified launch")
+	public List<String> getAttributeKeys(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestParam(value = "launch") Long id, @RequestParam(value = "filter." + "cnt." + "attributeKey") String value) {
+		return getTestItemHandler.getAttributeKeys(id, value, extractProjectDetails(user, projectName), user);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/attribute/values")
+	@ResponseStatus(OK)
+	@ApiOperation("Get all unique attribute values of specified launch")
+	public List<String> getAttributeValues(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestParam(value = "launch") Long id, @RequestParam(value = "filter." + "cnt." + "attributeValue") String value) {
+		return getTestItemHandler.getAttributeValues(id, value, extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional

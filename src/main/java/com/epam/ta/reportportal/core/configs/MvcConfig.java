@@ -179,11 +179,12 @@ public class MvcConfig implements WebMvcConfigurer {
 	@Bean
 	@Order(0)
 	public MultipartFilter multipartFilter() {
-		return new MultipartFilter();
+		MultipartFilter multipartFilter = new MultipartFilter();
+		multipartFilter.setMultipartResolverBeanName(DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME);
+		return multipartFilter;
 	}
 
 	@Bean(name = DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME)
-	@Order(1)
 	public CommonsMultipartResolver multipartResolver(MultipartConfig multipartConfig) {
 		CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver() {
 			@Override

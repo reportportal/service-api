@@ -34,7 +34,6 @@ import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
 import com.epam.ta.reportportal.ws.model.project.*;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
-import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
@@ -271,7 +270,7 @@ public class ProjectController {
 	@GetMapping("/{projectName}/widget/{widgetCode}")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiIgnore
-	public Map<String, List<ChartObject>> getProjectWidget(@PathVariable String projectName,
+	public Map<String, ?> getProjectWidget(@PathVariable String projectName,
 			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval, @PathVariable String widgetCode,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return projectInfoHandler.getProjectInfoWidgetContent(ProjectExtractor.extractProjectDetails(user, projectName),

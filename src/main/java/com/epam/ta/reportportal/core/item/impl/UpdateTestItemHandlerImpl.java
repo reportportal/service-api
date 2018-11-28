@@ -62,6 +62,7 @@ import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
@@ -167,6 +168,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		TestItem testItem = testItemRepository.findById(itemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
 
+		validateAttributes(rq.getAttributes());
+
 		Optional<StatusEnum> statusEnum = StatusEnum.fromValue(rq.getStatus());
 
 		if (statusEnum.isPresent()) {
@@ -175,7 +178,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		}
 
 		validate(projectDetails, user, testItem);
-		testItem = new TestItemBuilder(testItem).addTags(rq.getTags()).addDescription(rq.getDescription()).get();
+		testItem = new TestItemBuilder(testItem).addTags(rq.getAttributes()).addDescription(rq.getDescription()).get();
 		testItemRepository.save(testItem);
 		return new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated.");
 	}

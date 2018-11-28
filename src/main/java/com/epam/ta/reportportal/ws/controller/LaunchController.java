@@ -37,6 +37,7 @@ import io.swagger.annotations.ApiParam;
 import net.sf.jasperreports.engine.JasperPrint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
@@ -216,12 +217,22 @@ public class LaunchController {
 	}
 
 	@Transactional(readOnly = true)
-	@GetMapping(value = "/tags")
+	@GetMapping(value = "/attribute/keys")
 	@ResponseStatus(OK)
-	@ApiOperation("Get all unique tags of project launches")
-	public List<String> getAllTags(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "tags") String value,
+	@ApiOperation("Get all unique attribute keys of project launches")
+	public List<String> getAttributeKeys(@PathVariable String projectName,
+			@RequestParam(value = "filter." + "cnt." + "attributeKey") String value,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getTags(extractProjectDetails(user, normalizeId(projectName)), value);
+		return getLaunchMessageHandler.getAttributeKeys(extractProjectDetails(user, normalizeId(projectName)), value);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping(value = "/attribute/values")
+	@ResponseStatus(OK)
+	@ApiOperation("Get all unique attribute values of project launches")
+	public List<String> getAttributeValues(@PathVariable String projectName,
+			@RequestParam(value = "filter." + "cnt." + "attributeValue") String value, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getAttributeValues(extractProjectDetails(user, normalizeId(projectName)), value);
 	}
 
 	@Transactional(readOnly = true)
@@ -305,7 +316,7 @@ public class LaunchController {
 		return deleteLaunchMessageHandler.deleteLaunches(ids, extractProjectDetails(user, normalizeId(projectName)), user);
 	}
 
-	@PostMapping(value = "/import")
+	@PostMapping(value = "/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	@ResponseStatus(OK)
 	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip.")
 	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file,

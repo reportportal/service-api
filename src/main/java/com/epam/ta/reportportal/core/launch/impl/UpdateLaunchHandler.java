@@ -35,6 +35,7 @@ import java.util.Objects;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
 import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
@@ -80,7 +81,11 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
 		validate(launch, user, projectDetails, rq.getMode());
-		launch = new LaunchBuilder(launch).addMode(rq.getMode()).addDescription(rq.getDescription()).addTags(rq.getTags()).get();
+		validateAttributes(rq.getAttributes());
+		launch = new LaunchBuilder(launch).addMode(rq.getMode())
+				.addDescription(rq.getDescription())
+				.addAttributes(rq.getAttributes())
+				.get();
 		//reindexLogs(launch);
 		launchRepository.save(launch);
 		return new OperationCompletionRS("Launch with ID = '" + launch.getId() + "' successfully updated.");

@@ -17,10 +17,11 @@
 package com.epam.ta.reportportal.demodata;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.BufferedReader;
@@ -55,10 +56,17 @@ final class ContentUtils {
 		//static only
 	}
 
-	static Set<String> getTagsInRange(int limit) {
-		List<String> content = readToList("demo/content/tags.txt");
+	static Set<ItemAttributeResource> getAttributesInRange(int limit) {
+		List<Pair<String, String>> content = readAttributes("demo/content/tags.txt");
 		int fromIndex = random.nextInt(content.size() - limit);
-		return ImmutableSet.<String>builder().addAll(content.subList(fromIndex, fromIndex + limit)).build();
+		return content.subList(fromIndex, fromIndex + limit).stream().map(it -> {
+			if (it.getValue().isEmpty()) {
+				return new ItemAttributeResource(it.getKey(), null);
+			} else {
+				return new ItemAttributeResource(it.getKey(), it.getValue());
+			}
+		}).collect(Collectors.toSet());
+
 	}
 
 	static String getSuiteDescription() {
@@ -143,6 +151,22 @@ final class ContentUtils {
 		List<String> content;
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ClassPathResource(resource).getInputStream(), UTF_8))) {
 			content = reader.lines().collect(Collectors.toList());
+		} catch (IOException e) {
+			throw new ReportPortalException("Missing demo content.", e);
+		}
+		return content;
+	}
+
+	private static List<Pair<String, String>> readAttributes(String resource) {
+		List<Pair<String, String>> content;
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ClassPathResource(resource).getInputStream(), UTF_8))) {
+			content = reader.lines().map(it -> {
+				if (it.contains(":")) {
+					return Pair.of(it.split(":")[0], it.split(":")[1]);
+				} else {
+					return Pair.of(it, "");
+				}
+			}).collect(Collectors.toList());
 		} catch (IOException e) {
 			throw new ReportPortalException("Missing demo content.", e);
 		}

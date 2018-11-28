@@ -28,5 +28,5 @@ public class Constants {
 	static final String NAME = "Demo Api Tests";
 	static final int STORY_PROBABILITY = 30;
 	static final int CONTENT_PROBABILITY = 60;
-	static final int TAGS_COUNT = 3;
+	static final int ATTRIBUTES_COUNT = 3;
 }

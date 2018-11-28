@@ -57,7 +57,7 @@ public class EmailService extends JavaMailSenderImpl {
 
 	private static final String FINISH_LAUNCH_EMAIL_SUBJECT = " Report Portal Notification: launch '%s' #%s finished";
 	private static final String URL_FORMAT = "%s/launches/all";
-	private static final String FILTER_TAG_FORMAT = "%s?filter.has.tags=%s";
+	private static final String FILTER_TAG_FORMAT = "%s?filter.has.key=%s&filter.has.value=%s";
 	private static final String EMAIL_TEMPLATE_PREFIX = "templates/email/";
 	private TemplateEngine templateEngine;
 
@@ -128,13 +128,15 @@ public class EmailService extends JavaMailSenderImpl {
 		email.put("url", format("%s/%s", basicUrl, launch.getId()));
 
 		/* Tags with links */
-		if (!CollectionUtils.isEmpty(launch.getTags())) {
-			email.put("tags",
-					launch.getTags()
-							.stream()
-							.collect(toMap(tag -> tag,
-									tag -> format(FILTER_TAG_FORMAT, basicUrl, urlPathSegmentEscaper().escape(tag.getValue()))
-							))
+		if (!CollectionUtils.isEmpty(launch.getAttributes())) {
+			email.put(
+					"attributes",
+					launch.getAttributes().stream().collect(toMap(tag -> tag.getKey().concat(":").concat(tag.getValue()), tag -> format(
+							FILTER_TAG_FORMAT,
+							basicUrl,
+							urlPathSegmentEscaper().escape(tag.getKey()),
+							urlPathSegmentEscaper().escape(tag.getValue())
+					)))
 			);
 		}
 

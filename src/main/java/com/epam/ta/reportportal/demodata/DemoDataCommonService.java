@@ -71,9 +71,8 @@ public class DemoDataCommonService {
 		rq.setDescription(ContentUtils.getLaunchDescription());
 		rq.setName(name);
 		rq.setStartTime(new Date());
-		Set<ItemAttributeResource> tags = Sets.newHashSet(
-				new ItemAttributeResource("desktop", null),
-				new ItemAttributeResource("demo", null),
+		Set<ItemAttributeResource> tags = Sets.newHashSet(new ItemAttributeResource("platform", "desktop"),
+				new ItemAttributeResource(null, "demo"),
 				new ItemAttributeResource("build", "3.0.1")
 		);
 		rq.setAttributes(tags);

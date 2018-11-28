@@ -99,7 +99,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		);
 
 		testItem = new TestItemBuilder(testItem).addDescription(finishExecutionRQ.getDescription())
-				.addTags(finishExecutionRQ.getAttributes())
+				.addAttributes(finishExecutionRQ.getAttributes())
 				.addTestItemResults(testItemResults)
 				.get();
 

@@ -217,12 +217,22 @@ public class LaunchController {
 	}
 
 	@Transactional(readOnly = true)
-	@GetMapping(value = "/tags")
+	@GetMapping(value = "/attribute/keys")
 	@ResponseStatus(OK)
-	@ApiOperation("Get all unique tags of project launches")
-	public List<String> getAllTags(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "tags") String value,
+	@ApiOperation("Get all unique attribute keys of project launches")
+	public List<String> getAttributeKeys(@PathVariable String projectName,
+			@RequestParam(value = "filter." + "cnt." + "attributeKey") String value,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getTags(extractProjectDetails(user, normalizeId(projectName)), value);
+		return getLaunchMessageHandler.getAttributeKeys(extractProjectDetails(user, normalizeId(projectName)), value);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping(value = "/attribute/values")
+	@ResponseStatus(OK)
+	@ApiOperation("Get all unique attribute values of project launches")
+	public List<String> getAttributeValues(@PathVariable String projectName,
+			@RequestParam(value = "filter." + "cnt." + "attributeValue") String value, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getAttributeValues(extractProjectDetails(user, normalizeId(projectName)), value);
 	}
 
 	@Transactional(readOnly = true)

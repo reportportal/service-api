@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -137,6 +138,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				launch.getStartTime(),
 				launch.getId()
 		);
+
+		validateAttributes(rq.getAttributes());
 	}
 
 	/**
@@ -160,5 +163,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		expect(logRepository.hasLogs(parent.getItemId()), equalTo(false)).verify(START_ITEM_NOT_ALLOWED,
 				formattedSupplier("Parent Item '{}' already has log items", parent.getItemId())
 		);
+
+		validateAttributes(rq.getAttributes());
 	}
 }

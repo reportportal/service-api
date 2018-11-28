@@ -72,11 +72,12 @@ public class TopTestCasesContentLoader implements LoadContentStrategy {
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 		Launch latestByName = launchRepository.findLatestByNameAndFilter(WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions),
 				filter
-		)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND,
+		).orElseThrow(() -> new ReportPortalException(
+				ErrorType.LAUNCH_NOT_FOUND,
 						WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions)
 				));
-		List<CriteriaHistoryItem> content = widgetContentRepository.topItemsByCriteria(filter,
+		List<CriteriaHistoryItem> content = widgetContentRepository.topItemsByCriteria(
+				filter,
 				contentField, limit, BooleanUtils.toBoolean(WidgetOptionUtil.getValueByKey(INCLUDE_METHODS, widgetOptions))
 		);
 		return ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, LaunchConverter.TO_RESOURCE.apply(latestByName))

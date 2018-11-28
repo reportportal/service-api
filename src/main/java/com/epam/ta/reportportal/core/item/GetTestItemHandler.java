@@ -54,13 +54,22 @@ public interface GetTestItemHandler {
 			ReportPortalUser user);
 
 	/**
-	 * Get specified tags
+	 * Get specified attribute keys
 	 *
 	 * @param launchId {@link com.epam.ta.reportportal.entity.launch.Launch#id}
-	 * @param value    part of the {@link com.epam.ta.reportportal.entity.item.TestItemTag#value} to search
-	 * @return {@link List} of the {@link com.epam.ta.reportportal.entity.item.TestItemTag#value}
+	 * @param value    part of the {@link com.epam.ta.reportportal.entity.ItemAttribute#key} to search
+	 * @return {@link List} of the {@link com.epam.ta.reportportal.entity.ItemAttribute#key}
 	 */
-	List<String> getTags(Long launchId, String value, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	List<String> getAttributeKeys(Long launchId, String value, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+
+	/**
+	 * Get specified attribute values
+	 *
+	 * @param launchId {@link com.epam.ta.reportportal.entity.launch.Launch#id}
+	 * @param value    part of the {@link com.epam.ta.reportportal.entity.ItemAttribute#value} to search
+	 * @return {@link List} of the {@link com.epam.ta.reportportal.entity.ItemAttribute#value}
+	 */
+	List<String> getAttributeValues(Long launchId, String value, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
 	 * @param ids array of the {@link com.epam.ta.reportportal.entity.launch.Launch#id}

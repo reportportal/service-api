@@ -1,6 +1,6 @@
 api
-ios
-android
+os:ios
+os:android
 flaky
 most failed
 longest

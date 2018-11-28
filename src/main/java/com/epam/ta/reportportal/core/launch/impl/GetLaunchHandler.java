@@ -22,8 +22,8 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
+import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.LaunchTagRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -41,6 +41,7 @@ import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -78,14 +79,15 @@ import static java.util.Optional.ofNullable;
 public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements com.epam.ta.reportportal.core.launch.GetLaunchHandler {
 
 	private final LaunchRepository launchRepository;
-	private final LaunchTagRepository launchTagRepository;
+	private final ItemAttributeRepository itemAttributeRepository;
 	private final ProjectRepository projectRepository;
 	private final WidgetContentRepository widgetContentRepository;
 
-	public GetLaunchHandler(LaunchRepository launchRepository, LaunchTagRepository launchTagRepository, ProjectRepository projectRepository,
-			WidgetContentRepository widgetContentRepository) {
+	@Autowired
+	public GetLaunchHandler(LaunchRepository launchRepository, ItemAttributeRepository itemAttributeRepository,
+			ProjectRepository projectRepository, WidgetContentRepository widgetContentRepository) {
 		this.launchRepository = launchRepository;
-		this.launchTagRepository = launchTagRepository;
+		this.itemAttributeRepository = itemAttributeRepository;
 		this.projectRepository = projectRepository;
 		this.widgetContentRepository = widgetContentRepository;
 	}
@@ -135,6 +137,16 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	}
 
 	@Override
+	public List<String> getAttributeKeys(ReportPortalUser.ProjectDetails projectDetails, String value) {
+		return itemAttributeRepository.findKeysByProjectIdAndValue(projectDetails.getProjectId(), value);
+	}
+
+	@Override
+	public List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails, String value) {
+		return itemAttributeRepository.findValuesByProjectIdAndValue(projectDetails.getProjectId(), value);
+	}
+
+	@Override
 	public com.epam.ta.reportportal.ws.model.Page<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails,
 			Filter filter, Pageable pageable) {
 
@@ -147,11 +159,6 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 
 		Page<Launch> launches = launchRepository.findAllLatestByFilter(ProjectFilter.of(filter, project.getId()), pageable);
 		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
-	}
-
-	@Override
-	public List<String> getTags(ReportPortalUser.ProjectDetails projectDetails, String value) {
-		return launchTagRepository.getTags(projectDetails.getProjectId(), value);
 	}
 
 	@Override
@@ -244,12 +251,8 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	 */
 	private Filter addLaunchCommonCriteria(Mode mode, Filter filter, Long projectId) {
 
-		List<FilterCondition> filterConditions = Lists.newArrayList(new FilterCondition(
-						EQUALS,
-						false,
-						mode.toString(),
-						CRITERIA_LAUNCH_MODE
-				),
+		List<FilterCondition> filterConditions = Lists.newArrayList(
+				new FilterCondition(EQUALS, false, mode.toString(), CRITERIA_LAUNCH_MODE),
 				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID)
 		);
 

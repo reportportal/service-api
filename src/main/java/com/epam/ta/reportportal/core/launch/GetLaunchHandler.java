@@ -79,13 +79,22 @@ public interface GetLaunchHandler {
 	Iterable<LaunchResource> getDebugLaunches(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable);
 
 	/**
-	 * Get specified launch tags (auto-complete functionality)
+	 * Get specified launch attribute keys (auto-complete functionality)
 	 *
 	 * @param projectDetails Project Details
 	 * @param value          Tag prefix to be searched
 	 * @return List of found tags
 	 */
-	List<String> getTags(ReportPortalUser.ProjectDetails projectDetails, String value);
+	List<String> getAttributeKeys(ReportPortalUser.ProjectDetails projectDetails, String value);
+
+	/**
+	 * Get specified launch attribute values (auto-complete functionality)
+	 *
+	 * @param projectDetails Project Details
+	 * @param value          Tag prefix to be searched
+	 * @return List of found tags
+	 */
+	List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails, String value);
 
 	/**
 	 * Get launch names of specified project (auto-complete functionality)

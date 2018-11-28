@@ -43,6 +43,7 @@ import java.util.Set;
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.ta.reportportal.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -99,6 +100,8 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 		);
 
 		validateMergingLaunches(launchesList, user, projectDetails);
+
+		validateAttributes(rq.getAttributes());
 
 		MergeStrategyType type = MergeStrategyType.fromValue(rq.getMergeStrategyType());
 		expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);

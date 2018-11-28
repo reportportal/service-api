@@ -28,6 +28,7 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -83,7 +84,7 @@ public class FileStorageController {
 	}
 
 	@Transactional
-	@PostMapping(value = "/photo")
+	@PostMapping(value = "/photo", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	@ApiOperation("Upload user's photo")
 	public OperationCompletionRS uploadPhoto(@RequestParam("file") MultipartFile file, @AuthenticationPrincipal ReportPortalUser user) {
 		return editUserHandler.uploadPhoto(EntityUtils.normalizeId(user.getUsername()), file);

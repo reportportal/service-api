@@ -67,7 +67,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		testItemResults.setTestItem(testItem);
 
 		addDescription(rq.getDescription());
-		addTags(rq.getAttributes());
+		addAttributes(rq.getAttributes());
 		addParameters(rq.getParameters());
 		addType(rq.getType());
 		return this;
@@ -101,7 +101,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		return this;
 	}
 
-	public TestItemBuilder addTags(Set<ItemAttributeResource> tags) {
+	public TestItemBuilder addAttributes(Set<ItemAttributeResource> tags) {
 		ofNullable(tags).ifPresent(it -> testItem.setAttributes(it.stream().map(val -> {
 			ItemAttribute itemAttribute = new ItemAttribute();
 			itemAttribute.setKey(val.getKey());

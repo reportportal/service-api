@@ -136,13 +136,15 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 					IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, locator);
 					issueEntity = IssueConverter.TO_ISSUE.apply(providedIssue);
 					issueEntity.setIssueType(issueType);
+					issueEntity.setIssueId(testItem.getItemId());
+					testItemResults.setIssue(issueEntity);
 				}
 			} else {
 				IssueType toInvestigate = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, TO_INVESTIGATE.getLocator());
 				issueEntity.setIssueType(toInvestigate);
+				issueEntity.setIssueId(testItem.getItemId());
+				testItemResults.setIssue(issueEntity);
 			}
-			issueEntity.setIssueId(testItem.getItemId());
-			testItemResults.setIssue(issueEntity);
 		}
 		testItemResults.setEndTime(TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()));
 		return testItemResults;

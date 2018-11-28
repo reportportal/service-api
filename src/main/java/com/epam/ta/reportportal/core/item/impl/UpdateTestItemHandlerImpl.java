@@ -22,12 +22,13 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
+import com.epam.ta.reportportal.core.events.activity.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
-import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.dao.TicketRepository;
+import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
@@ -50,6 +51,7 @@ import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import org.apache.commons.collections.CollectionUtils;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -60,12 +62,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.*;
+import static com.epam.ta.reportportal.commons.Predicates.isPresent;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
+import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.lang.Boolean.FALSE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -79,38 +84,32 @@ import static java.util.stream.Collectors.toSet;
 @Service
 public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
-	private TestItemRepository testItemRepository;
+	private static final String SKIPPED_ISSUE_KEY = "skippedIssue";
 
-	private IntegrationRepository integrationRepository;
+	private final TestItemRepository testItemRepository;
 
-	private TicketRepository ticketRepository;
+	private final ItemAttributeRepository itemAttributeRepository;
 
-	private IssueTypeHandler issueTypeHandler;
+	private final IntegrationRepository integrationRepository;
 
-	private MessageBus messageBus;
+	private final TicketRepository ticketRepository;
+
+	private final IssueTypeHandler issueTypeHandler;
+
+	private final IssueEntityRepository issueEntityRepository;
+
+	private final MessageBus messageBus;
 
 	@Autowired
-	public void setTestItemRepository(TestItemRepository testItemRepository) {
+	public UpdateTestItemHandlerImpl(TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
+			IntegrationRepository integrationRepository, TicketRepository ticketRepository, IssueTypeHandler issueTypeHandler,
+			IssueEntityRepository issueEntityRepository, MessageBus messageBus) {
 		this.testItemRepository = testItemRepository;
-	}
-
-	@Autowired
-	public void setIssueTypeHandler(IssueTypeHandler issueTypeHandler) {
-		this.issueTypeHandler = issueTypeHandler;
-	}
-
-	@Autowired
-	public void setBugTrackingSystemRepository(IntegrationRepository integrationRepository) {
+		this.itemAttributeRepository = itemAttributeRepository;
 		this.integrationRepository = integrationRepository;
-	}
-
-	@Autowired
-	public void setTicketRepository(TicketRepository ticketRepository) {
 		this.ticketRepository = ticketRepository;
-	}
-
-	@Autowired
-	public void setMessageBus(MessageBus messageBus) {
+		this.issueTypeHandler = issueTypeHandler;
+		this.issueEntityRepository = issueEntityRepository;
 		this.messageBus = messageBus;
 	}
 
@@ -158,7 +157,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			}
 		});
 		expect(!errors.isEmpty(), equalTo(false)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
-		events.forEach(e -> messageBus.publishActivity(e));
+		events.forEach(messageBus::publishActivity);
 		return updated;
 	}
 
@@ -173,8 +172,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		Optional<StatusEnum> statusEnum = StatusEnum.fromValue(rq.getStatus());
 
 		if (statusEnum.isPresent()) {
-			testItem.getItemResults().setIssue(null);
-			testItem.getItemResults().setStatus(statusEnum.get());
+			changeStatus(testItem, statusEnum.get(), user, projectDetails);
 		}
 
 		validate(projectDetails, user, testItem);
@@ -351,6 +349,177 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						id
 				)
 		).verify();
+	}
+
+	private void changeStatus(TestItem testItem, StatusEnum providedStatus, ReportPortalUser user,
+			ReportPortalUser.ProjectDetails projectDetails) {
+		StatusEnum actualStatus = testItem.getItemResults().getStatus();
+		switch (actualStatus) {
+			case PASSED:
+				changeStatusFromPassed(testItem, providedStatus, user.getUserId(), projectDetails.getProjectId());
+				break;
+			case FAILED:
+				changeStatusFromFailed(testItem, providedStatus, user.getUserId(), projectDetails.getProjectId());
+				break;
+			case SKIPPED:
+				changeStatusFromSkipped(testItem, providedStatus, user.getUserId(), projectDetails.getProjectId());
+				break;
+			case INTERRUPTED:
+				changeStatusFromInterrupted(testItem, providedStatus, user.getUserId(), projectDetails.getProjectId());
+				break;
+			default:
+				throw new ReportPortalException(INCORRECT_REQUEST,
+						"actual status: " + actualStatus + " can not be changed to: " + providedStatus
+				);
+		}
+	}
+
+	private void changeStatusFromInterrupted(TestItem testItem, StatusEnum providedStatus, Long userId, Long projectId) {
+		expect(providedStatus, statusIn(SKIPPED, PASSED, FAILED)).verify(INCORRECT_REQUEST,
+				"actual status: " + testItem.getItemResults().getStatus() + " can not be changed to: " + providedStatus
+		);
+
+		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
+		testItem.getItemResults().setStatus(providedStatus);
+
+		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findSystemAttributeByLaunchIdAndValue(testItem.getLaunch()
+				.getId(), SKIPPED_ISSUE_KEY);
+
+		if (FAILED.equals(providedStatus) || (SKIPPED.equals(providedStatus) && skippedIssueAttribute.isPresent()
+				&& skippedIssueAttribute.get().getValue().equals("true"))) {
+			setToInvestigateIssue(testItem, projectId);
+		}
+
+		testItemRepository.save(testItem);
+		messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(testItem), userId));
+
+		if (PASSED.equals(providedStatus)) {
+			changeStatusRecursively(testItem, userId);
+		}
+	}
+
+	private void changeStatusFromPassed(TestItem testItem, StatusEnum providedStatus, Long userId, Long projectId) {
+		expect(providedStatus, statusIn(SKIPPED, FAILED)).verify(INCORRECT_REQUEST,
+				"actual status: " + testItem.getItemResults().getStatus() + " can not be changed to: " + providedStatus
+		);
+
+		StatusEnum oldParentStatus = testItem.getParent().getItemResults().getStatus();
+		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
+
+		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findSystemAttributeByLaunchIdAndValue(testItem.getLaunch()
+				.getId(), SKIPPED_ISSUE_KEY);
+
+		testItem.getItemResults().setStatus(providedStatus);
+		if (FAILED.equals(providedStatus) || (SKIPPED.equals(providedStatus) && skippedIssueAttribute.isPresent()
+				&& skippedIssueAttribute.get().getValue().equals("true"))) {
+			setToInvestigateIssue(testItem, projectId);
+		}
+
+		testItemRepository.save(testItem);
+		messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(testItem), userId));
+
+		changeParentsStatusesToFailed(testItem, oldParentStatus, userId);
+	}
+
+	private void changeStatusFromFailed(TestItem testItem, StatusEnum providedStatus, Long userId, Long projectId) {
+		expect(providedStatus, statusIn(SKIPPED, PASSED)).verify(INCORRECT_REQUEST,
+				"actual status: " + testItem.getItemResults().getStatus() + " can not be changed to: " + providedStatus
+		);
+
+		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
+		testItem.getItemResults().setStatus(providedStatus);
+
+		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findSystemAttributeByLaunchIdAndValue(testItem.getLaunch()
+				.getId(), SKIPPED_ISSUE_KEY);
+
+		if (SKIPPED.equals(providedStatus) && skippedIssueAttribute.isPresent() && skippedIssueAttribute.get().getValue().equals("true")) {
+			if (testItem.getItemResults().getIssue() == null) {
+				setToInvestigateIssue(testItem, projectId);
+			}
+		} else {
+			issueEntityRepository.delete(testItem.getItemResults().getIssue());
+			testItem.getItemResults().setIssue(null);
+		}
+
+		if (PASSED.equals(providedStatus)) {
+			issueEntityRepository.delete(testItem.getItemResults().getIssue());
+			testItem.getItemResults().setIssue(null);
+		}
+
+		testItemRepository.save(testItem);
+		messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(testItem), userId));
+
+		if (PASSED.equals(providedStatus)) {
+			changeStatusRecursively(testItem, userId);
+		}
+	}
+
+	private void changeStatusFromSkipped(TestItem testItem, StatusEnum providedStatus, Long userId, Long projectId) {
+		expect(providedStatus, statusIn(PASSED, FAILED)).verify(INCORRECT_REQUEST,
+				"actual status: " + testItem.getItemResults().getStatus() + " can not be changed to: " + providedStatus
+		);
+
+		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
+		testItem.getItemResults().setStatus(providedStatus);
+
+		if (PASSED.equals(providedStatus) && testItem.getItemResults().getIssue() != null) {
+			issueEntityRepository.delete(testItem.getItemResults().getIssue());
+			testItem.getItemResults().setIssue(null);
+		}
+		if (FAILED.equals(providedStatus) && testItem.getItemResults().getIssue() == null) {
+			setToInvestigateIssue(testItem, projectId);
+		}
+
+		testItemRepository.save(testItem);
+		messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(testItem), userId));
+
+		if (PASSED.equals(providedStatus)) {
+			changeStatusRecursively(testItem, userId);
+		}
+	}
+
+	private void setToInvestigateIssue(TestItem testItem, Long projectId) {
+		IssueEntity issueEntity = new IssueEntity();
+		IssueType toInvestigate = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, TO_INVESTIGATE.getLocator());
+		issueEntity.setIssueType(toInvestigate);
+		issueEntity.setIssueId(testItem.getItemId());
+
+		issueEntity.setTestItemResults(testItem.getItemResults());
+		testItem.getItemResults().setIssue(issueEntity);
+	}
+
+	private void changeStatusRecursively(TestItem testItem, Long userId) {
+		TestItem parent = testItem.getParent();
+		Hibernate.initialize(parent);
+		if (parent != null) {
+			TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent);
+			StatusEnum newStatus = testItemRepository.hasFailedStatusWithoutStepItem(parent.getItemId(), testItem.getItemId()) ?
+					StatusEnum.FAILED :
+					StatusEnum.PASSED;
+			if (!parent.getItemResults().getStatus().equals(newStatus)) {
+				parent.getItemResults().setStatus(newStatus);
+				testItemRepository.save(parent);
+				messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(parent), userId));
+				if (parent.getType().sameLevel(TestItemTypeEnum.SUITE)) {
+					testItem.getLaunch().setStatus(newStatus);
+				}
+				changeStatusRecursively(parent, userId);
+			}
+		}
+	}
+
+	private void changeParentsStatusesToFailed(TestItem testItem, StatusEnum oldParentStatus, Long userId) {
+		if (!oldParentStatus.equals(StatusEnum.FAILED)) {
+			TestItem parent = testItem.getParent();
+			TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent);
+			while (parent != null) {
+				parent.getItemResults().setStatus(StatusEnum.FAILED);
+				testItemRepository.save(parent);
+				messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(parent), userId));
+				parent = parent.getParent();
+			}
+			testItem.getLaunch().setStatus(StatusEnum.FAILED);
+		}
 	}
 
 }

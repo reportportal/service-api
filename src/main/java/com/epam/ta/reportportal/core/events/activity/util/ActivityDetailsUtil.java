@@ -46,6 +46,7 @@ public class ActivityDetailsUtil {
 	public static final String ITEMS_COUNT = "itemsCount";
 	public static final String CONTENT_FIELDS = "contentFields";
 	public static final String WIDGET_OPTIONS = "widgetOptions";
+	public static final String STATUS = "status";
 
 	public static Optional<HistoryField> processName(String oldName, String newName) {
 		if (!Strings.isNullOrEmpty(newName) && !oldName.equals(newName)) {

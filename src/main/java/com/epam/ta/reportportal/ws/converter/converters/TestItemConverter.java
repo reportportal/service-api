@@ -25,9 +25,8 @@ import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toSet;
-
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Converts internal DB model to DTO

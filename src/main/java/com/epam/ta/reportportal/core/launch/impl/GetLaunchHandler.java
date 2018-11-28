@@ -251,12 +251,8 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	 */
 	private Filter addLaunchCommonCriteria(Mode mode, Filter filter, Long projectId) {
 
-		List<FilterCondition> filterConditions = Lists.newArrayList(new FilterCondition(
-						EQUALS,
-						false,
-						mode.toString(),
-						CRITERIA_LAUNCH_MODE
-				),
+		List<FilterCondition> filterConditions = Lists.newArrayList(
+				new FilterCondition(EQUALS, false, mode.toString(), CRITERIA_LAUNCH_MODE),
 				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID)
 		);
 

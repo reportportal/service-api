@@ -24,20 +24,21 @@ import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
+import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.Date;
+import java.util.Set;
 
+import static com.epam.ta.reportportal.demodata.Constants.ATTRIBUTES_COUNT;
 import static com.epam.ta.reportportal.demodata.Constants.CONTENT_PROBABILITY;
-import static com.epam.ta.reportportal.demodata.Constants.TAGS_COUNT;
 import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.*;
 
 /**
@@ -70,7 +71,12 @@ public class DemoDataCommonService {
 		rq.setDescription(ContentUtils.getLaunchDescription());
 		rq.setName(name);
 		rq.setStartTime(new Date());
-		rq.setTags(ImmutableSet.<String>builder().addAll(Arrays.asList("desktop", "demo", "build:3.0.1." + (i + 1))).build());
+		Set<ItemAttributeResource> tags = Sets.newHashSet(
+				new ItemAttributeResource("desktop", null),
+				new ItemAttributeResource("demo", null),
+				new ItemAttributeResource("build", "3.0.1")
+		);
+		rq.setAttributes(tags);
 
 		return startLaunchHandler.startLaunch(user, projectDetails, rq).getId();
 	}
@@ -93,7 +99,7 @@ public class DemoDataCommonService {
 		rq.setStartTime(new Date());
 		rq.setType(type.name());
 		if (type.sameLevel(SUITE) && ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
-			rq.setTags(ContentUtils.getTagsInRange(TAGS_COUNT));
+			rq.setAttributes(ContentUtils.getAttributesInRange(ATTRIBUTES_COUNT));
 			rq.setDescription(ContentUtils.getSuiteDescription());
 		}
 
@@ -115,10 +121,10 @@ public class DemoDataCommonService {
 		StartTestItemRQ rq = new StartTestItemRQ();
 		if (ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
 			if (hasChildren(type)) {
-				rq.setTags(ContentUtils.getTagsInRange(TAGS_COUNT));
+				rq.setAttributes(ContentUtils.getAttributesInRange(ATTRIBUTES_COUNT));
 				rq.setDescription(ContentUtils.getTestDescription());
 			} else {
-				rq.setTags(ContentUtils.getTagsInRange(TAGS_COUNT));
+				rq.setAttributes(ContentUtils.getAttributesInRange(ATTRIBUTES_COUNT));
 				rq.setDescription(ContentUtils.getStepDescription());
 			}
 		}

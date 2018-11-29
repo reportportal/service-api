@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.FilterCreatedEvent;
 import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
@@ -37,9 +38,11 @@ import static com.epam.ta.reportportal.ws.converter.converters.UserFilterConvert
 @Service
 public class CreateUserFilterHandlerImpl implements ICreateUserFilterHandler {
 
-
 	@Autowired
 	private ReportPortalAclService aclService;
+
+	@Autowired
+	private UserRepository userRepository;
 
 	private final UserFilterRepository userFilterRepository;
 
@@ -56,8 +59,12 @@ public class CreateUserFilterHandlerImpl implements ICreateUserFilterHandler {
 			ReportPortalUser user) {
 		UserFilter filter = new UserFilterBuilder().addCreateRq(createFilterRQ).addProject(projectDetails.getProjectId()).get();
 		userFilterRepository.save(filter);
-        aclService.createAcl(filter);
-        aclService.addReadPermissions(filter, user.getUsername());
+
+		aclService.createAcl(filter);
+		aclService.addReadPermissions(filter, user.getUsername());
+		if (filter.isShared()) {
+			userRepository.findNamesByProject(projectDetails.getProjectId()).forEach(login -> aclService.addReadPermissions(filter, login));
+		}
 		messageBus.publishActivity(new FilterCreatedEvent(TO_ACTIVITY_RESOURCE.apply(filter), user.getUserId()));
 		return new EntryCreatedRS(filter.getId());
 	}

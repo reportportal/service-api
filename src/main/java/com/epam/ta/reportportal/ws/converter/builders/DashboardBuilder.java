@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -57,7 +57,7 @@ public class DashboardBuilder implements Supplier<Dashboard> {
 		Optional.ofNullable(rq.getName()).ifPresent(name -> dashboard.setName(name));
 		Optional.ofNullable(rq.getDescription()).ifPresent(description -> dashboard.setDescription(description));
 		Optional.ofNullable(rq.getWidgets()).ifPresent(widgets -> {
-			for (DashboardWidget dashboardWidget : dashboard.getDashboardWidgets()) {
+			for (DashboardWidget dashboardWidget : dashboard.getWidgets()) {
 				widgets.stream()
 						.filter(updWidget -> Objects.equals(dashboardWidget.getId().getWidgetId(), updWidget.getWidgetId()))
 						.forEach(updWidget -> {

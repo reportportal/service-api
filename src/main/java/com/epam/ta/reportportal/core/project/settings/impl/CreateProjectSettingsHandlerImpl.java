@@ -123,7 +123,7 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 
 		project.getProjectIssueTypes().add(new ProjectIssueType().withIssueType(subType).withProject(project));
 		projectRepository.save(project);
-		widgetRepository.findAllByProjectId(project.getId())
+		widgetRepository.findAllByProject(project.getId())
 				.stream()
 				.filter(widget -> widget.getContentFields()
 						.stream()

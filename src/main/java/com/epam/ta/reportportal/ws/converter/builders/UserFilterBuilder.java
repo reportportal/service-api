@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -55,15 +56,17 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 		userFilter.setName(rq.getName());
 		userFilter.setDescription(rq.getDescription());
 		userFilter.setTargetClass(ObjectType.getObjectTypeByName(rq.getObjectType()));
+		ofNullable(rq.getShare()).ifPresent(it -> userFilter.setShared(it));
 		addFilterConditions(rq.getEntities());
 		addSelectionParameters(rq.getOrders());
 		return this;
 	}
 
 	public UserFilterBuilder addUpdateFilterRQ(UpdateUserFilterRQ rq) {
-		userFilter.setName(rq.getName());
-		userFilter.setDescription(rq.getDescription());
-		userFilter.setTargetClass(ObjectType.getObjectTypeByName(rq.getObjectType()));
+		ofNullable(rq.getName()).ifPresent(it -> userFilter.setName(it));
+		ofNullable(rq.getDescription()).ifPresent(it -> userFilter.setDescription(it));
+		ofNullable(rq.getObjectType()).ifPresent(it -> userFilter.setTargetClass(ObjectType.getObjectTypeByName(rq.getObjectType())));
+		ofNullable(rq.getShare()).ifPresent(it -> userFilter.setShared(it));
 		addFilterConditions(rq.getEntities());
 		addSelectionParameters(rq.getOrders());
 		return this;

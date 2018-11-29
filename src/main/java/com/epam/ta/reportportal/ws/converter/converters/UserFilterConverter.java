@@ -79,6 +79,7 @@ public final class UserFilterConverter {
 		userFilterResource.setName(filter.getName());
 		userFilterResource.setDescription(filter.getDescription());
 		userFilterResource.setShare(filter.isShared());
+		userFilterResource.setOwner(filter.getSid());
 		ofNullable(filter.getTargetClass()).ifPresent(tc -> userFilterResource.setObjectType(tc.getClassObject().getSimpleName()));
 		ofNullable(filter.getFilterCondition()).ifPresent(fcs -> userFilterResource.setConditions(fcs.stream()
 				.map(UserFilterConverter.TO_FILTER_CONDITION)

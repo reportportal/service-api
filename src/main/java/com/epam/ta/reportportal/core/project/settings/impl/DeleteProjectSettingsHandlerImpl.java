@@ -86,8 +86,7 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 				.findFirst()
 				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, id));
 
-		expect(type.getIssueType().getLocator(), not(in(Sets.newHashSet(
-				AUTOMATION_BUG.getLocator(),
+		expect(type.getIssueType().getLocator(), not(in(Sets.newHashSet(AUTOMATION_BUG.getLocator(),
 				PRODUCT_BUG.getLocator(),
 				SYSTEM_ISSUE.getLocator(),
 				NO_DEFECT.getLocator(),
@@ -111,7 +110,7 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 		project.getProjectIssueTypes().remove(type);
 		projectRepository.save(project);
 
-		widgetRepository.findAllByProjectId(projectDetails.getProjectId())
+		widgetRepository.findAllByProject(projectDetails.getProjectId())
 				.stream()
 				.filter(widget -> LAUNCHES_TABLE.getType().equals(widget.getWidgetType()) || STATISTIC_TREND.getType()
 						.equals(widget.getWidgetType()))
@@ -120,8 +119,7 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 								+ "$" + type.getIssueType().getLocator()));
 		issueTypeRepository.delete(type.getIssueType());
 
-		messageBus.publishActivity(new DefectTypeDeletedEvent(
-				TO_ACTIVITY_RESOURCE.apply(type.getIssueType()),
+		messageBus.publishActivity(new DefectTypeDeletedEvent(TO_ACTIVITY_RESOURCE.apply(type.getIssueType()),
 				project.getId(),
 				user.getUserId()
 		));

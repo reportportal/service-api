@@ -106,7 +106,7 @@ public class UpdateDashboardHandler implements IUpdateDashboardHandler {
 
 		Widget widget = shareWidgetHandler.findById(widgetId);
 
-		boolean isRemoved = dashboard.getDashboardWidgets()
+		boolean isRemoved = dashboard.getWidgets()
 				.removeIf(dashboardWidget -> widget.getId().equals(dashboardWidget.getId().getWidgetId()));
 		expect(isRemoved, Predicate.isEqual(true)).verify(ErrorType.WIDGET_NOT_FOUND_IN_DASHBOARD, widgetId);
 

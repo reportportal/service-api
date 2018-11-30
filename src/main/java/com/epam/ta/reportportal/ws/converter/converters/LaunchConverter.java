@@ -25,10 +25,10 @@ import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.base.Preconditions;
 
 import java.util.Collections;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -54,7 +54,7 @@ public final class LaunchConverter {
 		resource.setEndTime(db.getEndTime() == null ? null : EntityUtils.TO_DATE.apply(db.getEndTime()));
 		resource.setAttributes(getAttributes(db));
 		resource.setMode(db.getMode() == null ? null : Mode.valueOf(db.getMode().name()));
-		resource.setOwner(db.getUser().getLogin());
+		ofNullable(db.getUser()).ifPresent(u -> resource.setOwner(u.getLogin()));
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
 		return resource;
 	};
@@ -68,8 +68,8 @@ public final class LaunchConverter {
 	};
 
 	private static Set<ItemAttributeResource> getAttributes(Launch launch) {
-		return Optional.ofNullable(launch.getAttributes())
-				.map(tags -> tags.stream().map(it -> new ItemAttributeResource(it.getKey(), it.getValue(), it.isSystem())).collect(toSet()))
-				.orElse(Collections.emptySet());
+		return ofNullable(launch.getAttributes()).map(tags -> tags.stream()
+				.map(it -> new ItemAttributeResource(it.getKey(), it.getValue(), it.isSystem()))
+				.collect(toSet())).orElse(Collections.emptySet());
 	}
 }

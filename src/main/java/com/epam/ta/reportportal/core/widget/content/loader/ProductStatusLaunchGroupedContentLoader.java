@@ -31,11 +31,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LATEST_OPTION;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.COMBINED_CONTENT_FIELDS_REGEX;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
@@ -51,17 +49,12 @@ public class ProductStatusLaunchGroupedContentLoader implements ProductStatusCon
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> fields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
+			int limit) {
 
 		validateFilterSortMapping(filterSortMapping);
 
-		List<String> tags = fields.stream()
-				.filter(f -> f.startsWith("tag"))
-				.map(field -> field.split("\\$")[1])
-				.collect(Collectors.toList());
-
-		List<String> contentFields = fields.stream().filter(f -> !f.startsWith("tag")).collect(Collectors.toList());
-
+		Map<String, String> tags = WidgetOptionUtil.getMapByKey(CUSTOMN_COLUMNS, widgetOptions);
 		validateContentFields(contentFields);
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());

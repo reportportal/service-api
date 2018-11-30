@@ -24,7 +24,6 @@ import org.junit.Test;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -68,7 +67,7 @@ public class WidgetOptionUtilTest {
 		WidgetOptions widgetOptions = new WidgetOptions(getMapWithNonStringValues());
 
 		//when
-		Map<String, List<String>> mapByKey = WidgetOptionUtil.getMapByKey(FIRST_KEY, widgetOptions);
+		Map<String, String> mapByKey = WidgetOptionUtil.getMapByKey(FIRST_KEY, widgetOptions);
 
 		//then
 		Assert.assertNotNull(mapByKey);
@@ -81,7 +80,7 @@ public class WidgetOptionUtilTest {
 		WidgetOptions widgetOptions = new WidgetOptions(getMapWithStringValues());
 
 		//when //then throw exception
-		Map<String, List<String>> mapByKey = WidgetOptionUtil.getMapByKey(FIRST_KEY, widgetOptions);
+		Map<String, String> mapByKey = WidgetOptionUtil.getMapByKey(FIRST_KEY, widgetOptions);
 	}
 
 	private Map<String, Object> getMapWithStringValues() {

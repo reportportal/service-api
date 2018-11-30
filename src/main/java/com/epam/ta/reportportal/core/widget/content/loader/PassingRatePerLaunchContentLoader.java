@@ -80,7 +80,7 @@ public class PassingRatePerLaunchContentLoader implements LoadContentStrategy {
 				NAME
 		));
 
-		PassingRateStatisticsResult content = widgetContentRepository.passingRateStatistics(filter, sort, limit);
+		PassingRateStatisticsResult content = widgetContentRepository.passingRatePerLaunchStatistics(filter, sort, limit);
 		return singletonMap(RESULT, content);
 	}
 

@@ -60,6 +60,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
@@ -353,6 +354,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private void changeStatus(TestItem testItem, StatusEnum providedStatus, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
+		expect(testItem.isHasChildren(), Predicate.isEqual(false)).verify(
+				BAD_REQUEST_ERROR,
+				"Unable to change status on test item with children"
+		);
 		StatusEnum actualStatus = testItem.getItemResults().getStatus();
 		switch (actualStatus) {
 			case PASSED:

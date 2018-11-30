@@ -15,7 +15,6 @@
  */
 package com.epam.ta.reportportal.auth.acl;
 
-import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.jdbc.JdbcMutableAclService;
@@ -23,6 +22,7 @@ import org.springframework.security.acls.jdbc.LookupStrategy;
 import org.springframework.security.acls.model.AccessControlEntry;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.security.acls.model.MutableAcl;
+import org.springframework.security.acls.model.Permission;
 
 import javax.sql.DataSource;
 import java.util.List;
@@ -70,17 +70,18 @@ public class ReportPortalAclService extends JdbcMutableAclService {
 	/**
 	 * Add read permissions to the object for the user.
 	 *
-	 * @param object   to add permission settings.
-	 * @param userName this user will be allowed to read the object.
+	 * @param object     to add permission settings.
+	 * @param userName   this user will be allowed to read the object.
+	 * @param permission permission
 	 * @return {@link MutableAcl}
 	 */
-	public Optional<MutableAcl> addReadPermissions(Object object, String userName) {
+	public Optional<MutableAcl> addPermissions(Object object, String userName, Permission permission) {
 		Optional<MutableAcl> acl = getAcl(object);
 		if (!acl.isPresent() || isAceExistForUser(acl.get(), userName)) {
 			return acl;
 		}
 		PrincipalSid sid = new PrincipalSid(userName);
-		acl.get().insertAce(0, BasePermission.READ, sid, true);
+		acl.get().insertAce(0, permission, sid, true);
 		updateAcl(acl.get());
 		return acl;
 	}
@@ -92,7 +93,7 @@ public class ReportPortalAclService extends JdbcMutableAclService {
 	 * @param userName this user will not be allowed to read the object.
 	 * @return {@link MutableAcl}
 	 */
-	public Optional<MutableAcl> removeReadPermissions(Object object, String userName) {
+	public Optional<MutableAcl> removePermissions(Object object, String userName) {
 		Optional<MutableAcl> acl = getAcl(object);
 		if (acl.isPresent() && isAceExistForUser(acl.get(), userName)) {
 			PrincipalSid sid = new PrincipalSid(userName);

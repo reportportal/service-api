@@ -40,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_READ_OBJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_ADMINISTRATE_OBJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_READ_OBJECT_FILTER;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 
@@ -59,7 +59,7 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 	}
 
 	@Override
-	@PostAuthorize(CAN_READ_OBJECT)
+	@PostAuthorize(CAN_ADMINISTRATE_OBJECT)
 	public UserFilter getFilter(Long filterId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		return filterRepository.findById(filterId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, filterId, user.getUsername()));
@@ -88,7 +88,7 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 	@Override
 	public Iterable<UserFilterResource> getSharedFilters(String projectName, Pageable pageable, Filter filter, ReportPortalUser user) {
 		ProjectDetails projectDetails = extractProjectDetails(user, projectName);
-		Page<UserFilter> filters = filterRepository.getOwn(ProjectFilter.of(filter, projectDetails.getProjectId()),
+		Page<UserFilter> filters = filterRepository.getShared(ProjectFilter.of(filter, projectDetails.getProjectId()),
 				pageable,
 				user.getUsername()
 		);

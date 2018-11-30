@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.stereotype.Service;
 
 import static com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter.TO_ACTIVITY_RESOURCE;
@@ -61,9 +62,10 @@ public class CreateUserFilterHandlerImpl implements ICreateUserFilterHandler {
 		userFilterRepository.save(filter);
 
 		aclService.createAcl(filter);
-		aclService.addReadPermissions(filter, user.getUsername());
+		aclService.addPermissions(filter, user.getUsername(), BasePermission.ADMINISTRATION);
 		if (filter.isShared()) {
-			userRepository.findNamesByProject(projectDetails.getProjectId()).forEach(login -> aclService.addReadPermissions(filter, login));
+			userRepository.findNamesByProject(projectDetails.getProjectId())
+					.forEach(login -> aclService.addPermissions(filter, login, BasePermission.READ));
 		}
 		messageBus.publishActivity(new FilterCreatedEvent(TO_ACTIVITY_RESOURCE.apply(filter), user.getUserId()));
 		return new EntryCreatedRS(filter.getId());

@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
 import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -63,7 +64,6 @@ public class UpdateUserFilterHandlerImpl implements IUpdateUserFilterHandler {
 	@Override
 	public OperationCompletionRS updateUserFilter(Long userFilterId, UpdateUserFilterRQ updateRQ,
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-
 		UserFilter userFilter = getFilterHandler.getFilter(userFilterId, projectDetails, user);
 		UserFilterActivityResource before = TO_ACTIVITY_RESOURCE.apply(userFilter);
 		UserFilter updated = new UserFilterBuilder(userFilter).addUpdateFilterRQ(updateRQ).get();
@@ -71,10 +71,9 @@ public class UpdateUserFilterHandlerImpl implements IUpdateUserFilterHandler {
 		if (before.isShared() != updated.isShared()) {
 			if (updated.isShared()) {
 				userRepository.findNamesByProject(projectDetails.getProjectId())
-						.forEach(login -> acl.addReadPermissions(userFilter, login));
+						.forEach(login -> acl.addPermissions(userFilter, login, BasePermission.READ));
 			} else {
-				userRepository.findNamesByProject(projectDetails.getProjectId())
-						.forEach(login -> acl.removeReadPermissions(userFilter, login));
+				userRepository.findNamesByProject(projectDetails.getProjectId()).forEach(login -> acl.removePermissions(userFilter, login));
 			}
 		}
 

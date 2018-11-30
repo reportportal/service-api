@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -82,7 +83,7 @@ public class CreateWidgetHandlerImpl implements ICreateWidgetHandler {
 				.get();
 		widgetRepository.save(widget);
 		aclService.createAcl(widget);
-		aclService.addReadPermissions(widget, user.getUsername());
+		aclService.addPermissions(widget, user.getUsername(), BasePermission.ADMINISTRATION);
 		messageBus.publishActivity(new WidgetCreatedEvent(TO_ACTIVITY_RESOURCE.apply(widget), user.getUserId()));
 		return new EntryCreatedRS(widget.getId());
 	}

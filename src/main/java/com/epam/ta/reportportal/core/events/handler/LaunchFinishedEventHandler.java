@@ -39,9 +39,9 @@ import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.inject.Provider;
@@ -81,7 +81,7 @@ public class LaunchFinishedEventHandler {
 	@Autowired
 	private Provider<HttpServletRequest> currentRequest;
 
-	@EventListener
+	@TransactionalEventListener
 	public void onApplicationEvent(LaunchFinishedEvent event) {
 		//TODO: retries and analyzer handlers should be added according to existed logic.
 

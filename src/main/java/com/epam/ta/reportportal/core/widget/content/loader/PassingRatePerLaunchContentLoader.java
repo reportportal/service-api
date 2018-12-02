@@ -38,11 +38,11 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LAUNCH_NAME_FIELD;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
-import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.NAME;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -77,7 +77,7 @@ public class PassingRatePerLaunchContentLoader implements LoadContentStrategy {
 				launchRepository.findLatestByNameAndFilter(launchName, filter)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName))
 						.getName(),
-				NAME
+				CRITERIA_LAUNCH_ID
 		));
 
 		PassingRateStatisticsResult content = widgetContentRepository.passingRatePerLaunchStatistics(filter, sort, limit);

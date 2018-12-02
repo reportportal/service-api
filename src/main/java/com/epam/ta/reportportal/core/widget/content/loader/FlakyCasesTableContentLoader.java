@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.content.loader.util.FilterUtils;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
@@ -41,9 +42,9 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
-import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.NAME;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -69,10 +70,10 @@ public class FlakyCasesTableContentLoader implements LoadContentStrategy {
 
 		String launchName = WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions);
 
-		Launch launch = launchRepository.findLatestByNameAndFilter(launchName, filter)
+		Launch launch = launchRepository.findLatestByFilter(FilterUtils.buildLatestLaunchFilter(filter, launchName))
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName));
 
-		filter.withCondition(new FilterCondition(Condition.EQUALS, false, launch.getName(), NAME));
+		filter.withCondition(new FilterCondition(Condition.EQUALS, false, String.valueOf(launch.getId()), CRITERIA_ID));
 
 		LatestLaunchContent latestLaunchContent = new LatestLaunchContent(launch);
 

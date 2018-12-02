@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.content.loader.util.FilterUtils;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
@@ -38,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LAUNCH_NAME_FIELD;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
@@ -74,10 +75,10 @@ public class PassingRatePerLaunchContentLoader implements LoadContentStrategy {
 		filter.withCondition(new FilterCondition(
 				Condition.EQUALS,
 				false,
-				launchRepository.findLatestByNameAndFilter(launchName, filter)
+				String.valueOf(launchRepository.findLatestByFilter(FilterUtils.buildLatestLaunchFilter(filter, launchName))
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName))
-						.getName(),
-				CRITERIA_LAUNCH_ID
+						.getId()),
+				CRITERIA_ID
 		));
 
 		PassingRateStatisticsResult content = widgetContentRepository.passingRatePerLaunchStatistics(filter, sort, limit);

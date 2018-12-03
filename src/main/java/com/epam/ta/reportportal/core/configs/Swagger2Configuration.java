@@ -183,7 +183,7 @@ public class Swagger2Configuration {
 							.name("page.sort")
 							.modelRef(stringModel)
 							.allowMultiple(true)
-							.description("Sorting criteria in the format: property(,asc|desc). " + "Default sort order is ascending. "
+							.description("Sorting criteria in the format: property, (asc|desc). " + "Default sort order is ascending. "
 									+ "Multiple sort criteria are supported.")
 							.build());
 					context.operationBuilder().parameters(parameters);

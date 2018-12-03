@@ -47,7 +47,6 @@ import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
-import com.google.common.base.Strings;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +55,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-import static com.epam.ta.reportportal.commons.Preconditions.IS_PRESENT;
 import static com.epam.ta.reportportal.commons.Preconditions.contains;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -197,19 +195,13 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Project and user has UPSA type!");
 			}
 			ProjectUser projectUser = new ProjectUser();
-			if (!Strings.isNullOrEmpty(role)) {
-				Optional<ProjectRole> projectRole = ProjectRole.forName(role);
-				expect(projectRole, IS_PRESENT).verify(ROLE_NOT_FOUND, role);
-
-				if (!UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
-					ProjectRole modifierRole = projectDetails.getProjectRole();
-					expect(modifierRole.sameOrHigherThan(projectRole.get()), BooleanUtils::isTrue).verify(ACCESS_DENIED);
-					projectUser.setProjectRole(projectRole.get());
-				} else {
-					projectUser.setProjectRole(projectRole.get());
-				}
+			ProjectRole projectRole = ProjectRole.forName(role).orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, role));
+			if (!UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
+				ProjectRole modifierRole = projectDetails.getProjectRole();
+				expect(modifierRole.sameOrHigherThan(projectRole), BooleanUtils::isTrue).verify(ACCESS_DENIED);
+				projectUser.setProjectRole(projectRole);
 			} else {
-				projectUser.setProjectRole(ProjectRole.MEMBER);
+				projectUser.setProjectRole(projectRole);
 			}
 			projectUser.setUser(modifyingUser);
 			projectUser.setProject(project);

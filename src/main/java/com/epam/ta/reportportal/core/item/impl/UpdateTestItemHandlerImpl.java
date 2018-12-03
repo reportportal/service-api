@@ -387,8 +387,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
 		testItem.getItemResults().setStatus(providedStatus);
 
-		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findSystemAttributeByLaunchIdAndValue(testItem.getLaunch()
-				.getId(), SKIPPED_ISSUE_KEY);
+		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findAttributeByLaunchIdAndValue(testItem.getLaunch()
+				.getId(), SKIPPED_ISSUE_KEY, true);
 
 		if (FAILED.equals(providedStatus) || (SKIPPED.equals(providedStatus) && skippedIssueAttribute.isPresent()
 				&& skippedIssueAttribute.get().getValue().equals("true"))) {
@@ -411,8 +411,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		StatusEnum oldParentStatus = testItem.getParent().getItemResults().getStatus();
 		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
 
-		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findSystemAttributeByLaunchIdAndValue(testItem.getLaunch()
-				.getId(), SKIPPED_ISSUE_KEY);
+		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findAttributeByLaunchIdAndValue(testItem.getLaunch()
+				.getId(), SKIPPED_ISSUE_KEY, true);
 
 		testItem.getItemResults().setStatus(providedStatus);
 		if (FAILED.equals(providedStatus) || (SKIPPED.equals(providedStatus) && skippedIssueAttribute.isPresent()
@@ -434,8 +434,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
 		testItem.getItemResults().setStatus(providedStatus);
 
-		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findSystemAttributeByLaunchIdAndValue(testItem.getLaunch()
-				.getId(), SKIPPED_ISSUE_KEY);
+		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findAttributeByLaunchIdAndValue(testItem.getLaunch()
+				.getId(), SKIPPED_ISSUE_KEY, true);
 
 		if (SKIPPED.equals(providedStatus) && skippedIssueAttribute.isPresent() && skippedIssueAttribute.get().getValue().equals("true")) {
 			if (testItem.getItemResults().getIssue() == null) {
@@ -498,9 +498,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		Hibernate.initialize(parent);
 		if (parent != null) {
 			TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent);
-			StatusEnum newStatus = testItemRepository.hasFailedStatusWithoutStepItem(parent.getItemId(), testItem.getItemId()) ?
-					StatusEnum.FAILED :
-					StatusEnum.PASSED;
+			StatusEnum newStatus = testItemRepository.hasStatusNotEqualsWithoutStepItem(parent.getItemId(),
+					testItem.getItemId(),
+					StatusEnum.PASSED
+			) ? StatusEnum.FAILED : StatusEnum.PASSED;
 			if (!parent.getItemResults().getStatus().equals(newStatus)) {
 				parent.getItemResults().setStatus(newStatus);
 				testItemRepository.save(parent);

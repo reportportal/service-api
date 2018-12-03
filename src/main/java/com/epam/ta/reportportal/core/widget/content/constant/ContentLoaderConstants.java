@@ -30,7 +30,8 @@ public final class ContentLoaderConstants {
 	public static final String ITEM_TYPE = "type";
 	public static final String INCLUDE_METHODS = "includeMethods";
 	public static final String FLAKY = "flaky";
-	public static final String CUSTOMN_COLUMNS = "customColumns";
+	public static final String CUSTOM_COLUMNS = "customColumns";
+	public static final String TIMELINE = "timeline";
 
 	private ContentLoaderConstants() {
 		//static only

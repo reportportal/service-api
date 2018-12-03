@@ -51,7 +51,7 @@ public class ProductStatusFilterGroupedContentLoader implements ProductStatusCon
 
 		validateFilterSortMapping(filterSortMapping);
 
-		Map<String, String> tags = WidgetOptionUtil.getMapByKey(CUSTOMN_COLUMNS, widgetOptions);
+		Map<String, String> tags = WidgetOptionUtil.getMapByKey(CUSTOM_COLUMNS, widgetOptions);
 
 		validateContentFields(contentFields);
 

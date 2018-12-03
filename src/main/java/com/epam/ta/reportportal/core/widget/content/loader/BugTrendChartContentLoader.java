@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.util.ContentFieldMatcherUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
+import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -61,7 +61,7 @@ public class BugTrendChartContentLoader implements LoadContentStrategy {
 
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		List<LaunchesStatisticsContent> result = widgetContentRepository.bugTrendStatistics(filter, contentFields, sort, limit);
+		List<ChartStatisticsContent> result = widgetContentRepository.bugTrendStatistics(filter, contentFields, sort, limit);
 		return singletonMap(RESULT, result);
 	}
 

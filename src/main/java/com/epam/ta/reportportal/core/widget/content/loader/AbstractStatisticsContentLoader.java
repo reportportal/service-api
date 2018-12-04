@@ -89,7 +89,7 @@ public abstract class AbstractStatisticsContentLoader {
 					.map(v -> v.getValues().entrySet())
 					.flatMap(Collection::stream)
 					.collect(Collectors.toMap(Map.Entry::getKey,
-							Map.Entry::getValue,
+							entry -> ofNullable(entry.getValue()).orElse("0"),
 							(prev, curr) -> prev = String.valueOf(Double.valueOf(prev) + Double.valueOf(curr))
 					));
 

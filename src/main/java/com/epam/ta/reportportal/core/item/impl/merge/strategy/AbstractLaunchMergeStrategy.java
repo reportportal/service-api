@@ -39,6 +39,7 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -113,6 +114,8 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 				.addUser(userId)
 				.addEndTime(endTime)
 				.get();
+
+		launch.setAttributes(launches.stream().map(Launch::getAttributes).flatMap(Set::stream).collect(Collectors.toSet()));
 		launchRepository.save(launch);
 		launchRepository.refresh(launch);
 		return launch;
